@@ -2,8 +2,9 @@ import ROOT as r
 
 doLog1D=True
 doMetFit=False
-doScaleByAreaRatherThanXs=True
+doScaleByAreaRatherThanXs=False
 doColzFor2D=True
+xsNorm=100 #pb^-1
 
 def setupStyle() :
     r.gROOT.SetStyle("Plain")
@@ -39,8 +40,8 @@ def scale1DHistos(histoList,xsList,nEventsList) :
             integralThis=histo.Integral(0,histo.GetNbinsX()+1)
             histo.Scale(integral0/integralThis)
         else :
-            histo.Scale(xsList[iHisto]/nEventsList[iHisto])
-            newYTitle=histo.GetYaxis().GetTitle()+" / pb^{-1}"
+            histo.Scale(xsNorm*xsList[iHisto]/nEventsList[iHisto])
+            newYTitle=histo.GetYaxis().GetTitle()+" / "+str(xsNorm)+" pb^{-1}"
             histo.GetYaxis().SetTitle(newYTitle)
             #print histo.Integral()
 
