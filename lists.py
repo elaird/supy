@@ -4,6 +4,7 @@ from stepsJet import *
 from stepsTrigger import *
 from stepsJetAlgoComparison import *
 from stepsPrint import *
+from stepsIcf import *
 
 def buildListDictionary() :
     d={}
@@ -13,6 +14,8 @@ def buildListDictionary() :
     addListJetAlgoComparison(d)
     addListMetGroupCleanupLook(d)
     addListMetDistLook(d)
+    addListRA1_DiJet(d)
+    addListRA1_NJet(d)
     return d
 
 def removeStepsForMc(inSteps) :
@@ -341,3 +344,95 @@ def addListJetAlgoComparison(d) :
 
     d["jetAlgoComparison_data"]=steps
     d["jetAlgoComparison_mc"]=removeStepsForMc(steps)
+
+def addListRA1_DiJet(d) :
+    jetPtThreshold=50.0
+    nCleanJets=2
+    jetEtaMax=3.0
+
+    muonPtThreshold=10.0
+    elecPtThreshold=10.0
+    photPtThreshold=25.0
+    
+    steps=[
+        progressPrinter(2,300),
+
+        icfJetPtSelector(jetPtThreshold,0),#leading corrected jet
+        icfJetPtSelector(jetPtThreshold,1),#next corrected jet
+        icfJetPtVetoer(jetPtThreshold,2),#next corrected jet
+
+        #icfMuonPtVetoer(muonPtThreshold,0),
+        #icfElecPtVetoer(elecPtThreshold,0),
+        #icfPhotPtVetoer(photPtThreshold,0),
+
+        icfCleanJetProducer(jetPtThreshold,jetEtaMax),
+        icfNCleanJetHistogrammer(),
+
+        icfNCleanJetEventFilter(nCleanJets),
+        icfNOtherJetEventFilter(1),
+        
+        icfCleanJetHtMhtProducer(),
+        extraVariableGreaterFilter(250.0,"ht"),
+        icfCleanDiJetAlphaProducer(),
+        icfCleanNJetAlphaProducer(),
+        icfDeltaPhiProducer(),
+        
+        icfCleanJetPtHistogrammer(),
+        icfCleanJetHtMhtHistogrammer(),
+        icfAlphaHistogrammer(),
+        icfDeltaPhiHistogrammer(),
+        
+        #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
+        #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
+        ]
+
+    d["RA1_DiJet_Steps_data"]=steps
+    d["RA1_DiJet_Steps_mc"]=removeStepsForMc(steps)
+
+def addListRA1_NJet(d) :
+    jetPtLeadingThreshold=100.0
+    jetPtThreshold=50.0
+    nCleanJets=2
+    jetEtaMax=3.0
+
+    muonPtThreshold=10.0
+    elecPtThreshold=10.0
+    photPtThreshold=25.0
+    
+    steps=[
+        progressPrinter(2,300),
+
+        icfJetPtSelector(jetPtLeadingThreshold,0),#leading corrected jet
+        icfJetPtSelector(jetPtLeadingThreshold,1),#next corrected jet
+        icfJetEtaSelector(2.0,0),#leading corrected jet
+        
+        #icfMuonPtVetoer(muonPtThreshold,0),
+        #icfElecPtVetoer(elecPtThreshold,0),
+        #icfPhotPtVetoer(photPtThreshold,0),
+
+        icfCleanJetProducer(jetPtThreshold,jetEtaMax),
+        icfNCleanJetHistogrammer(),
+
+        icfNCleanJetEventFilter(nCleanJets),
+        icfNOtherJetEventFilter(1),
+        
+        icfCleanJetHtMhtProducer(),
+        extraVariableGreaterFilter(350.0,"ht"),
+        icfCleanDiJetAlphaProducer(),
+        icfCleanNJetAlphaProducer(),
+        icfDeltaPhiProducer(),
+
+        icfMhtAllProducer(30.0),
+        icfMhtRatioSelector(1.25),
+        
+        icfCleanJetPtHistogrammer(),
+        icfCleanJetHtMhtHistogrammer(),
+        icfAlphaHistogrammer(),
+        icfDeltaPhiHistogrammer(),
+        
+        #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
+        #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
+        ]
+
+    d["RA1_NJet_Steps_data"]=steps
+    d["RA1_NJet_Steps_mc"]=removeStepsForMc(steps)
