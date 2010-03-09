@@ -15,7 +15,22 @@ def buildSampleDictionary() :
     add_example_skimmed_900_GeV_Data(d)
     add_example_skimmed_900_GeV_MC(d)
 
+    add_icfV7Ntuples(d)
+    
     return d
+
+def add_icfV7Ntuples(d) :
+    baseDir="/data0/elaird/icfNtuple/nt7/"
+    d["LM0"         ]=[baseDir+"LM0_229_PATV5_NT7.root"              ]
+    d["LM1"         ]=[baseDir+"LM1_229_PATV5_NT7.root"              ]
+    d["MG_QCD_bin1" ]=[baseDir+"QCD_MG_HT100to250_229_PATV5_NT7.root"]
+    d["MG_QCD_bin2" ]=[baseDir+"MadQCD250to500_NT7.root"             ]
+    d["MG_QCD_bin3" ]=[baseDir+"MadQCD500to1000_NT7.root"            ]
+    d["MG_QCD_bin4" ]=[baseDir+"MadQCD1000toInf_NT7.root"            ]
+    d["MG_TT_jets"  ]=[baseDir+"TTJets_madgraph_NT7.root"            ]
+    d["MG_Z_jets"   ]=[baseDir+"ZJetsMG_229_PATV5_NT7.root"          ]
+    d["MG_W_jets"   ]=[baseDir+"WJetsMG_229_PATV5_NT7.root"          ]
+    d["MG_Z_inv"    ]=[baseDir+"ZtoInvMG_229_PATV5_NT7.root"         ]
 
 def add_2009_Data_v7(d) :
     inputFiles=[]
