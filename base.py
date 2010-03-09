@@ -145,6 +145,9 @@ class analysisLooper :
         for step in self.steps :
             step.bookHistos()
             step.needToReadData=False
+            step.selectNotImplemented=not hasattr(step,"select")
+            step.uponAcceptanceImplemented=hasattr(step,"uponAcceptance")
+            step.uponRejectionImplemented=hasattr(step,"uponRejection")
             if (len(step.finalBranchNameList)>0) :
                 step.needToReadData=True
             if (step.__doc__==step.skimmerStepName) :
@@ -224,13 +227,22 @@ class analysisStep :
         self.nTotal+=1
         if (self.needToReadData) :
             self.readData(chain,extraVars.localEntry)
-        if (self.select(chain,chainVars,extraVars)) :
-            self.uponAcceptance(chain,chainVars,extraVars)
+
+        if (self.selectNotImplemented) :
             self.nPass+=1
+            if (self.uponAcceptanceImplemented) :
+                self.uponAcceptance(chain,chainVars,extraVars)
+            return True
+
+        if (self.select(chain,chainVars,extraVars)) :
+            self.nPass+=1
+            if (self.uponAcceptanceImplemented) :
+                self.uponAcceptance(chain,chainVars,extraVars)
             return True
         else :
-            self.uponRejection(chain,chainVars,extraVars)
             self.nFail+=1
+            if (self.uponRejectionImplemented) :
+                self.uponRejection(chain,chainVars,extraVars)
             return False
 
     def name(self) :
@@ -261,9 +273,6 @@ class analysisStep :
             self.finalBranches.append(chain.GetBranch(branchName))
             
     def bookHistos(self) : return
-    def select(self,chain,chainVars,extraVars) : return True
-    def uponAcceptance(self,chain,chainVars,extraVars) : return
-    def uponRejection(self,chain,chainVars,extraVars) : return
 #####################################
 class eventVariableContainer :
     """holds the values of variables that are not in the tree"""

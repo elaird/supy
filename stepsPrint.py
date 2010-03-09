@@ -14,14 +14,13 @@ class progressPrinter(analysisStep) :
         self.moreName+=str(self.cut)+")"
         self.neededBranches=[]
 
-    def select (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,chain,chainVars,extraVars) :
         if (self.nTotal==self.num) :
             self.num=self.factor*self.num
             toPrint="event "+str(self.nTotal).rjust(self.integerWidth," ")
             toPrint=toPrint.ljust(self.docWidth+self.moreWidth+1)+time.ctime()
             if (self.num==self.factor or self.num>self.cut) :
                 print toPrint
-        return True
 #####################################
 class eventPrinter(analysisStep) :
     """eventPrinter"""

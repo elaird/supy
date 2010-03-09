@@ -225,7 +225,7 @@ class icfMhtAllProducer(analysisStep) :
         self.neededBranches=["Njets","Jetpt",
                              "Jetpx","Jetpy","Jetpz","JetE"]
 
-    def select (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,chain,chainVars,extraVars) :
         Jetpx =chain.Jetpx
         Jetpy =chain.Jetpy
         Jetpz =chain.Jetpz
@@ -243,7 +243,6 @@ class icfMhtAllProducer(analysisStep) :
             self.mhtAll-=self.dummyP4
         
         setattr(extraVars,"mhtAll",self.mhtAll)
-        return True
 #####################################
 class icfMhtRatioSelector(analysisStep) :
     """icfMhtRatioSelector"""
@@ -308,19 +307,19 @@ class icfCleanNJetAlphaProducer(analysisStep) :
     def __init__(self):
         self.neededBranches=[]
 
-    def select (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,chain,chainVars,extraVars) :
         nJetDeltaHt=0.0
         nJetAlphaT=0.0
 
         #return if fewer than two clean jets
         if (len(extraVars.cleanJetIndices)<2) :
             self.setExtraVars(extraVars,nJetDeltaHt,nJetAlphaT)
-            return True
+            return
 
         #return if HT is tiny
         if (extraVars.ht<=1.0e-2) :
             self.setExtraVars(extraVars,nJetDeltaHt,nJetAlphaT)
-            return True
+            return
         
         pTs=[]
         totalPt=0.0
@@ -346,7 +345,6 @@ class icfCleanNJetAlphaProducer(analysisStep) :
         nJetAlphaT=0.5*(1.0-nJetDeltaHt/ht)/r.TMath.sqrt(1.0-(mht/ht)**2)
 
         self.setExtraVars(extraVars,nJetDeltaHt,nJetAlphaT)
-        return True
 
     def setExtraVars(self,extraVars,nJetDeltaHt,nJetAlphaT) :
         extraVars.nJetDeltaHt=nJetDeltaHt
