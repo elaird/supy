@@ -10,6 +10,8 @@ name="triggerSkim"
 #name="jetKineLook"
 #name="deltaPhiLook"
 #name="metGroupCleanupLook"
+#name="RA1_DiJet"
+#name="RA1_NJet"
 
 #choose the output directory
 outputDir="~"
@@ -29,7 +31,8 @@ def loopOverSamples() :
 
         if ("multi" in sys.argv) :
             from multiprocessing import Pool
-            pool=Pool(processes=4)
+            #pool=Pool(processes=4)
+            pool=Pool(processes=len(looperList))
             pool.map(goFunc,looperList)
         else :
             map(goFunc,looperList)
