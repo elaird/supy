@@ -12,6 +12,7 @@ class progressPrinter(analysisStep) :
         self.moreName="("
         self.moreName+=str(self.factor)+","
         self.moreName+=str(self.cut)+")"
+        self.neededBranches=[]
 
     def select (self,chain,chainVars,extraVars) :
         if (self.nTotal==self.num) :
@@ -26,7 +27,7 @@ class eventPrinter(analysisStep) :
     """eventPrinter"""
 
     def __init__(self) :
-        self.neededBranches=["run","event","orbit","bx"]
+        self.neededBranches=["run","event","lumiSection","bx"]
         self.nHyphens=56
 
     def uponAcceptance(self,chain,chainVars,extraVars) :
@@ -34,7 +35,7 @@ class eventPrinter(analysisStep) :
         print "".ljust(self.nHyphens,"-")
         outString ="run %7d"%chain.run
         outString+="; event %10d"%chain.event
-        outString+="; ls %#5.1f"%(1+(chain.orbit+0.0)/2**20)
+        outString+="; ls %#5d"%chain.lumiSection
         outString+="; bx %4d"%chain.bx
         print outString
 #####################################
@@ -49,6 +50,8 @@ class jetPrinter(analysisStep) :
         self.moreName+="; "
         self.moreName+=self.jetSuffix
         self.moreName+=")"
+
+        self.neededBranches=[]
         self.neededBranches.append(self.jetCollection+'CorrectedP4'     +self.jetSuffix)
         self.neededBranches.append(self.jetCollection+'CorrFactor'      +self.jetSuffix)
         self.neededBranches.append(self.jetCollection+'EmEnergyFraction'+self.jetSuffix)
@@ -69,8 +72,8 @@ class jetPrinter(analysisStep) :
             jet=p4Vector[iJet]
 
             outString=" "
-            if (otherJetIndices.count(iJet)>0) : outString="-"
-            if (cleanJetIndices.count(iJet)>0) : outString="*"
+            if (iJet in otherJetIndices) : outString="-"
+            if (iJet in cleanJetIndices) : outString="*"
             
             outString+=" j%2d"                %iJet
             outString+="; pT %#6.1f GeV"      %jet.pt()

@@ -56,13 +56,13 @@ class skimmer(analysisStep) :
 
         #set up remaining suitable branches as doubles
         for branchName in branchNameList :
-            if (skipList.count(branchName)>0) : continue
+            if (branchName in skipList) : continue
 
             thisType=type(getattr(extraVars,branchName))
-            if (self.supportedBuiltInTypes.count(thisType)>0) :
+            if (thisType in self.supportedBuiltInTypes) :
                 self.arrayDictionary[branchName]=array.array('d',[0.0])
                 self.outputTreeExtra.Branch(branchName,self.arrayDictionary[branchName],branchName+"/D")
-            elif (self.supportedOtherTypes.count(thisType)>0) :
+            elif (thisType in self.supportedOtherTypes) :
                 self.outputTreeExtra.Branch(branchName,getattr(extraVars,branchName))                
             else :
                 #print "The variable \""+branchName+"\" has been rejected from the extra tree."
@@ -175,8 +175,7 @@ class runNumberFilter(analysisStep) :
         
     def select (self,chain,chainVars,extraVars) :
         thisRun=chain.run
-        thisRunInList=self.runList.count(thisRun)>0
-        return not (thisRunInList ^ self.accept)
+        return not ((thisRun in self.runList) ^ self.accept)
 
 #####################################
 class goodRunsOnly2009(analysisStep) :

@@ -5,8 +5,11 @@ import base,analyses,plotter
 #choose the analysis
 name="triggerSkim"
 #name="jetAlgoComparison"
+#name="metDistLook"
 #name="example"
 #name="jetKineLook"
+#name="deltaPhiLook"
+#name="metGroupCleanupLook"
 
 #choose the output directory
 outputDir="~"
@@ -16,21 +19,31 @@ base.globalSetup()
 sampleSpecDict=analyses.buildAnalysisDictionary()
 sampleSpecs=sampleSpecDict[name]
 
+def goFunc(x) :
+    x.go()
+    
 def loopOverSamples() :
-    for sample in sampleSpecs :
-        looper=base.analysisLooper(sample,outputDir)
-        looper.go()
+        looperList=[]
+        for sample in sampleSpecs :
+            looperList.append(base.analysisLooper(sample,outputDir))
+
+        if ("multi" in sys.argv) :
+            from multiprocessing import Pool
+            pool=Pool(processes=4)
+            pool.map(goFunc,looperList)
+        else :
+            map(goFunc,looperList)
 
 #loop over samples and make TFiles containing histograms
-if (sys.argv.count("loop")>0 and sys.argv.count("prof")==0) :
+if ("loop" in sys.argv and not "prof" in sys.argv) :
     loopOverSamples()
 
 #profile the code
-if (sys.argv.count("prof")>0) :
+if ("prof" in sys.argv and not "multi" in sys.argv) :
     import cProfile
     cProfile.run("loopOverSamples()","resultProfile.out")
 
 #make plots from the output histograms
-if (sys.argv.count("plot")>0) :
+if ("plot" in sys.argv) :
     plotter.plotAll(name,sampleSpecs,outputDir)
 

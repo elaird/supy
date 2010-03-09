@@ -6,18 +6,20 @@ def globalSetup() :
     r.gROOT.ProcessLine(".L SusyCAFpragmas.h+")
     r.TH1.SetDefaultSumw2(True)
 #####################################
-fileDirectory="susyTree"
-treeName="tree"
-#####################################
 class sampleSpecification :
     """name, data sample, cuts"""
 
-    def __init__(self,dict,name,nEvents,outputPrefix,steps):
+    def __init__(self,dict,name,nEvents,outputPrefix,steps,xs=1.0):
         self.name=name
         self.nEvents=nEvents
         self.inputFiles=dict[name]
         self.outputPlotFileName=outputPrefix+"_"+self.name+"_plots.root"
         self.steps=copy.deepcopy(steps)
+        self.xs=xs
+
+        self.fileDirectory="susyTree"
+        self.treeName="tree"
+        self.useSetBranchAddress=True
 #####################################
 class analysisLooper :
     """class to set up and loop over events"""
@@ -25,16 +27,13 @@ class analysisLooper :
     def __init__(self,sample,outDir):
         self.hyphens="".ljust(95,"-")
 
-        self.nEvents=sample.nEvents
-        self.name=sample.name
-
+        #copy some stuff
+        stuffToCopy=["nEvents","name","steps","inputFiles","xs","fileDirectory","treeName","useSetBranchAddress"]
+        for item in stuffToCopy :
+            setattr(self,item,getattr(sample,item))
+            
         self.outputPlotFileName=outDir+"/"+sample.outputPlotFileName
-        self.steps=sample.steps
-
-        self.inputChainEntries=0
         self.inputChain=r.TChain("chain")
-        self.setupChain(sample.inputFiles)
-
         self.currentTreeNumber=-1
 
         self.chainVariableContainer=eventVariableContainer()
@@ -51,7 +50,7 @@ class analysisLooper :
                 
             step.finalBranchNameList=[]
             for branchName in step.neededBranches :
-                if (self.allReadBranchNames.count(branchName)==0) :
+                if (not branchName in self.allReadBranchNames) :
                     step.finalBranchNameList.append(branchName)
                     self.allReadBranchNames.append(branchName)
 
@@ -61,8 +60,8 @@ class analysisLooper :
 
     def setBranchAddresses(self) :
         showDebug=False
-        builtInExamples=[   0,  0L, 0.0]
-        arrayStrings   =[ "i", "l", "d"]
+        builtInExamples=[   0,  0L, 0.0, False]
+        #arrayStrings   =[ "i", "l", "d"]
         builtInTypes   =[]
         for example in builtInExamples :
             builtInTypes.append(type(example))
@@ -73,8 +72,9 @@ class analysisLooper :
             branchType=type(getattr(self.inputChain,branchName))
             if (showDebug) :
                 print branchName,getattr(self.inputChain,branchName),branchType
-            if (builtInTypes.count(branchType)>0) :
-                index=builtInTypes.index(branchType)
+            if (branchType in builtInTypes or not self.useSetBranchAddress) :
+                index=0
+                #index=builtInTypes.index(branchType)
 
                 #not yet perfect
                 #setattr(self.chainVariableContainer,branchName,array.array(arrayStrings[index],[builtInExamples[index]]))
@@ -99,6 +99,7 @@ class analysisLooper :
             print branchName,type(getattr(self.inputChain,branchName))
             
     def go (self) :
+        self.setupChain(self.inputFiles)
         self.makeFinalBranchNameLists()
         self.setupSteps()
         #self.showBranches()
@@ -119,7 +120,7 @@ class analysisLooper :
         print outString+":"
 
         for infile in inputFiles :
-            self.inputChain.Add(infile+"/"+fileDirectory+"/"+treeName)
+            self.inputChain.Add(infile+"/"+self.fileDirectory+"/"+self.treeName)
 
             if (inputFiles.index(infile)<2 or inputFiles.index(infile)>(nFiles-3) ) :
                 print infile
@@ -127,11 +128,13 @@ class analysisLooper :
                 print "..."
                 alreadyPrintedEllipsis=True
 
-        self.inputChainEntries=self.inputChain.GetEntries()
         outString="contain"
         if (nFiles==1) : outString+="s"
 
-        print outString,self.inputChainEntries,"events."
+        outString+=" "+str(self.inputChain.GetEntries())
+        outString+=" events."
+        outString+=" (xs=%6.4g"%self.xs+" pb)"
+        print outString
         print self.hyphens
         r.gROOT.cd()
 
@@ -145,7 +148,7 @@ class analysisLooper :
             if (len(step.finalBranchNameList)>0) :
                 step.needToReadData=True
             if (step.__doc__==step.skimmerStepName) :
-                step.setup(self.inputChain,fileDirectory,self.name)
+                step.setup(self.inputChain,self.fileDirectory,self.name)
 
     def setupBranchLists(self) :
         for step in self.steps :
@@ -172,7 +175,7 @@ class analysisLooper :
             extraVars.localEntry=localEntry
             extraVars.entry=entry
             self.lookForChangeOfTree(chain)
-            
+                
             for step in self.steps :
                 if (not step.go(chain,chainVars,extraVars)) : break
                 
@@ -214,7 +217,6 @@ class analysisStep :
     moreWidth=40
     moreName=""
     moreName2=""
-    neededBranches=[]
     skimmerStepName="skimmer"
 
     def go (self,chain,chainVars,extraVars) :

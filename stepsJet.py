@@ -46,18 +46,16 @@ class jetPtVetoer(analysisStep) :
 class cleanJetIndexProducer(analysisStep) :
     """cleanJetIndexProducer"""
 
-    def __init__(self,jetCollection,jetSuffix,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax,useFlag):
+    def __init__(self,jetCollection,jetSuffix,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax):
         self.corrFactorThreshold=1.0e-2
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
         self.jetPtThreshold=jetPtThreshold
         self.corrRatherThanUnCorr=corrRatherThanUnCorr
         self.jetEtaMax=jetEtaMax
-        self.useFlag=useFlag
         
         self.moreName="("+self.jetCollection+"; "+self.jetSuffix
         self.moreName+="; jetID; "
-        if (self.useFlag): self.moreName+=" (flag); "
 
         self.moreName2=" "
         if (self.corrRatherThanUnCorr) :
@@ -69,79 +67,89 @@ class cleanJetIndexProducer(analysisStep) :
         self.moreName2+="; |eta|<="+str(self.jetEtaMax)
         self.moreName2+=")"
         
-        self.neededBranches=[
-            "CorrectedP4",
-            "CorrFactor",
-            ]
-        if (self.useFlag):
-            self.neededBranches.append("JetIDloose")
-        else :
-            self.neededBranches.append("EmEnergyFraction")
-            self.neededBranches.append("JetIDN90Hits")
-            self.neededBranches.append("JetIDFHPD")
-            #self.neededBranches.append("JetIDFRBX")
-            #self.neededBranches.append("Eta2Moment")
-            #self.neededBranches.append("Phi2Moment")
+        self.neededBranches=["CorrectedP4"]
+        if (not self.corrRatherThanUnCorr) :
+            self.neededBranches.append("CorrFactor")
+
+        #self.neededBranches.append("JetIDloose")
+        self.neededBranches.append("EmEnergyFraction")
+        self.neededBranches.append("JetIDN90Hits")
+        self.neededBranches.append("JetIDFHPD")
+        #self.neededBranches.append("JetIDFRBX")
+        #self.neededBranches.append("Eta2Moment")
+        #self.neededBranches.append("Phi2Moment")
         for i in range(len(self.neededBranches)) :
             self.neededBranches[i]=self.jetCollection+self.neededBranches[i]+self.jetSuffix
 
-    def bookHistos(self) :
-        nBins=15
-        title=";number of jets passing ID with "
-        corrString="corrected"
-        if (not self.corrRatherThanUnCorr) :
-            corrString="uncorrected"            
-
-        title+=corrString+" p_{T}> "+str(self.jetPtThreshold)+" GeV;events / bin"
-        self.nCleanJetsHisto=r.TH1D(self.jetCollection+"nCleanJets"+self.jetSuffix+" "+corrString
-                                    ,title,nBins,-0.5,nBins-0.5)
-
-    def select (self,chain,chainVars,extraVars) :
+    def step1 (self,chain,chainVars,extraVars) :
         setattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix,[])
         self.cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
 
         setattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix,[])
         self.otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
 
-        p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
-        size=p4Vector.size()
-        corrFactorVector=getattr(chainVars,self.jetCollection+'CorrFactor'+self.jetSuffix)
+        self.p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+        self.size=self.p4Vector.size()
+
+        if (not self.corrRatherThanUnCorr) :
+            self.corrFactorVector=getattr(chainVars,self.jetCollection+'CorrFactor'+self.jetSuffix)
         
-        for iJet in range(size) :
+        self.emfVector=getattr(chainVars,self.jetCollection+'EmEnergyFraction'+self.jetSuffix)
+        self.fHpdVector=getattr(chainVars,self.jetCollection+'JetIDFHPD'+self.jetSuffix)
+        self.n90HitsVector=getattr(chainVars,self.jetCollection+'JetIDN90Hits'+self.jetSuffix)
+        
+    def jetLoop (self,chainVars) :
+        for iJet in range(self.size) :
             #pt cut
             if (self.corrRatherThanUnCorr) :
-                if (p4Vector[iJet].pt()<self.jetPtThreshold) : continue
+                if (self.p4Vector[iJet].pt()<self.jetPtThreshold) : break #assumes sorted
             else :
-                corrFactor=corrFactorVector[iJet]
+                corrFactor=self.corrFactorVector[iJet]
                 if (corrFactor<self.corrFactorThreshold) : continue
-                if (p4Vector[iJet].pt()/corrFactor<self.jetPtThreshold) : continue
-
+                if (self.p4Vector[iJet].pt()/corrFactor<self.jetPtThreshold) : continue
+            
             #if pass pt cut, add to "other" category
             self.otherJetIndices.append(iJet)
-
-            #eta cut
-            if (r.TMath.Abs(p4Vector[iJet].eta())>self.jetEtaMax) : continue
             
-            #jet id cuts
-            if (self.useFlag) :
-                jetIDLooseVector=getattr(chain,self.jetCollection+'JetIDloose'+self.jetSuffix)
-                if (not jetIDLooseVector[iJet]) : continue
-            else :
-                absEta=r.TMath.Abs(p4Vector[iJet].Eta())
-                jetEmf=getattr(chainVars,self.jetCollection+'EmEnergyFraction'+self.jetSuffix)[iJet]
-                if (absEta<=2.6 and jetEmf<=0.01) : continue
-                if (getattr(chainVars,self.jetCollection+'JetIDFHPD'+self.jetSuffix)[iJet]>=0.98) : continue
-                if (getattr(chainVars,self.jetCollection+'JetIDN90Hits'+self.jetSuffix)[iJet]<=4) : continue
-                #if (getattr(chainVars,self.jetCollection+'JetIDFRBX'+self.jetSuffix)[iJet]>=0.98) : continue
-                #if (getattr(chainVars,self.jetCollection+'Eta2Moment'+self.jetSuffix)[iJet]<0.0) : continue
-                #if (getattr(chainVars,self.jetCollection+'Phi2Moment'+self.jetSuffix)[iJet]<0.0) : continue
-
+            #eta cut
+            absEta=r.TMath.Abs(self.p4Vector[iJet].eta())
+            if (absEta>self.jetEtaMax) : continue
+            
+            #jet ID loose cut
+            #jetIDLooseVector=getattr(chain,self.jetCollection+'JetIDloose'+self.jetSuffix)
+            #if (not jetIDLooseVector[iJet]) : continue
+            
+            if (absEta<=2.6) :
+                if (self.emfVector[iJet]<=0.01) : continue
+            if (self.fHpdVector[iJet]>=0.98) : continue
+            if (self.n90HitsVector[iJet]<2) : continue
+            #if (getattr(chainVars,self.jetCollection+'JetIDFRBX'+self.jetSuffix)[iJet]>=0.98) : continue
+            #if (getattr(chainVars,self.jetCollection+'Eta2Moment'+self.jetSuffix)[iJet]<0.0) : continue
+            #if (getattr(chainVars,self.jetCollection+'Phi2Moment'+self.jetSuffix)[iJet]<0.0) : continue
+            
             self.cleanJetIndices.append(iJet)
             self.otherJetIndices.remove(iJet)
+
+    def select (self,chain,chainVars,extraVars) :
+        self.step1(chain,chainVars,extraVars)
+        self.jetLoop(chainVars)
         return True
-    
+######################################
+class nCleanJetHistogrammer(analysisStep) :
+    """nCleanJetHistogrammer"""
+
+    def __init__(self,jetCollection,jetSuffix):
+        self.jetCollection=jetCollection
+        self.jetSuffix=jetSuffix
+        self.moreName="("+self.jetCollection+" "+self.jetSuffix+")"
+
+    def bookHistos(self) :
+        nBins=15
+        title=";number of jets passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"
+        self.nCleanJetsHisto=r.TH1D(self.jetCollection+"nCleanJets"+self.jetSuffix,title,nBins,-0.5,nBins-0.5)
+        
     def uponAcceptance (self,chain,chainVars,extraVars) :
-        self.nCleanJetsHisto.Fill(len(self.cleanJetIndices))
+        self.nCleanJetsHisto.Fill( len(getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)) )
 ######################################
 class nCleanJetEventFilter(analysisStep) :
     """nCleanJetEventFilter"""
@@ -151,6 +159,7 @@ class nCleanJetEventFilter(analysisStep) :
         self.jetSuffix=jetSuffix
         self.nCleanJets=nCleanJets
         self.moreName="("+self.jetCollection+" "+self.jetSuffix+">="+str(self.nCleanJets)+")"
+        self.neededBranches=[]
         
     def select (self,chain,chainVars,extraVars) :
         return len(getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix))>=self.nCleanJets
@@ -163,6 +172,7 @@ class nOtherJetEventFilter(analysisStep) :
         self.jetSuffix=jetSuffix
         self.nOtherJets=nOtherJets
         self.moreName="("+self.jetCollection+" "+self.jetSuffix+"<"+str(self.nOtherJets)+")"
+        self.neededBranches=[]
         
     def select (self,chain,chainVars,extraVars) :
         return len(getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix))<self.nOtherJets
@@ -239,14 +249,16 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
         self.moreName+=")"
 
     def bookHistos(self):
-        self.ht_Histo    =r.TH1D(self.jetCollection+"ht"   +self.jetSuffix+" "+self.corrString
-                                 ,";"+self.corrString+" H_{T} (GeV) from clean jet p_{T}'s;events / bin" ,50,0.0,100.0)
-        self.ht_et_Histo =r.TH1D(self.jetCollection+"ht_et"+self.jetSuffix+" "+self.corrString
-                                 ,";"+self.corrString+" H_{T} (GeV) from clean jet E_{T}'s;events / bin" ,50,0.0,100.0)
-        self.mht_Histo   =r.TH1D(self.jetCollection+"mht"  +self.jetSuffix+" "+self.corrString
-                                 ,";"+self.corrString+" #slash{H}_{T} (GeV) from clean jets;events / bin",50,0.0, 50.0)
-        self.m_Histo     =r.TH1D(self.jetCollection+"m"    +self.jetSuffix+" "+self.corrString
+        self.ht_Histo          =r.TH1D(self.jetCollection+"ht"   +self.jetSuffix+" "+self.corrString
+                                       ,";"+self.corrString+" H_{T} (GeV) from clean jet p_{T}'s;events / bin" ,50,0.0,100.0)
+        self.ht_et_Histo       =r.TH1D(self.jetCollection+"ht_et"+self.jetSuffix+" "+self.corrString
+                                       ,";"+self.corrString+" H_{T} (GeV) from clean jet E_{T}'s;events / bin" ,50,0.0,100.0)
+        self.mht_Histo         =r.TH1D(self.jetCollection+"mht"  +self.jetSuffix+" "+self.corrString
+                                       ,";"+self.corrString+" #slash{H}_{T} (GeV) from clean jets;events / bin",50,0.0, 50.0)
+        self.m_Histo           =r.TH1D(self.jetCollection+"m"    +self.jetSuffix+" "+self.corrString
                                  ,";"+self.corrString+" mass (GeV) of system of clean jets;events / bin" ,50,0.0,400.0)
+        self.mHtOverHt_Histo   =r.TH1D(self.jetCollection+"mHtOverHt"   +self.jetSuffix+" "+self.corrString
+                                 ,";"+self.corrString+" MHT / H_{T} (GeV) from clean jet p_{T}'s;events / bin" ,50,0.0,1.1)
 
         title=";"+self.corrString+" H_{T} (GeV) from clean jets;"+self.corrString+" #slash{H}_{T} (GeV) from clean jet p_{T}'s;events / bin"
         self.mhtHt_Histo=r.TH2D(self.jetCollection+"mht_vs_ht"+self.jetSuffix+" "+self.corrString
@@ -271,6 +283,10 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
         self.ht_et_Histo.Fill(htet)
         self.m_Histo.Fill(mht.mass())
         self.mhtHt_Histo.Fill(ht,mht.pt())
+
+        value=-1.0
+        if (ht>0.0) : value=mht.pt()/ht
+        self.mHtOverHt_Histo.Fill(value)
 #####################################
 class cleanJetPtHistogrammer(analysisStep) :
     """cleanJetPtHistogrammer"""
@@ -461,4 +477,109 @@ class alphaHistogrammer(analysisStep) :
         self.diJetAlpha_Histo.Fill(   getattr(extraVars,self.jetCollection+"diJetAlpha"   +self.jetSuffix))
         self.diJetAlpha_ET_Histo.Fill(getattr(extraVars,self.jetCollection+"diJetAlpha_Et"+self.jetSuffix))
         self.nJetAlphaT_Histo.Fill(   getattr(extraVars,self.jetCollection+"nJetAlphaT"   +self.jetSuffix))
+#####################################
+class metHistogrammer(analysisStep) :
+    """metHistogrammer"""
+
+    def __init__(self,metCollection,tag) :
+        self.tag=tag
+        self.metCollection=metCollection
+        self.neededBranches=[self.metCollection]
+        
+    def bookHistos(self) :
+        bins=40
+        min=0.0
+        max=20.0
+        self.caloMetNoHf_Histo=r.TH1D(self.metCollection+" "+self.tag,";"+self.metCollection+" p_{T} (GeV);events / bin",bins,min,max)
+        
+    def uponAcceptance (self,chain,chainVars,extraVars) :
+        self.caloMetNoHf_Histo.Fill(   getattr(chainVars,self.metCollection).pt() )
+#####################################
+class deltaPhiProducer(analysisStep) :
+    """deltaPhiProducer"""
+
+    def __init__(self,jetCollection,jetSuffix) :
+        self.jetCollection=jetCollection
+        self.jetSuffix=jetSuffix
+        self.neededBranches=[self.jetCollection+'CorrectedP4'+self.jetSuffix]
+    
+    def select(self,chain,chainVars,extraVars) :
+
+        setattr(extraVars,self.jetCollection+"deltaPhi01"+self.jetSuffix, -4.0)
+        setattr(extraVars,self.jetCollection+"deltaR01"  +self.jetSuffix,-40.0)
+        setattr(extraVars,self.jetCollection+"deltaEta01"+self.jetSuffix,-40.0)
+
+        p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+        cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
+
+        if (len(cleanJetIndices)>=2) :
+            jet0=p4Vector[cleanJetIndices[0]]
+            jet1=p4Vector[cleanJetIndices[1]]
+            setattr(extraVars,self.jetCollection+"deltaPhi01"+self.jetSuffix,r.Math.VectorUtil.DeltaPhi(jet0,jet1))
+            setattr(extraVars,self.jetCollection+"deltaR01"  +self.jetSuffix,r.Math.VectorUtil.DeltaR(jet0,jet1))
+            setattr(extraVars,self.jetCollection+"deltaEta01"+self.jetSuffix,jet0.eta()-jet1.eta())
+        return True
+#####################################
+class deltaPhiSelector(analysisStep) :
+    """deltaPhiSelector"""
+
+    def __init__(self,jetCollection,jetSuffix,minAbs,maxAbs) :
+        self.jetCollection=jetCollection
+        self.jetSuffix=jetSuffix
+        self.minAbs=minAbs
+        self.maxAbs=maxAbs
+    
+    def select(self,chain,chainVars,extraVars) :
+        value=getattr(extraVars,self.jetCollection+"deltaPhi01"+self.jetSuffix)
+        value=r.TMath.Abs(value)
+        if (value<self.minAbs or value>self.maxAbs) : return False
+        return True
+#####################################
+class mHtOverHtSelector(analysisStep) :
+    """mHtOverHtSelector"""
+
+    def __init__(self,jetCollection,jetSuffix,min,max) :
+        self.jetCollection=jetCollection
+        self.jetSuffix=jetSuffix
+        self.min=min
+        self.max=max
+    
+    def select(self,chain,chainVars,extraVars) :
+        mht=getattr(extraVars,self.jetCollection+"Mht"+self.jetSuffix).pt()
+        ht=getattr(extraVars,self.jetCollection+"Ht"+self.jetSuffix)
+        if (ht<1.0e-2) : return False
+        value=mht/ht
+        if (value<self.min or value>self.max) : return False
+        return True
+#####################################
+class deltaPhiHistogrammer(analysisStep) :
+    """deltaPhiHistogrammer"""
+
+    def __init__(self,jetCollection,jetSuffix) :
+        self.jetCollection=jetCollection
+        self.jetSuffix=jetSuffix
+
+    def bookHistos(self) :
+        bins=50
+        min=-4.0
+        max= 4.0
+        title=self.jetCollection+" deltaPhi01 "+self.jetSuffix
+        self.deltaPhi01_Histo=r.TH1D(title,";"+title+";events / bin",bins,min,max)
+
+        bins=20
+        min= 0.0
+        max=10.0
+        title=self.jetCollection+" deltaR01 "+self.jetSuffix
+        self.deltaR01_Histo=r.TH1D(title,";"+title+";events / bin",bins,min,max)
+
+        bins=50
+        min=-10.0
+        max= 10.0
+        title=self.jetCollection+" deltaEta01 "+self.jetSuffix
+        self.deltaEta01_Histo=r.TH1D(title,";"+title+";events / bin",bins,min,max)
+        
+    def uponAcceptance (self,chain,chainVars,extraVars) :
+        self.deltaPhi01_Histo.Fill(getattr(extraVars,self.jetCollection+"deltaPhi01"+self.jetSuffix))
+        self.deltaR01_Histo.Fill(getattr(extraVars,self.jetCollection+"deltaR01"+self.jetSuffix))
+        self.deltaEta01_Histo.Fill(getattr(extraVars,self.jetCollection+"deltaEta01"+self.jetSuffix))
 #####################################
