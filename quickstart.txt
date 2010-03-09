@@ -1,0 +1,61 @@
+Make a release area somewhere
+------------------------
+ssh -Y lxplus5
+cmsrel CMSSW_3_4_1
+cd CMSSW_3_4_1/src/
+cmsenv
+
+Check out the code
+------------------
+cd
+cvs co -d supy -r V1-1 UserCode/SusyCAFmacro/standalone/supy
+cd supy
+
+Run the code
+------------
+./go.py loop -b
+./go.py plot -b
+(or, to do both parts with one command, "./go.py loop plot -b")
+
+Try these exercises
+-------------------
+Exercise 1:
+Have a look at the ps file that was created.
+
+Exercise 2:
+Change the number of MC events that you loop over.  
+This is done in analyses.py, the function "addExample", the line containing "Example_Skimmed_900_GeV_MC" (e.g., change 500 to -1).
+Re-run.
+
+Exercise 3:
+Look at where the data files are specified.
+This is done in samples.py, e.g. in the function "add_Example_Skimmed_900_GeV_Data".
+
+Exercise 4:
+Add an existing step to the list of steps you're using.
+E.g., in lists.py, uncomment "htFilter(25.0,corrRatherThanUnCorr)," in the list "steps" in the function "addList1".
+Re-run.
+
+Exercise 5:
+Add a new step.
+E.g., in stepsOther.py, uncomment bxHistogrammer and add it to your list of steps in lists.py.
+Re-run.  Look for the new plot in the ps file.
+
+Exercise 6:
+Make skims (in this case, one for data, one for MC).  E.g., in lists.py, uncomment "skimmer("/tmp/",skimmerAlsoWritesExtraTree)," and re-run.  Check the skimmed files that are written out.
+
+Exercise 7:
+Write out the extra trees (in this case, one for data, one for MC).  E.g., in lists.py, change "skimmerAlsoWritesExtraTree=False" to "skimmerAlsoWritesExtraTree=True" and re-run.  Try this:
+{
+  TFile f("/tmp/Example_Skimmed_900_GeV_Data_skim.root");
+  TTree *tree=(TTree*)f.Get("susyTree/tree");
+  tree->AddFriend("susyTree/treeExtra");
+
+  tree->SetMarkerStyle(20);
+  tree->Draw("mht.pt():metP4Calo.pt()","nJetAlphaT>0.6 && run>123456");
+
+  //tree->Print("all");//show branches of both trees
+}
+
+Exercise 8:
+Read the file "readme.txt".
