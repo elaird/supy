@@ -90,6 +90,7 @@ class extraVariableGreaterFilter(analysisStep) :
         self.moreName+=">="
         self.moreName+=str(self.threshold)
         self.moreName+=")"
+        self.neededBranches=[]
 
     def select (self,chain,chainVars,extraVars) :
         return (getattr(extraVars,self.variable)>=self.threshold)
