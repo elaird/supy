@@ -109,6 +109,7 @@ class icfCleanJetProducer(analysisStep) :
         self.moreName2+="; |eta|<="+str(self.jetEtaMax)
         self.moreName2+=")"
 
+        self.zeroP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         self.dummyP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
 
         self.neededBranches=["Njets","Jeteta","Jetpt","JetFem",
@@ -147,7 +148,8 @@ class icfCleanJetProducer(analysisStep) :
                                         Jetpz[iJet],
                                         JetE[iJet])
             
-            extraVars.cleanJets.append(copy.deepcopy(self.dummyP4))
+            #extraVars.cleanJets.append(copy.deepcopy(self.dummyP4))
+            extraVars.cleanJets.append(self.dummyP4+self.zeroP4) #faster than copying
             extraVars.cleanJetIndices.append(iJet)
             extraVars.otherJetIndices.remove(iJet)
         return True
