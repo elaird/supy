@@ -167,9 +167,10 @@ class analysisLooper :
         extraVars=self.extraVariableContainer
 
         nEntries=chain.GetEntries()
-        if (self.nEvents>=0 and self.nEvents<nEntries) : nEntries=self.nEvents
+        if (self.nEvents<0 or self.nEvents>nEntries) :
+            self.nEvents=nEntries
 
-        for entry in range(nEntries) :
+        for entry in range(self.nEvents) :
             localEntry=chain.LoadTree(entry)
             if (localEntry<0) : break
             extraVars.localEntry=localEntry
