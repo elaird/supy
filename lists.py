@@ -402,11 +402,13 @@ def addListRA1_NJet(d) :
     steps=[
         progressPrinter(2,300),
 
-        icfJetPtSelector(jetPtLeadingThreshold,0),#leading corrected jet
-        icfJetPtSelector(jetPtLeadingThreshold,1),#next corrected jet
-        icfJetEtaSelector(2.0,0),#leading corrected jet
+        icfJetPtSorter(),
+        icfJetPtSelector(jetPtLeadingThreshold,0),
+        icfJetPtSelector(jetPtLeadingThreshold,1),
+        #icfJetPtVetoer(jetPtLeadingThreshold,2),
+        icfJetEtaSelector(2.0,0),
         
-        #icfMuonPtVetoer(muonPtThreshold,0),
+        #icfMuonVetoer(muonPtThreshold),
         #icfElecPtVetoer(elecPtThreshold,0),
         #icfPhotPtVetoer(photPtThreshold,0),
 
