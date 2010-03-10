@@ -39,7 +39,7 @@ class analysisLooper :
         self.chainVariableContainer=eventVariableContainer()
         self.extraVariableContainer=eventVariableContainer()
 
-    def makeFinalBranchNameLists (self) :
+    def makeFinalBranchNameLists(self) :
         showDebug=False
         self.allReadBranchNames=[]
         for step in self.steps :
@@ -98,7 +98,7 @@ class analysisLooper :
             branch.GetEntry(1)
             print branchName,type(getattr(self.inputChain,branchName))
             
-    def go (self) :
+    def go(self) :
         self.setupChain(self.inputFiles)
         self.makeFinalBranchNameLists()
         self.setupSteps()
@@ -110,7 +110,7 @@ class analysisLooper :
         self.writeSkimTree()
         print self.hyphens
 
-    def setupChain (self,inputFiles) :
+    def setupChain(self,inputFiles) :
         nFiles=len(inputFiles)
         alreadyPrintedEllipsis=False
 
@@ -138,7 +138,7 @@ class analysisLooper :
         print self.hyphens
         r.gROOT.cd()
 
-    def chain (self) :
+    def chain(self) :
         return self.inputChain
 
     def setupSteps(self) :
@@ -165,7 +165,7 @@ class analysisLooper :
             self.setupBranchLists()
             self.currentTreeNumber=someTreeNumber
                                                                                         
-    def loop (self) :
+    def loop(self) :
         chain=self.inputChain
         chainVars=self.chainVariableContainer
         extraVars=self.extraVariableContainer
@@ -224,7 +224,7 @@ class analysisStep :
     moreName2=""
     skimmerStepName="skimmer"
 
-    def go (self,chain,chainVars,extraVars) :
+    def go(self,chain,chainVars,extraVars) :
         self.nTotal+=1
         if (self.needToReadData) :
             self.readData(chain,extraVars.localEntry)
@@ -267,8 +267,8 @@ class analysisStep :
             print outString2+statString
 
     def bindVars(self,chain,chainVars) :
-            for branchName in self.finalBranchNameList :
-                setattr(chainVars,branchName,getattr(chain,branchName))
+        for branchName in self.finalBranchNameList :
+            setattr(chainVars,branchName,getattr(chain,branchName))
 
     def readData(self,chain,localEntry) :
         for branch in self.finalBranches :
