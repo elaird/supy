@@ -148,6 +148,7 @@ class analysisLooper :
             step.selectNotImplemented=not hasattr(step,"select")
             step.uponAcceptanceImplemented=hasattr(step,"uponAcceptance")
             step.uponRejectionImplemented=hasattr(step,"uponRejection")
+            step.shallWeBindVars=not self.useSetBranchAddress
             if (len(step.finalBranchNameList)>0) :
                 step.needToReadData=True
             if (step.__doc__==step.skimmerStepName) :
@@ -227,6 +228,8 @@ class analysisStep :
         self.nTotal+=1
         if (self.needToReadData) :
             self.readData(chain,extraVars.localEntry)
+            if (self.shallWeBindVars) :
+                self.bindVars(chain,chainVars)
 
         if (self.selectNotImplemented) :
             self.nPass+=1
@@ -262,6 +265,10 @@ class analysisStep :
         else :
             print outString
             print outString2+statString
+
+    def bindVars(self,chain,chainVars) :
+            for branchName in self.finalBranchNameList :
+                setattr(chainVars,branchName,getattr(chain,branchName))
 
     def readData(self,chain,localEntry) :
         for branch in self.finalBranches :
