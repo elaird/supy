@@ -167,7 +167,7 @@ class icfCleanJetProducer(analysisStep) :
 
         self.neededBranches=["Njets","Jeteta","Jetpt","JetFem",
                              "Jetpx","Jetpy","Jetpz","JetE"]
-        self.neededBranches.append("event")
+        #self.neededBranches.append("event")
 
     def select (self,chain,chainVars,extraVars) :
         extraVars.cleanJetIndices=[]
