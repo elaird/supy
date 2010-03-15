@@ -42,17 +42,28 @@ class analysisLooper :
     def makeFinalBranchNameLists(self) :
         showDebug=False
         self.allReadBranchNames=[]
+        self.allBoundBranchNames=[]
         for step in self.steps :
             if (showDebug) :
                 print "-------------------------"
                 step.printStatistics()
                 print "needed: ",step.neededBranches
-                
+
+            #branches to read
             step.finalBranchNameList=[]
             for branchName in step.neededBranches :
                 if (not branchName in self.allReadBranchNames) :
                     step.finalBranchNameList.append(branchName)
                     self.allReadBranchNames.append(branchName)
+
+            #branches to bind (binding done only when self.shallWeBindVars=True)
+            step.finalBindList=[]
+            if (not hasattr(step,"branchesToBind")) :
+                step.branchesToBind=step.neededBranches
+            for branchName in step.branchesToBind :
+                if (not branchName in self.allBoundBranchNames) :
+                    step.finalBindList.append(branchName)
+                    self.allBoundBranchNames.append(branchName)
 
             if (showDebug) :
                 print "final:  ",step.finalBranchNameList
@@ -72,7 +83,7 @@ class analysisLooper :
             branchType=type(getattr(self.inputChain,branchName))
             if (showDebug) :
                 print branchName,getattr(self.inputChain,branchName),branchType
-            if (branchType in builtInTypes or not self.useSetBranchAddress) :
+            if (branchType in builtInTypes) :
                 index=0
                 #index=builtInTypes.index(branchType)
 
@@ -149,8 +160,7 @@ class analysisLooper :
             step.uponAcceptanceImplemented=hasattr(step,"uponAcceptance")
             step.uponRejectionImplemented=hasattr(step,"uponRejection")
             step.shallWeBindVars=not self.useSetBranchAddress
-            if (len(step.finalBranchNameList)>0) :
-                step.needToReadData=True
+            step.needToReadData=(len(step.finalBranchNameList)>0)
             if (step.__doc__==step.skimmerStepName) :
                 step.setup(self.inputChain,self.fileDirectory,self.name)
 
@@ -161,7 +171,8 @@ class analysisLooper :
     def lookForChangeOfTree(self,chain) :
         someTreeNumber=chain.GetTreeNumber()
         if (someTreeNumber!=self.currentTreeNumber) :
-            self.setBranchAddresses()
+            if (self.useSetBranchAddress) :
+                self.setBranchAddresses()
             self.setupBranchLists()
             self.currentTreeNumber=someTreeNumber
                                                                                         
@@ -267,7 +278,7 @@ class analysisStep :
             print outString2+statString
 
     def bindVars(self,chain,chainVars) :
-        for branchName in self.finalBranchNameList :
+        for branchName in self.finalBindList :
             setattr(chainVars,branchName,getattr(chain,branchName))
 
     def readData(self,chain,localEntry) :
