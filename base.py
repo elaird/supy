@@ -20,6 +20,8 @@ class sampleSpecification :
         self.fileDirectory="susyTree"
         self.treeName="tree"
         self.useSetBranchAddress=True
+        self.leafNamePrefixes=[]
+        self.leafNameSuffixes=[]
 #####################################
 class analysisLooper :
     """class to set up and loop over events"""
@@ -28,7 +30,7 @@ class analysisLooper :
         self.hyphens="".ljust(95,"-")
 
         #copy some stuff
-        stuffToCopy=["nEvents","name","steps","inputFiles","xs","fileDirectory","treeName","useSetBranchAddress"]
+        stuffToCopy=["nEvents","name","steps","inputFiles","xs","fileDirectory","treeName","useSetBranchAddress","leafNamePrefixes","leafNameSuffixes"]
         for item in stuffToCopy :
             setattr(self,item,getattr(sample,item))
             
@@ -71,7 +73,7 @@ class analysisLooper :
 
     def setBranchAddresses(self) :
         showDebug=False
-        builtInExamples=[   0,  0L, 0.0, False]
+        builtInExamples=[   0,  0L, 0.0, False,""]
         #arrayStrings   =[ "i", "l", "d"]
         builtInTypes   =[]
         for example in builtInExamples :
@@ -80,9 +82,20 @@ class analysisLooper :
         self.inputChain.GetEntry(self.extraVariableContainer.entry)
 
         for branchName in self.allReadBranchNames :
-            branchType=type(getattr(self.inputChain,branchName))
+            leafNameOptions=[branchName]
+            for prefix in self.leafNamePrefixes : leafNameOptions.append(prefix+branchName)
+            for suffix in self.leafNameSuffixes : leafNameOptions.append(branchName+suffix)
+                
+            branchType=None
+            leafName=""
+            for leafNameOption in leafNameOptions :
+                if hasattr(self.inputChain,leafNameOption) :
+                    branchType=type(getattr(self.inputChain,leafNameOption))
+                    leafName=leafNameOption
+                    break
+                    
             if (showDebug) :
-                print branchName,getattr(self.inputChain,branchName),branchType
+                print branchName,getattr(self.inputChain,leafName),branchType
             if (branchType in builtInTypes) :
                 index=0
                 #index=builtInTypes.index(branchType)
@@ -90,6 +103,12 @@ class analysisLooper :
                 #not yet perfect
                 #setattr(self.chainVariableContainer,branchName,array.array(arrayStrings[index],[builtInExamples[index]]))
                 #self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
+            elif (str(branchType)=="<type 'ROOT.PyDoubleBuffer'>") :
+                setattr(self.chainVariableContainer,branchName,array.array('d',[0.0]*256)) #hard-coded max of 256
+                self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
+            elif (str(branchType)=="<type 'ROOT.PyFloatBuffer'>") :
+                setattr(self.chainVariableContainer,branchName,array.array('f',[0.0]*256)) #hard-coded max of 256
+                self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
             else :
                 #method 1
                 #setattr(self.chainVariableContainer,branchName,getattr(self.inputChain,branchName))
