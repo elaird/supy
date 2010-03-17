@@ -182,7 +182,7 @@ def addRA1_DiJet(d) :
     xsDict["MG_QCD_bin2"]=  400000.0
     xsDict["MG_QCD_bin3"]=   14000.0
     xsDict["MG_QCD_bin4"]=     370.0
-    xsDict["MG_TT_jets" ]=     317
+    xsDict["MG_TT_jets" ]=     317.0
     xsDict["MG_Z_jets"  ]=    3700.0
     xsDict["MG_W_jets"  ]=   40000.0
     xsDict["MG_Z_inv"   ]=    2000.0
@@ -206,39 +206,50 @@ def addRA1_NJet(d) :
     steps_data=listDict["RA1_NJet_Steps_data"]
     steps_mc  =listDict["RA1_NJet_Steps_mc"]
 
-    xsDict={}
-
     sampleNames=[
         #"data"       ,
         "LM0"        ,
         "LM1"        ,
-        #"MG_QCD_bin1",
+        "MG_QCD_bin1",
         "MG_QCD_bin2",
         "MG_QCD_bin3",
         "MG_QCD_bin4",
-        #"MG_TT_jets" ,
-        #"MG_Z_jets"  ,
-        #"MG_W_jets"  ,
-        #"MG_Z_inv"   ,
+        "MG_TT_jets" ,
+        "MG_W_jets"  ,
+        "MG_Z_jets"  ,
+        "MG_Z_inv"   ,
         ]
 
     #pb
+    xsDict={}
     xsDict["LM0"        ]=     110.00
     xsDict["LM1"        ]=      16.06
     xsDict["MG_QCD_bin1"]=15000000.0
     xsDict["MG_QCD_bin2"]=  400000.0
     xsDict["MG_QCD_bin3"]=   14000.0
     xsDict["MG_QCD_bin4"]=     370.0
-    xsDict["MG_TT_jets" ]=     317
-    xsDict["MG_Z_jets"  ]=    3700.0
+    xsDict["MG_TT_jets" ]=     317.0
     xsDict["MG_W_jets"  ]=   40000.0
+    xsDict["MG_Z_jets"  ]=    3700.0
     xsDict["MG_Z_inv"   ]=    2000.0
 
-    nEventsEach=10000
+    nEventsBase=1000
+
+    nEventsDict={}
+    nEventsDict["LM0"        ]=nEventsBase
+    nEventsDict["LM1"        ]=nEventsBase
+    nEventsDict["MG_QCD_bin1"]=nEventsBase
+    nEventsDict["MG_QCD_bin2"]=nEventsBase*3
+    nEventsDict["MG_QCD_bin3"]=nEventsBase*3
+    nEventsDict["MG_QCD_bin4"]=nEventsBase
+    nEventsDict["MG_TT_jets" ]=nEventsBase
+    nEventsDict["MG_W_jets"  ]=nEventsBase*50
+    nEventsDict["MG_Z_jets"  ]=nEventsBase*50
+    nEventsDict["MG_Z_inv"   ]=nEventsBase*5
 
     specs=[]
     for sampleName in sampleNames :
-        specs.append(base.sampleSpecification(sampleDict,sampleName,nEventsEach,outputPrefix,steps_mc,xsDict[sampleName]))
+        specs.append(base.sampleSpecification(sampleDict,sampleName,nEventsDict[sampleName],outputPrefix,steps_mc,xsDict[sampleName]))
 
     for spec in specs :
         spec.useSetBranchAddress=False
