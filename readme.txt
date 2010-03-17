@@ -7,11 +7,11 @@ GPLv3
 | Instructions |
 ----------------
 0) Set up pyROOT:
-- use a CMSSW area:  cd /somewhere/CMSSW_3_4_1/src && cmsenv
+- use a CMSSW area:  cd /somewhere/CMSSW_3_5_4/src && cmsenv
 - or see note (A)
 
 1) Check out the code:
-cvs co -d supy UserCode/SusyCAFmacro/standalone/supy
+cvs co -d supy UserCode/elaird/supy
 
 2) Define some samples you would like to analyze:
 - Edit samples.py (add a function and call it from buildSampleDictionary).
