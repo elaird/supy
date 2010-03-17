@@ -357,9 +357,9 @@ def addListRA1_DiJet(d) :
     steps=[
         progressPrinter(2,300),
 
-        icfJetPtSelector(jetPtThreshold,0),#leading corrected jet
-        icfJetPtSelector(jetPtThreshold,1),#next corrected jet
-        icfJetPtVetoer(jetPtThreshold,2),#next corrected jet
+        icfAnyJetPtSelector(jetPtThreshold,0),#leading corrected jet
+        icfAnyJetPtSelector(jetPtThreshold,1),#next corrected jet
+        icfAnyJetPtVetoer(jetPtThreshold,2),#next corrected jet
 
         #icfMuonPtVetoer(muonPtThreshold,0),
         #icfElecPtVetoer(elecPtThreshold,0),
@@ -377,7 +377,7 @@ def addListRA1_DiJet(d) :
         icfCleanNJetAlphaProducer(),
         icfDeltaPhiProducer(),
         
-        icfCleanJetPtHistogrammer(),
+        icfCleanJetPtEtaHistogrammer(),
         icfCleanJetHtMhtHistogrammer(),
         icfAlphaHistogrammer(),
         icfDeltaPhiHistogrammer(),
@@ -403,34 +403,34 @@ def addListRA1_NJet(d) :
         progressPrinter(2,300),
 
         icfJetPtSorter(),
-        icfJetPtSelector(jetPtLeadingThreshold,0),
-        icfJetPtSelector(jetPtLeadingThreshold,1),
-        #icfJetPtVetoer(jetPtLeadingThreshold,2),
-        icfJetEtaSelector(2.0,0),
-        
-        #icfMuonVetoer(muonPtThreshold),
-        #icfElecPtVetoer(elecPtThreshold,0),
-        #icfPhotPtVetoer(photPtThreshold,0),
-
         icfCleanJetProducer(jetPtThreshold,jetEtaMax),
         icfNCleanJetHistogrammer(),
-
         icfNCleanJetEventFilter(nCleanJets),
+        
+        icfCleanJetPtSelector(jetPtLeadingThreshold,0),
+        icfCleanJetPtSelector(jetPtLeadingThreshold,1),
+        #icfCleanJetPtVetoer(jetPtLeadingThreshold,2),
+        icfCleanJetEtaSelector(2.0,0),
+        
         icfNOtherJetEventFilter(1),
+        
+        icfMuonVetoer(muonPtThreshold),
+        icfElecVetoer(elecPtThreshold),
+        icfPhotVetoer(photPtThreshold),
         
         icfCleanJetHtMhtProducer(),
         extraVariableGreaterFilter(350.0,"ht"),
         icfCleanDiJetAlphaProducer(),
         icfCleanNJetAlphaProducer(),
         icfDeltaPhiProducer(),
-
+        
         icfMhtAllProducer(30.0),
         icfMhtRatioSelector(1.25),
         
-        icfCleanJetPtHistogrammer(),
+        icfCleanJetPtEtaHistogrammer(),
         icfCleanJetHtMhtHistogrammer(),
         icfAlphaHistogrammer(),
-        icfDeltaPhiHistogrammer(),
+        #icfDeltaPhiHistogrammer(),
         
         #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
         #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),

@@ -3,8 +3,14 @@ import math
 import ROOT as r
 from base import analysisStep
 #####################################
-def correctBeamspot(d0LeptonTrack,beamSpotX,beamSpotY,leptonPhi) :
-    return d0LeptonTrack - beamSpotX*math.sin(leptonPhi) + beamSpotY*cos(leptonPhi)
+beamSpotX=0.0
+beamSpotY=0.0322
+#####################################
+def correctBeamSpot(d0LeptonTrack,beamSpotX,beamSpotY,leptonPhi) :
+    return d0LeptonTrack - beamSpotX*math.sin(leptonPhi) + beamSpotY*math.cos(leptonPhi)
+#####################################
+def relIso(ecalIso,hcalIso,trkIso,pT) :
+    return (ecalIso+hcalIso+trkIso)/pT
 #####################################
 class icfJetPtSorter(analysisStep) :
     """icfJetPtSorter"""
@@ -25,130 +31,6 @@ class icfJetPtSorter(analysisStep) :
             extraVars.jetPtsSortedByPt.append(jetPtsAndIndices[i][0])
             extraVars.jetIndicesSortedByPt.append(jetPtsAndIndices[i][1])
 #####################################
-class icfJetPtSelector(analysisStep) :
-    """icfJetPtSelector"""
-
-    def __init__(self,jetPtThreshold,jetIndex):
-        self.jetPtThreshold=jetPtThreshold
-        self.jetIndex=jetIndex
-        self.neededBranches=[]
-        self.moreName ="(pT["+str(self.jetIndex)+"]>="+str(self.jetPtThreshold)+" GeV"
-        self.moreName+=")"
-
-    def select (self,chain,chainVars,extraVars) :
-        if (len(extraVars.jetPtsSortedByPt)<=self.jetIndex) : return False
-        return (extraVars.jetPtsSortedByPt[self.jetIndex]>=self.jetPtThreshold)
-#####################################
-class icfJetPtVetoer(analysisStep) :
-    """icfJetPtVetoer"""
-
-    def __init__(self,jetPtThreshold,jetIndex):
-        self.jetPtThreshold=jetPtThreshold
-        self.jetIndex=jetIndex
-        self.neededBranches=[]
-        self.moreName ="(pT["+str(self.jetIndex)+"]<"+str(self.jetPtThreshold)+" GeV"
-        self.moreName+=")"
-
-    def select (self,chain,chainVars,extraVars) :
-        if (len(extraVars.jetPtsSortedByPt)<=self.jetIndex) : return True
-        return (extraVars.jetPtsSortedByPt[self.jetIndex]<self.jetPtThreshold)
-#####################################
-class icfJetEtaSelector(analysisStep) :
-    """icfJetEtaSelector"""
-
-    def __init__(self,jetEtaThreshold,jetIndex):
-        self.jetEtaThreshold=jetEtaThreshold
-        self.jetIndex=jetIndex
-        self.neededBranches=["Jeteta"]
-        self.moreName ="(eta["+str(self.jetIndex)+"]<"+str(self.jetEtaThreshold)+")"
-
-    def select (self,chain,chainVars,extraVars) :
-        if (len(extraVars.jetIndicesSortedByPt)<=self.jetIndex) : return False
-        return (chainVars.Jeteta[extraVars.jetIndicesSortedByPt[self.jetIndex]]<self.jetEtaThreshold)
-#####################################
-class icfMuonVetoer(analysisStep) :
-    """icfMuonVetoer"""
-
-    def __init__(self,muonPtThreshold):
-        self.muonPtThreshold=muonPtThreshold
-
-        self.moreName ="(no muon with pT>"+str(self.muonPtThreshold)+" GeV passing ID)"
-
-        self.neededBranches=["Nmuon","Muonpt","Muoneta","Muonphi",
-                             "MuonECalIsoDeposit","MuonHCalIsoDeposit"]
-
-        #"MuonIsGlobalTight","MuonTrkValidHits","MuonTrkD0","MuonCombChi2","MuonCombNdof"
-
-    def select (self,chain,chainVars,extraVars) :
-        anyGoodMuon=False
-        nMuons=chain.Nmuon
-        pt=chain.Muonpt
-        eta=chain.Muoneta
-        phi=chain.Muonphi
-        #tightGlobal=chain.MuonIsGlobalTight
-        ecalDeposit=chain.MuonECalIsoDeposit
-        hcalDeposit=chain.MuonHCalIsoDeposit
-        #trkHits=chain.MuonTrkValidHits
-        #d0=chain.MuonTrkD0
-        #chi2=chain.MuonCombChi2
-        #nDof=chain.MuonCombNdof
-
-        beamSpotX=0.0
-        beamSpotY=0.0322
-        for iMuon in range(nMuons) :
-            if (pt[iMuon]<self.muonPtThreshold) : continue
-            if (eta[iMuon]>3.0) : continue
-            #if (not tightGlobal[iMuon]) : continue
-            if (not ecalDeposit[iMuon]<4.0) : continue
-            if (not hcalDeposit[iMuon]<6.0) : continue
-            #if (not trkHits>=11.0) : continue
-            #if (not correctBeamSpot(d0[iMuon],beamSpotX,beamSpotY,phi[iMuon])<0.2) : continue
-            #if (not chi2[iMuon]/nDof[iMuon]<10.0) : continue
-
-            #something here...
-            #isolationMuons=False
-            #if (MuIsoLowPt and MuonPt<30) :
-            #    isolationMuons= ND.GetMuonTrackIso(iM)<MuonLowPtIso
-            #else :
-            #    isolationMuons=muon_rel_iso <MuRelIso
-
-            anyGoodMuon=True
-            return not anyGoodMuon
-
-        return not anyGoodMuon
-#####################################
-class icfElecPtVetoer(analysisStep) :
-    """icfElecPtVetoer"""
-
-    def __init__(self,elecPtThreshold,elecIndex):
-        self.elecPtThreshold=elecPtThreshold
-        self.elecIndex=elecIndex
-        
-        self.moreName ="(pT["+str(self.elecIndex)+"]<"+str(self.elecPtThreshold)+" GeV"
-        self.moreName+=")"
-
-        self.neededBranches=["Nelec","Elecpt"]
-
-    def select (self,chain,chainVars,extraVars) :
-        if (chainVars.Nelec<=self.elecIndex) : return True
-        return (chainVars.Elecpt[self.elecIndex]<self.elecPtThreshold)
-#####################################
-class icfPhotPtVetoer(analysisStep) :
-    """icfPhotPtVetoer"""
-
-    def __init__(self,photPtThreshold,photIndex):
-        self.photPtThreshold=photPtThreshold
-        self.photIndex=photIndex
-        
-        self.moreName ="(pT["+str(self.photIndex)+"]<"+str(self.photPtThreshold)+" GeV"
-        self.moreName+=")"
-
-        self.neededBranches=["Nphot","Photpt"]
-
-    def select (self,chain,chainVars,extraVars) :
-        if (chainVars.Nphot<=self.photIndex) : return True
-        return (chainVars.Photpt[self.photIndex]<self.photPtThreshold)
-#####################################
 class icfCleanJetProducer(analysisStep) :
     """icfCleanJetProducer"""
 
@@ -167,7 +49,6 @@ class icfCleanJetProducer(analysisStep) :
 
         self.neededBranches=["Njets","Jeteta","Jetpt","JetFem",
                              "Jetpx","Jetpy","Jetpz","JetE"]
-        #self.neededBranches.append("event")
 
     def select (self,chain,chainVars,extraVars) :
         extraVars.cleanJetIndices=[]
@@ -182,37 +63,30 @@ class icfCleanJetProducer(analysisStep) :
         Jeteta=chainVars.Jeteta
         JetFem=chainVars.JetFem
         
-        nJets=chainVars.Njets
-        for iJet in range(nJets) :
+        for jetIndex in extraVars.jetIndicesSortedByPt :
             #pt cut
-            if (Jetpt[iJet]<self.jetPtThreshold) : continue
+            if (Jetpt[jetIndex]<self.jetPtThreshold) : continue
 
-            #if (iJet>0 and Jetpt[iJet]>Jetpt[iJet-1]) :
-            #    print "not sorted",chain.event
-            #    for jJet in range(nJets) :
-            #        print jJet,Jetpt[jJet]
-            #    print
-            #if (Jetpt[iJet]<self.jetPtThreshold) : break #assumes sorted
-        
             #if pass pt cut, add to "other" category
-            extraVars.otherJetIndices.append(iJet)
+            extraVars.otherJetIndices.append(jetIndex)
         
             #eta cut
-            absEta=r.TMath.Abs(Jeteta[iJet])
+            absEta=r.TMath.Abs(Jeteta[jetIndex])
             if (absEta>self.jetEtaMax) : continue
 
             #emf cut
-            if (JetFem[iJet]>=0.9) : continue
+            if (JetFem[jetIndex]>=0.9) : continue
 
-            self.dummyP4.SetCoordinates(Jetpx[iJet],
-                                        Jetpy[iJet],
-                                        Jetpz[iJet],
-                                        JetE[iJet])
+            self.dummyP4.SetCoordinates(Jetpx[jetIndex],
+                                        Jetpy[jetIndex],
+                                        Jetpz[jetIndex],
+                                        JetE[jetIndex])
             
             #extraVars.cleanJets.append(copy.deepcopy(self.dummyP4))
             extraVars.cleanJets.append(self.dummyP4+self.zeroP4) #faster than copying
-            extraVars.cleanJetIndices.append(iJet)
-            extraVars.otherJetIndices.remove(iJet)
+            extraVars.cleanJetIndices.append(jetIndex)
+            extraVars.otherJetIndices.remove(jetIndex)
+
         return True
 ######################################
 class icfNCleanJetHistogrammer(analysisStep) :
@@ -250,6 +124,45 @@ class icfNOtherJetEventFilter(analysisStep) :
         
     def select (self,chain,chainVars,extraVars) :
         return len(extraVars.otherJetIndices)<self.nOtherJets
+#####################################
+class icfCleanJetPtSelector(analysisStep) :
+    """icfCleanJetPtSelector"""
+
+    def __init__(self,jetPtThreshold,jetIndex):
+        self.jetPtThreshold=jetPtThreshold
+        self.jetIndex=jetIndex
+        self.neededBranches=["Njets","Jetpt"]
+        self.moreName ="(pt["+str(self.jetIndex)+"]>="+str(self.jetPtThreshold)+" GeV)"
+
+    def select (self,chain,chainVars,extraVars) :
+        if (len(extraVars.cleanJetIndices)<=self.jetIndex) : return False
+        return (chainVars.Jetpt[extraVars.cleanJetIndices[self.jetIndex]]>=self.jetPtThreshold)
+#####################################
+class icfCleanJetPtVetoer(analysisStep) :
+    """icfCleanJetPtVetoer"""
+
+    def __init__(self,jetPtThreshold,jetIndex):
+        self.jetPtThreshold=jetPtThreshold
+        self.jetIndex=jetIndex
+        self.neededBranches=["Njets","Jetpt"]
+        self.moreName ="(pt["+str(self.jetIndex)+"]<"+str(self.jetPtThreshold)+" GeV)"
+
+    def select (self,chain,chainVars,extraVars) :
+        if (len(extraVars.cleanJetIndices)<=self.jetIndex) : return True
+        return (chainVars.Jetpt[extraVars.cleanJetIndices[self.jetIndex]]<self.jetPtThreshold)
+#####################################
+class icfCleanJetEtaSelector(analysisStep) :
+    """icfCleanJetEtaSelector"""
+
+    def __init__(self,jetEtaThreshold,jetIndex):
+        self.jetEtaThreshold=jetEtaThreshold
+        self.jetIndex=jetIndex
+        self.neededBranches=["Njets","Jeteta"]
+        self.moreName ="(eta["+str(self.jetIndex)+"]<"+str(self.jetEtaThreshold)+")"
+
+    def select (self,chain,chainVars,extraVars) :
+        if (len(extraVars.cleanJetIndices)<=self.jetIndex) : return False
+        return (r.TMath.Abs(chainVars.Jeteta[extraVars.cleanJetIndices[self.jetIndex]])<self.jetEtaThreshold)
 #####################################
 class icfCleanJetHtMhtProducer(analysisStep) :
     """icfCleanJetHtMhtProducer"""
@@ -343,24 +256,29 @@ class icfCleanJetHtMhtHistogrammer(analysisStep) :
         if (extraVars.ht>0.0) : value=mht/extraVars.ht
         self.mHtOverHt_Histo.Fill(value)
 #####################################
-class icfCleanJetPtHistogrammer(analysisStep) :
-    """icfCleanJetPtHistogrammer"""
+class icfCleanJetPtEtaHistogrammer(analysisStep) :
+    """icfCleanJetPtEtaHistogrammer"""
 
     def __init__(self) :
-        self.neededBranches=[]
+        self.neededBranches=["Njets","Jetpt","Jeteta"]
 
     def bookHistos(self) :
         self.ptAllHisto=    r.TH1D("ptAll",";p_{T} (GeV) of clean jets;events / bin",50,0.0,800.0)
         self.ptLeadingHisto=r.TH1D("ptLeading",";p_{T} (GeV) of leading clean jet;events / bin",50,0.0,800.0)
 
+        self.etaAllHisto=    r.TH1D("etaAll",";#eta of clean jets;events / bin",50,-5.0,5.0)
+        self.etaLeadingHisto=r.TH1D("etaLeading",";#eta of leading clean jet;events / bin",50,-5.0,5.0)
+
     def uponAcceptance (self,chain,chainVars,extraVars) :
-        ptleading=0.0
         for iJet in extraVars.cleanJetIndices :
             pt=chainVars.Jetpt[iJet]
             self.ptAllHisto.Fill(pt)
-            if (pt>ptleading) :
-                ptleading=pt
-        self.ptLeadingHisto.Fill(ptleading)
+
+            eta=chainVars.Jeteta[iJet]
+            self.etaAllHisto.Fill(eta)
+            if (iJet==0) :
+                self.ptLeadingHisto.Fill(pt)
+                self.etaLeadingHisto.Fill(eta)
 #####################################
 class icfCleanNJetAlphaProducer(analysisStep) :
     """icfCleanNJetAlphaProducer"""
@@ -471,11 +389,29 @@ class icfAlphaHistogrammer(analysisStep) :
         self.diJetAlpha_Histo   =r.TH1D("dijet alpha"   ,";di-jet #alpha (using p_{T});events / bin"   ,bins,min,max)
         #self.diJetAlpha_ET_Histo=r.TH1D("dijet alpha_ET",";di-jet #alpha (using E_{T});events / bin"   ,bins,min,max)
         self.nJetAlphaT_Histo   =r.TH1D("njet alphaT"   ,";N-jet #alpha_{T} (using p_{T});events / bin",bins,min,max)
-        
+
+        #self.alpha2D_a_Histo=r.TH2D("Ht-deltaHt vs sqrt(Ht2-mHt2)",
+        #                            ";H_{T} - #slash(H_{T}) (GeV);sqrt( H_{T}^{2} - {#Delta H_{T}}^{2} ) of two pseudo-jets (GeV);events / bin",
+        #                            20,0.0,1000.0,
+        #                            20,0.0,1000.0)        
+        #
+        #self.alpha2D_b_Histo=r.TH2D("Ht-deltaHt vs Ht-mHt",
+        #                            ";H_{T} - #slash(H_{T}) (GeV);H_{T} - #Delta H_{T} of two pseudo-jets (GeV);events / bin",
+        #                            20,0.0,1000.0,
+        #                            20,0.0,1000.0)        
+
+        self.alpha2D_c_Histo=r.TH2D("deltaHtOverHt vs mHtOverHt",
+                                    ";#slash(H_{T}) / H_{T};#Delta H_{T} of two pseudo-jets / H_{T};events / bin",
+                                    30,0.0,1.0,
+                                    30,0.0,0.7)
+
     def uponAcceptance (self,chain,chainVars,extraVars) :
         self.diJetAlpha_Histo.Fill(   extraVars.diJetAlpha   )
         #self.diJetAlpha_ET_Histo.Fill(extraVars.diJetAlpha_Et)
         self.nJetAlphaT_Histo.Fill(   extraVars.nJetAlphaT   )
+        #self.alpha2D_a_Histo.Fill(math.sqrt(extraVars.ht**2 - extraVars.mht.pt()**2),extraVars.ht - extraVars.nJetDeltaHt)
+        #self.alpha2D_b_Histo.Fill(extraVars.ht - extraVars.mht.pt(),extraVars.ht - extraVars.nJetDeltaHt)
+        self.alpha2D_c_Histo.Fill(extraVars.mht.pt()/extraVars.ht,extraVars.nJetDeltaHt/extraVars.ht)
 #####################################
 class icfDeltaPhiProducer(analysisStep) :
     """icfDeltaPhiProducer"""
@@ -551,4 +487,155 @@ class icfDeltaPhiHistogrammer(analysisStep) :
         self.deltaPhi01_Histo.Fill(extraVars.deltaPhi01 )
         self.deltaR01_Histo.Fill(  extraVars.deltaR01   )
         self.deltaEta01_Histo.Fill(extraVars.deltaEta01 )
+#####################################
+class icfAnyJetPtSelector(analysisStep) :
+    """icfAnyJetPtSelector"""
+
+    def __init__(self,jetPtThreshold,jetIndex):
+        self.jetPtThreshold=jetPtThreshold
+        self.jetIndex=jetIndex
+        self.neededBranches=[]
+        self.moreName ="(pT["+str(self.jetIndex)+"]>="+str(self.jetPtThreshold)+" GeV"
+        self.moreName+=")"
+
+    def select (self,chain,chainVars,extraVars) :
+        if (len(extraVars.jetPtsSortedByPt)<=self.jetIndex) : return False
+        return (extraVars.jetPtsSortedByPt[self.jetIndex]>=self.jetPtThreshold)
+#####################################
+class icfAnyJetPtVetoer(analysisStep) :
+    """icfAnyJetPtVetoer"""
+
+    def __init__(self,jetPtThreshold,jetIndex):
+        self.jetPtThreshold=jetPtThreshold
+        self.jetIndex=jetIndex
+        self.neededBranches=[]
+        self.moreName ="(pT["+str(self.jetIndex)+"]<"+str(self.jetPtThreshold)+" GeV"
+        self.moreName+=")"
+
+    def select (self,chain,chainVars,extraVars) :
+        if (len(extraVars.jetPtsSortedByPt)<=self.jetIndex) : return True
+        return (extraVars.jetPtsSortedByPt[self.jetIndex]<self.jetPtThreshold)
+#####################################
+class icfMuonVetoer(analysisStep) :
+    """icfMuonVetoer"""
+
+    def __init__(self,muonPtThreshold):
+        self.muonPtThreshold=muonPtThreshold
+        self.moreName ="(no muon with pT>"+str(self.muonPtThreshold)+" GeV passing ID)"
+
+        #a bit of a hack here
+        self.neededBranches=["Nmuon","MuonIsGlobalTight","MuonTrkValidHits","MuonTrkD0","MuonCombChi2","MuonCombNdof"] #Nmuon must be the first element
+        self.branchesToBind=["Nmuon","Muonpt","Muoneta","Muonphi","MuonECalIsoDeposit","MuonHCalIsoDeposit","MuonHCalIso","MuonECalIso","MuonTrkIso"]
+        self.neededBranches.extend(self.branchesToBind)
+
+    def select (self,chain,chainVars,extraVars) :
+        anyGoodMuon=False
+
+        #leaf name matches branch name
+        nMuons=chainVars.Nmuon
+        pt=chainVars.Muonpt
+        eta=chainVars.Muoneta
+        phi=chainVars.Muonphi
+        ecalDeposit=chainVars.MuonECalIsoDeposit
+        hcalDeposit=chainVars.MuonHCalIsoDeposit
+
+        hcalIso=chainVars.MuonHCalIso
+        ecalIso=chainVars.MuonECalIso
+        trkIso=chainVars.MuonTrkIso
+
+        #leaf name does not match branch name
+        trkHits=chain.mTempTreeMuonTrkValidHits
+        d0=chain.mTempTreeMuonTrkD0
+        chi2=chain.mTempTreeMuonCombChi2
+        nDof=chain.mTempTreeMuonCombNdof
+        
+        for iMuon in range(nMuons) :
+            if (pt[iMuon]<self.muonPtThreshold) : continue
+            if (math.fabs(eta[iMuon])>3.0) : continue
+
+            isTightGlobal=chain.GetLeaf("mTempTreeMuonIsGlobalTight").GetValue(iMuon)
+
+            if (isTightGlobal<0.5) : continue
+            if (not ecalDeposit[iMuon]<4.0) : continue
+            if (not hcalDeposit[iMuon]<6.0) : continue
+            if (not trkHits>=11.0) : continue
+            if (not correctBeamSpot(d0[iMuon],beamSpotX,beamSpotY,phi[iMuon])<0.2) : continue
+            if (not chi2[iMuon]/nDof[iMuon]<10.0) : continue
+            if (not relIso(ecalIso[iMuon],hcalIso[iMuon],trkIso[iMuon],pt[iMuon])<0.2) : continue
+
+            anyGoodMuon=True
+            break
+
+        return not anyGoodMuon
+#####################################
+class icfElecVetoer(analysisStep) :
+    """icfElecVetoer"""
+
+    def __init__(self,elecPtThreshold):
+        self.elecPtThreshold=elecPtThreshold
+        self.moreName ="(no elec with pT>"+str(self.elecPtThreshold)+" GeV passing ID)"
+
+        #a bit of a hack here
+        self.neededBranches=["Nelec","ElecIdRobTight"] #Nelec must be the first element
+        self.branchesToBind=["Nelec","Elecpt","Eleceta","Elecphi","ElecD0","ElecECalIso","ElecHCalIso","ElecTrkIso"]
+        self.neededBranches.extend(self.branchesToBind)
+
+    def select (self,chain,chainVars,extraVars) :
+        anyGoodElec=False
+
+        #leaf name matches branch name
+        nElecs=chainVars.Nelec
+        pt=chainVars.Elecpt
+        eta=chainVars.Eleceta
+        phi=chainVars.Elecphi
+        d0=chainVars.ElecD0
+        hcalIso=chainVars.ElecHCalIso
+        ecalIso=chainVars.ElecECalIso
+        trkIso=chainVars.ElecTrkIso
+
+        #leaf name does not match branch name
+        tight=getattr(chain,"ElecIdRobTight ")#space!
+
+        for iElec in range(nElecs) :
+            if (pt[iElec]<self.elecPtThreshold) : continue
+            if (math.fabs(eta[iElec])>3.0) : continue
+            if (tight[iElec]!=1) : continue
+            if (not correctBeamSpot(d0[iElec],beamSpotX,beamSpotY,phi[iElec])<0.2) : continue
+            if (not relIso(ecalIso[iElec],hcalIso[iElec],trkIso[iElec],pt[iElec])<0.2) : continue
+
+            anyGoodElec=True
+            break
+
+        return not anyGoodElec
+#####################################
+class icfPhotVetoer(analysisStep) :
+    """icfPhotVetoer"""
+
+    def __init__(self,photPtThreshold):
+        self.photPtThreshold=photPtThreshold
+        self.moreName ="(no phot with pT>"+str(self.photPtThreshold)+" GeV passing ID)"
+
+        #a bit of a hack here
+        self.neededBranches=["Nphot","PhotTightPhoton"] #Nphot must be the first element
+        self.branchesToBind=["Nphot","Photpt","Photeta"]
+        self.neededBranches.extend(self.branchesToBind)
+
+    def select (self,chain,chainVars,extraVars) :
+        anyGoodPhot=False
+
+        #leaf name matches branch name
+        nPhots=chainVars.Nphot
+        pt=chainVars.Photpt
+        eta=chainVars.Photeta
+
+        for iPhot in range(nPhots) :
+            if (pt[iPhot]<self.photPtThreshold) : continue
+            if (math.fabs(eta[iPhot])>5.0) : continue
+            isTight=chain.GetLeaf("mTempTreePhotTightPhoton").GetValue(iPhot)
+            if (isTight<0.5) : continue
+            
+            anyGoodPhot=True
+            break
+
+        return not anyGoodPhot
 #####################################
