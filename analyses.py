@@ -252,9 +252,11 @@ def addRA1_NJet(d) :
         specs.append(base.sampleSpecification(sampleDict,sampleName,nEventsDict[sampleName],outputPrefix,steps_mc,xsDict[sampleName]))
 
     for spec in specs :
-        spec.useSetBranchAddress=False
+        spec.useSetBranchAddress=True
         spec.fileDirectory="dijet"
         spec.treeName="allData"
+        spec.leafNamePrefixes=["mTempTree"]
+        spec.leafNameSuffixes=[" "]
 
     d[outputPrefix]=specs
 
