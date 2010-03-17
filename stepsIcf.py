@@ -20,7 +20,8 @@ class icfJetPtSorter(analysisStep) :
 
     def uponAcceptance(self,chain,chainVars,extraVars) :
         jetPtsAndIndices=[]
-        for iJet in  range(chainVars.Njets) :
+        nJets=chain.Njets
+        for iJet in  range(nJets) :
             jetPtsAndIndices.append( (chainVars.Jetpt[iJet],iJet) )
         jetPtsAndIndices.sort()
         jetPtsAndIndices.reverse()
@@ -206,7 +207,7 @@ class icfMhtAllProducer(analysisStep) :
         JetE  =chainVars.JetE
         Jetpt =chainVars.Jetpt
 
-        nJets=chainVars.Njets
+        nJets=chain.Njets
         for iJet in range(nJets) :
             if (Jetpt[iJet]<self.jetPtThreshold) : continue
 
@@ -532,7 +533,7 @@ class icfMuonVetoer(analysisStep) :
         anyGoodMuon=False
 
         #leaf name matches branch name
-        nMuons=chainVars.Nmuon
+        nMuons=chain.Nmuon
         pt=chainVars.Muonpt
         eta=chainVars.Muoneta
         phi=chainVars.Muonphi
@@ -544,10 +545,10 @@ class icfMuonVetoer(analysisStep) :
         trkIso=chainVars.MuonTrkIso
 
         #leaf name does not match branch name
-        trkHits=chain.mTempTreeMuonTrkValidHits
-        d0=chain.mTempTreeMuonTrkD0
-        chi2=chain.mTempTreeMuonCombChi2
-        nDof=chain.mTempTreeMuonCombNdof
+        trkHits=chainVars.MuonTrkValidHits
+        d0=chainVars.MuonTrkD0
+        chi2=chainVars.MuonCombChi2
+        nDof=chainVars.MuonCombNdof
         
         for iMuon in range(nMuons) :
             if (pt[iMuon]<self.muonPtThreshold) : continue
@@ -584,7 +585,7 @@ class icfElecVetoer(analysisStep) :
         anyGoodElec=False
 
         #leaf name matches branch name
-        nElecs=chainVars.Nelec
+        nElecs=chain.Nelec
         pt=chainVars.Elecpt
         eta=chainVars.Eleceta
         phi=chainVars.Elecphi
@@ -624,7 +625,7 @@ class icfPhotVetoer(analysisStep) :
         anyGoodPhot=False
 
         #leaf name matches branch name
-        nPhots=chainVars.Nphot
+        nPhots=chain.Nphot
         pt=chainVars.Photpt
         eta=chainVars.Photeta
 
