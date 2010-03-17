@@ -210,7 +210,16 @@ class analysisLooper :
         for object in objectList :
             object.Write()
             object.Delete()
+
+        #write two "special" histograms
+        xsHisto=r.TH1D("xsHisto",";dummy axis;#sigma (pb)",1,-0.5,0.5)
+        xsHisto.SetBinContent(1,self.xs)
+        xsHisto.Write()
             
+        nEventsHisto=r.TH1D("nEventsHisto",";dummy axis;N_{events} read in",1,-0.5,0.5)
+        nEventsHisto.SetBinContent(1,self.nEvents)
+        nEventsHisto.Write()
+        
         outputFile.Close()
         if (not zombie) :  print "The output file \""+self.outputPlotFileName+"\" has been written."
 
