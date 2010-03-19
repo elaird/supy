@@ -403,6 +403,10 @@ def addListRA1_NJet(d) :
         progressPrinter(2,300),
 
         icfJetPtSorter(),
+
+        icfAnyJetPtSelector(jetPtLeadingThreshold,0),
+        icfAnyJetPtSelector(jetPtLeadingThreshold,1),
+
         icfCleanJetProducer(jetPtThreshold,jetEtaMax),
         icfNCleanJetHistogrammer(),
         icfNCleanJetEventFilter(nCleanJets),
@@ -411,7 +415,7 @@ def addListRA1_NJet(d) :
         icfCleanJetPtSelector(jetPtLeadingThreshold,1),
         #icfCleanJetPtVetoer(jetPtLeadingThreshold,2),
         icfCleanJetEtaSelector(2.0,0),
-        
+        #skimmer("/tmp/",False),        
         icfNOtherJetEventFilter(1),
         
         icfMuonVetoer(muonPtThreshold),
