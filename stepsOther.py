@@ -12,6 +12,7 @@ class skimmer(analysisStep) :
         self.moreName="(see below)"
         self.alsoWriteExtraTree=alsoWriteExtraTree
         self.outputTreeExtraIsSetup=False
+        self.neededBranches=[]
 
     def setup(self,chain,fileDir,name) :
         self.fileDir=fileDir
