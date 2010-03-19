@@ -33,6 +33,7 @@ class analysisLooper :
         stuffToCopy=["nEvents","name","steps","inputFiles","xs","fileDirectory","treeName","useSetBranchAddress","leafNamePrefixes","leafNameSuffixes"]
         for item in stuffToCopy :
             setattr(self,item,getattr(sample,item))
+        self.skimmerMode=False
             
         self.outputPlotFileName=outDir+"/"+sample.outputPlotFileName
         self.inputChain=r.TChain("chain")
@@ -44,7 +45,6 @@ class analysisLooper :
     def makeFinalBranchNameLists(self) :
         showDebug=False
         self.allReadBranchNames=[]
-        self.allBoundBranchNames=[]
         for step in self.steps :
             if (showDebug) :
                 print "-------------------------"
@@ -58,29 +58,24 @@ class analysisLooper :
                     step.finalBranchNameList.append(branchName)
                     self.allReadBranchNames.append(branchName)
 
-            #branches to bind (binding done only when self.shallWeBindVars=True)
-            step.finalBindList=[]
-            if (not hasattr(step,"branchesToBind")) :
-                step.branchesToBind=step.neededBranches
-            for branchName in step.branchesToBind :
-                if (not branchName in self.allBoundBranchNames) :
-                    step.finalBindList.append(branchName)
-                    self.allBoundBranchNames.append(branchName)
-
             if (showDebug) :
                 print "final:  ",step.finalBranchNameList
                 print "all:    ",self.allReadBranchNames
 
     def setBranchAddresses(self) :
+        self.dontSetList=["<type 'str'>"]
+        self.inputChain.GetEntry(self.extraVariableContainer.entry)
+        for step in self.steps :
+            self.setStuffUp(step)
+            
+    def setStuffUp(self,step) :
         showDebug=False
 
-        builtInTypes=[]
-        for example in [0,  0L, 0.0, False, ""] :
-            builtInTypes.append(type(example))
-
-        self.inputChain.GetEntry(self.extraVariableContainer.entry)
-
-        for branchName in self.allReadBranchNames :
+        step.needToBindVars=False
+        step.bindDict={}
+        step.bindDictArray={}
+        
+        for branchName in step.finalBranchNameList :
             leafNameOptions=[branchName]
             for prefix in self.leafNamePrefixes : leafNameOptions.append(prefix+branchName)
             for suffix in self.leafNameSuffixes : leafNameOptions.append(branchName+suffix)
@@ -95,18 +90,35 @@ class analysisLooper :
                     
             if (showDebug) :
                 print branchName,getattr(self.inputChain,leafName),branchType
-            if (branchType in builtInTypes) :
+
+            #int
+            if (str(branchType)=="<type 'long'>") :
                 leaf=self.inputChain.GetBranch(branchName).GetLeaf(leafName)
                 if (leaf.Class().GetName()=="TLeafI") :
                     setattr(self.chainVariableContainer,branchName,array.array('i',[0]))
-                    self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
+                    if (not self.skimmerMode) :
+                        self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
+                    else :
+                        step.needToBindVars=True
+                        step.bindDict[branchName]=leafName
+            #double[]
             elif (str(branchType)=="<type 'ROOT.PyDoubleBuffer'>") :
-                setattr(self.chainVariableContainer,branchName,array.array('d',[0.0]*256)) #hard-coded max of 256
-                self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
+                if (not self.skimmerMode) :
+                    setattr(self.chainVariableContainer,branchName,array.array('d',[0.0]*256)) #hard-coded max of 256
+                    self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
+                else :
+                    step.needToBindVars=True
+                    step.bindDictArray[branchName]=leafName
+            #float[]
             elif (str(branchType)=="<type 'ROOT.PyFloatBuffer'>") :
-                setattr(self.chainVariableContainer,branchName,array.array('f',[0.0]*256)) #hard-coded max of 256
-                self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
-            else :
+                if (not self.skimmerMode) :
+                    setattr(self.chainVariableContainer,branchName,array.array('f',[0.0]*256)) #hard-coded max of 256
+                    self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
+                else :
+                    step.needToBindVars=True
+                    step.bindDictArray[branchName]=leafName
+            #classes
+            elif (not str(branchType) in self.dontSetList) :
                 #method 1
                 #setattr(self.chainVariableContainer,branchName,getattr(self.inputChain,branchName))
 
@@ -165,19 +177,15 @@ class analysisLooper :
         print self.hyphens
         r.gROOT.cd()
 
-    def chain(self) :
-        return self.inputChain
-
     def setupSteps(self) :
         for step in self.steps :
             step.bookHistos()
-            step.needToReadData=False
             step.selectNotImplemented=not hasattr(step,"select")
             step.uponAcceptanceImplemented=hasattr(step,"uponAcceptance")
             step.uponRejectionImplemented=hasattr(step,"uponRejection")
-            step.shallWeBindVars=not self.useSetBranchAddress
             step.needToReadData=(len(step.finalBranchNameList)>0)
             if (step.__doc__==step.skimmerStepName) :
+                self.skimmerMode=True
                 step.setup(self.inputChain,self.fileDirectory,self.name)
 
     def setupBranchLists(self) :
@@ -264,7 +272,7 @@ class analysisStep :
         self.nTotal+=1
         if (self.needToReadData) :
             self.readData(chain,extraVars.localEntry)
-            if (self.shallWeBindVars) :
+            if (self.needToBindVars) :
                 self.bindVars(chain,chainVars)
 
         if (self.selectNotImplemented) :
@@ -303,8 +311,10 @@ class analysisStep :
             print outString2+statString
 
     def bindVars(self,chain,chainVars) :
-        for branchName in self.finalBindList :
-            setattr(chainVars,branchName,getattr(chain,branchName))
+        for key in self.bindDict :
+            getattr(chainVars,key)[0]=getattr(chain,self.bindDict[key])
+        for key in self.bindDictArray :
+            setattr( chainVars, key, getattr(chain,self.bindDictArray[key]) )
 
     def readData(self,chain,localEntry) :
         for branch in self.finalBranches :
