@@ -20,7 +20,8 @@ class icfJetPtSorter(analysisStep) :
 
     def uponAcceptance(self,chain,chainVars,extraVars) :
         jetPtsAndIndices=[]
-        nJets=chain.Njets
+        #nJets=chain.Njets
+        nJets=chainVars.Njets[0]
         for iJet in  range(nJets) :
             jetPtsAndIndices.append( (chainVars.Jetpt[iJet],iJet) )
         jetPtsAndIndices.sort()
@@ -159,7 +160,7 @@ class icfCleanJetEtaSelector(analysisStep) :
         self.jetEtaThreshold=jetEtaThreshold
         self.jetIndex=jetIndex
         self.neededBranches=["Njets","Jeteta"]
-        self.moreName ="(eta["+str(self.jetIndex)+"]<"+str(self.jetEtaThreshold)+")"
+        self.moreName ="(|eta["+str(self.jetIndex)+"]|<"+str(self.jetEtaThreshold)+")"
 
     def select (self,chain,chainVars,extraVars) :
         if (len(extraVars.cleanJetIndices)<=self.jetIndex) : return False
@@ -207,7 +208,8 @@ class icfMhtAllProducer(analysisStep) :
         JetE  =chainVars.JetE
         Jetpt =chainVars.Jetpt
 
-        nJets=chain.Njets
+        #nJets=chain.Njets
+        nJets=chainVars.Njets[0]
         for iJet in range(nJets) :
             if (Jetpt[iJet]<self.jetPtThreshold) : continue
 
@@ -271,15 +273,17 @@ class icfCleanJetPtEtaHistogrammer(analysisStep) :
         self.etaLeadingHisto=r.TH1D("etaLeading",";#eta of leading clean jet;events / bin",50,-5.0,5.0)
 
     def uponAcceptance (self,chain,chainVars,extraVars) :
+        leadingFilled=False
         for iJet in extraVars.cleanJetIndices :
             pt=chainVars.Jetpt[iJet]
             self.ptAllHisto.Fill(pt)
 
             eta=chainVars.Jeteta[iJet]
             self.etaAllHisto.Fill(eta)
-            if (iJet==0) :
+            if (not leadingFilled) :
                 self.ptLeadingHisto.Fill(pt)
                 self.etaLeadingHisto.Fill(eta)
+                leadingFilled=True
 #####################################
 class icfCleanNJetAlphaProducer(analysisStep) :
     """icfCleanNJetAlphaProducer"""
@@ -533,7 +537,8 @@ class icfMuonVetoer(analysisStep) :
         anyGoodMuon=False
 
         #leaf name matches branch name
-        nMuons=chain.Nmuon
+        #nMuons=chain.Nmuon
+        nMuons=chainVars.Nmuon[0]
         pt=chainVars.Muonpt
         eta=chainVars.Muoneta
         phi=chainVars.Muonphi
@@ -585,7 +590,8 @@ class icfElecVetoer(analysisStep) :
         anyGoodElec=False
 
         #leaf name matches branch name
-        nElecs=chain.Nelec
+        #nElecs=chain.Nelec
+        nElecs=chainVars.Nelec[0]
         pt=chainVars.Elecpt
         eta=chainVars.Eleceta
         phi=chainVars.Elecphi
@@ -625,7 +631,8 @@ class icfPhotVetoer(analysisStep) :
         anyGoodPhot=False
 
         #leaf name matches branch name
-        nPhots=chain.Nphot
+        #nPhots=chain.Nphot
+        nPhots=chainVars.Nphot[0]
         pt=chainVars.Photpt
         eta=chainVars.Photeta
 

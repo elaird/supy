@@ -73,10 +73,9 @@ class analysisLooper :
 
     def setBranchAddresses(self) :
         showDebug=False
-        builtInExamples=[   0,  0L, 0.0, False,""]
-        #arrayStrings   =[ "i", "l", "d"]
-        builtInTypes   =[]
-        for example in builtInExamples :
+
+        builtInTypes=[]
+        for example in [0,  0L, 0.0, False, ""] :
             builtInTypes.append(type(example))
 
         self.inputChain.GetEntry(self.extraVariableContainer.entry)
@@ -97,12 +96,10 @@ class analysisLooper :
             if (showDebug) :
                 print branchName,getattr(self.inputChain,leafName),branchType
             if (branchType in builtInTypes) :
-                index=0
-                #index=builtInTypes.index(branchType)
-
-                #not yet perfect
-                #setattr(self.chainVariableContainer,branchName,array.array(arrayStrings[index],[builtInExamples[index]]))
-                #self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
+                leaf=self.inputChain.GetBranch(branchName).GetLeaf(leafName)
+                if (leaf.Class().GetName()=="TLeafI") :
+                    setattr(self.chainVariableContainer,branchName,array.array('i',[0]))
+                    self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
             elif (str(branchType)=="<type 'ROOT.PyDoubleBuffer'>") :
                 setattr(self.chainVariableContainer,branchName,array.array('d',[0.0]*256)) #hard-coded max of 256
                 self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
@@ -213,7 +210,7 @@ class analysisLooper :
                 
             for step in self.steps :
                 if (not step.go(chain,chainVars,extraVars)) : break
-                
+
     def printStats(self) :
         print self.hyphens
         for step in self.steps :
