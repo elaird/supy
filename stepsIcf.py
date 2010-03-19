@@ -536,7 +536,6 @@ class icfMuonVetoer(analysisStep) :
     def select (self,chain,chainVars,extraVars) :
         anyGoodMuon=False
 
-        #leaf name matches branch name
         #nMuons=chain.Nmuon
         nMuons=chainVars.Nmuon[0]
         pt=chainVars.Muonpt
@@ -549,7 +548,6 @@ class icfMuonVetoer(analysisStep) :
         ecalIso=chainVars.MuonECalIso
         trkIso=chainVars.MuonTrkIso
 
-        #leaf name does not match branch name
         trkHits=chainVars.MuonTrkValidHits
         d0=chainVars.MuonTrkD0
         chi2=chainVars.MuonCombChi2
@@ -581,15 +579,11 @@ class icfElecVetoer(analysisStep) :
         self.elecPtThreshold=elecPtThreshold
         self.moreName ="(no elec with pT>"+str(self.elecPtThreshold)+" GeV passing ID)"
 
-        #a bit of a hack here
-        self.neededBranches=["Nelec","ElecIdRobTight"] #Nelec must be the first element
-        self.branchesToBind=["Nelec","Elecpt","Eleceta","Elecphi","ElecD0","ElecECalIso","ElecHCalIso","ElecTrkIso"]
-        self.neededBranches.extend(self.branchesToBind)
+        self.neededBranches=["Nelec","Elecpt","Eleceta","Elecphi","ElecD0","ElecECalIso","ElecHCalIso","ElecTrkIso","ElecIdRobTight"]
 
     def select (self,chain,chainVars,extraVars) :
         anyGoodElec=False
 
-        #leaf name matches branch name
         #nElecs=chain.Nelec
         nElecs=chainVars.Nelec[0]
         pt=chainVars.Elecpt
@@ -599,9 +593,7 @@ class icfElecVetoer(analysisStep) :
         hcalIso=chainVars.ElecHCalIso
         ecalIso=chainVars.ElecECalIso
         trkIso=chainVars.ElecTrkIso
-
-        #leaf name does not match branch name
-        tight=getattr(chain,"ElecIdRobTight ")#space!
+        tight=chainVars.ElecIdRobTight
 
         for iElec in range(nElecs) :
             if (pt[iElec]<self.elecPtThreshold) : continue
@@ -630,7 +622,6 @@ class icfPhotVetoer(analysisStep) :
     def select (self,chain,chainVars,extraVars) :
         anyGoodPhot=False
 
-        #leaf name matches branch name
         #nPhots=chain.Nphot
         nPhots=chainVars.Nphot[0]
         pt=chainVars.Photpt
