@@ -242,7 +242,7 @@ class icfCleanJetHtMhtHistogrammer(analysisStep) :
         #self.ht_et_Histo       =r.TH1D("ht_et"    ,";H_{T} (GeV) from clean jet E_{T}'s;events / bin" ,50,0.0,1000.0)
         self.mht_Histo         =r.TH1D("mht"      ,";#slash{H}_{T} (GeV) from clean jets;events / bin",50,0.0, 500.0)
         self.m_Histo           =r.TH1D("m"        ,";mass (GeV) of system of clean jets;events / bin" ,50,0.0,1000.0)
-        self.mHtOverHt_Histo   =r.TH1D("mHtOverHt",";MHT / H_{T} (GeV) from clean jet p_{T}'s;events / bin" ,50,0.0,1.1)
+        self.mHtOverHt_Histo   =r.TH1D("mHtOverHt",";MHT / H_{T} from clean jet p_{T}'s;events / bin" ,50,0.0,1.1)
 
         title=";H_{T} (GeV) from clean jets;#slash{H}_{T} (GeV) from clean jet p_{T}'s;events / bin"
         self.mhtHt_Histo=r.TH2D("mht_vs_ht",title,50,0.0,1000.0,50,0.0,1000.0)
