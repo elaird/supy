@@ -19,7 +19,6 @@ class sampleSpecification :
 
         self.fileDirectory="susyTree"
         self.treeName="tree"
-        self.useSetBranchAddress=True
         self.leafNamePrefixes=[]
         self.leafNameSuffixes=[]
 #####################################
@@ -30,7 +29,7 @@ class analysisLooper :
         self.hyphens="".ljust(95,"-")
 
         #copy some stuff
-        stuffToCopy=["nEvents","name","steps","inputFiles","xs","fileDirectory","treeName","useSetBranchAddress","leafNamePrefixes","leafNameSuffixes"]
+        stuffToCopy=["nEvents","name","steps","inputFiles","xs","fileDirectory","treeName","leafNamePrefixes","leafNameSuffixes"]
         for item in stuffToCopy :
             setattr(self,item,getattr(sample,item))
         self.skimmerMode=False
@@ -195,8 +194,7 @@ class analysisLooper :
     def lookForChangeOfTree(self,chain) :
         someTreeNumber=chain.GetTreeNumber()
         if (someTreeNumber!=self.currentTreeNumber) :
-            if (self.useSetBranchAddress) :
-                self.setBranchAddresses()
+            self.setBranchAddresses()
             self.setupBranchLists()
             self.currentTreeNumber=someTreeNumber
                                                                                         

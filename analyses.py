@@ -194,9 +194,10 @@ def addRA1_DiJet(d) :
         specs.append(base.sampleSpecification(sampleDict,sampleName,nEventsEach,outputPrefix,steps_mc,xsDict[sampleName]))
 
     for spec in specs :
-        spec.useSetBranchAddress=False
         spec.fileDirectory="dijet"
         spec.treeName="allData"
+        spec.leafNamePrefixes=["mTempTree"]
+        spec.leafNameSuffixes=[" "]
 
     d[outputPrefix]=specs
 
@@ -233,7 +234,7 @@ def addRA1_NJet(d) :
     xsDict["MG_Z_jets"  ]=    3700.0
     xsDict["MG_Z_inv"   ]=    2000.0
 
-    nEventsBase=1000
+    nEventsBase=-1
 
     nEventsDict={}
     nEventsDict["LM0"        ]=nEventsBase
@@ -252,7 +253,6 @@ def addRA1_NJet(d) :
         specs.append(base.sampleSpecification(sampleDict,sampleName,nEventsDict[sampleName],outputPrefix,steps_mc,xsDict[sampleName]))
 
     for spec in specs :
-        spec.useSetBranchAddress=True
         spec.fileDirectory="dijet"
         spec.treeName="allData"
         spec.leafNamePrefixes=["mTempTree"]
