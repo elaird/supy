@@ -357,19 +357,25 @@ def addListRA1_DiJet(d) :
     steps=[
         progressPrinter(2,300),
 
-        icfAnyJetPtSelector(jetPtThreshold,0),#leading corrected jet
-        icfAnyJetPtSelector(jetPtThreshold,1),#next corrected jet
-        icfAnyJetPtVetoer(jetPtThreshold,2),#next corrected jet
+        icfJetPtSorter(),
 
-        #icfMuonPtVetoer(muonPtThreshold,0),
-        #icfElecPtVetoer(elecPtThreshold,0),
-        #icfPhotPtVetoer(photPtThreshold,0),
+        icfAnyJetPtSelector(jetPtThreshold,0),
+        icfAnyJetPtSelector(jetPtThreshold,1),
 
         icfCleanJetProducer(jetPtThreshold,jetEtaMax),
         icfNCleanJetHistogrammer(),
-
         icfNCleanJetEventFilter(nCleanJets),
+        
+        icfCleanJetPtSelector(jetPtThreshold,0),
+        icfCleanJetPtSelector(jetPtThreshold,1),
+        icfCleanJetPtVetoer(jetPtThreshold,2),
+        icfCleanJetEtaSelector(2.5,0),
+        #skimmer("/tmp/",False),        
         icfNOtherJetEventFilter(1),
+        
+        icfMuonVetoer(muonPtThreshold),
+        icfElecVetoer(elecPtThreshold),
+        icfPhotVetoer(photPtThreshold),
         
         icfCleanJetHtMhtProducer(),
         extraVariableGreaterFilter(250.0,"ht"),
@@ -377,10 +383,13 @@ def addListRA1_DiJet(d) :
         icfCleanNJetAlphaProducer(),
         icfDeltaPhiProducer(),
         
+        #icfMhtAllProducer(30.0),
+        #icfMhtRatioSelector(1.25),
+        
         icfCleanJetPtEtaHistogrammer(),
         icfCleanJetHtMhtHistogrammer(),
         icfAlphaHistogrammer(),
-        icfDeltaPhiHistogrammer(),
+        #icfDeltaPhiHistogrammer(),
         
         #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
         #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
@@ -388,7 +397,7 @@ def addListRA1_DiJet(d) :
 
     d["RA1_DiJet_Steps_data"]=steps
     d["RA1_DiJet_Steps_mc"]=removeStepsForMc(steps)
-
+    
 def addListRA1_NJet(d) :
     jetPtLeadingThreshold=100.0
     jetPtThreshold=50.0

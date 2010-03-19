@@ -165,14 +165,14 @@ def addRA1_DiJet(d) :
         #"data"       ,
         "LM0"        ,
         "LM1"        ,
-        #"MG_QCD_bin1",
+        "MG_QCD_bin1",
         "MG_QCD_bin2",
         "MG_QCD_bin3",
         "MG_QCD_bin4",
-        #"MG_TT_jets" ,
-        #"MG_Z_jets"  ,
-        #"MG_W_jets"  ,
-        #"MG_Z_inv"   ,
+        "MG_TT_jets" ,
+        "MG_Z_jets"  ,
+        "MG_W_jets"  ,
+        "MG_Z_inv"   ,
         ]
 
     #pb
@@ -187,16 +187,29 @@ def addRA1_DiJet(d) :
     xsDict["MG_W_jets"  ]=   40000.0
     xsDict["MG_Z_inv"   ]=    2000.0
 
-    nEventsEach=20000
+    nEventsBase=20000
+
+    nEventsDict={}
+    nEventsDict["LM0"        ]=nEventsBase
+    nEventsDict["LM1"        ]=nEventsBase
+    nEventsDict["MG_QCD_bin1"]=nEventsBase
+    nEventsDict["MG_QCD_bin2"]=nEventsBase*3
+    nEventsDict["MG_QCD_bin3"]=nEventsBase*3
+    nEventsDict["MG_QCD_bin4"]=nEventsBase
+    nEventsDict["MG_TT_jets" ]=nEventsBase
+    nEventsDict["MG_W_jets"  ]=nEventsBase*50
+    nEventsDict["MG_Z_jets"  ]=nEventsBase*50
+    nEventsDict["MG_Z_inv"   ]=nEventsBase*5
+
 
     specs=[]
     for sampleName in sampleNames :
-        specs.append(base.sampleSpecification(sampleDict,sampleName,nEventsEach,outputPrefix,steps_mc,xsDict[sampleName]))
+        specs.append(base.sampleSpecification(sampleDict,sampleName,nEventsDict[sampleName],outputPrefix,steps_mc,xsDict[sampleName]))
 
     for spec in specs :
         spec.fileDirectory="dijet"
         spec.treeName="allData"
-        spec.leafNamePrefixes=["mTempTree"]
+        spec.leafNamePrefixes=["mTempTree","mTemp"]
         spec.leafNameSuffixes=[" "]
 
     d[outputPrefix]=specs
@@ -255,7 +268,7 @@ def addRA1_NJet(d) :
     for spec in specs :
         spec.fileDirectory="dijet"
         spec.treeName="allData"
-        spec.leafNamePrefixes=["mTempTree"]
+        spec.leafNamePrefixes=["mTempTree","mTemp"]
         spec.leafNameSuffixes=[" "]
 
     d[outputPrefix]=specs
