@@ -19,8 +19,6 @@ class sampleSpecification :
 
         self.fileDirectory="susyTree"
         self.treeName="tree"
-        self.leafNamePrefixes=[]
-        self.leafNameSuffixes=[]
 #####################################
 class analysisLooper :
     """class to set up and loop over events"""
@@ -29,7 +27,7 @@ class analysisLooper :
         self.hyphens="".ljust(95,"-")
 
         #copy some stuff
-        stuffToCopy=["nEvents","name","steps","inputFiles","xs","fileDirectory","treeName","leafNamePrefixes","leafNameSuffixes"]
+        stuffToCopy=["nEvents","name","steps","inputFiles","xs","fileDirectory","treeName"]
         for item in stuffToCopy :
             setattr(self,item,getattr(sample,item))
         self.skimmerMode=False
@@ -75,18 +73,12 @@ class analysisLooper :
         step.bindDictArray={}
         
         for branchName in step.finalBranchNameList :
-            leafNameOptions=[branchName]
-            for prefix in self.leafNamePrefixes : leafNameOptions.append(prefix+branchName)
-            for suffix in self.leafNameSuffixes : leafNameOptions.append(branchName+suffix)
-                
-            branchType=None
-            leafName=""
-            for leafNameOption in leafNameOptions :
-                if hasattr(self.inputChain,leafNameOption) :
-                    branchType=type(getattr(self.inputChain,leafNameOption))
-                    leafName=leafNameOption
-                    break
-                    
+            #only branches with one leaf are supported
+            leafName=self.inputChain.GetBranch(branchName).GetListOfLeaves().At(0).GetName()
+            if (leafName=="_") : leafName=branchName
+
+            branchType=type(getattr(self.inputChain,leafName))
+            
             if (showDebug) :
                 print branchName,getattr(self.inputChain,leafName),branchType
 
@@ -100,6 +92,14 @@ class analysisLooper :
                     else :
                         step.needToBindVars=True
                         step.bindDict[branchName]=leafName
+            #int[]
+            elif (str(branchType)=="<type 'ROOT.PyUIntBuffer'>") :
+                if (not self.skimmerMode) :
+                    setattr(self.chainVariableContainer,branchName,array.array('i',[0]*256)) #hard-coded max of 256
+                    self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
+                else :
+                    step.needToBindVars=True
+                    step.bindDictArray[branchName]=leafName
             #double[]
             elif (str(branchType)=="<type 'ROOT.PyDoubleBuffer'>") :
                 if (not self.skimmerMode) :
