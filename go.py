@@ -3,10 +3,10 @@ import sys
 import base,analyses,plotter
 
 #choose the analysis
-name="triggerSkim"
+#name="triggerSkim"
 #name="jetAlgoComparison"
 #name="metDistLook"
-#name="example"
+name="example"
 #name="jetKineLook"
 #name="deltaPhiLook"
 #name="metGroupCleanupLook"
