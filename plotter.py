@@ -137,8 +137,18 @@ def makeAlphaTFunc(alphaTValue) :
 ##############################
 def histoLoop(plotSpec,histoList) :
     stuffToKeep=[]
-    
-    legend=r.TLegend(0.4,0.75,0.75,1.0)
+
+    #x1=0.40
+    #x2=0.75
+    #y1=0.75
+    #y2=1.00
+
+    x1=0.86
+    x2=1.00
+    y1=0.50
+    y2=0.75
+
+    legend=r.TLegend(x1,y1,x2,y2)
     for iHisto in range(len(histoList)) :
         histo=histoList[iHisto]
 
@@ -151,6 +161,7 @@ def histoLoop(plotSpec,histoList) :
 
         #1D here
         if (plotSpec.dimension==1) :
+            r.gPad.SetRightMargin(0.15)
             if (iHisto==0) :
                 histo.Draw()
                 if (doLog1D) :
@@ -189,11 +200,11 @@ def histoLoop(plotSpec,histoList) :
         #2D here
         else :
             plotSpec.canvas.cd(iHisto+1)
-            histo.GetYaxis().SetTitleOffset(1.3)
+            histo.GetYaxis().SetTitleOffset(1.2)
             oldTitle=histo.GetTitle()
             histo.SetTitle(oldTitle+plotSpec.sampleSpecs[iHisto].name)
             histo.SetStats(False)
-            histo.GetZaxis().SetTitleOffset(1.2)
+            histo.GetZaxis().SetTitleOffset(1.3)
             r.gPad.SetRightMargin(0.15)
             if (doColzFor2D) : histo.Draw("colz")
             else :             histo.Draw()
@@ -258,6 +269,15 @@ def makeHistoList(plotSpec) :
 
     return histoList
 ##############################
+def printTimeStamp(canvas,psFile,psOptions) :
+    text=r.TText()
+    text.SetNDC()
+    dateString="file created at ";
+    tdt=r.TDatime()
+    text.DrawText(0.1,0.3,dateString+tdt.AsString())
+    canvas.Print(psFile,psOptions)
+    canvas.Clear()
+##############################
 def plotAll(analysisName,sampleSpecs,outputDir) :
     if (len(sampleSpecs)<1) : return
     setupStyle()
@@ -268,6 +288,8 @@ def plotAll(analysisName,sampleSpecs,outputDir) :
     canvas=r.TCanvas()
     canvas.Print(psFile+"[",psOptions)
 
+    printTimeStamp(canvas,psFile,psOptions)
+    
     outList=getNamesAndDimensions(outputDir,sampleSpecs[0])
     plotNames=outList[0]
     dimensions=outList[1]
