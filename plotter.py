@@ -3,7 +3,7 @@ import ROOT as r
 doLog1D=True
 doLog2D=True
 doMetFit=False
-doScaleByXs=True
+doScaleByXs=False
 doColzFor2D=True
 xsNorm=100 #pb^-1
 ##############################
@@ -210,7 +210,7 @@ def histoLoop(plotSpec,histoList) :
             else :             histo.Draw()
 
             if (doLog2D) :
-                histo.SetMaximum(2.0*plotSpec.maximum)
+                if (doScaleByXs) : histo.SetMaximum(2.0*plotSpec.maximum)
                 histo.SetMinimum(getLogMin(plotSpec))
                 r.gPad.SetLogz()
             else :
