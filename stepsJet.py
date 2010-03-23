@@ -236,6 +236,7 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
     """cleanJetHtMhtHistogrammer"""
 
     def __init__(self,jetCollection,jetSuffix,corrRatherThanUnCorr):
+        self.neededBranches=[]
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
         self.corrRatherThanUnCorr=corrRatherThanUnCorr
@@ -457,6 +458,7 @@ class alphaHistogrammer(analysisStep) :
     """alphaHistogrammer"""
 
     def __init__(self,jetCollection,jetSuffix) :
+        self.neededBranches=[]
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
         self.moreName="("
@@ -556,6 +558,7 @@ class deltaPhiHistogrammer(analysisStep) :
     """deltaPhiHistogrammer"""
 
     def __init__(self,jetCollection,jetSuffix) :
+        self.neededBranches=[]
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
 
