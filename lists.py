@@ -152,7 +152,6 @@ def addListJetKineLook(d) :
         jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,1),#next corrected jet
         #jetPtVetoer(jetCollection,jetSuffix,jetPtThreshold,2),#next corrected jet
 
-        #skimmer("/tmp/",skimmerAlsoWritesExtraTree),
         metGroupNoiseEventFilter("v1"),
         
         cleanJetIndexProducer(jetCollection,jetSuffix,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
@@ -173,6 +172,8 @@ def addListJetKineLook(d) :
 
         ##extraVariableGreaterFilter(0.6,jetCollection+"diJetAlpha_pT"+jetSuffix),
         #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
+
+        #skimmer("/tmp/",skimmerAlsoWritesExtraTree),
 
         #eventPrinter(),
         #jetPrinter(jetCollection,jetSuffix),
