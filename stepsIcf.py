@@ -126,6 +126,53 @@ class icfNOtherJetEventFilter(analysisStep) :
         
     def select (self,chain,chainVars,extraVars) :
         return len(extraVars.otherJetIndices)<self.nOtherJets
+######################################
+class icfOtherJetHistogrammer(analysisStep) :
+    """icfOtherJetHistogrammer"""
+
+    def __init__(self,singleJetPtThreshold):
+        self.neededBranches=[]
+        self.singleJetPtThreshold=singleJetPtThreshold
+
+    def bookHistos(self) :
+        nBins=15
+        title=";n \"other\" jets with p_{T}>"+str(self.singleJetPtThreshold)+" GeV;events / bin"
+        self.nOtherJetsHisto=r.TH1D("nOtherJetHt",title,nBins,-0.5,nBins-0.5)
+
+        self.ptAllHistoOther=    r.TH1D("ptAllOther",";p_{T} (GeV) of \"other\" jets;events / bin",50,0.0,200.0)
+        self.ptLeadingHistoOther=r.TH1D("ptLeadingOther",";p_{T} (GeV) of leading \"other\" jet;events / bin",50,0.0,200.0)
+
+        #self.etaAllHisto=    r.TH1D("etaAllOther",";#eta of clean jets;events / bin",50,-5.0,5.0)
+        #self.etaLeadingHisto=r.TH1D("etaLeadingOther",";#eta of leading clean jet;events / bin",50,-5.0,5.0)
+
+        title=";H_{T} computed from \"other\" jets with p_{T}>"+str(self.singleJetPtThreshold)+" GeV;events / bin"
+        self.otherJetHtHisto=r.TH1D("otherJetHt",title,50,0.0,200.0)
+
+    def uponAcceptance (self,chain,chainVars,extraVars) :
+        extraVars.otherHt=0.0
+        extraVars.nOtherJets=0
+
+        Jetpt=chainVars.Jetpt
+        leadingFilled=False
+        for jetIndex in  extraVars.jetIndicesSortedByPt :
+            if (jetIndex in extraVars.cleanJetIndices) : continue
+            pt=Jetpt[jetIndex]
+            if (pt<self.singleJetPtThreshold) : continue
+            extraVars.otherHt+=pt
+            extraVars.nOtherJets+=1
+
+            self.ptAllHistoOther.Fill(pt)
+
+            #eta=chainVars.Jeteta[iJet]
+            #self.etaAllHistoOther.Fill(eta)
+
+            if (not leadingFilled) :
+                self.ptLeadingHistoOther.Fill(pt)
+                #self.etaLeadingHistoOther.Fill(eta)
+                leadingFilled=True
+
+        self.otherJetHtHisto.Fill(extraVars.otherHt)
+        self.nOtherJetsHisto.Fill(extraVars.nOtherJets)
 #####################################
 class icfCleanJetPtSelector(analysisStep) :
     """icfCleanJetPtSelector"""
@@ -429,6 +476,7 @@ class icfDeltaPhiProducer(analysisStep) :
         extraVars.deltaPhi01= -4.0
         extraVars.deltaR01  =-40.0
         extraVars.deltaEta01=-40.0
+        extraVars.deltaPhiMhtJet=[]
 
         if (len(extraVars.cleanJetIndices)>=2) :
             jet0=extraVars.cleanJets[0]
@@ -436,6 +484,11 @@ class icfDeltaPhiProducer(analysisStep) :
             extraVars.deltaPhi01=r.Math.VectorUtil.DeltaPhi(jet0,jet1)
             extraVars.deltaR01  =r.Math.VectorUtil.DeltaR(jet0,jet1)
             extraVars.deltaEta01=jet0.eta()-jet1.eta()
+
+        for iJet in range(len(extraVars.cleanJets)) :
+            deltaPhi=r.Math.VectorUtil.DeltaPhi(extraVars.mht,extraVars.cleanJets[iJet])
+            extraVars.deltaPhiMhtJet.append(deltaPhi)
+                
         return True
 #####################################
 class icfDeltaPhiSelector(analysisStep) :
@@ -471,27 +524,35 @@ class icfDeltaPhiHistogrammer(analysisStep) :
 
     def bookHistos(self) :
         bins=50
-        min=-4.0
-        max= 4.0
-        title="deltaPhi01"
-        self.deltaPhi01_Histo=r.TH1D(title,";"+title+";events / bin",bins,min,max)
+        min=0.0
+        max=r.TMath.Pi()
+        xTitle="#Delta#phi(jet 0 , jet 1)"
+        self.deltaPhi01_Histo=r.TH1D("deltaPhi01",";"+xTitle+";events / bin",bins,min,max)
+        self.deltaPhiMhtJetHisto=[]
+        self.deltaPhiMhtJetMax=3
+        for iJet in range(self.deltaPhiMhtJetMax) :
+            xTitle="#Delta#phi(#slashH_{T} , jet "+str(iJet)+")"
+            self.deltaPhiMhtJetHisto.append(r.TH1D("deltaPhiMhtJet"+str(iJet),";"+xTitle+";events / bin",bins,min,max))
 
         bins=20
         min= 0.0
         max=10.0
         title="deltaR01"
-        self.deltaR01_Histo=r.TH1D(title,";"+title+";events / bin",bins,min,max)
+        #self.deltaR01_Histo=r.TH1D(title,";"+title+";events / bin",bins,min,max)
 
         bins=50
         min=-10.0
         max= 10.0
         title="deltaEta01"
-        self.deltaEta01_Histo=r.TH1D(title,";"+title+";events / bin",bins,min,max)
+        #self.deltaEta01_Histo=r.TH1D(title,";"+title+";events / bin",bins,min,max)
         
     def uponAcceptance (self,chain,chainVars,extraVars) :
-        self.deltaPhi01_Histo.Fill(extraVars.deltaPhi01 )
-        self.deltaR01_Histo.Fill(  extraVars.deltaR01   )
-        self.deltaEta01_Histo.Fill(extraVars.deltaEta01 )
+        self.deltaPhi01_Histo.Fill( math.fabs(extraVars.deltaPhi01) )
+        #self.deltaR01_Histo.Fill(             extraVars.deltaR01    )
+        #self.deltaEta01_Histo.Fill(           extraVars.deltaEta01  )
+        
+        for iJet in range(min(self.deltaPhiMhtJetMax,len(extraVars.deltaPhiMhtJet))) :
+            self.deltaPhiMhtJetHisto[iJet].Fill(extraVars.deltaPhiMhtJet[iJet])
 #####################################
 class icfAnyJetPtSelector(analysisStep) :
     """icfAnyJetPtSelector"""
@@ -528,10 +589,10 @@ class icfMuonVetoer(analysisStep) :
         self.muonPtThreshold=muonPtThreshold
         self.moreName ="(no muon with pT>"+str(self.muonPtThreshold)+" GeV passing ID)"
 
-        #a bit of a hack here
-        self.neededBranches=["Nmuon","MuonIsGlobalTight","MuonTrkValidHits","MuonTrkD0","MuonCombChi2","MuonCombNdof"] #Nmuon must be the first element
-        self.branchesToBind=["Nmuon","Muonpt","Muoneta","Muonphi","MuonECalIsoDeposit","MuonHCalIsoDeposit","MuonHCalIso","MuonECalIso","MuonTrkIso"]
-        self.neededBranches.extend(self.branchesToBind)
+        self.neededBranches=["Nmuon","Muonpt","Muoneta","Muonphi"
+                             ,"MuonECalIsoDeposit","MuonHCalIsoDeposit","MuonHCalIso","MuonECalIso","MuonTrkIso"
+                             ,"MuonIsGlobalTight","MuonTrkValidHits","MuonTrkD0","MuonCombChi2","MuonCombNdof"
+                             ] #Nmuon must be the first element
 
     def select (self,chain,chainVars,extraVars) :
         anyGoodMuon=False
@@ -579,7 +640,8 @@ class icfElecVetoer(analysisStep) :
         self.elecPtThreshold=elecPtThreshold
         self.moreName ="(no elec with pT>"+str(self.elecPtThreshold)+" GeV passing ID)"
 
-        self.neededBranches=["Nelec","Elecpt","Eleceta","Elecphi","ElecD0","ElecECalIso","ElecHCalIso","ElecTrkIso","ElecIdRobTight"]
+        self.neededBranches=["Nelec","Elecpt","Eleceta","Elecphi"
+                             ,"ElecD0","ElecECalIso","ElecHCalIso","ElecTrkIso","ElecIdRobTight"] #Nelec must be the first element
 
     def select (self,chain,chainVars,extraVars) :
         anyGoodElec=False
@@ -614,10 +676,7 @@ class icfPhotVetoer(analysisStep) :
         self.photPtThreshold=photPtThreshold
         self.moreName ="(no phot with pT>"+str(self.photPtThreshold)+" GeV passing ID)"
 
-        #a bit of a hack here
-        self.neededBranches=["Nphot","PhotTightPhoton"] #Nphot must be the first element
-        self.branchesToBind=["Nphot","Photpt","Photeta"]
-        self.neededBranches.extend(self.branchesToBind)
+        self.neededBranches=["Nphot","Photpt","Photeta","PhotTightPhoton"] #Nphot must be the first element
 
     def select (self,chain,chainVars,extraVars) :
         anyGoodPhot=False
