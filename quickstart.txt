@@ -1,14 +1,14 @@
 Make a release area somewhere
 ------------------------
 ssh -Y lxplus5
-cmsrel CMSSW_3_4_1
-cd CMSSW_3_4_1/src/
+cmsrel CMSSW_3_5_4
+cd CMSSW_3_5_4/src/
 cmsenv
 
 Check out the code
 ------------------
 cd
-cvs co -d supy -r V1-1 UserCode/SusyCAFmacro/standalone/supy
+cvs co -d supy -r V3-1 UserCode/elaird/supy
 cd supy
 
 Run the code
@@ -24,7 +24,7 @@ Have a look at the ps file that was created.
 
 Exercise 2:
 Change the number of MC events that you loop over.  
-This is done in analyses.py, the function "addExample", the line containing "Example_Skimmed_900_GeV_MC" (e.g., change 500 to -1).
+This is done in analyses.py, the function "addExample", the line containing "Example_Skimmed_900_GeV_MC" (e.g., change 100 to -1).
 Re-run.
 
 Exercise 3:
@@ -33,7 +33,7 @@ This is done in samples.py, e.g. in the function "add_Example_Skimmed_900_GeV_Da
 
 Exercise 4:
 Add an existing step to the list of steps you're using.
-E.g., in lists.py, uncomment "htFilter(25.0,corrRatherThanUnCorr)," in the list "steps" in the function "addList1".
+E.g., in lists.py, uncomment "extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix)," in the list "steps" in the function "addListJetKineLook".
 Re-run.
 
 Exercise 5:
@@ -52,7 +52,7 @@ Write out the extra trees (in this case, one for data, one for MC).  E.g., in li
   tree->AddFriend("susyTree/treeExtra");
 
   tree->SetMarkerStyle(20);
-  tree->Draw("mht.pt():metP4Calo.pt()","nJetAlphaT>0.6 && run>123456");
+  tree->Draw("ak5JetMhtPat.pt():metP4Calo.pt()","ak5JetnJetAlphaTPat>0.6 && run>123456");
 
   //tree->Print("all");//show branches of both trees
 }
