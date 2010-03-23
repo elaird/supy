@@ -135,7 +135,7 @@ def addExample(d) :
 
     specs=[
         base.sampleSpecification(sampleDict,"Example_Skimmed_900_GeV_Data",      -1,outputPrefix,steps_data),
-        base.sampleSpecification(sampleDict,"Example_Skimmed_900_GeV_MC",       500,outputPrefix,steps_mc),
+        base.sampleSpecification(sampleDict,"Example_Skimmed_900_GeV_MC",       100,outputPrefix,steps_mc),
         ]
 
     d[outputPrefix]=specs
