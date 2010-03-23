@@ -8,7 +8,7 @@ cmsenv
 Check out the code
 ------------------
 cd
-cvs co -d supy -r V3-1 UserCode/elaird/supy
+cvs co -d supy -r V4-1 UserCode/elaird/supy
 cd supy
 
 Run the code
