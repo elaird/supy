@@ -412,11 +412,16 @@ def addListRA1_NJet(d) :
     steps=[
         progressPrinter(2,300),
 
-        icfJetPtSorter(),
+        #icfGenPrinter(),
+        #icfGenP4Producer(),
+        #icfGenP4Histogrammer(),
 
+        icfJetPtSorter(),
+        
         icfAnyJetPtSelector(jetPtLeadingThreshold,0),
         icfAnyJetPtSelector(jetPtLeadingThreshold,1),
-
+        
+        #icfCleanJetFromGenProducer(jetPtThreshold,jetEtaMax),
         icfCleanJetProducer(jetPtThreshold,jetEtaMax),
         icfNCleanJetHistogrammer(),
         icfNCleanJetEventFilter(nCleanJets),
@@ -425,8 +430,10 @@ def addListRA1_NJet(d) :
         icfCleanJetPtSelector(jetPtLeadingThreshold,1),
         #icfCleanJetPtVetoer(jetPtLeadingThreshold,2),
         icfCleanJetEtaSelector(2.0,0),
-        #skimmer("/tmp/",False),        
+        #skimmer("/tmp/",False),
         icfNOtherJetEventFilter(1),
+        
+        icfOtherJetHistogrammer(0.0),
         
         icfMuonVetoer(muonPtThreshold),
         icfElecVetoer(elecPtThreshold),
@@ -444,7 +451,7 @@ def addListRA1_NJet(d) :
         icfCleanJetPtEtaHistogrammer(),
         icfCleanJetHtMhtHistogrammer(),
         icfAlphaHistogrammer(),
-        #icfDeltaPhiHistogrammer(),
+        icfDeltaPhiHistogrammer(),
         
         #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
         #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),

@@ -2,6 +2,7 @@
 import math
 import ROOT as r
 from base import analysisStep
+#import pdgLookup
 #####################################
 beamSpotX=0.0
 beamSpotY=0.0322
@@ -696,4 +697,155 @@ class icfPhotVetoer(analysisStep) :
             break
 
         return not anyGoodPhot
+#####################################
+class icfCleanJetFromGenProducer(analysisStep) :
+    """icfCleanJetFromGenProducer"""
+
+    def __init__(self,jetPtThreshold,jetEtaMax):
+        self.jetPtThreshold=jetPtThreshold
+        self.jetEtaMax=jetEtaMax
+
+        self.moreName+="(pT>="+str(self.jetPtThreshold)+" GeV"
+        self.moreName+="; |eta|<="+str(self.jetEtaMax)
+        self.moreName+=")"
+
+        self.zeroP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
+        self.dummyP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
+
+        self.neededBranches=["Njets","GenJeteta","GenJetpt",
+                             "GenJetpx","GenJetpy","GenJetpz","GenJetE"]
+
+    def select (self,chain,chainVars,extraVars) :
+        extraVars.cleanJetIndices=[]
+        extraVars.otherJetIndices=[]
+        extraVars.cleanJets=[]
+
+        GenJetpx =chainVars.GenJetpx
+        GenJetpy =chainVars.GenJetpy
+        GenJetpz =chainVars.GenJetpz
+        GenJetE  =chainVars.GenJetE
+        GenJetpt =chainVars.GenJetpt
+        GenJeteta=chainVars.GenJeteta
+        
+        for jetIndex in extraVars.jetIndicesSortedByPt :
+            #pt cut
+            if (GenJetpt[jetIndex]<self.jetPtThreshold) : continue
+
+            #if pass pt cut, add to "other" category
+            extraVars.otherJetIndices.append(jetIndex)
+        
+            #eta cut
+            absEta=r.TMath.Abs(GenJeteta[jetIndex])
+            if (absEta>self.jetEtaMax) : continue
+
+            self.dummyP4.SetCoordinates(GenJetpx[jetIndex],
+                                        GenJetpy[jetIndex],
+                                        GenJetpz[jetIndex],
+                                        GenJetE[jetIndex])
+            
+            extraVars.cleanJets.append(self.dummyP4+self.zeroP4) #faster than copying
+            extraVars.cleanJetIndices.append(jetIndex)
+            extraVars.otherJetIndices.remove(jetIndex)
+
+        return True
+#####################################
+class icfGenPrinter(analysisStep) :
+    """icfGenPrinter"""
+
+    def __init__(self):
+        self.neededBranches=["genN","genid","genMother","genE",
+                     "genPx","genPy","genPz","genStatus"]
+        self.neededBranches.extend(["event","run"])
+        self.oneP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
+        self.sumP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
+        self.zeroP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
+        
+    def uponAcceptance (self,chain,chainVars,extraVars) :
+        nGen=chainVars.genN[0]
+        self.sumP4.SetCoordinates(0.0,0.0,0.0,0.0)
+
+        mothers=set(chainVars.genMother[:nGen])
+        #print "mothers: ",mothers
+        print "-------------------------------------------------------------------------"
+        print "run %#7d"%chainVars.run[0],"  event %#10d"%chainVars.event[0]," |"
+        print "---------------------------------"
+        print " i  st  mo         id            name        E       eta        pt    phi"
+        print "-------------------------------------------------------------------------"
+        for iGen in range(nGen) :
+            self.oneP4.SetCoordinates(chainVars.genPx[iGen],
+                                      chainVars.genPy[iGen],
+                                      chainVars.genPz[iGen],
+                                      chainVars.genE [iGen])
+
+            outString=""
+            outString+="%#2d"%iGen
+            outString+=" %#3d"%chainVars.genStatus[iGen]
+            outString+="  %#2d"%chainVars.genMother[iGen]
+            outString+=" %#10d"%chainVars.genid[iGen]
+            outString+="".rjust(16)
+            #outString+=" "+pdgLookup.pdgid_to_name(chainVars.genid[iGen]).rjust(15)
+            outString+="  %#7.1f"%chainVars.genE[iGen]
+            outString+="  %#8.1f"%self.oneP4.eta()
+            outString+="  %#8.1f"%self.oneP4.pt()
+            outString+="  %#5.1f"%self.oneP4.phi()
+
+            if (not (iGen in mothers)) :
+                outString+="   non-mo"
+                self.sumP4+=self.oneP4
+                #outString2="non-mo P4 sum".ljust(37)
+                #outString2+="  %#7.1f"%self.sumP4.E()
+                #outString2+="  %#8.1f"%self.sumP4.eta()
+                #outString2+="  %#8.1f"%self.sumP4.pt()
+                #outString2+="  %#5.1f"%self.sumP4.phi()
+                #print outString2
+
+            print outString
+
+        outString="non-mo P4 sum".ljust(37)
+        outString+="  %#7.1f"%self.sumP4.E()
+        outString+="  %#8.1f"%self.sumP4.eta()
+        outString+="  %#8.1f"%self.sumP4.pt()
+        outString+="  %#5.1f"%self.sumP4.phi()
+        print outString
+        print
+#####################################
+class icfGenP4Producer(analysisStep) :
+    """icfGenP4Producer"""
+
+    def __init__(self):
+        self.neededBranches=["genN","genMother","genE",
+                     "genPx","genPy","genPz"]
+
+        self.oneP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
+        self.sumP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
+        self.zeroP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
+        
+    def uponAcceptance (self,chain,chainVars,extraVars) :
+        nGen=chainVars.genN[0]
+        self.sumP4.SetCoordinates(0.0,0.0,0.0,0.0)
+
+        mothers=set(chainVars.genMother[:nGen])
+
+        for iGen in range(nGen) :
+            if (not (iGen in mothers)) :
+                self.oneP4.SetCoordinates(chainVars.genPx[iGen],
+                                          chainVars.genPy[iGen],
+                                          chainVars.genPz[iGen],
+                                          chainVars.genE [iGen])
+
+                self.sumP4+=self.oneP4
+
+        extraVars.genNonMotherP4Sum=(self.sumP4+self.zeroP4)
+#####################################
+class icfGenP4Histogrammer(analysisStep) :
+    """icfGenP4Histogrammer"""
+
+    def __init__(self):
+        self.neededBranches=[]
+
+    def bookHistos(self) :
+        self.ptHisto=r.TH1D("genNonMotherP4Sum",";genNonMotherP4Sum p_{T} (GeV);events / bin",50,0.0,200.0)
+
+    def uponAcceptance (self,chain,chainVars,extraVars) :
+        self.ptHisto.Fill(extraVars.genNonMotherP4Sum.pt())
 #####################################
