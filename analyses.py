@@ -209,8 +209,6 @@ def addRA1_DiJet(d) :
     for spec in specs :
         spec.fileDirectory="dijet"
         spec.treeName="allData"
-        spec.leafNamePrefixes=["mTempTree","mTemp"]
-        spec.leafNameSuffixes=[" "]
 
     d[outputPrefix]=specs
 
