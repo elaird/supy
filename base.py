@@ -4,6 +4,7 @@ import ROOT as r
 #####################################
 def globalSetup() :
     r.gROOT.ProcessLine(".L SusyCAFpragmas.h+")
+    r.gROOT.SetStyle("Plain")
     r.TH1.SetDefaultSumw2(True)
 #####################################
 class sampleSpecification :
@@ -92,6 +93,16 @@ class analysisLooper :
                     else :
                         step.needToBindVars=True
                         step.bindDict[branchName]=leafName
+            #double
+            elif (str(branchType)=="<type 'float'>") :
+                leaf=self.inputChain.GetBranch(branchName).GetLeaf(leafName)
+                if (leaf.Class().GetName()=="TLeafD") :
+                    setattr(self.chainVariableContainer,branchName,array.array('d',[0]))
+                    if (not self.skimmerMode) :
+                        self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
+                    else :
+                        step.needToBindVars=True
+                        step.bindDict[branchName]=leafName
             #int[]
             elif (str(branchType)=="<type 'ROOT.PyUIntBuffer'>") :
                 if (not self.skimmerMode) :
@@ -145,7 +156,7 @@ class analysisLooper :
         self.loop()
         self.printStats()
         self.writeHistos()
-        self.writeSkimTree()
+        self.endSteps()
         print self.hyphens
 
     def setupChain(self,inputFiles) :
@@ -183,9 +194,8 @@ class analysisLooper :
             step.uponAcceptanceImplemented=hasattr(step,"uponAcceptance")
             step.uponRejectionImplemented=hasattr(step,"uponRejection")
             step.needToReadData=(len(step.finalBranchNameList)>0)
-            if (step.__doc__==step.skimmerStepName) :
-                self.skimmerMode=True
-                step.setup(self.inputChain,self.fileDirectory,self.name)
+            if (step.__doc__==step.skimmerStepName) : self.skimmerMode=True
+            if (hasattr(step,"setup")) : step.setup(self.inputChain,self.fileDirectory,self.name)
 
     def setupBranchLists(self) :
         for step in self.steps :
@@ -245,13 +255,10 @@ class analysisLooper :
         outputFile.Close()
         if (not zombie) :  print "The output file \""+self.outputPlotFileName+"\" has been written."
 
-    def writeSkimTree(self) :
-        skimmerStepName=analysisStep().skimmerStepName
+    def endSteps(self) :
         for step in self.steps :
-            if (step.__doc__==skimmerStepName) :
-                print self.hyphens
-                step.writeTree()
-                print "The skim file \""+step.outputFileName+"\" has been written."
+            if (hasattr(step,"endFunc")) :
+                step.endFunc(self.hyphens)
 #####################################
 class analysisStep :
     """generic analysis step"""

@@ -75,11 +75,13 @@ class skimmer(analysisStep) :
         for key in self.arrayDictionary :
             self.arrayDictionary[key][0]=getattr(extraVars,key)
         
-    def writeTree(self) :
+    def endFunc(self,hypens) :
+        print hypens
         self.outputFile.cd(self.fileDir)
         self.outputTree.Write()
         if (self.alsoWriteExtraTree) :
             self.outputTreeExtra.Write()
+        print "The skim file \""+self.outputFileName+"\" has been written."
 #####################################
 class extraVariableGreaterFilter(analysisStep) :
     """extraVariableGreaterFilter"""
@@ -322,6 +324,184 @@ class bxFilter(analysisStep) :
         bunch=chain.bunch
         for bx in self.bxList:
             if (bx==bunch) : return True
+#####################################
+class displayer(analysisStep) :
+    """displayer"""
+
+    def __init__(self,jetCollection,jetSuffix,outputDir) :
+        self.outputDir=outputDir
+        self.moreName="(see below)"
+        self.scale=500 #GeV
+        self.jetCollection=jetCollection
+        self.jetSuffix=jetSuffix
+        self.neededBranches=[self.jetCollection+'CorrectedP4'+self.jetSuffix]
+        self.neededBranches.extend(["run","lumiSection","event","bunch"])
+        
+    def setup(self,chain,fileDir,name) :
+        self.fileDir=fileDir
+        self.outputFileName=self.outputDir+"/"+name+"_displays.ps"
+        self.canvas=r.TCanvas("canvas","canvas",500,500)
+        self.printCanvas("[")
+        self.ellipse=r.TEllipse()
+        self.ellipse.SetFillStyle(0)
+        self.line=r.TLine()
+        self.radius=0.3
+        self.x0=self.radius
+        self.y0=self.radius
+        self.text=r.TText()
+        self.latex=r.TLatex()
+        self.legend=r.TLegend(0.01+2.0*self.radius,self.radius,0.95,0.05)
+
+    def endFunc(self,hypens) :
+        print hypens
+        self.printCanvas("]")
+        print "The display file \""+self.outputFileName+"\" has been written."
+
+    def printCanvas(self,extraStuff="") :
+        self.canvas.Print(self.outputFileName+extraStuff,"Landscape")
+
+    def drawEventInfo(self,chainVars,extraVars,color) :
+        self.text.SetTextSize(0.02)
+        self.text.SetTextFont(80)
+        self.text.SetTextColor(color)
+        self.text.DrawText(0.8,0.80,"Run   %#8d"%chainVars.run[0])
+        self.text.DrawText(0.8,0.78,"Ls    %#8d"%chainVars.lumiSection[0])
+        self.text.DrawText(0.8,0.76,"Event %#8d"%chainVars.event[0])
+        self.text.DrawText(0.8,0.74,"Bx    %#8d"%chainVars.bunch[0])
+        
+    def drawSkeleton(self,color) :
+        self.ellipse.SetLineColor(color)
+        self.ellipse.SetLineWidth(1)
+        self.ellipse.DrawEllipse(self.x0,self.y0,self.radius,self.radius,0.0,360.0,0.0,"")
+
+        self.line.SetLineColor(color)
+        self.line.DrawLine(self.x0-self.radius,self.y0            ,self.x0+self.radius,self.y0            )
+        self.line.DrawLine(self.x0            ,self.y0-self.radius,self.x0            ,self.y0+self.radius)
+
+        self.latex.SetTextSize(0.04)
+        self.latex.SetTextColor(color)
+        self.latex.DrawLatex(0.6,0.01,"radius = "+str(self.scale)+" GeV p_{T}")
+
+    def drawP4(self,p4,color) :
+        x1=self.x0+p4.px()*self.radius/self.scale
+        y1=self.y0+p4.py()*self.radius/self.scale
+        self.line.SetLineColor(color)
+        self.line.DrawLine(self.x0,self.y0,x1,y1)
+        
+    def drawCleanJets (self,chainVars,extraVars,color) :
+        self.line.SetLineColor(color)
+        if (not hasattr(self,"jetEntryInLegend")) :
+            self.jetEntryInLegend=True
+            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            self.legend.AddEntry(someLine,"jets","l")
+            
+        p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+        cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
+
+        for iJet in cleanJetIndices :
+            self.drawP4(p4Vector[iJet],color)
+            
+    def drawMht (self,chainVars,extraVars,color) :
+        self.line.SetLineColor(color)
+        if (not hasattr(self,"mhtEntryInLegend")) :
+            self.mhtEntryInLegend=True
+            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            self.legend.AddEntry(someLine,"#slashH_{T}","l")
+
+        mht=getattr(extraVars,self.jetCollection+"Mht"+self.jetSuffix)
+        self.drawP4(mht,color)
+        
+    def drawHt (self,chainVars,extraVars,color) :
+        self.line.SetLineColor(color)
+        if (not hasattr(self,"htEntryInLegend")) :
+            self.htEntryInLegend=True
+            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            self.legend.AddEntry(someLine,"H_{T}","l")
+
+        ht=getattr(extraVars,self.jetCollection+"Ht"+self.jetSuffix)
+        y=2.0*self.radius+0.10
+        l=ht*self.radius/self.scale
+        self.line.SetLineColor(color)
+        self.line.DrawLine(self.x0-l/2.0,y,self.x0+l/2.0,y)
+        
+    def drawNJetDeltaHt (self,chainVars,extraVars,color) :
+        self.line.SetLineColor(color)
+        if (not hasattr(self,"deltaHtEntryInLegend")) :
+            self.deltaHtEntryInLegend=True
+            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            self.legend.AddEntry(someLine,"#DeltaH_{T}","l")
+
+        deltaHt=getattr(extraVars,self.jetCollection+"nJetDeltaHt"+self.jetSuffix)
+        y=2.0*self.radius+0.06
+        l=deltaHt*self.radius/self.scale
+        self.line.SetLineColor(color)
+        self.line.DrawLine(self.x0-l/2.0,y,self.x0+l/2.0,y)
+
+
+    def makeAlphaTFunc(self,alphaTValue,color) :
+        alphaTFunc=r.TF1(("alphaTCurve ( %#5.3g"%alphaTValue)+" )",
+                         "1.0-2.0*("+str(alphaTValue)+")*sqrt(1.0-x*x)",
+                         0.0,1.0)
+        alphaTFunc.SetLineColor(color)
+        alphaTFunc.SetLineWidth(1)
+        alphaTFunc.SetNpx(300)
+        return alphaTFunc
+
+    def drawAlphaPlot (self,chainVars,extraVars,color) :
+        stuffToKeep=[]
+        pad=r.TPad("pad","pad",0.01+2.0*self.radius,0.01+self.radius,0.95,0.70)
+        pad.cd()
+        pad.SetRightMargin(0.0)
+        title=";#slashH_{T}/H_{T};#DeltaH_{T}/H_{T}"
+        alphaHisto=r.TH2D("alphaHisto",title,100,0.0,1.0,100,0.0,0.7)
+
+        mht=getattr(extraVars,self.jetCollection+"Mht"+self.jetSuffix).pt()
+        ht=getattr(extraVars,self.jetCollection+"Ht"+self.jetSuffix)
+        deltaHt=getattr(extraVars,self.jetCollection+"nJetDeltaHt"+self.jetSuffix)
+        alphaT=getattr(extraVars,self.jetCollection+"nJetAlphaT"+self.jetSuffix)
+        
+        alphaHisto.Fill(mht/ht,deltaHt/ht)
+        alphaHisto.SetStats(False)
+        alphaHisto.SetMarkerStyle(29)
+        alphaHisto.GetYaxis().SetTitleOffset(1.25)
+        alphaHisto.SetMarkerColor(r.kBlue)
+        alphaHisto.Draw("p")
+
+        legend=r.TLegend(0.1,0.9,0.6,0.6)
+        legend.SetFillStyle(0)
+        
+        funcs=[
+            self.makeAlphaTFunc(0.55,r.kBlack),
+            self.makeAlphaTFunc(0.50,r.kOrange+3),
+            self.makeAlphaTFunc(0.45,r.kOrange+7)
+            ]
+        stuffToKeep.extend(funcs)
+        for func in funcs :
+            func.Draw("same")
+            legend.AddEntry(func,func.GetName(),"l")
+
+        legend.AddEntry(alphaHisto,"this event ( %#5.3g )"%alphaT,"p")
+        legend.Draw()
+        stuffToKeep.extend([pad,alphaHisto,legend])
+        self.canvas.cd()
+        pad.Draw()
+        return stuffToKeep
+        
+    def uponAcceptance (self,chain,chainVars,extraVars) :
+        self.canvas.Clear()
+        self.drawSkeleton(r.kYellow+1)
+        self.drawEventInfo(chainVars,extraVars,r.kBlack)
+        self.drawCleanJets(chainVars,extraVars,r.kBlue)
+        self.drawMht(chainVars,extraVars,r.kRed)
+        self.drawHt(chainVars,extraVars,r.kBlue+3)
+        self.drawNJetDeltaHt(chainVars,extraVars,r.kBlue-9)
+
+        graphicalStuff=self.drawAlphaPlot(chainVars,extraVars,r.kBlack)
+        
+        self.legend.Draw("same")
+        self.printCanvas()
+
+
 #####################################
 #class bxHistogrammer(analysisStep) :
 #    """bxHistogrammer"""
