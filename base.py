@@ -87,17 +87,18 @@ class analysisLooper :
             if (str(branchType)=="<type 'long'>") :
                 leaf=self.inputChain.GetBranch(branchName).GetLeaf(leafName)
                 if (leaf.Class().GetName()=="TLeafI") :
-                    setattr(self.chainVariableContainer,branchName,array.array('i',[0]))
                     if (not self.skimmerMode) :
+                        setattr(self.chainVariableContainer,branchName,array.array('l',[0]))
                         self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
                     else :
+                        setattr(self.chainVariableContainer,branchName,array.array('d',[0.0]))#hack
                         step.needToBindVars=True
                         step.bindDict[branchName]=leafName
             #double
             elif (str(branchType)=="<type 'float'>") :
                 leaf=self.inputChain.GetBranch(branchName).GetLeaf(leafName)
                 if (leaf.Class().GetName()=="TLeafD") :
-                    setattr(self.chainVariableContainer,branchName,array.array('d',[0]))
+                    setattr(self.chainVariableContainer,branchName,array.array('d',[0.0]))
                     if (not self.skimmerMode) :
                         self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
                     else :
