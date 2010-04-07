@@ -91,7 +91,7 @@ class analysisLooper :
                         setattr(self.chainVariableContainer,branchName,array.array('l',[0]))
                         self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
                     else :
-                        setattr(self.chainVariableContainer,branchName,array.array('d',[0.0]))#hack
+                        setattr(self.chainVariableContainer,branchName,[0])#hack (use list)
                         step.needToBindVars=True
                         step.bindDict[branchName]=leafName
             #double
