@@ -442,7 +442,7 @@ class icfAlphaHistogrammer(analysisStep) :
         self.diJetAlpha_Histo   =r.TH1D("dijet alpha"   ,";di-jet #alpha (using p_{T});events / bin"   ,bins,min,max)
         #self.diJetAlpha_ET_Histo=r.TH1D("dijet alpha_ET",";di-jet #alpha (using E_{T});events / bin"   ,bins,min,max)
         self.nJetAlphaT_Histo   =r.TH1D("njet alphaT"   ,";N-jet #alpha_{T} (using p_{T});events / bin",bins,min,max)
-
+        self.nJetDeltaHt_Histo  =r.TH1D("njet deltaHt"  ,";N-jet #Delta H_{T} (GeV);events / bin",50,0.0,500.0)
         #self.alpha2D_a_Histo=r.TH2D("Ht-deltaHt vs sqrt(Ht2-mHt2)",
         #                            ";H_{T} - #slash(H_{T}) (GeV);sqrt( H_{T}^{2} - {#Delta H_{T}}^{2} ) of two pseudo-jets (GeV);events / bin",
         #                            20,0.0,1000.0,
@@ -464,6 +464,7 @@ class icfAlphaHistogrammer(analysisStep) :
         self.nJetAlphaT_Histo.Fill(   extraVars.nJetAlphaT   )
         #self.alpha2D_a_Histo.Fill(math.sqrt(extraVars.ht**2 - extraVars.mht.pt()**2),extraVars.ht - extraVars.nJetDeltaHt)
         #self.alpha2D_b_Histo.Fill(extraVars.ht - extraVars.mht.pt(),extraVars.ht - extraVars.nJetDeltaHt)
+        self.nJetDeltaHt_Histo.Fill(extraVars.nJetDeltaHt)
         self.alpha2D_c_Histo.Fill(extraVars.mht.pt()/extraVars.ht,extraVars.nJetDeltaHt/extraVars.ht)
 #####################################
 class icfDeltaPhiProducer(analysisStep) :
