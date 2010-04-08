@@ -26,16 +26,16 @@ class eventPrinter(analysisStep) :
     """eventPrinter"""
 
     def __init__(self) :
-        self.neededBranches=["run","event","lumiSection","bx"]
+        self.neededBranches=["run","event","lumiSection","bunch"]
         self.nHyphens=56
 
     def uponAcceptance(self,chain,chainVars,extraVars) :
         print
         print "".ljust(self.nHyphens,"-")
-        outString ="run %7d"%chain.run
-        outString+="; event %10d"%chain.event
-        outString+="; ls %#5d"%chain.lumiSection
-        outString+="; bx %4d"%chain.bx
+        outString ="run %7d"%chainVars.run[0]
+        outString+="  event %10d"%chainVars.event[0]
+        outString+="  ls %#5d"%chainVars.lumiSection[0]
+        outString+="  bx %4d"%chainVars.bunch[0]
         print outString
 #####################################
 class jetPrinter(analysisStep) :
@@ -67,6 +67,8 @@ class jetPrinter(analysisStep) :
         cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
         otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
 
+        print " jet   pT (GeV)    eta   phi"
+        print "----------------------------"
         for iJet in range(len(p4Vector)) :
             jet=p4Vector[iJet]
 
@@ -74,10 +76,10 @@ class jetPrinter(analysisStep) :
             if (iJet in otherJetIndices) : outString="-"
             if (iJet in cleanJetIndices) : outString="*"
             
-            outString+=" j%2d"                %iJet
-            outString+="; pT %#6.1f GeV"      %jet.pt()
-            outString+="; eta %#4.1f"         %jet.eta()
-            outString+="; phi %#4.1f"         %jet.phi()
+            outString+=" %2d"   %iJet
+            outString+="     %#6.1f"%jet.pt()
+            outString+="   %#4.1f"%jet.eta()
+            outString+="  %#4.1f"%jet.phi()
             outString+="; corr factor %#5.1f" %corrFactorVector[iJet]
             outString+="; EMF %#6.3f"         %jetEmfVector[iJet]
             outString+="; fHPD %#6.3f"        %jetFHpdVector[iJet]
@@ -91,6 +93,7 @@ class htMhtPrinter(analysisStep) :
     def __init__(self,jetCollection,jetSuffix) :
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
+        self.neededBranches=[]
         
     def uponAcceptance(self,chain,chainVars,extraVars) :
         outString ="HT %#6.1f GeV"   %getattr(extraVars,self.jetCollection+"Ht"+self.jetSuffix)
@@ -103,6 +106,7 @@ class diJetAlphaPrinter(analysisStep) :
     def __init__(self,jetCollection,jetSuffix) :
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
+        self.neededBranches=[]
         
     def uponAcceptance(self,chain,chainVars,extraVars) :
         outString ="di-jet minPt %#6.1f GeV" %getattr(extraVars,self.jetCollection+"diJetMinPt"+self.jetSuffix)
@@ -116,6 +120,7 @@ class nJetAlphaTPrinter(analysisStep) :
     def __init__(self,jetCollection,jetSuffix) :
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
+        self.neededBranches=[]
         
     def uponAcceptance(self,chain,chainVars,extraVars) :
         outString ="n-jet deltaHT %#6.3f"  %getattr(extraVars,self.jetCollection+"nJetDeltaHt"+self.jetSuffix)
