@@ -364,10 +364,11 @@ class displayer(analysisStep) :
         self.text.SetTextSize(0.02)
         self.text.SetTextFont(80)
         self.text.SetTextColor(color)
-        self.text.DrawText(0.8,0.80,"Run   %#8d"%chainVars.run[0])
-        self.text.DrawText(0.8,0.78,"Ls    %#8d"%chainVars.lumiSection[0])
-        self.text.DrawText(0.8,0.76,"Event %#8d"%chainVars.event[0])
-        self.text.DrawText(0.8,0.74,"Bx    %#8d"%chainVars.bunch[0])
+        x=0.78
+        self.text.DrawText(x,0.80,"Run   %#10d"%chainVars.run[0])
+        self.text.DrawText(x,0.78,"Ls    %#10d"%chainVars.lumiSection[0])
+        self.text.DrawText(x,0.76,"Event %#10d"%chainVars.event[0])
+        self.text.DrawText(x,0.74,"Bx    %#10d"%chainVars.bunch[0])
         
     def drawSkeleton(self,color) :
         self.ellipse.SetLineColor(color)
