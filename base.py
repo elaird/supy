@@ -87,7 +87,7 @@ class analysisLooper :
                 print branchName,getattr(self.inputChain,leafName),branchType
 
             #int
-            if (str(branchType)=="<type 'long'>") :
+            if (str(branchType)=="<type 'long'>" or str(branchType)=="<type 'int'>") :
                 leaf=self.inputChain.GetBranch(branchName).GetLeaf(leafName)
                 if (leaf.Class().GetName()=="TLeafI") :
                     if (not self.skimmerMode) :
