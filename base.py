@@ -1,11 +1,14 @@
 import copy,array
 import ROOT as r
-
 #####################################
 def globalSetup() :
-    r.gROOT.ProcessLine(".L SusyCAFpragmas.h+")
+    sourceFiles=["SusyCAFpragmas.h"]
+    for sourceFile in sourceFiles :
+        r.gROOT.LoadMacro(sourceFile+"+")
     r.gROOT.SetStyle("Plain")
+    r.gStyle.SetPalette(1)
     r.TH1.SetDefaultSumw2(True)
+    r.gErrorIgnoreLevel=2000
 #####################################
 class sampleSpecification :
     """name, data sample, cuts"""
@@ -159,6 +162,9 @@ class analysisLooper :
         self.writeHistos()
         self.endSteps()
         print self.hyphens
+        
+        #free up memory
+        del self.inputChain
 
     def setupChain(self,inputFiles) :
         nFiles=len(inputFiles)
@@ -273,11 +279,11 @@ class analysisStep :
     moreName=""
     moreName2=""
     skimmerStepName="skimmer"
-
+    
     def go(self,chain,chainVars,extraVars) :
         self.nTotal+=1
         if (self.needToReadData) :
-            self.readData(chain,extraVars.localEntry)
+            self.readData(extraVars.localEntry)
             if (self.needToBindVars) :
                 self.bindVars(chain,chainVars)
 
@@ -322,7 +328,7 @@ class analysisStep :
         for key in self.bindDictArray :
             setattr( chainVars, key, getattr(chain,self.bindDictArray[key]) )
 
-    def readData(self,chain,localEntry) :
+    def readData(self,localEntry) :
         for branch in self.finalBranches :
             branch.GetEntry(localEntry)
 
@@ -335,4 +341,8 @@ class analysisStep :
 #####################################
 class eventVariableContainer :
     """holds the values of variables that are not in the tree"""
+
+    def __init__(self) :
+        self.icfCleanJets=r.std.vector(r.Math.LorentzVector(r.Math.PxPyPzE4D('double')))()
+        self.icfCleanJets.reserve(256)
 #####################################
