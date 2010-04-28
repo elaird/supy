@@ -3,25 +3,26 @@ import ROOT as r
 doLog1D=True
 doLog2D=True
 doMetFit=False
-doScaleByXs=False
+doScaleByXs=True
 doColzFor2D=True
 xsNorm=100 #pb^-1
 ##############################
 colorDict={}
+#colorDict["currentColorIndex"]=r.kGreen
 colorDict["currentColorIndex"]=1
 
-colorDict["LM0"]=r.kBlack
-colorDict["LM1"]=r.kBlue
+colorDict["NT7_LM0"]=r.kBlack
+colorDict["NT7_LM1"]=r.kBlue
 
-colorDict["MG_QCD_bin1"]=r.kGreen
-colorDict["MG_QCD_bin2"]=r.kGreen+2
-colorDict["MG_QCD_bin3"]=r.kGreen-3
-colorDict["MG_QCD_bin4"]=r.kGreen+3
+colorDict["NT7_MG_QCD_bin1"]=r.kGreen
+colorDict["NT7_MG_QCD_bin2"]=r.kGreen+2
+colorDict["NT7_MG_QCD_bin3"]=r.kGreen-3
+colorDict["NT7_MG_QCD_bin4"]=r.kGreen+3
 
-colorDict["MG_TT_jets"]=r.kOrange+7
-colorDict["MG_W_jets"]=r.kOrange
-colorDict["MG_Z_jets"]=r.kRed
-colorDict["MG_Z_inv"]=r.kMagenta
+colorDict["NT7_MG_TT_jets"]=r.kOrange+7
+colorDict["NT7_MG_W_jets"]=r.kOrange
+colorDict["NT7_MG_Z_jets"]=r.kRed
+colorDict["NT7_MG_Z_inv"]=r.kMagenta
 ##############################
 def getColor(label) :
     if (not label in colorDict) :
@@ -197,6 +198,15 @@ def histoLoop(plotSpec,histoList) :
                     tps.SetY1NDC(0.50)
                     tps.SetY2NDC(0.70)
 
+            if ("countsHisto" in histo.GetName()) :
+                outString=histo.GetName().ljust(20)
+                outString+=plotSpec.sampleSpecs[iHisto].name.ljust(12)
+                outString+=": "
+                outString+="%#8.2f"%histo.GetBinContent(1)
+                outString+=" +/-"
+                outString+="%#8.2f"%histo.GetBinError(1)
+                print outString
+            
         #2D here
         else :
             plotSpec.canvas.cd(iHisto+1)
@@ -315,6 +325,7 @@ def plotAll(analysisName,sampleSpecs,outputDir) :
         onePlotFunction(plotSpec)
 
     canvas.Print(psFile+"]",psOptions)
+    print "The output file \""+psFile+"\" has been written."
 ##############################
 class onePlotSpec :
     """onePlotSpec"""
