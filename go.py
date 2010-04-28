@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import sys
-import base,analyses,plotter
+import base
+base.globalSetup()
+import analyses,plotter
 
 #choose the analysis
 #name="triggerSkim"
@@ -10,14 +12,15 @@ name="example"
 #name="jetKineLook"
 #name="deltaPhiLook"
 #name="metGroupCleanupLook"
-#name="RA1_DiJet"
-#name="RA1_NJet"
+#name="Icf_Ra1_DiJet"
+#name="Icf_Ra1_NJet"
+#name="Ra1_NJet"
+#name="RecHitTest"
 
 #choose the output directory
 outputDir="~"
 
 #set up
-base.globalSetup()
 sampleSpecDict=analyses.buildAnalysisDictionary()
 sampleSpecs=sampleSpecDict[name]
 
@@ -31,8 +34,8 @@ def loopOverSamples() :
 
         if ("multi" in sys.argv) :
             from multiprocessing import Pool
-            #pool=Pool(processes=4)
-            pool=Pool(processes=len(looperList))
+            pool=Pool(processes=4)
+            #pool=Pool(processes=len(looperList))
             pool.map(goFunc,looperList)
         else :
             map(goFunc,looperList)
