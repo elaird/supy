@@ -81,6 +81,7 @@ class skimmer(analysisStep) :
         self.outputTree.Write()
         if (self.alsoWriteExtraTree) :
             self.outputTreeExtra.Write()
+        self.outputFile.Close()
         print "The skim file \""+self.outputFileName+"\" has been written."
 #####################################
 class extraVariableGreaterFilter(analysisStep) :
