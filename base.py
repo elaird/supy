@@ -77,19 +77,19 @@ class analysisLooper :
         step.bindDictArray={}
         
         for branchName in step.finalBranchNameList :
+            if (showDebug) : print branchName
             #only branches with one leaf are supported
             leafName=self.inputChain.GetBranch(branchName).GetListOfLeaves().At(0).GetName()
             if (leafName=="_") : leafName=branchName
 
             branchType=type(getattr(self.inputChain,leafName))
-            
-            if (showDebug) :
-                print branchName,getattr(self.inputChain,leafName),branchType
+            if (showDebug) : print getattr(self.inputChain,leafName),branchType
 
             #int
             if (str(branchType)=="<type 'long'>" or str(branchType)=="<type 'int'>") :
                 leaf=self.inputChain.GetBranch(branchName).GetLeaf(leafName)
-                if (leaf.Class().GetName()=="TLeafI") :
+                className=leaf.Class().GetName()
+                if (className=="TLeafI" or className=="TLeafO") :
                     if (not self.skimmerMode) :
                         setattr(self.chainVariableContainer,branchName,array.array('l',[0]))
                         self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
@@ -97,6 +97,8 @@ class analysisLooper :
                         setattr(self.chainVariableContainer,branchName,[0])#hack (use list)
                         step.needToBindVars=True
                         step.bindDict[branchName]=leafName
+                else :
+                    print "fail",branchName,leaf.Class().GetName()
             #double
             elif (str(branchType)=="<type 'float'>") :
                 leaf=self.inputChain.GetBranch(branchName).GetLeaf(leafName)
@@ -107,6 +109,8 @@ class analysisLooper :
                     else :
                         step.needToBindVars=True
                         step.bindDict[branchName]=leafName
+                else :
+                    print "fail",branchName,leaf.Class().GetName()
             #int[]
             elif (str(branchType)=="<type 'ROOT.PyUIntBuffer'>") :
                 if (not self.skimmerMode) :
@@ -315,7 +319,7 @@ class analysisStep :
         outString2=self.name2()
         statString =   " nPass ="+str(self.nPass) .rjust(self.integerWidth)+";"
         statString+= "   nFail ="+str(self.nFail) .rjust(self.integerWidth)+";"
-        statString+="   nTotal ="+str(self.nTotal).rjust(self.integerWidth)+";"
+        #statString+="   nTotal ="+str(self.nTotal).rjust(self.integerWidth)+";"
         if (self.moreName2=="") :
             print outString+statString
         else :
