@@ -67,8 +67,8 @@ class jetPrinter(analysisStep) :
         cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
         otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
 
-        print " jet   pT (GeV)    eta   phi"
-        print "----------------------------"
+        print " jet   u. pT (GeV)   c. pT (GeV)    eta   phi"
+        print "---------------------------------------------"
         for iJet in range(len(p4Vector)) :
             jet=p4Vector[iJet]
 
@@ -77,7 +77,8 @@ class jetPrinter(analysisStep) :
             if (iJet in cleanJetIndices) : outString="*"
             
             outString+=" %2d"   %iJet
-            outString+="     %#6.1f"%jet.pt()
+            outString+="        %#6.1f"%(jet.pt()/corrFactorVector[iJet])
+            outString+="        %#6.1f"%jet.pt()
             outString+="   %#4.1f"%jet.eta()
             outString+="  %#4.1f"%jet.phi()
             outString+="; corr factor %#5.1f" %corrFactorVector[iJet]
@@ -182,4 +183,73 @@ class metPrinter(analysisStep) :
             print outString
         print
         return True
+#####################################
+class nFlaggedRecHitFilter(analysisStep) :
+    """nFlaggedRecHitFilter"""
+
+    def __init__(self,algoType,detector,nFlagged) :
+        self.algoType=algoType
+        self.detector=detector
+        self.nFlagged=nFlagged
+        self.neededBranches=["rechit"+self.algoType+"P4"+self.detector]
+
+    def select(self,chain,chainVars,extraVars) :
+        return len(getattr(chainVars,"rechit"+self.algoType+"P4"+self.detector))>=self.nFlagged
+
+#####################################
+class recHitPrinter(analysisStep) :
+    """recHitPrinter"""
+
+    def __init__(self,algoType,detector) :
+        self.algoType=algoType
+        self.detector=detector
+        self.neededBranches=["rechit"+self.algoType+"P4"+self.detector]
+        if (self.algoType=="Calo") : self.neededBranches.append("rechitCaloFlagWord"+self.detector)
+
+        self.sum=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
+        self.bitInfo=[]
+        if   detector=="Hbhe" :
+            self.bitInfo=[("mult.flag",0),
+                          ("ps.flag"  ,1)
+                          ]
+        elif detector=="Hf" :
+            self.bitInfo=[("re.flag",31)]
+
+    def bitSet(self,word,bit) :
+        return (word&(1<<bit))>>bit
+    
+    def makeString(self,i,p4,word) :
+        outString=""
+        outString+=" %3d     "%i
+        outString+="  %#7.1f"%p4.pt()
+        outString+="               %#7.2f"%p4.eta()
+        outString+=" %#5.2f"%p4.phi()
+
+        for i in range(len(self.bitInfo)) :
+            outString+="%14d"%self.bitSet(word,self.bitInfo[i][1])
+        return outString
+    
+    def uponAcceptance(self,chain,chainVars,extraVars) :
+        flaggedP4s=getattr(chainVars,"rechit"+self.algoType+"P4"+self.detector)
+
+        print "flagged "+self.detector+" RecHits"
+        someString="   i      pT (GeV)                  eta   phi"
+        hypens    ="---------------------------------------------"
+        for tuple in self.bitInfo :
+            someString+=tuple[0].rjust(15)
+            hypens+="".rjust(15,"-")
+        print someString
+        print hypens
+
+        self.sum.SetCoordinates(0.0,0.0,0.0,0.0)
+        nFlagged=len(flaggedP4s)
+        for i in range(nFlagged) :
+            flaggedP4=flaggedP4s[i]
+            flagWord=0
+            if (self.algoType=="Calo") : flagWord=getattr(chainVars,"rechitCaloFlagWord"+self.detector)[i]
+            print self.makeString(i,flaggedP4,flagWord)
+            self.sum+=flaggedP4
+
+        if (nFlagged>1) :
+            print "(sum)",self.makeString(0,self.sum,0)[6:50]
 #####################################
