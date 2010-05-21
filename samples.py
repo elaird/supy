@@ -16,8 +16,22 @@ def buildSampleDictionary() :
     add_example_skimmed_900_GeV_MC(d)
 
     add_icfV7Ntuples(d)
+    add_Burt(d)
     
     return d
+
+def getCommandOutput2(command):
+    import os
+    child = os.popen(command)
+    data = child.read()
+    err = child.close()
+    if err:
+        raise RuntimeError, '%s failed w/ exit code %d' % (command, err)
+    return data
+                        
+def add_Burt(d) :
+    d["Burt"] = getCommandOutput2('find /tmp/bbetchar/SusyCAF/2010_05_18_19_26_19/OUTPUT/ | grep .root').split()
+
 
 def add_icfV7Ntuples(d) :
     baseDir="/data0/elaird/icfNtuple/nt7/"
