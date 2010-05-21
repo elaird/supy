@@ -16,6 +16,7 @@ def buildListDictionary() :
     addListMetDistLook(d)
     addListRA1_DiJet(d)
     addListRA1_NJet(d)
+    addListMetPasFilter(d)
     return d
 
 def removeStepsForMc(inSteps) :
@@ -54,6 +55,20 @@ def addListTriggerSkim(d) :
     d["triggerSkimSteps_data"]=steps
     d["triggerSkimSteps_mc"]=removeStepsForMc(steps)
 
+def addListMetPasFilter(d) :
+    steps=[
+        progressPrinter(2,300),
+        techBitFilter([0],True),
+        physicsDeclared(),
+        vertexRequirementFilter(5.0,15.0),
+        monsterEventFilter(10,0.25),
+        hltFilter("HLT_Jet15U"),
+        skimmer("/tmp/bbetchar/SusyCAF/2010_05_18_19_26_19/OUTPUT/",False)
+        ]
+    d["metPasFilter_data"]=steps
+    d["metPasFilter_mc"]=removeStepsForMc(steps)
+
+    
 def addListDeltaPhiLook(d) :
     #jetCollection="ic5Jet"
     jetCollection="ak5Jet"
