@@ -30,7 +30,8 @@ def getCommandOutput2(command):
     return data
                         
 def add_Burt(d) :
-    d["Burt"] = getCommandOutput2('find /tmp/bbetchar/SusyCAF/2010_05_18_19_26_19/OUTPUT/ | grep .root').split()
+    #d["Burt"] = getCommandOutput2('find /tmp/bbetchar/SusyCAF/2010_05_18_19_26_19/OUTPUT/ | grep .root').split()
+    return
 
 
 def add_icfV7Ntuples(d) :
