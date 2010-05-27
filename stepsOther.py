@@ -1,4 +1,4 @@
-import copy,array
+import copy,array,os
 import ROOT as r
 from base import analysisStep
 #####################################
@@ -75,7 +75,7 @@ class skimmer(analysisStep) :
         for key in self.arrayDictionary :
             self.arrayDictionary[key][0]=getattr(extraVars,key)
         
-    def endFunc(self,hypens) :
+    def endFunc(self,hypens,nEvents,xs) :
         print hypens
         self.outputFile.cd(self.fileDir)
         self.outputTree.Write()
@@ -83,6 +83,7 @@ class skimmer(analysisStep) :
             self.outputTreeExtra.Write()
         self.outputFile.Close()
         print "The skim file \""+self.outputFileName+"\" has been written."
+        print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",(xs+0.0)*self.nPass/nEvents
 #####################################
 class extraVariableGreaterFilter(analysisStep) :
     """extraVariableGreaterFilter"""
@@ -98,6 +99,58 @@ class extraVariableGreaterFilter(analysisStep) :
 
     def select (self,chain,chainVars,extraVars) :
         return (getattr(extraVars,self.variable)>=self.threshold)
+#####################################
+class objectPtVetoer(analysisStep) :
+    """objectPtVetoer"""
+
+    def __init__(self,objectCollection,objectP4String,objectSuffix,objectPtThreshold,objectIndex):
+        self.objectCollection=objectCollection
+        self.objectP4String=objectP4String
+        self.objectSuffix=objectSuffix
+        self.objectPtThreshold=objectPtThreshold
+        self.objectIndex=objectIndex
+        
+        self.moreName ="("+self.objectCollection+"; "+self.objectSuffix+"; "
+        self.moreName+="corr. pT["+str(self.objectIndex)+"]< "+str(self.objectPtThreshold)+" GeV"
+        self.moreName+=")"
+
+        self.neededBranches=[self.objectCollection+self.objectP4String+self.objectSuffix]
+
+#    def bookHistos(self) :
+#        nBins=100
+#        etaMin=-5.0
+#        etaMax=5.0
+#        title=";#eta;events / bin"
+#        self.etaRejected=r.TH1D(self.objectCollection+"Eta"+self.objectSuffix,title,nBins,etaMin,etaMax)
+
+    def select (self,chain,chainVars,extraVars) :
+        p4Vector=getattr(chainVars,self.objectCollection+self.objectP4String+self.objectSuffix)
+        size=p4Vector.size()
+        if (size<=self.objectIndex) : return True
+        return (p4Vector[self.objectIndex].pt()<self.objectPtThreshold)
+
+#    def uponRejection(self,chain,chainVars,extraVars) :
+#        p4Vector=getattr(chainVars,self.objectCollection+self.objectP4String+self.objectSuffix)
+#        self.etaRejected.Fill(p4Vector[self.objectIndex].eta())
+#####################################
+class soloObjectPtSelector(analysisStep) :
+    """soloObjectPtSelector"""
+
+    def __init__(self,objectCollection,objectP4String,objectSuffix,objectPtThreshold):
+        self.objectCollection=objectCollection
+        self.objectP4String=objectP4String
+        self.objectSuffix=objectSuffix
+        self.objectPtThreshold=objectPtThreshold
+        
+        self.moreName ="("+self.objectCollection+"; "+self.objectSuffix+"; "
+        self.moreName+="pT> "+str(self.objectPtThreshold)+" GeV"
+        self.moreName+=")"
+
+        self.neededBranches=[self.objectCollection+self.objectP4String+self.objectSuffix]
+
+    def select (self,chain,chainVars,extraVars) :
+        soloObject=getattr(chainVars,self.objectCollection+self.objectP4String+self.objectSuffix)
+        return (soloObject.pt()>=self.objectPtThreshold)
 #####################################
 class vertexRequirementFilterOld(analysisStep) :
     """vertexRequirementFilterOld"""
@@ -329,34 +382,77 @@ class bxFilter(analysisStep) :
 class displayer(analysisStep) :
     """displayer"""
 
-    def __init__(self,jetCollection,jetSuffix,outputDir) :
+    def __init__(self,jetCollection,jetSuffix,metCollection,metSuffix,outputDir,scale,fakerMode=False) :
         self.outputDir=outputDir
         self.moreName="(see below)"
-        self.scale=500 #GeV
+        self.scale=scale #GeV
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
-        self.neededBranches=[self.jetCollection+'CorrectedP4'+self.jetSuffix]
+        self.metCollection=metCollection
+        self.metSuffix=metSuffix
+
+        self.fakerMode=fakerMode
+
+        self.neededBranches=[self.jetCollection+'CorrectedP4'+self.jetSuffix,
+                             self.metCollection+'P4'+self.metSuffix]
         self.neededBranches.extend(["run","lumiSection","event","bunch"])
+
+        self.doGen=True
+        self.doLeptons=True
+
+        if (self.doGen) :
+            self.neededBranches.append(self.metCollection+'GenMetP4'+self.metSuffix)
+            self.genJetCollection="ic5Jet"
+            self.neededBranches.append(self.genJetCollection+'GenJetP4'+self.jetSuffix)
+
+        if (self.doLeptons) :
+            suffix="Pat"
+            #suffix="PF"
+            listOfTuples=[("muon",suffix),("electron",suffix),("photon","Pat"),("tau","Pat")]
+            for tuple in listOfTuples :
+                particle=tuple[0]
+                suffix=tuple[1]
+                setattr(self,particle+"Collection",particle)
+                setattr(self,particle+"Suffix",suffix)
+                self.neededBranches.append(particle+'P4'+suffix)
+
+        self.helper=r.displayHelper()
+
+        if (self.fakerMode) :
+            self.neededBranches=["run","event"]
         
     def setup(self,chain,fileDir,name) :
         self.fileDir=fileDir
         self.outputFileName=self.outputDir+"/"+name+"_displays.ps"
         self.canvas=r.TCanvas("canvas","canvas",500,500)
         self.printCanvas("[")
+
+        epsilon=1.0e-6
+        self.mhtLlHisto=r.TH2D("mhtLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashH_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
+        self.metLlHisto=r.TH2D("metLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashE_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
+        
         self.ellipse=r.TEllipse()
         self.ellipse.SetFillStyle(0)
         self.line=r.TLine()
+        self.arrow=r.TArrow()
         self.radius=0.3
         self.x0=self.radius
-        self.y0=self.radius
+        self.y0=self.radius+0.05
         self.text=r.TText()
         self.latex=r.TLatex()
         self.legend=r.TLegend(0.01+2.0*self.radius,self.radius,0.95,0.05)
 
-    def endFunc(self,hypens) :
+        self.alphaFuncs=[
+            self.makeAlphaTFunc(0.55,r.kBlack),
+            self.makeAlphaTFunc(0.50,r.kOrange+3),
+            self.makeAlphaTFunc(0.45,r.kOrange+7)
+            ]
+
+    def endFunc(self,hypens,nEvents,xs) :
         print hypens
         self.printCanvas("]")
-        print "The display file \""+self.outputFileName+"\" has been written."
+        os.system("gzip -f "+self.outputFileName)
+        print "The display file \""+self.outputFileName+".gz\" has been written."
 
     def printCanvas(self,extraStuff="") :
         self.canvas.Print(self.outputFileName+extraStuff,"Landscape")
@@ -365,13 +461,16 @@ class displayer(analysisStep) :
         self.text.SetTextSize(0.02)
         self.text.SetTextFont(80)
         self.text.SetTextColor(color)
-        x=0.78
+        x=0.1
         self.text.DrawText(x,0.80,"Run   %#10d"%chainVars.run[0])
-        self.text.DrawText(x,0.78,"Ls    %#10d"%chainVars.lumiSection[0])
+        if (not self.fakerMode) : self.text.DrawText(x,0.78,"Ls    %#10d"%chainVars.lumiSection[0])
         self.text.DrawText(x,0.76,"Event %#10d"%chainVars.event[0])
-        self.text.DrawText(x,0.74,"Bx    %#10d"%chainVars.bunch[0])
+        if (not self.fakerMode) : self.text.DrawText(x,0.74,"Bx    %#10d"%chainVars.bunch[0])
         
     def drawSkeleton(self,color) :
+        self.canvas.cd(2)
+        r.gPad.AbsCoordinates(False)
+        
         self.ellipse.SetLineColor(color)
         self.ellipse.SetLineWidth(1)
         self.ellipse.DrawEllipse(self.x0,self.y0,self.radius,self.radius,0.0,360.0,0.0,"")
@@ -384,62 +483,183 @@ class displayer(analysisStep) :
         self.latex.SetTextColor(color)
         self.latex.DrawLatex(0.6,0.01,"radius = "+str(self.scale)+" GeV p_{T}")
 
-    def drawP4(self,p4,color) :
+        return []
+
+    def drawP4(self,p4,color,lineWidth,arrowSize) :
         x1=self.x0+p4.px()*self.radius/self.scale
         y1=self.y0+p4.py()*self.radius/self.scale
-        self.line.SetLineColor(color)
-        self.line.DrawLine(self.x0,self.y0,x1,y1)
+
+        #self.line.SetLineColor(color)
+        #self.line.SetLineWidth(lineWidth)
+        #self.line.DrawLine(self.x0,self.y0,x1,y1)
+
+        self.arrow.SetLineColor(color)
+        self.arrow.SetLineWidth(lineWidth)
+        self.arrow.SetArrowSize(arrowSize)
+        self.arrow.SetFillColor(color)
+        self.arrow.DrawArrow(self.x0,self.y0,x1,y1)
         
-    def drawCleanJets (self,chainVars,extraVars,color) :
+    def drawGenJets (self,chainVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if (not hasattr(self,"jetEntryInLegend")) :
-            self.jetEntryInLegend=True
+        if (not hasattr(self,"genJetEntryInLegend")) :
+            self.genJetEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"jets","l")
+            self.legend.AddEntry(someLine,"GEN jets ("+self.genJetCollection+")","l")
+
+        p4Vector=getattr(chainVars,self.genJetCollection+'GenJetP4'+self.jetSuffix)
+        for jet in p4Vector :
+            self.drawP4(jet,color,lineWidth,arrowSize)
             
+    def drawCleanJets (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+        self.line.SetLineColor(color)
+        if (not hasattr(self,"cleanJetEntryInLegend")) :
+            self.cleanJetEntryInLegend=True
+            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            self.legend.AddEntry(someLine,"clean jets ("+self.jetCollection+")","l")
+
+        if (not self.fakerMode) :
+            p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+            cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
+
+            for iJet in cleanJetIndices :
+                self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
+        else :
+            for jet in extraVars.icfCleanJets :
+                self.drawP4(jet,color,lineWidth,arrowSize)
+            
+    def drawOtherJets (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+        self.line.SetLineColor(color)
+        if (not hasattr(self,"otherJetEntryInLegend")) :
+            self.otherJetEntryInLegend=True
+            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            self.legend.AddEntry(someLine,"\"other\" jets","l")
+
+        if (self.fakerMode) : return
+
+        p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+        otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
+        for index in otherJetIndices :
+            self.drawP4(p4Vector[index],color,lineWidth,arrowSize)
+            
+    def drawLowPtJets (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+        self.line.SetLineColor(color)
+        if (not hasattr(self,"lowPtJetEntryInLegend")) :
+            self.lowPtJetEntryInLegend=True
+            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            self.legend.AddEntry(someLine,"low p_{T} jets ("+self.jetCollection+")","l")
+
+        if (self.fakerMode) : return
+
         p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
         cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
-
-        for iJet in cleanJetIndices :
-            self.drawP4(p4Vector[iJet],color)
+        otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
+        for iJet in range(len(p4Vector)) :
+            if (iJet in cleanJetIndices) : continue
+            if (iJet in otherJetIndices) : continue
+            self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
-    def drawMht (self,chainVars,extraVars,color) :
+    def drawMht (self,chainVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"mhtEntryInLegend")) :
             self.mhtEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"#slashH_{T}","l")
+            self.legend.AddEntry(someLine,"#slashH_{T} ("+self.jetCollection+")","l")
 
         mht=getattr(extraVars,self.jetCollection+"Mht"+self.jetSuffix)
-        self.drawP4(mht,color)
-        
-    def drawHt (self,chainVars,extraVars,color) :
+        self.drawP4(mht,color,lineWidth,arrowSize)
+            
+    def drawHt (self,chainVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"htEntryInLegend")) :
             self.htEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"H_{T}","l")
+            self.legend.AddEntry(someLine,"H_{T} ("+self.jetCollection+")","l")
 
         ht=getattr(extraVars,self.jetCollection+"Ht"+self.jetSuffix)
-        y=2.0*self.radius+0.10
+            
+        y=self.y0-self.radius-0.05
         l=ht*self.radius/self.scale
         self.line.SetLineColor(color)
         self.line.DrawLine(self.x0-l/2.0,y,self.x0+l/2.0,y)
         
-    def drawNJetDeltaHt (self,chainVars,extraVars,color) :
+    def drawNJetDeltaHt (self,chainVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"deltaHtEntryInLegend")) :
             self.deltaHtEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"#DeltaH_{T}","l")
+            self.legend.AddEntry(someLine,"#DeltaH_{T} ("+self.jetCollection+")","l")
 
         deltaHt=getattr(extraVars,self.jetCollection+"nJetDeltaHt"+self.jetSuffix)
-        y=2.0*self.radius+0.06
+        y=self.y0-self.radius-0.03
         l=deltaHt*self.radius/self.scale
         self.line.SetLineColor(color)
         self.line.DrawLine(self.x0-l/2.0,y,self.x0+l/2.0,y)
 
 
+    def drawMet (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+        self.line.SetLineColor(color)
+        if (not hasattr(self,"metEntryInLegend")) :
+            self.metEntryInLegend=True
+            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            self.legend.AddEntry(someLine,"#slashE_{T} ("+self.metSuffix+")","l")
+
+        met=getattr(chainVars,self.metCollection+"P4"+self.metSuffix)
+        self.drawP4(met,color,lineWidth,arrowSize)
+            
+    def drawGenMet (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+        self.line.SetLineColor(color)
+        if (not hasattr(self,"genMetEntryInLegend")) :
+            self.genMetEntryInLegend=True
+            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            self.legend.AddEntry(someLine,"GEN #slashE_{T} ("+self.metSuffix+")","l")
+
+        genMet=getattr(chainVars,self.metCollection+"GenMetP4"+self.metSuffix)
+        self.drawP4(genMet,color,lineWidth,arrowSize)
+            
+    def drawMuons (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+        self.line.SetLineColor(color)
+        if (not hasattr(self,"muonEntryInLegend")) :
+            self.muonEntryInLegend=True
+            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            self.legend.AddEntry(someLine,"muons ("+self.muonSuffix+")","l")
+        if (self.fakerMode) : return
+        p4Vector=getattr(chainVars,self.muonCollection+'P4'+self.muonSuffix)
+        for iJet in range(len(p4Vector)) :
+            self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
+            
+    def drawElectrons (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+        self.line.SetLineColor(color)
+        if (not hasattr(self,"electronEntryInLegend")) :
+            self.electronEntryInLegend=True
+            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            self.legend.AddEntry(someLine,"electrons ("+self.electronSuffix+")","l")
+        if (self.fakerMode) : return
+        p4Vector=getattr(chainVars,self.electronCollection+'P4'+self.electronSuffix)
+        for iJet in range(len(p4Vector)) :
+            self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
+            
+    def drawPhotons (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+        self.line.SetLineColor(color)
+        if (not hasattr(self,"photonEntryInLegend")) :
+            self.photonEntryInLegend=True
+            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            self.legend.AddEntry(someLine,"photons ("+self.photonSuffix+")","l")
+        if (self.fakerMode) : return
+        p4Vector=getattr(chainVars,self.photonCollection+'P4'+self.photonSuffix)
+        for iJet in range(len(p4Vector)) :
+            self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
+            
+    def drawTaus (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+        self.line.SetLineColor(color)
+        if (not hasattr(self,"tauEntryInLegend")) :
+            self.tauEntryInLegend=True
+            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            self.legend.AddEntry(someLine,"taus ("+self.tauSuffix+")","l")
+        if (self.fakerMode) : return
+        p4Vector=getattr(chainVars,self.tauCollection+'P4'+self.tauSuffix)
+        for iJet in range(len(p4Vector)) :
+            self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
+            
     def makeAlphaTFunc(self,alphaTValue,color) :
         alphaTFunc=r.TF1(("alphaTCurve ( %#5.3g"%alphaTValue)+" )",
                          "1.0-2.0*("+str(alphaTValue)+")*sqrt(1.0-x*x)",
@@ -451,9 +671,9 @@ class displayer(analysisStep) :
 
     def drawAlphaPlot (self,chainVars,extraVars,color) :
         stuffToKeep=[]
-        pad=r.TPad("pad","pad",0.01+2.0*self.radius,0.01+self.radius,0.95,0.70)
+        pad=r.TPad("pad","pad",0.01+2.0*self.radius,0.01+self.radius,0.95,0.63)
         pad.cd()
-        pad.SetRightMargin(0.0)
+        pad.SetRightMargin(0.01)
         title=";#slashH_{T}/H_{T};#DeltaH_{T}/H_{T}"
         alphaHisto=r.TH2D("alphaHisto",title,100,0.0,1.0,100,0.0,0.7)
 
@@ -472,13 +692,7 @@ class displayer(analysisStep) :
         legend=r.TLegend(0.1,0.9,0.6,0.6)
         legend.SetFillStyle(0)
         
-        funcs=[
-            self.makeAlphaTFunc(0.55,r.kBlack),
-            self.makeAlphaTFunc(0.50,r.kOrange+3),
-            self.makeAlphaTFunc(0.45,r.kOrange+7)
-            ]
-        stuffToKeep.extend(funcs)
-        for func in funcs :
+        for func in self.alphaFuncs :
             func.Draw("same")
             legend.AddEntry(func,func.GetName(),"l")
 
@@ -488,22 +702,127 @@ class displayer(analysisStep) :
         self.canvas.cd()
         pad.Draw()
         return stuffToKeep
+
+    def fillHisto(self,histo,lls,mhts) :
+        for i in range(len(mhts)) :
+            histo.Fill(lls[i],mhts[i])
+        
+    def drawMhtLlPlot (self,chainVars,extraVars,color) :
+        stuffToKeep=[]
+        pad=r.TPad("pad","pad",self.x0+0.37*self.radius,0.63,0.95,0.95)
+        pad.cd()
+        pad.SetLeftMargin(0.3)
+        pad.SetRightMargin(0.15)
+
+        mets=getattr(extraVars,self.jetCollection+"mets"+self.jetSuffix)
+        mhts=getattr(extraVars,self.jetCollection+"mhts"+self.jetSuffix)
+        lls=getattr(extraVars,self.jetCollection+"lls"+self.jetSuffix)
+        nVariedJets=getattr(extraVars,self.jetCollection+"nVariedJets"+self.jetSuffix)
+        
+        self.mhtLlHisto.Reset()
+        self.metLlHisto.Reset()
+        self.helper.Fill(self.mhtLlHisto,lls,mhts,nVariedJets)
+        self.helper.Fill(self.metLlHisto,lls,mets,nVariedJets)
+
+        histo=self.metLlHisto
+
+        #histo.SetStats(False)
+        histo.GetYaxis().SetTitleOffset(1.25)
+        histo.SetMarkerColor(r.kBlack)
+        histo.Draw("colz")
+
+        stats=histo.GetListOfFunctions().FindObject("stats")
+        if (stats!=None) :
+            stats.SetX1NDC(0.01);
+            stats.SetX2NDC(0.25);
+            stats.SetY1NDC(0.51);
+            stats.SetY2NDC(0.75);
+            pad.Modified()
+            pad.Update()
+            stuffToKeep.append(stats)
+
+        #legend=r.TLegend(0.1,0.9,0.6,0.6)
+        #legend.SetFillStyle(0)
+        #
+        #legend.AddEntry(mhtLlHisto,"this event","p")
+        #legend.Draw()
+        #stuffToKeep.append(legend)
+        #stuffToKeep.extend([pad,mhtLlHisto])
+        stuffToKeep.append(pad)
+        self.canvas.cd()
+        pad.Draw()
+        return stuffToKeep
         
     def uponAcceptance (self,chain,chainVars,extraVars) :
         self.canvas.Clear()
-        self.drawSkeleton(r.kYellow+1)
-        self.drawEventInfo(chainVars,extraVars,r.kBlack)
-        self.drawCleanJets(chainVars,extraVars,r.kBlue)
-        self.drawMht(chainVars,extraVars,r.kRed)
-        self.drawHt(chainVars,extraVars,r.kBlue+3)
-        self.drawNJetDeltaHt(chainVars,extraVars,r.kBlue-9)
 
-        graphicalStuff=self.drawAlphaPlot(chainVars,extraVars,r.kBlack)
+        g1=self.drawSkeleton(r.kYellow+1)
+        self.drawEventInfo  (chainVars,extraVars,r.kBlack)
+
+        defArrowSize=0.5*self.arrow.GetDefaultArrowSize()
+        defWidth=1
+        #                                        color     , width   , arrow size
+
+        if (self.doGen) : self.drawGenJets    (chainVars,extraVars,r.kBlack  , defWidth, defArrowSize      )
+        self.drawCleanJets  (chainVars,extraVars,r.kBlue   , defWidth, defArrowSize*2/3.0)
+        self.drawLowPtJets  (chainVars,extraVars,r.kCyan   , defWidth, defArrowSize*1/6.0)
+        #self.drawOtherJets  (chainVars,extraVars,r.kBlack  )
+        self.drawHt         (chainVars,extraVars,r.kBlue+3 , defWidth, defArrowSize*1/6.0)
+        self.drawNJetDeltaHt(chainVars,extraVars,r.kBlue-9 , defWidth, defArrowSize*1/6.0)
+        self.drawMht        (chainVars,extraVars,r.kRed    , defWidth, defArrowSize*3/6.0)
+        self.drawMet        (chainVars,extraVars,r.kGreen  , defWidth, defArrowSize*2/6.0)
+        if (self.doGen) : self.drawGenMet     (chainVars,extraVars,r.kMagenta, defWidth, defArrowSize*2/6.0)
+
+        if (self.doLeptons) :
+            self.drawMuons      (chainVars,extraVars,r.kYellow , defWidth, defArrowSize*2/6.0)
+            self.drawElectrons  (chainVars,extraVars,r.kYellow , defWidth, defArrowSize*2/6.0)
+            self.drawPhotons    (chainVars,extraVars,r.kYellow , defWidth, defArrowSize*2/6.0)
+            self.drawTaus       (chainVars,extraVars,r.kYellow , defWidth, defArrowSize*2/6.0)
+        
+        g2=self.drawAlphaPlot(chainVars,extraVars,r.kBlack)
+        
+        r.gStyle.SetOptStat(110011)
+        #g3=self.drawMhtLlPlot(chainVars,extraVars,r.kBlack)
         
         self.legend.Draw("same")
         self.printCanvas()
+#####################################
+class counter(analysisStep) :
+    """counter"""
 
+    def __init__(self,label) :
+        self.neededBranches=[]
+        self.label=label
+        self.moreName="(\""+self.label+"\")"
+    def bookHistos(self) :
+        self.countsHisto=r.TH1D("countsHisto_"+self.label,";dummy axis;number of events",1,-0.5,0.5)
 
+    def uponAcceptance(self,chain,chainVars,extraVars) :
+        self.countsHisto.Fill(0.0)
+#####################################
+class pickEventSpecMaker(analysisStep) :
+    """pickEventSpecMaker"""
+    #https://twiki.cern.ch/twiki/bin/view/CMS/PickEvents
+    def __init__(self,outputFileName,dataSetName) :
+        self.neededBranches=["run","lumiSection","event"]
+        self.outputFileName=outputFileName
+        self.dataSetName=dataSetName
+
+    def bookHistos(self) :
+        self.outputFile=open(self.outputFileName,"w")
+        
+    def uponAcceptance(self,chain,chainVars,extraVars) :
+        line=""
+        line+="%14d"%chainVars.run[0]
+        line+="%14d"%chainVars.event[0]
+        line+="%14d"%chainVars.lumiSection[0]
+        line+="   "+self.dataSetName+"\n"
+        self.outputFile.write(line)
+
+    def endFunc(self,hypens,nEvents,xs) :
+        print hypens
+        self.outputFile.close()
+        print "The pick events spec. file \""+self.outputFileName+"\" has been written."
 #####################################
 #class bxHistogrammer(analysisStep) :
 #    """bxHistogrammer"""
