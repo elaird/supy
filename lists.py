@@ -4,20 +4,8 @@ from stepsJet import *
 from stepsTrigger import *
 from stepsJetAlgoComparison import *
 from stepsPrint import *
+from stepsGen import *
 from stepsIcf import *
-
-def buildListDictionary() :
-    d={}
-    addListTriggerSkim(d)
-    addListJetKineLook(d)
-    addListDeltaPhiLook(d)
-    addListJetAlgoComparison(d)
-    addListMetGroupCleanupLook(d)
-    addListMetDistLook(d)
-    addListRA1_DiJet(d)
-    addListRA1_NJet(d)
-    addListMetPasFilter(d)
-    return d
 
 def removeStepsForMc(inSteps) :
     dummyBX=bxFilter([])
@@ -35,442 +23,530 @@ def removeStepsForMc(inSteps) :
         outSteps.append(copy.deepcopy(step))
     return outSteps
 
-def addListTriggerSkim(d) :
-    steps=[
-        progressPrinter(2,300),
+class listDictionaryHolder :
+    """listDictionaryHolder"""
 
-        techBitFilter([40,41],True),
-        techBitFilter([0],True),
-        techBitFilter([36,37,38,39],False),
-        physicsDeclared(),
-        goodRunsOnly2009("900 GeV","v3"),
-        metGroupNoiseEventFilter("v1"),
-        vertexRequirementFilter(5.0,15.0),
-        jetPtSelector("ak5Jet","Pat",5.0,0),
-        jetPtSelector("ak5Jet","Pat",5.0,1),
-        #runHistogrammer(),
-        skimmer("/tmp/",False),
-        ]
-
-    d["triggerSkimSteps_data"]=steps
-    d["triggerSkimSteps_mc"]=removeStepsForMc(steps)
-
-def addListMetPasFilter(d) :
-    steps=[
-        progressPrinter(2,300),
-        techBitFilter([0],True),
-        physicsDeclared(),
-        vertexRequirementFilter(5.0,15.0),
-        monsterEventFilter(10,0.25),
-        hltFilter("HLT_Jet15U"),
-        skimmer("/tmp/bbetchar/SusyCAF/2010_05_18_19_26_19/OUTPUT/",False)
-        ]
-    d["metPasFilter_data"]=steps
-    d["metPasFilter_mc"]=removeStepsForMc(steps)
-
+    def __init__(self) :
+        self.listDict={}
     
-def addListDeltaPhiLook(d) :
-    #jetCollection="ic5Jet"
-    jetCollection="ak5Jet"
-    #jetCollection="ak7Jet"
-    jetSuffix="Pat"
-    #jetPtThreshold=8.0
-    jetPtThreshold=10.0
-    corrRatherThanUnCorr=True
-    nCleanJets=2
-    jetEtaMax=3.0
+    def getDictionary(self) :
+        return self.listDict
     
-    #metCollection="metnohfP4Calo"
-    #metCollection="metP4Calo"
-    metCollection="metP4AK5"
+    def buildDictionary(self) :
+        #call all member functions starting with specialPrefix
+        specialPrefix="add"
+        for member in dir(self) :
+            if member[:len(specialPrefix)]!=specialPrefix : continue
+            getattr(self,member)()
 
-    steps=[
-        progressPrinter(2,300),
+    def addListTriggerSkim(self) :
+        steps=[
+            progressPrinter(2,300),
+            
+            techBitFilter([40,41],True),
+            techBitFilter([0],True),
+            techBitFilter([36,37,38,39],False),
+            physicsDeclared(),
+            goodRunsOnly2009("900 GeV","v3"),
+            metGroupNoiseEventFilter("v1"),
+            vertexRequirementFilter(5.0,15.0),
+            jetPtSelector("ak5Jet","Pat",5.0,0),
+            jetPtSelector("ak5Jet","Pat",5.0,1),
+            #runHistogrammer(),
+            skimmer("/tmp/",False),
+            ]
 
-        #these already addressed in the skim
-        #goodRunsOnly2009("900 GeV","v3"),
-        #
-        #techBitFilter([40,41],True),
-        #techBitFilter([0],True),
-        #techBitFilter([36,37,38,39],False),
-        #physicsDeclared(),
-        vertexRequirementFilter(5.0,15.0),
-        #monsterEventFilter(10,0.25),
+        self.listDict["triggerSkimSteps_data"]=steps
+        self.listDict["triggerSkimSteps_mc"]=removeStepsForMc(steps)
 
-        jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,0),#leading corrected jet
-        jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,1),#next corrected jet
-        jetPtVetoer(jetCollection,jetSuffix,jetPtThreshold,2),#next corrected jet
+    def addListMetPasFilter(self) :
+        steps=[
+            progressPrinter(2,300),
+            techBitFilter([0],True),
+            physicsDeclared(),
+            vertexRequirementFilter(5.0,15.0),
+            monsterEventFilter(10,0.25),
+            hltFilter("HLT_Jet15U"),
+            skimmer("/tmp/bbetchar/SusyCAF/2010_05_18_19_26_19/OUTPUT/",False)
+            ]
+        self.listDict["metPasFilter_data"]=steps
+        self.listDict["metPasFilter_mc"]=removeStepsForMc(steps)
 
-        metGroupNoiseEventFilter("v1"),
+    def addListRecHitTest(self) :
+        jetCollection="ak5Jet"
+        jetSuffix="Pat"
+        jetPtThreshold=10.0
+        corrRatherThanUnCorr=True
+        jetEtaMax=50.0
         
-        cleanJetIndexProducer(jetCollection,jetSuffix,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
-        nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
-        nOtherJetEventFilter(jetCollection,jetSuffix,1),
-        cleanJetPtHistogrammer(jetCollection,jetSuffix),
-        
-        cleanJetHtMhtProducer(jetCollection,jetSuffix),
-        #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
-        
-        cleanDiJetAlphaProducer(jetCollection,jetSuffix),
-        cleanNJetAlphaProducer(jetCollection,jetSuffix),
-        #alphaHistogrammer(jetCollection,jetSuffix),
-        
-        deltaPhiProducer(jetCollection,jetSuffix),
-        deltaPhiSelector(jetCollection,jetSuffix,0.4,1.0),
-        deltaPhiHistogrammer(jetCollection,jetSuffix),
-        mHtOverHtSelector(jetCollection,jetSuffix,0.9,1.1),
-        cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
+        #algoType="Calo"
+        #detector="Eb"
+        #detector="Ee"
+        #detector="Hbhe"
+        #detector="Hf"
 
-        #skimmer("/tmp/",True),
-
-        ##extraVariableGreaterFilter(0.6,jetCollection+"diJetAlpha_pT"+jetSuffix),
-        #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
-
-        eventPrinter(),
-        jetPrinter(jetCollection,jetSuffix),
-        metPrinter(["metP4Calo","metP4AK5","metnohfP4Calo"]),
-        particleP4Printer("muon","Pat"),
-        particleP4Printer("electron","Pat"),
-        particleP4Printer("photon","Pat"),
-        ]
-
-    d["deltaPhiSteps_data"]=steps
-    d["deltaPhiSteps_mc"]=removeStepsForMc(steps)
-
-def addListJetKineLook(d) :
-    jetCollection="ak5Jet"
-    jetSuffix="Pat"
-    jetPtThreshold=10.0
-    corrRatherThanUnCorr=True
-    nCleanJets=2
-    jetEtaMax=3.0
-    skimmerAlsoWritesExtraTree=False
+        algoType="PF"
+        detector="Ecal"
     
-    #metCollection="metnohfP4Calo"
-    #metCollection="metP4Calo"
-    metCollection="metP4AK5"
+        steps=[
+            progressPrinter(2,300),
+            nFlaggedRecHitFilter(algoType,detector,1),
+            eventPrinter(),
+            recHitPrinter(algoType,detector),
+            cleanJetIndexProducerOld(jetCollection,jetSuffix,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
+            jetPrinter(jetCollection,jetSuffix),
+            ]
+        self.listDict["RecHitTestSteps"]=steps
 
-    steps=[
-        progressPrinter(2,300),
+    def addHcalTechTriggerCheck(self) :
+        branch1List=[eventPrinter()]
 
-        #these already addressed in the skim
-        #goodRunsOnly2009("900 GeV","v3"),
-        #
-        #techBitFilter([40,41],True),
-        #techBitFilter([0],True),
-        #techBitFilter([36,37,38,39],False),
-        #physicsDeclared(),
-        vertexRequirementFilter(5.0,15.0),
-        #monsterEventFilter(10,0.25),
-
-        jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,0),#leading corrected jet
-        jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,1),#next corrected jet
-        #jetPtVetoer(jetCollection,jetSuffix,jetPtThreshold,2),#next corrected jet
-
-        metGroupNoiseEventFilter("v1"),
-        
-        cleanJetIndexProducer(jetCollection,jetSuffix,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
-        nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
-        nOtherJetEventFilter(jetCollection,jetSuffix,1),
-        cleanJetPtHistogrammer(jetCollection,jetSuffix),
-        
-        cleanJetHtMhtProducer(jetCollection,jetSuffix),
-        cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
-        #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
-        
-        cleanDiJetAlphaProducer(jetCollection,jetSuffix),
-        cleanNJetAlphaProducer(jetCollection,jetSuffix),
-        alphaHistogrammer(jetCollection,jetSuffix),
-        
-        deltaPhiProducer(jetCollection,jetSuffix),
-        deltaPhiHistogrammer(jetCollection,jetSuffix),
-
-        ##extraVariableGreaterFilter(0.6,jetCollection+"diJetAlpha_pT"+jetSuffix),
-        #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
-
-        #skimmer("/tmp/",skimmerAlsoWritesExtraTree),
-
-        #eventPrinter(),
-        #jetPrinter(jetCollection,jetSuffix),
-        #metPrinter(["metP4Calo","metP4AK5","metnohfP4Calo"]),
-        #particleP4Printer("muon","Pat"),
-        #particleP4Printer("electron","Pat"),
-        #particleP4Printer("photon","Pat"),
-        ]
-
-    d["jetKineSteps_data"]=steps
-    d["jetKineSteps_mc"]=removeStepsForMc(steps)
-
-def addListMetDistLook(d) :
-    jetCollection="ak5Jet"
-    jetSuffix="Pat"
-    jetPtThreshold=8.0
-    corrRatherThanUnCorr=True
-    nCleanJets=2
-    jetEtaMax=3.0
-    skimmerAlsoWritesExtraTree=False
+        branch2List=[physicsDeclared(),
+                     techBitFilter([0],True)
+                     ]
     
-    #metCollection="metnohfP4Calo"
-    metCollection="metP4Calo"
-    #metCollection="metP4AK5"
+        steps=[
+            progressPrinter(2,300),
+            techBitFilter([12],True),
+            #eventPrinter()
+            #branchStep([branch1List,branch2List])
+            ]
+        self.listDict["HcalTechTriggerCheckSteps"]=steps
 
-    steps=[
-        progressPrinter(2,300),
+    def addMSugraLook(self) :
+        tanBeta=10.0
+        steps=[
+            progressPrinter(2,300),
+            #skimmer("/tmp/",False),
+            #eventPrinter(),
+            #genParticlePrinter(),
+            genParticleCounter(tanBeta),
+            #susyScanPointPrinter(),
+            ]
+        self.listDict["mSugraLookSteps"]=steps
 
-        #these already addressed in the skim
-        #goodRunsOnly2009("900 GeV","v3"),
-        #
-        #techBitFilter([40,41],True),
-        #techBitFilter([0],True),
-        #techBitFilter([36,37,38,39],False),
-        #physicsDeclared(),
-        vertexRequirementFilter(5.0,15.0),
-        #monsterEventFilter(10,0.25),
-
-        jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,0),#leading corrected jet
-        jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,1),#next corrected jet
-        #jetPtVetoer(jetCollection,jetSuffix,jetPtThreshold,2),#next corrected jet
-
-        metHistogrammer(metCollection,"ge2jets no jetID"),
-
-        cleanJetIndexProducer(jetCollection,jetSuffix,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
-        #nCleanJetHistogrammer(jetCollection,jetSuffix),
-        nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
-        metHistogrammer(metCollection,"ge2jets at least 2 clean"),
-
-        nOtherJetEventFilter(jetCollection,jetSuffix,1),
-        metHistogrammer(metCollection,"ge2jets all clean"),
-        
-        metGroupNoiseEventFilter("v1"),
-        metHistogrammer(metCollection,"ge2jets all clean plus group filter"),        
-        ]
-
-    d["metDistSteps_data"]=steps
-    d["metDistSteps_mc"]=removeStepsForMc(steps)
-
-def addListMetGroupCleanupLook(d) :
-    jetCollection="ak5Jet"
-    jetSuffix="Pat"
-    jetPtThreshold=10.0
-    corrRatherThanUnCorr=True
-    nCleanJets=2
-    jetEtaMax=3.0
-    skimmerAlsoWritesExtraTree=False
+    def addListDeltaPhiLook(self) :
+        #jetCollection="ic5Jet"
+        jetCollection="ak5Jet"
+        #jetCollection="ak7Jet"
+        jetSuffix="Pat"
+        #jetPtThreshold=8.0
+        jetPtThreshold=10.0
+        corrRatherThanUnCorr=True
+        nCleanJets=2
+        jetEtaMax=3.0
     
-    #metCollection="metnohfP4Calo"
-    #metCollection="metP4Calo"
-    metCollection="metP4AK5"
-
-    steps=[
-        progressPrinter(2,300),
-
-        #these already addressed in the skim
-        goodRunsOnly2009("900 GeV","v3"),
+        #metCollection="metnohfP4Calo"
+        #metCollection="metP4Calo"
+        metCollection="metP4AK5"
         
-        techBitFilter([40,41],True),
-        techBitFilter([0],True),
-        techBitFilter([36,37,38,39],False),
-        physicsDeclared(),
-        vertexRequirementFilter(2.0,15.0),
-        monsterEventFilter(10,0.25),
+        steps=[
+            progressPrinter(2,300),
+            
+            #these already addressed in the skim
+            #goodRunsOnly2009("900 GeV","v3"),
+            #
+            #techBitFilter([40,41],True),
+            #techBitFilter([0],True),
+            #techBitFilter([36,37,38,39],False),
+            #physicsDeclared(),
+            vertexRequirementFilter(5.0,15.0),
+            #monsterEventFilter(10,0.25),
+            
+            jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,0),#leading corrected jet
+            jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,1),#next corrected jet
+            jetPtVetoer(jetCollection,jetSuffix,jetPtThreshold,2),#next corrected jet
+            
+            metGroupNoiseEventFilter("v1"),
+            
+            cleanJetIndexProducerOld(jetCollection,jetSuffix,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
+            nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
+            nOtherJetEventFilter(jetCollection,jetSuffix,1),
+            cleanJetPtHistogrammer(jetCollection,jetSuffix),
+            
+            cleanJetHtMhtProducer(jetCollection,jetSuffix),
+            #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
+            
+            cleanDiJetAlphaProducer(jetCollection,jetSuffix),
+            cleanNJetAlphaProducer(jetCollection,jetSuffix),
+            #alphaHistogrammer(jetCollection,jetSuffix),
+            
+            deltaPhiProducer(jetCollection,jetSuffix),
+            deltaPhiSelector(jetCollection,jetSuffix,0.4,1.0),
+            deltaPhiHistogrammer(jetCollection,jetSuffix),
+            mHtOverHtSelector(jetCollection,jetSuffix,0.9,1.1),
+            cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
+            
+            #skimmer("/tmp/",True),
+            
+            ##extraVariableGreaterFilter(0.6,jetCollection+"diJetAlpha_pT"+jetSuffix),
+            #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
+            
+            eventPrinter(),
+            jetPrinter(jetCollection,jetSuffix),
+            metPrinter(["metP4Calo","metP4AK5","metnohfP4Calo"]),
+            particleP4Printer("muon","Pat"),
+            particleP4Printer("electron","Pat"),
+            particleP4Printer("photon","Pat"),
+            ]
+        
+        self.listDict["deltaPhiSteps_data"]=steps
+        self.listDict["deltaPhiSteps_mc"]=removeStepsForMc(steps)
 
-        jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,0),#leading corrected jet
-        jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,1),#next corrected jet
-        ##jetPtVetoer(jetCollection,jetSuffix,jetPtThreshold,2),#next corrected jet
+    def addListJetKineLook(self) :
+        jetCollection="ak5Jet"
+        jetSuffix="Pat"
+        jetPtThreshold=10.0
+        corrRatherThanUnCorr=True
+        nCleanJets=2
+        jetEtaMax=3.0
+        skimmerAlsoWritesExtraTree=False
+        
+        #metCollection="metnohfP4Calo"
+        #metCollection="metP4Calo"
+        metCollection="metP4AK5"
 
-        metGroupNoiseEventFilter("v1"),
+        steps=[
+            progressPrinter(2,300),
+            
+            #these already addressed in the skim
+            #goodRunsOnly2009("900 GeV","v3"),
+            #
+            #techBitFilter([40,41],True),
+            #techBitFilter([0],True),
+            #techBitFilter([36,37,38,39],False),
+            #physicsDeclared(),
+            vertexRequirementFilter(5.0,15.0),
+            #monsterEventFilter(10,0.25),
+            
+            jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,0),#leading corrected jet
+            jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,1),#next corrected jet
+            #jetPtVetoer(jetCollection,jetSuffix,jetPtThreshold,2),#next corrected jet
+            
+            metGroupNoiseEventFilter("v1"),
+            
+            cleanJetIndexProducerOld(jetCollection,jetSuffix,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
+            nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
+            nOtherJetEventFilter(jetCollection,jetSuffix,1),
+            cleanJetPtHistogrammer(jetCollection,jetSuffix),
+            
+            cleanJetHtMhtProducer(jetCollection,jetSuffix),
+            cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
+            #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
+            
+            cleanDiJetAlphaProducer(jetCollection,jetSuffix),
+            cleanNJetAlphaProducer(jetCollection,jetSuffix),
+            alphaHistogrammer(jetCollection,jetSuffix),
+            
+            deltaPhiProducer(jetCollection,jetSuffix),
+            deltaPhiHistogrammer(jetCollection,jetSuffix),
+            
+            ##extraVariableGreaterFilter(0.6,jetCollection+"diJetAlpha_pT"+jetSuffix),
+            #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
+            
+            #skimmer("/tmp/",skimmerAlsoWritesExtraTree),
+            
+            #eventPrinter(),
+            #jetPrinter(jetCollection,jetSuffix),
+            #metPrinter(["metP4Calo","metP4AK5","metnohfP4Calo"]),
+            #particleP4Printer("muon","Pat"),
+            #particleP4Printer("electron","Pat"),
+            #particleP4Printer("photon","Pat"),
+            ]
+        
+        self.listDict["jetKineSteps_data"]=steps
+        self.listDict["jetKineSteps_mc"]=removeStepsForMc(steps)
 
-        cleanJetIndexProducer(jetCollection,jetSuffix,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
-        nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
-        nOtherJetEventFilter(jetCollection,jetSuffix,1),
+    def addListMetDistLook(self) :
+        jetCollection="ak5Jet"
+        jetSuffix="Pat"
+        jetPtThreshold=10.0
+        corrRatherThanUnCorr=True
+        nCleanJets=2
+        jetEtaMax=3.0
+        skimmerAlsoWritesExtraTree=False
+        
+        #metCollection="metnohfP4Calo"
+        metCollection="metP4Calo"
+        #metCollection="metP4AK5"
 
-        eventPrinter(),
-        jetPrinter(jetCollection,jetSuffix),
-        metPrinter(["metP4Calo","metP4AK5"]),
-        ]
+        steps=[
+            progressPrinter(2,300),
+            
+            #these already addressed in the skim
+            #goodRunsOnly2009("900 GeV","v3"),
+            
+            techBitFilter([40,41],True),
+            techBitFilter([0],True),
+            techBitFilter([36,37,38,39],False),
+            physicsDeclared(),
+            vertexRequirementFilter(5.0,15.0),
+            #monsterEventFilter(10,0.25),
+            
+            jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,0),#leading corrected jet
+            jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,1),#next corrected jet
+            #jetPtVetoer(jetCollection,jetSuffix,jetPtThreshold,2),#next corrected jet
+            
+            metHistogrammer(metCollection,"ge2jets no jetID"),
+            
+            cleanJetIndexProducer(jetCollection,jetSuffix,jetPtThreshold,jetEtaMax),
+            #cleanJetIndexProducerOld(jetCollection,jetSuffix,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
+            #nCleanJetHistogrammer(jetCollection,jetSuffix),
+            nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
+            metHistogrammer(metCollection,"ge2jets at least 2 clean"),
+            
+            nOtherJetEventFilter(jetCollection,jetSuffix,1),
+            metHistogrammer(metCollection,"ge2jets all clean"),
+            
+            #metGroupNoiseEventFilter("v1"),
+            #metHistogrammer(metCollection,"ge2jets all clean plus group filter"),        
+            ]
+        
+        self.listDict["metDistSteps_data"]=steps
+        self.listDict["metDistSteps_mc"]=removeStepsForMc(steps)
+        
+    def addListMetGroupCleanupLook(self) :
+        jetCollection="ak5Jet"
+        jetSuffix="Pat"
+        jetPtThreshold=10.0
+        corrRatherThanUnCorr=True
+        nCleanJets=2
+        jetEtaMax=3.0
+        skimmerAlsoWritesExtraTree=False
+        
+        #metCollection="metnohfP4Calo"
+        #metCollection="metP4Calo"
+        metCollection="metP4AK5"
+        
+        steps=[
+            progressPrinter(2,300),
+            
+            #these already addressed in the skim
+            goodRunsOnly2009("900 GeV","v3"),
+            
+            techBitFilter([40,41],True),
+            techBitFilter([0],True),
+            techBitFilter([36,37,38,39],False),
+            physicsDeclared(),
+            vertexRequirementFilter(2.0,15.0),
+            monsterEventFilter(10,0.25),
+            
+            jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,0),#leading corrected jet
+            jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,1),#next corrected jet
+            ##jetPtVetoer(jetCollection,jetSuffix,jetPtThreshold,2),#next corrected jet
+            
+            metGroupNoiseEventFilter("v1"),
+            
+            cleanJetIndexProducerOld(jetCollection,jetSuffix,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
+            nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
+            nOtherJetEventFilter(jetCollection,jetSuffix,1),
+            
+            eventPrinter(),
+            jetPrinter(jetCollection,jetSuffix),
+            metPrinter(["metP4Calo","metP4AK5"]),
+            ]
+        
+        self.listDict["metGroupCleanupLookSteps_data"]=steps
+        self.listDict["metGroupCleanupLookSteps_mc"]=removeStepsForMc(steps)
+        
+    def addListJetAlgoComparison(self) :
+        jetCollection1="ak5Jet"
+        jetCollection2="ic5Jet"
+        jetSuffix1="Pat"
+        jetSuffix2="Pat"
+        jetPtThreshold=10.0
+        corrRatherThanUnCorr=True
+        nCleanJets=2
+        jetEtaMax=3.0
+        
+        steps=[
+            progressPrinter(2,300),
+            
+            goodRunsOnly2009("900 GeV","v3"),
+            
+            #di-jet sample according to algo 1
+            jetPtSelector(jetCollection1,jetSuffix1,jetPtThreshold,0),#leading corrected jet
+            jetPtSelector(jetCollection1,jetSuffix1,jetPtThreshold,1),#next corrected jet
+            jetPtVetoer(jetCollection1,jetSuffix1,jetPtThreshold,2),#next corrected jet
+            cleanJetIndexProducerOld(jetCollection1,jetSuffix1,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
+            nCleanJetEventFilter(jetCollection1,jetSuffix1,nCleanJets),
+            nOtherJetEventFilter(jetCollection1,jetSuffix1,1),
+            
+            #di-jet sample according to algo 2
+            jetPtSelector(jetCollection2,jetSuffix2,jetPtThreshold,0),#leading corrected jet
+            jetPtSelector(jetCollection2,jetSuffix2,jetPtThreshold,1),#next corrected jet
+            jetPtVetoer(jetCollection2,jetSuffix2,jetPtThreshold,2),#next corrected jet
+            cleanJetIndexProducerOld(jetCollection2,jetSuffix2,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
+            nCleanJetEventFilter(jetCollection2,jetSuffix2,nCleanJets),
+            nOtherJetEventFilter(jetCollection2,jetSuffix2,1),
+            
+            #now we have some sort of "clean" di-jet sample
+            #produce some variables and make some histograms
+            
+            cleanJetPtHistogrammer(jetCollection1,jetSuffix1),
+            cleanJetPtHistogrammer(jetCollection2,jetSuffix2),
+            
+            leadingJetPtHistogrammer(jetCollection1,jetSuffix1,jetCollection2,jetSuffix2),
+            
+            cleanJetHtMhtProducer(jetCollection1,jetSuffix1),
+            cleanJetHtMhtProducer(jetCollection2,jetSuffix2),
+            
+            cleanJetHtMhtHistogrammer(jetCollection1,jetSuffix1,corrRatherThanUnCorr),
+            cleanJetHtMhtHistogrammer(jetCollection2,jetSuffix2,corrRatherThanUnCorr),
+            
+            cleanDiJetAlphaProducer(jetCollection1,jetSuffix1),
+            cleanDiJetAlphaProducer(jetCollection2,jetSuffix2),
+            
+            cleanNJetAlphaProducer(jetCollection1,jetSuffix1),
+            cleanNJetAlphaProducer(jetCollection2,jetSuffix2),
+            
+            alphaHistogrammer(jetCollection1,jetSuffix1),
+            alphaHistogrammer(jetCollection2,jetSuffix2),
+            
+            #skimmer("/tmp/",True),
+            
+            #extraVariableGreaterFilter(0.6,jetCollection1+"nJetAlphaT"+jetSuffix1),
+            #extraVariableGreaterFilter(25.0,jetCollection1+"Ht"+jetSuffix1),
+            #
+            #eventPrinter(),
+            #jetPrinter(jetCollection1,jetSuffix1),
+            #htMhtPrinter(jetCollection1,jetSuffix1),
+            #diJetAlphaPrinter(jetCollection1,jetSuffix1),
+            #nJetAlphaTPrinter(jetCollection1,jetSuffix1),
+            ]
+        
+        self.listDict["jetAlgoComparison_data"]=steps
+        self.listDict["jetAlgoComparison_mc"]=removeStepsForMc(steps)
+        
+    def addListIcfRa1_DiJet(self) :
+        #jetPtThreshold=100.0
+        #jetPtThresholdVeto=50.0
+        #jetPtThresholdClean=50.0
 
-    d["metGroupCleanupLookSteps_data"]=steps
-    d["metGroupCleanupLookSteps_mc"]=removeStepsForMc(steps)
+        jetPtThreshold=100.0
+        jetPtThresholdVeto=50.0
+        jetPtThresholdClean=20.0
+        
+        nCleanJets=2
+        jetEtaMax=3.0
+        
+        muonPtThreshold=10.0
+        elecPtThreshold=10.0
+        photPtThreshold=25.0
+        
+        minLogLikelihood=-6.0
+        
+        steps=[
+            progressPrinter(2,300),
+            
+            icfJetPtSorter(),
+            
+            icfAnyJetPtSelector(jetPtThreshold,0),
+            icfAnyJetPtSelector(jetPtThreshold,1),
+            icfAnyJetPtVetoer  (jetPtThresholdVeto,2),
+            
+            icfCleanJetProducer(jetPtThresholdClean,jetEtaMax),
+            icfNCleanJetHistogrammer(),
+            icfNCleanJetEventFilter(nCleanJets),
+            
+            icfCleanJetPtSelector(jetPtThreshold,0),
+            icfCleanJetPtSelector(jetPtThreshold,1),
+            icfCleanJetPtVetoer(jetPtThresholdVeto,2),
+            icfCleanJetEtaSelector(2.5,0),
+            #skimmer("/tmp/",False),        
+            icfNOtherJetEventFilter(1),
+            
+            icfMuonVetoer(muonPtThreshold),
+            icfElecVetoer(elecPtThreshold),
+            icfPhotVetoer(photPtThreshold),
+            
+            icfCleanJetHtMhtProducer(),
+            extraVariableGreaterFilter(250.0,"Ht"),
+            #extraVariableGreaterFilter(500.0,"Ht"),
+            icfCleanDiJetAlphaProducer(),
+            icfCleanNJetAlphaProducer(),
+            icfDeltaPhiProducer(),
+            
+            #icfMhtAllProducer(30.0),
+            #icfMhtRatioSelector(1.25),
+            
+            icfCleanJetPtEtaHistogrammer(),
+            icfCleanJetHtMhtHistogrammer(),
+            icfAlphaHistogrammer(),
+            #icfDeltaPhiHistogrammer(),
+            
+            #devMhtOld("","",True),
+            #devMhtHistogrammerOld("","",minLogLikelihood),
+            
+            #devMht("","",minLogLikelihood,True),
+            #devMhtHistogrammer("","",minLogLikelihood),
+            #displayer("","","/tmp/",400.0,True),
+            
+            #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
+            #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
+            ]
 
-def addListJetAlgoComparison(d) :
-    jetCollection1="ak5Jet"
-    jetCollection2="ic5Jet"
-    jetSuffix1="Pat"
-    jetSuffix2="Pat"
-    jetPtThreshold=10.0
-    corrRatherThanUnCorr=True
-    nCleanJets=2
-    jetEtaMax=3.0
+        self.listDict["Icf_Ra1_DiJet_Steps_data"]=steps
+        self.listDict["Icf_Ra1_DiJet_Steps_mc"]=removeStepsForMc(steps)
     
-    steps=[
-        progressPrinter(2,300),
-
-        goodRunsOnly2009("900 GeV","v3"),
-
-        #di-jet sample according to algo 1
-        jetPtSelector(jetCollection1,jetSuffix1,jetPtThreshold,0),#leading corrected jet
-        jetPtSelector(jetCollection1,jetSuffix1,jetPtThreshold,1),#next corrected jet
-        jetPtVetoer(jetCollection1,jetSuffix1,jetPtThreshold,2),#next corrected jet
-        cleanJetIndexProducer(jetCollection1,jetSuffix1,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
-        nCleanJetEventFilter(jetCollection1,jetSuffix1,nCleanJets),
-        nOtherJetEventFilter(jetCollection1,jetSuffix1,1),
-
-        #di-jet sample according to algo 2
-        jetPtSelector(jetCollection2,jetSuffix2,jetPtThreshold,0),#leading corrected jet
-        jetPtSelector(jetCollection2,jetSuffix2,jetPtThreshold,1),#next corrected jet
-        jetPtVetoer(jetCollection2,jetSuffix2,jetPtThreshold,2),#next corrected jet
-        cleanJetIndexProducer(jetCollection2,jetSuffix2,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
-        nCleanJetEventFilter(jetCollection2,jetSuffix2,nCleanJets),
-        nOtherJetEventFilter(jetCollection2,jetSuffix2,1),
-
-        #now we have some sort of "clean" di-jet sample
-        #produce some variables and make some histograms
-
-        cleanJetPtHistogrammer(jetCollection1,jetSuffix1),
-        cleanJetPtHistogrammer(jetCollection2,jetSuffix2),
+    def addListIcfRa1_NJet(self) :
+        jetPtLeadingThreshold=100.0
+        jetPtThreshold=50.0
+        nCleanJets=2
+        jetEtaMax=3.0
         
-        leadingJetPtHistogrammer(jetCollection1,jetSuffix1,jetCollection2,jetSuffix2),
-
-        cleanJetHtMhtProducer(jetCollection1,jetSuffix1),
-        cleanJetHtMhtProducer(jetCollection2,jetSuffix2),
-
-        cleanJetHtMhtHistogrammer(jetCollection1,jetSuffix1,corrRatherThanUnCorr),
-        cleanJetHtMhtHistogrammer(jetCollection2,jetSuffix2,corrRatherThanUnCorr),
-
-        cleanDiJetAlphaProducer(jetCollection1,jetSuffix1),
-        cleanDiJetAlphaProducer(jetCollection2,jetSuffix2),
+        muonPtThreshold=10.0
+        elecPtThreshold=10.0
+        photPtThreshold=25.0
         
-        cleanNJetAlphaProducer(jetCollection1,jetSuffix1),
-        cleanNJetAlphaProducer(jetCollection2,jetSuffix2),
+        steps=[
+            progressPrinter(2,300),
+            
+            #icfGenPrinter(),
+            #icfGenP4Producer(),
+            #icfGenP4Histogrammer(),
+            
+            icfJetPtSorter(),
+            
+            icfAnyJetPtSelector(jetPtLeadingThreshold,0),
+            icfAnyJetPtSelector(jetPtLeadingThreshold,1),
+            
+            #icfCleanJetFromGenProducer(jetPtThreshold,jetEtaMax),
+            icfCleanJetProducer(jetPtThreshold,jetEtaMax),
+            icfNCleanJetHistogrammer(),
+            icfNCleanJetEventFilter(nCleanJets),
+            
+            icfCleanJetPtSelector(jetPtLeadingThreshold,0),
+            icfCleanJetPtSelector(jetPtLeadingThreshold,1),
+            #icfCleanJetPtVetoer(jetPtLeadingThreshold,2),
+            icfCleanJetEtaSelector(2.0,0),
+            #skimmer("/tmp/",False),
+            icfNOtherJetEventFilter(1),
+            
+            icfOtherJetHistogrammer(0.0),
+            
+            icfMuonVetoer(muonPtThreshold),
+            icfElecVetoer(elecPtThreshold),
+            icfPhotVetoer(photPtThreshold),
+            
+            icfCleanJetHtMhtProducer(),
+            extraVariableGreaterFilter(350.0,"Ht"),
+            icfCleanDiJetAlphaProducer(),
+            icfCleanNJetAlphaProducer(),
+            icfDeltaPhiProducer(),
+            
+            icfMhtAllProducer(30.0),
+            icfMhtRatioSelector(1.25),
+            
+            icfCleanJetPtEtaHistogrammer(),
+            icfCleanJetHtMhtHistogrammer(),
+            icfAlphaHistogrammer(),
+            icfDeltaPhiHistogrammer(),
+            
+            #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
+            #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
+            ]
         
-        alphaHistogrammer(jetCollection1,jetSuffix1),
-        alphaHistogrammer(jetCollection2,jetSuffix2),
-
-        #skimmer("/tmp/",True),
+        self.listDict["Icf_Ra1_NJet_Steps_data"]=steps
+        self.listDict["Icf_Ra1_NJet_Steps_mc"]=removeStepsForMc(steps)
         
-        #extraVariableGreaterFilter(0.6,jetCollection1+"nJetAlphaT"+jetSuffix1),
-        #extraVariableGreaterFilter(25.0,jetCollection1+"Ht"+jetSuffix1),
-        #
-        #eventPrinter(),
-        #jetPrinter(jetCollection1,jetSuffix1),
-        #htMhtPrinter(jetCollection1,jetSuffix1),
-        #diJetAlphaPrinter(jetCollection1,jetSuffix1),
-        #nJetAlphaTPrinter(jetCollection1,jetSuffix1),
-        ]
-
-    d["jetAlgoComparison_data"]=steps
-    d["jetAlgoComparison_mc"]=removeStepsForMc(steps)
-
-def addListRA1_DiJet(d) :
-    jetPtThreshold=50.0
-    nCleanJets=2
-    jetEtaMax=3.0
-
-    muonPtThreshold=10.0
-    elecPtThreshold=10.0
-    photPtThreshold=25.0
-    
-    steps=[
-        progressPrinter(2,300),
-
-        icfJetPtSorter(),
-
-        icfAnyJetPtSelector(jetPtThreshold,0),
-        icfAnyJetPtSelector(jetPtThreshold,1),
-
-        icfCleanJetProducer(jetPtThreshold,jetEtaMax),
-        icfNCleanJetHistogrammer(),
-        icfNCleanJetEventFilter(nCleanJets),
-        
-        icfCleanJetPtSelector(jetPtThreshold,0),
-        icfCleanJetPtSelector(jetPtThreshold,1),
-        icfCleanJetPtVetoer(jetPtThreshold,2),
-        icfCleanJetEtaSelector(2.5,0),
-        #skimmer("/tmp/",False),        
-        icfNOtherJetEventFilter(1),
-        
-        icfMuonVetoer(muonPtThreshold),
-        icfElecVetoer(elecPtThreshold),
-        icfPhotVetoer(photPtThreshold),
-        
-        icfCleanJetHtMhtProducer(),
-        extraVariableGreaterFilter(250.0,"ht"),
-        icfCleanDiJetAlphaProducer(),
-        icfCleanNJetAlphaProducer(),
-        icfDeltaPhiProducer(),
-        
-        #icfMhtAllProducer(30.0),
-        #icfMhtRatioSelector(1.25),
-        
-        icfCleanJetPtEtaHistogrammer(),
-        icfCleanJetHtMhtHistogrammer(),
-        icfAlphaHistogrammer(),
-        #icfDeltaPhiHistogrammer(),
-        
-        #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
-        #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
-        ]
-
-    d["RA1_DiJet_Steps_data"]=steps
-    d["RA1_DiJet_Steps_mc"]=removeStepsForMc(steps)
-    
-def addListRA1_NJet(d) :
-    jetPtLeadingThreshold=100.0
-    jetPtThreshold=50.0
-    nCleanJets=2
-    jetEtaMax=3.0
-
-    muonPtThreshold=10.0
-    elecPtThreshold=10.0
-    photPtThreshold=25.0
-    
-    steps=[
-        progressPrinter(2,300),
-
-        #icfGenPrinter(),
-        #icfGenP4Producer(),
-        #icfGenP4Histogrammer(),
-
-        icfJetPtSorter(),
-        
-        icfAnyJetPtSelector(jetPtLeadingThreshold,0),
-        icfAnyJetPtSelector(jetPtLeadingThreshold,1),
-        
-        #icfCleanJetFromGenProducer(jetPtThreshold,jetEtaMax),
-        icfCleanJetProducer(jetPtThreshold,jetEtaMax),
-        icfNCleanJetHistogrammer(),
-        icfNCleanJetEventFilter(nCleanJets),
-        
-        icfCleanJetPtSelector(jetPtLeadingThreshold,0),
-        icfCleanJetPtSelector(jetPtLeadingThreshold,1),
-        #icfCleanJetPtVetoer(jetPtLeadingThreshold,2),
-        icfCleanJetEtaSelector(2.0,0),
-        #skimmer("/tmp/",False),
-        icfNOtherJetEventFilter(1),
-        
-        icfOtherJetHistogrammer(0.0),
-        
-        icfMuonVetoer(muonPtThreshold),
-        icfElecVetoer(elecPtThreshold),
-        icfPhotVetoer(photPtThreshold),
-        
-        icfCleanJetHtMhtProducer(),
-        extraVariableGreaterFilter(350.0,"ht"),
-        icfCleanDiJetAlphaProducer(),
-        icfCleanNJetAlphaProducer(),
-        icfDeltaPhiProducer(),
-        
-        icfMhtAllProducer(30.0),
-        icfMhtRatioSelector(1.25),
-        
-        icfCleanJetPtEtaHistogrammer(),
-        icfCleanJetHtMhtHistogrammer(),
-        icfAlphaHistogrammer(),
-        icfDeltaPhiHistogrammer(),
-        
-        #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
-        #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
-        ]
-
-    d["RA1_NJet_Steps_data"]=steps
-    d["RA1_NJet_Steps_mc"]=removeStepsForMc(steps)

@@ -1,271 +1,298 @@
-import base,samples,lists
+import base
 
-sampleDict=samples.buildSampleDictionary()
-listDict=lists.buildListDictionary()
+class analysisDictionaryHolder :
+    """analysisDictionaryHolder"""
 
-def buildAnalysisDictionary() :
-    d={}
-    addTriggerSkim(d)
-    addJetKineLook(d)
-    addDeltaPhiLook(d)
-    addExample(d)
-    addJetAlgoComparison(d)
-    addMetDistLook(d)
-    addMetGroupCleanupLook(d)
-    addRA1_DiJet(d)
-    addRA1_NJet(d)
-    return d
+    def __init__(self,fileListDict,xsDict,listDict) :
+        self.fileListDict=fileListDict
+        self.xsDict=xsDict
+        self.listDict=listDict
+        self.analysisDict={}
     
-def addTriggerSkim(d) :
-    outputPrefix="triggerSkim"
+    def getDictionary(self) :
+        return self.analysisDict
+    
+    def buildDictionary(self) :
+        #call all member functions starting with specialPrefix
+        specialPrefix="add"
+        for member in dir(self) :
+            if member[:len(specialPrefix)]!=specialPrefix : continue
+            getattr(self,member)()
 
-    steps_data=listDict["triggerSkimSteps_data"]
-    steps_mc  =listDict["triggerSkimSteps_mc"  ]
+    def addRecHitTest(self) :
+        outputPrefix="RecHitTest"
+        nEvents=-1
+        specs=[
+            base.sampleSpecification(self.fileListDict,"test",nEvents,outputPrefix,self.listDict["RecHitTestSteps"]),
+            ]
+        self.analysisDict[outputPrefix]=specs
+    
+    def addHcalTechTriggerCheck(self) :
+        outputPrefix="HcalTechTriggerCheck"
+        nEvents=10000
+        specs=[
+            base.sampleSpecification(self.fileListDict,"2010_Data_v2",nEvents,outputPrefix,self.listDict["HcalTechTriggerCheckSteps"]),
+            ]
+        self.analysisDict[outputPrefix]=specs
 
-    specs=[
-        base.sampleSpecification(sampleDict,"2009_Data_v7", -1,outputPrefix,steps_data),
+    def addMSugraLook(self) :
+        outputPrefix="mSugraLook"
+        nEvents=-1
+        specs=[
+            base.sampleSpecification(self.fileListDict,"mSugraScan_TB10",nEvents,outputPrefix,self.listDict["mSugraLookSteps"]),
+            ]
+        self.analysisDict[outputPrefix]=specs
+    
+    def addTriggerSkim(self) :
+        outputPrefix="triggerSkim"
 
-        #base.sampleSpecification(sampleDict,"2009_Data_v6", -1,outputPrefix,steps_data),
-        #base.sampleSpecification(sampleDict,"2009_Data_v6_skimmed", -1,outputPrefix,steps_data),
-        #base.sampleSpecification(sampleDict,"900_GeV_MC_v6", -1,outputPrefix,steps_mc),
+        steps_data=self.listDict["triggerSkimSteps_data"]
+        steps_mc  =self.listDict["triggerSkimSteps_mc"  ]
 
-        #base.sampleSpecification(sampleDict,"2009_Data_v5", -1,outputPrefix,steps_data),
-        #base.sampleSpecification(sampleDict,"2009_Data_v5_skimmed", -1,outputPrefix,steps_data),
-        #base.sampleSpecification(sampleDict,"900_GeV_MC_v5", -1,outputPrefix,steps_mc),
-        ]
+        specs=[
+            base.sampleSpecification(self.fileListDict,"2009_Data_v7", -1,outputPrefix,steps_data),
+            
+            #base.sampleSpecification(self.fileListDict,"2009_Data_v6", -1,outputPrefix,steps_data),
+            #base.sampleSpecification(self.fileListDict,"2009_Data_v6_skimmed", -1,outputPrefix,steps_data),
+            #base.sampleSpecification(self.fileListDict,"900_GeV_MC_v6", -1,outputPrefix,steps_mc),
+            
+            #base.sampleSpecification(self.fileListDict,"2009_Data_v5", -1,outputPrefix,steps_data),
+            #base.sampleSpecification(self.fileListDict,"2009_Data_v5_skimmed", -1,outputPrefix,steps_data),
+            #base.sampleSpecification(self.fileListDict,"900_GeV_MC_v5", -1,outputPrefix,steps_mc),
+            ]
+        self.analysisDict[outputPrefix]=specs
 
-    d[outputPrefix]=specs
+    def addMetGroupCleanupLook(self) :
+        outputPrefix="metGroupCleanupLook"
 
-def addMetGroupCleanupLook(d) :
-    outputPrefix="metGroupCleanupLook"
+        steps_data=self.listDict["metGroupCleanupLookSteps_data"]
+        steps_mc  =self.listDict["metGroupCleanupLookSteps_mc"  ]
 
-    steps_data=listDict["metGroupCleanupLookSteps_data"]
-    steps_mc  =listDict["metGroupCleanupLookSteps_mc"  ]
+        specs=[
+            #900 GeV data
+            #base.sampleSpecification(self.fileListDict,"2009_Data_v6_skimmed", -1,outputPrefix,steps_data),
+            base.sampleSpecification(self.fileListDict,"2009_Data_v6_skimmed_ge2jet", -1,outputPrefix,steps_data),
+            
+            #900 GeV MC
+            #base.sampleSpecification(self.fileListDict,"900_GeV_MC_v6_skimmed",   -1,outputPrefix,steps_mc),
+            #base.sampleSpecification(self.fileListDict,"900_GeV_MC_v6_skimmed_ge2jet",-1,outputPrefix,steps_mc),
+            ]
+        self.analysisDict[outputPrefix]=specs
 
-    specs=[
-        #900 GeV data
-        #base.sampleSpecification(sampleDict,"2009_Data_v6_skimmed", -1,outputPrefix,steps_data),
-        base.sampleSpecification(sampleDict,"2009_Data_v6_skimmed_ge2jet", -1,outputPrefix,steps_data),
+    def addMetDistLook(self) :
+        outputPrefix="metDistLook"
 
-        #900 GeV MC
-        #base.sampleSpecification(sampleDict,"900_GeV_MC_v6_skimmed",   -1,outputPrefix,steps_mc),
-        #base.sampleSpecification(sampleDict,"900_GeV_MC_v6_skimmed_ge2jet",-1,outputPrefix,steps_mc),
-        ]
+        steps_data=self.listDict["metDistSteps_data"]
+        steps_mc  =self.listDict["metDistSteps_mc"  ]
 
-    d[outputPrefix]=specs
+        specs=[
+            ##900 GeV data
+            ##base.sampleSpecification(self.fileListDict,"2009_Data_v6_skimmed", -1,outputPrefix,steps_data),
+            #base.sampleSpecification(self.fileListDict,"2009_Data_v6_skimmed_ge2jet", -1,outputPrefix,steps_data),
+            #
+            ##900 GeV MC
+            ##base.sampleSpecification(self.fileListDict,"900_GeV_MC_v6_skimmed",   -1,outputPrefix,steps_mc),
+            #base.sampleSpecification(self.fileListDict,"900_GeV_MC_v6_skimmed_ge2jet",-1,outputPrefix,steps_mc),
+            
+            #2010 data
+            base.sampleSpecification(self.fileListDict,"2010_Data_v1",-1,outputPrefix,steps_data),
+            
+            #7TeV min-bias MC
+            base.sampleSpecification(self.fileListDict,"2010_MC_v1",-1,outputPrefix,steps_mc),
+            ]
+        self.analysisDict[outputPrefix]=specs
 
-def addMetDistLook(d) :
-    outputPrefix="metDistLook"
+    def addDeltaPhiLook(self) :
+        outputPrefix="deltaPhiLook"
 
-    steps_data=listDict["metDistSteps_data"]
-    steps_mc  =listDict["metDistSteps_mc"  ]
+        steps_data=self.listDict["deltaPhiSteps_data"]
+        steps_mc  =self.listDict["deltaPhiSteps_mc"  ]
 
-    specs=[
-        #900 GeV data
-        #base.sampleSpecification(sampleDict,"2009_Data_v6_skimmed", -1,outputPrefix,steps_data),
-        base.sampleSpecification(sampleDict,"2009_Data_v6_skimmed_ge2jet", -1,outputPrefix,steps_data),
+        specs=[
+            #2 TeV data
+            #base.sampleSpecification(self.fileListDict,"2_TeV_Data",      -1,outputPrefix,steps_data),
+            
+            #2 TeV MC
+            #base.sampleSpecification(self.fileListDict,"2_TeV_MC",   2000000,outputPrefix,steps_mc),
+            
+            #900 GeV data (test)
+            #base.sampleSpecification(self.fileListDict,"2009_Data_v5_skimmed", -1,outputPrefix,steps_data),
+            #base.sampleSpecification(self.fileListDict,"2009_Data_v6", -1,outputPrefix,steps_data),
+            
+            #900 GeV data
+            #base.sampleSpecification(self.fileListDict,"2009_Data_v6_skimmed", -1,outputPrefix,steps_data),
+            base.sampleSpecification(self.fileListDict,"2009_Data_v6_skimmed_ge2jet", -1,outputPrefix,steps_data),
+            
+            #900 GeV MC
+            #base.sampleSpecification(self.fileListDict,"900_GeV_MC_v6_skimmed",   -1,outputPrefix,steps_mc),
+            base.sampleSpecification(self.fileListDict,"900_GeV_MC_v6_skimmed_ge2jet",-1,outputPrefix,steps_mc),
+            ]
+        self.analysisDict[outputPrefix]=specs
 
-        #900 GeV MC
-        #base.sampleSpecification(sampleDict,"900_GeV_MC_v6_skimmed",   -1,outputPrefix,steps_mc),
-        base.sampleSpecification(sampleDict,"900_GeV_MC_v6_skimmed_ge2jet",-1,outputPrefix,steps_mc),
-        ]
-    d[outputPrefix]=specs
+    def addJetKineLook(self) :
+        outputPrefix="jetKineLook"
 
-def addDeltaPhiLook(d) :
-    outputPrefix="deltaPhiLook"
+        steps_data=self.listDict["jetKineSteps_data"]
+        steps_mc  =self.listDict["jetKineSteps_mc"  ]
+        
+        specs=[
+            #2 TeV data
+            #base.sampleSpecification(self.fileListDict,"2_TeV_Data",      -1,outputPrefix,steps_data),
+            
+            #2 TeV MC
+            #base.sampleSpecification(self.fileListDict,"2_TeV_MC",   2000000,outputPrefix,steps_mc),
+            
+            #900 GeV data (test)
+            #base.sampleSpecification(self.fileListDict,"2009_Data_v5_skimmed", -1,outputPrefix,steps_data),
+            #base.sampleSpecification(self.fileListDict,"2009_Data_v6", -1,outputPrefix,steps_data),
+            
+            #900 GeV data
+            #base.sampleSpecification(self.fileListDict,"2009_Data_v6_skimmed", -1,outputPrefix,steps_data),
+            base.sampleSpecification(self.fileListDict,"2009_Data_v6_skimmed_ge2jet", -1,outputPrefix,steps_data),
+            
+            #900 GeV MC
+            #base.sampleSpecification(self.fileListDict,"900_GeV_MC_v6_skimmed",   -1,outputPrefix,steps_mc),
+            base.sampleSpecification(self.fileListDict,"900_GeV_MC_v6_skimmed_ge2jet",-1,outputPrefix,steps_mc),
+            ]
+        self.analysisDict[outputPrefix]=specs
 
-    steps_data=listDict["deltaPhiSteps_data"]
-    steps_mc  =listDict["deltaPhiSteps_mc"  ]
+    def addExample(self) :
+        outputPrefix="example"
 
-    specs=[
-        #2 TeV data
-        #base.sampleSpecification(sampleDict,"2_TeV_Data",      -1,outputPrefix,steps_data),
+        steps_data=self.listDict["jetKineSteps_data"]
+        steps_mc  =self.listDict["jetKineSteps_mc"  ]
 
-        #2 TeV MC
-        #base.sampleSpecification(sampleDict,"2_TeV_MC",   2000000,outputPrefix,steps_mc),
+        specs=[
+            base.sampleSpecification(self.fileListDict,"Example_Skimmed_900_GeV_Data",      -1,outputPrefix,steps_data),
+            base.sampleSpecification(self.fileListDict,"Example_Skimmed_900_GeV_MC",       100,outputPrefix,steps_mc),
+            ]
+        self.analysisDict[outputPrefix]=specs
 
-        #900 GeV data (test)
-        #base.sampleSpecification(sampleDict,"2009_Data_v5_skimmed", -1,outputPrefix,steps_data),
-        #base.sampleSpecification(sampleDict,"2009_Data_v6", -1,outputPrefix,steps_data),
+    def addJetAlgoComparison(self) :
+        outputPrefix="jetAlgoComparison"
+        
+        steps_data=self.listDict["jetAlgoComparison_data"]
+        steps_mc  =self.listDict["jetAlgoComparison_mc"  ]
+        
+        specs=[
+            base.sampleSpecification(self.fileListDict,"Example_Skimmed_900_GeV_Data",      -1,outputPrefix,steps_data),
+            base.sampleSpecification(self.fileListDict,"Example_Skimmed_900_GeV_MC",        -1,outputPrefix,steps_mc),
+            ]
+        self.analysisDict[outputPrefix]=specs
 
-        #900 GeV data
-        #base.sampleSpecification(sampleDict,"2009_Data_v6_skimmed", -1,outputPrefix,steps_data),
-        base.sampleSpecification(sampleDict,"2009_Data_v6_skimmed_ge2jet", -1,outputPrefix,steps_data),
+    def addIcfRa1_DiJet(self) :
+        outputPrefix="Icf_Ra1_DiJet"
 
-        #900 GeV MC
-        #base.sampleSpecification(sampleDict,"900_GeV_MC_v6_skimmed",   -1,outputPrefix,steps_mc),
-        base.sampleSpecification(sampleDict,"900_GeV_MC_v6_skimmed_ge2jet",-1,outputPrefix,steps_mc),
-        ]
+        steps_data=self.listDict["Icf_Ra1_DiJet_Steps_data"]
+        steps_mc  =self.listDict["Icf_Ra1_DiJet_Steps_mc"]
 
-    d[outputPrefix]=specs
+        sampleNames=[
+            #"data"       ,
+            "NT7_LM0"        ,
+            #"NT7_LM1"        ,
+            ##"NT7_MG_QCD_bin1",
+            #"NT7_MG_QCD_bin2",
+            "NT7_MG_QCD_bin3",
+            #"NT7_MG_QCD_bin4",
+            #"NT7_MG_TT_jets" ,
+            #"NT7_MG_Z_jets"  ,
+            #"NT7_MG_W_jets"  ,
+            #"NT7_MG_Z_inv"   ,
+            ]
+        
+        nEventsBase=10000
 
-def addJetKineLook(d) :
-    outputPrefix="jetKineLook"
+        nEventsDict={}
+        nEventsDict["NT7_LM0"        ]=nEventsBase
+        nEventsDict["NT7_LM1"        ]=nEventsBase
+        nEventsDict["NT7_MG_QCD_bin1"]=nEventsBase
+        nEventsDict["NT7_MG_QCD_bin2"]=nEventsBase*3
+        nEventsDict["NT7_MG_QCD_bin3"]=nEventsBase*3
+        nEventsDict["NT7_MG_QCD_bin4"]=nEventsBase
+        nEventsDict["NT7_MG_TT_jets" ]=nEventsBase
+        nEventsDict["NT7_MG_W_jets"  ]=nEventsBase*50
+        nEventsDict["NT7_MG_Z_jets"  ]=nEventsBase*50
+        nEventsDict["NT7_MG_Z_inv"   ]=nEventsBase*5
+        
+        specs=[]
+        for sampleName in sampleNames :
+            specs.append(base.sampleSpecification(self.fileListDict,sampleName,nEventsDict[sampleName],outputPrefix,steps_mc,self.xsDict[sampleName]))
 
-    steps_data=listDict["jetKineSteps_data"]
-    steps_mc  =listDict["jetKineSteps_mc"  ]
+        for spec in specs :
+            spec.fileDirectory="dijet"
+            spec.treeName="allData"
 
-    specs=[
-        #2 TeV data
-        #base.sampleSpecification(sampleDict,"2_TeV_Data",      -1,outputPrefix,steps_data),
+        self.analysisDict[outputPrefix]=specs
 
-        #2 TeV MC
-        #base.sampleSpecification(sampleDict,"2_TeV_MC",   2000000,outputPrefix,steps_mc),
+    def addIcfRa1_NJet(self) :
+        outputPrefix="Icf_Ra1_NJet"
 
-        #900 GeV data (test)
-        #base.sampleSpecification(sampleDict,"2009_Data_v5_skimmed", -1,outputPrefix,steps_data),
-        #base.sampleSpecification(sampleDict,"2009_Data_v6", -1,outputPrefix,steps_data),
+        steps_data=self.listDict["Icf_Ra1_NJet_Steps_data"]
+        steps_mc  =self.listDict["Icf_Ra1_NJet_Steps_mc"]
 
-        #900 GeV data
-        #base.sampleSpecification(sampleDict,"2009_Data_v6_skimmed", -1,outputPrefix,steps_data),
-        base.sampleSpecification(sampleDict,"2009_Data_v6_skimmed_ge2jet", -1,outputPrefix,steps_data),
+        sampleNames=[
+            #"data"       ,
+            "NT7_LM0"        ,
+            "NT7_LM1"        ,
+            "NT7_MG_QCD_bin1",
+            "NT7_MG_QCD_bin2",
+            "NT7_MG_QCD_bin3",
+            "NT7_MG_QCD_bin4",
+            "NT7_MG_TT_jets" ,
+            "NT7_MG_W_jets"  ,
+            "NT7_MG_Z_jets"  ,
+            "NT7_MG_Z_inv"   ,
+            ]
 
-        #900 GeV MC
-        #base.sampleSpecification(sampleDict,"900_GeV_MC_v6_skimmed",   -1,outputPrefix,steps_mc),
-        base.sampleSpecification(sampleDict,"900_GeV_MC_v6_skimmed_ge2jet",-1,outputPrefix,steps_mc),
-        ]
+        nEventsBase=20000
 
-    d[outputPrefix]=specs
+        nEventsDict={}
+        nEventsDict["NT7_LM0"        ]=nEventsBase
+        nEventsDict["NT7_LM1"        ]=nEventsBase
+        nEventsDict["NT7_MG_QCD_bin1"]=nEventsBase
+        nEventsDict["NT7_MG_QCD_bin2"]=nEventsBase*3
+        nEventsDict["NT7_MG_QCD_bin3"]=nEventsBase*3
+        nEventsDict["NT7_MG_QCD_bin4"]=nEventsBase
+        nEventsDict["NT7_MG_TT_jets" ]=nEventsBase
+        nEventsDict["NT7_MG_W_jets"  ]=nEventsBase*50
+        nEventsDict["NT7_MG_Z_jets"  ]=nEventsBase*50
+        nEventsDict["NT7_MG_Z_inv"   ]=nEventsBase*5
 
-def addExample(d) :
-    outputPrefix="example"
+        specs=[]
+        for sampleName in sampleNames :
+            specs.append(base.sampleSpecification(self.fileListDict,sampleName,nEventsDict[sampleName],outputPrefix,steps_mc,self.xsDict[sampleName]))
 
-    steps_data=listDict["jetKineSteps_data"]
-    steps_mc  =listDict["jetKineSteps_mc"  ]
+        for spec in specs :
+            spec.fileDirectory="dijet"
+            spec.treeName="allData"
 
-    specs=[
-        base.sampleSpecification(sampleDict,"Example_Skimmed_900_GeV_Data",      -1,outputPrefix,steps_data),
-        base.sampleSpecification(sampleDict,"Example_Skimmed_900_GeV_MC",       100,outputPrefix,steps_mc),
-        ]
+        self.analysisDict[outputPrefix]=specs
 
-    d[outputPrefix]=specs
-
-def addJetAlgoComparison(d) :
-    outputPrefix="jetAlgoComparison"
-
-    steps_data=listDict["jetAlgoComparison_data"]
-    steps_mc  =listDict["jetAlgoComparison_mc"  ]
-
-    specs=[
-        base.sampleSpecification(sampleDict,"Example_Skimmed_900_GeV_Data",      -1,outputPrefix,steps_data),
-        base.sampleSpecification(sampleDict,"Example_Skimmed_900_GeV_MC",        -1,outputPrefix,steps_mc),
-        ]
-
-    d[outputPrefix]=specs
-
-def addRA1_DiJet(d) :
-    outputPrefix="RA1_DiJet"
-
-    steps_data=listDict["RA1_DiJet_Steps_data"]
-    steps_mc  =listDict["RA1_DiJet_Steps_mc"]
-
-    xsDict={}
-
-    sampleNames=[
-        #"data"       ,
-        "LM0"        ,
-        "LM1"        ,
-        "MG_QCD_bin1",
-        "MG_QCD_bin2",
-        "MG_QCD_bin3",
-        "MG_QCD_bin4",
-        "MG_TT_jets" ,
-        "MG_Z_jets"  ,
-        "MG_W_jets"  ,
-        "MG_Z_inv"   ,
-        ]
-
-    #pb
-    xsDict["LM0"        ]=     110.00
-    xsDict["LM1"        ]=      16.06
-    xsDict["MG_QCD_bin1"]=15000000.0
-    xsDict["MG_QCD_bin2"]=  400000.0
-    xsDict["MG_QCD_bin3"]=   14000.0
-    xsDict["MG_QCD_bin4"]=     370.0
-    xsDict["MG_TT_jets" ]=     317.0
-    xsDict["MG_Z_jets"  ]=    3700.0
-    xsDict["MG_W_jets"  ]=   40000.0
-    xsDict["MG_Z_inv"   ]=    2000.0
-
-    nEventsBase=20000
-
-    nEventsDict={}
-    nEventsDict["LM0"        ]=nEventsBase
-    nEventsDict["LM1"        ]=nEventsBase
-    nEventsDict["MG_QCD_bin1"]=nEventsBase
-    nEventsDict["MG_QCD_bin2"]=nEventsBase*3
-    nEventsDict["MG_QCD_bin3"]=nEventsBase*3
-    nEventsDict["MG_QCD_bin4"]=nEventsBase
-    nEventsDict["MG_TT_jets" ]=nEventsBase
-    nEventsDict["MG_W_jets"  ]=nEventsBase*50
-    nEventsDict["MG_Z_jets"  ]=nEventsBase*50
-    nEventsDict["MG_Z_inv"   ]=nEventsBase*5
-
-
-    specs=[]
-    for sampleName in sampleNames :
-        specs.append(base.sampleSpecification(sampleDict,sampleName,nEventsDict[sampleName],outputPrefix,steps_mc,xsDict[sampleName]))
-
-    for spec in specs :
-        spec.fileDirectory="dijet"
-        spec.treeName="allData"
-
-    d[outputPrefix]=specs
-
-def addRA1_NJet(d) :
-    outputPrefix="RA1_NJet"
-
-    steps_data=listDict["RA1_NJet_Steps_data"]
-    steps_mc  =listDict["RA1_NJet_Steps_mc"]
-
-    sampleNames=[
-        #"data"       ,
-        "LM0"        ,
-        "LM1"        ,
-        "MG_QCD_bin1",
-        "MG_QCD_bin2",
-        "MG_QCD_bin3",
-        "MG_QCD_bin4",
-        "MG_TT_jets" ,
-        "MG_W_jets"  ,
-        "MG_Z_jets"  ,
-        "MG_Z_inv"   ,
-        ]
-
-    #pb
-    xsDict={}
-    xsDict["LM0"        ]=     110.00
-    xsDict["LM1"        ]=      16.06
-    xsDict["MG_QCD_bin1"]=15000000.0
-    xsDict["MG_QCD_bin2"]=  400000.0
-    xsDict["MG_QCD_bin3"]=   14000.0
-    xsDict["MG_QCD_bin4"]=     370.0
-    xsDict["MG_TT_jets" ]=     317.0
-    xsDict["MG_W_jets"  ]=   40000.0
-    xsDict["MG_Z_jets"  ]=    3700.0
-    xsDict["MG_Z_inv"   ]=    2000.0
-
-    nEventsBase=-1
-
-    nEventsDict={}
-    nEventsDict["LM0"        ]=nEventsBase
-    nEventsDict["LM1"        ]=nEventsBase
-    nEventsDict["MG_QCD_bin1"]=nEventsBase
-    nEventsDict["MG_QCD_bin2"]=nEventsBase*3
-    nEventsDict["MG_QCD_bin3"]=nEventsBase*3
-    nEventsDict["MG_QCD_bin4"]=nEventsBase
-    nEventsDict["MG_TT_jets" ]=nEventsBase
-    nEventsDict["MG_W_jets"  ]=nEventsBase*50
-    nEventsDict["MG_Z_jets"  ]=nEventsBase*50
-    nEventsDict["MG_Z_inv"   ]=nEventsBase*5
-
-    specs=[]
-    for sampleName in sampleNames :
-        specs.append(base.sampleSpecification(sampleDict,sampleName,nEventsDict[sampleName],outputPrefix,steps_mc,xsDict[sampleName]))
-
-    for spec in specs :
-        spec.fileDirectory="dijet"
-        spec.treeName="allData"
-
-    d[outputPrefix]=specs
+#    def addRa1Gen_NJet(self) :
+#        outputPrefix="Ra1_NJet"
+#    
+#        steps_data=self.listDict["Ra1_NJet_Steps_data"]
+#        steps_mc  =self.listDict["Ra1_NJet_Steps_mc"  ]
+#
+#        sampleNames=[
+#            #"data"       ,
+#            "LM0"        ,
+#            "LM1"        ,
+#            #"LM2"        ,
+#            #"PYTHIA6_QCDpt_1000_1400",
+#            ]
+#
+#        nEventsBase=-1
+#
+#        nEventsDict={}
+#        nEventsDict["LM0"                    ]=nEventsBase
+#        nEventsDict["LM1"                    ]=nEventsBase
+#        nEventsDict["LM2"                    ]=nEventsBase
+#        nEventsDict["PYTHIA6_QCDpt_1000_1400"]=nEventsBase
+#    
+#        specs=[]
+#        for sampleName in sampleNames :
+#            specs.append(base.sampleSpecification(self.fileListDict,sampleName,nEventsDict[sampleName],outputPrefix,steps_mc,self.xsDict[sampleName]))
+#
+#        self.analysisDict[outputPrefix]=specs
 
