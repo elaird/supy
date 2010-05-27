@@ -56,7 +56,7 @@ class icfCleanJetProducer(analysisStep) :
     def select (self,chain,chainVars,extraVars) :
         extraVars.cleanJetIndices=[]
         extraVars.otherJetIndices=[]
-        extraVars.cleanJets=[]
+        extraVars.icfCleanJets.clear()
 
         Jetpx =chainVars.Jetpx
         Jetpy =chainVars.Jetpy
@@ -86,9 +86,66 @@ class icfCleanJetProducer(analysisStep) :
                                         JetE[jetIndex])
             
             #extraVars.cleanJets.append(copy.deepcopy(self.dummyP4))
-            extraVars.cleanJets.append(self.dummyP4+self.zeroP4) #faster than copying
+            #extraVars.cleanJets.append(self.dummyP4+self.zeroP4) #faster than copying
+            extraVars.icfCleanJets.push_back(self.dummyP4+self.zeroP4) #faster than copying
             extraVars.cleanJetIndices.append(jetIndex)
             extraVars.otherJetIndices.remove(jetIndex)
+
+        return True
+#####################################
+class icfJetFaker(analysisStep) :
+    """icfJetFaker"""
+
+    def __init__(self,jetCollection,jetSuffix) :
+        self.jetCollection=jetCollection
+        self.jetSuffix=jetSuffix
+        self.moreName="( "+self.jetCollection+" "+self.jetSuffix+" )"
+
+        self.dummyStdVector=r.vector(r.Math.LorentzVector(r.Math.PxPyPzE4D('double')))
+        
+        self.dummyP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
+        self.neededBranches=["Njets","Jetpx","Jetpy","Jetpz","JetE"]
+
+    def uponAcceptance (self,chain,chainVars,extraVars) :
+        Jetpx =chainVars.Jetpx
+        Jetpy =chainVars.Jetpy
+        Jetpz =chainVars.Jetpz
+        JetE  =chainVars.JetE
+
+        setattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix,self.dummyStdVector)
+        setattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix,[])
+        
+        p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+        cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
+
+#        nJets=chainVars.Njets
+#        for iJet in range(nJets) :
+#            p4Vector.push_back*
+
+#        for jetIndex in extraVars.jetIndicesSortedByPt :
+#            #pt cut
+#            if (Jetpt[jetIndex]<self.jetPtThreshold) : continue
+#
+#            #if pass pt cut, add to "other" category
+#            extraVars.otherJetIndices.append(jetIndex)
+#        
+#            #eta cut
+#            absEta=r.TMath.Abs(Jeteta[jetIndex])
+#            if (absEta>self.jetEtaMax) : continue
+#
+#            #emf cut
+#            if (JetFem[jetIndex]>=0.9) : continue
+#
+#            self.dummyP4.SetCoordinates(Jetpx[jetIndex],
+#                                        Jetpy[jetIndex],
+#                                        Jetpz[jetIndex],
+#                                        JetE[jetIndex])
+#            
+#            #extraVars.cleanJets.append(copy.deepcopy(self.dummyP4))
+#            #extraVars.cleanJets.append(self.dummyP4+self.zeroP4) #faster than copying
+#            extraVars.icfCleanJets.push_back(self.dummyP4+self.zeroP4) #faster than copying
+#            extraVars.cleanJetIndices.append(jetIndex)
+#            extraVars.otherJetIndices.remove(jetIndex)
 
         return True
 ######################################
@@ -224,15 +281,15 @@ class icfCleanJetHtMhtProducer(analysisStep) :
     def select (self,chain,chainVars,extraVars) :
         self.mht.SetCoordinates(0.0,0.0,0.0,0.0)
 
-        extraVars.ht=0.0
-        extraVars.htEt=0.0
+        extraVars.Ht=0.0
+        extraVars.HtEt=0.0
 
-        for jet in extraVars.cleanJets :
+        for jet in extraVars.icfCleanJets :
             self.mht-=jet
-            extraVars.ht+=jet.pt()
-            extraVars.htEt+=jet.Et()
+            extraVars.Ht+=jet.pt()
+            extraVars.HtEt+=jet.Et()
 
-        setattr(extraVars,"mht",self.mht)
+        setattr(extraVars,"Mht",self.mht)
         return True
 #####################################
 class icfMhtAllProducer(analysisStep) :
@@ -267,7 +324,7 @@ class icfMhtAllProducer(analysisStep) :
                                         JetE[iJet])
             self.mhtAll-=self.dummyP4
         
-        setattr(extraVars,"mhtAll",self.mhtAll)
+        setattr(extraVars,"MhtAll",self.mhtAll)
 #####################################
 class icfMhtRatioSelector(analysisStep) :
     """icfMhtRatioSelector"""
@@ -277,7 +334,7 @@ class icfMhtRatioSelector(analysisStep) :
         self.threshold=threshold
         
     def select (self,chain,chainVars,extraVars) :
-        return ( (extraVars.mht.pt()/extraVars.mhtAll.pt())<self.threshold )
+        return ( (extraVars.Mht.pt()/extraVars.MhtAll.pt())<self.threshold )
 #####################################
 class icfCleanJetHtMhtHistogrammer(analysisStep) :
     """icfCleanJetHtMhtHistogrammer"""
@@ -296,15 +353,15 @@ class icfCleanJetHtMhtHistogrammer(analysisStep) :
         self.mhtHt_Histo=r.TH2D("mht_vs_ht",title,50,0.0,1000.0,50,0.0,1000.0)
         
     def uponAcceptance (self,chain,chainVars,extraVars) :
-        mht=extraVars.mht.pt()
+        mht=extraVars.Mht.pt()
         self.mht_Histo.Fill(mht)
-        self.ht_Histo.Fill(extraVars.ht)
-        #self.ht_et_Histo.Fill(extraVars.htEt)
-        self.m_Histo.Fill(extraVars.mht.mass())
-        self.mhtHt_Histo.Fill(extraVars.ht,mht)
+        self.ht_Histo.Fill(extraVars.Ht)
+        #self.ht_et_Histo.Fill(extraVars.HtEt)
+        self.m_Histo.Fill(extraVars.Mht.mass())
+        self.mhtHt_Histo.Fill(extraVars.Ht,mht)
 
         value=-1.0
-        if (extraVars.ht>0.0) : value=mht/extraVars.ht
+        if (extraVars.Ht>0.0) : value=mht/extraVars.Ht
         self.mHtOverHt_Histo.Fill(value)
 #####################################
 class icfCleanJetPtEtaHistogrammer(analysisStep) :
@@ -349,14 +406,14 @@ class icfCleanNJetAlphaProducer(analysisStep) :
             return
 
         #return if HT is tiny
-        if (extraVars.ht<=1.0e-2) :
+        if (extraVars.Ht<=1.0e-2) :
             self.setExtraVars(extraVars,nJetDeltaHt,nJetAlphaT)
             return
 
         #compute deltaHT
         pTs=[]
         totalPt=0.0
-        for jet in extraVars.cleanJets :
+        for jet in extraVars.icfCleanJets :
             pt=jet.pt()
             pTs.append(pt)
             totalPt+=pt
@@ -373,8 +430,8 @@ class icfCleanNJetAlphaProducer(analysisStep) :
         nJetDeltaHt=min(diffs)
 
         #compute alphaT
-        mht=extraVars.mht.pt()
-        ht=extraVars.ht
+        mht=extraVars.Mht.pt()
+        ht=extraVars.Ht
         nJetAlphaT=0.5*(1.0-nJetDeltaHt/ht)/r.TMath.sqrt(1.0-(mht/ht)**2)
 
         self.setExtraVars(extraVars,nJetDeltaHt,nJetAlphaT)
@@ -404,7 +461,7 @@ class icfCleanDiJetAlphaProducer(analysisStep) :
             self.setExtraVars(extraVars,diJetM,diJetMinPt,diJetMinEt,diJetAlpha,diJetAlpha_Et)
             return True
             
-        for jet in extraVars.cleanJets :
+        for jet in extraVars.icfCleanJets :
             pt=jet.pt()
             Et=jet.Et()
 
@@ -462,10 +519,10 @@ class icfAlphaHistogrammer(analysisStep) :
         self.diJetAlpha_Histo.Fill(   extraVars.diJetAlpha   )
         #self.diJetAlpha_ET_Histo.Fill(extraVars.diJetAlpha_Et)
         self.nJetAlphaT_Histo.Fill(   extraVars.nJetAlphaT   )
-        #self.alpha2D_a_Histo.Fill(math.sqrt(extraVars.ht**2 - extraVars.mht.pt()**2),extraVars.ht - extraVars.nJetDeltaHt)
-        #self.alpha2D_b_Histo.Fill(extraVars.ht - extraVars.mht.pt(),extraVars.ht - extraVars.nJetDeltaHt)
+        #self.alpha2D_a_Histo.Fill(math.sqrt(extraVars.Ht**2 - extraVars.Mht.pt()**2),extraVars.Ht - extraVars.nJetDeltaHt)
+        #self.alpha2D_b_Histo.Fill(extraVars.Ht - extraVars.Mht.pt(),extraVars.Ht - extraVars.nJetDeltaHt)
         self.nJetDeltaHt_Histo.Fill(extraVars.nJetDeltaHt)
-        self.alpha2D_c_Histo.Fill(extraVars.mht.pt()/extraVars.ht,extraVars.nJetDeltaHt/extraVars.ht)
+        self.alpha2D_c_Histo.Fill(extraVars.Mht.pt()/extraVars.Ht,extraVars.nJetDeltaHt/extraVars.Ht)
 #####################################
 class icfDeltaPhiProducer(analysisStep) :
     """icfDeltaPhiProducer"""
@@ -481,14 +538,14 @@ class icfDeltaPhiProducer(analysisStep) :
         extraVars.deltaPhiMhtJet=[]
 
         if (len(extraVars.cleanJetIndices)>=2) :
-            jet0=extraVars.cleanJets[0]
-            jet1=extraVars.cleanJets[1]
+            jet0=extraVars.icfCleanJets[0]
+            jet1=extraVars.icfCleanJets[1]
             extraVars.deltaPhi01=r.Math.VectorUtil.DeltaPhi(jet0,jet1)
             extraVars.deltaR01  =r.Math.VectorUtil.DeltaR(jet0,jet1)
             extraVars.deltaEta01=jet0.eta()-jet1.eta()
 
-        for iJet in range(len(extraVars.cleanJets)) :
-            deltaPhi=r.Math.VectorUtil.DeltaPhi(extraVars.mht,extraVars.cleanJets[iJet])
+        for iJet in range(len(extraVars.icfCleanJets)) :
+            deltaPhi=r.Math.VectorUtil.DeltaPhi(extraVars.Mht,extraVars.icfCleanJets[iJet])
             extraVars.deltaPhiMhtJet.append(deltaPhi)
                 
         return True
@@ -513,8 +570,8 @@ class icfMhtOverHtSelector(analysisStep) :
         self.max=max
     
     def select(self,chain,chainVars,extraVars) :
-        if (extraVars.ht<1.0e-2) : return False
-        value=extraVars.mht.pt()/extraVars.ht
+        if (extraVars.Ht<1.0e-2) : return False
+        value=extraVars.Mht.pt()/extraVars.Ht
         if (value<self.min or value>self.max) : return False
         return True
 #####################################
@@ -719,7 +776,7 @@ class icfCleanJetFromGenProducer(analysisStep) :
     def select (self,chain,chainVars,extraVars) :
         extraVars.cleanJetIndices=[]
         extraVars.otherJetIndices=[]
-        extraVars.cleanJets=[]
+        extraVars.icfCleanJets.clear()
 
         GenJetpx =chainVars.GenJetpx
         GenJetpy =chainVars.GenJetpy
@@ -744,7 +801,8 @@ class icfCleanJetFromGenProducer(analysisStep) :
                                         GenJetpz[jetIndex],
                                         GenJetE[jetIndex])
             
-            extraVars.cleanJets.append(self.dummyP4+self.zeroP4) #faster than copying
+            #extraVars.cleanJets.append(self.dummyP4+self.zeroP4) #faster than copying
+            extraVars.icfCleanJets.push_back(self.dummyP4+self.zeroP4) #faster than copying
             extraVars.cleanJetIndices.append(jetIndex)
             extraVars.otherJetIndices.remove(jetIndex)
 
