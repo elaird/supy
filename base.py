@@ -2,7 +2,7 @@ import copy,array
 import ROOT as r
 #####################################
 def globalSetup() :
-    sourceFiles=["SusyCAFpragmas.h"]
+    sourceFiles=["SusyCAFpragmas.h","helpers.C"]
     for sourceFile in sourceFiles :
         r.gROOT.LoadMacro(sourceFile+"+")
     r.gROOT.SetStyle("Plain")
@@ -269,7 +269,7 @@ class analysisLooper :
     def endSteps(self) :
         for step in self.steps :
             if (hasattr(step,"endFunc")) :
-                step.endFunc(self.hyphens)
+                step.endFunc(self.hyphens,self.nEvents,self.xs)
 #####################################
 class analysisStep :
     """generic analysis step"""
