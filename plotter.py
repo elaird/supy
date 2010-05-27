@@ -1,7 +1,9 @@
 import ROOT as r
+import os
 ##############################
 doLog1D=True
 doLog2D=True
+drawYx=False
 doMetFit=False
 doScaleByXs=True
 doColzFor2D=True
@@ -111,7 +113,7 @@ def scale1DHistosByArea(histoList) :
 ##############################
 def metFit(histo) :
     funcName="func"
-    func=r.TF1(funcName,"[0]*x*exp( -(x-[1])**2 / (2.0*[2])**2 )/[2]",0.5,10.0)
+    func=r.TF1(funcName,"[0]*x*exp( -(x-[1])**2 / (2.0*[2])**2 )/[2]",0.5,30.0)
     func.SetParameters(1.0,5.0,3.0)
     histo.Fit(funcName,"lrq","sames")
     histo.GetFunction(funcName).SetLineWidth(1)
@@ -144,10 +146,15 @@ def histoLoop(plotSpec,histoList) :
     #y1=0.75
     #y2=1.00
 
+    #x1=0.86
+    #x2=1.00
+    #y1=0.50
+    #y2=0.75
+
     x1=0.86
     x2=1.00
-    y1=0.50
-    y2=0.75
+    y1=0.40
+    y2=0.10
 
     legend=r.TLegend(x1,y1,x2,y2)
     for iHisto in range(len(histoList)) :
@@ -177,7 +184,7 @@ def histoLoop(plotSpec,histoList) :
                 histo.Draw("same")
 
             r.gStyle.SetOptFit(0)
-            if (doMetFit) :
+            if (doMetFit and "met" in histo.GetName()) :
                 r.gStyle.SetOptFit(1111)
                 func=metFit(histo)
                 stuffToKeep.append(func)
@@ -205,7 +212,8 @@ def histoLoop(plotSpec,histoList) :
                 outString+="%#8.2f"%histo.GetBinContent(1)
                 outString+=" +/-"
                 outString+="%#8.2f"%histo.GetBinError(1)
-                print outString
+                if (doScaleByXs) : print outString
+                else : print "for counts, set doScaleByXs=True"
             
         #2D here
         else :
@@ -224,7 +232,7 @@ def histoLoop(plotSpec,histoList) :
                 histo.SetMinimum(getLogMin(plotSpec))
                 r.gPad.SetLogz()
             else :
-                histo.SetMaximum(1.1*plotSpec.maximum)
+                #histo.SetMaximum(1.1*plotSpec.maximum)
                 histo.SetMinimum(0.0)
 
             if ("deltaHtOverHt vs mHtOverHt" in histo.GetName()) :
@@ -238,8 +246,9 @@ def histoLoop(plotSpec,histoList) :
                     func.Draw("same")
                 stuffToKeep.extend(funcs)
             else :
-                yx.Draw("same")
-                stuffToKeep.append(yx)
+                if (drawYx) :
+                    yx.Draw("same")
+                    stuffToKeep.append(yx)
 
     if (plotSpec.dimension==1) : legend.Draw()
     plotSpec.canvas.Print(plotSpec.psFile,plotSpec.psOptions)
@@ -325,7 +334,8 @@ def plotAll(analysisName,sampleSpecs,outputDir) :
         onePlotFunction(plotSpec)
 
     canvas.Print(psFile+"]",psOptions)
-    print "The output file \""+psFile+"\" has been written."
+    os.system("gzip -f "+psFile)
+    print "The output file \""+psFile+".gz\" has been written."
 ##############################
 class onePlotSpec :
     """onePlotSpec"""
