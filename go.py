@@ -1,8 +1,6 @@
 #!/usr/bin/env python
-import sys
-import base
+import sys,base
 base.globalSetup()
-import analyses,plotter
 
 #choose the analysis
 #name="triggerSkim"
@@ -14,15 +12,32 @@ name="example"
 #name="metGroupCleanupLook"
 #name="Icf_Ra1_DiJet"
 #name="Icf_Ra1_NJet"
-#name="Ra1_NJet"
 #name="RecHitTest"
+#name="Ra1_NJet"
+#name="HcalTechTriggerCheck"
+#name="mSugraLook"
 
 #choose the output directory
 outputDir="~"
 
-#set up
-sampleSpecDict=analyses.buildAnalysisDictionary()
-sampleSpecs=sampleSpecDict[name]
+def makeSampleSpecs() :
+    import samples,lists,analyses
+    #build dictionaries of files and xs
+    sampleHolder=samples.sampleDictionaryHolder()
+    sampleHolder.buildDictionaries()
+    fileListDict=sampleHolder.getFileListDictionary()
+    xsDict=sampleHolder.getXsDictionary()
+
+    #build dictionary of lists
+    listHolder=lists.listDictionaryHolder()
+    listHolder.buildDictionary()
+    listDict=listHolder.getDictionary()
+
+    #build dictionary of analyses
+    analysisHolder=analyses.analysisDictionaryHolder(fileListDict,xsDict,listDict)
+    analysisHolder.buildDictionary()
+    sampleSpecs=analysisHolder.getDictionary()[name]
+    return sampleSpecs
 
 def goFunc(x) :
     x.go()
@@ -40,6 +55,9 @@ def loopOverSamples() :
         else :
             map(goFunc,looperList)
 
+#set up
+sampleSpecs=makeSampleSpecs()
+
 #loop over samples and make TFiles containing histograms
 if ("loop" in sys.argv and not "prof" in sys.argv) :
     loopOverSamples()
@@ -51,5 +69,6 @@ if ("prof" in sys.argv and not "multi" in sys.argv) :
 
 #make plots from the output histograms
 if ("plot" in sys.argv) :
+    import plotter
     plotter.plotAll(name,sampleSpecs,outputDir)
 
