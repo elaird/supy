@@ -62,15 +62,25 @@ class listDictionaryHolder :
     def addListMetPasFilter(self) :
         steps=[
             progressPrinter(2,300),
+            hltFilter("HLT_Jet15U"),
             techBitFilter([0],True),
             physicsDeclared(),
             vertexRequirementFilter(5.0,15.0),
             monsterEventFilter(10,0.25),
-            hltFilter("HLT_Jet15U"),
-            skimmer("/tmp/bbetchar/SusyCAF/2010_05_18_19_26_19/OUTPUT/",False)
+            skimmer("/vols/cms02/elaird1/02_parallel_test",False),
+            #skimmer("/tmp/",False),
             ]
         self.listDict["metPasFilter_data"]=steps
         self.listDict["metPasFilter_mc"]=removeStepsForMc(steps)
+
+        for jetType in ["","PF","JPT"] :
+            steps=[
+                progressPrinter(2,300),
+                jetPtSelector("ak5Jet"+jetType,"Pat",40.0,1),
+                skimmer("/vols/cms02/elaird1/",False)
+                ]
+            self.listDict["metPasFilterJet1"+jetType+"_data"]=steps
+            self.listDict["metPasFilterJet1"+jetType+"_mc"]=removeStepsForMc(steps)
 
     def addListRecHitTest(self) :
         jetCollection="ak5Jet"
