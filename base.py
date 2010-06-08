@@ -17,6 +17,7 @@ class sampleSpecification :
         self.name=name
         self.nEvents=nEvents
         self.inputFiles=dict[name]
+        self.outputPrefix=outputPrefix
         self.outputPlotFileName=outputPrefix+"_"+self.name+"_plots.root"
         self.steps=copy.deepcopy(steps)
         self.xs=xs
