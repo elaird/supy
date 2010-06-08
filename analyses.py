@@ -1,4 +1,4 @@
-import base
+import base,copy
 
 class analysisDictionaryHolder :
     """analysisDictionaryHolder"""
@@ -19,6 +19,50 @@ class analysisDictionaryHolder :
             if member[:len(specialPrefix)]!=specialPrefix : continue
             getattr(self,member)()
 
+    def splitUpSpecs(self,inListOfSpecs) :
+        outListOfSpecs=[]
+        for spec in inListOfSpecs :
+            fileIndex=0
+            for iFileName in range(len(self.fileListDict[spec.name])) :
+                suffix="_"+str(iFileName)
+                if spec.name+suffix in self.fileListDict :
+                    raise NameError(spec.name+suffix," already in fileListDict")
+                self.fileListDict[spec.name+suffix]=[self.fileListDict[spec.name][iFileName]]
+                outListOfSpecs.append(base.sampleSpecification(self.fileListDict,
+                                                               spec.name+suffix,
+                                                               spec.nEvents,
+                                                               spec.outputPrefix,
+                                                               copy.deepcopy(spec.steps)
+                                                               )
+                                      )
+                
+        return outListOfSpecs
+
+    def addMetPasSkim1(self) :
+        outputPrefix="MetPasSkim1"
+
+        #jetType=""
+        #jetType="PF"
+        jetType="JPT"
+        nEvents=-1
+        specs=[]
+        #specs.append( base.sampleSpecification(self.fileListDict,"QcdSkim",nEvents,outputPrefix,self.listDict["metPasFilterJet1"+jetType+"_data"]) )
+        #specs.append( base.sampleSpecification(self.fileListDict,"PYQCD_HLTJet",nEvents,outputPrefix,self.listDict["metPasFilterJet1"+jetType+"_mc"]) )
+        #specs.append( base.sampleSpecification(self.fileListDict,"361_v12_11_jetmet_v9_skim",nEvents,outputPrefix,self.listDict["metPasFilterJet1"+jetType+"_mc"]) )
+        self.analysisDict[outputPrefix]=specs
+        
+    def addMetPasSkim(self) :
+        outputPrefix="MetPasSkim"
+        nEvents=-1
+        specs=[
+            #base.sampleSpecification(self.fileListDict,"Bryn",nEvents,outputPrefix,self.listDict["metPasFilter_data"]),
+            #base.sampleSpecification(self.fileListDict,"QCD_Pt15_7TeV_pythia8",nEvents,outputPrefix,self.listDict["metPasFilter_mc"]),
+            #base.sampleSpecification(self.fileListDict,"361_v12_11_jetmet_v9",nEvents,outputPrefix,self.listDict["metPasFilter_data"]),
+            ]
+        self.analysisDict[outputPrefix]=specs
+        #self.analysisDict[outputPrefix]=self.splitUpSpecs(specs)
+        #print self.splitUpSpecs(specs)
+        
     def addRecHitTest(self) :
         outputPrefix="RecHitTest"
         nEvents=-1
