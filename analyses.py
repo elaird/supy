@@ -25,16 +25,20 @@ class analysisDictionaryHolder :
             fileIndex=0
             for iFileName in range(len(self.fileListDict[spec.name])) :
                 suffix="_"+str(iFileName)
-                if spec.name+suffix in self.fileListDict :
-                    raise NameError(spec.name+suffix," already in fileListDict")
-                self.fileListDict[spec.name+suffix]=[self.fileListDict[spec.name][iFileName]]
+                newName=spec.name+suffix
+                if newName in self.fileListDict :
+                    raise NameError(newName," already in fileListDict")
+                self.fileListDict[newName]=[self.fileListDict[spec.name][iFileName]]
                 outListOfSpecs.append(base.sampleSpecification(self.fileListDict,
-                                                               spec.name+suffix,
+                                                               newName,
                                                                spec.nEvents,
                                                                spec.outputPrefix,
-                                                               copy.deepcopy(spec.steps)
+                                                               copy.deepcopy(spec.steps),
+                                                               spec.xs
                                                                )
                                       )
+                #store name of parent (used later for merging)
+                outListOfSpecs[-1].parentName=spec.name
                 
         return outListOfSpecs
 
