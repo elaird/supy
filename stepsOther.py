@@ -83,7 +83,9 @@ class skimmer(analysisStep) :
             self.outputTreeExtra.Write()
         self.outputFile.Close()
         print "The skim file \""+self.outputFileName+"\" has been written."
-        print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",(xs+0.0)*self.nPass/nEvents
+        effXs=0.0
+        if nEvents>0 : effXs=(xs+0.0)*self.nPass/nEvents
+        print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",effXs
 #####################################
 class extraVariableGreaterFilter(analysisStep) :
     """extraVariableGreaterFilter"""
