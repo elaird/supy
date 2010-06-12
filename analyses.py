@@ -113,11 +113,13 @@ class analysisDictionaryHolder :
     def addMetPasSpeedTest(self) :
         outputPrefix="MetPasSpeedTest"
 
-        #dataDirs=[]
         dataDirs=["JetMETTau.Run2010A-May27thReReco_v1.RECO","MinimumBias.Commissioning10-SD_JetMETTau-v9.RECO",
                   "MinimumBias.Commissioning10-May6thPDSkim2_SD_JetMETTau-v1.RECO"]
         mcDirs=["QCD_Pt-15_7TeV-pythia8.Spring10-START3X_V26B-v1.GEN-SIM-RECO"]
 
+        #dataDirs=[]
+        #mcDirs=[]
+        
         nEvents=-1
         specs=[]
 

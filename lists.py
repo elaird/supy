@@ -1,6 +1,7 @@
 import copy
 from stepsOther import *
 from stepsJet import *
+from stepsJetOld import *
 from stepsTrigger import *
 from stepsJetAlgoComparison import *
 from stepsPrint import *
@@ -60,11 +61,10 @@ class listDictionaryHolder :
         self.listDict["triggerSkimSteps_mc"]=removeStepsForMc(steps)
 
     def addListMetPasSpeedTest(self) :
-        #steps=[
-        #    progressPrinter(2,300),
-        #    techBitFilter([0],True),
-        #    ]
-
+        steps0=[
+            progressPrinter(2,300),
+            techBitFilter([0],True),
+            ]
 
         jetCollection="ak5Jet"
         jetSuffix="Pat"
@@ -75,7 +75,7 @@ class listDictionaryHolder :
         nCleanJets=2
         jetEtaMax=3.0
         
-        steps=[
+        steps1=[
             progressPrinter(2,300),
             
             cleanJetIndexProducer(jetCollection,jetSuffix,cleanJetPtThreshold,jetEtaMax),
@@ -91,9 +91,32 @@ class listDictionaryHolder :
             cleanNJetAlphaProducer(jetCollection,jetSuffix),
             alphaHistogrammer(jetCollection,jetSuffix),
             ]
+
+        steps2=[
+            progressPrinter(2,300),
+            
+            cleanJetIndexProducerOld(jetCollection,jetSuffix,cleanJetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
+            nCleanJetHistogrammer(jetCollection,jetSuffix),
+            nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
+            nOtherJetEventFilter(jetCollection,jetSuffix,1),
+            cleanJetPtHistogrammer(jetCollection,jetSuffix,True),
+            
+            cleanJetHtMhtProducerOld(jetCollection,jetSuffix),
+            cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
+            
+            cleanDiJetAlphaProducer(jetCollection,jetSuffix),
+            cleanNJetAlphaProducer(jetCollection,jetSuffix),
+            alphaHistogrammer(jetCollection,jetSuffix),
+            ]
         
-        self.listDict["metPasSpeedTest_data"]=steps
-        self.listDict["metPasSpeedTest_mc"]=removeStepsForMc(steps)
+        #self.listDict["metPasSpeedTest_data"]=steps0
+        #self.listDict["metPasSpeedTest_mc"]=removeStepsForMc(steps0)
+
+        self.listDict["metPasSpeedTest_data"]=steps1
+        self.listDict["metPasSpeedTest_mc"]=removeStepsForMc(steps1)
+
+        #self.listDict["metPasSpeedTest_data"]=steps2
+        #self.listDict["metPasSpeedTest_mc"]=removeStepsForMc(steps2)
 
     def addListMetPasFilter(self) :
         steps=[
