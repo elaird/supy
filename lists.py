@@ -59,6 +59,42 @@ class listDictionaryHolder :
         self.listDict["triggerSkimSteps_data"]=steps
         self.listDict["triggerSkimSteps_mc"]=removeStepsForMc(steps)
 
+    def addListMetPasSpeedTest(self) :
+        #steps=[
+        #    progressPrinter(2,300),
+        #    techBitFilter([0],True),
+        #    ]
+
+
+        jetCollection="ak5Jet"
+        jetSuffix="Pat"
+        
+        cleanJetPtThreshold=20.0
+        
+        corrRatherThanUnCorr=True
+        nCleanJets=2
+        jetEtaMax=3.0
+        
+        steps=[
+            progressPrinter(2,300),
+            
+            cleanJetIndexProducer(jetCollection,jetSuffix,cleanJetPtThreshold,jetEtaMax),
+            nCleanJetHistogrammer(jetCollection,jetSuffix),
+            nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
+            nOtherJetEventFilter(jetCollection,jetSuffix,1),
+            cleanJetPtHistogrammer(jetCollection,jetSuffix,True),
+            
+            cleanJetHtMhtProducer(jetCollection,jetSuffix),
+            cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
+            
+            cleanDiJetAlphaProducer(jetCollection,jetSuffix),
+            cleanNJetAlphaProducer(jetCollection,jetSuffix),
+            alphaHistogrammer(jetCollection,jetSuffix),
+            ]
+        
+        self.listDict["metPasSpeedTest_data"]=steps
+        self.listDict["metPasSpeedTest_mc"]=removeStepsForMc(steps)
+
     def addListMetPasFilter(self) :
         steps=[
             progressPrinter(2,300),
@@ -67,20 +103,28 @@ class listDictionaryHolder :
             physicsDeclared(),
             vertexRequirementFilter(5.0,15.0),
             monsterEventFilter(10,0.25),
-            skimmer("/vols/cms02/elaird1/02_parallel_test",False),
+            skimmer("/vols/cms02/elaird1/",False),
             #skimmer("/tmp/",False),
             ]
         self.listDict["metPasFilter_data"]=steps
         self.listDict["metPasFilter_mc"]=removeStepsForMc(steps)
 
         for jetType in ["","PF","JPT"] :
-            steps=[
+            steps1=[
                 progressPrinter(2,300),
                 jetPtSelector("ak5Jet"+jetType,"Pat",40.0,1),
                 skimmer("/vols/cms02/elaird1/",False)
                 ]
-            self.listDict["metPasFilterJet1"+jetType+"_data"]=steps
-            self.listDict["metPasFilterJet1"+jetType+"_mc"]=removeStepsForMc(steps)
+            self.listDict["metPasFilterJet1"+jetType+"_data"]=steps1
+            self.listDict["metPasFilterJet1"+jetType+"_mc"]=removeStepsForMc(steps1)
+
+            steps2=[
+                progressPrinter(2,300),
+                leadingUnCorrJetPtSelector("ak5Jet"+jetType,"Pat",40.0),
+                skimmer("/vols/cms02/elaird1/",False)
+                ]
+            self.listDict["metPasFilterJet2"+jetType+"_data"]=steps2
+            self.listDict["metPasFilterJet2"+jetType+"_mc"]=removeStepsForMc(steps2)
 
     def addListRecHitTest(self) :
         jetCollection="ak5Jet"
