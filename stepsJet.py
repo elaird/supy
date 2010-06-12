@@ -43,6 +43,42 @@ class jetPtVetoer(analysisStep) :
         if (size<=self.jetIndex) : return True
         return (p4Vector[self.jetIndex].pt()<self.jetPtThreshold)
 #####################################
+class leadingUnCorrJetPtSelector(analysisStep) :
+    """leadingUnCorrJetPtSelector"""
+
+    def __init__(self,jetCollection,jetSuffix,jetPtThreshold):
+        self.jetCollection=jetCollection
+        self.jetSuffix=jetSuffix
+        self.jetPtThreshold=jetPtThreshold
+        
+        self.moreName ="("+self.jetCollection+"; "+self.jetSuffix+"; "
+        self.moreName+="corr. pT[leading uncorr. jet]>="+str(self.jetPtThreshold)+" GeV"
+        self.moreName+=")"
+
+        self.neededBranches=[
+            self.jetCollection+"CorrectedP4"+self.jetSuffix,
+            self.jetCollection+"CorrFactor"+self.jetSuffix
+            ]
+
+    def select (self,chain,chainVars,extraVars) :
+        p4Vector=getattr(chainVars,self.jetCollection+"CorrectedP4"+self.jetSuffix)
+        corrFactorVector=getattr(chainVars,self.jetCollection+"CorrFactor"+self.jetSuffix)
+        size=p4Vector.size()
+
+        indexOfLeadingUnCorrJet=-1
+        leadingUnCorrJetPt=-1.0
+        for i in range(size) :
+            unCorrJetPt=p4Vector.at(i).pt()/corrFactorVector.at(i)
+            #print i,unCorrJetPt,p4Vector.at(i).pt(),corrFactorVector.at(i)
+            if unCorrJetPt>leadingUnCorrJetPt :
+                leadingUnCorrJetPt=unCorrJetPt
+                indexOfLeadingUnCorrJet=i                
+
+        #print "leading: ",indexOfLeadingUnCorrJet
+        #print
+        if indexOfLeadingUnCorrJet<0 or size<=indexOfLeadingUnCorrJet : return False
+        return p4Vector.at(indexOfLeadingUnCorrJet).pt()>=self.jetPtThreshold
+#####################################
 class cleanJetIndexProducer(analysisStep) :
     """cleanJetIndexProducer"""
 
