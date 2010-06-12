@@ -15,6 +15,7 @@ class sampleSpecification :
 
     def __init__(self,dict,name,nEvents,outputPrefix,steps,xs=1.0):
         self.name=name
+        self.parentName=None
         self.nEvents=nEvents
         self.inputFiles=dict[name]
         self.outputPrefix=outputPrefix
@@ -32,7 +33,7 @@ class analysisLooper :
         self.hyphens="".ljust(95,"-")
 
         #copy some stuff
-        stuffToCopy=["nEvents","name","steps","inputFiles","xs","fileDirectory","treeName"]
+        stuffToCopy=["nEvents","name","parentName","steps","inputFiles","xs","fileDirectory","treeName"]
         for item in stuffToCopy :
             setattr(self,item,getattr(sample,item))
         self.skimmerMode=False
