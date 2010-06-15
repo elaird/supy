@@ -19,7 +19,7 @@ class progressPrinter(analysisStep) :
             self.num=self.factor*self.num
             toPrint="event "+str(self.nTotal).rjust(self.integerWidth," ")
             toPrint=toPrint.ljust(self.docWidth+self.moreWidth+1)+time.ctime()
-            if (self.num==self.factor or self.num>self.cut) :
+            if (self.num==self.factor or self.num>self.cut) and not self.quietMode :
                 print toPrint
 #####################################
 class eventPrinter(analysisStep) :

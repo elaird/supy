@@ -1,21 +1,11 @@
 import copy,array
 import ROOT as r
 #####################################
-def globalSetup() :
-    sourceFiles=["SusyCAFpragmas.h","helpers.C"]
-    for sourceFile in sourceFiles :
-        r.gROOT.LoadMacro(sourceFile+"+")
-    r.gROOT.SetStyle("Plain")
-    r.gStyle.SetPalette(1)
-    r.TH1.SetDefaultSumw2(True)
-    r.gErrorIgnoreLevel=2000
-#####################################
 class sampleSpecification :
     """name, data sample, cuts"""
 
     def __init__(self,dict,name,nEvents,outputPrefix,steps,xs=1.0):
         self.name=name
-        self.parentName=None
         self.nEvents=nEvents
         self.inputFiles=dict[name]
         self.outputPrefix=outputPrefix
@@ -23,8 +13,15 @@ class sampleSpecification :
         self.steps=copy.deepcopy(steps)
         self.xs=xs
 
+        self.parentName=""
+        self.splitMode=False
+
         self.fileDirectory="susyTree"
         self.treeName="tree"
+
+    def doSplitMode(self,parentName) :
+        self.splitMode=True
+        self.parentName=parentName
 #####################################
 class analysisLooper :
     """class to set up and loop over events"""
@@ -33,12 +30,16 @@ class analysisLooper :
         self.hyphens="".ljust(95,"-")
 
         #copy some stuff
-        stuffToCopy=["nEvents","name","parentName","steps","inputFiles","xs","fileDirectory","treeName"]
+        stuffToCopy=["nEvents","name","steps","inputFiles","xs","parentName","splitMode","fileDirectory","treeName"]
         for item in stuffToCopy :
             setattr(self,item,getattr(sample,item))
         self.skimmerMode=False
-            
+
+        #run in quiet mode iff the sample has been split
+        self.quietMode=sample.splitMode
+
         self.outputPlotFileName=outDir+"/"+sample.outputPlotFileName
+        self.outputStepDataFileName=self.outputPlotFileName.replace(".root",".steps")
         self.inputChain=r.TChain("chain")
         self.currentTreeNumber=-1
 
@@ -167,7 +168,8 @@ class analysisLooper :
         self.printStats()
         self.writeHistos()
         self.endSteps()
-        print self.hyphens
+        if self.splitMode : self.pickleStepData()
+        if not self.quietMode : print self.hyphens
         
         #free up memory
         del self.inputChain
@@ -176,18 +178,18 @@ class analysisLooper :
         nFiles=len(inputFiles)
         alreadyPrintedEllipsis=False
 
-        print self.hyphens
+        if not self.quietMode : print self.hyphens
         outString="The "+str(nFiles)+" \""+self.name+"\" input file"
         if (nFiles>1) : outString+="s"
-        print outString+":"
+        if not self.quietMode : print outString+":"
 
         for infile in inputFiles :
             self.inputChain.Add(infile+"/"+self.fileDirectory+"/"+self.treeName)
 
             if (inputFiles.index(infile)<2 or inputFiles.index(infile)>(nFiles-3) ) :
-                print infile
+                if not self.quietMode : print infile
             elif (not alreadyPrintedEllipsis) :
-                print "..."
+                if not self.quietMode : print "..."
                 alreadyPrintedEllipsis=True
 
         outString="contain"
@@ -196,13 +198,14 @@ class analysisLooper :
         outString+=" "+str(self.inputChain.GetEntries())
         outString+=" events."
         outString+=" (xs=%6.4g"%self.xs+" pb)"
-        print outString
-        print self.hyphens
+        if not self.quietMode : print outString
+        if not self.quietMode : print self.hyphens
         r.gROOT.cd()
 
     def setupSteps(self) :
         for step in self.steps :
             step.bookHistos()
+            if self.quietMode : step.makeQuiet()
             step.selectNotImplemented=not hasattr(step,"select")
             step.uponAcceptanceImplemented=hasattr(step,"uponAcceptance")
             step.uponRejectionImplemented=hasattr(step,"uponRejection")
@@ -241,12 +244,13 @@ class analysisLooper :
                 if (not step.go(chain,chainVars,extraVars)) : break
 
     def printStats(self) :
-        print self.hyphens
-        for step in self.steps :
-            step.printStatistics()
+        if not self.quietMode :
+            print self.hyphens
+            for step in self.steps :
+                step.printStatistics()
 
     def writeHistos(self) :
-        print self.hyphens
+        if not self.quietMode : print self.hyphens
         #r.gDirectory.ls()
         objectList=r.gDirectory.GetList()
         outputFile=r.TFile(self.outputPlotFileName,"RECREATE")
@@ -266,12 +270,31 @@ class analysisLooper :
         nEventsHisto.Write()
         
         outputFile.Close()
-        if (not zombie) :  print "The output file \""+self.outputPlotFileName+"\" has been written."
+        if not zombie :
+            if not self.quietMode :            
+                print "The output file \""+self.outputPlotFileName+"\" has been written."
+            #else :
+            #    print self.steps[-1].nPass,"/",self.steps[0].nTotal,"events were selected"
 
     def endSteps(self) :
         for step in self.steps :
             if (hasattr(step,"endFunc")) :
                 step.endFunc(self.hyphens,self.nEvents,self.xs)
+
+    def pickleStepData(self) :
+        keepList=["nTotal","nPass","nFail"]
+        keepList.extend(["__doc__","moreName","moreName2"])#not strictly needed; only for debugging
+        outList=[]
+        for step in self.steps :
+            outList.append( {} )
+            for item in keepList :
+                outList[-1][item]=getattr(step,item)
+
+        import os,cPickle
+        outFileName=os.path.expanduser(self.outputStepDataFileName)
+        outFile=open(outFileName,"w")
+        cPickle.dump(outList,outFile)
+        outFile.close()
 #####################################
 class analysisStep :
     """generic analysis step"""
@@ -285,6 +308,7 @@ class analysisStep :
     moreName=""
     moreName2=""
     skimmerStepName="skimmer"
+    quietMode=False
     
     def go(self,chain,chainVars,extraVars) :
         self.nTotal+=1
@@ -316,6 +340,9 @@ class analysisStep :
     def name2(self) :
         return "".ljust(self.docWidth)+self.moreName2.ljust(self.moreWidth)
 
+    def makeQuiet(self) :
+        self.quietMode=True
+        
     def printStatistics(self) :
         outString=self.name()
         outString2=self.name2()
