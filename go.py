@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys,base
-base.globalSetup()
+import ROOT as r
 
 #choose the analysis
 #name="triggerSkim"
@@ -23,6 +23,15 @@ name="example"
 
 #choose the output directory
 outputDir="~"
+    
+def globalSetup() :
+    sourceFiles=["SusyCAFpragmas.h","helpers.C"]
+    for sourceFile in sourceFiles :
+        r.gROOT.LoadMacro(sourceFile+"+")
+    r.gROOT.SetStyle("Plain")
+    r.gStyle.SetPalette(1)
+    r.TH1.SetDefaultSumw2(True)
+    r.gErrorIgnoreLevel=2000
 
 def makeSampleSpecs(name) :
     import samples,lists,analyses
@@ -46,10 +55,14 @@ def makeSampleSpecs(name) :
 def goFunc(x) :
     x.go()
 
-def mergeSplitOutput(looperList) :
-    import os
-    
-    #make dictionary
+def looperPrint(parent,looper) :
+    print looper.hyphens
+    print parent
+    looper.quietMode=False
+    looper.printStats()
+    print looper.hyphens
+
+def makeParentDict(looperList) :
     parentDict={}
     for iLooper in range(len(looperList)) :
         looper=looperList[iLooper]
@@ -58,6 +71,13 @@ def mergeSplitOutput(looperList) :
                 parentDict[looper.parentName].append(iLooper)
             else :
                 parentDict[looper.parentName]=[iLooper]
+    return parentDict
+
+def mergeSplitOutput(looperList) :
+    import os,cPickle
+    
+    #make dictionary
+    parentDict=makeParentDict(looperList)
 
     #combine output
     for parent in parentDict :
@@ -67,20 +87,31 @@ def mergeSplitOutput(looperList) :
         outputPlotFileName=someLooper.outputPlotFileName.replace(someLooper.name,parent)
         inFileList=""
 
+        isFirstLooper=True
         for iLooper in parentDict[parent] :
-            thisLooper=looperList[iLooper]
-            plotFileName=thisLooper.outputPlotFileName
-            inFileList+=" "+plotFileName
-            for iStep in range(len(someLooper.steps)) :
-                print iStep,someLooper.steps[iStep].nTotal,thisLooper.steps[iStep].nTotal
-                someLooper.steps[iStep].nTotal+=thisLooper.steps[iStep].nTotal
-                someLooper.steps[iStep].nPass +=thisLooper.steps[iStep].nPass
-                someLooper.steps[iStep].nFail +=thisLooper.steps[iStep].nFail
+            #add the root file to hadd command
+            inFileList+=" "+looperList[iLooper].outputPlotFileName
 
-        print someLooper.hyphens
-        #print parent
-        #someLooper.printStats()
-                
+            #read in the step data
+            stepDataFileName=os.path.expanduser(looperList[iLooper].outputStepDataFileName)
+            stepDataFile=open(stepDataFileName)
+            stepDataList=cPickle.load(stepDataFile)
+            stepDataFile.close()
+
+            #add stats to those of someLooper
+            for i in range(len(someLooper.steps)) :
+                #need to zero in case sample is split but not run in multi mode
+                if isFirstLooper :
+                    someLooper.steps[i].nTotal=0
+                    someLooper.steps[i].nPass =0
+                    someLooper.steps[i].nFail =0
+                someLooper.steps[i].nTotal+=stepDataList[i]["nTotal"]
+                someLooper.steps[i].nPass +=stepDataList[i]["nPass" ]
+                someLooper.steps[i].nFail +=stepDataList[i]["nFail" ]
+            isFirstLooper=False
+
+        looperPrint(parent,someLooper)
+            
         cmd="hadd -f "+outputPlotFileName+inFileList+" | grep -v 'Source file' | grep -v 'Target path'"
         #print "hadding",outputPlotFileName,"..."
         os.system(cmd)
@@ -102,6 +133,7 @@ def loopOverSamples() :
         mergeSplitOutput(looperList)
         
 #set up
+globalSetup()
 sampleSpecs=makeSampleSpecs(name)
 
 #loop over samples and make TFiles containing histograms
