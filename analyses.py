@@ -38,7 +38,7 @@ class analysisDictionaryHolder :
                                                                )
                                       )
                 #store name of parent (used later for merging)
-                outListOfSpecs[-1].parentName=spec.name
+                outListOfSpecs[-1].doSplitMode(spec.name)
                 
         return outListOfSpecs
 
