@@ -66,7 +66,7 @@ def makeParentDict(looperList) :
     parentDict={}
     for iLooper in range(len(looperList)) :
         looper=looperList[iLooper]
-        if looper.parentName!=None :
+        if looper.splitMode :
             if looper.parentName in parentDict :
                 parentDict[looper.parentName].append(iLooper)
             else :
