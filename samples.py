@@ -34,14 +34,15 @@ class sampleDictionaryHolder :
             "MinimumBias.Commissioning10-SD_JetMETTau-v9.RECO",
             "MinimumBias.Commissioning10-May6thPDSkim2_SD_JetMETTau-v1.RECO",
             "QCD_Pt-15_7TeV-pythia8.Spring10-START3X_V26B-v1.GEN-SIM-RECO",
+            "QCD_Pt-15_7TeV-pythia6.Spring10-START3X_V26B-v1.GEN-SIM-RECO",
             ]
 
         furtherSubDirs=["leading_uncorr_ak5CaloJet.gt.40"]
         
         for subDir in subDirs :
             self.fileListDict[subDir+"_cleanEvent"]=getCommandOutput2("ls "+baseDir+"/"+subDir+"/*.root").split()
-            for furtherSubDir in furtherSubDirs :
-                self.fileListDict[subDir+"."+furtherSubDir]=getCommandOutput2("ls "+baseDir+"/"+subDir+"/"+furtherSubDir+"/*.root").split()
+            #for furtherSubDir in furtherSubDirs :
+            #    self.fileListDict[subDir+"."+furtherSubDir]=getCommandOutput2("ls "+baseDir+"/"+subDir+"/"+furtherSubDir+"/*.root").split()
 
     def add_Burt1(self) :
         prefix="dcap://gfe02.hep.ph.ic.ac.uk:22128"
@@ -365,6 +366,57 @@ class sampleDictionaryHolder :
             ]
         
         self.fileListDict["QCD_Pt-15_7TeV-pythia8.Spring10-START3X_V26B-v1.GEN-SIM-RECO"]=files
+        return
+
+    def add_Burt5(self) :
+        prefix="dcap://gfe02.hep.ph.ic.ac.uk:22128"
+        dir="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20/"
+        files=[
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_3_2.root",
+            "1187184130 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_17_2.root",
+            "1188420629 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_37_3.root",
+            "645399087 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_13_2.root",
+            "1189025467 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_16_3.root",
+            "1185401408 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_19_2.root",
+            "1190250788 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_15_2.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_23_1.root",
+            "1192505109 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_43_3.root",
+            "1185930578 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_45_4.root",
+            "1190634664 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_24_3.root",
+            "1190793685 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_11_3.root",
+            "1188110942 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_52_2.root",
+            "1189104854 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_48_2.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_26_2.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_9_2.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_38_2.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_5_2.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_27_2.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_7_2.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_53_2.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_25_1.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_56_2.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_12_3.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_58_2.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_33_1.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_54_1.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_4_1.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_6_1.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_29_1.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_57_1.root",
+            "0 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_35_2.root",
+            "1190351962 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_46_2.root",
+            "62632488 /pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_12_02_55_20//SusyCAF_Tree_40_1.root",
+            ]
+
+        outFiles=[]
+        for fileStuff in files :
+            list=fileStuff.split()
+            size=int(list[0])
+            name=list[1]
+            if size>0 :
+                outFiles.append(prefix+name)
+        
+        self.fileListDict["QCD_Pt-15_7TeV.pythia6.Spring10-START3X_V26B-v1.GEN-SIM-RECO"]=outFiles
         return
     
     def add_Burt(self) :
