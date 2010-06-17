@@ -37,7 +37,6 @@ class analysisDictionaryHolder :
                                                                spec.xs
                                                                )
                                       )
-                #store name of parent (used later for merging)
                 outListOfSpecs[-1].doSplitMode(spec.name)
                 
         return outListOfSpecs
@@ -130,13 +129,13 @@ class analysisDictionaryHolder :
         nEvents=-1
         specs=[]
 
-        #for dir in dataDirs :
-        #    specs.append( base.sampleSpecification(self.fileListDict,dir+".leading_uncorr_ak5CaloJet.gt.40",nEvents,outputPrefix,self.listDict["metPasSpeedTest_data"]) )
-        #for dir in mcDirs :
-        #    specs.append( base.sampleSpecification(self.fileListDict,dir+".leading_uncorr_ak5CaloJet.gt.40",nEvents,outputPrefix,self.listDict["metPasSpeedTest_mc"]) )
-        #    
-        #self.analysisDict[outputPrefix]=specs
-        ##self.analysisDict[outputPrefix]=self.splitUpSpecs(specs)
+        for dir in dataDirs :
+            specs.append( base.sampleSpecification(self.fileListDict,dir+".leading_uncorr_ak5CaloJet.gt.40",nEvents,outputPrefix,self.listDict["metPasSpeedTest_data"]) )
+        for dir in mcDirs :
+            specs.append( base.sampleSpecification(self.fileListDict,dir+".leading_uncorr_ak5CaloJet.gt.40",nEvents,outputPrefix,self.listDict["metPasSpeedTest_mc"]) )
+            
+        self.analysisDict[outputPrefix]=specs
+        #self.analysisDict[outputPrefix]=self.splitUpSpecs(specs)
         
     def addRecHitTest(self) :
         outputPrefix="RecHitTest"
