@@ -41,8 +41,8 @@ class sampleDictionaryHolder :
         
         for subDir in subDirs :
             self.fileListDict[subDir+"_cleanEvent"]=getCommandOutput2("ls "+baseDir+"/"+subDir+"/*.root").split()
-            #for furtherSubDir in furtherSubDirs :
-            #    self.fileListDict[subDir+"."+furtherSubDir]=getCommandOutput2("ls "+baseDir+"/"+subDir+"/"+furtherSubDir+"/*.root").split()
+            for furtherSubDir in furtherSubDirs :
+                self.fileListDict[subDir+"."+furtherSubDir]=getCommandOutput2("ls "+baseDir+"/"+subDir+"/"+furtherSubDir+"/*.root").split()
 
     def add_Burt1(self) :
         prefix="dcap://gfe02.hep.ph.ic.ac.uk:22128"
