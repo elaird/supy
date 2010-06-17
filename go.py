@@ -115,15 +115,15 @@ def mergeSplitOutput(looperList) :
         print someLooper.hyphens
         
 def loopOverSamples() :
-        if ("multi" in sys.argv) :
-            from multiprocessing import Pool
-            pool=Pool(processes=6)
-            #pool=Pool(processes=len(looperList))
-            pool.map(goFunc,looperList)
-        else :
-            map(goFunc,looperList)
+    if ("multi" in sys.argv) :
+        from multiprocessing import Pool
+        pool=Pool(processes=6)
+        #pool=Pool(processes=len(looperList))
+        pool.map(goFunc,looperList)
+    else :
+        map(goFunc,looperList)
 
-        mergeSplitOutput(looperList)
+    mergeSplitOutput(looperList)
         
 #set up
 globalSetup()
