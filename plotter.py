@@ -345,7 +345,10 @@ def plotAll(analysisName,sampleNames,plotFileNames,outputDir) :
         onePlotFunction(plotSpec)
 
     canvas.Print(psFile+"]",psOptions)
+    pdfFile=psFile.replace(".ps",".pdf")
+    os.system("ps2pdf "+psFile+" "+pdfFile)
     os.system("gzip -f "+psFile)
+    print "The output file \""+pdfFile+"\" has been written."
     print "The output file \""+psFile+".gz\" has been written."
 ##############################
 class onePlotSpec :
