@@ -13,7 +13,7 @@ class sampleSpecification :
         self.steps=copy.deepcopy(steps)
         self.xs=xs
 
-        self.parentName=""
+        self.parentName=name
         self.splitMode=False
 
         self.fileDirectory="susyTree"
@@ -268,6 +268,10 @@ class analysisLooper :
         nEventsHisto=r.TH1D("nEventsHisto",";dummy axis;N_{events} read in",1,-0.5,0.5)
         nEventsHisto.SetBinContent(1,self.nEvents)
         nEventsHisto.Write()
+        
+        nJobsHisto=r.TH1D("nJobsHisto",";dummy axis;N_{jobs}",1,-0.5,0.5)
+        nJobsHisto.SetBinContent(1,1)
+        nJobsHisto.Write()
         
         outputFile.Close()
         if not zombie :
