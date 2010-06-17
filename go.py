@@ -76,9 +76,6 @@ def makeParentDict(looperList) :
 def mergeSplitOutput(looperList) :
     import os,cPickle
     
-    #make dictionary
-    parentDict=makeParentDict(looperList)
-
     #combine output
     for parent in parentDict :
         #print parent,parentDict[parent]
@@ -118,10 +115,6 @@ def mergeSplitOutput(looperList) :
         print someLooper.hyphens
         
 def loopOverSamples() :
-        looperList=[]
-        for sample in sampleSpecs :
-            looperList.append(base.analysisLooper(sample,outputDir))
-
         if ("multi" in sys.argv) :
             from multiprocessing import Pool
             pool=Pool(processes=6)
@@ -135,6 +128,8 @@ def loopOverSamples() :
 #set up
 globalSetup()
 sampleSpecs=makeSampleSpecs(name)
+looperList=[base.analysisLooper(sample,outputDir) for sample in sampleSpecs]
+parentDict=makeParentDict(looperList)
 
 #loop over samples and make TFiles containing histograms
 if ("loop" in sys.argv and not "prof" in sys.argv) :
@@ -147,6 +142,19 @@ if ("prof" in sys.argv and not "multi" in sys.argv) :
 
 #make plots from the output histograms
 if ("plot" in sys.argv) :
+    sampleNames=[]
+    outputPlotFileNames=[]
+    if len(parentDict)==0 :
+        for looper in looperList :
+            sampleNames.append(looper.name)
+            outputPlotFileNames.append(looper.outputPlotFileName)
+    else :
+        for parent in parentDict :
+            sampleNames.append(parent)
+            iSomeLooper=parentDict[parent][0]
+            someLooper=looperList[iSomeLooper]
+            outputPlotFileNames.append(someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName))
+
     import plotter
-    plotter.plotAll(name,sampleSpecs,outputDir)
+    plotter.plotAll(name,sampleNames,outputPlotFileNames,outputDir)
 
