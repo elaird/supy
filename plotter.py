@@ -37,8 +37,8 @@ def setupStyle() :
     r.gStyle.SetPalette(1)
     #r.gStyle.SetOptStat(111111)
 ##############################
-def getNamesAndDimensions(outputDir,sample) :
-    f0=r.TFile(outputDir+"/"+sample.outputPlotFileName)
+def getNamesAndDimensions(plotFileName) :
+    f0=r.TFile(plotFileName)
     keys=f0.GetListOfKeys()
     names=[]
     dims=[]
@@ -53,15 +53,17 @@ def getNamesAndDimensions(outputDir,sample) :
 
     return [names,dims]
 ##############################
-def getXsAndEventNumbers(outputDir,sampleSpecs) :
+def getXsAndEventAndJobNumbers(plotFileNames) :
     xsList=[]
     nEventsList=[]
-    for sample in sampleSpecs :
-        f=r.TFile(outputDir+"/"+sample.outputPlotFileName)
+    nJobsList=[]
+    for plotFileName in plotFileNames :
+        f=r.TFile(plotFileName)
         xsList.append( f.Get("xsHisto").GetBinContent(1) )
         nEventsList.append( f.Get("nEventsHisto").GetBinContent(1) )
+        nJobsList.append( f.Get("nJobsHisto").GetBinContent(1) )
 
-    return [xsList,nEventsList]
+    return [xsList,nEventsList,nJobsList]
 ##############################
 def shiftOverflows(histo) :
     bins=histo.GetNbinsX()
@@ -72,7 +74,7 @@ def shiftOverflows(histo) :
     histo.SetBinContent(bins,lastBinContent+overflows)
     histo.SetEntries(entries)
 ##############################
-def scaleHistos(dimension,histoList,xsList,nEventsList) :
+def scaleHistos(dimension,histoList,xsList,nEventsList,nJobsList) :
     max=0.0
     if (len(histoList)<1) : return max
     
@@ -82,9 +84,13 @@ def scaleHistos(dimension,histoList,xsList,nEventsList) :
         scale=True
         if ("xsHisto"      in histo.GetName()) : scale=False
         if ("nEventsHisto" in histo.GetName()) : scale=False
+        if ("nJobsHisto"   in histo.GetName()) : scale=False
 
         if (scale) :
-            histo.Scale(xsNorm*xsList[iHisto]/nEventsList[iHisto])
+            factor=0.0
+            if nEventsList[iHisto]>0 and nJobsList[iHisto]>0 :
+                factor=xsNorm*xsList[iHisto]/nEventsList[iHisto]/nJobsList[iHisto]
+            histo.Scale(factor)
             if (dimension==1) :
                 newTitle=histo.GetYaxis().GetTitle()+" / "+str(xsNorm)+" pb^{-1}"
                 histo.GetYaxis().SetTitle(newTitle)
@@ -125,8 +131,9 @@ def getLogMin(plotSpec) :
         return 0.5
     else :
         factorList=[]
-        for i in range(len(plotSpec.sampleSpecs)) :
-            factorList.append(plotSpec.xsList[i]/plotSpec.nEventsList[i])
+        for i in range(len(plotSpec.sampleNames)) :
+            if plotSpec.nEventsList[i]>0 and plotSpec.nJobsList[i]>0 :
+                factorList.append(plotSpec.xsList[i]/plotSpec.nEventsList[i]/plotSpec.nJobsList[i])
         return 0.5*min(factorList)
 ##############################
 def makeAlphaTFunc(alphaTValue) :
@@ -160,7 +167,7 @@ def histoLoop(plotSpec,histoList) :
     for iHisto in range(len(histoList)) :
         histo=histoList[iHisto]
 
-        legend.AddEntry(histo,plotSpec.sampleSpecs[iHisto].name,"l")
+        legend.AddEntry(histo,plotSpec.sampleNames[iHisto],"l")
 
         yx=r.TF1("yx","x",histo.GetXaxis().GetXmin(),histo.GetXaxis().GetXmax())
         yx.SetLineColor(r.kBlue)
@@ -207,7 +214,7 @@ def histoLoop(plotSpec,histoList) :
 
             if ("countsHisto" in histo.GetName()) :
                 outString=histo.GetName().ljust(20)
-                outString+=plotSpec.sampleSpecs[iHisto].name.ljust(12)
+                outString+=plotSpec.sampleNames[iHisto].ljust(12)
                 outString+=": "
                 outString+="%#8.2f"%histo.GetBinContent(1)
                 outString+=" +/-"
@@ -220,7 +227,7 @@ def histoLoop(plotSpec,histoList) :
             plotSpec.canvas.cd(iHisto+1)
             histo.GetYaxis().SetTitleOffset(1.2)
             oldTitle=histo.GetTitle()
-            histo.SetTitle(oldTitle+plotSpec.sampleSpecs[iHisto].name)
+            histo.SetTitle(oldTitle+plotSpec.sampleNames[iHisto])
             histo.SetStats(False)
             histo.GetZaxis().SetTitleOffset(1.3)
             r.gPad.SetRightMargin(0.15)
@@ -266,14 +273,15 @@ def onePlotFunction(plotSpec) :
         plotSpec.canvas.Divide(len(histoList),1)
 
     if (doScaleByXs) :
-        plotSpec.maximum=scaleHistos(plotSpec.dimension,histoList,plotSpec.xsList,plotSpec.nEventsList)
+        plotSpec.maximum=scaleHistos(plotSpec.dimension,histoList,plotSpec.xsList,plotSpec.nEventsList,plotSpec.nJobsList)
     histoLoop(plotSpec,histoList)
 ##############################
 def makeHistoList(plotSpec) :
     histoList=[]
-    for iSample in range(len(plotSpec.sampleSpecs)) :
-        sample=plotSpec.sampleSpecs[iSample]
-        f=r.TFile(plotSpec.outputDir+"/"+sample.outputPlotFileName)
+    for iSample in range(len(plotSpec.sampleNames)) :
+        sampleName=plotSpec.sampleNames[iSample]
+        plotFileName=plotSpec.plotFileNames[iSample]
+        f=r.TFile(plotFileName)
 
         extraName=""
         if (iSample>0) : extraName+="_"+str(iSample)
@@ -281,7 +289,7 @@ def makeHistoList(plotSpec) :
         h.SetDirectory(0)
         histoList.append(h)
 
-        color=getColor(sample.name)
+        color=getColor(sampleName)
         h.SetLineColor(color)
         h.SetMarkerColor(color)
         if (plotSpec.dimension==1) : shiftOverflows(h)
@@ -297,8 +305,8 @@ def printTimeStamp(canvas,psFile,psOptions) :
     canvas.Print(psFile,psOptions)
     canvas.Clear()
 ##############################
-def plotAll(analysisName,sampleSpecs,outputDir) :
-    if (len(sampleSpecs)<1) : return
+def plotAll(analysisName,sampleNames,plotFileNames,outputDir) :
+    if (len(sampleNames)<1) : return
     setupStyle()
 
     psFile=outputDir+"/"+analysisName+".ps"
@@ -309,13 +317,14 @@ def plotAll(analysisName,sampleSpecs,outputDir) :
 
     printTimeStamp(canvas,psFile,psOptions)
     
-    outList=getNamesAndDimensions(outputDir,sampleSpecs[0])
+    outList=getNamesAndDimensions(plotFileNames[0])
     plotNames=outList[0]
     dimensions=outList[1]
 
-    outList=getXsAndEventNumbers(outputDir,sampleSpecs)
+    outList=getXsAndEventAndJobNumbers(plotFileNames)
     xsList=outList[0]
     nEventsList=outList[1]
+    nJobsList=outList[2]
     
     for iPlotName in range(len(plotNames)) :
         plotSpec=onePlotSpec()
@@ -323,10 +332,12 @@ def plotAll(analysisName,sampleSpecs,outputDir) :
         plotSpec.plotName=plotNames[iPlotName]
         plotSpec.dimension=dimensions[iPlotName]
         plotSpec.canvas=canvas
-        plotSpec.sampleSpecs=sampleSpecs
+        plotSpec.sampleNames=sampleNames
+        plotSpec.plotFileNames=plotFileNames
         plotSpec.outputDir=outputDir
         plotSpec.xsList=xsList
         plotSpec.nEventsList=nEventsList
+        plotSpec.nJobsList=nJobsList
         
         plotSpec.psFile=psFile
         plotSpec.psOptions=psOptions
