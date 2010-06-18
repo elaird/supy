@@ -1,6 +1,6 @@
 import copy,array,os
 import ROOT as r
-from base import analysisStep
+from base import analysisStep,psFromRoot
 #####################################
 class skimmer(analysisStep) :
     #special __doc__ assignment below
@@ -425,10 +425,13 @@ class displayer(analysisStep) :
         self.neededBranches.append(self.genJetCollection+'GenJetP4'+self.jetSuffix)
         
     def setup(self,chain,fileDir,name) :
-        self.fileDir=fileDir
-        self.outputFileName=self.outputDir+"/"+name+"_displays.ps"
+        someDir=r.gDirectory
+        self.outputFileName=self.outputDir+"/"+name+"_displays.root"
+        self.outputFile=r.TFile(self.outputFileName,"RECREATE")
+        someDir.cd()
+        
         self.canvas=r.TCanvas("canvas","canvas",500,500)
-        self.printCanvas("[")
+        self.canvasIndex=0
 
         epsilon=1.0e-6
         self.mhtLlHisto=r.TH2D("mhtLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashH_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
@@ -453,13 +456,13 @@ class displayer(analysisStep) :
 
     def endFunc(self,hyphens,nEvents,xs) :
         if not self.quietMode : print hyphens
-        self.printCanvas("]")
-        os.system("gzip -f "+self.outputFileName)
-        if not self.quietMode : print "The display file \""+self.outputFileName+".gz\" has been written."
+        self.outputFile.Write()
+        self.outputFile.Close()
+        if not self.quietMode : print "The display file \""+self.outputFileName+"\" has been written."
+        if not self.splitMode :
+            psFileName=self.outputFileName.replace(".root",".ps")
+            psFromRoot([self.outputFileName],psFileName,self.quietMode)
         del self.canvas
-
-    def printCanvas(self,extraStuff="") :
-        self.canvas.Print(self.outputFileName+extraStuff,"Landscape")
 
     def drawEventInfo(self,chainVars,extraVars,color) :
         self.text.SetTextSize(0.02)
@@ -781,14 +784,18 @@ class displayer(analysisStep) :
             self.drawElectrons  (chainVars,extraVars,r.kOrange+7, defWidth, defArrowSize*2/6.0)
             self.drawPhotons    (chainVars,extraVars,r.kOrange  , defWidth, defArrowSize*2/6.0)
             #self.drawTaus       (chainVars,extraVars,r.kYellow , defWidth, defArrowSize*2/6.0)
-        
+
+        self.legend.Draw("same")        
         g2=self.drawAlphaPlot(chainVars,extraVars,r.kBlack)
         
         r.gStyle.SetOptStat(110011)
         #g3=self.drawMhtLlPlot(chainVars,extraVars,r.kBlack)
-        
-        self.legend.Draw("same")
-        self.printCanvas()
+
+        someDir=r.gDirectory
+        self.outputFile.cd()
+        self.canvas.Write("canvas_%d"%self.canvasIndex)
+        self.canvasIndex+=1
+        someDir.cd()
 #####################################
 class counter(analysisStep) :
     """counter"""
