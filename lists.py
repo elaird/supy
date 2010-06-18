@@ -14,14 +14,19 @@ def removeStepsForMc(inSteps) :
     dummyTechBit0=techBitFilter([0],True)
     dummyRunList=goodRunsOnly2009("900 GeV","v2")
     dummyMetGroupFilter=metGroupNoiseEventFilter("v1")
+    dummyDisplayer=displayer("","","","","",100.0)
     outSteps=[]
     for step in inSteps :
+        #remove inapplicable steps
         if (step.__doc__==dummyBX.__doc__) : continue
         if (step.__doc__==dummyPhysDecl.__doc__) : continue
         if (step.moreName==dummyTechBit0.moreName) : continue
         if (step.__doc__==dummyRunList.__doc__) : continue
-        if (step.__doc__==dummyMetGroupFilter.__doc__) : continue        
+        if (step.__doc__==dummyMetGroupFilter.__doc__) : continue
         outSteps.append(copy.deepcopy(step))
+
+        #turn on gen stuff
+        if (step.__doc__==dummyDisplayer.__doc__) : outSteps[-1].switchGenOn()
     return outSteps
 
 class listDictionaryHolder :
@@ -68,7 +73,7 @@ class listDictionaryHolder :
 
         jetCollection="ak5Jet"
         jetSuffix="Pat"
-        
+
         cleanJetPtThreshold=20.0
         
         corrRatherThanUnCorr=True
@@ -103,7 +108,7 @@ class listDictionaryHolder :
             
             cleanJetHtMhtProducerOld(jetCollection,jetSuffix),
             cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
-            
+
             cleanDiJetAlphaProducer(jetCollection,jetSuffix),
             cleanNJetAlphaProducer(jetCollection,jetSuffix),
             alphaHistogrammer(jetCollection,jetSuffix),
