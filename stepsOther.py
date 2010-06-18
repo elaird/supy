@@ -75,8 +75,8 @@ class skimmer(analysisStep) :
         for key in self.arrayDictionary :
             self.arrayDictionary[key][0]=getattr(extraVars,key)
         
-    def endFunc(self,hypens,nEvents,xs) :
-        print hypens
+    def endFunc(self,hyphens,nEvents,xs) :
+        print hyphens
         self.outputFile.cd(self.fileDir)
         self.outputTree.Write()
         if (self.alsoWriteExtraTree) :
@@ -399,13 +399,8 @@ class displayer(analysisStep) :
                              self.metCollection+'P4'+self.metSuffix]
         self.neededBranches.extend(["run","lumiSection","event","bunch"])
 
-        self.doGen=True
+        self.doGen=False
         self.doLeptons=True
-
-        if (self.doGen) :
-            self.neededBranches.append(self.metCollection+'GenMetP4'+self.metSuffix)
-            self.genJetCollection="ic5Jet"
-            self.neededBranches.append(self.genJetCollection+'GenJetP4'+self.jetSuffix)
 
         if (self.doLeptons) :
             suffix="Pat"
@@ -422,6 +417,12 @@ class displayer(analysisStep) :
 
         if (self.fakerMode) :
             self.neededBranches=["run","event"]
+
+    def switchGenOn(self) :
+        self.doGen=True
+        self.neededBranches.append(self.metCollection+'GenMetP4'+self.metSuffix)
+        self.genJetCollection="ic5Jet"
+        self.neededBranches.append(self.genJetCollection+'GenJetP4'+self.jetSuffix)
         
     def setup(self,chain,fileDir,name) :
         self.fileDir=fileDir
@@ -450,11 +451,12 @@ class displayer(analysisStep) :
             self.makeAlphaTFunc(0.45,r.kOrange+7)
             ]
 
-    def endFunc(self,hypens,nEvents,xs) :
-        print hypens
+    def endFunc(self,hyphens,nEvents,xs) :
+        if not self.quietMode : print hyphens
         self.printCanvas("]")
         os.system("gzip -f "+self.outputFileName)
-        print "The display file \""+self.outputFileName+".gz\" has been written."
+        if not self.quietMode : print "The display file \""+self.outputFileName+".gz\" has been written."
+        del self.canvas
 
     def printCanvas(self,extraStuff="") :
         self.canvas.Print(self.outputFileName+extraStuff,"Landscape")
@@ -522,7 +524,6 @@ class displayer(analysisStep) :
         if (not self.fakerMode) :
             p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
             cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
-
             for iJet in cleanJetIndices :
                 self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
         else :
@@ -821,8 +822,8 @@ class pickEventSpecMaker(analysisStep) :
         line+="   "+self.dataSetName+"\n"
         self.outputFile.write(line)
 
-    def endFunc(self,hypens,nEvents,xs) :
-        print hypens
+    def endFunc(self,hyphens,nEvents,xs) :
+        print hyphens
         self.outputFile.close()
         print "The pick events spec. file \""+self.outputFileName+"\" has been written."
 #####################################
