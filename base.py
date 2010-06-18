@@ -1,4 +1,4 @@
-import copy,array
+import copy,array,os
 import ROOT as r
 #####################################
 class sampleSpecification :
@@ -166,8 +166,8 @@ class analysisLooper :
 
         self.loop()
         self.printStats()
-        self.writeHistos()
         self.endSteps()
+        self.writeHistos()
         if self.splitMode : self.pickleStepData()
         if not self.quietMode : print self.hyphens
         
@@ -206,6 +206,7 @@ class analysisLooper :
         for step in self.steps :
             step.bookHistos()
             if self.quietMode : step.makeQuiet()
+            if self.splitMode : step.setSplitMode()
             step.selectNotImplemented=not hasattr(step,"select")
             step.uponAcceptanceImplemented=hasattr(step,"uponAcceptance")
             step.uponRejectionImplemented=hasattr(step,"uponRejection")
@@ -313,6 +314,7 @@ class analysisStep :
     moreName2=""
     skimmerStepName="skimmer"
     quietMode=False
+    splitMode=False
     
     def go(self,chain,chainVars,extraVars) :
         self.nTotal+=1
@@ -346,6 +348,9 @@ class analysisStep :
 
     def makeQuiet(self) :
         self.quietMode=True
+        
+    def setSplitMode(self) :
+        self.splitMode=True
         
     def printStatistics(self) :
         outString=self.name()
@@ -382,4 +387,17 @@ class eventVariableContainer :
     def __init__(self) :
         self.icfCleanJets=r.std.vector(r.Math.LorentzVector(r.Math.PxPyPzE4D('double')))()
         self.icfCleanJets.reserve(256)
+#####################################
+def psFromRoot(listOfInFileNames,outFileName,beQuiet) :
+    dummyCanvas=r.TCanvas("dummyCanvas","dummyCanvas",500,500)
+    dummyCanvas.Print(outFileName+"[")
+    for inFileName in listOfInFileNames :
+        inFile=r.TFile(inFileName)
+        keys=inFile.GetListOfKeys()
+        for key in keys :
+            canvas=inFile.Get(key.GetName())
+            canvas.Print(outFileName)
+    dummyCanvas.Print(outFileName+"]")
+    os.system("gzip -f "+outFileName)
+    if not beQuiet : print "The display file \""+outFileName+".gz\" has been written."    
 #####################################
