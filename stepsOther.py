@@ -472,7 +472,7 @@ class displayer(analysisStep) :
         if (not self.fakerMode) : self.text.DrawText(x,0.74,"Bx    %#10d"%chainVars.bunch[0])
         
     def drawSkeleton(self,color) :
-        self.canvas.cd(2)
+        #self.canvas.cd(2)
         r.gPad.AbsCoordinates(False)
         
         self.ellipse.SetLineColor(color)
@@ -777,10 +777,10 @@ class displayer(analysisStep) :
         if (self.doGen) : self.drawGenMet     (chainVars,extraVars,r.kMagenta, defWidth, defArrowSize*2/6.0)
 
         if (self.doLeptons) :
-            self.drawMuons      (chainVars,extraVars,r.kYellow , defWidth, defArrowSize*2/6.0)
-            self.drawElectrons  (chainVars,extraVars,r.kYellow , defWidth, defArrowSize*2/6.0)
-            self.drawPhotons    (chainVars,extraVars,r.kYellow , defWidth, defArrowSize*2/6.0)
-            self.drawTaus       (chainVars,extraVars,r.kYellow , defWidth, defArrowSize*2/6.0)
+            self.drawMuons      (chainVars,extraVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
+            self.drawElectrons  (chainVars,extraVars,r.kOrange+7, defWidth, defArrowSize*2/6.0)
+            self.drawPhotons    (chainVars,extraVars,r.kOrange  , defWidth, defArrowSize*2/6.0)
+            #self.drawTaus       (chainVars,extraVars,r.kYellow , defWidth, defArrowSize*2/6.0)
         
         g2=self.drawAlphaPlot(chainVars,extraVars,r.kBlack)
         
