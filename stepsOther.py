@@ -382,9 +382,10 @@ class bxFilter(analysisStep) :
             if (bx==bunch) : return True
 #####################################
 class displayer(analysisStep) :
-    """displayer"""
-
+    #special __doc__ assignment below
+    
     def __init__(self,jetCollection,jetSuffix,metCollection,metSuffix,outputDir,scale,fakerMode=False) :
+        self.__doc__=self.displayerStepName
         self.outputDir=outputDir
         self.moreName="(see below)"
         self.scale=scale #GeV
@@ -423,6 +424,11 @@ class displayer(analysisStep) :
         self.neededBranches.append(self.metCollection+'GenMetP4'+self.metSuffix)
         self.genJetCollection="ic5Jet"
         self.neededBranches.append(self.genJetCollection+'GenJetP4'+self.jetSuffix)
+
+    def bookHistos(self) :
+        epsilon=1.0e-6
+        self.mhtLlHisto=r.TH2D("mhtLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashH_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
+        self.metLlHisto=r.TH2D("metLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashE_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
         
     def setup(self,chain,fileDir,name) :
         someDir=r.gDirectory
@@ -433,10 +439,6 @@ class displayer(analysisStep) :
         self.canvas=r.TCanvas("canvas","canvas",500,500)
         self.canvasIndex=0
 
-        epsilon=1.0e-6
-        self.mhtLlHisto=r.TH2D("mhtLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashH_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
-        self.metLlHisto=r.TH2D("metLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashE_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
-        
         self.ellipse=r.TEllipse()
         self.ellipse.SetFillStyle(0)
         self.line=r.TLine()
@@ -455,11 +457,11 @@ class displayer(analysisStep) :
             ]
 
     def endFunc(self,hyphens,nEvents,xs) :
-        if not self.quietMode : print hyphens
         self.outputFile.Write()
         self.outputFile.Close()
-        if not self.quietMode : print "The display file \""+self.outputFileName+"\" has been written."
+        #if not self.quietMode : print "The display file \""+self.outputFileName+"\" has been written."
         if not self.splitMode :
+            if not self.quietMode : print hyphens
             psFileName=self.outputFileName.replace(".root",".ps")
             psFromRoot([self.outputFileName],psFileName,self.quietMode)
         del self.canvas
