@@ -82,12 +82,13 @@ def mergeSplitOutput(looperList) :
         iSomeLooper=parentDict[parent][0]
         someLooper=looperList[iSomeLooper]
         outputPlotFileName=someLooper.outputPlotFileName.replace(someLooper.name,parent)
-        inFileList=""
-
+        inFileList=[]
+        displayFileList=[]
+        
         isFirstLooper=True
         for iLooper in parentDict[parent] :
             #add the root file to hadd command
-            inFileList+=" "+looperList[iLooper].outputPlotFileName
+            inFileList.append(looperList[iLooper].outputPlotFileName)
 
             #read in the step data
             stepDataFileName=os.path.expanduser(looperList[iLooper].outputStepDataFileName)
@@ -105,15 +106,23 @@ def mergeSplitOutput(looperList) :
                 someLooper.steps[i].nTotal+=stepDataList[i]["nTotal"]
                 someLooper.steps[i].nPass +=stepDataList[i]["nPass" ]
                 someLooper.steps[i].nFail +=stepDataList[i]["nFail" ]
+
+                if someLooper.steps[i].__doc__==someLooper.steps[i].displayerStepName :
+                    displayFileList.append(stepDataList[i]["outputFileName"])
             isFirstLooper=False
 
         looperPrint(parent,someLooper)
-            
-        cmd="hadd -f "+outputPlotFileName+inFileList+" | grep -v 'Source file' | grep -v 'Target path'"
+        inFiles=" ".join(inFileList)
+        cmd="hadd -f "+outputPlotFileName+" "+inFiles+" | grep -v 'Source file' | grep -v 'Target path'"
         #print "hadding",outputPlotFileName,"..."
+        #print cmd
         os.system(cmd)
         print someLooper.hyphens
-        
+        if len(displayFileList)>0 :
+            outputFileName=displayFileList[0].replace(someLooper.name,someLooper.parentName).replace(".root",".ps")
+            base.psFromRoot(displayFileList,outputFileName,beQuiet=False)
+            print someLooper.hyphens
+
 def loopOverSamples() :
     if ("multi" in sys.argv) :
         from multiprocessing import Pool
