@@ -287,13 +287,13 @@ class analysisLooper :
                 step.endFunc(self.hyphens,self.nEvents,self.xs)
 
     def pickleStepData(self) :
-        keepList=["nTotal","nPass","nFail"]
+        keepList=["nTotal","nPass","nFail","outputFileName"]
         keepList.extend(["__doc__","moreName","moreName2"])#not strictly needed; only for debugging
         outList=[]
         for step in self.steps :
             outList.append( {} )
             for item in keepList :
-                outList[-1][item]=getattr(step,item)
+                if hasattr(step,item): outList[-1][item]=getattr(step,item)
 
         import os,cPickle
         outFileName=os.path.expanduser(self.outputStepDataFileName)
@@ -313,6 +313,7 @@ class analysisStep :
     moreName=""
     moreName2=""
     skimmerStepName="skimmer"
+    displayerStepName="displayer"
     quietMode=False
     splitMode=False
     
@@ -389,14 +390,17 @@ class eventVariableContainer :
         self.icfCleanJets.reserve(256)
 #####################################
 def psFromRoot(listOfInFileNames,outFileName,beQuiet) :
-    dummyCanvas=r.TCanvas("dummyCanvas","dummyCanvas",500,500)
+    if len(listOfInFileNames)==0 : return
+    
+    dummyCanvas=r.TCanvas("display","display",500,500)
     dummyCanvas.Print(outFileName+"[")
     for inFileName in listOfInFileNames :
         inFile=r.TFile(inFileName)
         keys=inFile.GetListOfKeys()
         for key in keys :
-            canvas=inFile.Get(key.GetName())
-            canvas.Print(outFileName)
+            someObject=inFile.Get(key.GetName())
+            if someObject.ClassName()!="TCanvas" : print "Warning: found an object which is not a TCanvas in the display root file"
+            someObject.Print(outFileName)
     dummyCanvas.Print(outFileName+"]")
     os.system("gzip -f "+outFileName)
     if not beQuiet : print "The display file \""+outFileName+".gz\" has been written."    
