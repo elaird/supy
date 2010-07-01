@@ -5,6 +5,29 @@ def getCommandOutput2(command):
     err = child.close()
     #if err: raise RuntimeError, '%s failed w/ exit code %d' % (command, err)
     return data
+
+def pruneFileList(inList) :
+    #make a dictionary of file versions
+    splitString="_"
+    stripString=".root"
+    d={}
+    for inFile in inList :
+        fieldList=inFile.replace(stripString,"").split(splitString)
+        key=tuple(fieldList[:-1])
+        value=int(fieldList[-1])
+        if key not in d :
+            d[key]=[value]
+        else :
+            d[key].append(value)
+
+    #select the highest-numbered version of each file
+    outList=[]
+    for key in d :
+        #print key,d[key]
+        fileName=splitString.join(key)
+        fileName+=splitString+str(max(d[key]))+stripString
+        outList.append(fileName)
+    return outList
                         
 class sampleDictionaryHolder :
     """sampleDictionaryHolder"""
@@ -26,6 +49,56 @@ class sampleDictionaryHolder :
             if member[:len(specialPrefix)]!=specialPrefix : continue
             getattr(self,member)()
 
+    def registerSamplesFromSrmLs(self,dataSets,sizeThreshold) :
+        srmPrefix="srm://gfe02.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN="
+        dCachePrefix="dcap://gfe02.hep.ph.ic.ac.uk:22128"
+
+        for dataSet in dataSets :
+            name=dataSet[0]
+            locationOfFiles=dataSet[1]
+            itemsToSkip=dataSet[2]
+
+            fileList=[]
+            cmd="srmls "+srmPrefix+"/"+locationOfFiles
+            #print cmd
+            output=getCommandOutput2(cmd)
+            for line in output.split("\n") :
+                if "SusyCAF_Tree" not in line : continue
+                acceptFile=True
+                fields=line.split()
+                size=float(fields[0])
+                fileName=fields[1]
+                
+                if size<=sizeThreshold : acceptFile=False
+                for item in itemsToSkip :
+                    if item in fileName : acceptFile=False
+                if acceptFile : fileList.append(dCachePrefix+fileName)
+            self.fileListDict[name]=fileList
+    
+    def registerCastorSample(self,name,location,itemsToSkip,sizeThreshold) :
+        fileList=[]
+        cmd="nsls -l "+location
+        #print cmd
+        output=getCommandOutput2(cmd)
+        for line in output.split("\n") :
+            if "SusyCAF_Tree" not in line : continue
+            acceptFile=True
+            fields=line.split()
+            size=float(fields[-5])
+            fileName=fields[-1]
+
+            if size<=sizeThreshold : acceptFile=False
+            for item in itemsToSkip :
+                if item in fileName : acceptFile=False
+            if acceptFile : fileList.append("rfio:///"+location+"/"+fileName)
+        self.fileListDict[name]=pruneFileList(fileList)
+            
+    def add_36QCD(self) :
+        self.registerCastorSample(name="QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
+                                  location="/castor/cern.ch/user/e/elaird//SusyCAF/automated/2010_06_30_11_16_35/",
+                                  itemsToSkip=[],
+                                  sizeThreshold=0)
+        
     def add_met_pas_skims(self) :
         #baseDir="/vols/cms02/elaird1/03_skims/cleaned/"
         #subDirs=[
@@ -424,32 +497,6 @@ class sampleDictionaryHolder :
         
         self.fileListDict["QCD_Pt-15_7TeV.pythia6.Spring10-START3X_V26B-v1.GEN-SIM-RECO"]=outFiles
         return
-    
-    def registerSamplesFromSrmLs(self,dataSets,sizeThreshold) :
-        srmPrefix="srm://gfe02.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN="
-        dCachePrefix="dcap://gfe02.hep.ph.ic.ac.uk:22128"
-
-        for dataSet in dataSets :
-            name=dataSet[0]
-            locationOfFiles=dataSet[1]
-            itemsToSkip=dataSet[2]
-
-            fileList=[]
-            cmd="srmls "+srmPrefix+"/"+locationOfFiles
-            #print cmd
-            output=getCommandOutput2(cmd)
-            for line in output.split("\n") :
-                if "SusyCAF_Tree" not in line : continue
-                acceptFile=True
-                fields=line.split()
-                size=float(fields[0])
-                fileName=fields[1]
-                
-                if size<=sizeThreshold : acceptFile=False
-                for item in itemsToSkip :
-                    if item in fileName : acceptFile=False
-                if acceptFile : fileList.append(dCachePrefix+fileName)
-            self.fileListDict[name]=fileList
     
     def add_37Data(self) :
         dataSets=[]
