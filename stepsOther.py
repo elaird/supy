@@ -87,6 +87,15 @@ class skimmer(analysisStep) :
         if nEvents>0 : effXs=(xs+0.0)*self.nPass/nEvents
         print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",effXs
 #####################################
+class hbheNoiseFilter(analysisStep) :
+    """hbheNoiseFilter"""
+
+    def __init__(self):
+        self.neededBranches=["hbheNoiseFilterResult"]
+
+    def select (self,chain,chainVars,extraVars) :
+        return chainVars.hbheNoiseFilterResult[0]
+#####################################
 class extraVariableGreaterFilter(analysisStep) :
     """extraVariableGreaterFilter"""
 
@@ -101,6 +110,21 @@ class extraVariableGreaterFilter(analysisStep) :
 
     def select (self,chain,chainVars,extraVars) :
         return (getattr(extraVars,self.variable)>=self.threshold)
+#####################################
+class extraVariablePtGreaterFilter(analysisStep) :
+    """extraVariablePtGreaterFilter"""
+
+    def __init__(self,threshold,variable):
+        self.threshold=threshold
+        self.variable=variable
+        self.moreName="("+self.variable
+        self.moreName+=">="
+        self.moreName+=str(self.threshold)
+        self.moreName+=")"
+        self.neededBranches=[]
+
+    def select (self,chain,chainVars,extraVars) :
+        return (getattr(extraVars,self.variable).pt()>=self.threshold)
 #####################################
 class objectPtVetoer(analysisStep) :
     """objectPtVetoer"""
