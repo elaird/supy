@@ -133,6 +133,61 @@ class cleanJetIndexProducer(analysisStep) :
         #setattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix,self.otherJetIndices)
 
 #####################################
+class cleanJetIndexProducerFromFlag(analysisStep) :
+    """cleanJetIndexProducerFromFlag"""
+
+    def __init__(self,jetCollection,jetSuffix,jetPtThreshold,jetEtaMax):
+        self.jetCollection=jetCollection
+        self.jetSuffix=jetSuffix
+        self.jetPtThreshold=jetPtThreshold
+        self.jetEtaMax=jetEtaMax
+        
+        self.moreName="("+self.jetCollection+"; "+self.jetSuffix
+        self.moreName+="; jetIDFlag; "
+
+        self.moreName2=" "
+        self.moreName2+="corr. "
+        self.moreName2+="pT>="+str(self.jetPtThreshold)+" GeV"
+        self.moreName2+="; |eta|<="+str(self.jetEtaMax)
+        self.moreName2+=")"
+        
+        self.neededBranches=["CorrectedP4"]
+        self.neededBranches.append("JetIDloose")
+
+        for i in range(len(self.neededBranches)) :
+            self.neededBranches[i]=self.jetCollection+self.neededBranches[i]+self.jetSuffix
+
+    def uponAcceptance (self,chain,chainVars,extraVars) :
+        p4Vector       =getattr(chainVars,self.jetCollection+'CorrectedP4'     +self.jetSuffix)
+        jetIdFlagVector=getattr(chainVars,self.jetCollection+'JetIDloose'      +self.jetSuffix)
+
+        cleanString=self.jetCollection+"cleanJetIndices"+self.jetSuffix
+        setattr(extraVars,cleanString,[])
+        cleanJetIndices=getattr(extraVars,cleanString)
+
+        otherString=self.jetCollection+"otherJetIndices"+self.jetSuffix
+        setattr(extraVars,otherString,[])
+        otherJetIndices=getattr(extraVars,otherString)
+
+        size=p4Vector.size()
+        
+        for iJet in range(size) :
+            #pt cut
+            if p4Vector.at(iJet).pt()<self.jetPtThreshold : break #assumes sorted
+            
+            #if pass pt cut, add to "other" category
+            otherJetIndices.append(iJet)
+            
+            #eta cut
+            absEta=r.TMath.Abs(p4Vector.at(iJet).eta())
+            if absEta>self.jetEtaMax : continue
+            #jet ID cut
+            if not jetIdFlagVector.at(iJet) : continue
+
+            cleanJetIndices.append(iJet)
+            otherJetIndices.remove(iJet)
+
+#####################################
 class cleanJetEmfFilter(analysisStep) :
     """cleanJetEmfFilter"""
 
