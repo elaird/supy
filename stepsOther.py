@@ -1,6 +1,7 @@
 import copy,array,os
 import ROOT as r
-from base import analysisStep,psFromRoot
+from base import analysisStep
+import utils
 #####################################
 class skimmer(analysisStep) :
     #special __doc__ assignment below
@@ -487,7 +488,7 @@ class displayer(analysisStep) :
         if not self.splitMode :
             if not self.quietMode : print hyphens
             psFileName=self.outputFileName.replace(".root",".ps")
-            psFromRoot([self.outputFileName],psFileName,self.quietMode)
+            utils.psFromRoot([self.outputFileName],psFileName,self.quietMode)
         del self.canvas
 
     def drawEventInfo(self,chainVars,extraVars,color) :

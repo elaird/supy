@@ -389,19 +389,3 @@ class eventVariableContainer :
         self.icfCleanJets=r.std.vector(r.Math.LorentzVector(r.Math.PxPyPzE4D('double')))()
         self.icfCleanJets.reserve(256)
 #####################################
-def psFromRoot(listOfInFileNames,outFileName,beQuiet) :
-    if len(listOfInFileNames)==0 : return
-    
-    dummyCanvas=r.TCanvas("display","display",500,500)
-    dummyCanvas.Print(outFileName+"[")
-    for inFileName in listOfInFileNames :
-        inFile=r.TFile(inFileName)
-        keys=inFile.GetListOfKeys()
-        for key in keys :
-            someObject=inFile.Get(key.GetName())
-            if someObject.ClassName()!="TCanvas" : print "Warning: found an object which is not a TCanvas in the display root file"
-            someObject.Print(outFileName)
-    dummyCanvas.Print(outFileName+"]")
-    os.system("gzip -f "+outFileName)
-    if not beQuiet : print "The display file \""+outFileName+".gz\" has been written."    
-#####################################

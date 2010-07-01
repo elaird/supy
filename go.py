@@ -19,7 +19,7 @@ name="example"
 #name="MetPasSkim"
 #name="MetPasSkim1"
 #name="MetPasSkim2"
-#name="MetPasSpeedTest"
+#name="MetPasLook"
 
 #choose the output directory
 outputDir="~"
@@ -75,6 +75,7 @@ def makeParentDict(looperList) :
 
 def mergeSplitOutput(looperList) :
     import os,cPickle
+    import utils
     
     #combine output
     for parent in parentDict :
@@ -114,13 +115,13 @@ def mergeSplitOutput(looperList) :
         looperPrint(parent,someLooper)
         inFiles=" ".join(inFileList)
         cmd="hadd -f "+outputPlotFileName+" "+inFiles+" | grep -v 'Source file' | grep -v 'Target path'"
-        #print "hadding",outputPlotFileName,"..."
         #print cmd
-        os.system(cmd)
+        hAddOut=utils.getCommandOutput2(cmd)
+        print hAddOut[:-1]
         print someLooper.hyphens
         if len(displayFileList)>0 :
             outputFileName=displayFileList[0].replace(someLooper.name,someLooper.parentName).replace(".root",".ps")
-            base.psFromRoot(displayFileList,outputFileName,beQuiet=False)
+            utils.psFromRoot(displayFileList,outputFileName,beQuiet=False)
             print someLooper.hyphens
 
 def loopOverSamples() :

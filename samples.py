@@ -1,34 +1,5 @@
-def getCommandOutput2(command):
-    import os
-    child = os.popen(command)
-    data = child.read()
-    err = child.close()
-    #if err: raise RuntimeError, '%s failed w/ exit code %d' % (command, err)
-    return data
+import utils
 
-def pruneFileList(inList) :
-    #make a dictionary of file versions
-    splitString="_"
-    stripString=".root"
-    d={}
-    for inFile in inList :
-        fieldList=inFile.replace(stripString,"").split(splitString)
-        key=tuple(fieldList[:-1])
-        value=int(fieldList[-1])
-        if key not in d :
-            d[key]=[value]
-        else :
-            d[key].append(value)
-
-    #select the highest-numbered version of each file
-    outList=[]
-    for key in d :
-        #print key,d[key]
-        fileName=splitString.join(key)
-        fileName+=splitString+str(max(d[key]))+stripString
-        outList.append(fileName)
-    return outList
-                        
 class sampleDictionaryHolder :
     """sampleDictionaryHolder"""
 
@@ -56,7 +27,7 @@ class sampleDictionaryHolder :
         fileList=[]
         cmd="srmls "+srmPrefix+"/"+location
         #print cmd
-        output=getCommandOutput2(cmd)
+        output=utils.getCommandOutput2(cmd)
         for line in output.split("\n") :
             if "SusyCAF_Tree" not in line : continue
             acceptFile=True
@@ -74,7 +45,7 @@ class sampleDictionaryHolder :
         fileList=[]
         cmd="nsls -l "+location
         #print cmd
-        output=getCommandOutput2(cmd)
+        output=utils.getCommandOutput2(cmd)
         for line in output.split("\n") :
             if "SusyCAF_Tree" not in line : continue
             acceptFile=True
@@ -86,7 +57,7 @@ class sampleDictionaryHolder :
             for item in itemsToSkip :
                 if item in fileName : acceptFile=False
             if acceptFile : fileList.append("rfio:///"+location+"/"+fileName)
-        self.fileListDict[name]=pruneFileList(fileList)
+        self.fileListDict[name]=utils.pruneFileList(fileList)
             
     def add_36QCD(self) :
         #self.registerCastorSample(name="QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
@@ -115,9 +86,9 @@ class sampleDictionaryHolder :
         furtherSubDirs=["leading_uncorr_ak5CaloJet.gt.40"]
         
         for subDir in subDirs :
-            self.fileListDict[subDir+"_cleanEvent"]=getCommandOutput2("ls "+baseDir+"/"+subDir+"/*.root").split()
+            self.fileListDict[subDir+"_cleanEvent"]=utils.getCommandOutput2("ls "+baseDir+"/"+subDir+"/*.root").split()
             for furtherSubDir in furtherSubDirs :
-                self.fileListDict[subDir+"."+furtherSubDir]=getCommandOutput2("ls "+baseDir+"/"+subDir+"/"+furtherSubDir+"/*.root").split()
+                self.fileListDict[subDir+"."+furtherSubDir]=utils.getCommandOutput2("ls "+baseDir+"/"+subDir+"/"+furtherSubDir+"/*.root").split()
 
     def add_EarlyJuneSamples(self) :
         #self.registerSamplesFromSrmLs(name="JetMETTau.Run2010A-May27thReReco_v1.RECO",
@@ -166,7 +137,7 @@ class sampleDictionaryHolder :
         return
     
     def add_Burt(self) :
-        #self.fileListDict["Burt"]=getCommandOutput2('find /tmp/bbetchar/SusyCAF/2010_05_18_19_26_19/OUTPUT/ | grep .root').split()
+        #self.fileListDict["Burt"]=utils.getCommandOutput2('find /tmp/bbetchar/SusyCAF/2010_05_18_19_26_19/OUTPUT/ | grep .root').split()
         return
 
     def add_test(self) :
