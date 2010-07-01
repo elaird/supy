@@ -65,7 +65,7 @@ class listDictionaryHolder :
         self.listDict["triggerSkimSteps_data"]=steps
         self.listDict["triggerSkimSteps_mc"]=removeStepsForMc(steps)
 
-    def addListMetPasSpeedTest(self) :
+    def addListMetPasLook(self) :
         steps0=[
             progressPrinter(2,300),
             techBitFilter([0],True),
@@ -88,24 +88,25 @@ class listDictionaryHolder :
         
         steps1=[
             progressPrinter(2,300),
-            #soloObjectPtSelector(metCollection,"P4",metSuffix,0.0),
             
-            cleanJetIndexProducer(jetCollection,jetSuffix,cleanJetPtThreshold,jetEtaMax),
+            cleanJetIndexProducerFromFlag(jetCollection,jetSuffix,cleanJetPtThreshold,jetEtaMax),
+            #cleanJetIndexProducer(jetCollection,jetSuffix,cleanJetPtThreshold,jetEtaMax),
             nCleanJetHistogrammer(jetCollection,jetSuffix),
             nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
             nOtherJetEventFilter(jetCollection,jetSuffix,1),
             cleanJetPtHistogrammer(jetCollection,jetSuffix,True),
-            
+            hbheNoiseFilter(),
             cleanJetHtMhtProducer(jetCollection,jetSuffix),
             cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
+            extraVariablePtGreaterFilter(100.0,jetCollection+"Mht"+jetSuffix),
             
             cleanDiJetAlphaProducer(jetCollection,jetSuffix),
             cleanNJetAlphaProducer(jetCollection,jetSuffix),
             alphaHistogrammer(jetCollection,jetSuffix),
-            
-            extraVariableGreaterFilter(140.0,jetCollection+"Ht"+jetSuffix),
-            extraVariableGreaterFilter(0.55,jetCollection+"nJetAlphaT"+jetSuffix),
-            displayer(jetCollection,jetSuffix,metCollection,metSuffix,"/vols/cms02/elaird1/tmp/",100.0),
+
+            #extraVariableGreaterFilter(140.0,jetCollection+"Ht"+jetSuffix),
+            #extraVariableGreaterFilter(0.55,jetCollection+"nJetAlphaT"+jetSuffix),
+            displayer(jetCollection,jetSuffix,metCollection,metSuffix,"/vols/cms02/elaird1/tmp/",200.0),
             ]
 
         steps2=[
@@ -125,14 +126,14 @@ class listDictionaryHolder :
             alphaHistogrammer(jetCollection,jetSuffix),
             ]
         
-        #self.listDict["metPasSpeedTest_data"]=steps0
-        #self.listDict["metPasSpeedTest_mc"]=removeStepsForMc(steps0)
+        #self.listDict["metPasLook_data"]=steps0
+        #self.listDict["metPasLook_mc"]=removeStepsForMc(steps0)
 
-        self.listDict["metPasSpeedTest_data"]=steps1
-        self.listDict["metPasSpeedTest_mc"]=removeStepsForMc(steps1)
+        self.listDict["metPasLook_data"]=steps1
+        self.listDict["metPasLook_mc"]=removeStepsForMc(steps1)
 
-        #self.listDict["metPasSpeedTest_data"]=steps2
-        #self.listDict["metPasSpeedTest_mc"]=removeStepsForMc(steps2)
+        #self.listDict["metPasLook_data"]=steps2
+        #self.listDict["metPasLook_mc"]=removeStepsForMc(steps2)
 
     def addListMetPasFilter(self) :
         steps=[
