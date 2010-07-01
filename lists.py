@@ -74,14 +74,21 @@ class listDictionaryHolder :
         jetCollection="ak5Jet"
         jetSuffix="Pat"
 
+        metCollection="met"
+        #metSuffix="Calo"
+        metSuffix=jetCollection[:3].upper()
+        metSuffix+="TypeII"
+        #metSuffix="PF"
+        
         cleanJetPtThreshold=20.0
         
         corrRatherThanUnCorr=True
         nCleanJets=2
-        jetEtaMax=3.0
+        jetEtaMax=5.0
         
         steps1=[
             progressPrinter(2,300),
+            #soloObjectPtSelector(metCollection,"P4",metSuffix,0.0),
             
             cleanJetIndexProducer(jetCollection,jetSuffix,cleanJetPtThreshold,jetEtaMax),
             nCleanJetHistogrammer(jetCollection,jetSuffix),
@@ -95,6 +102,10 @@ class listDictionaryHolder :
             cleanDiJetAlphaProducer(jetCollection,jetSuffix),
             cleanNJetAlphaProducer(jetCollection,jetSuffix),
             alphaHistogrammer(jetCollection,jetSuffix),
+            
+            extraVariableGreaterFilter(140.0,jetCollection+"Ht"+jetSuffix),
+            extraVariableGreaterFilter(0.55,jetCollection+"nJetAlphaT"+jetSuffix),
+            displayer(jetCollection,jetSuffix,metCollection,metSuffix,"/vols/cms02/elaird1/tmp/",100.0),
             ]
 
         steps2=[
