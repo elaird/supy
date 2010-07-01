@@ -27,17 +27,23 @@ class sampleDictionaryHolder :
             getattr(self,member)()
 
     def add_met_pas_skims(self) :
-        baseDir="/vols/cms02/elaird1/03_skims/cleaned/"
-
+        #baseDir="/vols/cms02/elaird1/03_skims/cleaned/"
+        #subDirs=[
+        #    "JetMETTau.Run2010A-May27thReReco_v1.RECO",
+        #    "MinimumBias.Commissioning10-SD_JetMETTau-v9.RECO",
+        #    "MinimumBias.Commissioning10-May6thPDSkim2_SD_JetMETTau-v1.RECO",
+        #    "QCD_Pt-15_7TeV-pythia8.Spring10-START3X_V26B-v1.GEN-SIM-RECO",
+        #    "QCD_Pt-15_7TeV-pythia6.Spring10-START3X_V26B-v1.GEN-SIM-RECO",
+        #    ]
+        #furtherSubDirs=["leading_uncorr_ak5CaloJet.gt.40"]
+        
+        baseDir="/vols/cms02/elaird1/04_skims/"
         subDirs=[
-            "JetMETTau.Run2010A-May27thReReco_v1.RECO",
-            "MinimumBias.Commissioning10-SD_JetMETTau-v9.RECO",
-            "MinimumBias.Commissioning10-May6thPDSkim2_SD_JetMETTau-v1.RECO",
-            "QCD_Pt-15_7TeV-pythia8.Spring10-START3X_V26B-v1.GEN-SIM-RECO",
-            "QCD_Pt-15_7TeV-pythia6.Spring10-START3X_V26B-v1.GEN-SIM-RECO",
+            "JetMETTau.Run2010A-Jun9thReReco_v1.RECO",
+            "MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO",
+            "QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
             ]
-
-        furtherSubDirs=["leading_uncorr_ak5CaloJet.gt.40"]
+        furtherSubDirs=[]
         
         for subDir in subDirs :
             self.fileListDict[subDir+"_cleanEvent"]=getCommandOutput2("ls "+baseDir+"/"+subDir+"/*.root").split()
@@ -418,6 +424,52 @@ class sampleDictionaryHolder :
         
         self.fileListDict["QCD_Pt-15_7TeV.pythia6.Spring10-START3X_V26B-v1.GEN-SIM-RECO"]=outFiles
         return
+    
+    def registerSamplesFromSrmLs(self,dataSets,sizeThreshold) :
+        srmPrefix="srm://gfe02.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN="
+        dCachePrefix="dcap://gfe02.hep.ph.ic.ac.uk:22128"
+
+        for dataSet in dataSets :
+            name=dataSet[0]
+            locationOfFiles=dataSet[1]
+            itemsToSkip=dataSet[2]
+
+            fileList=[]
+            cmd="srmls "+srmPrefix+"/"+locationOfFiles
+            #print cmd
+            output=getCommandOutput2(cmd)
+            for line in output.split("\n") :
+                if "SusyCAF_Tree" not in line : continue
+                acceptFile=True
+                fields=line.split()
+                size=float(fields[0])
+                fileName=fields[1]
+                
+                if size<=sizeThreshold : acceptFile=False
+                for item in itemsToSkip :
+                    if item in fileName : acceptFile=False
+                if acceptFile : fileList.append(dCachePrefix+fileName)
+            self.fileListDict[name]=fileList
+    
+    def add_37Data(self) :
+        dataSets=[]
+        #dataSets.append(["JetMETTau.Run2010A-Jun9thReReco_v1.RECO",
+        #                 "/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/henning//ICF/automated/2010_06_25_18_16_45/",
+        #                 [],
+        #                 ]
+        #                )
+        #dataSets.append(["MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO",
+        #                 "/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/henning//ICF/automated/2010_06_25_18_06_57/",
+        #                 [],
+        #                 ]
+        #                )
+        #dataSets.append(["QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
+        #                 "/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/elaird//ICF/automated/2010_06_25_17_43_39/",
+        #                 [],
+        #                 ]
+        #                ) 
+
+        self.registerSamplesFromSrmLs(dataSets,sizeThreshold=0)
     
     def add_Burt(self) :
         #self.fileListDict["Burt"]=getCommandOutput2('find /tmp/bbetchar/SusyCAF/2010_05_18_19_26_19/OUTPUT/ | grep .root').split()
