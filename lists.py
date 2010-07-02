@@ -14,7 +14,7 @@ def removeStepsForMc(inSteps) :
     dummyTechBit0=techBitFilter([0],True)
     dummyRunList=goodRunsOnly2009("900 GeV","v2")
     dummyMetGroupFilter=metGroupNoiseEventFilter("v1")
-    dummyDisplayer=displayer("","","","","",100.0)
+    dummyDisplayer=displayer()
     outSteps=[]
     for step in inSteps :
         #remove inapplicable steps
@@ -71,17 +71,20 @@ class listDictionaryHolder :
             techBitFilter([0],True),
             ]
 
-        jetCollection="ak5Jet"
+        #jetCollection="ak5Jet"
+        #jetCollection="ak5JetJPT"
+        jetCollection="ak5JetPF"
         jetSuffix="Pat"
 
         metCollection="met"
         #metSuffix="Calo"
         metSuffix=jetCollection[:3].upper()
-        metSuffix+="TypeII"
-        #metSuffix="PF"
+        #metSuffix+="TypeII"
+        metSuffix="PF"
+
+        leptonSuffix="PF"
         
         cleanJetPtThreshold=20.0
-        
         corrRatherThanUnCorr=True
         nCleanJets=2
         jetEtaMax=5.0
@@ -106,7 +109,7 @@ class listDictionaryHolder :
 
             #extraVariableGreaterFilter(140.0,jetCollection+"Ht"+jetSuffix),
             #extraVariableGreaterFilter(0.55,jetCollection+"nJetAlphaT"+jetSuffix),
-            displayer(jetCollection,jetSuffix,metCollection,metSuffix,"/vols/cms02/elaird1/tmp/",200.0),
+            displayer(jetCollection,jetSuffix,metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/elaird1/tmp/",scale=200.0),
             ]
 
         steps2=[

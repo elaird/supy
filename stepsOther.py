@@ -409,7 +409,7 @@ class bxFilter(analysisStep) :
 class displayer(analysisStep) :
     #special __doc__ assignment below
     
-    def __init__(self,jetCollection,jetSuffix,metCollection,metSuffix,outputDir,scale,fakerMode=False) :
+    def __init__(self,jetCollection="",jetSuffix="",metCollection="",metSuffix="",leptonSuffix="",genJetCollection="",outputDir="",scale=200.0,fakerMode=False) :
         self.__doc__=self.displayerStepName
         self.outputDir=outputDir
         self.moreName="(see below)"
@@ -418,7 +418,9 @@ class displayer(analysisStep) :
         self.jetSuffix=jetSuffix
         self.metCollection=metCollection
         self.metSuffix=metSuffix
-
+        self.leptonSuffix=leptonSuffix
+        self.genJetCollection=genJetCollection
+        
         self.fakerMode=fakerMode
 
         self.neededBranches=[self.jetCollection+'CorrectedP4'+self.jetSuffix,
@@ -429,9 +431,7 @@ class displayer(analysisStep) :
         self.doLeptons=True
 
         if (self.doLeptons) :
-            suffix="Pat"
-            #suffix="PF"
-            listOfTuples=[("muon",suffix),("electron",suffix),("photon","Pat"),("tau","Pat")]
+            listOfTuples=[("muon",self.leptonSuffix),("electron",self.leptonSuffix),("photon","Pat"),("tau","Pat")]
             for tuple in listOfTuples :
                 particle=tuple[0]
                 suffix=tuple[1]
@@ -447,7 +447,6 @@ class displayer(analysisStep) :
     def switchGenOn(self) :
         self.doGen=True
         self.neededBranches.append(self.metCollection+'GenMetP4'+self.metSuffix)
-        self.genJetCollection="ic5Jet"
         self.neededBranches.append(self.genJetCollection+'GenJetP4'+self.jetSuffix)
 
     def bookHistos(self) :
@@ -672,6 +671,9 @@ class displayer(analysisStep) :
             self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
     def drawPhotons (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+        #temporary hack
+        if self.leptonSuffix=="PF" : return
+
         self.line.SetLineColor(color)
         if (not hasattr(self,"photonEntryInLegend")) :
             self.photonEntryInLegend=True
