@@ -83,7 +83,8 @@ class sampleDictionaryHolder :
             "MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO",
             "QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
             ]
-        furtherSubDirs=["leading_uncorr_ak5CaloJet.gt.40"]
+        furtherSubDirs=[]
+        for jetType in ["Calo","JPT","PF"] : furtherSubDirs.append("leading_uncorr_ak5"+jetType+"Jet.gt.40")
         
         for subDir in subDirs :
             self.fileListDict[subDir+"_cleanEvent"]=utils.getCommandOutput2("ls "+baseDir+"/"+subDir+"/*.root").split()

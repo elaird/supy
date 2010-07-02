@@ -157,10 +157,14 @@ class analysisDictionaryHolder :
         nEvents=-1
         specs=[]
 
+        #jetType="Calo"
+        #jetType="JPT"
+        jetType="PF"
+        
         for dir in dataDirs :
-            specs.append( base.sampleSpecification(self.fileListDict,dir+".leading_uncorr_ak5CaloJet.gt.40",nEvents,outputPrefix,self.listDict["metPasLook_data"]) )
+            specs.append( base.sampleSpecification(self.fileListDict,dir+".leading_uncorr_ak5"+jetType+"Jet.gt.40",nEvents,outputPrefix,self.listDict["metPasLook_data"]) )
         for dir in mcDirs :
-            specs.append( base.sampleSpecification(self.fileListDict,dir+".leading_uncorr_ak5CaloJet.gt.40",nEvents,outputPrefix,self.listDict["metPasLook_mc"]) )
+            specs.append( base.sampleSpecification(self.fileListDict,dir+".leading_uncorr_ak5"+jetType+"Jet.gt.40",nEvents,outputPrefix,self.listDict["metPasLook_mc"]) )
             
         #self.analysisDict[outputPrefix]=specs
         self.analysisDict[outputPrefix]=self.splitUpSpecs(specs)
