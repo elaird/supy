@@ -150,16 +150,19 @@ class cleanJetIndexProducerFromFlag(analysisStep) :
         self.moreName2+="pT>="+str(self.jetPtThreshold)+" GeV"
         self.moreName2+="; |eta|<="+str(self.jetEtaMax)
         self.moreName2+=")"
+
+        self.flagName="JetIDloose"
+        if self.jetCollection[-2:]=="PF" : self.flagName="PF"+self.flagName
         
         self.neededBranches=["CorrectedP4"]
-        self.neededBranches.append("JetIDloose")
+        self.neededBranches.append(self.flagName)
 
         for i in range(len(self.neededBranches)) :
             self.neededBranches[i]=self.jetCollection+self.neededBranches[i]+self.jetSuffix
 
     def uponAcceptance (self,chain,chainVars,extraVars) :
         p4Vector       =getattr(chainVars,self.jetCollection+'CorrectedP4'     +self.jetSuffix)
-        jetIdFlagVector=getattr(chainVars,self.jetCollection+'JetIDloose'      +self.jetSuffix)
+        jetIdFlagVector=getattr(chainVars,self.jetCollection+self.flagName     +self.jetSuffix)
 
         cleanString=self.jetCollection+"cleanJetIndices"+self.jetSuffix
         setattr(extraVars,cleanString,[])
