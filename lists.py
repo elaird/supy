@@ -141,12 +141,14 @@ class listDictionaryHolder :
     def addListMetPasFilter(self) :
         steps=[
             progressPrinter(2,300),
-            hltFilter("HLT_Jet15U"),
+            #hltFilter("HLT_Jet15U"),
+            hltFilter("HLT_Jet30U"),
             techBitFilter([0],True),
             physicsDeclared(),
             vertexRequirementFilter(5.0,15.0),
             monsterEventFilter(10,0.25),
-            skimmer("/vols/cms02/elaird1/",False),
+            #skimmer("/vols/cms02/elaird1/",False),
+            skimmer("/data1/elaird/susyTree/10_36_qcd/",False),
             #skimmer("/tmp/",False),
             ]
         self.listDict["metPasFilter_data"]=steps
