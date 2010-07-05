@@ -41,7 +41,7 @@ class sampleDictionaryHolder :
             if acceptFile : fileList.append(dCachePrefix+fileName)
         self.fileListDict[name]=fileList
     
-    def registerCastorSample(self,name,location,itemsToSkip,sizeThreshold) :
+    def registerCastorSample(self,name,location,itemsToSkip,sizeThreshold,pruneList=True,nMaxFiles=-1) :
         fileList=[]
         cmd="nsls -l "+location
         #print cmd
@@ -57,13 +57,22 @@ class sampleDictionaryHolder :
             for item in itemsToSkip :
                 if item in fileName : acceptFile=False
             if acceptFile : fileList.append("rfio:///"+location+"/"+fileName)
-        self.fileListDict[name]=utils.pruneFileList(fileList)
+            
+        if pruneList :   fileList=utils.pruneFileList(fileList)
+        if nMaxFiles>0 : fileList=fileList[:nMaxFiles]
+        self.fileListDict[name]=fileList
             
     def add_36QCD(self) :
         #self.registerCastorSample(name="QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
         #                          location="/castor/cern.ch/user/e/elaird//SusyCAF/automated/2010_06_30_11_16_35/",
         #                          itemsToSkip=[],
         #                          sizeThreshold=0)
+        self.registerCastorSample(name="QCD_Pt30.Summer10-START36_V9_S09-v1.GEN-SIM-RECODEBUG",
+                                  location="/castor/cern.ch/user/e/elaird//SusyCAF/automated/2010_07_02_19_25_51/",
+                                  itemsToSkip=[],
+                                  sizeThreshold=0,
+                                  pruneList=False,
+                                  nMaxFiles=1)
         return
         
     def add_met_pas_skims(self) :
@@ -77,20 +86,21 @@ class sampleDictionaryHolder :
         #    ]
         #furtherSubDirs=["leading_uncorr_ak5CaloJet.gt.40"]
         
-        baseDir="/vols/cms02/elaird1/04_skims/"
-        subDirs=[
-            "JetMETTau.Run2010A-Jun9thReReco_v1.RECO",
-            "MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO",
-            "QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
-            ]
-        furtherSubDirs=[]
-        for jetType in ["Calo","JPT","PF"] : furtherSubDirs.append("leading_uncorr_ak5"+jetType+"Jet.gt.40")
-        
-        for subDir in subDirs :
-            self.fileListDict[subDir+"_cleanEvent"]=utils.getCommandOutput2("ls "+baseDir+"/"+subDir+"/*.root").split()
-            for furtherSubDir in furtherSubDirs :
-                self.fileListDict[subDir+"."+furtherSubDir]=utils.getCommandOutput2("ls "+baseDir+"/"+subDir+"/"+furtherSubDir+"/*.root").split()
-
+        #baseDir="/vols/cms02/elaird1/04_skims/"
+        #subDirs=[
+        #    "JetMETTau.Run2010A-Jun9thReReco_v1.RECO",
+        #    "MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO",
+        #    "QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
+        #    ]
+        #furtherSubDirs=[]
+        #for jetType in ["Calo","JPT","PF"] : furtherSubDirs.append("leading_uncorr_ak5"+jetType+"Jet.gt.40")
+        #
+        #for subDir in subDirs :
+        #    self.fileListDict[subDir+"_cleanEvent"]=utils.getCommandOutput2("ls "+baseDir+"/"+subDir+"/*.root").split()
+        #    for furtherSubDir in furtherSubDirs :
+        #        self.fileListDict[subDir+"."+furtherSubDir]=utils.getCommandOutput2("ls "+baseDir+"/"+subDir+"/"+furtherSubDir+"/*.root").split()
+        return
+    
     def add_EarlyJuneSamples(self) :
         #self.registerSamplesFromSrmLs(name="JetMETTau.Run2010A-May27thReReco_v1.RECO",
         #                              location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bbetchar//ICF/automated/2010_06_08_03_27_37/",
