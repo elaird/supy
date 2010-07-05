@@ -96,11 +96,11 @@ class analysisDictionaryHolder :
         #    ]
 
         subDirsData=[
-            "JetMETTau.Run2010A-Jun9thReReco_v1.RECO",
-            "MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO",
+            #"JetMETTau.Run2010A-Jun9thReReco_v1.RECO",
+            #"MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO",
             ]
         subDirsMc=[
-            "QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
+            #"QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
             ]
 
         #jetType=""
@@ -120,7 +120,7 @@ class analysisDictionaryHolder :
         
     def addMetPasSkim(self) :
         outputPrefix="MetPasSkim"
-        nEvents=-1
+        nEvents=100
         specs=[
             #base.sampleSpecification(self.fileListDict,"361_v12_11_jetmet_v9",nEvents,outputPrefix,self.listDict["metPasFilter_data"]),
             #base.sampleSpecification(self.fileListDict,"JetMETTau.Run2010A-May27thReReco_v1.RECO",nEvents,outputPrefix,self.listDict["metPasFilter_data"]),
@@ -132,10 +132,11 @@ class analysisDictionaryHolder :
             #base.sampleSpecification(self.fileListDict,"JetMETTau.Run2010A-Jun9thReReco_v1.RECO",nEvents,outputPrefix,self.listDict["metPasFilter_data"]),
             #base.sampleSpecification(self.fileListDict,"MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO",nEvents,outputPrefix,self.listDict["metPasFilter_data"]),
             #base.sampleSpecification(self.fileListDict,"QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",nEvents,outputPrefix,self.listDict["metPasFilter_mc"]),
+            base.sampleSpecification(self.fileListDict,"QCD_Pt30.Summer10-START36_V9_S09-v1.GEN-SIM-RECODEBUG",nEvents,outputPrefix,self.listDict["metPasFilter_mc"]),
             
             ]
-        #self.analysisDict[outputPrefix]=specs
-        self.analysisDict[outputPrefix]=self.splitUpSpecs(specs)
+        self.analysisDict[outputPrefix]=specs
+        #self.analysisDict[outputPrefix]=self.splitUpSpecs(specs)
         #print self.splitUpSpecs(specs)
         
     def addMetPasLook(self) :
@@ -148,11 +149,10 @@ class analysisDictionaryHolder :
 
         dataDirs=["JetMETTau.Run2010A-Jun9thReReco_v1.RECO",
                   "MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO"]
-        #dataDirs=["JetMETTau.Run2010A-Jun9thReReco_v1.RECO"]
         mcDirs=["QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG"]
 
-        #dataDirs=[]
-        #mcDirs=[]
+        dataDirs=[]
+        mcDirs=[]
         
         nEvents=-1
         specs=[]
