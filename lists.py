@@ -66,31 +66,32 @@ class listDictionaryHolder :
         self.listDict["triggerSkimSteps_mc"]=removeStepsForMc(steps)
 
     def addListMetPasLook(self) :
-        steps0=[
-            progressPrinter(2,300),
-            techBitFilter([0],True),
-            ]
 
-        #jetCollection="ak5Jet"
+        jetCollection="ak5Jet"
         #jetCollection="ak5JetJPT"
-        jetCollection="ak5JetPF"
+        #jetCollection="ak5JetPF"
         jetSuffix="Pat"
 
         metCollection="met"
-        #metSuffix="Calo"
+        metSuffix="Calo"
         metSuffix=jetCollection[:3].upper()
-        #metSuffix+="TypeII"
-        metSuffix="PF"
+        metSuffix+="TypeII"
+        #metSuffix="PF"
 
-        leptonSuffix="PF"
+        leptonSuffix="Pat"
+        #leptonSuffix="PF"
         
         cleanJetPtThreshold=20.0
         corrRatherThanUnCorr=True
         nCleanJets=2
-        jetEtaMax=5.0
-        
-        steps1=[
+        jetEtaMax=3.0
+
+        steps=[
             progressPrinter(2,300),
+
+            jetPtSelector(jetCollection,jetSuffix,60.0,0),
+            jetPtSelector(jetCollection,jetSuffix,40.0,1),            
+            leadingUnCorrJetPtSelector( [(jetCollection,jetSuffix)],60.0 ),
             
             cleanJetIndexProducerFromFlag(jetCollection,jetSuffix,cleanJetPtThreshold,jetEtaMax),
             #cleanJetIndexProducer(jetCollection,jetSuffix,cleanJetPtThreshold,jetEtaMax),
@@ -101,55 +102,36 @@ class listDictionaryHolder :
             hbheNoiseFilter(),
             cleanJetHtMhtProducer(jetCollection,jetSuffix),
             cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
-            extraVariablePtGreaterFilter(100.0,jetCollection+"Mht"+jetSuffix),
-            
+            #extraVariablePtGreaterFilter(100.0,jetCollection+"Mht"+jetSuffix),
+
+            extraVariableGreaterFilter(120.0,jetCollection+"Ht"+jetSuffix),
             cleanDiJetAlphaProducer(jetCollection,jetSuffix),
             cleanNJetAlphaProducer(jetCollection,jetSuffix),
             alphaHistogrammer(jetCollection,jetSuffix),
 
-            #extraVariableGreaterFilter(140.0,jetCollection+"Ht"+jetSuffix),
-            #extraVariableGreaterFilter(0.55,jetCollection+"nJetAlphaT"+jetSuffix),
+            extraVariableGreaterFilter(0.9,jetCollection+"nJetAlphaT"+jetSuffix),
             displayer(jetCollection,jetSuffix,metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/elaird1/tmp/",scale=200.0),
+            eventPrinter(),
+            jetPrinter(jetCollection,jetSuffix),
+            htMhtPrinter(jetCollection,jetSuffix),
+            nJetAlphaTPrinter(jetCollection,jetSuffix),
             ]
 
-        steps2=[
-            progressPrinter(2,300),
-            
-            cleanJetIndexProducerOld(jetCollection,jetSuffix,cleanJetPtThreshold,corrRatherThanUnCorr,jetEtaMax),
-            nCleanJetHistogrammer(jetCollection,jetSuffix),
-            nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
-            nOtherJetEventFilter(jetCollection,jetSuffix,1),
-            cleanJetPtHistogrammer(jetCollection,jetSuffix,True),
-            
-            cleanJetHtMhtProducerOld(jetCollection,jetSuffix),
-            cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
-
-            cleanDiJetAlphaProducer(jetCollection,jetSuffix),
-            cleanNJetAlphaProducer(jetCollection,jetSuffix),
-            alphaHistogrammer(jetCollection,jetSuffix),
-            ]
-        
-        #self.listDict["metPasLook_data"]=steps0
-        #self.listDict["metPasLook_mc"]=removeStepsForMc(steps0)
-
-        self.listDict["metPasLook_data"]=steps1
-        self.listDict["metPasLook_mc"]=removeStepsForMc(steps1)
-
-        #self.listDict["metPasLook_data"]=steps2
-        #self.listDict["metPasLook_mc"]=removeStepsForMc(steps2)
+        self.listDict["metPasLook_data"]=steps
+        self.listDict["metPasLook_mc"]=removeStepsForMc(steps)
 
     def addListMetPasFilter(self) :
+        jetList=[("ak5Jet"+jetType,"Pat") for jetType in ["","PF","JPT"]]
         steps=[
             progressPrinter(2,300),
-            #hltFilter("HLT_Jet15U"),
             hltFilter("HLT_Jet30U"),
+            leadingUnCorrJetPtSelector(jetList,60.0),            
             techBitFilter([0],True),
             physicsDeclared(),
             vertexRequirementFilter(5.0,15.0),
             monsterEventFilter(10,0.25),
-            #skimmer("/vols/cms02/elaird1/",False),
-            skimmer("/data1/elaird/susyTree/10_36_qcd/",False),
-            #skimmer("/tmp/",False),
+            skimmer("/vols/cms02/elaird1/",False),
+            #skimmer("/data1/elaird/susyTree/10_36_qcd/",False),
             ]
         self.listDict["metPasFilter_data"]=steps
         self.listDict["metPasFilter_mc"]=removeStepsForMc(steps)
@@ -165,7 +147,7 @@ class listDictionaryHolder :
 
             steps2=[
                 progressPrinter(2,300),
-                leadingUnCorrJetPtSelector("ak5Jet"+jetType,"Pat",40.0),
+                leadingUnCorrJetPtSelector([("ak5Jet"+jetType,"Pat")],40.0),
                 skimmer("/vols/cms02/elaird1/",False)
                 ]
             self.listDict["metPasFilterJet2"+jetType+"_data"]=steps2

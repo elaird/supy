@@ -46,38 +46,45 @@ class jetPtVetoer(analysisStep) :
 class leadingUnCorrJetPtSelector(analysisStep) :
     """leadingUnCorrJetPtSelector"""
 
-    def __init__(self,jetCollection,jetSuffix,jetPtThreshold):
-        self.jetCollection=jetCollection
-        self.jetSuffix=jetSuffix
+    def __init__(self,jetCollectionsAndSuffixes,jetPtThreshold):
+        self.jetCollectionsAndSuffixes=jetCollectionsAndSuffixes
         self.jetPtThreshold=jetPtThreshold
-        
-        self.moreName ="("+self.jetCollection+"; "+self.jetSuffix+"; "
-        self.moreName+="corr. pT[leading uncorr. jet]>="+str(self.jetPtThreshold)+" GeV"
-        self.moreName+=")"
 
-        self.neededBranches=[
-            self.jetCollection+"CorrectedP4"+self.jetSuffix,
-            self.jetCollection+"CorrFactor"+self.jetSuffix
-            ]
+        self.neededBranches=[]
+        self.moreName="("
+        for collectionAndSuffix in self.jetCollectionsAndSuffixes :
+            collection=collectionAndSuffix[0]
+            suffix=collectionAndSuffix[1]
+            self.moreName +=collection+suffix+";"
+            self.neededBranches.append(collection+"CorrectedP4"+suffix)
+            self.neededBranches.append(collection+"CorrFactor"+suffix)
+
+        self.moreName2="corr. pT[leading uncorr. jet]>="+str(self.jetPtThreshold)+" GeV)"
 
     def select (self,chain,chainVars,extraVars) :
-        p4Vector=getattr(chainVars,self.jetCollection+"CorrectedP4"+self.jetSuffix)
-        corrFactorVector=getattr(chainVars,self.jetCollection+"CorrFactor"+self.jetSuffix)
-        size=p4Vector.size()
+        #return true if any collection has a leading uncorrected jet above threshold
+        #otherwise return False
+        for collectionAndSuffix in self.jetCollectionsAndSuffixes :
+            collection=collectionAndSuffix[0]
+            suffix=collectionAndSuffix[1]
+            p4Vector=getattr(chainVars,collection+"CorrectedP4"+suffix)
+            corrFactorVector=getattr(chainVars,collection+"CorrFactor"+suffix)
+            size=p4Vector.size()
 
-        indexOfLeadingUnCorrJet=-1
-        leadingUnCorrJetPt=-1.0
-        for i in range(size) :
-            unCorrJetPt=p4Vector.at(i).pt()/corrFactorVector.at(i)
-            #print i,unCorrJetPt,p4Vector.at(i).pt(),corrFactorVector.at(i)
-            if unCorrJetPt>leadingUnCorrJetPt :
-                leadingUnCorrJetPt=unCorrJetPt
-                indexOfLeadingUnCorrJet=i                
+            indexOfLeadingUnCorrJet=-1
+            leadingUnCorrJetPt=-1.0
+            for i in range(size) :
+                unCorrJetPt=p4Vector.at(i).pt()/corrFactorVector.at(i)
+                #print i,unCorrJetPt,p4Vector.at(i).pt(),corrFactorVector.at(i)
+                if unCorrJetPt>leadingUnCorrJetPt :
+                    leadingUnCorrJetPt=unCorrJetPt
+                    indexOfLeadingUnCorrJet=i                
 
-        #print "leading: ",indexOfLeadingUnCorrJet
-        #print
-        if indexOfLeadingUnCorrJet<0 or size<=indexOfLeadingUnCorrJet : return False
-        return p4Vector.at(indexOfLeadingUnCorrJet).pt()>=self.jetPtThreshold
+            #print "leading: ",indexOfLeadingUnCorrJet
+            #print
+            if indexOfLeadingUnCorrJet<0 or size<=indexOfLeadingUnCorrJet : continue
+            if p4Vector.at(indexOfLeadingUnCorrJet).pt()>=self.jetPtThreshold : return True
+        return False
 #####################################
 class cleanJetIndexProducer(analysisStep) :
     """cleanJetIndexProducer"""
