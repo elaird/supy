@@ -101,11 +101,12 @@ class analysisDictionaryHolder :
             ]
         subDirsMc=[
             #"QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
+            #"QCD_Pt30.Summer10-START36_V9_S09-v1.GEN-SIM-RECODEBUG",
             ]
 
-        #jetType=""
+        jetType=""
         #jetType="PF"
-        jetType="JPT"
+        #jetType="JPT"
         nEvents=-1
         specs=[]
         
@@ -120,7 +121,7 @@ class analysisDictionaryHolder :
         
     def addMetPasSkim(self) :
         outputPrefix="MetPasSkim"
-        nEvents=100
+        nEvents=-1
         specs=[
             #base.sampleSpecification(self.fileListDict,"361_v12_11_jetmet_v9",nEvents,outputPrefix,self.listDict["metPasFilter_data"]),
             #base.sampleSpecification(self.fileListDict,"JetMETTau.Run2010A-May27thReReco_v1.RECO",nEvents,outputPrefix,self.listDict["metPasFilter_data"]),
@@ -132,11 +133,11 @@ class analysisDictionaryHolder :
             #base.sampleSpecification(self.fileListDict,"JetMETTau.Run2010A-Jun9thReReco_v1.RECO",nEvents,outputPrefix,self.listDict["metPasFilter_data"]),
             #base.sampleSpecification(self.fileListDict,"MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO",nEvents,outputPrefix,self.listDict["metPasFilter_data"]),
             #base.sampleSpecification(self.fileListDict,"QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",nEvents,outputPrefix,self.listDict["metPasFilter_mc"]),
-            base.sampleSpecification(self.fileListDict,"QCD_Pt30.Summer10-START36_V9_S09-v1.GEN-SIM-RECODEBUG",nEvents,outputPrefix,self.listDict["metPasFilter_mc"]),
-            
+            #base.sampleSpecification(self.fileListDict,"QCD_Pt30.Summer10-START36_V9_S09-v1.GEN-SIM-RECODEBUG",nEvents,outputPrefix,self.listDict["metPasFilter_mc"]),
+            #base.sampleSpecification(self.fileListDict,"JetMETTau.Run2010A-Jul6thReReco_v1.RECO",nEvents,outputPrefix,self.listDict["metPasFilter_data"]),
             ]
-        self.analysisDict[outputPrefix]=specs
-        #self.analysisDict[outputPrefix]=self.splitUpSpecs(specs)
+        #self.analysisDict[outputPrefix]=specs
+        self.analysisDict[outputPrefix]=self.splitUpSpecs(specs)
         #print self.splitUpSpecs(specs)
         
     def addMetPasLook(self) :
@@ -147,25 +148,28 @@ class analysisDictionaryHolder :
         #          "MinimumBias.Commissioning10-May6thPDSkim2_SD_JetMETTau-v1.RECO"]
         #mcDirs=["QCD_Pt-15_7TeV-pythia8.Spring10-START3X_V26B-v1.GEN-SIM-RECO"]
 
-        dataDirs=["JetMETTau.Run2010A-Jun9thReReco_v1.RECO",
-                  "MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO"]
-        mcDirs=["QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG"]
+        #dataDirs=["JetMETTau.Run2010A-Jun9thReReco_v1.RECO",
+        #          "MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO"]
+        #mcDirs=["QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG"]
+
+        #dataDirs=[]
+        #mcDirs=[]
+        #
+        nEvents=-1
+        #specs=[]
+        #
+        #jetType="Calo"
+        ##jetType="JPT"
+        ##jetType="PF"
+        #
+        #for dir in dataDirs :
+        #    specs.append( base.sampleSpecification(self.fileListDict,dir+".leading_uncorr_ak5"+jetType+"Jet.gt.40",nEvents,outputPrefix,self.listDict["metPasLook_data"]) )
+        #for dir in mcDirs :
+        #    specs.append( base.sampleSpecification(self.fileListDict,dir+".leading_uncorr_ak5"+jetType+"Jet.gt.40",nEvents,outputPrefix,self.listDict["metPasLook_mc"]) )
 
         dataDirs=[]
-        mcDirs=[]
+        specs=[base.sampleSpecification(self.fileListDict,"JetMETTau.Run2010A-Jul6thReReco_v1.RECO_cleanEvent",nEvents,outputPrefix,self.listDict["metPasLook_data"]) ]
         
-        nEvents=-1
-        specs=[]
-
-        #jetType="Calo"
-        #jetType="JPT"
-        jetType="PF"
-        
-        for dir in dataDirs :
-            specs.append( base.sampleSpecification(self.fileListDict,dir+".leading_uncorr_ak5"+jetType+"Jet.gt.40",nEvents,outputPrefix,self.listDict["metPasLook_data"]) )
-        for dir in mcDirs :
-            specs.append( base.sampleSpecification(self.fileListDict,dir+".leading_uncorr_ak5"+jetType+"Jet.gt.40",nEvents,outputPrefix,self.listDict["metPasLook_mc"]) )
-            
         #self.analysisDict[outputPrefix]=specs
         self.analysisDict[outputPrefix]=self.splitUpSpecs(specs)
         
