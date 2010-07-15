@@ -20,9 +20,9 @@ class sampleDictionaryHolder :
             if member[:len(specialPrefix)]!=specialPrefix : continue
             getattr(self,member)()
 
-    def registerSamplesFromSrmLs(self,name,location,itemsToExclude,sizeThreshold) :
-        srmPrefix="srm://gfe02.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN="
-        dCachePrefix="dcap://gfe02.hep.ph.ic.ac.uk:22128"
+    def registerSamplesFromSrmLs(self,name,location,itemsToExclude,sizeThreshold,pruneList=True,nMaxFiles=-1) :
+        srmPrefix="srm://gfe02.grid.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN="
+        dCachePrefix="dcap://gfe02.grid.hep.ph.ic.ac.uk:22128"
 
         fileList=[]
         cmd="srmls "+srmPrefix+"/"+location
@@ -39,6 +39,9 @@ class sampleDictionaryHolder :
             for item in itemsToExclude :
                 if item in fileName : acceptFile=False
             if acceptFile : fileList.append(dCachePrefix+fileName)
+
+        if pruneList :   fileList=utils.pruneFileList(fileList)
+        if nMaxFiles>0 : fileList=fileList[:nMaxFiles]
         self.fileListDict[name]=fileList
     
     def registerCastorSample(self,name,location,itemsToSkip,sizeThreshold,pruneList=True,nMaxFiles=-1) :
@@ -67,12 +70,12 @@ class sampleDictionaryHolder :
         #                          location="/castor/cern.ch/user/e/elaird//SusyCAF/automated/2010_06_30_11_16_35/",
         #                          itemsToSkip=[],
         #                          sizeThreshold=0)
-        self.registerCastorSample(name="QCD_Pt30.Summer10-START36_V9_S09-v1.GEN-SIM-RECODEBUG",
-                                  location="/castor/cern.ch/user/e/elaird//SusyCAF/automated/2010_07_02_19_25_51/",
-                                  itemsToSkip=[],
-                                  sizeThreshold=0,
-                                  pruneList=False,
-                                  nMaxFiles=1)
+        #self.registerCastorSample(name="QCD_Pt30.Summer10-START36_V9_S09-v1.GEN-SIM-RECODEBUG",
+        #                          location="/castor/cern.ch/user/e/elaird//SusyCAF/automated/2010_07_02_19_25_51/",
+        #                          itemsToSkip=[],
+        #                          sizeThreshold=0,
+        #                          pruneList=False,
+        #                          nMaxFiles=1)
         return
         
     def add_met_pas_skims(self) :
@@ -85,20 +88,22 @@ class sampleDictionaryHolder :
         #    "QCD_Pt-15_7TeV-pythia6.Spring10-START3X_V26B-v1.GEN-SIM-RECO",
         #    ]
         #furtherSubDirs=["leading_uncorr_ak5CaloJet.gt.40"]
-        
+
         #baseDir="/vols/cms02/elaird1/04_skims/"
-        #subDirs=[
-        #    "JetMETTau.Run2010A-Jun9thReReco_v1.RECO",
-        #    "MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO",
-        #    "QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
-        #    ]
-        #furtherSubDirs=[]
+        baseDir="/vols/cms02/elaird1/05_skims/"
+        subDirs=[
+            #"JetMETTau.Run2010A-Jun9thReReco_v1.RECO",
+            #"MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO",
+            #"QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
+            "JetMETTau.Run2010A-Jul6thReReco_v1.RECO",            
+            ]
+        furtherSubDirs=[]
         #for jetType in ["Calo","JPT","PF"] : furtherSubDirs.append("leading_uncorr_ak5"+jetType+"Jet.gt.40")
-        #
-        #for subDir in subDirs :
-        #    self.fileListDict[subDir+"_cleanEvent"]=utils.getCommandOutput2("ls "+baseDir+"/"+subDir+"/*.root").split()
-        #    for furtherSubDir in furtherSubDirs :
-        #        self.fileListDict[subDir+"."+furtherSubDir]=utils.getCommandOutput2("ls "+baseDir+"/"+subDir+"/"+furtherSubDir+"/*.root").split()
+        
+        for subDir in subDirs :
+            self.fileListDict[subDir+"_cleanEvent"]=utils.getCommandOutput2("ls "+baseDir+"/"+subDir+"/*.root").split()
+            for furtherSubDir in furtherSubDirs :
+                self.fileListDict[subDir+"."+furtherSubDir]=utils.getCommandOutput2("ls "+baseDir+"/"+subDir+"/"+furtherSubDir+"/*.root").split()
         return
     
     def add_EarlyJuneSamples(self) :
@@ -141,9 +146,21 @@ class sampleDictionaryHolder :
         #                              sizeThreshold=0
         #                              )
         #self.registerSamplesFromSrmLs(name="QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
-        #                              location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/elaird//ICF/automated/2010_06_25_17_43_39/",
+        #                              location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/elaird//ICF/automated//2010_07_05_20_30_22/",
         #                              itemsToExclude=[],
-        #                              sizeThreshold=0
+        #                              sizeThreshold=0,
+        #                              pruneList=False,
+        #                              nMaxFiles=-1
+        #                              )
+        return
+
+    def add_July11Sample(self) :
+        #self.registerSamplesFromSrmLs(name="JetMETTau.Run2010A-Jul6thReReco_v1.RECO",
+        #                              location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/henning//ICF/automated/2010_07_09_17_43_53/",
+        #                              itemsToExclude=[],
+        #                              sizeThreshold=0,
+        #                              pruneList=False,
+        #                              nMaxFiles=-1
         #                              )
         return
     
