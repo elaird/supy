@@ -253,3 +253,62 @@ class recHitPrinter(analysisStep) :
         if (nFlagged>1) :
             print "(sum)",self.makeString(0,self.sum,0)[6:50]
 #####################################
+class recHitHistogrammer(analysisStep) :
+    """recHitHistogrammer"""
+
+    def __init__(self,algoType,detector,jetCollection,jetSuffix) :
+        self.algoType=algoType
+        self.detector=detector
+        self.jetCollection=jetCollection
+        self.jetSuffix=jetSuffix
+        self.neededBranches=["rechit"+self.algoType+"P4"+self.detector]
+        self.neededBranches.append(self.jetCollection+"CorrectedP4"+self.jetSuffix)
+        
+    def bookHistos(self) :
+        self.ptMaxHisto1=r.TH1D("ptMaxHisto1"+self.algoType+self.detector,"ptMaxHisto1"+self.algoType+self.detector,100,0.0,200.0)
+        self.ptMaxHisto2=r.TH1D("ptMaxHisto2"+self.algoType+self.detector,"ptMaxHisto2"+self.algoType+self.detector,100,0.0,200.0)
+        self.ptSumHisto1=r.TH1D("ptSumHisto1"+self.algoType+self.detector,"ptSumHisto1"+self.algoType+self.detector,100,0.0,200.0)
+        self.ptSumHisto2=r.TH1D("ptSumHisto2"+self.algoType+self.detector,"ptSumHisto2"+self.algoType+self.detector,100,0.0,200.0)
+
+        self.sumVsPtHisto=r.TH2D("sumVsPtHisto"+self.algoType+self.detector,
+                                 "sumVsPtHisto"+self.algoType+self.detector,
+                                 100,0.0,200.0,
+                                 100,0.0,200.0)
+    
+    def select(self,chain,chainVars,extraVars) :
+        flaggedP4s=getattr(chainVars,"rechit"+self.algoType+"P4"+self.detector)
+        leadingJetPt=getattr(chainVars,self.jetCollection+"CorrectedP4"+self.jetSuffix)[0].pt()
+        
+        pTs=[]
+        nFlagged=len(flaggedP4s)
+        for i in range(nFlagged) :
+            pTs.append(flaggedP4s[i].pt())
+
+        if len(pTs)==0 : pTs=[0.0]
+        maxPt=max(pTs)
+        sumPt=sum(pTs)
+
+        self.sumVsPtHisto.Fill(leadingJetPt,sumPt)
+        
+        if leadingJetPt<30.0 :
+            self.ptMaxHisto1.Fill(maxPt)
+            self.ptSumHisto1.Fill(sumPt)
+        elif leadingJetPt>60.0 :
+            self.ptMaxHisto2.Fill(maxPt)
+            self.ptSumHisto2.Fill(sumPt)
+
+        #special silliness
+        if leadingJetPt<70.0 : return False
+        if sumPt<70.0 : return False
+
+        return True
+        #for i in range(nFlagged) :
+        #    hit=flaggedP4s[i]
+        #    print "hit:",i,hit.pt(),hit.eta(),hit.phi()
+        #
+        #jets=getattr(chainVars,self.jetCollection+"CorrectedP4"+self.jetSuffix)
+        #for iJet in range(len(jets)) :
+        #    jet=jets[iJet]
+        #    print "jet:",iJet,jet.pt(),jet.eta(),jet.phi()
+
+#####################################
