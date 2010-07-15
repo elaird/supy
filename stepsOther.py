@@ -695,6 +695,19 @@ class displayer(analysisStep) :
         for iJet in range(len(p4Vector)) :
             self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
+    def drawCleanedRecHits (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+        self.line.SetLineColor(color)
+        if (not hasattr(self,"cleantedRecHitEntryInLegend")) :
+            self.cleanedRecHitEntryInLegend=True
+            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            self.legend.AddEntry(someLine,"cleaned RecHits (hack)","l")
+
+        algoType="Calo"
+        detector="Hf"
+        flaggedP4s=getattr(chainVars,"rechit"+algoType+"P4"+detector)
+        for hit in range(len(flaggedP4s)) :
+            self.drawP4(hit,color,lineWidth,arrowSize)
+            
     def makeAlphaTFunc(self,alphaTValue,color) :
         alphaTFunc=r.TF1(("alphaTCurve ( %#5.3g"%alphaTValue)+" )",
                          "1.0-2.0*("+str(alphaTValue)+")*sqrt(1.0-x*x)",
@@ -798,14 +811,16 @@ class displayer(analysisStep) :
         defWidth=1
         #                                        color     , width   , arrow size
 
-        if (self.doGen) : self.drawGenJets    (chainVars,extraVars,r.kBlack  , defWidth, defArrowSize      )
-        self.drawCleanJets  (chainVars,extraVars,r.kBlue   , defWidth, defArrowSize*2/3.0)
-        self.drawLowPtJets  (chainVars,extraVars,r.kCyan   , defWidth, defArrowSize*1/6.0)
-        #self.drawOtherJets  (chainVars,extraVars,r.kBlack  )
-        self.drawHt         (chainVars,extraVars,r.kBlue+3 , defWidth, defArrowSize*1/6.0)
-        self.drawNJetDeltaHt(chainVars,extraVars,r.kBlue-9 , defWidth, defArrowSize*1/6.0)
-        self.drawMht        (chainVars,extraVars,r.kRed    , defWidth, defArrowSize*3/6.0)
-        self.drawMet        (chainVars,extraVars,r.kGreen  , defWidth, defArrowSize*2/6.0)
+        if self.doGen :
+            self.drawGenJets    (chainVars,extraVars,r.kBlack  , defWidth, defArrowSize      )
+        self.drawCleanJets      (chainVars,extraVars,r.kBlue   , defWidth, defArrowSize*2/3.0)
+        self.drawLowPtJets      (chainVars,extraVars,r.kCyan   , defWidth, defArrowSize*1/6.0)
+        #self.drawOtherJets      (chainVars,extraVars,r.kBlack  )
+        self.drawHt             (chainVars,extraVars,r.kBlue+3 , defWidth, defArrowSize*1/6.0)
+        self.drawNJetDeltaHt    (chainVars,extraVars,r.kBlue-9 , defWidth, defArrowSize*1/6.0)
+        self.drawMht            (chainVars,extraVars,r.kRed    , defWidth, defArrowSize*3/6.0)
+        self.drawMet            (chainVars,extraVars,r.kGreen  , defWidth, defArrowSize*2/6.0)
+        #self.drawCleanedRecHits (chainVars,extraVars,r.kBrown  , defWidth, defArrowSize*2/6.0)
         if (self.doGen) : self.drawGenMet     (chainVars,extraVars,r.kMagenta, defWidth, defArrowSize*2/6.0)
 
         if (self.doLeptons) :
