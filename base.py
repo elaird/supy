@@ -82,7 +82,10 @@ class analysisLooper :
         for branchName in step.finalBranchNameList :
             if (showDebug) : print branchName
             #only branches with one leaf are supported
-            leafName=self.inputChain.GetBranch(branchName).GetListOfLeaves().At(0).GetName()
+            branch=self.inputChain.GetBranch(branchName)
+            if branch==None : raise NameError("Could not find branch "+str(branchName))
+
+            leafName=branch.GetListOfLeaves().At(0).GetName()
             if (leafName=="_") : leafName=branchName
 
             branchType=type(getattr(self.inputChain,leafName))
