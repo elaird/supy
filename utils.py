@@ -1,6 +1,9 @@
 import os
 import ROOT as r
 #####################################
+def goFunc(x) :
+    x.go()
+#####################################
 def psFromRoot(listOfInFileNames,outFileName,beQuiet) :
     if len(listOfInFileNames)==0 : return
     
@@ -14,9 +17,10 @@ def psFromRoot(listOfInFileNames,outFileName,beQuiet) :
             if someObject.ClassName()!="TCanvas" : print "Warning: found an object which is not a TCanvas in the display root file"
             someObject.Print(outFileName)
     dummyCanvas.Print(outFileName+"]")
-    os.system("ps2pdf "+outFileName+" "+outFileName.replace(".ps",".pdf"))
+    pdfFileName=outFileName.replace(".ps",".pdf")
+    os.system("ps2pdf "+outFileName+" "+pdfFileName)
     os.system("gzip -f "+outFileName)
-    if not beQuiet : print "The display file \""+outFileName+".gz\" has been written."    
+    if not beQuiet : print "The display file \""+pdfFileName+"\" has been written."    
 #####################################
 def getCommandOutput2(command):
     child = os.popen(command)
