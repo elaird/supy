@@ -90,18 +90,18 @@ class sampleDictionaryHolder :
         #furtherSubDirs=["leading_uncorr_ak5CaloJet.gt.40"]
 
         ##baseDir="/vols/cms02/elaird1/04_skims/"
-        baseDir="/vols/cms02/elaird1/05_skims/"
-        subDirs=[
+        #baseDir="/vols/cms02/elaird1/05_skims/"
+        #subDirs=[
         #    #"JetMETTau.Run2010A-Jun9thReReco_v1.RECO",
         #    #"MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO",
         #    #"QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
-            "JetMETTau.Run2010A-Jul6thReReco_v1.RECO",            
-            ]
+        #    "JetMETTau.Run2010A-Jul6thReReco_v1.RECO",            
+        #    ]
         #furtherSubDirs=[]
         ##for jetType in ["Calo","JPT","PF"] : furtherSubDirs.append("leading_uncorr_ak5"+jetType+"Jet.gt.40")
         #
-        for subDir in subDirs :
-            self.fileListDict[subDir+"_cleanEvent"]=utils.getCommandOutput2("ls "+baseDir+"/"+subDir+"/*.root").split()
+        #for subDir in subDirs :
+        #    self.fileListDict[subDir+"_cleanEvent"]=utils.getCommandOutput2("ls "+baseDir+"/"+subDir+"/*.root").split()
         #    for furtherSubDir in furtherSubDirs :
         #        self.fileListDict[subDir+"."+furtherSubDir]=utils.getCommandOutput2("ls "+baseDir+"/"+subDir+"/"+furtherSubDir+"/*.root").split()
         return
