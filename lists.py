@@ -63,7 +63,7 @@ class listDictionaryHolder :
             jetPtSelector("ak5Jet","Pat",5.0,0),
             jetPtSelector("ak5Jet","Pat",5.0,1),
             #runHistogrammer(),
-            skimmer("/tmp/",False),
+            skimmer("/tmp/"),
             ]
 
         self.listDict["triggerSkimSteps"]=steps
@@ -132,7 +132,7 @@ class listDictionaryHolder :
             physicsDeclared(),
             vertexRequirementFilter(5.0,15.0),
             monsterEventFilter(10,0.25),
-            skimmer("/vols/cms02/elaird1/",False),
+            skimmer("/vols/cms02/elaird1/"),
             #skimmer("/data1/elaird/susyTree/10_36_qcd/",False),
             ]
         self.listDict["metPasFilter"]=steps
@@ -197,7 +197,7 @@ class listDictionaryHolder :
         tanBeta=10.0
         steps=[
             progressPrinter(2,300),
-            #skimmer("/tmp/",False),
+            #skimmer("/tmp/"),
             #eventPrinter(),
             #genParticlePrinter(),
             genParticleCounter(tanBeta),
@@ -257,7 +257,7 @@ class listDictionaryHolder :
             mHtOverHtSelector(jetCollection,jetSuffix,0.9,1.1),
             cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
             
-            #skimmer("/tmp/",True),
+            #skimmer("/tmp/"),
             
             ##extraVariableGreaterFilter(0.6,jetCollection+"diJetAlpha_pT"+jetSuffix),
             #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
@@ -279,7 +279,6 @@ class listDictionaryHolder :
         corrRatherThanUnCorr=True
         nCleanJets=2
         jetEtaMax=3.0
-        skimmerAlsoWritesExtraTree=False
         
         #metCollection="metnohfP4Calo"
         #metCollection="metP4Calo"
@@ -323,7 +322,7 @@ class listDictionaryHolder :
             ##extraVariableGreaterFilter(0.6,jetCollection+"diJetAlpha_pT"+jetSuffix),
             #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
             
-            #skimmer("/tmp/",skimmerAlsoWritesExtraTree),
+            #skimmer("/tmp/"),
             
             #eventPrinter(),
             #jetPrinter(jetCollection,jetSuffix),
@@ -389,7 +388,6 @@ class listDictionaryHolder :
         corrRatherThanUnCorr=True
         nCleanJets=2
         jetEtaMax=3.0
-        skimmerAlsoWritesExtraTree=False
         
         #metCollection="metnohfP4Calo"
         #metCollection="metP4Calo"
@@ -479,7 +477,7 @@ class listDictionaryHolder :
             alphaHistogrammer(jetCollection1,jetSuffix1),
             alphaHistogrammer(jetCollection2,jetSuffix2),
             
-            #skimmer("/tmp/",True),
+            #skimmer("/tmp/"),
             
             #extraVariableGreaterFilter(0.6,jetCollection1+"nJetAlphaT"+jetSuffix1),
             #extraVariableGreaterFilter(25.0,jetCollection1+"Ht"+jetSuffix1),
@@ -528,7 +526,7 @@ class listDictionaryHolder :
             icfCleanJetPtSelector(jetPtThreshold,1),
             icfCleanJetPtVetoer(jetPtThresholdVeto,2),
             icfCleanJetEtaSelector(2.5,0),
-            #skimmer("/tmp/",False),        
+            #skimmer("/tmp/"),        
             icfNOtherJetEventFilter(1),
             
             icfMuonVetoer(muonPtThreshold),
@@ -594,7 +592,7 @@ class listDictionaryHolder :
             icfCleanJetPtSelector(jetPtLeadingThreshold,1),
             #icfCleanJetPtVetoer(jetPtLeadingThreshold,2),
             icfCleanJetEtaSelector(2.0,0),
-            #skimmer("/tmp/",False),
+            #skimmer("/tmp/"),
             icfNOtherJetEventFilter(1),
             
             icfOtherJetHistogrammer(0.0),

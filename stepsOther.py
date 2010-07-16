@@ -6,7 +6,7 @@ import utils
 class skimmer(analysisStep) :
     #special __doc__ assignment below
     
-    def __init__(self,outputDir,alsoWriteExtraTree) :
+    def __init__(self,outputDir,alsoWriteExtraTree=False) :
         self.__doc__=self.skimmerStepName
         self.outputDir=outputDir
         self.outputTree=0
