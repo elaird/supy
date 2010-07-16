@@ -14,7 +14,7 @@ a.addSampleSpec(sampleName="Example_Skimmed_900_GeV_Data",
 a.addSampleSpec(sampleName="Example_Skimmed_900_GeV_MC",
                 listName="jetKineSteps",
                 isMc=True,
-                nEvents=-1)
+                nEvents=100)
 
 a.go(loop=True,                  #loop over events and make root files containing histograms
      plot=True,                  #make a pdf file with plots from the histograms created above
