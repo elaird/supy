@@ -1,30 +1,29 @@
 Make a release area somewhere
 ------------------------
 ssh -Y lxplus5
-cmsrel CMSSW_3_5_4
-cd CMSSW_3_5_4/src/
+cmsrel CMSSW_3_7_0_patch4
+cd CMSSW_3_7_0_patch4/src/
 cmsenv
 
 Check out the code
 ------------------
 cd
-cvs co -d supy -r V4-1 UserCode/elaird/supy
+cvs co -d supy -r V6-0 UserCode/elaird/supy
 cd supy
 
-Run the code
+Setup up environment and run the code
 ------------
-./go.py loop -b
-./go.py plot -b
-(or, to do both parts with one command, "./go.py loop plot -b")
+source supyenv.sh
+python analyses/example.py
 
 Try these exercises
 -------------------
 Exercise 1:
-Have a look at the ps file that was created.
+Have a look at the pdf file that was created.
 
 Exercise 2:
 Change the number of MC events that you loop over.  
-This is done in analyses.py, the function "addExample", the line containing "Example_Skimmed_900_GeV_MC" (e.g., change 100 to -1).
+This is done in analyses/example.py (e.g., change 100 to -1).
 Re-run.
 
 Exercise 3:
