@@ -38,6 +38,10 @@ class listDictionaryHolder :
     def getDictionary(self) :
         return self.listDict
     
+    def getSteps(self,name,isMc) :
+        if isMc : return removeStepsForMc(self.listDict[name])
+        else    : return self.listDict[name]
+
     def buildDictionary(self) :
         #call all member functions starting with specialPrefix
         specialPrefix="add"
@@ -62,8 +66,7 @@ class listDictionaryHolder :
             skimmer("/tmp/",False),
             ]
 
-        self.listDict["triggerSkimSteps_data"]=steps
-        self.listDict["triggerSkimSteps_mc"]=removeStepsForMc(steps)
+        self.listDict["triggerSkimSteps"]=steps
 
     def addListMetPasLook(self) :
 
@@ -117,8 +120,7 @@ class listDictionaryHolder :
             nJetAlphaTPrinter(jetCollection,jetSuffix),
             ]
 
-        self.listDict["metPasLook_data"]=steps
-        self.listDict["metPasLook_mc"]=removeStepsForMc(steps)
+        self.listDict["metPasLook"]=steps
 
     def addListMetPasFilter(self) :
         jetList=[("ak5Jet"+jetType,"Pat") for jetType in ["","PF","JPT"]]
@@ -133,25 +135,22 @@ class listDictionaryHolder :
             skimmer("/vols/cms02/elaird1/",False),
             #skimmer("/data1/elaird/susyTree/10_36_qcd/",False),
             ]
-        self.listDict["metPasFilter_data"]=steps
-        self.listDict["metPasFilter_mc"]=removeStepsForMc(steps)
+        self.listDict["metPasFilter"]=steps
 
-        for jetType in ["","PF","JPT"] :
-            steps1=[
-                progressPrinter(2,300),
-                jetPtSelector("ak5Jet"+jetType,"Pat",40.0,1),
-                skimmer("/vols/cms02/elaird1/",False)
-                ]
-            self.listDict["metPasFilterJet1"+jetType+"_data"]=steps1
-            self.listDict["metPasFilterJet1"+jetType+"_mc"]=removeStepsForMc(steps1)
-
-            steps2=[
-                progressPrinter(2,300),
-                leadingUnCorrJetPtSelector([("ak5Jet"+jetType,"Pat")],40.0),
-                skimmer("/vols/cms02/elaird1/",False)
-                ]
-            self.listDict["metPasFilterJet2"+jetType+"_data"]=steps2
-            self.listDict["metPasFilterJet2"+jetType+"_mc"]=removeStepsForMc(steps2)
+        #for jetType in ["","PF","JPT"] :
+        #    steps1=[
+        #        progressPrinter(2,300),
+        #        jetPtSelector("ak5Jet"+jetType,"Pat",40.0,1),
+        #        skimmer("/vols/cms02/elaird1/",False)
+        #        ]
+        #    self.listDict["metPasFilterJet1"+jetType]=steps1
+        #
+        #    steps2=[
+        #        progressPrinter(2,300),
+        #        leadingUnCorrJetPtSelector([("ak5Jet"+jetType,"Pat")],40.0),
+        #        skimmer("/vols/cms02/elaird1/",False)
+        #        ]
+        #    self.listDict["metPasFilterJet2"+jetType]=steps2
 
     def addListRecHitTest(self) :
         jetCollection="ak5Jet"
@@ -271,8 +270,7 @@ class listDictionaryHolder :
             particleP4Printer("photon","Pat"),
             ]
         
-        self.listDict["deltaPhiSteps_data"]=steps
-        self.listDict["deltaPhiSteps_mc"]=removeStepsForMc(steps)
+        self.listDict["deltaPhiSteps"]=steps
 
     def addListJetKineLook(self) :
         jetCollection="ak5Jet"
@@ -334,9 +332,8 @@ class listDictionaryHolder :
             #particleP4Printer("electron","Pat"),
             #particleP4Printer("photon","Pat"),
             ]
-        
-        self.listDict["jetKineSteps_data"]=steps
-        self.listDict["jetKineSteps_mc"]=removeStepsForMc(steps)
+
+        self.listDict["jetKineSteps"]=steps        
 
     def addListMetDistLook(self) :
         jetCollection="ak5Jet"
@@ -383,8 +380,7 @@ class listDictionaryHolder :
             #metHistogrammer(metCollection,"ge2jets all clean plus group filter"),        
             ]
         
-        self.listDict["metDistSteps_data"]=steps
-        self.listDict["metDistSteps_mc"]=removeStepsForMc(steps)
+        self.listDict["metDistSteps"]=steps
         
     def addListMetGroupCleanupLook(self) :
         jetCollection="ak5Jet"
@@ -427,8 +423,7 @@ class listDictionaryHolder :
             metPrinter(["metP4Calo","metP4AK5"]),
             ]
         
-        self.listDict["metGroupCleanupLookSteps_data"]=steps
-        self.listDict["metGroupCleanupLookSteps_mc"]=removeStepsForMc(steps)
+        self.listDict["metGroupCleanupLookSteps"]=steps
         
     def addListJetAlgoComparison(self) :
         jetCollection1="ak5Jet"
@@ -496,8 +491,7 @@ class listDictionaryHolder :
             #nJetAlphaTPrinter(jetCollection1,jetSuffix1),
             ]
         
-        self.listDict["jetAlgoComparison_data"]=steps
-        self.listDict["jetAlgoComparison_mc"]=removeStepsForMc(steps)
+        self.listDict["jetAlgoComparison"]=steps
         
     def addListIcfRa1_DiJet(self) :
         #jetPtThreshold=100.0
@@ -567,8 +561,7 @@ class listDictionaryHolder :
             #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
             ]
 
-        self.listDict["Icf_Ra1_DiJet_Steps_data"]=steps
-        self.listDict["Icf_Ra1_DiJet_Steps_mc"]=removeStepsForMc(steps)
+        self.listDict["Icf_Ra1_DiJet_Steps"]=steps
     
     def addListIcfRa1_NJet(self) :
         jetPtLeadingThreshold=100.0
@@ -628,6 +621,5 @@ class listDictionaryHolder :
             #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
             ]
         
-        self.listDict["Icf_Ra1_NJet_Steps_data"]=steps
-        self.listDict["Icf_Ra1_NJet_Steps_mc"]=removeStepsForMc(steps)
+        self.listDict["Icf_Ra1_NJet_Steps"]=steps
         
