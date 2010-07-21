@@ -11,7 +11,7 @@ GPLv3
 - or see note (A)
 
 1) Check out the code:
-cvs co -d supy -r V6-0 UserCode/elaird/supy
+cvs co -d supy -r V6-1 UserCode/elaird/supy
 
 2) Define some samples you would like to analyze:
 - Edit samples.py (add a function to sampleDictionaryHolder).
