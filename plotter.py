@@ -177,6 +177,7 @@ def histoLoop(plotSpec,histoList) :
         #1D here
         if (plotSpec.dimension==1) :
             r.gPad.SetRightMargin(0.15)
+            r.gPad.SetTicky()            
             if (iHisto==0) :
                 histo.Draw()
                 if (doLog1D) :
@@ -231,6 +232,7 @@ def histoLoop(plotSpec,histoList) :
             histo.SetStats(False)
             histo.GetZaxis().SetTitleOffset(1.3)
             r.gPad.SetRightMargin(0.15)
+            r.gPad.SetTicky()
             if (doColzFor2D) : histo.Draw("colz")
             else :             histo.Draw()
 
