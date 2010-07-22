@@ -1,5 +1,6 @@
 import ROOT as r
 from base import analysisStep
+import math
 #####################################
 class physicsDeclared(analysisStep) :
     """physicsDeclared"""
@@ -71,3 +72,26 @@ class hltFilter(analysisStep) :
 
     def select (self,chain,chainVars,extraVars) :
         return chain.triggered[self.hltPathName]
+#####################################
+class hltPrescaleHistogrammer(analysisStep) :
+    """hltPrescaleHistogrammer"""
+
+    def __init__(self,listOfHltPaths) :
+        self.neededBranches=["prescaled"]
+        self.listOfHltPaths=listOfHltPaths
+        self.moreName="("+str(self.listOfHltPaths)+")"
+
+    def bookHistos(self) :
+        nBinsX=len(self.listOfHltPaths)
+        self.prescaleHisto=r.TH2D("hltPrescaleHisto","hltPrescaleHisto;;log_{10}(prescale value);events / bin",
+                                  nBinsX,-0.5,nBinsX-0.5,
+                                  100,-0.5,4.5)
+        for iPath in range(len(self.listOfHltPaths)) :
+            self.prescaleHisto.GetXaxis().SetBinLabel(iPath+1,self.listOfHltPaths[iPath])
+        
+    def uponAcceptance(self,chain,chainVars,extraVars) :
+        for iPath in range(len(self.listOfHltPaths)) :
+            value=chainVars.prescaled.find(self.listOfHltPaths[iPath]).second
+            if value<=0.0 : continue
+            self.prescaleHisto.Fill(iPath,math.log10(value))
+#####################################
