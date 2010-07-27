@@ -76,7 +76,7 @@ class skimmer(analysisStep) :
         for key in self.arrayDictionary :
             self.arrayDictionary[key][0]=getattr(extraVars,key)
         
-    def endFunc(self,hyphens,nEvents,xs) :
+    def endFunc(self,chain,hyphens,nEvents,xs) :
         print hyphens
         self.outputFile.cd(self.fileDir)
         self.outputTree.Write()
@@ -92,15 +92,16 @@ class skimmer2(analysisStep) :
     """skimmer2"""
     
     def __init__(self,outputDir,alsoWriteExtraTree=False) :
-        self.__doc__=self.skimmerStepName
         self.outputDir=outputDir
         self.moreName="(see below)"
         self.alsoWriteExtraTree=alsoWriteExtraTree
         self.outputTreeExtraIsSetup=False
         self.neededBranches=[]
-        self.eventList=r.TEventList()
 
     def setup(self,chain,fileDir,name) :
+        self.eventList=r.TEventList("eventList")
+        self.eventList.SetDirectory(chain.GetDirectory())
+        
         self.fileDir=fileDir
         self.outputFileName=self.outputDir+"/"+name+"_skim.root"
         self.outputFile=r.TFile(self.outputFileName,"RECREATE")
@@ -152,19 +153,73 @@ class skimmer2(analysisStep) :
         for key in self.arrayDictionary :
             self.arrayDictionary[key][0]=getattr(extraVars,key)
         
-    def endFunc(self,hyphens,nEvents,xs) :
+    def endFunc(self,chain,hyphens,nEvents,xs) :
         print hyphens
+        self.eventList.Print("all")
+        chain.SetEventList(self.eventList)
         self.outputFile.cd(self.fileDir)
-        chain.SetEventList(elist)
-        outputTree=chain.CopyTree("")
-        outputTree.Write()
+
+        print "writing skim file..."
+        tree=chain.CopyTree("")
+        tree.Write()
         if self.alsoWriteExtraTree :
             self.outputTreeExtra.Write()
+
         self.outputFile.Close()
         print "The skim file \""+self.outputFileName+"\" has been written."
         effXs=0.0
         if nEvents>0 : effXs=(xs+0.0)*self.nPass/nEvents
         print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",effXs
+#####################################
+class skimmer3(analysisStep) :
+    """skimmer3"""
+    
+    def __init__(self,outputDir) :
+        self.outputDir=outputDir
+        self.moreName="(see below)"
+        self.neededBranches=[]
+
+    def setup(self,chain,fileDir,name) :
+        self.eventLists=[ r.TEventList("eventList%d"%iTree) for iTree in range(chain.GetNtrees()) ]
+        
+        self.fileDir=fileDir
+        self.outName=name
+
+    def uponAcceptance(self,chain,chainVars,extraVars) :
+        self.eventLists[chain.GetTreeNumber()].Enter(extraVars.localEntry)
+
+    def endFunc(self,inChain,hyphens,nEvents,xs) :
+        #for eventList in self.eventLists :
+        #    eventList.Print("all")
+        chain=inChain.Clone("newChain")
+        iTreeFirstEntry = 0
+        for iTree in range(chain.GetNtrees()) :
+            chain.LoadTree(iTreeFirstEntry)
+            if iTree!=chain.GetTreeNumber() : continue
+
+            inTree=chain.GetTree()
+            nEntries=inTree.GetEntries()
+            iTreeFirstEntry+=nEntries
+
+            #make and output file for this tree
+            outputFileName=self.outputDir+"/"+self.outName+"_skim_"+str(iTree)+".root"
+            print hyphens
+            print "writing skim file",outputFileName
+            self.outputFile=r.TFile(outputFileName,"RECREATE")
+            self.outputFile.mkdir(self.fileDir).cd()
+
+            #make a skimmed tree
+            inTree.SetEventList(self.eventLists[iTree])
+            tree=inTree.CopyTree("")
+            #r.gDirectory.pwd()
+            tree.SetDirectory(r.gDirectory)
+            tree.Write()
+            self.outputFile.Close()
+
+            effXs=0.0
+            if nEvents>0 : effXs=(xs+0.0)*self.nPass/nEvents
+            print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",effXs
+        del chain
 #####################################
 class hbheNoiseFilter(analysisStep) :
     """hbheNoiseFilter"""
@@ -558,7 +613,7 @@ class displayer(analysisStep) :
             self.makeAlphaTFunc(0.45,r.kOrange+7)
             ]
 
-    def endFunc(self,hyphens,nEvents,xs) :
+    def endFunc(self,chain,hyphens,nEvents,xs) :
         self.outputFile.Write()
         self.outputFile.Close()
         #if not self.quietMode : print "The display file \""+self.outputFileName+"\" has been written."
@@ -951,7 +1006,7 @@ class pickEventSpecMaker(analysisStep) :
         line+="   "+self.dataSetName+"\n"
         self.outputFile.write(line)
 
-    def endFunc(self,hyphens,nEvents,xs) :
+    def endFunc(self,chain,hyphens,nEvents,xs) :
         print hyphens
         self.outputFile.close()
         print "The pick events spec. file \""+self.outputFileName+"\" has been written."
