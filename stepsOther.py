@@ -88,6 +88,84 @@ class skimmer(analysisStep) :
         if nEvents>0 : effXs=(xs+0.0)*self.nPass/nEvents
         print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",effXs
 #####################################
+class skimmer2(analysisStep) :
+    """skimmer2"""
+    
+    def __init__(self,outputDir,alsoWriteExtraTree=False) :
+        self.__doc__=self.skimmerStepName
+        self.outputDir=outputDir
+        self.moreName="(see below)"
+        self.alsoWriteExtraTree=alsoWriteExtraTree
+        self.outputTreeExtraIsSetup=False
+        self.neededBranches=[]
+        self.eventList=r.TEventList()
+
+    def setup(self,chain,fileDir,name) :
+        self.fileDir=fileDir
+        self.outputFileName=self.outputDir+"/"+name+"_skim.root"
+        self.outputFile=r.TFile(self.outputFileName,"RECREATE")
+        self.outputFile.mkdir(self.fileDir)
+        self.outputFile.cd(self.fileDir)
+
+        if self.alsoWriteExtraTree :
+            self.arrayDictionary={}
+            self.supportedBuiltInTypes=[type(True),type(0),type(0L),type(0.0)]
+            self.supportedOtherTypes=[type(r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0))]
+            
+            extraName=chain.GetName()+"Extra"
+            self.outputTreeExtra=r.TTree(extraName,extraName)
+            self.outputTreeExtra.SetDirectory(r.gDirectory)
+
+        r.gROOT.cd()
+
+    def uponAcceptance(self,chain,chainVars,extraVars) :
+        self.eventList.Enter(extraVars.entry)
+
+        #optionally fill an extra tree
+        if self.alsoWriteExtraTree :
+            if not self.outputTreeExtraIsSetup : self.setupExtraTree(extraVars)
+            self.fillExtraVariables(extraVars)
+            self.outputTreeExtra.Fill()
+
+    def setupExtraTree(self,extraVars) :
+        extraVarsCopy=copy.deepcopy(extraVars)
+        branchNameList=dir(extraVarsCopy)
+        skipList=['__doc__','__init__','__module__']
+
+        #set up remaining suitable branches as doubles
+        for branchName in branchNameList :
+            if (branchName in skipList) : continue
+
+            thisType=type(getattr(extraVars,branchName))
+            if (thisType in self.supportedBuiltInTypes) :
+                self.arrayDictionary[branchName]=array.array('d',[0.0])
+                self.outputTreeExtra.Branch(branchName,self.arrayDictionary[branchName],branchName+"/D")
+            elif (thisType in self.supportedOtherTypes) :
+                self.outputTreeExtra.Branch(branchName,getattr(extraVars,branchName))                
+            else :
+                #print "The variable \""+branchName+"\" has been rejected from the extra tree."
+                continue
+            
+        self.outputTreeExtraIsSetup=True
+
+    def fillExtraVariables(self,extraVars) :
+        for key in self.arrayDictionary :
+            self.arrayDictionary[key][0]=getattr(extraVars,key)
+        
+    def endFunc(self,hyphens,nEvents,xs) :
+        print hyphens
+        self.outputFile.cd(self.fileDir)
+        chain.SetEventList(elist)
+        outputTree=chain.CopyTree("")
+        outputTree.Write()
+        if self.alsoWriteExtraTree :
+            self.outputTreeExtra.Write()
+        self.outputFile.Close()
+        print "The skim file \""+self.outputFileName+"\" has been written."
+        effXs=0.0
+        if nEvents>0 : effXs=(xs+0.0)*self.nPass/nEvents
+        print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",effXs
+#####################################
 class hbheNoiseFilter(analysisStep) :
     """hbheNoiseFilter"""
 
