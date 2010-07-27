@@ -287,7 +287,7 @@ class analysisLooper :
     def endSteps(self) :
         for step in self.steps :
             if (hasattr(step,"endFunc")) :
-                step.endFunc(self.hyphens,self.nEvents,self.xs)
+                step.endFunc(self.inputChain,self.hyphens,self.nEvents,self.xs)
 
     def pickleStepData(self) :
         keepList=["nTotal","nPass","nFail","outputFileName"]
