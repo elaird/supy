@@ -5,101 +5,69 @@ class jetPtSelector(analysisStep) :
     """jetPtSelector"""
 
     def __init__(self,jetCollection,jetSuffix,jetPtThreshold,jetIndex):
-        self.jetCollection=jetCollection
-        self.jetSuffix=jetSuffix
-        self.jetPtThreshold=jetPtThreshold
-        self.jetIndex=jetIndex
+        self.jetPtThreshold = jetPtThreshold
+        self.jetIndex = jetIndex
+        self.jetP4s = jetCollection+"CorrectedP4"+jetSuffix
         
-        self.moreName ="("+self.jetCollection+"; "+self.jetSuffix+"; "
-        self.moreName+="corr. pT["+str(self.jetIndex)+"]>="+str(self.jetPtThreshold)+" GeV"
-        self.moreName+=")"
+        self.moreName = "(%s; %s; corr. pT[%d]>=%.2f GeV)" % (jetCollection, jetSuffix, jetIndex, jetPtThreshold)
 
     def select (self,eventVars,extraVars) :
-        p4Vector=eventVars[self.jetCollection+"CorrectedP4"+self.jetSuffix]
-        size=p4Vector.size()
-        if (size<=self.jetIndex) : return False
-        return (p4Vector[self.jetIndex].pt()>=self.jetPtThreshold)
+        p4s = eventVars[self.jetP4s]
+        if p4s.size() <= self.jetIndex : return False
+        return self.jetPtThreshold <= p4s.at(self.jetIndex).pt()
 #####################################
 class jetPtVetoer(analysisStep) :
     """jetPtVetoer"""
 
     def __init__(self,jetCollection,jetSuffix,jetPtThreshold,jetIndex):
-        self.jetCollection=jetCollection
-        self.jetSuffix=jetSuffix
-        self.jetPtThreshold=jetPtThreshold
-        self.jetIndex=jetIndex
+        self.jetPtThreshold = jetPtThreshold
+        self.jetIndex = jetIndex
+        self.jetP4s = jetCollection+"CorrectedP4"+jetSuffix
         
-        self.moreName ="("+self.jetCollection+"; "+self.jetSuffix+"; "
-        self.moreName+="corr. pT["+str(self.jetIndex)+"]< "+str(self.jetPtThreshold)+" GeV"
-        self.moreName+=")"
+        self.moreName = "(%s; %s; corr. pT[%d]<%.2f GeV)" % (jetCollection, jetSuffix, jetIndex, jetPtThreshold)
 
-        self.neededBranches=[self.jetCollection+"CorrectedP4"+self.jetSuffix]
-
-    def select (self,chain,chainVars,extraVars) :
-        p4Vector=getattr(chainVars,self.jetCollection+"CorrectedP4"+self.jetSuffix)
-        size=p4Vector.size()
-        if (size<=self.jetIndex) : return True
-        return (p4Vector[self.jetIndex].pt()<self.jetPtThreshold)
+    def select (self,eventVars,extraVars) :
+        p4s = eventVars[self.jetP4s]
+        if p4s.size() <= self.jetIndex : return True
+        return p4s.at(self.jetIndex).pt() < self.jetPtThreshold
 #####################################
 class leadingUnCorrJetPtSelector(analysisStep) :
     """leadingUnCorrJetPtSelector"""
 
     def __init__(self,jetCollectionsAndSuffixes,jetPtThreshold):
-        self.jetCollectionsAndSuffixes=jetCollectionsAndSuffixes
-        self.jetPtThreshold=jetPtThreshold
+        self.jetCollectionsAndSuffixes = jetCollectionsAndSuffixes
+        self.jetPtThreshold = jetPtThreshold
 
-        self.moreName="("
-        for collectionAndSuffix in self.jetCollectionsAndSuffixes :
-            self.moreName += "%s%s;" % collectionAndSuffix
-
-        self.moreName2="corr. pT[leading uncorr. jet]>="+str(self.jetPtThreshold)+" GeV)"
+        self.moreName = "("+''.join(["%s%s;" % cS for cS in self.jetCollectionsAndSuffixes])
+        self.moreName2 = "corr. pT[leading uncorr. jet]>=%.2f GeV" % self.jetPtThreshold 
 
     def select (self,eventVars,extraVars) :
         #return true if any collection has a leading uncorrected jet above threshold
         #otherwise return False
-        for collectionAndSuffix in self.jetCollectionsAndSuffixes :
-            collection,suffix = collectionAndSuffix
-            p4Vector = eventVars[collection+"CorrectedP4"+suffix]
-            corrFactorVector = eventVars[collection+"CorrFactor"+suffix]
-            size = p4Vector.size()
-
-            indexOfLeadingUnCorrJet = -1
-            leadingUnCorrJetPt = -1.0
-            for i in range(size) :
-                unCorrJetPt = p4Vector.at(i).pt() / corrFactorVector.at(i)
-                #print i,unCorrJetPt,p4Vector.at(i).pt(),corrFactorVector.at(i)
-                if unCorrJetPt > leadingUnCorrJetPt :
-                    leadingUnCorrJetPt = unCorrJetPt
-                    indexOfLeadingUnCorrJet = i
-                    
-            #print "leading: ",indexOfLeadingUnCorrJet
-            #print
-            if indexOfLeadingUnCorrJet<0 or size<=indexOfLeadingUnCorrJet : continue
-            if p4Vector.at(indexOfLeadingUnCorrJet).pt()>=self.jetPtThreshold : return True
+        for cS in self.jetCollectionsAndSuffixes :
+            p4s = eventVars["%sCorrectedP4%s" % cS]
+            corr = eventVars["%sCorrFactor%s" % cS]
+            for i in range(p4s.size()) :
+                if self.jetPtThreshold <= p4s.at(i) / corr.at(i) :
+                    return True
         return False
 #####################################
 class cleanJetIndexProducer(analysisStep) :
     """cleanJetIndexProducer"""
 
     def __init__(self,jetCollection,jetSuffix,jetPtThreshold,jetEtaMax):
-        self.jetCollection=jetCollection
-        self.jetSuffix=jetSuffix
-        self.jetPtThreshold=jetPtThreshold
-        self.jetEtaMax=jetEtaMax
+        self.jetCollection = jetCollection
+        self.jetSuffix = jetSuffix
+        self.jetPtThreshold = jetPtThreshold
+        self.jetEtaMax = jetEtaMax
         
-        self.moreName="("+self.jetCollection+"; "+self.jetSuffix
-        self.moreName+="; jetID; "
+        self.moreName = "(%s; %s; jetID; " % (jetCollection, jetSuffix)
+        self.moreName2 = " corr. pT>=%.2f GeV; |eta|<=%.2f)" % (jetPtThreshold,jetEtaMax)
 
-        self.moreName2=" "
-        self.moreName2+="corr. "
-        self.moreName2+="pT>="+str(self.jetPtThreshold)+" GeV"
-        self.moreName2+="; |eta|<="+str(self.jetEtaMax)
-        self.moreName2+=")"
-        
-        self.helper=r.cleanJetIndexHelper()
+        self.helper = r.cleanJetIndexHelper()
         self.helper.SetThresholds(self.jetPtThreshold,self.jetEtaMax)
-        self.cleanJetIndices=r.std.vector('int')()
-        self.otherJetIndices=r.std.vector('int')()
+        self.cleanJetIndices = r.std.vector('int')()
+        self.otherJetIndices = r.std.vector('int')()
         self.cleanJetIndices.reserve(256)
         self.otherJetIndices.reserve(256)
 
@@ -176,32 +144,25 @@ class cleanJetEmfFilter(analysisStep) :
     """cleanJetEmfFilter"""
 
     def __init__(self,jetCollection,jetSuffix,jetPtThreshold,jetEmfMax):
-        self.jetCollection=jetCollection
-        self.jetSuffix=jetSuffix
-        self.jetPtThreshold=jetPtThreshold
-        self.jetEmfMax=jetEmfMax
-        
-        self.moreName="("+self.jetCollection+"; "+self.jetSuffix
-        self.moreName2=" "
-        self.moreName2+="corr. "
-        self.moreName2+="pT>="+str(self.jetPtThreshold)+" GeV"
-        self.moreName2+="; EMF<="+str(self.jetEmfMax)
-        self.moreName2+=")"
-        
-        self.neededBranches=["CorrectedP4"]
-        self.neededBranches.append("EmEnergyFraction")
-        for i in range(len(self.neededBranches)) :
-            self.neededBranches[i]=self.jetCollection+self.neededBranches[i]+self.jetSuffix
+        self.indecesName = "%scleanJetIndices%s" % jetCollection,jetSuffix
+        self.p4sName = "%sCorrectedP4%s"         % jetCollection,jetSuffix
+        self.emfName = "%sEmEnergyFraction%s"    % jetCollection,jetSuffix
 
-    def select (self,chain,chainVars,extraVars) :
-        cleanJetIndices=getattr(extraVars,self.jetCollection+'cleanJetIndices' +self.jetSuffix)
-        p4Vector       =getattr(chainVars,self.jetCollection+'CorrectedP4'     +self.jetSuffix)
-        emfVector      =getattr(chainVars,self.jetCollection+'EmEnergyFraction'+self.jetSuffix)
+        self.jetPtThreshold = jetPtThreshold
+        self.jetEmfMax = jetEmfMax
+        
+        self.moreName = "(%s; %s" % self.jetCollection, self.jetSuffix
+        self.moreName2 = " corr. pT>=%.2f GeV; EMF<=%.2f)" % jetPtThreshold,self.jetEmfMax
+
+    def select (self,eventVars,extraVars) :
+        cleanJetIndices = getattr( extraVars, self.indecesName)
+        p4s = eventVars[self.p4sName]
+        emf = eventVars[self.emfName]
 
         for index in cleanJetIndices :
-            if p4Vector[index].pt()<=self.jetPtThreshold : #assumes sorted
+            if p4s.at(index).pt() <= self.jetPtThreshold : #assumes sorted
                 return True
-            if emfVector[index]>self.jetEmfMax :
+            if emf.at(index) > self.jetEmfMax :
                 return False
         return True
 #####################################
@@ -209,49 +170,41 @@ class pfCleanJetIndexProducer(analysisStep) :
     """pfCleanJetIndexProducer"""
 
     def __init__(self,jetCollection,jetSuffix,jetPtThreshold,jetEtaMax):
-        self.jetCollection=jetCollection
-        self.jetSuffix=jetSuffix
-        self.jetPtThreshold=jetPtThreshold
-        self.jetEtaMax=jetEtaMax
-        
-        self.moreName="("+self.jetCollection+"; "+self.jetSuffix
-        self.moreName+="; jetID; "
-        self.moreName+="pT>="+str(self.jetPtThreshold)+" GeV"
-        self.moreName+="; |eta|<="+str(self.jetEtaMax)
-        self.moreName+=")"
-        
-        self.neededBranches=["CorrectedP4"]
-        for i in range(len(self.neededBranches)) :
-            self.neededBranches[i]=self.jetCollection+self.neededBranches[i]+self.jetSuffix
+        self.jetCollection = jetCollection
+        self.jetSuffix = jetSuffix
+        self.jetPtThreshold = jetPtThreshold
+        self.jetEtaMax = jetEtaMax
 
-    def step1 (self,chain,chainVars,extraVars) :
+        self.moreName = "(%s; %s; jetID; pT>=%.2f GeV; |eta|<=%.2f)" % jetCollection, jetSuffix, jetPtThreshold, jetEtaMax
+        
+    def step1 (self,eventVars,extraVars) :
         setattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix,[])
-        self.cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
+        self.cleanJetIndices = getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
 
         setattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix,[])
-        self.otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
+        self.otherJetIndices = getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
 
-        self.p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
-        self.size=self.p4Vector.size()
+        self.p4Vector = eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
+        self.size = self.p4Vector.size()
 
-    def jetLoop (self,chainVars) :
+    def jetLoop (self,eventVars) :
         for iJet in range(self.size) :
             #pt cut
-            if (self.p4Vector[iJet].pt()<self.jetPtThreshold) : break #assumes sorted
+            if self.p4Vector.at(iJet).pt() < self.jetPtThreshold : break #assumes sorted
             
             #if pass pt cut, add to "other" category
             self.otherJetIndices.append(iJet)
             
             #eta cut
-            absEta=r.TMath.Abs(self.p4Vector[iJet].eta())
-            if (absEta>self.jetEtaMax) : continue
+            absEta = abs(self.p4Vector.at(iJet).eta())
+            if self.jetEtaMax < absEta : continue
             
             self.cleanJetIndices.append(iJet)
             self.otherJetIndices.remove(iJet)
 
-    def select (self,chain,chainVars,extraVars) :
-        self.step1(chain,chainVars,extraVars)
-        self.jetLoop(chainVars)
+    def select (self,eventVars,extraVars) :
+        self.step1(eventVars,extraVars)
+        self.jetLoop(eventVars)
         return True
 ######################################
 class nCleanJetHistogrammer(analysisStep) :
