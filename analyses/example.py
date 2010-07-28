@@ -7,12 +7,14 @@ a=analysis.analysis(name="example",
                     )
 
 a.addSampleSpec(sampleName="Example_Skimmed_900_GeV_Data",
+                listOfFileNames=["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_Data.root"],
                 listName="jetKineSteps",
                 isMc=False,
                 nEvents=-1)
 
 a.addSampleSpec(sampleName="Example_Skimmed_900_GeV_MC",
-                listName="jetKineSteps",
+                listOfFileNames=["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_MC.root"],
+                listName="jetKineSteps",                
                 isMc=True,
                 nEvents=100)
 

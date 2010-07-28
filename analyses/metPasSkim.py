@@ -1,35 +1,22 @@
 #!/usr/bin/env python
 
-import analysis
+import analysis,utils
 
 a=analysis.analysis(name="metPasSkim",
                     outputDir="/vols/cms02/elaird1/tmp/"
                     )
 
-#a.addSampleSpec(sampleName="JetMETTau.Run2010A-Jun9thReReco_v1.RECO",
-#                listName="metPasFilter",
-#                isMc=False,
-#                nEvents=-1)
-#
-#a.addSampleSpec(sampleName="MinimumBias.Commissioning10-SD_JetMETTau-Jun9thSkim_v1.RECO",
-#                listName="metPasFilter",
-#                isMc=False,
-#                nEvents=-1)
-#
-#a.addSampleSpec(sampleName="QCD_Pt-15_7TeV-pythia8.Summer10-START36_V10_SP10-v1.GEN-SIM-RECODEBUG",
-#                listName="metPasFilter",
-#                isMc=False,
-#                nEvents=-1)
-
-a.addSampleSpec(sampleName="JetMETTau.Run2010A-Jul6thReReco_v1.RECO",
+a.addSampleSpec(sampleName="JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn",
+                listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_16_52_06/",nMaxFiles=-1),
                 listName="metPasFilter",
                 isMc=False,
                 nEvents=-1)
 
-#a.addSampleSpec(sampleName="QCD_Pt30.Summer10-START36_V9_S09-v1.GEN-SIM-RECODEBUG",
-#                listName="metPasFilter",
-#                isMc=True,
-#                nEvents=-1)
+a.addSampleSpec(sampleName="JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn",
+                listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_17_20_35/",nMaxFiles=-1),
+                listName="metPasFilter",
+                isMc=False,
+                nEvents=-1)
 
 a.go(loop=True,
      plot=False,
