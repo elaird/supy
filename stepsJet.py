@@ -50,36 +50,30 @@ class leadingUnCorrJetPtSelector(analysisStep) :
         self.jetCollectionsAndSuffixes=jetCollectionsAndSuffixes
         self.jetPtThreshold=jetPtThreshold
 
-        self.neededBranches=[]
         self.moreName="("
         for collectionAndSuffix in self.jetCollectionsAndSuffixes :
-            collection=collectionAndSuffix[0]
-            suffix=collectionAndSuffix[1]
-            self.moreName +=collection+suffix+";"
-            self.neededBranches.append(collection+"CorrectedP4"+suffix)
-            self.neededBranches.append(collection+"CorrFactor"+suffix)
+            self.moreName += "%s%s;" % collectionAndSuffix
 
         self.moreName2="corr. pT[leading uncorr. jet]>="+str(self.jetPtThreshold)+" GeV)"
 
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         #return true if any collection has a leading uncorrected jet above threshold
         #otherwise return False
         for collectionAndSuffix in self.jetCollectionsAndSuffixes :
-            collection=collectionAndSuffix[0]
-            suffix=collectionAndSuffix[1]
-            p4Vector=getattr(chainVars,collection+"CorrectedP4"+suffix)
-            corrFactorVector=getattr(chainVars,collection+"CorrFactor"+suffix)
-            size=p4Vector.size()
+            collection,suffix = collectionAndSuffix
+            p4Vector = eventVars[collection+"CorrectedP4"+suffix]
+            corrFactorVector = eventVars[collection+"CorrFactor"+suffix]
+            size = p4Vector.size()
 
-            indexOfLeadingUnCorrJet=-1
-            leadingUnCorrJetPt=-1.0
+            indexOfLeadingUnCorrJet = -1
+            leadingUnCorrJetPt = -1.0
             for i in range(size) :
-                unCorrJetPt=p4Vector.at(i).pt()/corrFactorVector.at(i)
+                unCorrJetPt = p4Vector.at(i).pt() / corrFactorVector.at(i)
                 #print i,unCorrJetPt,p4Vector.at(i).pt(),corrFactorVector.at(i)
-                if unCorrJetPt>leadingUnCorrJetPt :
-                    leadingUnCorrJetPt=unCorrJetPt
-                    indexOfLeadingUnCorrJet=i                
-
+                if unCorrJetPt > leadingUnCorrJetPt :
+                    leadingUnCorrJetPt = unCorrJetPt
+                    indexOfLeadingUnCorrJet = i
+                    
             #print "leading: ",indexOfLeadingUnCorrJet
             #print
             if indexOfLeadingUnCorrJet<0 or size<=indexOfLeadingUnCorrJet : continue
