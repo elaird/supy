@@ -66,12 +66,11 @@ class hltFilter(analysisStep) :
     """hltFilter"""
 
     def __init__(self,hltPathName):
-        self.neededBranches=["triggered"]
         self.hltPathName=hltPathName
         self.moreName="("+self.hltPathName+")"
 
-    def select (self,chain,chainVars,extraVars) :
-        return chain.triggered[self.hltPathName]
+    def select (self,eventVars,extraVars) :
+        return eventVars["triggered"][self.hltPathName]
 #####################################
 class hltPrescaleHistogrammer(analysisStep) :
     """hltPrescaleHistogrammer"""

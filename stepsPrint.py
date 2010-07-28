@@ -14,7 +14,7 @@ class progressPrinter(analysisStep) :
         self.moreName+=str(self.cut)+")"
         self.neededBranches=[]
 
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         if (self.nTotal==self.num) :
             self.num=self.factor*self.num
             toPrint="event "+str(self.nTotal).rjust(self.integerWidth," ")

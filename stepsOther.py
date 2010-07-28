@@ -177,7 +177,6 @@ class skimmer3(analysisStep) :
     def __init__(self,outputDir) :
         self.outputDir=outputDir
         self.moreName="(see below)"
-        self.neededBranches=[]
 
     def setup(self,chain,fileDir,name) :
         self.eventLists=[ r.TEventList("eventList%d"%iTree) for iTree in range(chain.GetNtrees()) ]
@@ -185,8 +184,8 @@ class skimmer3(analysisStep) :
         self.fileDir=fileDir
         self.outName=name
 
-    def uponAcceptance(self,chain,chainVars,extraVars) :
-        self.eventLists[chain.GetTreeNumber()].Enter(extraVars.localEntry)
+    def uponAcceptance(self,eventVars,extraVars) :
+        self.eventLists[eventVars._wrappedChain__chain.GetTreeNumber()].Enter(extraVars.localEntry)
 
     def endFunc(self,inChain,hyphens,nEvents,xs) :
         #for eventList in self.eventLists :
