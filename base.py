@@ -1,4 +1,5 @@
 import copy,array,os
+import wrappedChain
 import ROOT as r
 #####################################
 class sampleSpecification :
@@ -33,7 +34,6 @@ class analysisLooper :
         stuffToCopy=["nEvents","name","steps","inputFiles","xs","parentName","splitMode","fileDirectory","treeName"]
         for item in stuffToCopy :
             setattr(self,item,getattr(sample,item))
-        self.skimmerMode=False
 
         #run in quiet mode iff the sample has been split
         self.quietMode=sample.splitMode
@@ -46,115 +46,6 @@ class analysisLooper :
         self.chainVariableContainer=eventVariableContainer()
         self.extraVariableContainer=eventVariableContainer()
 
-    def makeFinalBranchNameLists(self) :
-        showDebug=False
-        self.allReadBranchNames=[]
-        for step in self.steps :
-            if (showDebug) :
-                print "-------------------------"
-                step.printStatistics()
-                print "needed: ",step.neededBranches
-
-            #branches to read
-            step.finalBranchNameList=[]
-            for branchName in step.neededBranches :
-                if (not branchName in self.allReadBranchNames) :
-                    step.finalBranchNameList.append(branchName)
-                    self.allReadBranchNames.append(branchName)
-
-            if (showDebug) :
-                print "final:  ",step.finalBranchNameList
-                print "all:    ",self.allReadBranchNames
-
-    def setBranchAddresses(self) :
-        self.dontSetList=["<type 'str'>"]
-        self.inputChain.GetEntry(self.extraVariableContainer.entry)
-        for step in self.steps :
-            self.setStuffUp(step)
-            
-    def setStuffUp(self,step) :
-        showDebug=False
-
-        step.needToBindVars=False
-        step.bindDict={}
-        step.bindDictArray={}
-        
-        for branchName in step.finalBranchNameList :
-            if (showDebug) : print branchName
-            #only branches with one leaf are supported
-            branch=self.inputChain.GetBranch(branchName)
-            if branch==None : raise NameError("Could not find branch "+str(branchName))
-
-            leafName=branch.GetListOfLeaves().At(0).GetName()
-            if (leafName=="_") : leafName=branchName
-
-            branchType=type(getattr(self.inputChain,leafName))
-            if (showDebug) : print getattr(self.inputChain,leafName),branchType
-
-            #int
-            if (str(branchType)=="<type 'long'>" or str(branchType)=="<type 'int'>") :
-                leaf=self.inputChain.GetBranch(branchName).GetLeaf(leafName)
-                className=leaf.Class().GetName()
-                if (className=="TLeafI" or className=="TLeafO") :
-                    if (not self.skimmerMode) :
-                        setattr(self.chainVariableContainer,branchName,array.array('l',[0]))
-                        self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
-                    else :
-                        setattr(self.chainVariableContainer,branchName,[0])#hack (use list)
-                        step.needToBindVars=True
-                        step.bindDict[branchName]=leafName
-                else :
-                    print "fail",branchName,leaf.Class().GetName()
-            #double
-            elif (str(branchType)=="<type 'float'>") :
-                leaf=self.inputChain.GetBranch(branchName).GetLeaf(leafName)
-                if (leaf.Class().GetName()=="TLeafD") :
-                    setattr(self.chainVariableContainer,branchName,array.array('d',[0.0]))
-                    if (not self.skimmerMode) :
-                        self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
-                    else :
-                        step.needToBindVars=True
-                        step.bindDict[branchName]=leafName
-                else :
-                    print "fail",branchName,leaf.Class().GetName()
-            #int[]
-            elif (str(branchType)=="<type 'ROOT.PyUIntBuffer'>") :
-                if (not self.skimmerMode) :
-                    setattr(self.chainVariableContainer,branchName,array.array('i',[0]*256)) #hard-coded max of 256
-                    self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
-                else :
-                    step.needToBindVars=True
-                    step.bindDictArray[branchName]=leafName
-            #double[]
-            elif (str(branchType)=="<type 'ROOT.PyDoubleBuffer'>") :
-                if (not self.skimmerMode) :
-                    setattr(self.chainVariableContainer,branchName,array.array('d',[0.0]*256)) #hard-coded max of 256
-                    self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
-                else :
-                    step.needToBindVars=True
-                    step.bindDictArray[branchName]=leafName
-            #float[]
-            elif (str(branchType)=="<type 'ROOT.PyFloatBuffer'>") :
-                if (not self.skimmerMode) :
-                    setattr(self.chainVariableContainer,branchName,array.array('f',[0.0]*256)) #hard-coded max of 256
-                    self.inputChain.SetBranchAddress(branchName,getattr(self.chainVariableContainer,branchName))
-                else :
-                    step.needToBindVars=True
-                    step.bindDictArray[branchName]=leafName
-            #classes
-            elif (not str(branchType) in self.dontSetList) :
-                #method 1
-                #setattr(self.chainVariableContainer,branchName,getattr(self.inputChain,branchName))
-
-                #method 2
-                setattr(self.chainVariableContainer,branchName,copy.deepcopy(getattr(self.inputChain,branchName)))
-                self.inputChain.SetBranchAddress(branchName,r.AddressOf(getattr(self.chainVariableContainer,branchName)))
-
-        if (showDebug) :
-            for item in dir(self.chainVariableContainer) :
-                thing=getattr(self.chainVariableContainer,item)
-                print item,thing,type(thing)
-
     def showBranches(self) :
         for branch in self.inputChain.GetListOfBranches() :
             branchName=branch.GetName()
@@ -163,11 +54,14 @@ class analysisLooper :
             
     def go(self) :
         self.setupChain(self.inputFiles)
-        self.makeFinalBranchNameLists()
+        self.chainWrapper=wrappedChain.wrappedChain(self.inputChain)
+        
         self.setupSteps()
         #self.showBranches()
 
-        self.loop()
+        #loop through entries
+        map( self.processEvent, self.chainWrapper.entries(self.nEvents) )
+
         self.printStats()
         self.endSteps()
         self.writeHistos()
@@ -213,40 +107,17 @@ class analysisLooper :
             step.selectNotImplemented=not hasattr(step,"select")
             step.uponAcceptanceImplemented=hasattr(step,"uponAcceptance")
             step.uponRejectionImplemented=hasattr(step,"uponRejection")
-            step.needToReadData=(len(step.finalBranchNameList)>0)
-            if (step.__doc__==step.skimmerStepName) : self.skimmerMode=True
             if (hasattr(step,"setup")) : step.setup(self.inputChain,self.fileDirectory,self.name)
 
-    def setupBranchLists(self) :
-        for step in self.steps :
-            step.makeBranchList(self.inputChain)
-            
-    def lookForChangeOfTree(self,chain) :
-        someTreeNumber=chain.GetTreeNumber()
-        if (someTreeNumber!=self.currentTreeNumber) :
-            self.setBranchAddresses()
-            self.setupBranchLists()
-            self.currentTreeNumber=someTreeNumber
-                                                                                        
-    def loop(self) :
-        chain=self.inputChain
+    def processEvent(self,eventVars) :
         chainVars=self.chainVariableContainer
         extraVars=self.extraVariableContainer
-
-        nEntries=chain.GetEntries()
-        if (self.nEvents<0 or self.nEvents>nEntries) :
-            self.nEvents=nEntries
-
-        for entry in range(self.nEvents) :
-            localEntry=chain.LoadTree(entry)
-            if (localEntry<0) : break
-            extraVars.localEntry=localEntry
-            extraVars.entry=entry
-            self.lookForChangeOfTree(chain)
-                
-            for step in self.steps :
-                if (not step.go(chain,chainVars,extraVars)) : break
-
+        extraVars.localEntry=eventVars._wrappedChain__localEntry
+        extraVars.entry=eventVars.entry
+        
+        for step in self.steps :
+            if not step.go(eventVars,extraVars) : break
+        
     def printStats(self) :
         if not self.quietMode :
             print self.hyphens
@@ -270,7 +141,7 @@ class analysisLooper :
         xsHisto.Write()
             
         nEventsHisto=r.TH1D("nEventsHisto",";dummy axis;N_{events} read in",1,-0.5,0.5)
-        nEventsHisto.SetBinContent(1,self.nEvents)
+        nEventsHisto.SetBinContent(1,self.chainWrapper.entry)
         nEventsHisto.Write()
         
         nJobsHisto=r.TH1D("nJobsHisto",";dummy axis;N_{jobs}",1,-0.5,0.5)
@@ -286,7 +157,7 @@ class analysisLooper :
 
     def endSteps(self) :
         for step in self.steps :
-            if (hasattr(step,"endFunc")) :
+            if hasattr(step,"endFunc") :
                 step.endFunc(self.inputChain,self.hyphens,self.nEvents,self.xs)
 
     def pickleStepData(self) :
@@ -320,28 +191,24 @@ class analysisStep :
     quietMode=False
     splitMode=False
     
-    def go(self,chain,chainVars,extraVars) :
+    def go(self,eventVars,extraVars) :
         self.nTotal+=1
-        if (self.needToReadData) :
-            self.readData(extraVars.localEntry)
-            if (self.needToBindVars) :
-                self.bindVars(chain,chainVars)
 
-        if (self.selectNotImplemented) :
+        if self.selectNotImplemented :
             self.nPass+=1
             if (self.uponAcceptanceImplemented) :
-                self.uponAcceptance(chain,chainVars,extraVars)
+                self.uponAcceptance(eventVars,extraVars)
             return True
 
-        if (self.select(chain,chainVars,extraVars)) :
+        if self.select(eventVars,extraVars) :
             self.nPass+=1
             if (self.uponAcceptanceImplemented) :
-                self.uponAcceptance(chain,chainVars,extraVars)
+                self.uponAcceptance(eventVars,extraVars)
             return True
         else :
             self.nFail+=1
             if (self.uponRejectionImplemented) :
-                self.uponRejection(chain,chainVars,extraVars)
+                self.uponRejection(eventVars,extraVars)
             return False
 
     def name(self) :
@@ -368,21 +235,6 @@ class analysisStep :
             print outString
             print outString2+statString
 
-    def bindVars(self,chain,chainVars) :
-        for key in self.bindDict :
-            getattr(chainVars,key)[0]=getattr(chain,self.bindDict[key])
-        for key in self.bindDictArray :
-            setattr( chainVars, key, getattr(chain,self.bindDictArray[key]) )
-
-    def readData(self,localEntry) :
-        for branch in self.finalBranches :
-            branch.GetEntry(localEntry)
-
-    def makeBranchList(self,chain) :
-        self.finalBranches=[]
-        for branchName in self.finalBranchNameList :
-            self.finalBranches.append(chain.GetBranch(branchName))
-            
     def bookHistos(self) : return
 #####################################
 class eventVariableContainer :
