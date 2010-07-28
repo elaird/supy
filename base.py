@@ -4,10 +4,10 @@ import ROOT as r
 class sampleSpecification :
     """name, data sample, cuts"""
 
-    def __init__(self,dict,name,nEvents,outputPrefix,steps,xs=1.0):
+    def __init__(self,inputFiles,name,nEvents,outputPrefix,steps,xs):
         self.name=name
         self.nEvents=nEvents
-        self.inputFiles=dict[name]
+        self.inputFiles=inputFiles
         self.outputPrefix=outputPrefix
         self.outputPlotFileName=outputPrefix+"_"+self.name+"_plots.root"
         self.steps=copy.deepcopy(steps)
