@@ -230,12 +230,9 @@ class extraVariableGreaterFilter(analysisStep) :
     """extraVariableGreaterFilter"""
 
     def __init__(self,threshold,variable):
-        self.threshold=threshold
-        self.variable=variable
-        self.moreName="("+self.variable
-        self.moreName+=">="
-        self.moreName+=str(self.threshold)
-        self.moreName+=")"
+        self.threshold = threshold
+        self.variable = variable
+        self.moreName = "(%s>=%.2f)" % (variable,threshold)
 
     def select (self,eventVars,extraVars) :
         return (getattr(extraVars,self.variable)>=self.threshold)
@@ -244,12 +241,9 @@ class extraVariablePtGreaterFilter(analysisStep) :
     """extraVariablePtGreaterFilter"""
 
     def __init__(self,threshold,variable):
-        self.threshold=threshold
-        self.variable=variable
-        self.moreName="("+self.variable
-        self.moreName+=">="
-        self.moreName+=str(self.threshold)
-        self.moreName+=")"
+        self.threshold = threshold
+        self.variable = variable
+        self.moreName = "(%s>=%.2f)" % (variable,threshold)
 
     def select (self,eventVars,extraVars) :
         return (getattr(extraVars,self.variable).pt()>=self.threshold)
@@ -257,18 +251,16 @@ class extraVariablePtGreaterFilter(analysisStep) :
 class objectPtVetoer(analysisStep) :
     """objectPtVetoer"""
 
-    def __init__(self,objectCollection,objectP4String,objectSuffix,objectPtThreshold,objectIndex):
-        self.objectCollection=objectCollection
-        self.objectP4String=objectP4String
-        self.objectSuffix=objectSuffix
-        self.objectPtThreshold=objectPtThreshold
-        self.objectIndex=objectIndex
-        
-        self.moreName ="("+self.objectCollection+"; "+self.objectSuffix+"; "
-        self.moreName+="corr. pT["+str(self.objectIndex)+"]< "+str(self.objectPtThreshold)+" GeV"
-        self.moreName+=")"
+    def __init__(self, collection, p4String, suffix, ptThreshold, index):
+        self.index = index
+        self.ptThreshold = ptThreshold
+        self.varName = collection + p4String + suffix
+        self.moreName = "(%s; %s; corr. pT[%d]< %.2f GeV)" % (collection, suffix, index, ptThreshold )
 
-        self.neededBranches=[self.objectCollection+self.objectP4String+self.objectSuffix]
+    def select (self,eventVars,extraVars) :
+        p4s = eventVars[self.varName]
+        if p4s.size() <= self.index : return True
+        return p4s.at(self.index).pt() < self.ptThreshold
 
 #    def bookHistos(self) :
 #        nBins=100
@@ -277,12 +269,6 @@ class objectPtVetoer(analysisStep) :
 #        title=";#eta;events / bin"
 #        self.etaRejected=r.TH1D(self.objectCollection+"Eta"+self.objectSuffix,title,nBins,etaMin,etaMax)
 
-    def select (self,chain,chainVars,extraVars) :
-        p4Vector=getattr(chainVars,self.objectCollection+self.objectP4String+self.objectSuffix)
-        size=p4Vector.size()
-        if (size<=self.objectIndex) : return True
-        return (p4Vector[self.objectIndex].pt()<self.objectPtThreshold)
-
 #    def uponRejection(self,chain,chainVars,extraVars) :
 #        p4Vector=getattr(chainVars,self.objectCollection+self.objectP4String+self.objectSuffix)
 #        self.etaRejected.Fill(p4Vector[self.objectIndex].eta())
@@ -290,43 +276,31 @@ class objectPtVetoer(analysisStep) :
 class soloObjectPtSelector(analysisStep) :
     """soloObjectPtSelector"""
 
-    def __init__(self,objectCollection,objectP4String,objectSuffix,objectPtThreshold):
-        self.objectCollection=objectCollection
-        self.objectP4String=objectP4String
-        self.objectSuffix=objectSuffix
-        self.objectPtThreshold=objectPtThreshold
-        
-        self.moreName ="("+self.objectCollection+"; "+self.objectSuffix+"; "
-        self.moreName+="pT> "+str(self.objectPtThreshold)+" GeV"
-        self.moreName+=")"
+    def __init__(self, collection, p4String, suffix, ptThreshold):
+        self.ptThreshold = ptThreshold
+        self.varName = collection + p4String + suffix        
+        self.moreName = "(%s; %s; corr. pT> %.2f GeV)" % (collection, suffix, ptThreshold )
 
-        self.neededBranches=[self.objectCollection+self.objectP4String+self.objectSuffix]
-
-    def select (self,chain,chainVars,extraVars) :
-        soloObject=getattr(chainVars,self.objectCollection+self.objectP4String+self.objectSuffix)
-        return (soloObject.pt()>=self.objectPtThreshold)
+    def select (self,eventVars,extraVars) :
+        return self.ptThreshold <= eventVars[self.varName].pt()
 #####################################
 class vertexRequirementFilterOld(analysisStep) :
     """vertexRequirementFilterOld"""
     
-    def __init__(self,minVertexNtracks,maxVertexChi2Ndf,maxVertexZ) :
-        self.neededBranches=["vertexChi2","vertexNdof","vertexNtrks","vertexPosition"]
-        self.minVertexNtracks=minVertexNtracks
-        self.maxVertexChi2Ndf=maxVertexChi2Ndf
-        self.maxVertexZ=maxVertexZ
-        self.moreName="("
-        self.moreName+=">="+str(self.minVertexNtracks)+" ve.tr.; "
-        self.moreName+="chi2/ndf<"+str(self.maxVertexChi2Ndf)+"; "
-        self.moreName+="abs(z)<"+str(self.maxVertexZ)
-        self.moreName+=")"
+    def __init__(self, minVertexNtracks, maxVertexChi2Ndf, maxVertexZ) :
+        self.minVertexNtracks = minVertexNtracks
+        self.maxVertexChi2Ndf = maxVertexChi2Ndf
+        self.maxVertexZ = maxVertexZ
 
-    def select(self,chain,chainVars,extraVars) :
-        nVertices=len(chain.vertexPosition)
-        for i in range(nVertices) :
-            if (chain.vertexNtrks[i]>=self.minVertexNtracks
-                and chain.vertexNdof[i]>0.0
-                and chain.vertexChi2[i] / chain.vertexNdof[i] < self.maxVertexChi2Ndf
-                and r.TMath.Abs(chain.vertexPosition[i].Z()) < self.maxVertexZ) :
+        self.moreName = "(>=%d ve.tr.; chi2/ndf<%.2f; abs(z)<%.2f)" % (minVertexNtracks, maxVertexChi2Ndf, maxVertexZ )
+
+    def select(self,eventVars,extraVars) :
+        pos = eventVars["vertexPosition"]
+        for i in range(pos.size()) :
+            if eventVars["vertexNtrks"].at(i) >= self.minVertexNtracks and \
+               eventVars["vertexNdof"].at(i) > 0.0 and \
+               eventVars["vertexChi2"].at(i) / eventVars["vertexNdof"].at(i) < self.maxVertexChi2Ndf and \
+               abs(pos.at(i).Z()) < self.maxVertexZ :
                 return True
         return False
 #####################################
@@ -354,10 +328,8 @@ class monsterEventFilter(analysisStep) :
     def __init__(self,maxNumTracks,minGoodTrackFraction) :
         self.maxNumTracks=maxNumTracks
         self.minGoodTrackFraction=minGoodTrackFraction
-        self.moreName="("
-        self.moreName+="<="+str(maxNumTracks)+" tracks or "
-        self.moreName+=">"+str(minGoodTrackFraction)+" good fraction"
-        self.moreName+=")"
+
+        self.moreName = "(<=%d tracks or >%.2f good fraction)" % (maxNumTracks, minGoodTrackFraction)
 
     def select (self,eventVars,extraVars) :
         nTracks    = eventVars["tracksNEtaLT0p9AllTracks"] + eventVars["tracksNEta0p9to1p5AllTracks"] + eventVars["tracksNEtaGT1p5AllTracks"]
@@ -368,28 +340,21 @@ class runNumberFilter(analysisStep) :
     """runNumberFilter"""
 
     def __init__(self,runList,acceptRatherThanReject) :
-        self.neededBranches=["run"]
-        self.runList=runList
-        self.accept=acceptRatherThanReject
-        self.moreName="run "
-        if (not self.accept) : self.moreName+="not "
-        self.moreName+="in list ["
-        for i in range(len(self.runList)) :
-            self.moreName+=str(self.runList[i])
-            if (i!=len(self.runList)-1) : self.moreName+=","
-            else : self.moreName+="]"
+        self.runList = runList
+        self.accept = acceptRatherThanReject
+
+        self.moreName = "run%s in list [%s]" % (("" if self.accept else " not"),
+                                                ",".join(runList))
         
-    def select (self,chain,chainVars,extraVars) :
-        thisRun=chain.run
-        return not ((thisRun in self.runList) ^ self.accept)
+    def select (self,eventVars,extraVars) :
+        return not ((eventVars["run"] in self.runList) ^ self.accept)
 
 #####################################
 class goodRunsOnly2009(analysisStep) :
     """goodRunsOnly2009"""
 
     def __init__(self,energyString,version) :
-        self.neededBranches=["run","lumiSection"]
-        self.moreName="("+energyString+" "+version+")"
+        self.moreName = "(%s %s)" % (energyString,version)
         self.runList=[]
         self.runLsList=[]
 
@@ -450,14 +415,11 @@ class goodRunsOnly2009(analysisStep) :
         for tuple in self.runLsList :
             self.runDict[tuple[0]]=[tuple[1],tuple[2]]
         
-    def select (self,chain,chainVars,extraVars) :
-        run=chain.run
-        #run=chainVars.run[0]
-        if (not run in self.runDict) : return False
-        ls=chain.lumiSection
-        #ls=chainVars.lumiSection[0]
-        if (ls<self.runDict[run][0]) : return False
-        if (ls>self.runDict[run][1]) : return False
+    def select (self,eventVars,extraVars) :
+        if eventVars["run"] not in self.runDict : return False
+        ls = eventVars["lumiSection"]
+        if ls < self.runDict[run][0] or \
+           ls > self.runDict[run][1] : return False
         return True
 
 #####################################
@@ -465,15 +427,14 @@ class runHistogrammer(analysisStep) :
     """runHistogrammer"""
 
     def __init__(self) :
-        self.neededBranches=["run"]
         self.runDict={}
         
-    def select (self,chain,chainVars,extraVars) :
-        run=chain.run
-        if (run in self.runDict) :
-            self.runDict[run]+=1
+    def select (self,eventVars,extraVars) :
+        run = eventVars["run"]
+        if run in self.runDict :
+            self.runDict[run] += 1
         else :
-            self.runDict[run]=1
+            self.runDict[run] = 1
         return True
 
     def printStatistics(self) :
@@ -486,46 +447,34 @@ class metGroupNoiseEventFilter(analysisStep) :
     """metGroupNoiseEventFilter"""
 
     def __init__(self,version) :
-        self.neededBranches=["run","lumiSection","event"]
         self.version=version
         self.moreName="("+self.version+")"
         self.setupStuff()
 
     def setupStuff(self) :
-        self.setOfBadTuples=set([])
+        self.setOfBadTuples = set([])
 
-        inFile=open("/afs/cern.ch/user/e/elaird/public/susypvt/misc/cleaned_events/cleaned_events_"+self.version+".txt")
+        inFile = open("/afs/cern.ch/user/e/elaird/public/susypvt/misc/cleaned_events/cleaned_events_"+self.version+".txt")
         for line in inFile :
-            varList=line.split()
-            run=int(varList[1])
-            ls=int(varList[3])
-            event=int(varList[5])
+            varList = line.split()
+            run = int(varList[1])
+            ls = int(varList[3])
+            event = int(varList[5])
             self.setOfBadTuples.add( (run,ls,event) )
         inFile.close()
         
-    def select (self,chain,chainVars,extraVars) :
-        run=chain.run
-        ls=chain.lumiSection
-        event=chain.event
-        tuple=(run,ls,event)
-        return not (tuple in self.setOfBadTuples)
+    def select (self,e,extraVars) :
+        return  (e["run"],e["lumiSection"],e["event"])   not in   self.setOfBadTuples
 #####################################
 class bxFilter(analysisStep) :
     """bxFilter"""
 
     def __init__(self,bxList) :
-        self.neededBranches=["bunch"]
-        self.bxList=bxList
-        self.moreName="["
-        for i in range(len(self.bxList)) :
-            self.moreName+=str(self.bxList[i])
-            if (i!=len(self.bxList)-1) : self.moreName+=","
-            else : self.moreName+="]"
-        
-    def select (self,chain,chainVars,extraVars) :
-        bunch=chain.bunch
-        for bx in self.bxList:
-            if (bx==bunch) : return True
+        self.bxList = bxList
+        self.moreName = "[%s]" % ",".join(bxList)
+
+    def select (self,eventVars,extraVars) :
+        return eventVars["bunch"] in self.bxList
 #####################################
 class displayer(analysisStep) :
     #special __doc__ assignment below
@@ -961,11 +910,10 @@ class counter(analysisStep) :
     """counter"""
 
     def __init__(self,label) :
-        self.neededBranches=[]
-        self.label=label
-        self.moreName="(\""+self.label+"\")"
+        self.label = label
+        self.moreName = '("%s")' % label
     def bookHistos(self) :
-        self.countsHisto=r.TH1D("countsHisto_"+self.label,";dummy axis;number of events",1,-0.5,0.5)
+        self.countsHisto = r.TH1D("countsHisto_"+self.label,";dummy axis;number of events",1,-0.5,0.5)
 
     def uponAcceptance(self,eventVars,extraVars) :
         self.countsHisto.Fill(0.0)
@@ -974,12 +922,11 @@ class pickEventSpecMaker(analysisStep) :
     """pickEventSpecMaker"""
     #https://twiki.cern.ch/twiki/bin/view/CMS/PickEvents
     def __init__(self,outputFileName,dataSetName) :
-        self.neededBranches=["run","lumiSection","event"]
-        self.outputFileName=outputFileName
-        self.dataSetName=dataSetName
+        self.outputFileName = outputFileName
+        self.dataSetName = dataSetName
 
     def bookHistos(self) :
-        self.outputFile=open(self.outputFileName,"w")
+        self.outputFile = open(self.outputFileName,"w")
         
     def uponAcceptance(self,eventVars,extraVars) :
         line=""
@@ -987,7 +934,7 @@ class pickEventSpecMaker(analysisStep) :
         line+="%14d"%eventVars["event"]
         line+="%14d"%eventVars["lumiSection"]
         line+="   "+self.dataSetName+"\n"
-        self.outputFile.write(line)
+        self.outputFile.write(line) #slow: faster to buffer output, write less frequently
 
     def endFunc(self,chain,hyphens,nEvents,xs) :
         print hyphens
