@@ -6,12 +6,12 @@ import ROOT as r
 class analysis :
     """base class for an analysis"""
     
-    def __init__(self,name="name",outputDir="/tmp/",moduleDefiningSamples="samples",moduleDefiningLists="lists",listOfSourceFiles=["SusyCAFpragmas.h","helpers.C"]) :
-        for arg in ["name","outputDir","moduleDefiningSamples","moduleDefiningLists","listOfSourceFiles"] :
+    def __init__(self,name="name",outputDir="/tmp/",moduleDefiningLists="lists",listOfSourceFiles=["SusyCAFpragmas.h","helpers.C"]) :
+        for arg in ["name","outputDir","moduleDefiningLists","listOfSourceFiles"] :
             exec("self."+arg+"="+arg)
 
         self.globalSetup()
-        self.makeSampleAndListDictionaries()
+        self.makeListDictionary()
         self.sampleSpecs=[]
         
     def go(self,loop=False,plot=False,profile=False,nCores=1,splitJobsByInputFile=False) :
@@ -41,38 +41,25 @@ class analysis :
         r.gErrorIgnoreLevel=2000
         r.gROOT.SetBatch(True)
 
-    def makeSampleAndListDictionaries(self) :
-        exec("import "+self.moduleDefiningSamples+" as samples")
+    def makeListDictionary(self) :
         exec("import "+self.moduleDefiningLists+" as lists")
-
-        #build dictionaries of files and xs
-        sampleHolder=samples.sampleDictionaryHolder()
-        sampleHolder.buildDictionaries()
-        self.fileListDict=sampleHolder.getFileListDictionary()
-        self.xsDict=sampleHolder.getXsDictionary()
 
         #build dictionary of lists
         self.listHolder=lists.listDictionaryHolder()
         self.listHolder.buildDictionary()
 
-    def addSampleSpec(self,sampleName="",listName="",isMc=False,nEvents=-1) :
-        outputPrefix=sampleName
+    def addSampleSpec(self,listName,sampleName,listOfFileNames=[],isMc=False,nEvents=-1,xs=1.0) :
         listOfSteps=self.listHolder.getSteps(listName,isMc)
-        self.sampleSpecs.append( base.sampleSpecification(self.fileListDict,outputPrefix,nEvents,self.name,listOfSteps) )
+        self.sampleSpecs.append( base.sampleSpecification(listOfFileNames,sampleName,nEvents,self.name,listOfSteps,xs) )
         return
 
     def splitUpSpecs(self) :
         outListOfSpecs=[]
         for spec in self.sampleSpecs :
             fileIndex=0
-            for iFileName in range(len(self.fileListDict[spec.name])) :
-                suffix="_"+str(iFileName)
-                newName=spec.name+suffix
-                if newName in self.fileListDict :
-                    raise NameError(newName," already in fileListDict")
-                self.fileListDict[newName]=[self.fileListDict[spec.name][iFileName]]
-                outListOfSpecs.append(base.sampleSpecification(self.fileListDict,
-                                                               newName,
+            for iFileName in range(len(spec.inputFiles)) :
+                outListOfSpecs.append(base.sampleSpecification([spec.inputFiles[iFileName]],
+                                                               spec.name+"_"+str(iFileName),
                                                                spec.nEvents,
                                                                spec.outputPrefix,
                                                                copy.deepcopy(spec.steps),
