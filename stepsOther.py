@@ -352,9 +352,6 @@ class monsterEventFilter(analysisStep) :
     """monsterEventFilter"""
     
     def __init__(self,maxNumTracks,minGoodTrackFraction) :
-        self.neededBranches=["tracksNEtaLT0p9AllTracks"       ,"tracksNEta0p9to1p5AllTracks"       ,"tracksNEtaGT1p5AllTracks",
-                             "tracksNEtaLT0p9HighPurityTracks","tracksNEta0p9to1p5HighPurityTracks","tracksNEtaGT1p5HighPurityTracks"
-                             ]
         self.maxNumTracks=maxNumTracks
         self.minGoodTrackFraction=minGoodTrackFraction
         self.moreName="("
@@ -362,9 +359,9 @@ class monsterEventFilter(analysisStep) :
         self.moreName+=">"+str(minGoodTrackFraction)+" good fraction"
         self.moreName+=")"
 
-    def select (self,chain,chainVars,extraVars) :
-        nTracks    =chain.tracksNEtaLT0p9AllTracks        + chain.tracksNEta0p9to1p5AllTracks        + chain.tracksNEtaGT1p5AllTracks
-        nGoodTracks=chain.tracksNEtaLT0p9HighPurityTracks + chain.tracksNEta0p9to1p5HighPurityTracks + chain.tracksNEtaGT1p5HighPurityTracks
+    def select (self,eventVars,extraVars) :
+        nTracks    = eventVars["tracksNEtaLT0p9AllTracks"] + eventVars["tracksNEta0p9to1p5AllTracks"] + eventVars["tracksNEtaGT1p5AllTracks"]
+        nGoodTracks = eventVars["tracksNEtaLT0p9HighPurityTracks"] + eventVars["tracksNEta0p9to1p5HighPurityTracks"] + eventVars["tracksNEtaGT1p5HighPurityTracks"]
         return (nTracks <= self.maxNumTracks or nGoodTracks > self.minGoodTrackFraction*nTracks)
 #####################################
 class runNumberFilter(analysisStep) :
