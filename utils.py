@@ -72,3 +72,69 @@ def pruneFileList(inList) :
         outList.append(fileName)
     return outList
 #####################################
+def fileListFromSrmLs(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
+    srmPrefix="srm://gfe02.grid.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN="
+    dCachePrefix="dcap://gfe02.grid.hep.ph.ic.ac.uk:22128"
+
+    fileList=[]
+    cmd="srmls "+srmPrefix+"/"+location
+    #print cmd
+    output=getCommandOutput2(cmd)
+    for line in output.split("\n") :
+        if "SusyCAF_Tree" not in line : continue
+        acceptFile=True
+        fields=line.split()
+        size=float(fields[0])
+        fileName=fields[1]
+        
+        if size<=sizeThreshold : acceptFile=False
+        for item in itemsToSkip :
+            if item in fileName : acceptFile=False
+        if acceptFile : fileList.append(dCachePrefix+fileName)
+
+    if pruneList :   fileList=pruneFileList(fileList)
+    if nMaxFiles>0 : fileList=fileList[:nMaxFiles]
+    return fileList
+#####################################    
+def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
+    fileList=[]
+    cmd="nsls -l "+location
+    #print cmd
+    output=getCommandOutput2(cmd)
+    for line in output.split("\n") :
+        if "SusyCAF_Tree" not in line : continue
+        acceptFile=True
+        fields=line.split()
+        size=float(fields[-5])
+        fileName=fields[-1]
+
+        if size<=sizeThreshold : acceptFile=False
+        for item in itemsToSkip :
+            if item in fileName : acceptFile=False
+        if acceptFile : fileList.append("rfio:///"+location+"/"+fileName)
+            
+    if pruneList :   fileList=pruneFileList(fileList)
+    if nMaxFiles>0 : fileList=fileList[:nMaxFiles]
+    self.fileListDict[name]=fileList
+#####################################
+def fileListFromDisk(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
+    fileList=[]
+    cmd="ls -l "+location
+    #print cmd
+    output=getCommandOutput2(cmd)
+    for line in output.split("\n") :
+        if "SusyCAF_Tree" not in line : continue
+        acceptFile=True
+        fields=line.split()
+        size=float(fields[-5])
+        fileName=fields[-1]
+
+        if size<=sizeThreshold : acceptFile=False
+        for item in itemsToSkip :
+            if item in fileName : acceptFile=False
+        if acceptFile : fileList.append("rfio:///"+location+"/"+fileName)
+            
+    if pruneList :   fileList=pruneFileList(fileList)
+    if nMaxFiles>0 : fileList=fileList[:nMaxFiles]
+    self.fileListDict[name]=fileList
+#####################################        
