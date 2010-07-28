@@ -115,7 +115,7 @@ def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nM
             
     if pruneList :   fileList=pruneFileList(fileList)
     if nMaxFiles>0 : fileList=fileList[:nMaxFiles]
-    self.fileListDict[name]=fileList
+    return fileList
 #####################################
 def fileListFromDisk(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
     fileList=[]
@@ -123,18 +123,18 @@ def fileListFromDisk(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMax
     #print cmd
     output=getCommandOutput2(cmd)
     for line in output.split("\n") :
-        if "SusyCAF_Tree" not in line : continue
         acceptFile=True
         fields=line.split()
+        if len(fields)<6 : continue
         size=float(fields[-5])
         fileName=fields[-1]
 
         if size<=sizeThreshold : acceptFile=False
         for item in itemsToSkip :
             if item in fileName : acceptFile=False
-        if acceptFile : fileList.append("rfio:///"+location+"/"+fileName)
+        if acceptFile : fileList.append(location+"/"+fileName)
             
     if pruneList :   fileList=pruneFileList(fileList)
     if nMaxFiles>0 : fileList=fileList[:nMaxFiles]
-    self.fileListDict[name]=fileList
+    return fileList
 #####################################        
