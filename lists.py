@@ -95,6 +95,7 @@ class listDictionaryHolder :
             jetPtSelector(jetCollection,jetSuffix,60.0,0),
             jetPtSelector(jetCollection,jetSuffix,40.0,1),            
             leadingUnCorrJetPtSelector( [(jetCollection,jetSuffix)],60.0 ),
+            hltPrescaleHistogrammer(["HLT_ZeroBias","HLT_Jet15U","HLT_Jet30U","HLT_Jet50U","HLT_MET45"]),
             
             cleanJetIndexProducerFromFlag(jetCollection,jetSuffix,cleanJetPtThreshold,jetEtaMax),
             #cleanJetIndexProducer(jetCollection,jetSuffix,cleanJetPtThreshold,jetEtaMax),
