@@ -76,7 +76,6 @@ class hltPrescaleHistogrammer(analysisStep) :
     """hltPrescaleHistogrammer"""
 
     def __init__(self,listOfHltPaths) :
-        self.neededBranches=["prescaled"]
         self.listOfHltPaths=listOfHltPaths
         self.moreName="("+str(self.listOfHltPaths)+")"
 
@@ -88,9 +87,9 @@ class hltPrescaleHistogrammer(analysisStep) :
         for iPath in range(len(self.listOfHltPaths)) :
             self.prescaleHisto.GetXaxis().SetBinLabel(iPath+1,self.listOfHltPaths[iPath])
         
-    def uponAcceptance(self,chain,chainVars,extraVars) :
+    def uponAcceptance(self,eventVars,extraVars) :
         for iPath in range(len(self.listOfHltPaths)) :
-            value=chainVars.prescaled.find(self.listOfHltPaths[iPath]).second
+            value=eventVars["prescaled"].find(self.listOfHltPaths[iPath]).second
             if value<=0.0 : continue
             self.prescaleHisto.Fill(iPath,math.log10(value))
 #####################################
