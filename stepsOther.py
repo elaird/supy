@@ -334,20 +334,17 @@ class vertexRequirementFilter(analysisStep) :
     """vertexRequirementFilter"""
     
     def __init__(self,minVertexNdof,maxVertexZ) :
-        self.neededBranches=["vertexIsFake","vertexNdof","vertexPosition"]
-        self.minVertexNdof=minVertexNdof
-        self.maxVertexZ=maxVertexZ
-        self.moreName="(any v: !fake; "
-        self.moreName+="ndf>="+str(self.minVertexNdof)+"; "
-        self.moreName+="abs(z)<"+str(self.maxVertexZ)
-        self.moreName+=")"
+        self.minVertexNdof = minVertexNdof
+        self.maxVertexZ = maxVertexZ
+        self.moreName = "(any v: !fake; ndf>=%.2f;abs(z)<%.2f)" % (minVertexNdof,maxVertexZ)
 
-    def select(self,chain,chainVars,extraVars) :
-        nVertices=len(chainVars.vertexPosition)
-        for i in range(nVertices) :
-            if (chainVars.vertexIsFake[i]) : continue
-            if (chainVars.vertexNdof[i]<self.minVertexNdof) : continue
-            if (r.TMath.Abs(chainVars.vertexPosition[i].Z()) >= self.maxVertexZ) : continue
+    def select(self,eventVars,extraVars) :
+        fake,ndof,pos = eventVars["vertexIsFake"], eventVars["vertexNdof"], eventVars["vertexPosition"]
+        
+        for i in range(pos.size()) :
+            if fake.at(i) : continue
+            if ndof.at(i) < self.minVertexNdof : continue
+            if abs(pos.at(i).Z()) >= self.maxVertexZ : continue
             return True
         return False
 #####################################
