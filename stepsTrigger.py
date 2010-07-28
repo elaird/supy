@@ -28,11 +28,11 @@ class techBitFilter(analysisStep) :
             if (i!=len(self.bitList)-1) : self.moreName+=","
             else : self.moreName+="]"
         
-    def select (self,chain,chainVars,extraVars) :
-        l1techbits=chainVars.l1techbits
+    def select (self,eventVars,extraVars) :
+        l1techbits = eventVars["l1techbits"]
         anyBitInList=False
         for bit in self.bitList:
-            if l1techbits[bit] :
+            if l1techbits.at(bit) :
                 anyBitInList=True
                 break
 
