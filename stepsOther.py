@@ -223,11 +223,8 @@ class skimmer3(analysisStep) :
 class hbheNoiseFilter(analysisStep) :
     """hbheNoiseFilter"""
 
-    def __init__(self):
-        self.neededBranches=["hbheNoiseFilterResult"]
-
-    def select (self,chain,chainVars,extraVars) :
-        return chainVars.hbheNoiseFilterResult[0]
+    def select (self,eventVars,extraVars) :
+        return eventVars["hbheNoiseFilterResult"]
 #####################################
 class extraVariableGreaterFilter(analysisStep) :
     """extraVariableGreaterFilter"""
@@ -239,9 +236,8 @@ class extraVariableGreaterFilter(analysisStep) :
         self.moreName+=">="
         self.moreName+=str(self.threshold)
         self.moreName+=")"
-        self.neededBranches=[]
 
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         return (getattr(extraVars,self.variable)>=self.threshold)
 #####################################
 class extraVariablePtGreaterFilter(analysisStep) :
@@ -254,9 +250,8 @@ class extraVariablePtGreaterFilter(analysisStep) :
         self.moreName+=">="
         self.moreName+=str(self.threshold)
         self.moreName+=")"
-        self.neededBranches=[]
 
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         return (getattr(extraVars,self.variable).pt()>=self.threshold)
 #####################################
 class objectPtVetoer(analysisStep) :
@@ -555,10 +550,6 @@ class displayer(analysisStep) :
         
         self.fakerMode=fakerMode
 
-        self.neededBranches=[self.jetCollection+'CorrectedP4'+self.jetSuffix,
-                             self.metCollection+'P4'+self.metSuffix]
-        self.neededBranches.extend(["run","lumiSection","event","bunch"])
-
         self.doGen=False
         self.doLeptons=True
 
@@ -569,7 +560,6 @@ class displayer(analysisStep) :
                 suffix=tuple[1]
                 setattr(self,particle+"Collection",particle)
                 setattr(self,particle+"Suffix",suffix)
-                self.neededBranches.append(particle+'P4'+suffix)
 
         self.helper=r.displayHelper()
 
@@ -622,15 +612,15 @@ class displayer(analysisStep) :
             utils.psFromRoot([self.outputFileName],psFileName,self.quietMode)
         del self.canvas
 
-    def drawEventInfo(self,chainVars,extraVars,color) :
+    def drawEventInfo(self,eventVars,extraVars,color) :
         self.text.SetTextSize(0.02)
         self.text.SetTextFont(80)
         self.text.SetTextColor(color)
         x=0.1
-        self.text.DrawText(x,0.80,"Run   %#10d"%chainVars.run[0])
-        if (not self.fakerMode) : self.text.DrawText(x,0.78,"Ls    %#10d"%chainVars.lumiSection[0])
-        self.text.DrawText(x,0.76,"Event %#10d"%chainVars.event[0])
-        if (not self.fakerMode) : self.text.DrawText(x,0.74,"Bx    %#10d"%chainVars.bunch[0])
+        self.text.DrawText(x,0.80,"Run   %#10d"%eventVars["run"])
+        if (not self.fakerMode) : self.text.DrawText(x,0.78,"Ls    %#10d"%eventVars["lumiSection"])
+        self.text.DrawText(x,0.76,"Event %#10d"%eventVars["event"])
+        if (not self.fakerMode) : self.text.DrawText(x,0.74,"Bx    %#10d"%eventVars["bunch"])
         
     def drawSkeleton(self,color) :
         #self.canvas.cd(2)
@@ -664,18 +654,18 @@ class displayer(analysisStep) :
         self.arrow.SetFillColor(color)
         self.arrow.DrawArrow(self.x0,self.y0,x1,y1)
         
-    def drawGenJets (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+    def drawGenJets (self,eventVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"genJetEntryInLegend")) :
             self.genJetEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"GEN jets ("+self.genJetCollection+")","l")
 
-        p4Vector=getattr(chainVars,self.genJetCollection+'GenJetP4'+self.jetSuffix)
+        p4Vector=eventVars[self.genJetCollection+'GenJetP4'+self.jetSuffix]
         for jet in p4Vector :
             self.drawP4(jet,color,lineWidth,arrowSize)
             
-    def drawCleanJets (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+    def drawCleanJets (self,eventVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"cleanJetEntryInLegend")) :
             self.cleanJetEntryInLegend=True
@@ -683,7 +673,7 @@ class displayer(analysisStep) :
             self.legend.AddEntry(someLine,"clean jets ("+self.jetCollection+")","l")
 
         if (not self.fakerMode) :
-            p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+            p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
             cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
             for iJet in cleanJetIndices :
                 self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
@@ -691,7 +681,7 @@ class displayer(analysisStep) :
             for jet in extraVars.icfCleanJets :
                 self.drawP4(jet,color,lineWidth,arrowSize)
             
-    def drawOtherJets (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+    def drawOtherJets (self,eventVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"otherJetEntryInLegend")) :
             self.otherJetEntryInLegend=True
@@ -700,12 +690,12 @@ class displayer(analysisStep) :
 
         if (self.fakerMode) : return
 
-        p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+        p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
         otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
         for index in otherJetIndices :
             self.drawP4(p4Vector[index],color,lineWidth,arrowSize)
             
-    def drawLowPtJets (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+    def drawLowPtJets (self,eventVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"lowPtJetEntryInLegend")) :
             self.lowPtJetEntryInLegend=True
@@ -714,7 +704,7 @@ class displayer(analysisStep) :
 
         if (self.fakerMode) : return
 
-        p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+        p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
         cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
         otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
         for iJet in range(len(p4Vector)) :
@@ -722,7 +712,7 @@ class displayer(analysisStep) :
             if (iJet in otherJetIndices) : continue
             self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
-    def drawMht (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+    def drawMht (self,eventVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"mhtEntryInLegend")) :
             self.mhtEntryInLegend=True
@@ -732,7 +722,7 @@ class displayer(analysisStep) :
         mht=getattr(extraVars,self.jetCollection+"Mht"+self.jetSuffix)
         self.drawP4(mht,color,lineWidth,arrowSize)
             
-    def drawHt (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+    def drawHt (self,eventVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"htEntryInLegend")) :
             self.htEntryInLegend=True
@@ -746,7 +736,7 @@ class displayer(analysisStep) :
         self.line.SetLineColor(color)
         self.line.DrawLine(self.x0-l/2.0,y,self.x0+l/2.0,y)
         
-    def drawNJetDeltaHt (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+    def drawNJetDeltaHt (self,eventVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"deltaHtEntryInLegend")) :
             self.deltaHtEntryInLegend=True
@@ -760,49 +750,49 @@ class displayer(analysisStep) :
         self.line.DrawLine(self.x0-l/2.0,y,self.x0+l/2.0,y)
 
 
-    def drawMet (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+    def drawMet (self,eventVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"metEntryInLegend")) :
             self.metEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"#slashE_{T} ("+self.metSuffix+")","l")
 
-        met=getattr(chainVars,self.metCollection+"P4"+self.metSuffix)
+        met=eventVars[self.metCollection+"P4"+self.metSuffix]
         self.drawP4(met,color,lineWidth,arrowSize)
             
-    def drawGenMet (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+    def drawGenMet (self,eventVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"genMetEntryInLegend")) :
             self.genMetEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"GEN #slashE_{T} ("+self.metSuffix+")","l")
 
-        genMet=getattr(chainVars,self.metCollection+"GenMetP4"+self.metSuffix)
+        genMet=eventVars[self.metCollection+"GenMetP4"+self.metSuffix]
         self.drawP4(genMet,color,lineWidth,arrowSize)
             
-    def drawMuons (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+    def drawMuons (self,eventVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"muonEntryInLegend")) :
             self.muonEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"muons ("+self.muonSuffix+")","l")
         if (self.fakerMode) : return
-        p4Vector=getattr(chainVars,self.muonCollection+'P4'+self.muonSuffix)
+        p4Vector=eventVars[self.muonCollection+'P4'+self.muonSuffix]
         for iJet in range(len(p4Vector)) :
             self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
-    def drawElectrons (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+    def drawElectrons (self,eventVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"electronEntryInLegend")) :
             self.electronEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"electrons ("+self.electronSuffix+")","l")
         if (self.fakerMode) : return
-        p4Vector=getattr(chainVars,self.electronCollection+'P4'+self.electronSuffix)
+        p4Vector=eventVars[self.electronCollection+'P4'+self.electronSuffix]
         for iJet in range(len(p4Vector)) :
             self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
-    def drawPhotons (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+    def drawPhotons (self,eventVars,extraVars,color,lineWidth,arrowSize) :
         #temporary hack
         if self.leptonSuffix=="PF" : return
 
@@ -812,22 +802,22 @@ class displayer(analysisStep) :
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"photons ("+self.photonSuffix+")","l")
         if (self.fakerMode) : return
-        p4Vector=getattr(chainVars,self.photonCollection+'P4'+self.photonSuffix)
+        p4Vector=eventVars[self.photonCollection+'P4'+self.photonSuffix]
         for iJet in range(len(p4Vector)) :
             self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
-    def drawTaus (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+    def drawTaus (self,eventVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"tauEntryInLegend")) :
             self.tauEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"taus ("+self.tauSuffix+")","l")
         if (self.fakerMode) : return
-        p4Vector=getattr(chainVars,self.tauCollection+'P4'+self.tauSuffix)
+        p4Vector=eventVars[self.tauCollection+'P4'+self.tauSuffix]
         for iJet in range(len(p4Vector)) :
             self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
-    def drawCleanedRecHits (self,chainVars,extraVars,color,lineWidth,arrowSize) :
+    def drawCleanedRecHits (self,eventVars,extraVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"cleantedRecHitEntryInLegend")) :
             self.cleanedRecHitEntryInLegend=True
@@ -836,7 +826,7 @@ class displayer(analysisStep) :
 
         algoType="Calo"
         detector="Hf"
-        flaggedP4s=getattr(chainVars,"rechit"+algoType+"P4"+detector)
+        flaggedP4s=eventVars["rechit"+algoType+"P4"+detector]
         for hit in range(len(flaggedP4s)) :
             self.drawP4(hit,color,lineWidth,arrowSize)
             
@@ -849,7 +839,7 @@ class displayer(analysisStep) :
         alphaTFunc.SetNpx(300)
         return alphaTFunc
 
-    def drawAlphaPlot (self,chainVars,extraVars,color) :
+    def drawAlphaPlot (self,eventVars,extraVars,color) :
         stuffToKeep=[]
         pad=r.TPad("pad","pad",0.01+2.0*self.radius,0.01+self.radius,0.95,0.63)
         pad.cd()
@@ -887,7 +877,7 @@ class displayer(analysisStep) :
         for i in range(len(mhts)) :
             histo.Fill(lls[i],mhts[i])
         
-    def drawMhtLlPlot (self,chainVars,extraVars,color) :
+    def drawMhtLlPlot (self,eventVars,extraVars,color) :
         stuffToKeep=[]
         pad=r.TPad("pad","pad",self.x0+0.37*self.radius,0.63,0.95,0.95)
         pad.cd()
@@ -933,39 +923,39 @@ class displayer(analysisStep) :
         pad.Draw()
         return stuffToKeep
         
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         self.canvas.Clear()
 
         g1=self.drawSkeleton(r.kYellow+1)
-        self.drawEventInfo  (chainVars,extraVars,r.kBlack)
+        self.drawEventInfo  (eventVars,extraVars,r.kBlack)
 
         defArrowSize=0.5*self.arrow.GetDefaultArrowSize()
         defWidth=1
         #                                        color     , width   , arrow size
 
         if self.doGen :
-            self.drawGenJets    (chainVars,extraVars,r.kBlack  , defWidth, defArrowSize      )
-        self.drawCleanJets      (chainVars,extraVars,r.kBlue   , defWidth, defArrowSize*2/3.0)
-        self.drawLowPtJets      (chainVars,extraVars,r.kCyan   , defWidth, defArrowSize*1/6.0)
-        #self.drawOtherJets      (chainVars,extraVars,r.kBlack  )
-        self.drawHt             (chainVars,extraVars,r.kBlue+3 , defWidth, defArrowSize*1/6.0)
-        self.drawNJetDeltaHt    (chainVars,extraVars,r.kBlue-9 , defWidth, defArrowSize*1/6.0)
-        self.drawMht            (chainVars,extraVars,r.kRed    , defWidth, defArrowSize*3/6.0)
-        self.drawMet            (chainVars,extraVars,r.kGreen  , defWidth, defArrowSize*2/6.0)
-        #self.drawCleanedRecHits (chainVars,extraVars,r.kBrown  , defWidth, defArrowSize*2/6.0)
-        if (self.doGen) : self.drawGenMet     (chainVars,extraVars,r.kMagenta, defWidth, defArrowSize*2/6.0)
+            self.drawGenJets    (eventVars,extraVars,r.kBlack  , defWidth, defArrowSize      )
+        self.drawCleanJets      (eventVars,extraVars,r.kBlue   , defWidth, defArrowSize*2/3.0)
+        self.drawLowPtJets      (eventVars,extraVars,r.kCyan   , defWidth, defArrowSize*1/6.0)
+        #self.drawOtherJets      (eventVars,extraVars,r.kBlack  )
+        self.drawHt             (eventVars,extraVars,r.kBlue+3 , defWidth, defArrowSize*1/6.0)
+        self.drawNJetDeltaHt    (eventVars,extraVars,r.kBlue-9 , defWidth, defArrowSize*1/6.0)
+        self.drawMht            (eventVars,extraVars,r.kRed    , defWidth, defArrowSize*3/6.0)
+        self.drawMet            (eventVars,extraVars,r.kGreen  , defWidth, defArrowSize*2/6.0)
+        #self.drawCleanedRecHits (eventVars,extraVars,r.kBrown  , defWidth, defArrowSize*2/6.0)
+        if (self.doGen) : self.drawGenMet     (eventVars,extraVars,r.kMagenta, defWidth, defArrowSize*2/6.0)
 
         if (self.doLeptons) :
-            self.drawMuons      (chainVars,extraVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
-            self.drawElectrons  (chainVars,extraVars,r.kOrange+7, defWidth, defArrowSize*2/6.0)
-            self.drawPhotons    (chainVars,extraVars,r.kOrange  , defWidth, defArrowSize*2/6.0)
-            #self.drawTaus       (chainVars,extraVars,r.kYellow , defWidth, defArrowSize*2/6.0)
+            self.drawMuons      (eventVars,extraVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
+            self.drawElectrons  (eventVars,extraVars,r.kOrange+7, defWidth, defArrowSize*2/6.0)
+            self.drawPhotons    (eventVars,extraVars,r.kOrange  , defWidth, defArrowSize*2/6.0)
+            #self.drawTaus       (eventVars,extraVars,r.kYellow , defWidth, defArrowSize*2/6.0)
 
         self.legend.Draw("same")        
-        g2=self.drawAlphaPlot(chainVars,extraVars,r.kBlack)
+        g2=self.drawAlphaPlot(eventVars,extraVars,r.kBlack)
         
         r.gStyle.SetOptStat(110011)
-        #g3=self.drawMhtLlPlot(chainVars,extraVars,r.kBlack)
+        #g3=self.drawMhtLlPlot(eventVars,extraVars,r.kBlack)
 
         someDir=r.gDirectory
         self.outputFile.cd()
@@ -983,7 +973,7 @@ class counter(analysisStep) :
     def bookHistos(self) :
         self.countsHisto=r.TH1D("countsHisto_"+self.label,";dummy axis;number of events",1,-0.5,0.5)
 
-    def uponAcceptance(self,chain,chainVars,extraVars) :
+    def uponAcceptance(self,eventVars,extraVars) :
         self.countsHisto.Fill(0.0)
 #####################################
 class pickEventSpecMaker(analysisStep) :
@@ -997,11 +987,11 @@ class pickEventSpecMaker(analysisStep) :
     def bookHistos(self) :
         self.outputFile=open(self.outputFileName,"w")
         
-    def uponAcceptance(self,chain,chainVars,extraVars) :
+    def uponAcceptance(self,eventVars,extraVars) :
         line=""
-        line+="%14d"%chainVars.run[0]
-        line+="%14d"%chainVars.event[0]
-        line+="%14d"%chainVars.lumiSection[0]
+        line+="%14d"%eventVars["run"]
+        line+="%14d"%eventVars["event"]
+        line+="%14d"%eventVars["lumiSection"]
         line+="   "+self.dataSetName+"\n"
         self.outputFile.write(line)
 

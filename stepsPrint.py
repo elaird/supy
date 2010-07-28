@@ -26,16 +26,15 @@ class eventPrinter(analysisStep) :
     """eventPrinter"""
 
     def __init__(self) :
-        self.neededBranches=["run","event","lumiSection","bunch"]
         self.nHyphens=56
 
-    def uponAcceptance(self,chain,chainVars,extraVars) :
+    def uponAcceptance(self,eventVars,extraVars) :
         print
         print "".ljust(self.nHyphens,"-")
-        outString ="run %7d"%chainVars.run[0]
-        outString+="  event %10d"%chainVars.event[0]
-        outString+="  ls %#5d"%chainVars.lumiSection[0]
-        outString+="  bx %4d"%chainVars.bunch[0]
+        outString ="run %7d"%eventVars["run"]
+        outString+="  event %10d"%eventVars["event"]
+        outString+="  ls %#5d"%eventVars["lumiSection"]
+        outString+="  bx %4d"%eventVars["bunch"]
         print outString
 #####################################
 class jetPrinter(analysisStep) :
@@ -50,19 +49,12 @@ class jetPrinter(analysisStep) :
         self.moreName+=self.jetSuffix
         self.moreName+=")"
 
-        self.neededBranches=[]
-        self.neededBranches.append(self.jetCollection+'CorrectedP4'     +self.jetSuffix)
-        self.neededBranches.append(self.jetCollection+'CorrFactor'      +self.jetSuffix)
-        self.neededBranches.append(self.jetCollection+'EmEnergyFraction'+self.jetSuffix)
-        self.neededBranches.append(self.jetCollection+'JetIDFHPD'       +self.jetSuffix)
-        self.neededBranches.append(self.jetCollection+"JetIDN90Hits"    +self.jetSuffix)
-
-    def uponAcceptance (self,chain,chainVars,extraVars) :
-        p4Vector        =getattr(chainVars,self.jetCollection+'CorrectedP4'     +self.jetSuffix)
-        corrFactorVector=getattr(chainVars,self.jetCollection+'CorrFactor'      +self.jetSuffix)
-        jetEmfVector    =getattr(chainVars,self.jetCollection+'EmEnergyFraction'+self.jetSuffix)
-        jetFHpdVector   =getattr(chainVars,self.jetCollection+'JetIDFHPD'       +self.jetSuffix)
-        jetN90Vector    =getattr(chainVars,self.jetCollection+'JetIDN90Hits'    +self.jetSuffix)
+    def uponAcceptance (self,eventVars,extraVars) :
+        p4Vector        =eventVars[self.jetCollection+'CorrectedP4'     +self.jetSuffix]
+        corrFactorVector=eventVars[self.jetCollection+'CorrFactor'      +self.jetSuffix]
+        jetEmfVector    =eventVars[self.jetCollection+'EmEnergyFraction'+self.jetSuffix]
+        jetFHpdVector   =eventVars[self.jetCollection+'JetIDFHPD'       +self.jetSuffix]
+        jetN90Vector    =eventVars[self.jetCollection+'JetIDN90Hits'    +self.jetSuffix]
 
         cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
         otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
@@ -94,9 +86,8 @@ class htMhtPrinter(analysisStep) :
     def __init__(self,jetCollection,jetSuffix) :
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
-        self.neededBranches=[]
         
-    def uponAcceptance(self,chain,chainVars,extraVars) :
+    def uponAcceptance(self,eventVars,extraVars) :
         outString ="HT %#6.1f GeV"   %getattr(extraVars,self.jetCollection+"Ht"+self.jetSuffix)
         outString+="; MHT %#6.1f GeV"%getattr(extraVars,self.jetCollection+"Mht"+self.jetSuffix).pt()
         print outString
@@ -107,9 +98,8 @@ class diJetAlphaPrinter(analysisStep) :
     def __init__(self,jetCollection,jetSuffix) :
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
-        self.neededBranches=[]
         
-    def uponAcceptance(self,chain,chainVars,extraVars) :
+    def uponAcceptance(self,eventVars,extraVars) :
         outString ="di-jet minPt %#6.1f GeV" %getattr(extraVars,self.jetCollection+"diJetMinPt"+self.jetSuffix)
         outString+="; di-jet m %#6.1f GeV"   %getattr(extraVars,self.jetCollection+"diJetM"    +self.jetSuffix)
         outString+="; di-jet alpha  %#6.3f"  %getattr(extraVars,self.jetCollection+"diJetAlpha"+self.jetSuffix)
@@ -121,9 +111,8 @@ class nJetAlphaTPrinter(analysisStep) :
     def __init__(self,jetCollection,jetSuffix) :
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
-        self.neededBranches=[]
         
-    def uponAcceptance(self,chain,chainVars,extraVars) :
+    def uponAcceptance(self,eventVars,extraVars) :
         outString ="n-jet deltaHT %#6.3f"  %getattr(extraVars,self.jetCollection+"nJetDeltaHt"+self.jetSuffix)
         outString+=";  n-jet alphaT %#6.3f"%getattr(extraVars,self.jetCollection+"nJetAlphaT"+self.jetSuffix)
         print outString
@@ -144,7 +133,7 @@ class particleP4Printer(analysisStep) :
         self.neededBranches.append(self.collection+'P4'+self.suffix)
 
     def select (self,chain,chainVars,extraVars) :
-        p4Vector=getattr(chainVars,self.collection+'P4'+self.suffix)
+        p4Vector=eventVars[self.collection+'P4'+self.suffix]
 
         nParticles=len(p4Vector)
         for iParticle in range(nParticles) :
@@ -176,7 +165,7 @@ class metPrinter(analysisStep) :
     def select (self,chain,chainVars,extraVars) :
         print
         for met in self.collections :
-            metVector=getattr(chainVars,met)
+            metVector=eventVars[met]
             outString=met.ljust(15)
             outString+=" pT %#6.1f GeV"%metVector.pt()
             outString+="; phi %#4.1f"  %metVector.phi()

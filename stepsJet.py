@@ -14,10 +14,8 @@ class jetPtSelector(analysisStep) :
         self.moreName+="corr. pT["+str(self.jetIndex)+"]>="+str(self.jetPtThreshold)+" GeV"
         self.moreName+=")"
 
-        self.neededBranches=[self.jetCollection+"CorrectedP4"+self.jetSuffix]
-
-    def select (self,chain,chainVars,extraVars) :
-        p4Vector=getattr(chainVars,self.jetCollection+"CorrectedP4"+self.jetSuffix)
+    def select (self,eventVars,extraVars) :
+        p4Vector=eventVars[self.jetCollection+"CorrectedP4"+self.jetSuffix]
         size=p4Vector.size()
         if (size<=self.jetIndex) : return False
         return (p4Vector[self.jetIndex].pt()>=self.jetPtThreshold)
@@ -98,18 +96,6 @@ class cleanJetIndexProducer(analysisStep) :
         self.moreName2+="; |eta|<="+str(self.jetEtaMax)
         self.moreName2+=")"
         
-        self.neededBranches=["CorrectedP4"]
-
-        #self.neededBranches.append("JetIDloose")
-        self.neededBranches.append("EmEnergyFraction")
-        self.neededBranches.append("JetIDN90Hits")
-        self.neededBranches.append("JetIDFHPD")
-        #self.neededBranches.append("JetIDFRBX")
-        #self.neededBranches.append("Eta2Moment")
-        #self.neededBranches.append("Phi2Moment")
-        for i in range(len(self.neededBranches)) :
-            self.neededBranches[i]=self.jetCollection+self.neededBranches[i]+self.jetSuffix
-
         self.helper=r.cleanJetIndexHelper()
         self.helper.SetThresholds(self.jetPtThreshold,self.jetEtaMax)
         self.cleanJetIndices=r.std.vector('int')()
@@ -117,14 +103,14 @@ class cleanJetIndexProducer(analysisStep) :
         self.cleanJetIndices.reserve(256)
         self.otherJetIndices.reserve(256)
 
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         self.cleanJetIndices.clear()
         self.otherJetIndices.clear()
 
-        p4Vector     =getattr(chainVars,self.jetCollection+'CorrectedP4'     +self.jetSuffix)
-        emfVector    =getattr(chainVars,self.jetCollection+'EmEnergyFraction'+self.jetSuffix)
-        fHpdVector   =getattr(chainVars,self.jetCollection+'JetIDFHPD'       +self.jetSuffix)
-        n90HitsVector=getattr(chainVars,self.jetCollection+'JetIDN90Hits'    +self.jetSuffix)
+        p4Vector     =eventVars[self.jetCollection+'CorrectedP4'     +self.jetSuffix]
+        emfVector    =eventVars[self.jetCollection+'EmEnergyFraction'+self.jetSuffix]
+        fHpdVector   =eventVars[self.jetCollection+'JetIDFHPD'       +self.jetSuffix]
+        n90HitsVector=eventVars[self.jetCollection+'JetIDN90Hits'    +self.jetSuffix]
         self.helper.Loop(p4Vector,emfVector,fHpdVector,n90HitsVector,self.cleanJetIndices,self.otherJetIndices)
 
         setattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix,[index for index in self.cleanJetIndices])
@@ -155,15 +141,9 @@ class cleanJetIndexProducerFromFlag(analysisStep) :
         self.flagName="JetIDloose"
         if self.jetCollection[-2:]=="PF" : self.flagName="PF"+self.flagName
         
-        self.neededBranches=["CorrectedP4"]
-        self.neededBranches.append(self.flagName)
-
-        for i in range(len(self.neededBranches)) :
-            self.neededBranches[i]=self.jetCollection+self.neededBranches[i]+self.jetSuffix
-
-    def uponAcceptance (self,chain,chainVars,extraVars) :
-        p4Vector       =getattr(chainVars,self.jetCollection+'CorrectedP4'     +self.jetSuffix)
-        jetIdFlagVector=getattr(chainVars,self.jetCollection+self.flagName     +self.jetSuffix)
+    def uponAcceptance (self,eventVars,extraVars) :
+        p4Vector       =eventVars[self.jetCollection+'CorrectedP4'     +self.jetSuffix]
+        jetIdFlagVector=eventVars[self.jetCollection+self.flagName     +self.jetSuffix]
 
         cleanString=self.jetCollection+"cleanJetIndices"+self.jetSuffix
         setattr(extraVars,cleanString,[])
@@ -280,7 +260,6 @@ class nCleanJetHistogrammer(analysisStep) :
     def __init__(self,jetCollection,jetSuffix):
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
-        self.neededBranches=[]
         self.moreName="("+self.jetCollection+" "+self.jetSuffix+")"
 
     def bookHistos(self) :
@@ -288,7 +267,7 @@ class nCleanJetHistogrammer(analysisStep) :
         title=";number of jets passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"
         self.nCleanJetsHisto=r.TH1D(self.jetCollection+"nCleanJets"+self.jetSuffix,title,nBins,-0.5,nBins-0.5)
         
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         self.nCleanJetsHisto.Fill( len(getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)) )
 ######################################
 class nCleanJetEventFilter(analysisStep) :
@@ -301,7 +280,7 @@ class nCleanJetEventFilter(analysisStep) :
         self.moreName="("+self.jetCollection+" "+self.jetSuffix+">="+str(self.nCleanJets)+")"
         self.neededBranches=[]
         
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         return len(getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix))>=self.nCleanJets
 ######################################
 class nOtherJetEventFilter(analysisStep) :
@@ -314,7 +293,7 @@ class nOtherJetEventFilter(analysisStep) :
         self.moreName="("+self.jetCollection+" "+self.jetSuffix+"<"+str(self.nOtherJets)+")"
         self.neededBranches=[]
         
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         return len(getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix))<self.nOtherJets
 #####################################
 class cleanJetHtMhtProducer(analysisStep) :
@@ -328,13 +307,13 @@ class cleanJetHtMhtProducer(analysisStep) :
         self.moreName+="; "
         self.moreName+=self.jetSuffix
         self.moreName+=")"
-        self.neededBranches=[self.jetCollection+'CorrectedP4'+self.jetSuffix]
+
         self.helper=r.htMhtHelper()
         self.cleanJetIndices=r.std.vector('int')()
         self.cleanJetIndices.reserve(256)
         
-    def select (self,chain,chainVars,extraVars) :
-        p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+    def select (self,eventVars,extraVars) :
+        p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
         cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
 
         self.cleanJetIndices.clear()
@@ -381,7 +360,7 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
         self.mhtHt_Histo=r.TH2D(self.jetCollection+"mht_vs_ht"+self.jetSuffix+" "+self.corrString
                                 ,title,50,0.0,self.histoMax,50,0.0,self.histoMax)
         
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         mhtVar="Mht"
         htVar="Ht"
         htEtVar="HtEt"
@@ -418,8 +397,6 @@ class cleanJetPtHistogrammer(analysisStep) :
         self.moreName+="; "
         self.moreName+=self.jetSuffix
         self.moreName+=")"
-        self.neededBranches=[self.jetCollection+'CorrectedP4'+self.jetSuffix]
-        if (not self.fakeUnCorr) : self.neededBranches.append(self.jetCollection+'CorrFactor'+self.jetSuffix)
 
     def bookHistos(self) :
         self.ptAllHisto=          r.TH1D(self.jetCollection+" ptAll "          +self.jetSuffix
@@ -432,13 +409,13 @@ class cleanJetPtHistogrammer(analysisStep) :
             self.ptUnCorrLeadingHisto=r.TH1D(self.jetCollection+" ptUnCorrLeading "+self.jetSuffix
                                              ,";uncorrected p_{T} (GeV) of leading clean jet;events / bin",50,0.0,self.histoMax)
 
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         ptleading=0.0
         ptuncorrleading=0.0
-        p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+        p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
         corrFactorVector=[1.0]*p4Vector.size()
-        if (not self.fakeUnCorr) :
-            corrFactorVector=getattr(chainVars,self.jetCollection+'CorrFactor'+self.jetSuffix)
+        if not self.fakeUnCorr :
+            corrFactorVector=eventVars[self.jetCollection+'CorrFactor'+self.jetSuffix]
 
         cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
 
@@ -470,12 +447,12 @@ class cleanNJetAlphaProducer(analysisStep) :
         self.moreName+="; "
         self.moreName+=self.jetSuffix
         self.moreName+=")"
-        self.neededBranches=[self.jetCollection+"CorrectedP4"+self.jetSuffix]
+
         self.helper=r.alphaHelper()
         self.cleanJetIndices=r.std.vector('int')()
         self.cleanJetIndices.reserve(256)
 
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         nJetDeltaHt=0.0
         nJetAlphaT=0.0
 
@@ -491,7 +468,7 @@ class cleanNJetAlphaProducer(analysisStep) :
             self.setExtraVars(extraVars,nJetDeltaHt,nJetAlphaT)
             return True
 
-        p4Vector=getattr(chain,self.jetCollection+"CorrectedP4"+self.jetSuffix)
+        p4Vector=eventVars[self.jetCollection+"CorrectedP4"+self.jetSuffix]
 
         self.cleanJetIndices.clear()
         for index in cleanJetIndices :
@@ -521,9 +498,8 @@ class cleanDiJetAlphaProducer(analysisStep) :
         self.moreName+=self.jetSuffix
         self.moreName+=")"
         self.lvSum=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
-        self.neededBranches=[self.jetCollection+"CorrectedP4"+self.jetSuffix]
         
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         self.lvSum.SetCoordinates(0.0,0.0,0.0,0.0)
 
         diJetM       =0.0
@@ -538,7 +514,7 @@ class cleanDiJetAlphaProducer(analysisStep) :
             self.setExtraVars(extraVars,diJetM,diJetMinPt,diJetMinEt,diJetAlpha,diJetAlpha_Et)
             return True
             
-        p4Vector=getattr(chainVars,self.jetCollection+"CorrectedP4"+self.jetSuffix)
+        p4Vector=eventVars[self.jetCollection+"CorrectedP4"+self.jetSuffix]
         for iJet in cleanJetIndices :
             jet=p4Vector.at(iJet)
             pt=jet.pt()
@@ -591,7 +567,7 @@ class alphaHistogrammer(analysisStep) :
                                     30,0.0,1.0,
                                     30,0.0,0.7)
         
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         self.diJetAlpha_Histo.Fill(   getattr(extraVars,self.jetCollection+"diJetAlpha"   +self.jetSuffix))
         #self.diJetAlpha_ET_Histo.Fill(getattr(extraVars,self.jetCollection+"diJetAlpha_Et"+self.jetSuffix))
         self.nJetAlphaT_Histo.Fill(   getattr(extraVars,self.jetCollection+"nJetAlphaT"   +self.jetSuffix))
