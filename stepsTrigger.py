@@ -5,11 +5,8 @@ import math
 class physicsDeclared(analysisStep) :
     """physicsDeclared"""
 
-    def __init__(self) :
-        self.neededBranches=["physicsDeclared"]
-
-    def select (self,chain,chainVars,extraVars) :
-        return chain.physicsDeclared
+    def select (self,eventVars,extraVars) :
+        return eventVars["physicsDeclared"]
 #####################################
 class techBitFilter(analysisStep) :
     """techBitFilter"""
