@@ -1,7 +1,7 @@
 #import copy
 import math
 import ROOT as r
-from base import analysisStep
+from analysisStep import analysisStep
 #import pdgLookup
 #####################################
 beamSpotX=0.0

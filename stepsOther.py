@@ -1,6 +1,6 @@
 import copy,array,os
 import ROOT as r
-from base import analysisStep
+from analysisStep import analysisStep
 import utils
 #####################################
 class skimmer(analysisStep) :
