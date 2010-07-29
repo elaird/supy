@@ -13,6 +13,8 @@ typedef std::map<std::string,bool>                                trigger_t ;
 #pragma link C++ typedef  LorentzV  ;
 #pragma link C++ typedef  LorentzVs ;
 #pragma link C++ typedef  trigger_t ;
+#pragma link C++ class    trigger_t::iterator;
+#pragma link C++ class    trigger_t::const_iterator;
 
 #pragma link C++ class    LorentzVs+;
 #pragma link C++ class    trigger_t+;
