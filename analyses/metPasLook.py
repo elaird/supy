@@ -6,17 +6,29 @@ a=analysis.analysis(name="metPasLook",
                     outputDir="/vols/cms02/elaird1/tmp/"
                     )
 
-a.addSampleSpec(sampleName="JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn_cleanEvent",
-                listOfFileNames=utils.fileListFromDisk(location="/vols/cms02/elaird1/05_skims/JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn",pruneList=False,nMaxFiles=-1),
+a.addSampleSpec(sampleName="test",
+                listOfFileNames=utils.getCommandOutput2("ls /vols/cms02/elaird1/*.root").split("\n")[:-1],
                 listName="metPasLook",
                 isMc=False,
                 nEvents=-1)
 
-a.addSampleSpec(sampleName="JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn_cleanEvent",
-                listOfFileNames=utils.fileListFromDisk(location="/vols/cms02/elaird1/05_skims/JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn",pruneList=False,nMaxFiles=-1),
-                listName="metPasLook",
-                isMc=False,
-                nEvents=-1)
+#a.addSampleSpec(sampleName="JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn_cleanEvent",
+#                listOfFileNames=utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn",pruneList=False,nMaxFiles=-1),
+#                listName="metPasLook",
+#                isMc=False,
+#                nEvents=-1)
+
+#a.addSampleSpec(sampleName="JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn_cleanEvent",
+#                listOfFileNames=utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn",pruneList=False,nMaxFiles=-1),
+#                listName="metPasLook",
+#                isMc=False,
+#                nEvents=-1)
+
+#a.addSampleSpec(sampleName="JetMETTau.Run2010A-Jul6thReReco_v1.RECO_cleanEvent",
+#                listOfFileNames=utils.fileListFromDisk(location="/vols/cms02/elaird1/05_skims/JetMETTau.Run2010A-Jul6thReReco_v1.RECO",pruneList=False,nMaxFiles=4),
+#                listName="metPasLook",
+#                isMc=False,
+#                nEvents=-1)
 
 a.go(loop=True,
      plot=True,
