@@ -42,14 +42,15 @@ class leadingUnCorrJetPtSelector(analysisStep) :
         self.moreName2 = "corr. pT[leading uncorr. jet]>=%.2f GeV" % self.jetPtThreshold 
 
     def select (self,eventVars,extraVars) :
-        #return true if any collection has a leading uncorrected jet above threshold
-        #otherwise return False
+        # Corrected pt of leading jet (by uncorrected pt) >= threshold
         for cS in self.jetCollectionsAndSuffixes :
             p4s = eventVars["%sCorrectedP4%s" % cS]
             corr = eventVars["%sCorrFactor%s" % cS]
-            for i in range(p4s.size()) :
-                if self.jetPtThreshold <= p4s.at(i).pt() / corr.at(i) :
-                    return True
+            size = p4s.size()
+            if not size : continue
+            maxUncorrPt,index = max( [ (p4s.at(i).pt()/corr.at(i),i) for i in range(size) ] )
+            if self.jetPtThreshold <= p4s.at(index).pt() :
+                return True
         return False
 #####################################
 class cleanJetIndexProducer(analysisStep) :
