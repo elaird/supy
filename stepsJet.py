@@ -537,7 +537,6 @@ class metHistogrammer(analysisStep) :
     def __init__(self,metCollection,tag) :
         self.tag=tag
         self.metCollection=metCollection
-        self.neededBranches=[self.metCollection]
         
     def bookHistos(self) :
         bins=80
@@ -545,8 +544,8 @@ class metHistogrammer(analysisStep) :
         max=80.0
         self.caloMetNoHf_Histo=r.TH1D(self.metCollection+" "+self.tag,";"+self.metCollection+" p_{T} (GeV);events / bin",bins,min,max)
         
-    def uponAcceptance (self,chain,chainVars,extraVars) :
-        self.caloMetNoHf_Histo.Fill(   getattr(chainVars,self.metCollection).pt() )
+    def uponAcceptance (self,eventVars,extraVars) :
+        self.caloMetNoHf_Histo.Fill(   eventVars[self.metCollection].pt() )
 #####################################
 class deltaPhiProducer(analysisStep) :
     """deltaPhiProducer"""
@@ -576,14 +575,13 @@ class deltaPhiSelector(analysisStep) :
     """deltaPhiSelector"""
 
     def __init__(self,jetCollection,jetSuffix,minAbs,maxAbs) :
-        self.jetCollection=jetCollection
-        self.jetSuffix=jetSuffix
-        self.minAbs=minAbs
-        self.maxAbs=maxAbs
+        self.jetCollection = jetCollection
+        self.jetSuffix = jetSuffix
+        self.minAbs = minAbs
+        self.maxAbs = maxAbs
     
     def select(self,eventVars,extraVars) :
-        value=getattr(extraVars,self.jetCollection+"deltaPhi01"+self.jetSuffix)
-        value=r.TMath.Abs(value)
+        value = abs( getattr(extraVars,self.jetCollection+"deltaPhi01"+self.jetSuffix) )
         if (value<self.minAbs or value>self.maxAbs) : return False
         return True
 #####################################
@@ -591,16 +589,16 @@ class mHtOverHtSelector(analysisStep) :
     """mHtOverHtSelector"""
 
     def __init__(self,jetCollection,jetSuffix,min,max) :
-        self.jetCollection=jetCollection
-        self.jetSuffix=jetSuffix
-        self.min=min
-        self.max=max
+        self.jetCollection = jetCollection
+        self.jetSuffix = jetSuffix
+        self.min = min
+        self.max = max
     
-    def select(self,chain,chainVars,extraVars) :
-        mht=getattr(extraVars,self.jetCollection+"Mht"+self.jetSuffix).pt()
-        ht=getattr(extraVars,self.jetCollection+"Ht"+self.jetSuffix)
+    def select(self,eventVars,extraVars) :
+        mht = getattr(extraVars,self.jetCollection+"Mht"+self.jetSuffix).pt()
+        ht = getattr(extraVars,self.jetCollection+"Ht"+self.jetSuffix)
         if (ht<1.0e-2) : return False
-        value=mht/ht
+        value = mht/ht
         if (value<self.min or value>self.max) : return False
         return True
 #####################################
@@ -608,8 +606,8 @@ class deltaPhiHistogrammer(analysisStep) :
     """deltaPhiHistogrammer"""
 
     def __init__(self,jetCollection,jetSuffix) :
-        self.jetCollection=jetCollection
-        self.jetSuffix=jetSuffix
+        self.jetCollection = jetCollection
+        self.jetSuffix = jetSuffix
 
     def bookHistos(self) :
         bins=50
