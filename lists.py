@@ -52,7 +52,7 @@ class listDictionaryHolder :
     def addListTriggerSkim(self) :
         steps=[
             progressPrinter(2,300),
-            
+
             techBitFilter([40,41],True),
             techBitFilter([0],True),
             techBitFilter([36,37,38,39],False),
@@ -108,12 +108,12 @@ class listDictionaryHolder :
             cleanJetHtMhtProducer(jetCollection,jetSuffix),
             cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
             #extraVariablePtGreaterFilter(100.0,jetCollection+"Mht"+jetSuffix),
-
+            
             extraVariableGreaterFilter(120.0,jetCollection+"Ht"+jetSuffix),
             cleanDiJetAlphaProducer(jetCollection,jetSuffix),
             cleanNJetAlphaProducer(jetCollection,jetSuffix),
             alphaHistogrammer(jetCollection,jetSuffix),
-
+            
             extraVariableGreaterFilter(0.9,jetCollection+"nJetAlphaT"+jetSuffix),
             displayer(jetCollection,jetSuffix,metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/elaird1/tmp/",scale=200.0),
             eventPrinter(),
@@ -128,14 +128,15 @@ class listDictionaryHolder :
         jetList=[("ak5Jet"+jetType,"Pat") for jetType in ["","PF","JPT"]]
         steps=[
             progressPrinter(2,300),
-            hltFilter("HLT_Jet30U"),
-            leadingUnCorrJetPtSelector(jetList,60.0),            
+            #runNumberFilter([123456],False),
+            hltFilter("HLT_Jet50U"),
+            #leadingUnCorrJetPtSelector(jetList,60.0),            
             techBitFilter([0],True),
             physicsDeclared(),
             vertexRequirementFilter(5.0,15.0),
             monsterEventFilter(10,0.25),
             skimmer("/vols/cms02/elaird1/"),
-            #skimmer("/data1/elaird/susyTree/10_36_qcd/",False),
+            #skimmer3("/vols/cms02/elaird1/"),
             ]
         self.listDict["metPasFilter"]=steps
 
@@ -334,7 +335,7 @@ class listDictionaryHolder :
             #particleP4Printer("photon","Pat"),
             ]
 
-        self.listDict["jetKineSteps"]=steps        
+        self.listDict["jetKineSteps"]=steps
 
     def addListMetDistLook(self) :
         jetCollection="ak5Jet"
