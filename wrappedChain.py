@@ -9,7 +9,8 @@ class wrappedChain(dict) :
         self.__activeNodes = defaultdict(int)
         self.__activeNodeList = []
         self.__chain = chain
-        
+
+        if chain.GetEntries()==0 : return
         chain.GetEntry(0)
         for branch in chain.GetListOfBranches() :
             nameB = branch.GetName()
