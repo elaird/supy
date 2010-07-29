@@ -7,7 +7,7 @@ import ROOT as r
 class analysis :
     """base class for an analysis"""
     
-    def __init__(self,name="name",outputDir="/tmp/",moduleDefiningLists="lists",listOfSourceFiles=["SusyCAFpragmas.h","helpers.C"]) :
+    def __init__(self,name="name",outputDir="/tmp/",moduleDefiningLists="lists",listOfSourceFiles=["pragmas.h","helpers.C"]) :
         for arg in ["name","outputDir","moduleDefiningLists","listOfSourceFiles"] :
             exec("self."+arg+"="+arg)
 
