@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os,sys,copy,cPickle
-import base,utils
+import utils
+from analysisLooper import analysisLooper
 import ROOT as r
 #####################################
 class analysis :
@@ -49,7 +50,7 @@ class analysis :
 
     def addSampleSpec(self,listName,sampleName,listOfFileNames=[],isMc=False,nEvents=-1,xs=1.0) :
         listOfSteps=self.listHolder.getSteps(listName,isMc)
-        self.looperList.append( base.analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,xs) )
+        self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,xs) )
         return
 
     def splitUpLoopers(self) :
@@ -57,15 +58,15 @@ class analysis :
         for looper in self.looperList :
             fileIndex=0
             for iFileName in range(len(looper.inputFiles)) :
-                outListOfLoopers.append(base.analysisLooper(looper.outputDir,
-                                                            [looper.inputFiles[iFileName]],
-                                                            looper.name+"_"+str(iFileName),
-                                                            looper.nEvents,
-                                                            looper.outputPrefix,
-                                                            copy.deepcopy(looper.steps),
-                                                            looper.xs
-                                                            )
-                                      )
+                outListOfLoopers.append(analysisLooper(looper.outputDir,
+                                                       [looper.inputFiles[iFileName]],
+                                                       looper.name+"_"+str(iFileName),
+                                                       looper.nEvents,
+                                                       looper.outputPrefix,
+                                                       copy.deepcopy(looper.steps),
+                                                       looper.xs
+                                                       )
+                                        )
                 outListOfLoopers[-1].doSplitMode(looper.name)
         self.looperList=outListOfLoopers
 
