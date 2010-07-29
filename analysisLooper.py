@@ -50,6 +50,10 @@ class analysisLooper :
         #loop through entries
         map( self.processEvent, self.chainWrapper.entries(self.nEvents) )
 
+        #set data member to number actually used
+        self.nEvents=0
+        if hasattr(self.chainWrapper,"entry") : self.nEvents=1+self.chainWrapper.entry
+
         self.printStats()
         self.endSteps()
         self.writeHistos()
@@ -129,10 +133,7 @@ class analysisLooper :
         xsHisto.Write()
             
         nEventsHisto=r.TH1D("nEventsHisto",";dummy axis;N_{events} read in",1,-0.5,0.5)
-
-        nEvents=0
-        if hasattr(self.chainWrapper,"entry") : nEvents=self.chainWrapper.entry
-        nEventsHisto.SetBinContent(1,nEvents)
+        nEventsHisto.SetBinContent(1,self.nEvents)
         nEventsHisto.Write()
         
         nJobsHisto=r.TH1D("nJobsHisto",";dummy axis;N_{jobs}",1,-0.5,0.5)
