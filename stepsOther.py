@@ -231,7 +231,7 @@ class extraVariableGreaterFilter(analysisStep) :
     def __init__(self,threshold,variable):
         self.threshold = threshold
         self.variable = variable
-        self.moreName = "(%s>=%.2f)" % (variable,threshold)
+        self.moreName = "(%s>=%.1f)" % (variable,threshold)
 
     def select (self,eventVars,extraVars) :
         return (getattr(extraVars,self.variable)>=self.threshold)
@@ -242,7 +242,7 @@ class extraVariablePtGreaterFilter(analysisStep) :
     def __init__(self,threshold,variable):
         self.threshold = threshold
         self.variable = variable
-        self.moreName = "(%s>=%.2f)" % (variable,threshold)
+        self.moreName = "(%s>=%.1f)" % (variable,threshold)
 
     def select (self,eventVars,extraVars) :
         return (getattr(extraVars,self.variable).pt()>=self.threshold)
@@ -254,7 +254,7 @@ class objectPtVetoer(analysisStep) :
         self.index = index
         self.ptThreshold = ptThreshold
         self.varName = collection + p4String + suffix
-        self.moreName = "(%s; %s; corr. pT[%d]< %.2f GeV)" % (collection, suffix, index, ptThreshold )
+        self.moreName = "(%s; %s; corr. pT[%d]< %.1f GeV)" % (collection, suffix, index, ptThreshold )
 
     def select (self,eventVars,extraVars) :
         p4s = eventVars[self.varName]
@@ -278,7 +278,7 @@ class soloObjectPtSelector(analysisStep) :
     def __init__(self, collection, p4String, suffix, ptThreshold):
         self.ptThreshold = ptThreshold
         self.varName = collection + p4String + suffix        
-        self.moreName = "(%s; %s; corr. pT> %.2f GeV)" % (collection, suffix, ptThreshold )
+        self.moreName = "(%s; %s; corr. pT> %.1f GeV)" % (collection, suffix, ptThreshold )
 
     def select (self,eventVars,extraVars) :
         return self.ptThreshold <= eventVars[self.varName].pt()
@@ -291,7 +291,7 @@ class vertexRequirementFilterOld(analysisStep) :
         self.maxVertexChi2Ndf = maxVertexChi2Ndf
         self.maxVertexZ = maxVertexZ
 
-        self.moreName = "(>=%d ve.tr.; chi2/ndf<%.2f; abs(z)<%.2f)" % (minVertexNtracks, maxVertexChi2Ndf, maxVertexZ )
+        self.moreName = "(>=%d ve.tr.; chi2/ndf<%.1f; abs(z)<%.1f)" % (minVertexNtracks, maxVertexChi2Ndf, maxVertexZ )
 
     def select(self,eventVars,extraVars) :
         pos = eventVars["vertexPosition"]
@@ -309,7 +309,7 @@ class vertexRequirementFilter(analysisStep) :
     def __init__(self,minVertexNdof,maxVertexZ) :
         self.minVertexNdof = minVertexNdof
         self.maxVertexZ = maxVertexZ
-        self.moreName = "(any v: !fake; ndf>=%.2f;abs(z)<%.2f)" % (minVertexNdof,maxVertexZ)
+        self.moreName = "(any v: !fake; ndf>=%.1f;abs(z)<%.1f)" % (minVertexNdof,maxVertexZ)
 
     def select(self,eventVars,extraVars) :
         fake,ndof,pos = eventVars["vertexIsFake"], eventVars["vertexNdof"], eventVars["vertexPosition"]
@@ -328,7 +328,7 @@ class monsterEventFilter(analysisStep) :
         self.maxNumTracks=maxNumTracks
         self.minGoodTrackFraction=minGoodTrackFraction
 
-        self.moreName = "(<=%d tracks or >%.2f good fraction)" % (maxNumTracks, minGoodTrackFraction)
+        self.moreName = "(<=%d tracks or >%.1f good fraction)" % (maxNumTracks, minGoodTrackFraction)
 
     def select (self,eventVars,extraVars) :
         nTracks    = eventVars["tracksNEtaLT0p9AllTracks"] + eventVars["tracksNEta0p9to1p5AllTracks"] + eventVars["tracksNEtaGT1p5AllTracks"]

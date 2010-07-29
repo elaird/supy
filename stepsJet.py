@@ -9,7 +9,7 @@ class jetPtSelector(analysisStep) :
         self.jetIndex = jetIndex
         self.jetP4s = jetCollection+"CorrectedP4"+jetSuffix
         
-        self.moreName = "(%s; %s; corr. pT[%d]>=%.2f GeV)" % (jetCollection, jetSuffix, jetIndex, jetPtThreshold)
+        self.moreName = "(%s; %s; corr. pT[%d]>=%.1f GeV)" % (jetCollection, jetSuffix, jetIndex, jetPtThreshold)
 
     def select (self,eventVars,extraVars) :
         p4s = eventVars[self.jetP4s]
@@ -24,7 +24,7 @@ class jetPtVetoer(analysisStep) :
         self.jetIndex = jetIndex
         self.jetP4s = jetCollection+"CorrectedP4"+jetSuffix
         
-        self.moreName = "(%s; %s; corr. pT[%d]<%.2f GeV)" % (jetCollection, jetSuffix, jetIndex, jetPtThreshold)
+        self.moreName = "(%s; %s; corr. pT[%d]<%.1f GeV)" % (jetCollection, jetSuffix, jetIndex, jetPtThreshold)
 
     def select (self,eventVars,extraVars) :
         p4s = eventVars[self.jetP4s]
@@ -39,7 +39,7 @@ class leadingUnCorrJetPtSelector(analysisStep) :
         self.jetPtThreshold = jetPtThreshold
 
         self.moreName = "("+''.join(["%s%s;" % cS for cS in self.jetCollectionsAndSuffixes])
-        self.moreName2 = "corr. pT[leading uncorr. jet]>=%.2f GeV" % self.jetPtThreshold 
+        self.moreName2 = "corr. pT[leading uncorr. jet]>=%.1f GeV" % self.jetPtThreshold 
 
     def select (self,eventVars,extraVars) :
         # Corrected pt of leading jet (by uncorrected pt) >= threshold
@@ -63,7 +63,7 @@ class cleanJetIndexProducer(analysisStep) :
         self.jetEtaMax = jetEtaMax
         
         self.moreName = "(%s; %s; jetID; " % (jetCollection, jetSuffix)
-        self.moreName2 = " corr. pT>=%.2f GeV; |eta|<=%.2f)" % (jetPtThreshold,jetEtaMax)
+        self.moreName2 = " corr. pT>=%.1f GeV; |eta|<=%.1f)" % (jetPtThreshold,jetEtaMax)
 
         self.helper = r.cleanJetIndexHelper()
         self.helper.SetThresholds(self.jetPtThreshold,self.jetEtaMax)
@@ -153,7 +153,7 @@ class cleanJetEmfFilter(analysisStep) :
         self.jetEmfMax = jetEmfMax
         
         self.moreName = "(%s; %s" % self.jetCollection, self.jetSuffix
-        self.moreName2 = " corr. pT>=%.2f GeV; EMF<=%.2f)" % jetPtThreshold,self.jetEmfMax
+        self.moreName2 = " corr. pT>=%.1f GeV; EMF<=%.1f)" % jetPtThreshold,self.jetEmfMax
 
     def select (self,eventVars,extraVars) :
         cleanJetIndices = getattr( extraVars, self.indicesName)
@@ -176,7 +176,7 @@ class pfCleanJetIndexProducer(analysisStep) :
         self.jetPtThreshold = jetPtThreshold
         self.jetEtaMax = jetEtaMax
 
-        self.moreName = "(%s; %s; jetID; pT>=%.2f GeV; |eta|<=%.2f)" % jetCollection, jetSuffix, jetPtThreshold, jetEtaMax
+        self.moreName = "(%s; %s; jetID; pT>=%.1f GeV; |eta|<=%.1f)" % jetCollection, jetSuffix, jetPtThreshold, jetEtaMax
         
     def step1 (self,eventVars,extraVars) :
         setattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix,[])
