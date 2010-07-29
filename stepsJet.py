@@ -144,7 +144,7 @@ class cleanJetEmfFilter(analysisStep) :
     """cleanJetEmfFilter"""
 
     def __init__(self,jetCollection,jetSuffix,jetPtThreshold,jetEmfMax):
-        self.indecesName = "%scleanJetIndices%s" % jetCollection,jetSuffix
+        self.indicesName = "%scleanJetIndices%s" % jetCollection,jetSuffix
         self.p4sName = "%sCorrectedP4%s"         % jetCollection,jetSuffix
         self.emfName = "%sEmEnergyFraction%s"    % jetCollection,jetSuffix
 
@@ -155,7 +155,7 @@ class cleanJetEmfFilter(analysisStep) :
         self.moreName2 = " corr. pT>=%.2f GeV; EMF<=%.2f)" % jetPtThreshold,self.jetEmfMax
 
     def select (self,eventVars,extraVars) :
-        cleanJetIndices = getattr( extraVars, self.indecesName)
+        cleanJetIndices = getattr( extraVars, self.indicesName)
         p4s = eventVars[self.p4sName]
         emf = eventVars[self.emfName]
 
