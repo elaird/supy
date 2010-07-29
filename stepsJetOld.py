@@ -25,38 +25,24 @@ class cleanJetIndexProducerOld(analysisStep) :
         self.moreName2+="; |eta|<="+str(self.jetEtaMax)
         self.moreName2+=")"
         
-        self.neededBranches=["CorrectedP4"]
-        if (not self.corrRatherThanUnCorr) :
-            self.neededBranches.append("CorrFactor")
-
-        #self.neededBranches.append("JetIDloose")
-        self.neededBranches.append("EmEnergyFraction")
-        self.neededBranches.append("JetIDN90Hits")
-        self.neededBranches.append("JetIDFHPD")
-        #self.neededBranches.append("JetIDFRBX")
-        #self.neededBranches.append("Eta2Moment")
-        #self.neededBranches.append("Phi2Moment")
-        for i in range(len(self.neededBranches)) :
-            self.neededBranches[i]=self.jetCollection+self.neededBranches[i]+self.jetSuffix
-
-    def step1 (self,chain,chainVars,extraVars) :
+    def step1 (self,eventVars,extraVars) :
         setattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix,[])
         self.cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
 
         setattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix,[])
         self.otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
 
-        self.p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+        self.p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
         self.size=self.p4Vector.size()
 
-        if (not self.corrRatherThanUnCorr) :
-            self.corrFactorVector=getattr(chainVars,self.jetCollection+'CorrFactor'+self.jetSuffix)
+        if not self.corrRatherThanUnCorr :
+            self.corrFactorVector=eventVars[self.jetCollection+'CorrFactor'+self.jetSuffix]
         
-        self.emfVector=getattr(chainVars,self.jetCollection+'EmEnergyFraction'+self.jetSuffix)
-        self.fHpdVector=getattr(chainVars,self.jetCollection+'JetIDFHPD'+self.jetSuffix)
-        self.n90HitsVector=getattr(chainVars,self.jetCollection+'JetIDN90Hits'+self.jetSuffix)
+        self.emfVector    =eventVars[self.jetCollection+'EmEnergyFraction'+self.jetSuffix]
+        self.fHpdVector   =eventVars[self.jetCollection+'JetIDFHPD'+self.jetSuffix       ]
+        self.n90HitsVector=eventVars[self.jetCollection+'JetIDN90Hits'+self.jetSuffix    ]
         
-    def jetLoop (self,chainVars) :
+    def jetLoop (self,eventVars) :
         for iJet in range(self.size) :
             #pt cut
             if (self.corrRatherThanUnCorr) :
@@ -88,9 +74,9 @@ class cleanJetIndexProducerOld(analysisStep) :
             self.cleanJetIndices.append(iJet)
             self.otherJetIndices.remove(iJet)
 
-    def select (self,chain,chainVars,extraVars) :
-        self.step1(chain,chainVars,extraVars)
-        self.jetLoop(chainVars)
+    def select (self,eventVars,extraVars) :
+        self.step1(eventVars,extraVars)
+        self.jetLoop(eventVars)
         return True
 #####################################
 class cleanJetHtMhtProducerOld(analysisStep) :

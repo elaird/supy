@@ -554,15 +554,14 @@ class deltaPhiProducer(analysisStep) :
     def __init__(self,jetCollection,jetSuffix) :
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
-        self.neededBranches=[self.jetCollection+'CorrectedP4'+self.jetSuffix]
     
-    def select(self,chain,chainVars,extraVars) :
+    def select(self,eventVars,extraVars) :
 
         setattr(extraVars,self.jetCollection+"deltaPhi01"+self.jetSuffix, -4.0)
         setattr(extraVars,self.jetCollection+"deltaR01"  +self.jetSuffix,-40.0)
         setattr(extraVars,self.jetCollection+"deltaEta01"+self.jetSuffix,-40.0)
 
-        p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+        p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
         cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
 
         if (len(cleanJetIndices)>=2) :
@@ -582,7 +581,7 @@ class deltaPhiSelector(analysisStep) :
         self.minAbs=minAbs
         self.maxAbs=maxAbs
     
-    def select(self,chain,chainVars,extraVars) :
+    def select(self,eventVars,extraVars) :
         value=getattr(extraVars,self.jetCollection+"deltaPhi01"+self.jetSuffix)
         value=r.TMath.Abs(value)
         if (value<self.minAbs or value>self.maxAbs) : return False
@@ -609,7 +608,6 @@ class deltaPhiHistogrammer(analysisStep) :
     """deltaPhiHistogrammer"""
 
     def __init__(self,jetCollection,jetSuffix) :
-        self.neededBranches=[]
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
 
@@ -632,7 +630,7 @@ class deltaPhiHistogrammer(analysisStep) :
         title=self.jetCollection+" deltaEta01 "+self.jetSuffix
         self.deltaEta01_Histo=r.TH1D(title,";"+title+";events / bin",bins,min,max)
         
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         self.deltaPhi01_Histo.Fill(getattr(extraVars,self.jetCollection+"deltaPhi01"+self.jetSuffix))
         self.deltaR01_Histo.Fill(getattr(extraVars,self.jetCollection+"deltaR01"+self.jetSuffix))
         self.deltaEta01_Histo.Fill(getattr(extraVars,self.jetCollection+"deltaEta01"+self.jetSuffix))
