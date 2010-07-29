@@ -2,49 +2,37 @@ import copy,array,os
 import wrappedChain
 import ROOT as r
 #####################################
-class sampleSpecification :
-    """name, data sample, cuts"""
+class analysisLooper :
+    """class to set up and loop over events"""
 
-    def __init__(self,inputFiles,name,nEvents,outputPrefix,steps,xs):
+    def __init__(self,outputDir,inputFiles,name,nEvents,outputPrefix,steps,xs):
+        self.hyphens="".ljust(95,"-")
+
         self.name=name
         self.nEvents=nEvents
         self.inputFiles=inputFiles
-        self.outputPrefix=outputPrefix
-        self.outputPlotFileName=outputPrefix+"_"+self.name+"_plots.root"
         self.steps=copy.deepcopy(steps)
         self.xs=xs
 
+        self.outputDir=outputDir
+        self.outputPrefix=outputPrefix
+
         self.parentName=name
         self.splitMode=False
+        self.quietMode=False
 
         self.fileDirectory="susyTree"
         self.treeName="tree"
 
+        self.outputPlotFileName=self.outputDir+"/"+self.outputPrefix+"_"+self.name+"_plots.root"
+        self.outputStepDataFileName=self.outputPlotFileName.replace(".root",".steps")
+
+        self.extraVariableContainer=eventVariableContainer()
+
     def doSplitMode(self,parentName) :
         self.splitMode=True
+        self.quietMode=True
         self.parentName=parentName
-#####################################
-class analysisLooper :
-    """class to set up and loop over events"""
-
-    def __init__(self,sample,outDir):
-        self.hyphens="".ljust(95,"-")
-
-        #copy some stuff
-        stuffToCopy=["nEvents","name","steps","inputFiles","xs","parentName","splitMode","fileDirectory","treeName"]
-        for item in stuffToCopy :
-            setattr(self,item,getattr(sample,item))
-
-        #run in quiet mode iff the sample has been split
-        self.quietMode=sample.splitMode
-
-        self.outputPlotFileName=outDir+"/"+sample.outputPlotFileName
-        self.outputStepDataFileName=self.outputPlotFileName.replace(".root",".steps")
-        self.inputChain=r.TChain("chain")
-        self.currentTreeNumber=-1
-
-        self.chainVariableContainer=eventVariableContainer()
-        self.extraVariableContainer=eventVariableContainer()
 
     def showBranches(self) :
         for branch in self.inputChain.GetListOfBranches() :
@@ -80,6 +68,7 @@ class analysisLooper :
         if (nFiles>1) : outString+="s"
         if not self.quietMode : print outString+":"
 
+        self.inputChain=r.TChain("chain")
         for infile in inputFiles :
             self.inputChain.Add(infile+"/"+self.fileDirectory+"/"+self.treeName)
 
@@ -110,7 +99,6 @@ class analysisLooper :
             if (hasattr(step,"setup")) : step.setup(self.inputChain,self.fileDirectory,self.name)
 
     def processEvent(self,eventVars) :
-        chainVars=self.chainVariableContainer
         extraVars=self.extraVariableContainer
         extraVars.localEntry=eventVars._wrappedChain__localEntry
         extraVars.entry=eventVars.entry
@@ -141,7 +129,10 @@ class analysisLooper :
         xsHisto.Write()
             
         nEventsHisto=r.TH1D("nEventsHisto",";dummy axis;N_{events} read in",1,-0.5,0.5)
-        nEventsHisto.SetBinContent(1,self.chainWrapper.entry)
+
+        nEvents=0
+        if hasattr(self.chainWrapper,"entry") : nEvents=self.chainWrapper.entry
+        nEventsHisto.SetBinContent(1,nEvents)
         nEventsHisto.Write()
         
         nJobsHisto=r.TH1D("nJobsHisto",";dummy axis;N_{jobs}",1,-0.5,0.5)

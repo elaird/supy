@@ -12,16 +12,16 @@ class analysis :
 
         self.globalSetup()
         self.makeListDictionary()
-        self.sampleSpecs=[]
+        self.looperList=[]
         
     def go(self,loop=False,plot=False,profile=False,nCores=1,splitJobsByInputFile=False) :
         if nCores<1 : nCores=1
         
         #possibly parallelize
-        if splitJobsByInputFile : self.splitUpSpecs()
+        if splitJobsByInputFile : self.splitUpLoopers()
 
         #set up loopers
-        self.makeLooperList()
+        self.makeParentDict(self.looperList)
 
         #loop over samples and make TFiles containing histograms
         if loop and not profile : self.loopOverSamples(nCores)
@@ -43,35 +43,31 @@ class analysis :
 
     def makeListDictionary(self) :
         exec("import "+self.moduleDefiningLists+" as lists")
-
         #build dictionary of lists
         self.listHolder=lists.listDictionaryHolder()
         self.listHolder.buildDictionary()
 
     def addSampleSpec(self,listName,sampleName,listOfFileNames=[],isMc=False,nEvents=-1,xs=1.0) :
         listOfSteps=self.listHolder.getSteps(listName,isMc)
-        self.sampleSpecs.append( base.sampleSpecification(listOfFileNames,sampleName,nEvents,self.name,listOfSteps,xs) )
+        self.looperList.append( base.analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,xs) )
         return
 
-    def splitUpSpecs(self) :
-        outListOfSpecs=[]
-        for spec in self.sampleSpecs :
+    def splitUpLoopers(self) :
+        outListOfLoopers=[]
+        for looper in self.looperList :
             fileIndex=0
-            for iFileName in range(len(spec.inputFiles)) :
-                outListOfSpecs.append(base.sampleSpecification([spec.inputFiles[iFileName]],
-                                                               spec.name+"_"+str(iFileName),
-                                                               spec.nEvents,
-                                                               spec.outputPrefix,
-                                                               copy.deepcopy(spec.steps),
-                                                               spec.xs
-                                                               )
+            for iFileName in range(len(looper.inputFiles)) :
+                outListOfLoopers.append(base.analysisLooper(looper.outputDir,
+                                                            [looper.inputFiles[iFileName]],
+                                                            looper.name+"_"+str(iFileName),
+                                                            looper.nEvents,
+                                                            looper.outputPrefix,
+                                                            copy.deepcopy(looper.steps),
+                                                            looper.xs
+                                                            )
                                       )
-                outListOfSpecs[-1].doSplitMode(spec.name)
-        self.sampleSpecs=outListOfSpecs
-
-    def makeLooperList(self) :
-        self.looperList=[base.analysisLooper(sample,self.outputDir) for sample in self.sampleSpecs]
-        self.makeParentDict(self.looperList)
+                outListOfLoopers[-1].doSplitMode(looper.name)
+        self.looperList=outListOfLoopers
 
     def makeParentDict(self,looperList) :
         parentDict={}
