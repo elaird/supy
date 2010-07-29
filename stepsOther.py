@@ -13,7 +13,6 @@ class skimmer(analysisStep) :
         self.moreName="(see below)"
         self.alsoWriteExtraTree=alsoWriteExtraTree
         self.outputTreeExtraIsSetup=False
-        self.neededBranches=[]
 
     def setup(self,chain,fileDir,name) :
         self.fileDir=fileDir
@@ -25,7 +24,7 @@ class skimmer(analysisStep) :
         self.outputTree.SetDirectory(r.gDirectory)#put output tree in correct place
         chain.CopyAddresses(self.outputTree)      #associate branch addresses
 
-        if (self.alsoWriteExtraTree) :
+        if self.alsoWriteExtraTree :
             self.arrayDictionary={}
             self.supportedBuiltInTypes=[type(True),type(0),type(0L),type(0.0)]
             self.supportedOtherTypes=[type(r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0))]
@@ -36,16 +35,16 @@ class skimmer(analysisStep) :
 
         r.gROOT.cd()
 
-    def select(self,chain,chainVars,extraVars) :
+    def select(self,eventVars,extraVars) :
         #read all the data for this event
-        if (chain.GetEntry(extraVars.entry,1)<=0) :
+        if eventVars._wrappedChain__chain.GetEntry(extraVars.entry,1)<=0 :
             return False #skip this event in case of i/o error
         #fill the skim tree
         self.outputTree.Fill()
         
         #optionally fill an extra tree
-        if (self.alsoWriteExtraTree) :
-            if (not self.outputTreeExtraIsSetup) : self.setupExtraTree(extraVars)
+        if self.alsoWriteExtraTree :
+            if not self.outputTreeExtraIsSetup : self.setupExtraTree(extraVars)
             self.fillExtraVariables(extraVars)
             self.outputTreeExtra.Fill()
             
@@ -343,8 +342,7 @@ class runNumberFilter(analysisStep) :
         self.runList = runList
         self.accept = acceptRatherThanReject
 
-        self.moreName = "run%s in list [%s]" % (("" if self.accept else " not"),
-                                                ",".join(runList))
+        self.moreName = "run%s in list %s" % ( ("" if self.accept else " not"),str(runList) )
         
     def select (self,eventVars,extraVars) :
         return not ((eventVars["run"] in self.runList) ^ self.accept)
