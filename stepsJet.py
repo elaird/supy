@@ -48,7 +48,7 @@ class leadingUnCorrJetPtSelector(analysisStep) :
             p4s = eventVars["%sCorrectedP4%s" % cS]
             corr = eventVars["%sCorrFactor%s" % cS]
             for i in range(p4s.size()) :
-                if self.jetPtThreshold <= p4s.at(i) / corr.at(i) :
+                if self.jetPtThreshold <= p4s.at(i).pt() / corr.at(i) :
                     return True
         return False
 #####################################
