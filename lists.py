@@ -92,9 +92,10 @@ class listDictionaryHolder :
         steps=[
             progressPrinter(2,300),
 
-            jetPtSelector(jetCollection,jetSuffix,60.0,0),
-            jetPtSelector(jetCollection,jetSuffix,40.0,1),            
-            leadingUnCorrJetPtSelector( [(jetCollection,jetSuffix)],60.0 ),
+            jetPtSelector(jetCollection,jetSuffix,80.0,0),
+            #jetPtSelector(jetCollection,jetSuffix,40.0,1),            
+            leadingUnCorrJetPtSelector( [(jetCollection,jetSuffix)],80.0 ),
+            hltFilter("HLT_Jet50U"),            
             hltPrescaleHistogrammer(["HLT_ZeroBias","HLT_Jet15U","HLT_Jet30U","HLT_Jet50U","HLT_MET45"]),
             
             cleanJetIndexProducerFromFlag(jetCollection,jetSuffix,cleanJetPtThreshold,jetEtaMax),
