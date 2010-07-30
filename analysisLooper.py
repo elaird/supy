@@ -135,7 +135,6 @@ class analysisLooper :
             object.Delete()
 
         for book in self.books.values() :
-            print book.title,book,id(book)
             for object in book.values() :
                 object.Write()
                 object.Delete()
