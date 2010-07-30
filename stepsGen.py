@@ -89,6 +89,7 @@ class genJetPrinter(analysisStep) :
 class genParticleCounter(analysisStep) :
     """genParticleCounter"""
 
+    def __init__(self,tanBeta) :
         self.tanBetaThreshold=0.1
         self.tanBeta=tanBeta
         self.pdgToCategory={}

@@ -255,7 +255,7 @@ class recHitHistogrammer(analysisStep) :
                                  100,0.0,200.0)
     
     def select(self,eventVars,extraVars) :
-        flaggedP4s=eventVars,"rechit"+self.algoType+"P4"+self.detector]
+        flaggedP4s=eventVars["rechit"+self.algoType+"P4"+self.detector]
         leadingJetPt=eventVars[self.jetCollection+"CorrectedP4"+self.jetSuffix][0].pt()
         
         pTs=[]
