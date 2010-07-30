@@ -5,7 +5,7 @@ import ROOT as r
 class analysisLooper :
     """class to set up and loop over events"""
 
-    def __init__(self,outputDir,inputFiles,name,nEvents,outputPrefix,steps,xs):
+    def __init__(self,outputDir,inputFiles,name,nEvents,outputPrefix,steps,xs,isMc):
         self.hyphens="".ljust(95,"-")
 
         self.name=name
@@ -13,6 +13,7 @@ class analysisLooper :
         self.inputFiles=inputFiles
         self.steps=copy.deepcopy(steps)
         self.xs=xs
+        self.isMc=isMc
 
         self.outputDir=outputDir
         self.outputPrefix=outputPrefix
