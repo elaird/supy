@@ -1,0 +1,35 @@
+Critical
+---------
+* Investigate skimmers
+* fix pruning
+* migrate to eventVars (lose the neededBranches and chainVars)
+
+
+Other
+--------
+* keep lumiTree unskimmed
+* jsonMaker
+
+* try with calculables, phase out extraVars
+
+* reincarnate plotter
+* tdrPlotter
+* cross section histo
+* merging histos for different samples (eg, add all mc)
+* list the selection on the plot
+
+* better sample organization
+* better list of steps org (in each analysis rather than lists)
+
+* Book
+
+* non-linear cutflow / directory structured output
+* histo sculpting
+
+* pythia non-bining problem
+
+* fix circle
+
+* profile
+
+* batch queue
