@@ -2,7 +2,6 @@ Critical
 ---------
 * Investigate skimmers
 * fix pruning
-* migrate to eventVars (lose the neededBranches and chainVars)
 
 
 Other
