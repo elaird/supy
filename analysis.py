@@ -14,25 +14,46 @@ class analysis :
         self.globalSetup()
         self.makeListDictionary()
         self.looperList=[]
-        
-    def go(self,loop=False,plot=False,profile=False,nCores=1,splitJobsByInputFile=False) :
-        if nCores<1 : nCores=1
-        
-        #possibly parallelize
-        if splitJobsByInputFile : self.splitUpLoopers()
+        self.needToSetup=True
 
-        #set up loopers
+    def setup(self) :
+        if not self.needToSetup : return
+
+        #prepare loopers
         self.makeParentDict(self.looperList)
 
-        #loop over samples and make TFiles containing histograms
-        if loop and not profile : self.loopOverSamples(nCores)
+        #prepare these for the plotter
+        self.sampleNamesForPlotter=[]
+        self.outputPlotFileNamesForPlotter=[]
+        if len(self.parentDict)==0 :
+            for looper in self.looperList :
+                self.sampleNamesForPlotter.append(looper.name)
+                self.outputPlotFileNamesForPlotter.append(looper.outputPlotFileName)
+        else :
+            for parent in self.parentDict :
+                self.sampleNamesForPlotter.append(parent)
+                iSomeLooper=self.parentDict[parent][0]
+                someLooper=self.looperList[iSomeLooper]
+                self.outputPlotFileNamesForPlotter.append(someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName))
+        self.needToSetup=False
 
-        #profile the code
-        if profile : self.profile(nCores)
-
-        #make plots from the output histograms
-        if plot : self.plot()
+    def splitJobsByInputFile(self) :
+        self.splitUpLoopers()
         
+    def loop(self,profile=False,nCores=1) :
+        nCores=max(1,nCores)
+        self.setup()
+        #loop over samples and make TFiles containing histograms
+        if not profile :
+            self.loopOverSamples(nCores)
+        else :
+            self.profile(nCores) #profile the code while doing so
+
+    def plot(self) :
+        self.setup()        
+        import plotter
+        plotter.plotAll(self.name,self.sampleNamesForPlotter,self.outputPlotFileNamesForPlotter,self.outputDir)
+
     def globalSetup(self) :
         for sourceFile in self.listOfSourceFiles :
             r.gROOT.LoadMacro(sourceFile+"+")
@@ -48,9 +69,14 @@ class analysis :
         self.listHolder=lists.listDictionaryHolder()
         self.listHolder.buildDictionary()
 
-    def addSampleSpec(self,listName,sampleName,listOfFileNames=[],isMc=False,nEvents=-1,xs=1.0) :
+    def addSampleSpec(self,listName,sampleName,listOfFileNames=[],isMc=False,nEvents=-1,xs=None,lumi=None) :
+        if isMc and (xs==None or lumi!=None) :
+            raise Exception("MC sample",sampleName,"requires xs!=None and lumi==None")
+        if not isMc and (xs!=None or lumi==None) :
+            raise Exception("data sample",sampleName,"requires xs==None and lumi!=None")
+        
         listOfSteps=self.listHolder.getSteps(listName,isMc)
-        self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,xs,isMc) )
+        self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,xs,lumi,isMc) )
         return
 
     def splitUpLoopers(self) :
@@ -65,6 +91,7 @@ class analysis :
                                                        looper.outputPrefix,
                                                        copy.deepcopy(looper.steps),
                                                        looper.xs,
+                                                       looper.lumi,
                                                        looper.isMc
                                                        )
                                         )
@@ -136,26 +163,6 @@ class analysis :
                 outputFileName=displayFileList[0].replace(someLooper.name,someLooper.parentName).replace(".root",".ps")
                 utils.psFromRoot(displayFileList,outputFileName,beQuiet=False)
                 print someLooper.hyphens
-        
-    def plot(self) :
-        isMcs=[]
-        sampleNames=[]
-        outputPlotFileNames=[]
-        if len(self.parentDict)==0 :
-            for looper in self.looperList :
-                sampleNames.append(looper.name)
-                outputPlotFileNames.append(looper.outputPlotFileName)
-                isMcs.append(looper.isMc)
-        else :
-            for parent in self.parentDict :
-                sampleNames.append(parent)
-                iSomeLooper=self.parentDict[parent][0]
-                someLooper=self.looperList[iSomeLooper]
-                outputPlotFileNames.append(someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName))
-                isMcs.append(someLooper.isMc)                
-
-        import plotter
-        plotter.plotAll(self.name,sampleNames,outputPlotFileNames,isMcs,self.outputDir)
 
     def profile(self,nCores) :
         if nCores>1 : raise ValueError("to profile, nCores must equal one")
