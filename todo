@@ -2,7 +2,9 @@ Critical
 ---------
 * Investigate skimmers
 * fix pruning
-
+* make data black
+* correct log min
+* fix configs
 
 Other
 --------
