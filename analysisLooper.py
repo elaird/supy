@@ -5,7 +5,7 @@ import ROOT as r
 class analysisLooper :
     """class to set up and loop over events"""
 
-    def __init__(self,outputDir,inputFiles,name,nEvents,outputPrefix,steps,xs,isMc):
+    def __init__(self,outputDir,inputFiles,name,nEvents,outputPrefix,steps,xs,lumi,isMc):
         self.hyphens="".ljust(95,"-")
 
         self.name=name
@@ -13,6 +13,7 @@ class analysisLooper :
         self.inputFiles=inputFiles
         self.steps=copy.deepcopy(steps)
         self.xs=xs
+        self.lumi=lumi
         self.isMc=isMc
 
         self.outputDir=outputDir
@@ -88,7 +89,9 @@ class analysisLooper :
 
         outString+=" "+str(self.inputChain.GetEntries())
         outString+=" events."
-        outString+=" (xs=%6.4g"%self.xs+" pb)"
+        if self.xs!=None :   outString+=" (xs=%6.4g"%self.xs+" pb)"
+        if self.lumi!=None : outString+=" (lumi=%6.4g"%self.lumi+" / pb)"
+            
         if not self.quietMode : print outString
         if not self.quietMode : print self.hyphens
         r.gROOT.cd()
@@ -128,10 +131,14 @@ class analysisLooper :
             object.Write()
             object.Delete()
 
-        #write two "special" histograms
+        #write some "special" histograms
         xsHisto=r.TH1D("xsHisto",";dummy axis;#sigma (pb)",1,-0.5,0.5)
-        xsHisto.SetBinContent(1,self.xs)
+        if self.xs!=None : xsHisto.SetBinContent(1,self.xs)
         xsHisto.Write()
+            
+        lumiHisto=r.TH1D("lumiHisto",";dummy axis;integrated luminosity (pb^{-1})",1,-0.5,0.5)
+        if self.lumi!=None : lumiHisto.SetBinContent(1,self.lumi)
+        lumiHisto.Write()
             
         nEventsHisto=r.TH1D("nEventsHisto",";dummy axis;N_{events} read in",1,-0.5,0.5)
         nEventsHisto.SetBinContent(1,self.nEvents)
