@@ -16,15 +16,11 @@ def relIso(ecalIso,hcalIso,trkIso,pT) :
 class icfJetPtSorter(analysisStep) :
     """icfJetPtSorter"""
 
-    def __init__(self):
-        self.neededBranches=["Njets","Jetpt"]
-
-    def uponAcceptance(self,chain,chainVars,extraVars) :
+    def uponAcceptance(self,eventVars,extraVars) :
         jetPtsAndIndices=[]
-        #nJets=chain.Njets
-        nJets=chainVars.Njets[0]
+        nJets=eventVars["Njets"]
         for iJet in  range(nJets) :
-            jetPtsAndIndices.append( (chainVars.Jetpt[iJet],iJet) )
+            jetPtsAndIndices.append( (eventVars["Jetpt"][iJet],iJet) )
         jetPtsAndIndices.sort()
         jetPtsAndIndices.reverse()
 
@@ -50,21 +46,18 @@ class icfCleanJetProducer(analysisStep) :
         self.zeroP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         self.dummyP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
 
-        self.neededBranches=["Njets","Jeteta","Jetpt","JetFem",
-                             "Jetpx","Jetpy","Jetpz","JetE"]
-
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         extraVars.cleanJetIndices=[]
         extraVars.otherJetIndices=[]
         extraVars.icfCleanJets.clear()
 
-        Jetpx =chainVars.Jetpx
-        Jetpy =chainVars.Jetpy
-        Jetpz =chainVars.Jetpz
-        JetE  =chainVars.JetE
-        Jetpt =chainVars.Jetpt
-        Jeteta=chainVars.Jeteta
-        JetFem=chainVars.JetFem
+        Jetpx =eventVars["Jetpx"]
+        Jetpy =eventVars["Jetpy"]
+        Jetpz =eventVars["Jetpz"]
+        JetE  =eventVars["JetE"]
+        Jetpt =eventVars["Jetpt"]
+        Jeteta=eventVars["Jeteta"]
+        JetFem=eventVars["JetFem"]
         
         for jetIndex in extraVars.jetIndicesSortedByPt :
             #pt cut
@@ -104,21 +97,20 @@ class icfJetFaker(analysisStep) :
         self.dummyStdVector=r.vector(r.Math.LorentzVector(r.Math.PxPyPzE4D('double')))
         
         self.dummyP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
-        self.neededBranches=["Njets","Jetpx","Jetpy","Jetpz","JetE"]
 
-    def uponAcceptance (self,chain,chainVars,extraVars) :
-        Jetpx =chainVars.Jetpx
-        Jetpy =chainVars.Jetpy
-        Jetpz =chainVars.Jetpz
-        JetE  =chainVars.JetE
+    def uponAcceptance (self,eventVars,extraVars) :
+        Jetpx =eventVars["Jetpx"]
+        Jetpy =eventVars["Jetpy"]
+        Jetpz =eventVars["Jetpz"]
+        JetE  =eventVars["JetE"]
 
-        setattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix,self.dummyStdVector)
+        eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]=self.dummyStdVector
         setattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix,[])
         
-        p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+        p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
         cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
 
-#        nJets=chainVars.Njets
+#        nJets=eventVars["Njets"]
 #        for iJet in range(nJets) :
 #            p4Vector.push_back*
 
@@ -152,15 +144,12 @@ class icfJetFaker(analysisStep) :
 class icfNCleanJetHistogrammer(analysisStep) :
     """icfNCleanJetHistogrammer"""
 
-    def __init__(self):
-        self.neededBranches=[]
-
     def bookHistos(self) :
         nBins=15
         title=";number of jets passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"
         self.nCleanJetsHisto=r.TH1D("nCleanJets",title,nBins,-0.5,nBins-0.5)
         
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         self.nCleanJetsHisto.Fill( len(extraVars.cleanJetIndices) )
 ######################################
 class icfNCleanJetEventFilter(analysisStep) :
@@ -169,9 +158,8 @@ class icfNCleanJetEventFilter(analysisStep) :
     def __init__(self,nCleanJets):
         self.nCleanJets=nCleanJets
         self.moreName="(>="+str(self.nCleanJets)+")"
-        self.neededBranches=[]
         
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         return len(extraVars.cleanJetIndices)>=self.nCleanJets
 ######################################
 class icfNOtherJetEventFilter(analysisStep) :
@@ -180,16 +168,14 @@ class icfNOtherJetEventFilter(analysisStep) :
     def __init__(self,nOtherJets):
         self.nOtherJets=nOtherJets
         self.moreName="(<"+str(self.nOtherJets)+")"
-        self.neededBranches=[]
         
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         return len(extraVars.otherJetIndices)<self.nOtherJets
 ######################################
 class icfOtherJetHistogrammer(analysisStep) :
     """icfOtherJetHistogrammer"""
 
     def __init__(self,singleJetPtThreshold):
-        self.neededBranches=[]
         self.singleJetPtThreshold=singleJetPtThreshold
 
     def bookHistos(self) :
@@ -206,11 +192,11 @@ class icfOtherJetHistogrammer(analysisStep) :
         title=";H_{T} computed from \"other\" jets with p_{T}>"+str(self.singleJetPtThreshold)+" GeV;events / bin"
         self.otherJetHtHisto=r.TH1D("otherJetHt",title,50,0.0,200.0)
 
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         extraVars.otherHt=0.0
         extraVars.nOtherJets=0
 
-        Jetpt=chainVars.Jetpt
+        Jetpt=eventVars["Jetpt"]
         leadingFilled=False
         for jetIndex in  extraVars.jetIndicesSortedByPt :
             if (jetIndex in extraVars.cleanJetIndices) : continue
@@ -221,7 +207,7 @@ class icfOtherJetHistogrammer(analysisStep) :
 
             self.ptAllHistoOther.Fill(pt)
 
-            #eta=chainVars.Jeteta[iJet]
+            #eta=eventVars["Jeteta"][iJet]
             #self.etaAllHistoOther.Fill(eta)
 
             if (not leadingFilled) :
@@ -238,12 +224,11 @@ class icfCleanJetPtSelector(analysisStep) :
     def __init__(self,jetPtThreshold,jetIndex):
         self.jetPtThreshold=jetPtThreshold
         self.jetIndex=jetIndex
-        self.neededBranches=["Njets","Jetpt"]
         self.moreName ="(pt["+str(self.jetIndex)+"]>="+str(self.jetPtThreshold)+" GeV)"
 
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         if (len(extraVars.cleanJetIndices)<=self.jetIndex) : return False
-        return (chainVars.Jetpt[extraVars.cleanJetIndices[self.jetIndex]]>=self.jetPtThreshold)
+        return (eventVars["Jetpt"][extraVars.cleanJetIndices[self.jetIndex]]>=self.jetPtThreshold)
 #####################################
 class icfCleanJetPtVetoer(analysisStep) :
     """icfCleanJetPtVetoer"""
@@ -251,12 +236,11 @@ class icfCleanJetPtVetoer(analysisStep) :
     def __init__(self,jetPtThreshold,jetIndex):
         self.jetPtThreshold=jetPtThreshold
         self.jetIndex=jetIndex
-        self.neededBranches=["Njets","Jetpt"]
         self.moreName ="(pt["+str(self.jetIndex)+"]<"+str(self.jetPtThreshold)+" GeV)"
 
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         if (len(extraVars.cleanJetIndices)<=self.jetIndex) : return True
-        return (chainVars.Jetpt[extraVars.cleanJetIndices[self.jetIndex]]<self.jetPtThreshold)
+        return (eventVars["Jetpt"][extraVars.cleanJetIndices[self.jetIndex]]<self.jetPtThreshold)
 #####################################
 class icfCleanJetEtaSelector(analysisStep) :
     """icfCleanJetEtaSelector"""
@@ -264,21 +248,19 @@ class icfCleanJetEtaSelector(analysisStep) :
     def __init__(self,jetEtaThreshold,jetIndex):
         self.jetEtaThreshold=jetEtaThreshold
         self.jetIndex=jetIndex
-        self.neededBranches=["Njets","Jeteta"]
         self.moreName ="(|eta["+str(self.jetIndex)+"]|<"+str(self.jetEtaThreshold)+")"
 
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         if (len(extraVars.cleanJetIndices)<=self.jetIndex) : return False
-        return (r.TMath.Abs(chainVars.Jeteta[extraVars.cleanJetIndices[self.jetIndex]])<self.jetEtaThreshold)
+        return (r.TMath.Abs(eventVars["Jeteta"][extraVars.cleanJetIndices[self.jetIndex]])<self.jetEtaThreshold)
 #####################################
 class icfCleanJetHtMhtProducer(analysisStep) :
     """icfCleanJetHtMhtProducer"""
 
     def __init__(self):
-        self.neededBranches=[]
         self.mht=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         self.mht.SetCoordinates(0.0,0.0,0.0,0.0)
 
         extraVars.Ht=0.0
@@ -303,18 +285,14 @@ class icfMhtAllProducer(analysisStep) :
         self.mhtAll=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         self.dummyP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
 
-        self.neededBranches=["Njets","Jetpt",
-                             "Jetpx","Jetpy","Jetpz","JetE"]
+    def uponAcceptance (self,eventVars,extraVars) :
+        Jetpx =eventVars["Jetpx"]
+        Jetpy =eventVars["Jetpy"]
+        Jetpz =eventVars["Jetpz"]
+        JetE  =eventVars["JetE"]
+        Jetpt =eventVars["Jetpt"]
 
-    def uponAcceptance (self,chain,chainVars,extraVars) :
-        Jetpx =chainVars.Jetpx
-        Jetpy =chainVars.Jetpy
-        Jetpz =chainVars.Jetpz
-        JetE  =chainVars.JetE
-        Jetpt =chainVars.Jetpt
-
-        #nJets=chain.Njets
-        nJets=chainVars.Njets[0]
+        nJets=eventVars["Njets"]
         for iJet in range(nJets) :
             if (Jetpt[iJet]<self.jetPtThreshold) : continue
 
@@ -330,17 +308,13 @@ class icfMhtRatioSelector(analysisStep) :
     """icfMhtRatioSelector"""
 
     def __init__(self,threshold):
-        self.neededBranches=[]
         self.threshold=threshold
         
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         return ( (extraVars.Mht.pt()/extraVars.MhtAll.pt())<self.threshold )
 #####################################
 class icfCleanJetHtMhtHistogrammer(analysisStep) :
     """icfCleanJetHtMhtHistogrammer"""
-
-    def __init__(self):
-        self.neededBranches=[]
 
     def bookHistos(self):
         self.ht_Histo          =r.TH1D("ht"       ,";H_{T} (GeV) from clean jet p_{T}'s;events / bin" ,50,0.0,1000.0)
@@ -352,7 +326,7 @@ class icfCleanJetHtMhtHistogrammer(analysisStep) :
         title=";H_{T} (GeV) from clean jets;#slash{H}_{T} (GeV) from clean jet p_{T}'s;events / bin"
         self.mhtHt_Histo=r.TH2D("mht_vs_ht",title,50,0.0,1000.0,50,0.0,1000.0)
         
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         mht=extraVars.Mht.pt()
         self.mht_Histo.Fill(mht)
         self.ht_Histo.Fill(extraVars.Ht)
@@ -367,9 +341,6 @@ class icfCleanJetHtMhtHistogrammer(analysisStep) :
 class icfCleanJetPtEtaHistogrammer(analysisStep) :
     """icfCleanJetPtEtaHistogrammer"""
 
-    def __init__(self) :
-        self.neededBranches=["Njets","Jetpt","Jeteta"]
-
     def bookHistos(self) :
         self.ptAllHisto=    r.TH1D("ptAll",";p_{T} (GeV) of clean jets;events / bin",50,0.0,800.0)
         self.ptLeadingHisto=r.TH1D("ptLeading",";p_{T} (GeV) of leading clean jet;events / bin",50,0.0,800.0)
@@ -377,13 +348,13 @@ class icfCleanJetPtEtaHistogrammer(analysisStep) :
         self.etaAllHisto=    r.TH1D("etaAll",";#eta of clean jets;events / bin",50,-5.0,5.0)
         self.etaLeadingHisto=r.TH1D("etaLeading",";#eta of leading clean jet;events / bin",50,-5.0,5.0)
 
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         leadingFilled=False
         for iJet in extraVars.cleanJetIndices :
-            pt=chainVars.Jetpt[iJet]
+            pt=eventVars["Jetpt"][iJet]
             self.ptAllHisto.Fill(pt)
 
-            eta=chainVars.Jeteta[iJet]
+            eta=eventVars["Jeteta"][iJet]
             self.etaAllHisto.Fill(eta)
             if (not leadingFilled) :
                 self.ptLeadingHisto.Fill(pt)
@@ -393,10 +364,7 @@ class icfCleanJetPtEtaHistogrammer(analysisStep) :
 class icfCleanNJetAlphaProducer(analysisStep) :
     """icfCleanNJetAlphaProducer"""
 
-    def __init__(self):
-        self.neededBranches=[]
-
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         nJetDeltaHt=0.0
         nJetAlphaT=0.0
 
@@ -445,9 +413,8 @@ class icfCleanDiJetAlphaProducer(analysisStep) :
 
     def __init__(self):
         self.lvSum=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
-        self.neededBranches=[]
         
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         self.lvSum.SetCoordinates(0.0,0.0,0.0,0.0)
 
         diJetM       =0.0
@@ -489,9 +456,6 @@ class icfCleanDiJetAlphaProducer(analysisStep) :
 class icfAlphaHistogrammer(analysisStep) :
     """icfAlphaHistogrammer"""
 
-    def __init__(self) :
-        self.neededBranches=[]
-        
     def bookHistos(self) :
         bins=100
         min=0.0
@@ -515,7 +479,7 @@ class icfAlphaHistogrammer(analysisStep) :
                                     30,0.0,1.0,
                                     30,0.0,0.7)
 
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         self.diJetAlpha_Histo.Fill(   extraVars.diJetAlpha   )
         #self.diJetAlpha_ET_Histo.Fill(extraVars.diJetAlpha_Et)
         self.nJetAlphaT_Histo.Fill(   extraVars.nJetAlphaT   )
@@ -527,10 +491,7 @@ class icfAlphaHistogrammer(analysisStep) :
 class icfDeltaPhiProducer(analysisStep) :
     """icfDeltaPhiProducer"""
 
-    def __init__(self) :
-        self.neededBranches=[]
-    
-    def select(self,chain,chainVars,extraVars) :
+    def select(self,eventVars,extraVars) :
 
         extraVars.deltaPhi01= -4.0
         extraVars.deltaR01  =-40.0
@@ -557,7 +518,7 @@ class icfDeltaPhiSelector(analysisStep) :
         self.minAbs=minAbs
         self.maxAbs=maxAbs
     
-    def select(self,chain,chainVars,extraVars) :
+    def select(self,eventVars,extraVars) :
         value=r.TMath.Abs(extraVars.deltaPhi01)
         if (value<self.minAbs or value>self.maxAbs) : return False
         return True
@@ -569,7 +530,7 @@ class icfMhtOverHtSelector(analysisStep) :
         self.min=min
         self.max=max
     
-    def select(self,chain,chainVars,extraVars) :
+    def select(self,eventVars,extraVars) :
         if (extraVars.Ht<1.0e-2) : return False
         value=extraVars.Mht.pt()/extraVars.Ht
         if (value<self.min or value>self.max) : return False
@@ -577,9 +538,6 @@ class icfMhtOverHtSelector(analysisStep) :
 #####################################
 class icfDeltaPhiHistogrammer(analysisStep) :
     """icfDeltaPhiHistogrammer"""
-
-    def __init__(self) :
-        self.neededBranches=[]
 
     def bookHistos(self) :
         bins=50
@@ -605,7 +563,7 @@ class icfDeltaPhiHistogrammer(analysisStep) :
         title="deltaEta01"
         #self.deltaEta01_Histo=r.TH1D(title,";"+title+";events / bin",bins,min,max)
         
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         self.deltaPhi01_Histo.Fill( math.fabs(extraVars.deltaPhi01) )
         #self.deltaR01_Histo.Fill(             extraVars.deltaR01    )
         #self.deltaEta01_Histo.Fill(           extraVars.deltaEta01  )
@@ -619,11 +577,10 @@ class icfAnyJetPtSelector(analysisStep) :
     def __init__(self,jetPtThreshold,jetIndex):
         self.jetPtThreshold=jetPtThreshold
         self.jetIndex=jetIndex
-        self.neededBranches=[]
         self.moreName ="(pT["+str(self.jetIndex)+"]>="+str(self.jetPtThreshold)+" GeV"
         self.moreName+=")"
 
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         if (len(extraVars.jetPtsSortedByPt)<=self.jetIndex) : return False
         return (extraVars.jetPtsSortedByPt[self.jetIndex]>=self.jetPtThreshold)
 #####################################
@@ -633,11 +590,10 @@ class icfAnyJetPtVetoer(analysisStep) :
     def __init__(self,jetPtThreshold,jetIndex):
         self.jetPtThreshold=jetPtThreshold
         self.jetIndex=jetIndex
-        self.neededBranches=[]
         self.moreName ="(pT["+str(self.jetIndex)+"]<"+str(self.jetPtThreshold)+" GeV"
         self.moreName+=")"
 
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         if (len(extraVars.jetPtsSortedByPt)<=self.jetIndex) : return True
         return (extraVars.jetPtsSortedByPt[self.jetIndex]<self.jetPtThreshold)
 #####################################
@@ -648,30 +604,24 @@ class icfMuonVetoer(analysisStep) :
         self.muonPtThreshold=muonPtThreshold
         self.moreName ="(no muon with pT>"+str(self.muonPtThreshold)+" GeV passing ID)"
 
-        self.neededBranches=["Nmuon","Muonpt","Muoneta","Muonphi"
-                             ,"MuonECalIsoDeposit","MuonHCalIsoDeposit","MuonHCalIso","MuonECalIso","MuonTrkIso"
-                             ,"MuonIsGlobalTight","MuonTrkValidHits","MuonTrkD0","MuonCombChi2","MuonCombNdof"
-                             ] #Nmuon must be the first element
-
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         anyGoodMuon=False
 
-        #nMuons=chain.Nmuon
-        nMuons=chainVars.Nmuon[0]
-        pt=chainVars.Muonpt
-        eta=chainVars.Muoneta
-        phi=chainVars.Muonphi
-        ecalDeposit=chainVars.MuonECalIsoDeposit
-        hcalDeposit=chainVars.MuonHCalIsoDeposit
+        nMuons=eventVars["Nmuon"]
+        pt=eventVars["Muonpt"]
+        eta=eventVars["Muoneta"]
+        phi=eventVars["Muonphi"]
+        ecalDeposit=eventVars["MuonECalIsoDeposit"]
+        hcalDeposit=eventVars["MuonHCalIsoDeposit"]
 
-        hcalIso=chainVars.MuonHCalIso
-        ecalIso=chainVars.MuonECalIso
-        trkIso=chainVars.MuonTrkIso
+        hcalIso=eventVars["MuonHCalIso"]
+        ecalIso=eventVars["MuonECalIso"]
+        trkIso=eventVars["MuonTrkIso"]
 
-        trkHits=chainVars.MuonTrkValidHits
-        d0=chainVars.MuonTrkD0
-        chi2=chainVars.MuonCombChi2
-        nDof=chainVars.MuonCombNdof
+        trkHits=eventVars["MuonTrkValidHits"]
+        d0=eventVars["MuonTrkD0"]
+        chi2=eventVars["MuonCombChi2"]
+        nDof=eventVars["MuonCombNdof"]
         
         for iMuon in range(nMuons) :
             if (pt[iMuon]<self.muonPtThreshold) : continue
@@ -699,22 +649,18 @@ class icfElecVetoer(analysisStep) :
         self.elecPtThreshold=elecPtThreshold
         self.moreName ="(no elec with pT>"+str(self.elecPtThreshold)+" GeV passing ID)"
 
-        self.neededBranches=["Nelec","Elecpt","Eleceta","Elecphi"
-                             ,"ElecD0","ElecECalIso","ElecHCalIso","ElecTrkIso","ElecIdRobTight"] #Nelec must be the first element
-
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         anyGoodElec=False
 
-        #nElecs=chain.Nelec
-        nElecs=chainVars.Nelec[0]
-        pt=chainVars.Elecpt
-        eta=chainVars.Eleceta
-        phi=chainVars.Elecphi
-        d0=chainVars.ElecD0
-        hcalIso=chainVars.ElecHCalIso
-        ecalIso=chainVars.ElecECalIso
-        trkIso=chainVars.ElecTrkIso
-        tight=chainVars.ElecIdRobTight
+        nElecs=eventVars["Nelec"]
+        pt=eventVars["Elecpt"]
+        eta=eventVars["Eleceta"]
+        phi=eventVars["Elecphi"]
+        d0=eventVars["ElecD0"]
+        hcalIso=eventVars["ElecHCalIso"]
+        ecalIso=eventVars["ElecECalIso"]
+        trkIso=eventVars["ElecTrkIso"]
+        tight=eventVars["ElecIdRobTight"]
 
         for iElec in range(nElecs) :
             if (pt[iElec]<self.elecPtThreshold) : continue
@@ -735,15 +681,12 @@ class icfPhotVetoer(analysisStep) :
         self.photPtThreshold=photPtThreshold
         self.moreName ="(no phot with pT>"+str(self.photPtThreshold)+" GeV passing ID)"
 
-        self.neededBranches=["Nphot","Photpt","Photeta","PhotTightPhoton"] #Nphot must be the first element
-
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         anyGoodPhot=False
 
-        #nPhots=chain.Nphot
-        nPhots=chainVars.Nphot[0]
-        pt=chainVars.Photpt
-        eta=chainVars.Photeta
+        nPhots=eventVars["Nphot"]
+        pt=eventVars["Photpt"]
+        eta=eventVars["Photeta"]
 
         for iPhot in range(nPhots) :
             if (pt[iPhot]<self.photPtThreshold) : continue
@@ -770,20 +713,17 @@ class icfCleanJetFromGenProducer(analysisStep) :
         self.zeroP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         self.dummyP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
 
-        self.neededBranches=["Njets","GenJeteta","GenJetpt",
-                             "GenJetpx","GenJetpy","GenJetpz","GenJetE"]
-
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         extraVars.cleanJetIndices=[]
         extraVars.otherJetIndices=[]
         extraVars.icfCleanJets.clear()
 
-        GenJetpx =chainVars.GenJetpx
-        GenJetpy =chainVars.GenJetpy
-        GenJetpz =chainVars.GenJetpz
-        GenJetE  =chainVars.GenJetE
-        GenJetpt =chainVars.GenJetpt
-        GenJeteta=chainVars.GenJeteta
+        GenJetpx =eventVars["GenJetpx"]
+        GenJetpy =eventVars["GenJetpy"]
+        GenJetpz =eventVars["GenJetpz"]
+        GenJetE  =eventVars["GenJetE"]
+        GenJetpt =eventVars["GenJetpt"]
+        GenJeteta=eventVars["GenJeteta"]
         
         for jetIndex in extraVars.jetIndicesSortedByPt :
             #pt cut
@@ -812,38 +752,35 @@ class icfGenPrinter(analysisStep) :
     """icfGenPrinter"""
 
     def __init__(self):
-        self.neededBranches=["genN","genid","genMother","genE",
-                     "genPx","genPy","genPz","genStatus"]
-        self.neededBranches.extend(["event","run"])
         self.oneP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         self.sumP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         self.zeroP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         
-    def uponAcceptance (self,chain,chainVars,extraVars) :
-        nGen=chainVars.genN[0]
+    def uponAcceptance (self,eventVars,extraVars) :
+        nGen=eventVars["genN"]
         self.sumP4.SetCoordinates(0.0,0.0,0.0,0.0)
 
-        mothers=set(chainVars.genMother[:nGen])
+        mothers=set(eventVars["genMother"][:nGen])
         #print "mothers: ",mothers
         print "-------------------------------------------------------------------------"
-        print "run %#7d"%chainVars.run[0],"  event %#10d"%chainVars.event[0]," |"
+        print "run %#7d"%eventVars["run"],"  event %#10d"%eventVars["event"]," |"
         print "---------------------------------"
         print " i  st  mo         id            name        E       eta        pt    phi"
         print "-------------------------------------------------------------------------"
         for iGen in range(nGen) :
-            self.oneP4.SetCoordinates(chainVars.genPx[iGen],
-                                      chainVars.genPy[iGen],
-                                      chainVars.genPz[iGen],
-                                      chainVars.genE [iGen])
+            self.oneP4.SetCoordinates(eventVars["genPx"][iGen],
+                                      eventVars["genPy"][iGen],
+                                      eventVars["genPz"][iGen],
+                                      eventVars["genE"] [iGen])
 
             outString=""
             outString+="%#2d"%iGen
-            outString+=" %#3d"%chainVars.genStatus[iGen]
-            outString+="  %#2d"%chainVars.genMother[iGen]
-            outString+=" %#10d"%chainVars.genid[iGen]
+            outString+=" %#3d"%eventVars["genStatus"][iGen]
+            outString+="  %#2d"%eventVars["genMother"][iGen]
+            outString+=" %#10d"%eventVars["genid"][iGen]
             outString+="".rjust(16)
-            #outString+=" "+pdgLookup.pdgid_to_name(chainVars.genid[iGen]).rjust(15)
-            outString+="  %#7.1f"%chainVars.genE[iGen]
+            #outString+=" "+pdgLookup.pdgid_to_name(eventVars["genid"][iGen]).rjust(15)
+            outString+="  %#7.1f"%eventVars["genE"][iGen]
             outString+="  %#8.1f"%self.oneP4.eta()
             outString+="  %#8.1f"%self.oneP4.pt()
             outString+="  %#5.1f"%self.oneP4.phi()
@@ -872,25 +809,22 @@ class icfGenP4Producer(analysisStep) :
     """icfGenP4Producer"""
 
     def __init__(self):
-        self.neededBranches=["genN","genMother","genE",
-                     "genPx","genPy","genPz"]
-
         self.oneP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         self.sumP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         self.zeroP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         
-    def uponAcceptance (self,chain,chainVars,extraVars) :
-        nGen=chainVars.genN[0]
+    def uponAcceptance (self,eventVars,extraVars) :
+        nGen=eventVars["genN"]
         self.sumP4.SetCoordinates(0.0,0.0,0.0,0.0)
 
-        mothers=set(chainVars.genMother[:nGen])
+        mothers=set(eventVars["genMother"][:nGen])
 
         for iGen in range(nGen) :
             if (not (iGen in mothers)) :
-                self.oneP4.SetCoordinates(chainVars.genPx[iGen],
-                                          chainVars.genPy[iGen],
-                                          chainVars.genPz[iGen],
-                                          chainVars.genE [iGen])
+                self.oneP4.SetCoordinates(eventVars["genPx"][iGen],
+                                          eventVars["genPy"][iGen],
+                                          eventVars["genPz"][iGen],
+                                          eventVars["genE"] [iGen])
 
                 self.sumP4+=self.oneP4
 
@@ -899,12 +833,9 @@ class icfGenP4Producer(analysisStep) :
 class icfGenP4Histogrammer(analysisStep) :
     """icfGenP4Histogrammer"""
 
-    def __init__(self):
-        self.neededBranches=[]
-
     def bookHistos(self) :
         self.ptHisto=r.TH1D("genNonMotherP4Sum",";genNonMotherP4Sum p_{T} (GeV);events / bin",50,0.0,200.0)
 
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         self.ptHisto.Fill(extraVars.genNonMotherP4Sum.pt())
 #####################################

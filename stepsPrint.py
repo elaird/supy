@@ -12,7 +12,6 @@ class progressPrinter(analysisStep) :
         self.moreName="("
         self.moreName+=str(self.factor)+","
         self.moreName+=str(self.cut)+")"
-        self.neededBranches=[]
 
     def uponAcceptance (self,eventVars,extraVars) :
         if (self.nTotal==self.num) :
@@ -129,10 +128,8 @@ class particleP4Printer(analysisStep) :
         self.moreName+=self.suffix
         self.moreName+=")"
         self.nHyphens=56
-        self.neededBranches=[]
-        self.neededBranches.append(self.collection+'P4'+self.suffix)
 
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         p4Vector=eventVars[self.collection+'P4'+self.suffix]
 
         nParticles=len(p4Vector)
@@ -160,9 +157,8 @@ class metPrinter(analysisStep) :
         self.moreName+=str(self.collections)
         self.moreName+=")"
         self.nHyphens=56
-        self.neededBranches=self.collections
 
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         print
         for met in self.collections :
             metVector=eventVars[met]
@@ -180,11 +176,9 @@ class nFlaggedRecHitFilter(analysisStep) :
         self.algoType=algoType
         self.detector=detector
         self.nFlagged=nFlagged
-        self.neededBranches=["rechit"+self.algoType+"P4"+self.detector]
 
-    def select(self,chain,chainVars,extraVars) :
-        return len(getattr(chainVars,"rechit"+self.algoType+"P4"+self.detector))>=self.nFlagged
-
+    def select(self,eventVars,extraVars) :
+        return len(eventVars["rechit"+self.algoType+"P4"+self.detector])>=self.nFlagged
 #####################################
 class recHitPrinter(analysisStep) :
     """recHitPrinter"""
@@ -192,8 +186,6 @@ class recHitPrinter(analysisStep) :
     def __init__(self,algoType,detector) :
         self.algoType=algoType
         self.detector=detector
-        self.neededBranches=["rechit"+self.algoType+"P4"+self.detector]
-        if (self.algoType=="Calo") : self.neededBranches.append("rechitCaloFlagWord"+self.detector)
 
         self.sum=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         self.bitInfo=[]
@@ -218,8 +210,8 @@ class recHitPrinter(analysisStep) :
             outString+="%14d"%self.bitSet(word,self.bitInfo[i][1])
         return outString
     
-    def uponAcceptance(self,chain,chainVars,extraVars) :
-        flaggedP4s=getattr(chainVars,"rechit"+self.algoType+"P4"+self.detector)
+    def uponAcceptance(self,eventVars,extraVars) :
+        flaggedP4s=eventVars["rechit"+self.algoType+"P4"+self.detector]
 
         print "flagged "+self.detector+" RecHits"
         someString="   i      pT (GeV)                  eta   phi"
@@ -235,7 +227,7 @@ class recHitPrinter(analysisStep) :
         for i in range(nFlagged) :
             flaggedP4=flaggedP4s[i]
             flagWord=0
-            if (self.algoType=="Calo") : flagWord=getattr(chainVars,"rechitCaloFlagWord"+self.detector)[i]
+            if (self.algoType=="Calo") : flagWord=eventVars["rechitCaloFlagWord"+self.detector][i]
             print self.makeString(i,flaggedP4,flagWord)
             self.sum+=flaggedP4
 
@@ -250,8 +242,6 @@ class recHitHistogrammer(analysisStep) :
         self.detector=detector
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
-        self.neededBranches=["rechit"+self.algoType+"P4"+self.detector]
-        self.neededBranches.append(self.jetCollection+"CorrectedP4"+self.jetSuffix)
         
     def bookHistos(self) :
         self.ptMaxHisto1=r.TH1D("ptMaxHisto1"+self.algoType+self.detector,"ptMaxHisto1"+self.algoType+self.detector,100,0.0,200.0)
@@ -264,9 +254,9 @@ class recHitHistogrammer(analysisStep) :
                                  100,0.0,200.0,
                                  100,0.0,200.0)
     
-    def select(self,chain,chainVars,extraVars) :
-        flaggedP4s=getattr(chainVars,"rechit"+self.algoType+"P4"+self.detector)
-        leadingJetPt=getattr(chainVars,self.jetCollection+"CorrectedP4"+self.jetSuffix)[0].pt()
+    def select(self,eventVars,extraVars) :
+        flaggedP4s=eventVars,"rechit"+self.algoType+"P4"+self.detector]
+        leadingJetPt=eventVars[self.jetCollection+"CorrectedP4"+self.jetSuffix][0].pt()
         
         pTs=[]
         nFlagged=len(flaggedP4s)
@@ -295,7 +285,7 @@ class recHitHistogrammer(analysisStep) :
         #    hit=flaggedP4s[i]
         #    print "hit:",i,hit.pt(),hit.eta(),hit.phi()
         #
-        #jets=getattr(chainVars,self.jetCollection+"CorrectedP4"+self.jetSuffix)
+        #jets=eventVars[self.jetCollection+"CorrectedP4"+self.jetSuffix]
         #for iJet in range(len(jets)) :
         #    jet=jets[iJet]
         #    print "jet:",iJet,jet.pt(),jet.eta(),jet.phi()

@@ -232,7 +232,6 @@ class nCleanJetEventFilter(analysisStep) :
         self.jetSuffix=jetSuffix
         self.nCleanJets=nCleanJets
         self.moreName="("+self.jetCollection+" "+self.jetSuffix+">="+str(self.nCleanJets)+")"
-        self.neededBranches=[]
         
     def select (self,eventVars,extraVars) :
         return len(getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix))>=self.nCleanJets
@@ -245,7 +244,6 @@ class nOtherJetEventFilter(analysisStep) :
         self.jetSuffix=jetSuffix
         self.nOtherJets=nOtherJets
         self.moreName="("+self.jetCollection+" "+self.jetSuffix+"<"+str(self.nOtherJets)+")"
-        self.neededBranches=[]
         
     def select (self,eventVars,extraVars) :
         return len(getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix))<self.nOtherJets
@@ -285,7 +283,6 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
 
     def __init__(self,jetCollection,jetSuffix,corrRatherThanUnCorr):
         self.histoMax=1.0e3
-        self.neededBranches=[]
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
         self.corrRatherThanUnCorr=corrRatherThanUnCorr
@@ -499,7 +496,6 @@ class alphaHistogrammer(analysisStep) :
     """alphaHistogrammer"""
 
     def __init__(self,jetCollection,jetSuffix) :
-        self.neededBranches=[]
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
         self.moreName="("

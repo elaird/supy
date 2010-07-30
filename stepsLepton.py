@@ -4,63 +4,60 @@ class leptonFilter(analysisStep) :
         """leptonFilter"""
 
         def __init__(self,nMinLeptons, minPt=0) :
-            self.neededBranches=["muonP4Pat", "muonP4PF",
-                                             "electronP4Pat", "electronP4PF",
-                                             "tauP4Pat", "tauP4PF"]
             self.nMinLeptons=nMinLeptons
             self.minPt=minPt
             self.moreName="(nLeptons >= %d, pt > %f)" % (self.nMinLeptons, self.minPt)
 
-        def select(self,chain,chainVars,extraVars) :
+        def select(self,eventVars,extraVars) :
             # muons
-            nMuonsPF = len(chainVars.muonP4PF)
-            nMuonsPAT = len(chainVars.muonP4Pat)
+            nMuonsPF = len(eventVars["muonP4PF"])
+            nMuonsPAT = len(eventVars["muonP4Pat"])
 
             nGoodMuonsPF = 0
             for i in range(nMuonsPF):
-                #print "mu pf pt: %f" % chainVars.muonP4PF[i].pt()
-                if (chainVars.muonP4PF[i].pt() > self.minPt):
+                #print "mu pf pt: %f" % eventVars["muonP4PF"][i].pt()
+                if (eventVars["muonP4PF"][i].pt() > self.minPt):
                     nGoodMuonsPF += 1
                     
             nGoodMuonsPAT = 0
             for i in range(nMuonsPAT):
-                #print "mu pat pt: %f" % chainVars.muonP4Pat[i].pt()
-                if (chainVars.muonP4Pat[i].pt() > self.minPt):
+                #print "mu pat pt: %f" % eventVars["muonP4Pat"][i].pt()
+                if (eventVars["muonP4Pat"][i].pt() > self.minPt):
                     nGoodMuonsPAT += 1
 
 
             # electrons
-            nElectronsPF = len(chainVars.electronP4PF)
-            nElectronsPAT = len(chainVars.electronP4Pat)
+            nElectronsPF = len(eventVars["electronP4PF"])
+            nElectronsPAT = len(eventVars["electronP4Pat"])
             
             nGoodElectronsPF = 0
             for i in range(nElectronsPF):
-                #print "e pf pt: %f" % chainVars.electronP4PF[i].pt()
-                if (chainVars.electronP4PF[i].pt() > self.minPt):
+                #print "e pf pt: %f" % eventVars["electronP4PF"][i].pt()
+                if (eventVars["electronP4PF"][i].pt() > self.minPt):
                     nGoodElectronsPF += 1
                     
 
             nGoodElectronsPAT = 0
             for i in range(nElectronsPAT):
-                #print "e pat pt: %f" % chainVars.electronP4Pat[i].pt()
-                if (chainVars.electronP4Pat[i].pt() > self.minPt):
+                #print "e pat pt: %f" % eventVars["electronP4Pat"][i].pt()
+                if (eventVars["electronP4Pat"][i].pt() > self.minPt):
                     nGoodElectronsPAT += 1
 
 
             # taus
-            nTausPF = len(chainVars.tauP4PF)
-            nTausPAT = len(chainVars.tauP4Pat)
+            nTausPF = len(eventVars["tauP4PF"])
+            nTausPAT = len(eventVars["tauP4Pat"])
 
             nGoodTausPF = 0
             for i in range(nTausPF):
-                #print "tau pf pt: %f" % chainVars.tauP4PF[i].pt()
-                if (chainVars.tauP4PF[i].pt() > self.minPt):
+                #print "tau pf pt: %f" % eventVars["tauP4PF"][i].pt()
+                if (eventVars["tauP4PF"][i].pt() > self.minPt):
                     nGoodTausPF += 1
                     
             nGoodTausPAT = 0
             for i in range(nTausPAT):
-                #print "tau pat pt: %f" % chainVars.tauP4Pat[i].pt()
-                if (chainVars.tauP4Pat[i].pt() > self.minPt):
+                #print "tau pat pt: %f" % eventVars["tauP4Pat"][i].pt()
+                if (eventVars["tauP4Pat"][i].pt() > self.minPt):
                     nGoodTausPAT += 1
 
 

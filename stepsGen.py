@@ -27,19 +27,19 @@ class susyScanPointPrinter(analysisStep) :
     """susyScanPointPrinter"""
 
     def __init__(self) :
-        self.neededBranches=["susyScanA0",
-                             "susyScanCrossSection",
-                             "susyScanM0",
-                             "susyScanM12",
-                             "susyScanMu",
-                             "susyScanRun",
-                             "susyScanTanBeta"
-                             ]
+        self.leavesToPrint=["susyScanA0",
+                            "susyScanCrossSection",
+                            "susyScanM0",
+                            "susyScanM12",
+                            "susyScanMu",
+                            "susyScanRun",
+                            "susyScanTanBeta"
+                            ]
         
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         outString=""
-        for branchName in self.neededBranches :
-            outString+=branchName.replace("susyScan","")+" = "+str(getattr(chainVars,branchName)[0])+"\t"
+        for leafName in self.leavesToPrint :
+            outString+=leafName.replace("susyScan","")+" = "+str(eventVars[leafName])+"\t"
         print outString
 #####################################
 class genJetPrinter(analysisStep) :
@@ -54,19 +54,12 @@ class genJetPrinter(analysisStep) :
         self.moreName+=self.jetSuffix
         self.moreName+=")"
 
-        self.neededBranches=[]
-        self.neededBranches.append(self.jetCollection+'GenJetP4'     +self.jetSuffix)
-        #self.neededBranches.append(self.jetCollection+'EmEnergy'        +self.jetSuffix)
-        #self.neededBranches.append(self.jetCollection+'HadEnergy'       +self.jetSuffix)
-        #self.neededBranches.append(self.jetCollection+'InvisibleEnergy' +self.jetSuffix)
-        #self.neededBranches.append(self.jetCollection+'AuxiliaryEnergy' +self.jetSuffix)
-
-    def uponAcceptance (self,chain,chainVars,extraVars) :
-        p4Vector        =getattr(chainVars,self.jetCollection+'GenJetP4'     +self.jetSuffix)
-        #emEnergy        =getattr(chainVars,self.jetCollection+'EmEnergy'        +self.jetSuffix)
-        #hadEnergy       =getattr(chainVars,self.jetCollection+'HadEnergy'       +self.jetSuffix)
-        #invisibleEnergy =getattr(chainVars,self.jetCollection+'InvisibleEnergy' +self.jetSuffix)
-        #auxiliaryEnergy =getattr(chainVars,self.jetCollection+'AuxiliaryEnergy' +self.jetSuffix)
+    def uponAcceptance (self,eventVars,extraVars) :
+        p4Vector        =eventVars[self.jetCollection+'GenJetP4'     +self.jetSuffix]
+        #emEnergy        =eventVars[self.jetCollection+'EmEnergy'        +self.jetSuffix]
+        #hadEnergy       =eventVars[self.jetCollection+'HadEnergy'       +self.jetSuffix]
+        #invisibleEnergy =eventVars[self.jetCollection+'InvisibleEnergy' +self.jetSuffix]
+        #auxiliaryEnergy =eventVars[self.jetCollection+'AuxiliaryEnergy' +self.jetSuffix]
 
         #cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
         #otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
@@ -95,28 +88,6 @@ class genJetPrinter(analysisStep) :
 #####################################
 class genParticleCounter(analysisStep) :
     """genParticleCounter"""
-
-    def __init__(self,tanBeta):
-        self.neededBranches=[#"genGenInfoHandleValid",
-                             #"genpthat",
-                             "genHandleValid",
-                             #"genP4",
-                             "genStatus",
-                             "genPdgId",
-                             "genHasMother",
-                             "genMother",
-                             "genMotherStored",
-
-                             #"susyScanA0",
-                             "susyScanCrossSection",
-                             "susyScanM0",
-                             "susyScanM12",
-                             #"susyScanMu",
-                             #"susyScanRun",
-                             "susyScanTanBeta",
-                             ]
-        for i in range(len(self.neededBranches)) :
-            self.neededBranches[i]=self.neededBranches[i]
 
         self.tanBetaThreshold=0.1
         self.tanBeta=tanBeta
@@ -216,32 +187,32 @@ class genParticleCounter(analysisStep) :
         extraVars.categoryCounts[category]+=1
         #print "found one:",iParticle,pdgId
 
-    def doCounting (self,chainVars,extraVars) :
+    def doCounting (self,eventVars,extraVars) :
         self.zeroCategoryCounts(extraVars)
 
-        if not chainVars.genHandleValid[0] : return
-        #print dir(chainVars)
-        nParticles=len(chainVars.genPdgId)
+        if not eventVars["genHandleValid"] : return
+        #print dir(eventVars)
+        nParticles=len(eventVars["genPdgId"])
         for iParticle in range(nParticles) :
             #consider only status 3 particles
-            if chainVars.genStatus.at(iParticle)!=3 : continue
+            if eventVars["genStatus"].at(iParticle)!=3 : continue
             #which are SUSY particles
-            if not self.isSusy(chainVars.genPdgId.at(iParticle)) : continue
+            if not self.isSusy(eventVars["genPdgId"].at(iParticle)) : continue
             #which have mothers
-            if not chainVars.genHasMother.at(iParticle) : continue
+            if not eventVars["genHasMother"].at(iParticle) : continue
             #which are stored
-            if not chainVars.genMotherStored.at(iParticle) : continue
-            motherIndex=chainVars.genMother.at(iParticle)
+            if not eventVars["genMotherStored"].at(iParticle) : continue
+            motherIndex=eventVars["genMother"].at(iParticle)
             if (motherIndex<0) : continue
             #and are not SUSY particles
-            if self.isSusy(chainVars.genPdgId.at(motherIndex)) : continue
+            if self.isSusy(eventVars["genPdgId"].at(motherIndex)) : continue
         
-            pdgId=chainVars.genPdgId.at(iParticle)
+            pdgId=eventVars["genPdgId"].at(iParticle)
             self.incrementCategory(pdgId,extraVars)
         #self.printDict(extraVars.categoryCounts)
         
-    def fillHistograms (self,chainVars,extraVars) :
-        if abs(chainVars.susyScanTanBeta[0]-self.tanBeta)>self.tanBetaThreshold : return
+    def fillHistograms (self,eventVars,extraVars) :
+        if abs(eventVars["susyScanTanBeta"]-self.tanBeta)>self.tanBetaThreshold : return
 
         #make code string
         codeString=""
@@ -252,24 +223,23 @@ class genParticleCounter(analysisStep) :
             codeString+=str(count)
 
         #get scan point info
-        xs=chainVars.susyScanCrossSection[0]
-        m0=chainVars.susyScanM0[0]
-        m12=chainVars.susyScanM12[0]
+        xs=eventVars["susyScanCrossSection"]
+        m0=eventVars["susyScanM0"]
+        m12=eventVars["susyScanM12"]
 
         #fill histos
         self.histoDictionary[codeString].Fill(m0,m12)
         self.nEventsHisto.Fill(m0,m12)
         self.xsHisto.Fill(m0,m12,xs)
         
-    def uponAcceptance (self,chain,chainVars,extraVars) :
-        self.doCounting(chainVars,extraVars)
-        self.fillHistograms(chainVars,extraVars)
+    def uponAcceptance (self,eventVars,extraVars) :
+        self.doCounting(eventVars,extraVars)
+        self.fillHistograms(eventVars,extraVars)
 #####################################
 class genParticleCounterOld(analysisStep) :
     """genParticleCounterOld"""
 
     def __init__(self):
-        self.neededBranches=["genPdgId"]
         self.d={}
 
         for i in range(1000001,1000005) : self.d[i]="q~_L"
@@ -278,15 +248,15 @@ class genParticleCounterOld(analysisStep) :
         for i in range(2000005,2000007) : self.d[i]="q~_A"
         self.d[1000021]="g~"
         
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
         extraVars.particleCounts={}
         extraVars.particleCounts["q~_L"]=0
         extraVars.particleCounts["q~_R"]=0
         extraVars.particleCounts["q~_A"]=0
         extraVars.particleCounts["g~"  ]=0
 
-        for pdgId in chainVars.genPdgId :
-            if (pdgId in self.d) :
+        for pdgId in eventVars["genPdgId"] :
+            if pdgId in self.d :
                 category=self.d[pdgId]
                 if (not category in extraVars.particleCounts) :
                     extraVars.particleCounts[category]=1
@@ -301,32 +271,28 @@ class genParticlePrinter(analysisStep) :
     """genParticlePrinter"""
 
     def __init__(self):
-        self.neededBranches=["genStatus","genPdgId","genP4","genpthat",
-                             "genHasMother","genMotherStored","genMother",
-                             ]
-
         self.oneP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         self.sumP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         self.zeroP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         
-    def uponAcceptance (self,chain,chainVars,extraVars) :
+    def uponAcceptance (self,eventVars,extraVars) :
 
         self.sumP4.SetCoordinates(0.0,0.0,0.0,0.0)
 
-        mothers=set(chainVars.genMother)
+        mothers=set(eventVars["genMother"])
         print "mothers: ",mothers
         print "---------------------------------------------------------------------------"
         print " i  st    mo         id            name        E        pt       eta    phi"
         print "---------------------------------------------------------------------------"
 
-        size=len(chainVars.genP4)
+        size=len(eventVars["genP4"])
         for iGen in range(size) :
-            p4=chainVars.genP4[iGen]
-            pdgId=chainVars.genPdgId[iGen]
+            p4=eventVars["genP4"][iGen]
+            pdgId=eventVars["genPdgId"][iGen]
             outString=""
             outString+="%#2d"%iGen
-            outString+=" %#3d"%chainVars.genStatus[iGen]
-            outString+="  %#4d"%chainVars.genMother[iGen]
+            outString+=" %#3d"%eventVars["genStatus"][iGen]
+            outString+="  %#4d"%eventVars["genMother"][iGen]
             outString+=" %#10d"%pdgId
             if (pdgLookupExists) : outString+=" "+pdgLookup.pdgid_to_name(pdgId).rjust(15)
             else :                 outString+="".rjust(16)
@@ -369,21 +335,17 @@ class cleanGenJetIndexProducer(analysisStep) :
         self.moreName+="; |eta|<="+str(self.jetEtaMax)
         self.moreName+=")"
         
-        self.neededBranches=["CorrectedP4"]
-        for i in range(len(self.neededBranches)) :
-            self.neededBranches[i]=self.jetCollection+self.neededBranches[i]+self.jetSuffix
-
-    def step1 (self,chain,chainVars,extraVars) :
+    def step1 (self,eventVars,extraVars) :
         setattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix,[])
         self.cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
 
         setattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix,[])
         self.otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
 
-        self.p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+        self.p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
         self.size=self.p4Vector.size()
 
-    def jetLoop (self,chainVars) :
+    def jetLoop (self,eventVars) :
         for iJet in range(self.size) :
             #pt cut
             if (self.p4Vector[iJet].pt()<self.jetPtThreshold) : break #assumes sorted
@@ -398,8 +360,8 @@ class cleanGenJetIndexProducer(analysisStep) :
             self.cleanJetIndices.append(iJet)
             self.otherJetIndices.remove(iJet)
 
-    def select (self,chain,chainVars,extraVars) :
-        self.step1(chain,chainVars,extraVars)
-        self.jetLoop(chainVars)
+    def select (self,eventVars,extraVars) :
+        self.step1(eventVars,extraVars)
+        self.jetLoop(eventVars)
         return True
 #####################################

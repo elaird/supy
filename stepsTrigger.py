@@ -12,7 +12,6 @@ class techBitFilter(analysisStep) :
     """techBitFilter"""
 
     def __init__(self,bitList,acceptRatherThanReject) :
-        self.neededBranches=["l1techbits"]
         self.bitList=bitList
         self.accept=acceptRatherThanReject
 
@@ -39,7 +38,7 @@ class triggerTest(analysisStep) :
     """triggerTest"""
 
     def select (self,eventVars,extraVars) :
-        #print chain.l1techbits[9],chain.L1triggered["L1Tech_HCAL_HF_totalOR_minBias.v0"]
+        #print eventVars["l1techbits"][9],eventVars["L1triggered"]["L1Tech_HCAL_HF_totalOR_minBias.v0"]
         L1 = eventVars["L1triggered"]
         print "bit 9=%d; v0=%d; v1=%d" % \
               ( eventVars["l1techbits"].at(9), \

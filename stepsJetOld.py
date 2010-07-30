@@ -60,16 +60,16 @@ class cleanJetIndexProducerOld(analysisStep) :
             if (absEta>self.jetEtaMax) : continue
             
             #jet ID loose cut
-            #jetIDLooseVector=getattr(chain,self.jetCollection+'JetIDloose'+self.jetSuffix)
+            #jetIDLooseVector=eventVars[self.jetCollection+'JetIDloose'+self.jetSuffix]
             #if (not jetIDLooseVector[iJet]) : continue
             
             if (absEta<=2.6) :
                 if (self.emfVector.at(iJet)<=0.01) : continue
             if (self.fHpdVector.at(iJet)>=0.98) : continue
             if (self.n90HitsVector.at(iJet)<2) : continue
-            #if (getattr(chainVars,self.jetCollection+'JetIDFRBX'+self.jetSuffix)[iJet]>=0.98) : continue
-            #if (getattr(chainVars,self.jetCollection+'Eta2Moment'+self.jetSuffix)[iJet]<0.0) : continue
-            #if (getattr(chainVars,self.jetCollection+'Phi2Moment'+self.jetSuffix)[iJet]<0.0) : continue
+            #if (eventVars[self.jetCollection+'JetIDFRBX'+self.jetSuffix][iJet]>=0.98) : continue
+            #if (eventVars[self.jetCollection+'Eta2Moment'+self.jetSuffix][iJet]<0.0) : continue
+            #if (eventVars[self.jetCollection+'Phi2Moment'+self.jetSuffix][iJet]<0.0) : continue
 
             self.cleanJetIndices.append(iJet)
             self.otherJetIndices.remove(iJet)
@@ -90,11 +90,10 @@ class cleanJetHtMhtProducerOld(analysisStep) :
         self.moreName+="; "
         self.moreName+=self.jetSuffix
         self.moreName+=")"
-        self.neededBranches=[self.jetCollection+'CorrectedP4'+self.jetSuffix]
 
         self.mht=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         self.mht.SetCoordinates(0.0,0.0,0.0,0.0)
         
         setattr(extraVars,self.jetCollection+"Mht"+self.jetSuffix,self.mht)
@@ -102,7 +101,7 @@ class cleanJetHtMhtProducerOld(analysisStep) :
         Ht=0.0
         HtEt=0.0
 
-        p4Vector=getattr(chainVars,self.jetCollection+'CorrectedP4'+self.jetSuffix)
+        p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
         cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
         
         for iJet in cleanJetIndices :
@@ -128,9 +127,8 @@ class cleanNJetAlphaProducerOld(analysisStep) :
         self.moreName+="; "
         self.moreName+=self.jetSuffix
         self.moreName+=")"
-        self.neededBranches=[self.jetCollection+"CorrectedP4"+self.jetSuffix]
 
-    def select (self,chain,chainVars,extraVars) :
+    def select (self,eventVars,extraVars) :
         nJetDeltaHt=0.0
         nJetAlphaT=0.0
 
@@ -148,7 +146,7 @@ class cleanNJetAlphaProducerOld(analysisStep) :
         
         pTs=[]
         totalPt=0.0
-        p4Vector=getattr(chain,self.jetCollection+"CorrectedP4"+self.jetSuffix)
+        p4Vector=eventVars[self.jetCollection+"CorrectedP4"+self.jetSuffix]
 
         for iJet in cleanJetIndices :
             jet=p4Vector[iJet]

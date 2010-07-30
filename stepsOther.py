@@ -117,7 +117,7 @@ class skimmer2(analysisStep) :
 
         r.gROOT.cd()
 
-    def uponAcceptance(self,chain,chainVars,extraVars) :
+    def uponAcceptance(self,eventVars,extraVars) :
         self.eventList.Enter(extraVars.entry)
 
         #optionally fill an extra tree
@@ -267,8 +267,8 @@ class objectPtVetoer(analysisStep) :
 #        title=";#eta;events / bin"
 #        self.etaRejected=r.TH1D(self.objectCollection+"Eta"+self.objectSuffix,title,nBins,etaMin,etaMax)
 
-#    def uponRejection(self,chain,chainVars,extraVars) :
-#        p4Vector=getattr(chainVars,self.objectCollection+self.objectP4String+self.objectSuffix)
+#    def uponRejection(self,eventVars,extraVars) :
+#        p4Vector=eventVars[self.objectCollection+self.objectP4String+self.objectSuffix]
 #        self.etaRejected.Fill(p4Vector[self.objectIndex].eta())
 #####################################
 class soloObjectPtSelector(analysisStep) :
@@ -940,6 +940,6 @@ class pickEventSpecMaker(analysisStep) :
 #        nBx=3564+1 #one extra in case count from 1
 #        self.bxHisto=r.TH1D("bx",";bx of event;events / bin",nBx,-0.5,nBx-0.5)
 #
-#    def uponAcceptance(self,chain,chainVars,extraVars) :
-#        self.bxHisto.Fill(chain.bunch)
+#    def uponAcceptance(self,eventVars,extraVars) :
+#        self.bxHisto.Fill(eventVars["bunch"])
 #####################################
