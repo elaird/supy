@@ -79,15 +79,10 @@ def shiftOverflows(histo) :
     histo.SetBinContent(bins,lastBinContent+overflows)
     histo.SetEntries(entries)
 ##############################
-def scaleHistos(dimension,histoList,xsList,lumiList,nEventsList,nJobsList) :
+def scaleHistos(dimension,histoList,xsList,lumiValue,nEventsList,nJobsList) :
     maximum=0.0
     if len(histoList)<1 : return maximum
 
-    if lumiList.count(0.0)<len(lumiList) :
-        xsNorm=max(lumiList)
-    else :
-        xsNorm=lumiToUseInAbsenceOfData
-        
     for iHisto in range(len(histoList)) :
         histo=histoList[iHisto]
 
@@ -99,17 +94,15 @@ def scaleHistos(dimension,histoList,xsList,lumiList,nEventsList,nJobsList) :
         if "nJobsHisto"   in histo.GetName() : scale=False
 
         if scale :
-            xs=xsList[iHisto]
-            lumi=lumiList[iHisto]
-
             #scale the MC samples to match the data (if present) or the default lumi value
+            xs=xsList[iHisto]
             if xs>0.0 and nEventsList[iHisto]>0:
-                histo.Scale(xsNorm*xs/nEventsList[iHisto])
+                histo.Scale(lumiValue*xs/nEventsList[iHisto])
             if dimension==1 :
-                newTitle=histo.GetYaxis().GetTitle()+" / "+str(xsNorm)+" pb^{-1}"
+                newTitle=histo.GetYaxis().GetTitle()+" / "+str(lumiValue)+" pb^{-1}"
                 histo.GetYaxis().SetTitle(newTitle)
             if dimension==2 :
-                newTitle=histo.GetZaxis().GetTitle()+" / "+str(xsNorm)+" pb^{-1}"
+                newTitle=histo.GetZaxis().GetTitle()+" / "+str(lumiValue)+" pb^{-1}"
                 histo.GetZaxis().SetTitle(newTitle)
 
         hMax=histo.GetMaximum()
@@ -141,15 +134,16 @@ def metFit(histo) :
     return func
 ##############################
 def getLogMin(plotSpec) :
-    #if not doScaleByXs :
-    #    return 0.5
-    #else :
-    #    factorList=[]
-    #    for i in range(len(plotSpec.sampleNames)) :
-    #        if plotSpec.nEventsList[i]>0 and plotSpec.nJobsList[i]>0 :
-    #            factorList.append(plotSpec.xsList[i]/plotSpec.nEventsList[i]/plotSpec.nJobsList[i])
-    #    return 0.5*min(factorList)
-    return 0.5e-3
+    if not doScaleByXs :
+        return 0.5
+    else :
+        factorList=[]
+        for i in range(len(plotSpec.sampleNames)) :
+            xs=plotSpec.xsList[i]
+            if plotSpec.nEventsList[i]>0 and plotSpec.nJobsList[i]>0 :
+                if xs>0.0 : factorList.append(plotSpec.lumiValue*xs/plotSpec.nEventsList[i])
+                else :      factorList.append(1.0)
+        return 0.5*min(factorList)
 ##############################
 def makeAlphaTFunc(alphaTValue) :
     alphaTFunc=r.TF1("alphaTCurve"+str(alphaTValue),
@@ -290,7 +284,7 @@ def onePlotFunction(plotSpec) :
         plotSpec.canvas.Divide(len(histoList),1)
 
     if doScaleByXs :
-        plotSpec.maximum=scaleHistos(plotSpec.dimension,histoList,plotSpec.xsList,plotSpec.lumiList,plotSpec.nEventsList,plotSpec.nJobsList)
+        plotSpec.maximum=scaleHistos(plotSpec.dimension,histoList,plotSpec.xsList,plotSpec.lumiValue,plotSpec.nEventsList,plotSpec.nJobsList)
     histoLoop(plotSpec,histoList)
 ##############################
 def makeHistoList(plotSpec) :
@@ -339,13 +333,18 @@ def plotAll(analysisName,sampleNames,plotFileNames,outputDir) :
     dimensions=outList[1]
 
     xsList,lumiList,nEventsList,nJobsList=get_Xs_Lumi_Event_Job_Numbers(plotFileNames)
-    
-    if ( len(lumiList)-lumiList.count(0.0) )>1 :
+
+    nDataSamples=len(lumiList)-lumiList.count(0.0)
+    lumiValue=lumiToUseInAbsenceOfData
+    if nDataSamples==1 :
+        lumiValue=max(lumiList)
+    elif nDataSamples>1 :
         raise Exception("at the moment, plotting multiple data samples is not supported")
-    
+        
     for iPlotName in range(len(plotNames)) :
         plotSpec=onePlotSpec()
 
+        plotSpec.lumiValue=lumiValue
         plotSpec.plotName=plotNames[iPlotName]
         plotSpec.dimension=dimensions[iPlotName]
         plotSpec.canvas=canvas
