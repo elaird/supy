@@ -7,7 +7,8 @@ drawYx=False
 doMetFit=False
 doScaleByXs=True
 doColzFor2D=True
-xsNorm=100 #pb^-1
+#xsNorm=100 #pb^-1
+xsNorm=0.132 #pb^-1
 ##############################
 colorDict={}
 #colorDict["currentColorIndex"]=r.kGreen
@@ -27,9 +28,10 @@ colorDict["NT7_MG_Z_jets"]=r.kRed
 colorDict["NT7_MG_Z_inv"]=r.kMagenta
 ##############################
 def getColor(label) :
-    if (not label in colorDict) :
+    if not label in colorDict :
         colorDict[label]=colorDict["currentColorIndex"]
         colorDict["currentColorIndex"]+=1
+        if colorDict["currentColorIndex"]==5 : colorDict["currentColorIndex"]+=1
     return colorDict[label]
 ##############################
 def setupStyle() :
@@ -53,14 +55,17 @@ def getNamesAndDimensions(plotFileName) :
 
     return [names,dims]
 ##############################
-def getXsAndEventAndJobNumbers(plotFileNames) :
+def getXsAndEventAndJobNumbers(plotFileNames,isMcs) :
     xsList=[]
     nEventsList=[]
     nJobsList=[]
-    for plotFileName in plotFileNames :
+    for iPlotFileName in range(len(plotFileNames)) :
+        plotFileName=plotFileNames[iPlotFileName]
         f=r.TFile(plotFileName)
         xsList.append( f.Get("xsHisto").GetBinContent(1) )
-        nEventsList.append( f.Get("nEventsHisto").GetBinContent(1) )
+
+        nEventsValue=nEventsValue=f.Get("nEventsHisto").GetBinContent(1) if isMcs[iPlotFileName] else 1
+        nEventsList.append( nEventsValue )
         nJobsList.append( f.Get("nJobsHisto").GetBinContent(1) )
 
     return [xsList,nEventsList,nJobsList]
@@ -82,11 +87,13 @@ def scaleHistos(dimension,histoList,xsList,nEventsList,nJobsList) :
         histo=histoList[iHisto]
 
         scale=True
-        if ("xsHisto"      in histo.GetName()) : scale=False
+        if ("xsHisto"      in histo.GetName()) :
+            scale=False
+            histo.Scale(1.0/nJobsList[iHisto])
         if ("nEventsHisto" in histo.GetName()) : scale=False
         if ("nJobsHisto"   in histo.GetName()) : scale=False
 
-        if (scale) :
+        if scale :
             factor=0.0
             if nEventsList[iHisto]>0 and nJobsList[iHisto]>0 :
                 factor=xsNorm*xsList[iHisto]/nEventsList[iHisto]/nJobsList[iHisto]
@@ -274,7 +281,7 @@ def onePlotFunction(plotSpec) :
     else :
         plotSpec.canvas.Divide(len(histoList),1)
 
-    if (doScaleByXs) :
+    if doScaleByXs :
         plotSpec.maximum=scaleHistos(plotSpec.dimension,histoList,plotSpec.xsList,plotSpec.nEventsList,plotSpec.nJobsList)
     histoLoop(plotSpec,histoList)
 ##############################
@@ -307,7 +314,7 @@ def printTimeStamp(canvas,psFile,psOptions) :
     canvas.Print(psFile,psOptions)
     canvas.Clear()
 ##############################
-def plotAll(analysisName,sampleNames,plotFileNames,outputDir) :
+def plotAll(analysisName,sampleNames,plotFileNames,isMcs,outputDir) :
     if (len(sampleNames)<1) : return
     setupStyle()
 
@@ -323,7 +330,7 @@ def plotAll(analysisName,sampleNames,plotFileNames,outputDir) :
     plotNames=outList[0]
     dimensions=outList[1]
 
-    outList=getXsAndEventAndJobNumbers(plotFileNames)
+    outList=getXsAndEventAndJobNumbers(plotFileNames,isMcs)
     xsList=outList[0]
     nEventsList=outList[1]
     nJobsList=outList[2]
@@ -336,6 +343,7 @@ def plotAll(analysisName,sampleNames,plotFileNames,outputDir) :
         plotSpec.canvas=canvas
         plotSpec.sampleNames=sampleNames
         plotSpec.plotFileNames=plotFileNames
+        plotSpec.isMcs=isMcs
         plotSpec.outputDir=outputDir
         plotSpec.xsList=xsList
         plotSpec.nEventsList=nEventsList
