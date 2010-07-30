@@ -7,8 +7,7 @@ drawYx=False
 doMetFit=False
 doScaleByXs=True
 doColzFor2D=True
-#xsNorm=100 #pb^-1
-xsNorm=0.132 #pb^-1
+lumiToUseInAbsenceOfData=100 #pb^-1
 ##############################
 colorDict={}
 #colorDict["currentColorIndex"]=r.kGreen
@@ -55,20 +54,21 @@ def getNamesAndDimensions(plotFileName) :
 
     return [names,dims]
 ##############################
-def getXsAndEventAndJobNumbers(plotFileNames,isMcs) :
+def get_Xs_Lumi_Event_Job_Numbers(plotFileNames) :
     xsList=[]
+    lumiList=[]
     nEventsList=[]
     nJobsList=[]
     for iPlotFileName in range(len(plotFileNames)) :
         plotFileName=plotFileNames[iPlotFileName]
         f=r.TFile(plotFileName)
-        xsList.append( f.Get("xsHisto").GetBinContent(1) )
+        nJobs=f.Get("nJobsHisto").GetBinContent(1)
+        xsList.append( f.Get("xsHisto").GetBinContent(1) / nJobs )
+        lumiList.append( f.Get("lumiHisto").GetBinContent(1) /  nJobs )
+        nEventsList.append( f.Get("nEventsHisto").GetBinContent(1) )
+        nJobsList.append( nJobs )
 
-        nEventsValue=nEventsValue=f.Get("nEventsHisto").GetBinContent(1) if isMcs[iPlotFileName] else 1
-        nEventsList.append( nEventsValue )
-        nJobsList.append( f.Get("nJobsHisto").GetBinContent(1) )
-
-    return [xsList,nEventsList,nJobsList]
+    return [xsList,lumiList,nEventsList,nJobsList]
 ##############################
 def shiftOverflows(histo) :
     bins=histo.GetNbinsX()
@@ -79,35 +79,42 @@ def shiftOverflows(histo) :
     histo.SetBinContent(bins,lastBinContent+overflows)
     histo.SetEntries(entries)
 ##############################
-def scaleHistos(dimension,histoList,xsList,nEventsList,nJobsList) :
-    max=0.0
-    if (len(histoList)<1) : return max
-    
+def scaleHistos(dimension,histoList,xsList,lumiList,nEventsList,nJobsList) :
+    maximum=0.0
+    if len(histoList)<1 : return maximum
+
+    if lumiList.count(0.0)<len(lumiList) :
+        xsNorm=max(lumiList)
+    else :
+        xsNorm=lumiToUseInAbsenceOfData
+        
     for iHisto in range(len(histoList)) :
         histo=histoList[iHisto]
 
         scale=True
-        if ("xsHisto"      in histo.GetName()) :
+        if "xsHisto" in histo.GetName() or "lumiHisto" in histo.GetName() :
             scale=False
             histo.Scale(1.0/nJobsList[iHisto])
-        if ("nEventsHisto" in histo.GetName()) : scale=False
-        if ("nJobsHisto"   in histo.GetName()) : scale=False
+        if "nEventsHisto" in histo.GetName() : scale=False
+        if "nJobsHisto"   in histo.GetName() : scale=False
 
         if scale :
-            factor=0.0
-            if nEventsList[iHisto]>0 and nJobsList[iHisto]>0 :
-                factor=xsNorm*xsList[iHisto]/nEventsList[iHisto]/nJobsList[iHisto]
-            histo.Scale(factor)
-            if (dimension==1) :
+            xs=xsList[iHisto]
+            lumi=lumiList[iHisto]
+
+            #scale the MC samples to match the data (if present) or the default lumi value
+            if xs>0.0 and nEventsList[iHisto]>0:
+                histo.Scale(xsNorm*xs/nEventsList[iHisto])
+            if dimension==1 :
                 newTitle=histo.GetYaxis().GetTitle()+" / "+str(xsNorm)+" pb^{-1}"
                 histo.GetYaxis().SetTitle(newTitle)
-            if (dimension==2) :
+            if dimension==2 :
                 newTitle=histo.GetZaxis().GetTitle()+" / "+str(xsNorm)+" pb^{-1}"
                 histo.GetZaxis().SetTitle(newTitle)
 
         hMax=histo.GetMaximum()
-        if (hMax>max) : max=hMax
-    return max
+        if hMax>maximum : maximum=hMax
+    return maximum
 ##############################
 def scale1DHistosByArea(histoList) :
     max=0.0
@@ -134,14 +141,15 @@ def metFit(histo) :
     return func
 ##############################
 def getLogMin(plotSpec) :
-    if (not doScaleByXs) :
-        return 0.5
-    else :
-        factorList=[]
-        for i in range(len(plotSpec.sampleNames)) :
-            if plotSpec.nEventsList[i]>0 and plotSpec.nJobsList[i]>0 :
-                factorList.append(plotSpec.xsList[i]/plotSpec.nEventsList[i]/plotSpec.nJobsList[i])
-        return 0.5*min(factorList)
+    #if not doScaleByXs :
+    #    return 0.5
+    #else :
+    #    factorList=[]
+    #    for i in range(len(plotSpec.sampleNames)) :
+    #        if plotSpec.nEventsList[i]>0 and plotSpec.nJobsList[i]>0 :
+    #            factorList.append(plotSpec.xsList[i]/plotSpec.nEventsList[i]/plotSpec.nJobsList[i])
+    #    return 0.5*min(factorList)
+    return 0.5e-3
 ##############################
 def makeAlphaTFunc(alphaTValue) :
     alphaTFunc=r.TF1("alphaTCurve"+str(alphaTValue),
@@ -227,7 +235,7 @@ def histoLoop(plotSpec,histoList) :
                 outString+="%#8.2f"%histo.GetBinContent(1)
                 outString+=" +/-"
                 outString+="%#8.2f"%histo.GetBinError(1)
-                if (doScaleByXs) : print outString
+                if doScaleByXs : print outString
                 else : print "for counts, set doScaleByXs=True"
             
         #2D here
@@ -282,7 +290,7 @@ def onePlotFunction(plotSpec) :
         plotSpec.canvas.Divide(len(histoList),1)
 
     if doScaleByXs :
-        plotSpec.maximum=scaleHistos(plotSpec.dimension,histoList,plotSpec.xsList,plotSpec.nEventsList,plotSpec.nJobsList)
+        plotSpec.maximum=scaleHistos(plotSpec.dimension,histoList,plotSpec.xsList,plotSpec.lumiList,plotSpec.nEventsList,plotSpec.nJobsList)
     histoLoop(plotSpec,histoList)
 ##############################
 def makeHistoList(plotSpec) :
@@ -314,7 +322,7 @@ def printTimeStamp(canvas,psFile,psOptions) :
     canvas.Print(psFile,psOptions)
     canvas.Clear()
 ##############################
-def plotAll(analysisName,sampleNames,plotFileNames,isMcs,outputDir) :
+def plotAll(analysisName,sampleNames,plotFileNames,outputDir) :
     if (len(sampleNames)<1) : return
     setupStyle()
 
@@ -330,10 +338,10 @@ def plotAll(analysisName,sampleNames,plotFileNames,isMcs,outputDir) :
     plotNames=outList[0]
     dimensions=outList[1]
 
-    outList=getXsAndEventAndJobNumbers(plotFileNames,isMcs)
-    xsList=outList[0]
-    nEventsList=outList[1]
-    nJobsList=outList[2]
+    xsList,lumiList,nEventsList,nJobsList=get_Xs_Lumi_Event_Job_Numbers(plotFileNames)
+    
+    if ( len(lumiList)-lumiList.count(0.0) )>1 :
+        raise Exception("at the moment, plotting multiple data samples is not supported")
     
     for iPlotName in range(len(plotNames)) :
         plotSpec=onePlotSpec()
@@ -343,9 +351,9 @@ def plotAll(analysisName,sampleNames,plotFileNames,isMcs,outputDir) :
         plotSpec.canvas=canvas
         plotSpec.sampleNames=sampleNames
         plotSpec.plotFileNames=plotFileNames
-        plotSpec.isMcs=isMcs
         plotSpec.outputDir=outputDir
         plotSpec.xsList=xsList
+        plotSpec.lumiList=lumiList
         plotSpec.nEventsList=nEventsList
         plotSpec.nJobsList=nJobsList
         
