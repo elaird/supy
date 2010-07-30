@@ -50,7 +50,7 @@ class analysis :
 
     def addSampleSpec(self,listName,sampleName,listOfFileNames=[],isMc=False,nEvents=-1,xs=1.0) :
         listOfSteps=self.listHolder.getSteps(listName,isMc)
-        self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,xs) )
+        self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,xs,isMc) )
         return
 
     def splitUpLoopers(self) :
@@ -64,7 +64,8 @@ class analysis :
                                                        looper.nEvents,
                                                        looper.outputPrefix,
                                                        copy.deepcopy(looper.steps),
-                                                       looper.xs
+                                                       looper.xs,
+                                                       looper.isMc
                                                        )
                                         )
                 outListOfLoopers[-1].doSplitMode(looper.name)
@@ -137,21 +138,24 @@ class analysis :
                 print someLooper.hyphens
         
     def plot(self) :
+        isMcs=[]
         sampleNames=[]
         outputPlotFileNames=[]
         if len(self.parentDict)==0 :
             for looper in self.looperList :
                 sampleNames.append(looper.name)
                 outputPlotFileNames.append(looper.outputPlotFileName)
+                isMcs.append(looper.isMc)
         else :
             for parent in self.parentDict :
                 sampleNames.append(parent)
                 iSomeLooper=self.parentDict[parent][0]
                 someLooper=self.looperList[iSomeLooper]
                 outputPlotFileNames.append(someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName))
+                isMcs.append(someLooper.isMc)                
 
         import plotter
-        plotter.plotAll(self.name,sampleNames,outputPlotFileNames,self.outputDir)
+        plotter.plotAll(self.name,sampleNames,outputPlotFileNames,isMcs,self.outputDir)
 
     def profile(self,nCores) :
         if nCores>1 : raise ValueError("to profile, nCores must equal one")
