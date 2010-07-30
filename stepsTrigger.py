@@ -74,18 +74,19 @@ class hltPrescaleHistogrammer(analysisStep) :
     def __init__(self,listOfHltPaths) :
         self.listOfHltPaths = listOfHltPaths
         self.moreName = "("+str(self.listOfHltPaths)+")"
+        self.nBinsX = len(self.listOfHltPaths)
 
-    def bookHistos(self) :
-        nBinsX = len(self.listOfHltPaths)
-        self.prescaleHisto = r.TH2D("hltPrescaleHisto","hltPrescaleHisto;;log_{10}(prescale value);events / bin",
-                                    nBinsX,-0.5,nBinsX-0.5,
-                                    100,-0.5,4.5)
-        for iPath in range(nBinsX) :
-            self.prescaleHisto.GetXaxis().SetBinLabel(iPath+1,self.listOfHltPaths[iPath])
-        
     def uponAcceptance(self,eventVars,extraVars) :
         for iPath in range(len(self.listOfHltPaths)) :
             value = eventVars["prescaled"][self.listOfHltPaths[iPath]]
             if value<=0.0 : continue
-            self.prescaleHisto.Fill(iPath,math.log10(value))
+            self.book(eventVars).fill( (iPath,math.log10(value)), "hltPrescaleHisto", (self.nBinsX,100), (-0.5,-0.5), (self.nBinsX-0.5,4,5),
+                                       title="hltPrescaleHisto;;log_{10}(prescale value);events / bin")
+
+    def endFunc(self,chain,hyphens,nEvents,xs) :
+        key="hltPrescaleHisto"
+        for book in self.books.values() :
+            if key in book :
+                for iPath in range(self.nBinsX) :
+                    book[key].GetXaxis().SetBinLabel(iPath+1,self.listOfHltPaths[iPath])
 #####################################

@@ -103,8 +103,6 @@ class listDictionaryHolder :
             hltPrescaleHistogrammer(["HLT_ZeroBias","HLT_Jet15U","HLT_Jet30U","HLT_Jet50U","HLT_MET45"]),
             
             cleanJetIndexProducerFromFlag(jetCollection,jetSuffix,cleanJetPtThreshold,jetEtaMax),
-            #cleanJetIndexProducer(jetCollection,jetSuffix,cleanJetPtThreshold,jetEtaMax),
-            #nCleanJetHistogrammer(jetCollection,jetSuffix),
             nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
             nOtherJetEventFilter(jetCollection,jetSuffix,1),
             cleanJetPtHistogrammer(jetCollection,jetSuffix,True),

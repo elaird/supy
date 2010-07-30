@@ -140,9 +140,7 @@ class cleanJetIndexProducerFromFlag(analysisStep) :
             cleanJetIndices.append(iJet)
             otherJetIndices.remove(iJet)
 
-        book = self.book(eventVars)
-        print book
-        book.fill(len(cleanJetIndices), cleanString, 15,-0.5,14.5, title=";number of jets passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin")
+        self.book(eventVars).fill(len(cleanJetIndices), cleanString, 15,-0.5,14.5, title=";number of jets passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin")
 #####################################
 class cleanJetEmfFilter(analysisStep) :
     """cleanJetEmfFilter"""
@@ -352,21 +350,11 @@ class cleanJetPtHistogrammer(analysisStep) :
         self.moreName+=self.jetSuffix
         self.moreName+=")"
 
-    def bookHistos(self) :
-        self.ptAllHisto=          r.TH1D(self.jetCollection+" ptAll "          +self.jetSuffix
-                                         ,";p_{T} (GeV) of clean jets;events / bin"                   ,50,0.0,self.histoMax)
-        self.ptLeadingHisto=      r.TH1D(self.jetCollection+" ptLeading "      +self.jetSuffix
-                                         ,";p_{T} (GeV) of leading clean jet;events / bin"            ,50,0.0,self.histoMax)
-        if (not self.fakeUnCorr) :
-            self.ptUnCorrAllHisto=    r.TH1D(self.jetCollection+" ptUnCorrAll "    +self.jetSuffix
-                                             ,";uncorrected p_{T} (GeV) of clean jets;events / bin"       ,50,0.0,self.histoMax)
-            self.ptUnCorrLeadingHisto=r.TH1D(self.jetCollection+" ptUnCorrLeading "+self.jetSuffix
-                                             ,";uncorrected p_{T} (GeV) of leading clean jet;events / bin",50,0.0,self.histoMax)
-
     def uponAcceptance (self,eventVars,extraVars) :
         ptleading=0.0
         ptuncorrleading=0.0
         p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
+        
         corrFactorVector=[1.0]*p4Vector.size()
         if not self.fakeUnCorr :
             corrFactorVector=eventVars[self.jetCollection+'CorrFactor'+self.jetSuffix]
@@ -377,18 +365,20 @@ class cleanJetPtHistogrammer(analysisStep) :
             p4=p4Vector.at(iJet)
             pt=p4.pt()
             pt_uc=pt
-            if (not self.fakeUnCorr) : pt_uc/=corrFactorVector.at(iJet)
+            if not self.fakeUnCorr : pt_uc/=corrFactorVector.at(iJet)
 
-            self.ptAllHisto.Fill(pt)
-            if (not self.fakeUnCorr) : self.ptUnCorrAllHisto.Fill(pt_uc)
+            self.book(eventVars).fill(pt, self.jetCollection+" ptAll "+self.jetSuffix, 50,0.0,self.histoMax, title=";p_{T} (GeV) of clean jets;events / bin")
+            if not self.fakeUnCorr :
+                self.book(eventVars).fill(pt_uc,self.jetCollection+" ptUnCorrAll "+self.jetSuffix, 50,0.0,self.histoMax, title=";uncorrected p_{T} (GeV) of clean jets;events / bin")
 
-            if (pt>ptleading) :
+            if pt>ptleading :
                 ptleading=pt
-            if (pt_uc>ptuncorrleading) :
+            if pt_uc>ptuncorrleading :
                 ptuncorrleading=pt_uc
 
-        self.ptLeadingHisto.Fill(ptleading)
-        if (not self.fakeUnCorr) : self.ptUnCorrLeadingHisto.Fill(ptuncorrleading)
+        self.book(eventVars).fill(ptleading, self.jetCollection+" ptLeading "+self.jetSuffix, 50,0.0,self.histoMax, title=";p_{T} (GeV) of leading clean jet;events / bin")
+        if not self.fakeUnCorr :
+            self.book(eventVars).fill(ptleading, self.jetCollection+" ptUnCorrLeading "+self.jetSuffix, 50,0.0,self.histoMax, title=";uncorrected p_{T} (GeV) of leading clean jet;events / bin")
 #####################################
 class cleanNJetAlphaProducer(analysisStep) :
     """cleanNJetAlphaProducer"""
