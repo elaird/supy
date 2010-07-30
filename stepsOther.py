@@ -95,7 +95,6 @@ class skimmer2(analysisStep) :
         self.moreName="(see below)"
         self.alsoWriteExtraTree=alsoWriteExtraTree
         self.outputTreeExtraIsSetup=False
-        self.neededBranches=[]
 
     def setup(self,chain,fileDir,name) :
         self.eventList=r.TEventList("eventList")
@@ -504,13 +503,8 @@ class displayer(analysisStep) :
 
         self.helper=r.displayHelper()
 
-        if (self.fakerMode) :
-            self.neededBranches=["run","event"]
-
     def switchGenOn(self) :
         self.doGen=True
-        self.neededBranches.append(self.metCollection+'GenMetP4'+self.metSuffix)
-        self.neededBranches.append(self.genJetCollection+'GenJetP4'+self.jetSuffix)
 
     def bookHistos(self) :
         epsilon=1.0e-6
@@ -941,9 +935,6 @@ class pickEventSpecMaker(analysisStep) :
 #####################################
 #class bxHistogrammer(analysisStep) :
 #    """bxHistogrammer"""
-#
-#    def __init__(self) :
-#        self.neededBranches=["bunch"]
 #
 #    def bookHistos(self) :
 #        nBx=3564+1 #one extra in case count from 1
