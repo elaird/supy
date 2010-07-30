@@ -104,7 +104,7 @@ class listDictionaryHolder :
             
             cleanJetIndexProducerFromFlag(jetCollection,jetSuffix,cleanJetPtThreshold,jetEtaMax),
             #cleanJetIndexProducer(jetCollection,jetSuffix,cleanJetPtThreshold,jetEtaMax),
-            nCleanJetHistogrammer(jetCollection,jetSuffix),
+            #nCleanJetHistogrammer(jetCollection,jetSuffix),
             nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
             nOtherJetEventFilter(jetCollection,jetSuffix,1),
             cleanJetPtHistogrammer(jetCollection,jetSuffix,True),

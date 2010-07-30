@@ -60,4 +60,8 @@ class analysisStep :
             print outString2+statString
 
     def bookHistos(self) : return
+
+    def book(self,eventVars) :
+        print id(self.books[None])
+        return self.books[None]
 #####################################

@@ -140,6 +140,9 @@ class cleanJetIndexProducerFromFlag(analysisStep) :
             cleanJetIndices.append(iJet)
             otherJetIndices.remove(iJet)
 
+        book = self.book(eventVars)
+        print book
+        book.fill(len(cleanJetIndices), cleanString, 15,-0.5,14.5, title=";number of jets passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin")
 #####################################
 class cleanJetEmfFilter(analysisStep) :
     """cleanJetEmfFilter"""

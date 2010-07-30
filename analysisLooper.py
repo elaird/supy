@@ -1,5 +1,6 @@
 import copy,array,os
 import wrappedChain
+from autoBook import autoBook
 import ROOT as r
 #####################################
 class analysisLooper :
@@ -41,11 +42,12 @@ class analysisLooper :
             branchName=branch.GetName()
             branch.GetEntry(1)
             print branchName,type(getattr(self.inputChain,branchName))
-            
+
     def go(self) :
         self.setupChain(self.inputFiles)
         self.chainWrapper=wrappedChain.wrappedChain(self.inputChain)
-        
+        self.books = {}
+        self.books[None] = autoBook()
         self.setupSteps()
         #self.showBranches()
 
@@ -99,6 +101,7 @@ class analysisLooper :
     def setupSteps(self) :
         for step in self.steps :
             step.bookHistos()
+            step.books = self.books
             if self.quietMode : step.makeQuiet()
             if self.splitMode : step.setSplitMode()
             step.selectNotImplemented=not hasattr(step,"select")
@@ -130,6 +133,12 @@ class analysisLooper :
         for object in objectList :
             object.Write()
             object.Delete()
+
+        for book in self.books.values() :
+            print book.title,book,id(book)
+            for object in book.values() :
+                object.Write()
+                object.Delete()
 
         #write some "special" histograms
         xsHisto=r.TH1D("xsHisto",";dummy axis;#sigma (pb)",1,-0.5,0.5)
