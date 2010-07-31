@@ -1,19 +1,28 @@
 #!/usr/bin/env python
 import os,sys,copy,cPickle
-import utils
+import utils,steps
 from analysisLooper import analysisLooper
 import ROOT as r
+#####################################
+def globalSetup(listOfSourceFiles=[]) :
+    for sourceFile in listOfSourceFiles :
+        r.gROOT.LoadMacro(sourceFile+"+")
+    r.gROOT.SetStyle("Plain")
+    r.gStyle.SetPalette(1)
+    r.TH1.SetDefaultSumw2(True)
+    r.gErrorIgnoreLevel=2000
+    r.gROOT.SetBatch(True)
+#####################################
+globalSetup(listOfSourceFiles=["pragmas.h","helpers.C"])
 #####################################
 class analysis :
     """base class for an analysis"""
     
-    def __init__(self,name="name",outputDir="/tmp/",listName="",calculables=[],moduleDefiningLists="lists",listOfSourceFiles=["pragmas.h","helpers.C"]) :
-        for arg in ["name","outputDir","moduleDefiningLists","listOfSourceFiles"] :
+    def __init__(self,name="name",outputDir="/tmp/",listOfSteps=[],calculables=[]) :
+        for arg in ["name","outputDir"] :
             exec("self."+arg+"="+arg)
 
-        self.globalSetup()
-        self.makeListDictionary()
-        self.listName=listName
+        self.listOfSteps=listOfSteps
         self.calculables=calculables
         self.looperList=[]
         
@@ -48,22 +57,6 @@ class analysis :
         import plotter
         plotter.plotAll(self.name,sampleNamesForPlotter,outputPlotFileNamesForPlotter,self.outputDir)
 
-    def globalSetup(self) :
-        for sourceFile in self.listOfSourceFiles :
-            r.gROOT.LoadMacro(sourceFile+"+")
-        r.gROOT.SetStyle("Plain")
-        r.gStyle.SetPalette(1)
-        r.TH1.SetDefaultSumw2(True)
-        r.gErrorIgnoreLevel=2000
-        r.gROOT.SetBatch(True)
-
-    def makeListDictionary(self) :
-        exec("import "+self.moduleDefiningLists+" as lists")
-        #build dictionary of lists
-        self.listHolder=lists.listDictionaryHolder()
-        self.listHolder.buildDictionary()
-        self.ptHatFilterFunc=lists.insertPtHatFilter
-        
     def checkXsAndLumi(self,xs,lumi) :
         if (xs==None and lumi==None) or (xs!=None and lumi!=None) :
             raise Exception("sample must have either a xs or a lumi specified")
@@ -71,8 +64,11 @@ class analysis :
         
     def addSample(self,sampleName,listOfFileNames=[],nEvents=-1,xs=None,lumi=None) :
         isMc=self.checkXsAndLumi(xs,lumi)
-        
-        listOfSteps=self.listHolder.getSteps(self.listName,isMc)
+
+        listOfSteps=[]
+        if isMc : listOfSteps=steps.removeStepsForMc(self.listOfSteps)
+        else :    listOfSteps=steps.removeStepsForData(self.listOfSteps)
+
         self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,self.calculables,xs,lumi) )
         return
 
@@ -102,7 +98,7 @@ class analysis :
 
                 if useRejectionMethod :
                     self.looperList[thisLooperIndex].needToConsiderPtHatThresholds=False
-                    self.ptHatFilterFunc(self.looperList[thisLooperIndex].steps,nextPtHatLowerThreshold)
+                    steps.insertPtHatFilter(self.looperList[thisLooperIndex].steps,nextPtHatLowerThreshold)
 
             #inform relevant loopers of the ptHat thresholds
             for index in looperIndexDict.values() :
