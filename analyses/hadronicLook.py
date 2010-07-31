@@ -1,40 +1,91 @@
 #!/usr/bin/env python
 
-import analysis,utils
+import analysis,utils,calculables,steps
+
+def makeSteps() :
+    jetCollection="ak5Jet"
+    #jetCollection="ak5JetJPT"
+    #jetCollection="ak5JetPF"
+    jetSuffix="Pat"
+    
+    metCollection="met"
+    metSuffix="Calo"
+    metSuffix=jetCollection[:3].upper()
+    metSuffix+="TypeII"
+    #metSuffix="PF"
+    
+    leptonSuffix="Pat"
+    #leptonSuffix="PF"
+    
+    corrRatherThanUnCorr=True
+    nCleanJets=2
+    
+    listOfSteps=[
+        steps.progressPrinter(2,300),
         
+        steps.ptHatHistogrammer(),
+        steps.jetPtSelector(jetCollection,jetSuffix,80.0,0),
+        #steps.jetPtSelector(jetCollection,jetSuffix,40.0,1),            
+        steps.leadingUnCorrJetPtSelector( [(jetCollection,jetSuffix)],80.0 ),
+        steps.hltFilter("HLT_Jet50U"),            
+        steps.hltPrescaleHistogrammer(["HLT_ZeroBias","HLT_Jet15U","HLT_Jet30U","HLT_Jet50U","HLT_MET45"]),
+        
+        steps.nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
+        steps.nOtherJetEventFilter(jetCollection,jetSuffix,1),
+        steps.cleanJetPtHistogrammer(jetCollection,jetSuffix,True),
+        steps.hbheNoiseFilter(),
+        steps.cleanJetHtMhtProducer(jetCollection,jetSuffix),
+        steps.cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
+        #steps.extraVariablePtGreaterFilter(100.0,jetCollection+"Mht"+jetSuffix),
+        
+        steps.variableGreaterFilter(300.0,jetCollection+"SumPt"+jetSuffix),
+        steps.cleanDiJetAlphaProducer(jetCollection,jetSuffix),
+        steps.cleanNJetAlphaProducer(jetCollection,jetSuffix),
+        steps.alphaHistogrammer(jetCollection,jetSuffix),
+        
+        #steps.variableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
+        #steps.displayer(jetCollection,jetSuffix,metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/elaird1/tmp/",scale=200.0),
+        #steps.eventPrinter(),
+        #steps.jetPrinter(jetCollection,jetSuffix),
+        #steps.htMhtPrinter(jetCollection,jetSuffix),
+        #steps.nJetAlphaTPrinter(jetCollection,jetSuffix),
+        ]
+    return listOfSteps
+
 a=analysis.analysis(name="hadronicLook",
                     outputDir="/vols/cms02/elaird1/tmp/",
-                    listName="metPasLook"
+                    listOfSteps=makeSteps(),
+                    calculables=calculables.allDefaultCalculables()
                     )
 
 a.addSample(sampleName="qcd_py_pt30",
                 listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/gouskos//ICF/automated/2010_06_24_18_09_51/",
-                                                        nMaxFiles=1),
-                nEvents=-1,
+                                                        nMaxFiles=10),
+                nEvents=100,
                 xs=6.041e+07#pb
                 )
 
 a.addSample(sampleName="qcd_py_pt80",
                 listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/gouskos//ICF/automated/2010_07_06_00_55_17/",
-                                                        nMaxFiles=1),
-                nEvents=30000,
+                                                        nMaxFiles=10),
+                nEvents=100,
                 xs=9.238e+05#pb
                 )
 
 a.addSample(sampleName="qcd_py_pt170",
                 listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/gouskos//ICF/automated/2010_07_06_01_33_23/",
-                                                        nMaxFiles=1),
-                nEvents=20000,
+                                                        nMaxFiles=10),
+                nEvents=100,
                 xs=2.547e+04#pb
                 )
 
 a.manageNonBinnedSamples(ptHatLowerThresholdsAndSampleNames=[(30,"qcd_py_pt30"),(80,"qcd_py_pt80"),(170,"qcd_py_pt170")])
 
-#a.addSample(sampleName="tt_tauola_mg",
-#                listOfFileNames=utils.getCommandOutput2("ls /vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root | grep -v 4_2").split("\n")[:1],
-#                nEvents=10,
-#                xs=95.0#pb
-#                )
+a.addSample(sampleName="tt_tauola_mg",
+                listOfFileNames=utils.getCommandOutput2("ls /vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root | grep -v 4_2").split("\n")[:10],
+                nEvents=10,
+                xs=95.0#pb
+                )
 
 #a.addSample(sampleName="lm0",
 #                listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bainbrid/ICF/automated/2010_07_16_12_54_00/LM0.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/",
@@ -56,7 +107,8 @@ a.manageNonBinnedSamples(ptHatLowerThresholdsAndSampleNames=[(30,"qcd_py_pt30"),
 #                lumi=0.120,#/pb
 #                )
 
-#a.splitJobsByInputFile()
+a.loop(nCores=1,
+       splitJobsByInputFile=False
+       )
 
-a.loop(profile=False,nCores=6)
 a.plot()
