@@ -38,7 +38,6 @@ class analysisLooper :
 
     def go(self) :
         self.setupChain(self.inputFiles)
-        #self.showBranches()
 
         #set up books
         self.books = {}
@@ -69,8 +68,6 @@ class analysisLooper :
 
     def processEvent(self,eventVars) :
         extraVars=self.extraVariableContainer
-        extraVars.localEntry=eventVars._wrappedChain__localEntry
-        extraVars.entry=eventVars.entry
         
         for step in self.steps :
             if not step.go(eventVars,extraVars) : break
@@ -193,12 +190,6 @@ class analysisLooper :
         outFile=open(outFileName,"w")
         cPickle.dump(outList,outFile)
         outFile.close()
-
-    def showBranches(self) :
-        for branch in self.inputChain.GetListOfBranches() :
-            branchName=branch.GetName()
-            branch.GetEntry(1)
-            print branchName,type(getattr(self.inputChain,branchName))
 #####################################
 class eventVariableContainer :
     """holds the values of variables that are not in the tree"""

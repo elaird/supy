@@ -46,7 +46,7 @@ class skimmer(analysisStep) :
 
     def select(self,eventVars,extraVars) :
         #read all the data for this event
-        if eventVars._wrappedChain__chain.GetEntry(extraVars.entry,1)<=0 :
+        if eventVars["chain"].GetEntry(eventVars["entry"],1)<=0 :
             return False #skip this event in case of i/o error
         #fill the skim tree
         self.outputTree.Fill()
@@ -129,7 +129,7 @@ class skimmer2(analysisStep) :
         r.gROOT.cd()
 
     def uponAcceptance(self,eventVars,extraVars) :
-        self.eventList.Enter(extraVars.entry)
+        self.eventList.Enter(eventVars["entry"])
 
         #optionally fill an extra tree
         if self.alsoWriteExtraTree :
@@ -194,7 +194,7 @@ class skimmer3(analysisStep) :
         self.outName=name
 
     def uponAcceptance(self,eventVars,extraVars) :
-        self.eventLists[eventVars._wrappedChain__chain.GetTreeNumber()].Enter(extraVars.localEntry)
+        self.eventLists[eventVars["chain"].GetTreeNumber()].Enter(eventVars["localEntry"])
 
     def endFunc(self,inChain,hyphens,nEvents,xs) :
         #for eventList in self.eventLists :
