@@ -7,12 +7,13 @@ import ROOT as r
 class analysis :
     """base class for an analysis"""
     
-    def __init__(self,name="name",outputDir="/tmp/",moduleDefiningLists="lists",listOfSourceFiles=["pragmas.h","helpers.C"]) :
+    def __init__(self,name="name",outputDir="/tmp/",listName="",moduleDefiningLists="lists",listOfSourceFiles=["pragmas.h","helpers.C"]) :
         for arg in ["name","outputDir","moduleDefiningLists","listOfSourceFiles"] :
             exec("self."+arg+"="+arg)
 
         self.globalSetup()
         self.makeListDictionary()
+        self.listName=listName
         self.looperList=[]
         self.needToSetup=True
 
@@ -69,16 +70,23 @@ class analysis :
         self.listHolder=lists.listDictionaryHolder()
         self.listHolder.buildDictionary()
 
-    def addSampleSpec(self,listName,sampleName,listOfFileNames=[],isMc=False,nEvents=-1,xs=None,lumi=None) :
-        if isMc and (xs==None or lumi!=None) :
-            raise Exception("MC sample",sampleName,"requires xs!=None and lumi==None")
-        if not isMc and (xs!=None or lumi==None) :
-            raise Exception("data sample",sampleName,"requires xs==None and lumi!=None")
+    def checkXsAndLumi(self,xs,lumi) :
+        if (xs==None and lumi==None) or (xs!=None and lumi!=None) :
+            raise Exception("sample must have either a xs or a lumi specified")
+        return lumi==None
         
-        listOfSteps=self.listHolder.getSteps(listName,isMc)
+    def addSample(self,sampleName,listOfFileNames=[],nEvents=-1,xs=None,lumi=None) :
+        isMc=self.checkXsAndLumi(xs,lumi)
+        
+        listOfSteps=self.listHolder.getSteps(self.listName,isMc)
         self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,xs,lumi,isMc) )
         return
 
+    def combineSamples(self,ptHatLowerThresholdsAndSampleNames=[]) :
+        ptHatLowerThresholdsAndSampleNames.sort()
+        print ptHatLowerThresholdsAndSampleNames
+        return
+    
     def splitUpLoopers(self) :
         outListOfLoopers=[]
         for looper in self.looperList :
