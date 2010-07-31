@@ -7,16 +7,17 @@ import ROOT as r
 class analysis :
     """base class for an analysis"""
     
-    def __init__(self,name="name",outputDir="/tmp/",listName="",moduleDefiningLists="lists",listOfSourceFiles=["pragmas.h","helpers.C"]) :
+    def __init__(self,name="name",outputDir="/tmp/",listName="",calculables=[],moduleDefiningLists="lists",listOfSourceFiles=["pragmas.h","helpers.C"]) :
         for arg in ["name","outputDir","moduleDefiningLists","listOfSourceFiles"] :
             exec("self."+arg+"="+arg)
 
         self.globalSetup()
         self.makeListDictionary()
         self.listName=listName
+        self.calculables=calculables
         self.looperList=[]
         self.needToSetup=True
-
+        
     def setup(self) :
         if not self.needToSetup : return
 
@@ -75,11 +76,11 @@ class analysis :
             raise Exception("sample must have either a xs or a lumi specified")
         return lumi==None
         
-    def addSample(self,sampleName,listOfFileNames=[],nEvents=-1,xs=None,lumi=None,calculables=[]) :
+    def addSample(self,sampleName,listOfFileNames=[],nEvents=-1,xs=None,lumi=None) :
         isMc=self.checkXsAndLumi(xs,lumi)
         
         listOfSteps=self.listHolder.getSteps(self.listName,isMc)
-        self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,calculables,xs,lumi,isMc) )
+        self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,self.calculables,xs,lumi,isMc) )
         return
 
     def combineSamples(self,ptHatLowerThresholdsAndSampleNames=[]) :
@@ -108,7 +109,7 @@ class analysis :
                                                        looper.nEvents,
                                                        looper.outputPrefix,
                                                        copy.deepcopy(looper.steps),
-                                                       copy.deepcopy(looper.calculables),
+                                                       self.calculables,
                                                        looper.xs,
                                                        looper.lumi,
                                                        looper.isMc
