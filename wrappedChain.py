@@ -4,7 +4,7 @@ from collections import defaultdict
 
 class wrappedChain(dict) : 
 
-    def __init__(self, chain, calculables = [] ) :
+    def __init__(self, chain, calculables = [] , useSetBranchAddress = True) :
         """Set up the nodes"""
         self.__activeNodes = defaultdict(int)
         self.__activeNodeList = []
@@ -15,7 +15,7 @@ class wrappedChain(dict) :
         for branch in chain.GetListOfBranches() :
             nameB = branch.GetName()
             nameL = (lambda nL: nameB if nL=="_" else nL )(branch.GetListOfLeaves().At(0).GetName())
-            dict.__setitem__(self, nameL, self.__branchNode( nameB, chain ) )
+            dict.__setitem__(self, nameL, self.__branchNode( nameL, nameB, chain , useSetBranchAddress) )
 
         for calc in calculables :
             name = calc.name()
@@ -66,13 +66,15 @@ class wrappedChain(dict) :
 
     class __branchNode(object) :
         """Internal wrapper for branch nodes."""
-        def __init__(self, name, chain) :
-            self.name = name
-            self.chain = chain
-            self.branch = 0
+        def __init__(self, nameL, nameB, chain, useSetBranchAddress) :
+            self.value = copy.deepcopy(getattr(chain,nameL))
             self.updated = False
-            self.value = copy.deepcopy(getattr(chain,name))
-            self.address = array.array('l',[0]) if type(self.value) == int else \
+            self.nameL = nameL
+            self.nameB = nameB
+            self.chain = chain
+            self.branch = None
+            self.address = None if not useSetBranchAddress else \
+                           array.array('l',[0]) if type(self.value) == int else \
                            array.array('l',[0]) if type(self.value) == long else \
                            array.array('d',[0.0]) if type(self.value) == float else \
                            array.array('i',[0]*256) if str(type(self.value)) == "<type 'ROOT.PyUIntBuffer'>" else \
@@ -81,15 +83,17 @@ class wrappedChain(dict) :
                            r.AddressOf( self.value ) 
 
         def setAddress(self) :
-            self.branch = self.chain.GetBranch(self.name)
-            self.branch.SetAddress( self.address )
+            self.branch = self.chain.GetBranch(self.nameB)
+            if self.address : self.branch.SetAddress( self.address )
             
         def update(self,localEntry) :
             self.branch.GetEntry(localEntry)
-            if type(self.address) == array.array and \
-               len(self.address) == 1 :
+            if self.address and \
+                   type(self.address) == array.array and \
+                   len(self.address) == 1 :
                 self.value = self.address[0]
-
+            else :
+                self.value = getattr(self.chain, self.nameL)
 
     class calculable(object) :
         """Inherit wrappedChain.calculable and define update(self,localEntry) for a calculable node"""
