@@ -21,9 +21,9 @@ class wrappedChain(dict) :
             name = calc.name()
             if name in self :
                 raise Exception("Duplicate name",name)
-            dict.__setitem__(self, name, calc )
-            calc.source = self
-            calc.updated = False
+            dict.__setitem__(self, name, copy.deepcopy(calc) )
+            dict.__getitem__(self, name).source = self
+            dict.__getitem__(self, name).updated = False
 
     def entries(self, nEntries = -1 ) :
         """Generate the access dictionary (self) for each entry in TTree."""
