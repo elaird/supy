@@ -3,15 +3,22 @@ Critical
 * qcd inclusive bins (pythia)
 * fix pruning
 * make data black
-* fix configs
 
 Other
 --------
+* move default calculables to analysis
+* easier replacement of calculables
+* report configuration of calculables
+
+* defer srmls until jobs runs
+
+* named arguments everywhere
+
 * keep lumiTree unskimmed
 * jsonMaker
 * Investigate skimmers
-
-* try with calculables, phase out extraVars
+* skimmer prefix and suffix
+* phase out extraVars
 
 * reincarnate plotter
 * tdrPlotter
@@ -20,7 +27,6 @@ Other
 * list the selection on the plot
 
 * better sample organization
-* better list of steps org (in each analysis rather than lists)
 
 * Book
 
