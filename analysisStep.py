@@ -1,3 +1,4 @@
+from bisect import bisect
 #####################################
 class analysisStep :
     """generic analysis step"""
@@ -14,6 +15,7 @@ class analysisStep :
     displayerStepName="displayer"
     quietMode=False
     splitMode=False
+    needToConsiderPtHat=False
     
     def go(self,eventVars,extraVars) :
         self.nTotal+=1
@@ -62,5 +64,11 @@ class analysisStep :
     def bookHistos(self) : return
 
     def book(self,eventVars) :
-        return self.books[None]
+        if not self.needToConsiderPtHat :
+            return self.books[None]
+        else :
+            if not eventVars["genGenInfoHandleValid"] :
+                raise Exception("pt hat is needed but its handle is not valid")
+            index=bisect(self.ptHatThresholds,eventVars["genpthat"])
+            return self.books[index]
 #####################################
