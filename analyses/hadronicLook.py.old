@@ -7,25 +7,24 @@ a=analysis.analysis(name="hadronicLook",
                     listName="metPasLook"
                     )
 
-
 a.addSample(sampleName="qcd_py_pt30",
                 listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/gouskos//ICF/automated/2010_06_24_18_09_51/",
                                                         nMaxFiles=1),
-                nEvents=100,
+                nEvents=-1,
                 xs=6.041e+07#pb
                 )
 
 a.addSample(sampleName="qcd_py_pt80",
                 listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/gouskos//ICF/automated/2010_07_06_00_55_17/",
                                                         nMaxFiles=1),
-                nEvents=100,
+                nEvents=30000,
                 xs=9.238e+05#pb
                 )
 
 a.addSample(sampleName="qcd_py_pt170",
                 listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/gouskos//ICF/automated/2010_07_06_01_33_23/",
                                                         nMaxFiles=1),
-                nEvents=100,
+                nEvents=20000,
                 xs=2.547e+04#pb
                 )
 
@@ -59,5 +58,5 @@ a.manageNonBinnedSamples(ptHatLowerThresholdsAndSampleNames=[(30,"qcd_py_pt30"),
 
 #a.splitJobsByInputFile()
 
-a.loop(profile=False,nCores=1)
-#a.plot()
+a.loop(profile=False,nCores=6)
+a.plot()
