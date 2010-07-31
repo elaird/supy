@@ -17,7 +17,9 @@ class analysisLooper :
         self.xs=xs
         self.lumi=lumi
 
-        self.ptHatThresholds=[]#needed to fill histograms properly in the case of overlapping MC ptHat samples
+        #these are needed to fill histograms properly in the case of overlapping MC ptHat samples
+        self.needToConsiderPtHatThresholds=False
+        self.ptHatThresholds=[]
         
         self.outputDir=outputDir
         self.outputPrefix=outputPrefix
@@ -116,7 +118,8 @@ class analysisLooper :
             step.uponRejectionImplemented=hasattr(step,"uponRejection")
             if step.__doc__==step.skimmerStepName : returnValue=False
             if hasattr(step,"setup") : step.setup(self.inputChain,self.fileDirectory,self.name)
-            step.needToConsiderPtHat=not len(self.ptHatThresholds)
+
+            step.needToConsiderPtHatThresholds=self.needToConsiderPtHatThresholds
             step.ptHatThresholds=self.ptHatThresholds
         return returnValue
 

@@ -70,7 +70,8 @@ class analysis :
         #build dictionary of lists
         self.listHolder=lists.listDictionaryHolder()
         self.listHolder.buildDictionary()
-
+        self.ptHatFilterFunc=lists.insertPtHatFilter
+        
     def checkXsAndLumi(self,xs,lumi) :
         if (xs==None and lumi==None) or (xs!=None and lumi!=None) :
             raise Exception("sample must have either a xs or a lumi specified")
@@ -83,7 +84,9 @@ class analysis :
         self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,self.calculables,xs,lumi) )
         return
 
-    def manageNonBinnedSamples(self,ptHatLowerThresholdsAndSampleNames=[]) :
+    def manageNonBinnedSamples(self,ptHatLowerThresholdsAndSampleNames=[],useRejectionMethod=True) :
+        if not useRejectionMethod :
+            raise Exception("the other method of combining non-binned samples is not yet implemented")
         looperIndexDict={}
         for item in ptHatLowerThresholdsAndSampleNames :
             ptHatLowerThreshold=item[0]
@@ -105,9 +108,15 @@ class analysis :
                 nextLooperIndex=looperIndexDict[nextPtHatLowerThreshold]
                 self.looperList[thisLooperIndex].xs-=self.looperList[nextLooperIndex].xs
 
+                if useRejectionMethod :
+                    self.looperList[thisLooperIndex].needToConsiderPtHatThresholds=False
+                    self.ptHatFilterFunc(self.looperList[thisLooperIndex].steps,nextPtHatLowerThreshold)
+
             #inform relevant loopers of the ptHat thresholds
             for index in looperIndexDict.values() :
                 self.looperList[index].ptHatThresholds.append(float(thisPtHatLowerThreshold))
+                if not useRejectionMethod :
+                    self.looperList[index].needToConsiderPtHatThresholds=True
         return
     
     def splitUpLoopers(self) :
