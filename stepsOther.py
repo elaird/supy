@@ -630,7 +630,7 @@ class displayer(analysisStep) :
 
         if (not self.fakerMode) :
             p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
-            cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
+            cleanJetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]["clean"]
             for iJet in cleanJetIndices :
                 self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
         else :
@@ -647,7 +647,7 @@ class displayer(analysisStep) :
         if (self.fakerMode) : return
 
         p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
-        otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
+        otherJetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]["other"]
         for index in otherJetIndices :
             self.drawP4(p4Vector[index],color,lineWidth,arrowSize)
             
@@ -661,8 +661,8 @@ class displayer(analysisStep) :
         if (self.fakerMode) : return
 
         p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
-        cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
-        otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
+        cleanJetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]["clean"]
+        otherJetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]["other"]
         for iJet in range(len(p4Vector)) :
             if (iJet in cleanJetIndices) : continue
             if (iJet in otherJetIndices) : continue
