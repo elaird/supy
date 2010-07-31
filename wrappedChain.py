@@ -88,12 +88,11 @@ class wrappedChain(dict) :
             
         def update(self,localEntry) :
             self.branch.GetEntry(localEntry)
-            if self.address and \
-                   type(self.address) == array.array and \
-                   len(self.address) == 1 :
-                self.value = self.address[0]
-            else :
+            if not self.address :
                 self.value = getattr(self.chain, self.nameL)
+            elif type(self.address) == array.array and \
+                     len(self.address) == 1 :
+                self.value = self.address[0]
 
     class calculable(object) :
         """Inherit wrappedChain.calculable and define update(self,localEntry) for a calculable node"""
