@@ -80,22 +80,34 @@ class analysis :
         isMc=self.checkXsAndLumi(xs,lumi)
         
         listOfSteps=self.listHolder.getSteps(self.listName,isMc)
-        self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,self.calculables,xs,lumi,isMc) )
+        self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,self.calculables,xs,lumi) )
         return
 
-    def combineSamples(self,ptHatLowerThresholdsAndSampleNames=[]) :
-        ptHatLowerThresholdsAndSampleNames.sort()
-
-        xsDict={}
+    def manageNonBinnedSamples(self,ptHatLowerThresholdsAndSampleNames=[]) :
+        looperIndexDict={}
         for item in ptHatLowerThresholdsAndSampleNames :
             ptHatLowerThreshold=item[0]
             sampleName=item[1]
             for iLooper in range(len(self.looperList)) :
                 looper=self.looperList[iLooper]
                 if sampleName==looper.name :
-                    xsDict[ptHatLowerThreshold]=looper.xs
+                    looperIndexDict[ptHatLowerThreshold]=iLooper
 
-        print xsDict
+        ptHatLowerThresholdsAndSampleNames.sort()
+        for iItem in range(len(ptHatLowerThresholdsAndSampleNames)) :
+
+            thisPtHatLowerThreshold=ptHatLowerThresholdsAndSampleNames[iItem][0]
+            thisLooperIndex=looperIndexDict[thisPtHatLowerThreshold]
+
+            #adjust cross sections
+            if iItem<len(ptHatLowerThresholdsAndSampleNames)-1 :
+                nextPtHatLowerThreshold=ptHatLowerThresholdsAndSampleNames[iItem+1][0]
+                nextLooperIndex=looperIndexDict[nextPtHatLowerThreshold]
+                self.looperList[thisLooperIndex].xs-=self.looperList[nextLooperIndex].xs
+
+            #inform relevant loopers of the ptHat thresholds
+            for index in looperIndexDict.values() :
+                self.looperList[index].ptHatThresholds.append(float(thisPtHatLowerThreshold))
         return
     
     def splitUpLoopers(self) :
@@ -111,8 +123,7 @@ class analysis :
                                                        copy.deepcopy(looper.steps),
                                                        self.calculables,
                                                        looper.xs,
-                                                       looper.lumi,
-                                                       looper.isMc
+                                                       looper.lumi
                                                        )
                                         )
                 outListOfLoopers[-1].doSplitMode(looper.name)
