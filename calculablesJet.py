@@ -3,17 +3,17 @@ from wrappedChain import *
 class jetIndicesFromFlag(wrappedChain.calculable) :
     """JetIndices producer"""
     
-    def __init__(self,jetCollection,jetSuffix,jetPtThreshold=20.0,jetEtaMax=3.0,flagName = "JetIDloose" ):
+    def __init__(self,jetCollection,jetSuffix,jetPtMin=20.0,jetEtaMax=3.0,flagName = "JetIDloose" ):
         self.collection = jetCollection
         self.suffix = jetSuffix
-        self.ptThreshold = jetPtThreshold
+        self.ptThreshold = jetPtMin
         self.etaMax = jetEtaMax
         self.flagName = None if not flagName else \
                         flagName if jetCollection[-2:] != "PF" else \
                         "PF"+flagName
 
         self.moreName = "(%s; %s; %s; ", (jetCollection,jetSuffix,flagName)
-        self.moreName2 = " corr. pT>=%.1f GeV; |eta|<=%.1f)" , (jetPtThreshold , jetEtaMax)
+        self.moreName2 = " corr. pT>=%.1f GeV; |eta|<=%.1f)" , (jetPtMin , jetEtaMax)
         
         self.value = {}
 
