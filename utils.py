@@ -44,47 +44,35 @@ def getCommandOutput2(command):
     #if err: raise RuntimeError, '%s failed w/ exit code %d' % (command, err)
     return data
 #####################################
-def pruneFileList(inList) :
-    #make a dictionary of file versions
-    splitString="_"
-    stripString=".root"
-    versionDict={}
-    cruftDict={}
-    for inFile in inList :
-        fieldList=inFile.replace(stripString,"").split(splitString)
+def pruneCrabDuplicates(inList,sizes) :
+    import re
+    from collections import defaultdict
+    # CRAB old : filepathWithName_JOB_ATTEMPT.root
+    # CRAB new : filepathWithName_JOB_ATTEMPT_RANDOMSTRING.root
+    pattern  =  r"(_\d+_)(\d+)(_?\w*)(\.root$)"
+    recombine = "%s%s%d%s.root"
 
-        #determine which field is the file version (newer versions of CRAB use also a random string)
-        versionIndex=-1
-        cruftString=""
-        try:
-            int(fieldList[-1])
-        except:
-            versionIndex=-2
-            cruftString="_"+fieldList[-1]
+    versionDict = defaultdict(list)
+    for inFile,size in zip(inList,sizes) :
+        fields = re.split(pattern,inFile)
+        versionDict[ (fields[0],fields[1]) ].append( (int(fields[2]), size, fields[3]) )
 
-        key=tuple(fieldList[:versionIndex])
-        value=int(fieldList[versionIndex])
+    resolved = 0
+    abandoned = 0
+    outList = []
+    for key,val in versionDict.iteritems() :
+        front,job = key
+        attempt,size,rnd = max(val)
+        maxSize = max([v[1] for v in val])
 
-        if key not in versionDict :
-            versionDict[key]=[value]
-            cruftDict[key]=[cruftString]
-        else :
-            print "duplicate found and removed:",key
-            versionDict[key].append(value)
-            cruftDict[key].append(cruftString)
+        if size == maxSize :
+            fileName = recombine % (front,job,attempt,rnd)
+            outList.append(fileName)
+            if len(val) > 1 : resolved += 1
+        else: abandoned += 1
 
-    #select the highest-numbered version of each file
-    outList=[]
-    for key in versionDict :
-        #print key,versionDict[key]
-        fileName=splitString.join(key)
-
-        maxVersion=max(versionDict[key])
-        index=versionDict[key].index(maxVersion)
-        cruftString=cruftDict[key][index]
-
-        fileName+=splitString+str(maxVersion)+cruftString+stripString
-        outList.append(fileName)
+    print "Unresolved files duplications: %d" % abandoned
+    print "Resolved file duplications (pruned): %d" % resolved
     return outList
 #####################################
 def fileListFromSrmLs(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
@@ -92,6 +80,7 @@ def fileListFromSrmLs(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMa
     dCachePrefix="dcap://gfe02.grid.hep.ph.ic.ac.uk:22128"
 
     fileList=[]
+    sizes=[]
     cmd="srmls "+srmPrefix+"/"+location
     #print cmd
     output=getCommandOutput2(cmd)
@@ -105,9 +94,11 @@ def fileListFromSrmLs(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMa
         if size<=sizeThreshold : acceptFile=False
         for item in itemsToSkip :
             if item in fileName : acceptFile=False
-        if acceptFile : fileList.append(dCachePrefix+fileName)
+        if acceptFile :
+            fileList.append(dCachePrefix+fileName)
+            sizes.append(size)
 
-    if pruneList :   fileList=pruneFileList(fileList)
+    if pruneList :   fileList=pruneCrabDuplicates(fileList,sizes)
     if nMaxFiles>0 : fileList=fileList[:nMaxFiles]
     return fileList
 #####################################    
@@ -128,7 +119,7 @@ def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nM
             if item in fileName : acceptFile=False
         if acceptFile : fileList.append("rfio:///"+location+"/"+fileName)
             
-    if pruneList :   fileList=pruneFileList(fileList)
+    if pruneList :   fileList=pruneCrabDuplicates(fileList,size)
     if nMaxFiles>0 : fileList=fileList[:nMaxFiles]
     return fileList
 #####################################
@@ -149,7 +140,7 @@ def fileListFromDisk(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMax
             if item in fileName : acceptFile=False
         if acceptFile : fileList.append(location+"/"+fileName)
             
-    if pruneList :   fileList=pruneFileList(fileList)
+    if pruneList :   fileList=pruneCrabDuplicates(fileList,size)
     if nMaxFiles>0 : fileList=fileList[:nMaxFiles]
     return fileList
 #####################################        
