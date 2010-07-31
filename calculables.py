@@ -23,6 +23,9 @@ def defaultCalculablesJet() :
             for collection in jetTypes:
                 for suffix in jetSuffixes:
                     jetCalculables.append( memb(collection,suffix))
+
+    jetCalculables.append( calculablesJet.jetIndicesFromFlag("gen","",flagName=None))
+
     return jetCalculables
 
 

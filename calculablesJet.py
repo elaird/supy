@@ -8,7 +8,9 @@ class jetIndicesFromFlag(wrappedChain.calculable) :
         self.suffix = jetSuffix
         self.ptThreshold = jetPtThreshold
         self.etaMax = jetEtaMax
-        self.flagName = flagName if jetCollection[-2:] != "PF" else "PF"+flagName
+        self.flagName = None if not flagName else \
+                        flagName if jetCollection[-2:] != "PF" else \
+                        "PF"+flagName
 
         self.moreName = "(%s; %s; %s; ", (jetCollection,jetSuffix,flagName)
         self.moreName2 = " corr. pT>=%.1f GeV; |eta|<=%.1f)" , (jetPtThreshold , jetEtaMax)
@@ -18,8 +20,8 @@ class jetIndicesFromFlag(wrappedChain.calculable) :
     def name(self) : return "%sIndices%s"% (self.collection,self.suffix)
 
     def update(self,ignored) :
-        p4s    = self.source[self.collection + 'CorrectedP4' + self.suffix]
-        jetIds = self.source[self.collection + self.flagName + self.suffix]
+        p4s    = self.source['%sCorrectedP4%s'% (self.collection,self.suffix)]
+        jetIds = self.source[self.collection + self.flagName + self.suffix] if self.flagName else p4s.size()*[1]
 
         self.value["clean"] = []
         self.value["other"] = []
