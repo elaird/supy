@@ -29,7 +29,7 @@ a.addSample(sampleName="qcd_py_pt170",
                 xs=2.547e+04#pb
                 )
 
-a.combineSamples(ptHatLowerThresholdsAndSampleNames=[(30,"qcd_py_pt30"),(80,"qcd_py_pt80"),(170,"qcd_py_pt170")])
+a.manageNonBinnedSamples(ptHatLowerThresholdsAndSampleNames=[(30,"qcd_py_pt30"),(80,"qcd_py_pt80"),(170,"qcd_py_pt170")])
 
 #a.addSample(sampleName="tt_tauola_mg",
 #                listOfFileNames=utils.getCommandOutput2("ls /vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root | grep -v 4_2").split("\n")[:1],
@@ -60,4 +60,4 @@ a.combineSamples(ptHatLowerThresholdsAndSampleNames=[(30,"qcd_py_pt30"),(80,"qcd
 #a.splitJobsByInputFile()
 
 a.loop(profile=False,nCores=1)
-a.plot()
+#a.plot()
