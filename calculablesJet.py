@@ -43,6 +43,6 @@ class jetSumPt(wrappedChain.calculable) :
     def update(self,ignored) :
         p4s = self.source[self.p4sName]
         indices = self.source[self.indicesName]["clean"]
-        self.value = reduce( lambda x,i: x+p4s.at(i).pt(), indices )
+        self.value = reduce( lambda x,i: x+p4s.at(i).pt(), indices , 0)
 
 
