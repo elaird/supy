@@ -345,15 +345,15 @@ class monsterEventFilter(analysisStep) :
         nGoodTracks = eventVars["tracksNEtaLT0p9HighPurityTracks"] + eventVars["tracksNEta0p9to1p5HighPurityTracks"] + eventVars["tracksNEtaGT1p5HighPurityTracks"]
         return (nTracks <= self.maxNumTracks or nGoodTracks > self.minGoodTrackFraction*nTracks)
 #####################################
-class touchshit(analysisStep) :
-    """touchshit"""
+class touchstuff(analysisStep) :
+    """touchstuff"""
 
-    def __init__(self,shit) :
-        self.shit = shit
-        self.moreName = "touch all in %s" % str(shit)
+    def __init__(self,stuff) :
+        self.stuff = stuff
+        self.moreName = "touch all in %s" % str(stuff)
         
     def uponAcceptance(self,eventVars,extraVars) :
-        for s in self.shit : eventVars[s]
+        for s in self.stuff : eventVars[s]
 #####################################
 class runNumberFilter(analysisStep) :
     """runNumberFilter"""

@@ -21,16 +21,16 @@ class progressPrinter(analysisStep) :
             if (self.num==self.factor or self.num>self.cut) and not self.quietMode :
                 print toPrint
 #####################################
-class printshit(analysisStep) :
-    """printshit"""
+class printstuff(analysisStep) :
+    """printstuff"""
 
-    def __init__(self,shit) :
-        self.shit = shit
-        self.moreName = "print all in %s" % str(shit)
-        print '\t'.join(shit)
+    def __init__(self,stuff) :
+        self.stuff = stuff
+        self.moreName = "print all in %s" % str(stuff)
+        print '\t'.join(stuff)
         
     def uponAcceptance(self,eventVars,extraVars) :
-        print '\t'.join([str(eventVars[s]) for s in self.shit])
+        print '\t'.join([str(eventVars[s]) for s in self.stuff])
 #####################################
 class eventPrinter(analysisStep) :
     """eventPrinter"""
