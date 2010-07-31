@@ -10,5 +10,4 @@ class entry(wrappedChain.calculable) :
 
 class chain_access(wrappedChain.calculable) :
     def name(self) : return "chain"
-    def update(self,ignored) : self.value = self.source.__wrappedChain_chain
-
+    def update(self,ignored) : self.value = self.source._wrappedChain__chain
