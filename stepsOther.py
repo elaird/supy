@@ -3,6 +3,15 @@ import ROOT as r
 from analysisStep import analysisStep
 import utils
 #####################################
+class extraVarCalcDiff(analysisStep) :
+    """extraVarCalcDiff"""
+    def __init__(self,exV,calc) :
+        self.exV = exV
+        self.calc = calc
+        moreName = "(Checking that extraVars == calculable, %s,%s)",(exV,calc)
+    def uponAcceptance(self,eventVars,extraVars) :
+        print  getattr(extraVars,self.exV), eventVars[self.calc]
+
 class skimmer(analysisStep) :
     #special __doc__ assignment below
     
@@ -215,9 +224,9 @@ class skimmer3(analysisStep) :
             tree.Write()
             self.outputFile.Close()
 
-            effXs=0.0
-            if nEvents>0 : effXs=(xs+0.0)*self.nPass/nEvents
-            print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",effXs
+            #effXs=0.0
+            #if nEvents>0 : effXs=(xs+0.0)*self.nPass/nEvents
+            #print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",effXs
         del chain
 #####################################
 class hbheNoiseFilter(analysisStep) :
@@ -335,6 +344,16 @@ class monsterEventFilter(analysisStep) :
         nTracks    = eventVars["tracksNEtaLT0p9AllTracks"] + eventVars["tracksNEta0p9to1p5AllTracks"] + eventVars["tracksNEtaGT1p5AllTracks"]
         nGoodTracks = eventVars["tracksNEtaLT0p9HighPurityTracks"] + eventVars["tracksNEta0p9to1p5HighPurityTracks"] + eventVars["tracksNEtaGT1p5HighPurityTracks"]
         return (nTracks <= self.maxNumTracks or nGoodTracks > self.minGoodTrackFraction*nTracks)
+#####################################
+class touchshit(analysisStep) :
+    """touchshit"""
+
+    def __init__(self,shit) :
+        self.shit = shit
+        self.moreName = "touch all in %s" % str(shit)
+        
+    def uponAcceptance(self,eventVars,extraVars) :
+        for s in self.shit : eventVars[s]
 #####################################
 class runNumberFilter(analysisStep) :
     """runNumberFilter"""
@@ -666,7 +685,7 @@ class displayer(analysisStep) :
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"H_{T} ("+self.jetCollection+")","l")
 
-        ht=getattr(extraVars,self.jetCollection+"Ht"+self.jetSuffix)
+        ht = eventVars[self.jetCollection+"SumPt"+self.jetSuffix]
             
         y=self.y0-self.radius-0.05
         l=ht*self.radius/self.scale
@@ -785,7 +804,7 @@ class displayer(analysisStep) :
         alphaHisto=r.TH2D("alphaHisto",title,100,0.0,1.0,100,0.0,0.7)
 
         mht=getattr(extraVars,self.jetCollection+"Mht"+self.jetSuffix).pt()
-        ht=getattr(extraVars,self.jetCollection+"Ht"+self.jetSuffix)
+        ht = eventVars[self.jetCollection+"SumPt"+self.jetSuffix]
         deltaHt=getattr(extraVars,self.jetCollection+"nJetDeltaHt"+self.jetSuffix)
         alphaT=getattr(extraVars,self.jetCollection+"nJetAlphaT"+self.jetSuffix)
         

@@ -275,7 +275,6 @@ class cleanJetHtMhtProducer(analysisStep) :
 
         self.helper.Loop(p4Vector,self.cleanJetIndices)
         setattr(extraVars,self.jetCollection+"Mht" +self.jetSuffix,self.helper.GetMht()  )
-        setattr(extraVars,self.jetCollection+"Ht"  +self.jetSuffix,self.helper.GetHt()   )
         setattr(extraVars,self.jetCollection+"HtEt"+self.jetSuffix,self.helper.GetHtEt() )
         return True
 #####################################
@@ -287,14 +286,10 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
         self.corrRatherThanUnCorr=corrRatherThanUnCorr
-        self.corrString=""
-        if (not self.corrRatherThanUnCorr) : self.corrString=" uncorrected"
-        self.moreName="("
-        self.moreName+=self.jetCollection
-        self.moreName+="; "
-        self.moreName+=self.jetSuffix
-        self.moreName+=self.corrString
-        self.moreName+=")"
+        self.corrString = "" if corrRatherThanUnCorr else " uncorrected"
+        self.htVar = "%sSumPt%s%s"%(self.jetCollection,"" if corrRatherThanUnCorr else "UnCorr", self.jetSuffix)
+
+        self.moreName="(%s; %s%s)" % (jetCollection,jetSuffix,self.corrString)
 
     def bookHistos(self):
         self.ht_Histo          =r.TH1D(self.jetCollection+"ht"   +self.jetSuffix+" "+self.corrString
@@ -314,16 +309,14 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
         
     def uponAcceptance (self,eventVars,extraVars) :
         mhtVar="Mht"
-        htVar="Ht"
         htEtVar="HtEt"
         
         if (not self.corrRatherThanUnCorr) :
             mhtVar+="UnCorr"
-            htVar+="UnCorr"
             htEtVar+="UnCorr"
             
         mht =getattr(extraVars,self.jetCollection+mhtVar +self.jetSuffix)
-        ht  =getattr(extraVars,self.jetCollection+htVar  +self.jetSuffix)
+        ht = eventVars[self.htVar]
         htet=getattr(extraVars,self.jetCollection+htEtVar+self.jetSuffix)
 
         self.mht_Histo.Fill(mht.pt())
@@ -384,16 +377,12 @@ class cleanNJetAlphaProducer(analysisStep) :
     """cleanNJetAlphaProducer"""
 
     def __init__(self,jetCollection,jetSuffix):
-        self.jetCollection=jetCollection
-        self.jetSuffix=jetSuffix
-        self.moreName="("
-        self.moreName+=self.jetCollection
-        self.moreName+="; "
-        self.moreName+=self.jetSuffix
-        self.moreName+=")"
+        self.jetCollection = jetCollection
+        self.jetSuffix = jetSuffix
+        self.moreName = "(%s; %s)" % (jetCollection,jetSuffix)
 
         self.helper=r.alphaHelper()
-        self.cleanJetIndices=r.std.vector('int')()
+        self.cleanJetIndices = r.std.vector('int')()
         self.cleanJetIndices.reserve(256)
 
     def select (self,eventVars,extraVars) :
@@ -401,18 +390,18 @@ class cleanNJetAlphaProducer(analysisStep) :
         nJetAlphaT=0.0
 
         #return if fewer than two clean jets
-        cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
+        cleanJetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]["clean"]
         if (len(cleanJetIndices)<2) :
             self.setExtraVars(extraVars,nJetDeltaHt,nJetAlphaT)
             return True
 
         #return if HT is tiny
-        ht=getattr(extraVars,self.jetCollection+"Ht"+self.jetSuffix)
+        ht = eventVars[ self.jetCollection+"SumPt"+self.jetSuffix ]
         if (ht<=1.0e-2) :
             self.setExtraVars(extraVars,nJetDeltaHt,nJetAlphaT)
             return True
 
-        p4Vector=eventVars[self.jetCollection+"CorrectedP4"+self.jetSuffix]
+        p4Vector = eventVars[self.jetCollection+"CorrectedP4"+self.jetSuffix]
 
         self.cleanJetIndices.clear()
         for index in cleanJetIndices :
@@ -516,7 +505,7 @@ class alphaHistogrammer(analysisStep) :
         self.nJetAlphaT_Histo.Fill(   getattr(extraVars,self.jetCollection+"nJetAlphaT"   +self.jetSuffix))
 
         mht=getattr(extraVars,self.jetCollection+"Mht"+self.jetSuffix).pt()
-        ht=getattr(extraVars,self.jetCollection+"Ht"+self.jetSuffix)
+        ht = eventVars[self.jetCollection+"SumPt"+self.jetSuffix]
         deltaHt=getattr(extraVars,self.jetCollection+"nJetDeltaHt"+self.jetSuffix)
         self.nJetDeltaHt_Histo.Fill(deltaHt)
         self.alpha2D_c_Histo.Fill(mht/ht,deltaHt/ht)
@@ -586,7 +575,7 @@ class mHtOverHtSelector(analysisStep) :
     
     def select(self,eventVars,extraVars) :
         mht = getattr(extraVars,self.jetCollection+"Mht"+self.jetSuffix).pt()
-        ht = getattr(extraVars,self.jetCollection+"Ht"+self.jetSuffix)
+        ht = eventVars[self.jetCollection+"SumPt"+self.jetSuffix]
         if (ht<1.0e-2) : return False
         value = mht/ht
         if (value<self.min or value>self.max) : return False
