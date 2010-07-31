@@ -38,7 +38,7 @@ def removeStepsForData(inSteps) :
     outSteps=[]
     for step in inSteps :
         #remove inapplicable steps
-        if step.__doc__==dummyPtHistogrammer.__doc__ : continue
+        if step.__doc__==dummyPtHatHistogrammer.__doc__ : continue
         outSteps.append(copy.deepcopy(step))
     return outSteps
 
