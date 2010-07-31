@@ -3,6 +3,10 @@ import calculablesJet
 import calculablesOther
 import inspect
 
+def allDefaultCalculables() :
+    return defaultCalculablesOther() + \
+           defaultCalculablesJet()
+
 def defaultCalculablesOther() :
     otherCalculables = []
     for memb in [eval("calculablesOther."+i) for i in dir(calculablesOther)] :
