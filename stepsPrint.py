@@ -21,6 +21,17 @@ class progressPrinter(analysisStep) :
             if (self.num==self.factor or self.num>self.cut) and not self.quietMode :
                 print toPrint
 #####################################
+class printshit(analysisStep) :
+    """printshit"""
+
+    def __init__(self,shit) :
+        self.shit = shit
+        self.moreName = "print all in %s" % str(shit)
+        print '\t'.join(shit)
+        
+    def uponAcceptance(self,eventVars,extraVars) :
+        print '\t'.join([str(eventVars[s]) for s in self.shit])
+#####################################
 class eventPrinter(analysisStep) :
     """eventPrinter"""
 
@@ -55,18 +66,16 @@ class jetPrinter(analysisStep) :
         jetFHpdVector   =eventVars[self.jetCollection+'JetIDFHPD'       +self.jetSuffix]
         jetN90Vector    =eventVars[self.jetCollection+'JetIDN90Hits'    +self.jetSuffix]
 
-        cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
-        otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
+        jetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]
 
         print " jet   u. pT (GeV)   c. pT (GeV)    eta   phi"
         print "---------------------------------------------"
         for iJet in range(len(p4Vector)) :
             jet=p4Vector[iJet]
 
-            outString=" "
-            if (iJet in otherJetIndices) : outString="-"
-            if (iJet in cleanJetIndices) : outString="*"
-            
+            outString = "-" if iJet in jetIndices["other"] else \
+                        "*" if iJet in jetIndices["clean"] else \
+                        " "
             outString+=" %2d"   %iJet
             outString+="        %#6.1f"%(jet.pt()/corrFactorVector[iJet])
             outString+="        %#6.1f"%jet.pt()
