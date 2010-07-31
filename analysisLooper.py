@@ -6,7 +6,7 @@ import ROOT as r
 class analysisLooper :
     """class to set up and loop over events"""
 
-    def __init__(self,outputDir,inputFiles,name,nEvents,outputPrefix,steps,calculables,xs,lumi,isMc):
+    def __init__(self,outputDir,inputFiles,name,nEvents,outputPrefix,steps,calculables,xs,lumi):
         self.hyphens="".ljust(95,"-")
 
         self.name=name
@@ -16,8 +16,9 @@ class analysisLooper :
         self.calculables=copy.deepcopy(calculables)
         self.xs=xs
         self.lumi=lumi
-        self.isMc=isMc
 
+        self.ptHatThresholds=[]#needed to fill histograms properly in the case of overlapping MC ptHat samples
+        
         self.outputDir=outputDir
         self.outputPrefix=outputPrefix
 
@@ -33,23 +34,18 @@ class analysisLooper :
 
         self.extraVariableContainer=eventVariableContainer()
 
-    def doSplitMode(self,parentName) :
-        self.splitMode=True
-        self.quietMode=True
-        self.parentName=parentName
-
-    def showBranches(self) :
-        for branch in self.inputChain.GetListOfBranches() :
-            branchName=branch.GetName()
-            branch.GetEntry(1)
-            print branchName,type(getattr(self.inputChain,branchName))
-
     def go(self) :
         self.setupChain(self.inputFiles)
         #self.showBranches()
 
+        #set up books
         self.books = {}
         self.books[None] = autoBook()
+        #make books for ptHat bins (keyed by lower threshold)
+        for iThreshold in range(len(self.ptHatThresholds)) :
+            self.books[iThreshold+1]=autoBook()
+
+        #set up steps
         useSetBranchAddress=self.setupSteps()
 
         #loop through entries
@@ -68,6 +64,14 @@ class analysisLooper :
         
         #free up memory
         del self.inputChain
+
+    def processEvent(self,eventVars) :
+        extraVars=self.extraVariableContainer
+        extraVars.localEntry=eventVars._wrappedChain__localEntry
+        extraVars.entry=eventVars.entry
+        
+        for step in self.steps :
+            if not step.go(eventVars,extraVars) : break
 
     def setupChain(self,inputFiles) :
         nFiles=len(inputFiles)
@@ -112,16 +116,15 @@ class analysisLooper :
             step.uponRejectionImplemented=hasattr(step,"uponRejection")
             if step.__doc__==step.skimmerStepName : returnValue=False
             if hasattr(step,"setup") : step.setup(self.inputChain,self.fileDirectory,self.name)
+            step.needToConsiderPtHat=not len(self.ptHatThresholds)
+            step.ptHatThresholds=self.ptHatThresholds
         return returnValue
+
+    def doSplitMode(self,parentName) :
+        self.splitMode=True
+        self.quietMode=True
+        self.parentName=parentName
     
-    def processEvent(self,eventVars) :
-        extraVars=self.extraVariableContainer
-        extraVars.localEntry=eventVars._wrappedChain__localEntry
-        extraVars.entry=eventVars.entry
-        
-        for step in self.steps :
-            if not step.go(eventVars,extraVars) : break
-        
     def printStats(self) :
         if not self.quietMode :
             print self.hyphens
@@ -187,6 +190,12 @@ class analysisLooper :
         outFile=open(outFileName,"w")
         cPickle.dump(outList,outFile)
         outFile.close()
+
+    def showBranches(self) :
+        for branch in self.inputChain.GetListOfBranches() :
+            branchName=branch.GetName()
+            branch.GetEntry(1)
+            print branchName,type(getattr(self.inputChain,branchName))
 #####################################
 class eventVariableContainer :
     """holds the values of variables that are not in the tree"""
