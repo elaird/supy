@@ -235,8 +235,8 @@ class hbheNoiseFilter(analysisStep) :
     def select (self,eventVars,extraVars) :
         return eventVars["hbheNoiseFilterResult"]
 #####################################
-class extraVariableGreaterFilter(analysisStep) :
-    """extraVariableGreaterFilter"""
+class variableGreaterFilter(analysisStep) :
+    """variableGreaterFilter"""
 
     def __init__(self,threshold,variable):
         self.threshold = threshold
@@ -244,10 +244,10 @@ class extraVariableGreaterFilter(analysisStep) :
         self.moreName = "(%s>=%.1f)" % (variable,threshold)
 
     def select (self,eventVars,extraVars) :
-        return (getattr(extraVars,self.variable)>=self.threshold)
+        return eventVars[self.variable]>=self.threshold
 #####################################
-class extraVariablePtGreaterFilter(analysisStep) :
-    """extraVariablePtGreaterFilter"""
+class variablePtGreaterFilter(analysisStep) :
+    """variablePtGreaterFilter"""
 
     def __init__(self,threshold,variable):
         self.threshold = threshold
@@ -255,7 +255,7 @@ class extraVariablePtGreaterFilter(analysisStep) :
         self.moreName = "(%s>=%.1f)" % (variable,threshold)
 
     def select (self,eventVars,extraVars) :
-        return (getattr(extraVars,self.variable).pt()>=self.threshold)
+        return eventVars[self.variable].pt()>=self.threshold
 #####################################
 class objectPtVetoer(analysisStep) :
     """objectPtVetoer"""

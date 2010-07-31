@@ -124,12 +124,12 @@ class listDictionaryHolder :
             cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
             #extraVariablePtGreaterFilter(100.0,jetCollection+"Mht"+jetSuffix),
             
-            extraVariableGreaterFilter(300.0,jetCollection+"Ht"+jetSuffix),
+            variableGreaterFilter(300.0,jetCollection+"SumPt"+jetSuffix),
             cleanDiJetAlphaProducer(jetCollection,jetSuffix),
             cleanNJetAlphaProducer(jetCollection,jetSuffix),
             alphaHistogrammer(jetCollection,jetSuffix),
             
-            #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
+            #variableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
             #displayer(jetCollection,jetSuffix,metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/elaird1/tmp/",scale=200.0),
             #eventPrinter(),
             #jetPrinter(jetCollection,jetSuffix),
@@ -263,7 +263,7 @@ class listDictionaryHolder :
             cleanJetPtHistogrammer(jetCollection,jetSuffix),
             
             cleanJetHtMhtProducer(jetCollection,jetSuffix),
-            #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
+            #variableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
             
             cleanDiJetAlphaProducer(jetCollection,jetSuffix),
             cleanNJetAlphaProducer(jetCollection,jetSuffix),
@@ -277,8 +277,8 @@ class listDictionaryHolder :
             
             #skimmer("/tmp/"),
             
-            ##extraVariableGreaterFilter(0.6,jetCollection+"diJetAlpha_pT"+jetSuffix),
-            #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
+            ##variableGreaterFilter(0.6,jetCollection+"diJetAlpha_pT"+jetSuffix),
+            #variableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
             
             eventPrinter(),
             jetPrinter(jetCollection,jetSuffix),
@@ -328,7 +328,7 @@ class listDictionaryHolder :
             
             cleanJetHtMhtProducer(jetCollection,jetSuffix),
             cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
-            #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
+            #variableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
             
             cleanDiJetAlphaProducer(jetCollection,jetSuffix),
             cleanNJetAlphaProducer(jetCollection,jetSuffix),
@@ -337,8 +337,8 @@ class listDictionaryHolder :
             deltaPhiProducer(jetCollection,jetSuffix),
             deltaPhiHistogrammer(jetCollection,jetSuffix),
             
-            ##extraVariableGreaterFilter(0.6,jetCollection+"diJetAlpha_pT"+jetSuffix),
-            #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
+            ##variableGreaterFilter(0.6,jetCollection+"diJetAlpha_pT"+jetSuffix),
+            #variableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
             
             #skimmer("/tmp/"),
             
@@ -497,8 +497,8 @@ class listDictionaryHolder :
             
             #skimmer("/tmp/"),
             
-            #extraVariableGreaterFilter(0.6,jetCollection1+"nJetAlphaT"+jetSuffix1),
-            #extraVariableGreaterFilter(25.0,jetCollection1+"Ht"+jetSuffix1),
+            #variableGreaterFilter(0.6,jetCollection1+"nJetAlphaT"+jetSuffix1),
+            #variableGreaterFilter(25.0,jetCollection1+"Ht"+jetSuffix1),
             #
             #eventPrinter(),
             #jetPrinter(jetCollection1,jetSuffix1),
@@ -552,8 +552,8 @@ class listDictionaryHolder :
             icfPhotVetoer(photPtThreshold),
             
             icfCleanJetHtMhtProducer(),
-            extraVariableGreaterFilter(250.0,"Ht"),
-            #extraVariableGreaterFilter(500.0,"Ht"),
+            variableGreaterFilter(250.0,"Ht"),
+            #variableGreaterFilter(500.0,"Ht"),
             icfCleanDiJetAlphaProducer(),
             icfCleanNJetAlphaProducer(),
             icfDeltaPhiProducer(),
@@ -573,8 +573,8 @@ class listDictionaryHolder :
             #devMhtHistogrammer("","",minLogLikelihood),
             #displayer("","","/tmp/",400.0,True),
             
-            #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
-            #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
+            #variableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
+            #variableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
             ]
 
         self.listDict["Icf_Ra1_DiJet_Steps"]=steps
@@ -620,7 +620,7 @@ class listDictionaryHolder :
             icfPhotVetoer(photPtThreshold),
             
             icfCleanJetHtMhtProducer(),
-            extraVariableGreaterFilter(350.0,"Ht"),
+            variableGreaterFilter(350.0,"Ht"),
             icfCleanDiJetAlphaProducer(),
             icfCleanNJetAlphaProducer(),
             icfDeltaPhiProducer(),
@@ -633,8 +633,8 @@ class listDictionaryHolder :
             icfAlphaHistogrammer(),
             icfDeltaPhiHistogrammer(),
             
-            #extraVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
-            #extraVariableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
+            #variableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
+            #variableGreaterFilter(25.0,jetCollection+"Ht"+jetSuffix),
             ]
         
         self.listDict["Icf_Ra1_NJet_Steps"]=steps
