@@ -15,7 +15,7 @@ class analysisStep :
     displayerStepName="displayer"
     quietMode=False
     splitMode=False
-    needToConsiderPtHat=False
+    needToConsiderPtHatThresholds=False
     
     def go(self,eventVars,extraVars) :
         self.nTotal+=1
@@ -55,7 +55,7 @@ class analysisStep :
         statString =   " nPass ="+str(self.nPass) .rjust(self.integerWidth)+";"
         statString+= "   nFail ="+str(self.nFail) .rjust(self.integerWidth)+";"
         #statString+="   nTotal ="+str(self.nTotal).rjust(self.integerWidth)+";"
-        if (self.moreName2=="") :
+        if self.moreName2=="" :
             print outString+statString
         else :
             print outString
@@ -64,7 +64,7 @@ class analysisStep :
     def bookHistos(self) : return
 
     def book(self,eventVars) :
-        if not self.needToConsiderPtHat :
+        if not self.needToConsiderPtHatThresholds :
             return self.books[None]
         else :
             if not eventVars["genGenInfoHandleValid"] :
