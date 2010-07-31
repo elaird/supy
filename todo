@@ -2,7 +2,6 @@ Critical
 ---------
 * qcd inclusive bins (pythia)
 * fix pruning
-* make data black
 
 Other
 --------
@@ -14,6 +13,14 @@ Other
 
 * named arguments everywhere
 
+* display rechits
+
+* clean up output files
+
+* option to skip computation of nEvents in TChain
+
+* warn about partial run over data
+
 * keep lumiTree unskimmed
 * jsonMaker
 * Investigate skimmers
@@ -22,7 +29,6 @@ Other
 
 * reincarnate plotter
 * tdrPlotter
-* cross section histo
 * merging histos for different samples (eg, add all mc)
 * list the selection on the plot
 
