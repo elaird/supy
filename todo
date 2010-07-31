@@ -1,7 +1,6 @@
 Critical
 ---------
 * qcd inclusive bins (pythia)
-* Investigate skimmers
 * fix pruning
 * make data black
 * fix configs
@@ -10,6 +9,7 @@ Other
 --------
 * keep lumiTree unskimmed
 * jsonMaker
+* Investigate skimmers
 
 * try with calculables, phase out extraVars
 
