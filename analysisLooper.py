@@ -45,18 +45,19 @@ class analysisLooper :
 
     def go(self) :
         self.setupChain(self.inputFiles)
-        self.chainWrapper=wrappedChain.wrappedChain(self.inputChain)
-        self.books = {}
-        self.books[None] = autoBook()
-        self.setupSteps()
         #self.showBranches()
 
+        self.books = {}
+        self.books[None] = autoBook()
+        useSetBranchAddress=self.setupSteps()
+
         #loop through entries
-        map( self.processEvent, self.chainWrapper.entries(self.nEvents) )
+        chainWrapper=wrappedChain.wrappedChain(self.inputChain)        
+        map( self.processEvent, chainWrapper.entries(self.nEvents) )
 
         #set data member to number actually used
         self.nEvents=0
-        if hasattr(self.chainWrapper,"entry") : self.nEvents=1+self.chainWrapper.entry
+        if hasattr(chainWrapper,"entry") : self.nEvents=1+chainWrapper.entry
 
         self.printStats()
         self.endSteps()
@@ -99,6 +100,7 @@ class analysisLooper :
         r.gROOT.cd()
 
     def setupSteps(self) :
+        returnValue=True
         for step in self.steps :
             step.bookHistos()
             step.books = self.books
@@ -107,8 +109,10 @@ class analysisLooper :
             step.selectNotImplemented=not hasattr(step,"select")
             step.uponAcceptanceImplemented=hasattr(step,"uponAcceptance")
             step.uponRejectionImplemented=hasattr(step,"uponRejection")
-            if (hasattr(step,"setup")) : step.setup(self.inputChain,self.fileDirectory,self.name)
-
+            if step.__doc__==step.skimmerStepName : returnValue=False
+            if hasattr(step,"setup") : step.setup(self.inputChain,self.fileDirectory,self.name)
+        return returnValue
+    
     def processEvent(self,eventVars) :
         extraVars=self.extraVariableContainer
         extraVars.localEntry=eventVars._wrappedChain__localEntry
