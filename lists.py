@@ -33,6 +33,18 @@ def removeStepsForMc(inSteps) :
         if (step.__doc__==dummyDisplayer.__doc__) : outSteps[-1].switchGenOn()
     return outSteps
 
+def removeStepsForData(inSteps) :
+    dummyPtHatHistogrammer=ptHatHistogrammer()
+    outSteps=[]
+    for step in inSteps :
+        #remove inapplicable steps
+        if step.__doc__==dummyPtHistogrammer.__doc__ : continue
+        outSteps.append(copy.deepcopy(step))
+    return outSteps
+
+def insertPtHatFilter(inSteps,value) :
+    inSteps.insert(0,ptHatFilter(value))
+
 class listDictionaryHolder :
     """listDictionaryHolder"""
 
@@ -44,7 +56,7 @@ class listDictionaryHolder :
     
     def getSteps(self,name,isMc) :
         if isMc : return removeStepsForMc(self.listDict[name])
-        else    : return self.listDict[name]
+        else    : return removeStepsForData(self.listDict[name])
 
     def buildDictionary(self) :
         #call all member functions starting with specialPrefix
@@ -96,6 +108,7 @@ class listDictionaryHolder :
         steps=[
             progressPrinter(2,300),
 
+            ptHatHistogrammer(),
             jetPtSelector(jetCollection,jetSuffix,80.0,0),
             #jetPtSelector(jetCollection,jetSuffix,40.0,1),            
             leadingUnCorrJetPtSelector( [(jetCollection,jetSuffix)],80.0 ),
