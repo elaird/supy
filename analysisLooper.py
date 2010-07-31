@@ -52,7 +52,7 @@ class analysisLooper :
         useSetBranchAddress=self.setupSteps()
 
         #loop through entries
-        chainWrapper=wrappedChain.wrappedChain(self.inputChain)        
+        chainWrapper=wrappedChain.wrappedChain(self.inputChain,useSetBranchAddress=useSetBranchAddress)
         map( self.processEvent, chainWrapper.entries(self.nEvents) )
 
         #set data member to number actually used
