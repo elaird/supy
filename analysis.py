@@ -16,35 +16,15 @@ class analysis :
         self.listName=listName
         self.calculables=calculables
         self.looperList=[]
-        self.needToSetup=True
         
-    def setup(self) :
-        if not self.needToSetup : return
+    def loop(self,profile=False,nCores=1,splitJobsByInputFile=False) :
+        nCores=max(1,nCores)
+
+        if splitJobsByInputFile : self.splitUpLoopers()
 
         #prepare loopers
         self.makeParentDict(self.looperList)
 
-        #prepare these for the plotter
-        self.sampleNamesForPlotter=[]
-        self.outputPlotFileNamesForPlotter=[]
-        if len(self.parentDict)==0 :
-            for looper in self.looperList :
-                self.sampleNamesForPlotter.append(looper.name)
-                self.outputPlotFileNamesForPlotter.append(looper.outputPlotFileName)
-        else :
-            for parent in self.parentDict :
-                self.sampleNamesForPlotter.append(parent)
-                iSomeLooper=self.parentDict[parent][0]
-                someLooper=self.looperList[iSomeLooper]
-                self.outputPlotFileNamesForPlotter.append(someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName))
-        self.needToSetup=False
-
-    def splitJobsByInputFile(self) :
-        self.splitUpLoopers()
-        
-    def loop(self,profile=False,nCores=1) :
-        nCores=max(1,nCores)
-        self.setup()
         #loop over samples and make TFiles containing histograms
         if not profile :
             self.loopOverSamples(nCores)
@@ -52,9 +32,21 @@ class analysis :
             self.profile(nCores) #profile the code while doing so
 
     def plot(self) :
-        self.setup()        
+        sampleNamesForPlotter=[]
+        outputPlotFileNamesForPlotter=[]
+        if (not hasattr(self,"parentDict")) or len(self.parentDict)==0 :
+            for looper in self.looperList :
+                sampleNamesForPlotter.append(looper.name)
+                outputPlotFileNamesForPlotter.append(looper.outputPlotFileName)
+        else :
+            for parent in self.parentDict :
+                sampleNamesForPlotter.append(parent)
+                iSomeLooper=self.parentDict[parent][0]
+                someLooper=self.looperList[iSomeLooper]
+                outputPlotFileNamesForPlotter.append(someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName))
+        
         import plotter
-        plotter.plotAll(self.name,self.sampleNamesForPlotter,self.outputPlotFileNamesForPlotter,self.outputDir)
+        plotter.plotAll(self.name,sampleNamesForPlotter,outputPlotFileNamesForPlotter,self.outputDir)
 
     def globalSetup(self) :
         for sourceFile in self.listOfSourceFiles :
@@ -139,15 +131,14 @@ class analysis :
         self.looperList=outListOfLoopers
 
     def makeParentDict(self,looperList) :
-        parentDict={}
+        self.parentDict={}
         for iLooper in range(len(looperList)) :
             looper=looperList[iLooper]
             if looper.splitMode :
-                if looper.parentName in parentDict :
-                    parentDict[looper.parentName].append(iLooper)
+                if looper.parentName in self.parentDict :
+                    self.parentDict[looper.parentName].append(iLooper)
                 else :
-                    parentDict[looper.parentName]=[iLooper]
-        self.parentDict=parentDict
+                    self.parentDict[looper.parentName]=[iLooper]
 
     def looperPrint(self,parent,looper) :
         print looper.hyphens
