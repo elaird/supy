@@ -75,16 +75,26 @@ class analysis :
             raise Exception("sample must have either a xs or a lumi specified")
         return lumi==None
         
-    def addSample(self,sampleName,listOfFileNames=[],nEvents=-1,xs=None,lumi=None) :
+    def addSample(self,sampleName,listOfFileNames=[],nEvents=-1,xs=None,lumi=None,calculables=[]) :
         isMc=self.checkXsAndLumi(xs,lumi)
         
         listOfSteps=self.listHolder.getSteps(self.listName,isMc)
-        self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,xs,lumi,isMc) )
+        self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,calculables,xs,lumi,isMc) )
         return
 
     def combineSamples(self,ptHatLowerThresholdsAndSampleNames=[]) :
         ptHatLowerThresholdsAndSampleNames.sort()
-        print ptHatLowerThresholdsAndSampleNames
+
+        xsDict={}
+        for item in ptHatLowerThresholdsAndSampleNames :
+            ptHatLowerThreshold=item[0]
+            sampleName=item[1]
+            for iLooper in range(len(self.looperList)) :
+                looper=self.looperList[iLooper]
+                if sampleName==looper.name :
+                    xsDict[ptHatLowerThreshold]=looper.xs
+
+        print xsDict
         return
     
     def splitUpLoopers(self) :
@@ -98,6 +108,7 @@ class analysis :
                                                        looper.nEvents,
                                                        looper.outputPrefix,
                                                        copy.deepcopy(looper.steps),
+                                                       copy.deepcopy(looper.calculables),
                                                        looper.xs,
                                                        looper.lumi,
                                                        looper.isMc

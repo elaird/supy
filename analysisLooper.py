@@ -6,13 +6,14 @@ import ROOT as r
 class analysisLooper :
     """class to set up and loop over events"""
 
-    def __init__(self,outputDir,inputFiles,name,nEvents,outputPrefix,steps,xs,lumi,isMc):
+    def __init__(self,outputDir,inputFiles,name,nEvents,outputPrefix,steps,calculables,xs,lumi,isMc):
         self.hyphens="".ljust(95,"-")
 
         self.name=name
         self.nEvents=nEvents
         self.inputFiles=inputFiles
         self.steps=copy.deepcopy(steps)
+        self.calculables=copy.deepcopy(calculables)
         self.xs=xs
         self.lumi=lumi
         self.isMc=isMc
@@ -52,7 +53,7 @@ class analysisLooper :
         useSetBranchAddress=self.setupSteps()
 
         #loop through entries
-        chainWrapper=wrappedChain.wrappedChain(self.inputChain,useSetBranchAddress=useSetBranchAddress)
+        chainWrapper=wrappedChain.wrappedChain(self.inputChain,calculables=self.calculables,useSetBranchAddress=useSetBranchAddress)
         map( self.processEvent, chainWrapper.entries(self.nEvents) )
 
         #set data member to number actually used
