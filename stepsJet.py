@@ -139,8 +139,6 @@ class cleanJetIndexProducerFromFlag(analysisStep) :
 
             cleanJetIndices.append(iJet)
             otherJetIndices.remove(iJet)
-
-        self.book(eventVars).fill(len(cleanJetIndices), cleanString, 15,-0.5,14.5, title=";number of jets passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin")
 #####################################
 class cleanJetEmfFilter(analysisStep) :
     """cleanJetEmfFilter"""
@@ -216,14 +214,12 @@ class nCleanJetHistogrammer(analysisStep) :
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
         self.moreName="("+self.jetCollection+" "+self.jetSuffix+")"
-
-    def bookHistos(self) :
-        nBins=15
-        title=";number of jets passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"
-        self.nCleanJetsHisto=r.TH1D(self.jetCollection+"nCleanJets"+self.jetSuffix,title,nBins,-0.5,nBins-0.5)
+        self.cleanString=self.jetCollection+"cleanJetIndices"+self.jetSuffix
         
     def uponAcceptance (self,eventVars,extraVars) :
-        self.nCleanJetsHisto.Fill( len(getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)) )
+        self.book(eventVars).fill(len(eventVars[self.cleanString]),
+                                  self.cleanString, 15,-0.5,14.5,
+                                  title=";number of jets passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin")
 ######################################
 class nCleanJetEventFilter(analysisStep) :
     """nCleanJetEventFilter"""
