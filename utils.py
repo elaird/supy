@@ -4,6 +4,21 @@ import ROOT as r
 def goFunc(x) :
     x.go()
 #####################################
+def makeCodes(iTry,nOps,nItems) :
+    codes=[0]*nItems
+    for iItem in range(nItems) :
+        code=iTry-iTry%(nOps**iItem)
+        code/=(nOps**iItem)
+        code=code%nOps
+        codes[iItem]=code
+    return codes
+#####################################
+def makeCodeString(iTry,nOps,nItems) :
+    codeList=makeCodes(iTry,nOps,nItems)
+    outString=""
+    for code in codeList : outString+=str(code)
+    return outString
+#####################################
 def psFromRoot(listOfInFileNames,outFileName,beQuiet) :
     if len(listOfInFileNames)==0 : return
     

@@ -1,4 +1,5 @@
 import ROOT as r
+import utils
 from analysisStep import analysisStep
 #####################################
 pdgLookupExists=False
@@ -8,20 +9,21 @@ try:
 except ImportError:
     pass
 #####################################
-def makeCodes(iTry,nOps,nItems) :
-    codes=[0]*nItems
-    for iItem in range(nItems) :
-        code=iTry-iTry%(nOps**iItem)
-        code/=(nOps**iItem)
-        code=code%nOps
-        codes[iItem]=code
-    return codes
+class ptHatFilter(analysisStep) :
+    """ptHatFilter"""
+
+    def __init__(self,maxPtHat) :
+        self.maxPtHat=maxPtHat
+        self.moreName = "(pthat<%.1f)"%maxPtHat
+
+    def select (self,eventVars,extraVars) :
+        return eventVars["genpthat"]<self.maxPtHat
 #####################################
-def makeCodeString(iTry,nOps,nItems) :
-    codeList=makeCodes(iTry,nOps,nItems)
-    outString=""
-    for code in codeList : outString+=str(code)
-    return outString
+class ptHatHistogrammer(analysisStep) :
+    """ptHatHistogrammer"""
+
+    def uponAcceptance (self,eventVars,extraVars) :
+        self.book(eventVars).fill(eventVars["genpthat"], "ptHat", 200,0.0,1000.0, title=";#hat{p_{T}};events / bin")
 #####################################
 class susyScanPointPrinter(analysisStep) :
     """susyScanPointPrinter"""
@@ -151,7 +153,7 @@ class genParticleCounter(analysisStep) :
         self.histoDictionary={}
         maxHistos=(self.maxCountsPerCategory+2)**nCategories
         for iHisto in range(maxHistos) :
-            codeString=makeCodeString(iHisto,self.maxCountsPerCategory+2,nCategories)
+            codeString=utils.makeCodeString(iHisto,self.maxCountsPerCategory+2,nCategories)
             self.histoDictionary[codeString]=self.xsHisto.Clone(histoBaseName+codeString)
             self.histoDictionary[codeString].SetTitle(histoBaseName+codeString)
 
