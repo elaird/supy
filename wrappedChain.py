@@ -82,18 +82,19 @@ class wrappedChain(dict) :
                            array.array('f',[0]*256) if str(type(self.value)) == "<type 'ROOT.PyFloatBuffer'>" else \
                            r.AddressOf( self.value ) 
 
+            self.valIsArrayZero = type(self.address) == array.array and len(self.address) == 1
+            if type(self.address) == array.array and len(self.address)>1 :
+                self.value = self.address
+
         def setAddress(self) :
             self.branch = self.chain.GetBranch(self.nameB)
             if self.address : self.branch.SetAddress( self.address )
             
         def update(self,localEntry) :
             self.branch.GetEntry(localEntry)
-            if not self.address :
-                self.value = getattr(self.chain, self.nameL)
-            elif type(self.address) == array.array and \
-                     len(self.address) == 1 :
-                self.value = self.address[0]
-
+            if      not self.address : self.value = getattr(self.chain, self.nameL)
+            elif self.valIsArrayZero : self.value = self.address[0]
+                
     class calculable(object) :
         """Inherit wrappedChain.calculable and define update(self,localEntry) for a calculable node"""
 
