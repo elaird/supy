@@ -11,7 +11,7 @@ lumiToUseInAbsenceOfData=100 #pb^-1
 ##############################
 colorDict={}
 #colorDict["currentColorIndex"]=r.kGreen
-colorDict["currentColorIndex"]=1
+colorDict["currentColorIndex"]=2
 
 colorDict["NT7_LM0"]=r.kBlack
 colorDict["NT7_LM1"]=r.kBlue
@@ -176,6 +176,28 @@ def histoLoop(plotSpec,histoList) :
     for iHisto in range(len(histoList)) :
         histo=histoList[iHisto]
 
+        #merge requested histos
+        sampleName=plotSpec.sampleNames[iHisto]
+        targetName=sampleName
+        if sampleName in plotSpec.mergeRequest :
+            targetName=plotSpec.mergeRequest[sampleName]
+        
+        if sampleName!=targetName :
+            someName=histoList[iHisto].GetName().replace("_"+str(iHisto),"")+targetName
+            histo=r.gDirectory.Get(someName)
+            makeHisto=(histo==None)
+            if makeHisto :
+                print "histo=None"
+                histo=histoList[iHisto].Clone(someName)
+                print "histo=",histo
+            else :
+                print "adding to histo"
+                histo.Add(histoList[iHisto])
+            stuffToKeep.append(histo)
+            print sampleName,targetName
+            print "ls:"
+            r.gDirectory.ls()
+            print
         legend.AddEntry(histo,plotSpec.sampleNames[iHisto],"l")
 
         yx=r.TF1("yx","x",histo.GetXaxis().GetXmin(),histo.GetXaxis().GetXmax())
@@ -184,7 +206,7 @@ def histoLoop(plotSpec,histoList) :
         yx.SetNpx(300)
 
         #1D here
-        if (plotSpec.dimension==1) :
+        if plotSpec.dimension==1 :
             r.gPad.SetRightMargin(0.15)
             r.gPad.SetTicky()            
             if (iHisto==0) :
@@ -201,7 +223,7 @@ def histoLoop(plotSpec,histoList) :
                 histo.Draw("same")
 
             r.gStyle.SetOptFit(0)
-            if (doMetFit and "met" in histo.GetName()) :
+            if doMetFit and "met" in histo.GetName() :
                 r.gStyle.SetOptFit(1111)
                 func=metFit(histo)
                 stuffToKeep.append(func)
@@ -222,7 +244,7 @@ def histoLoop(plotSpec,histoList) :
                     tps.SetY1NDC(0.50)
                     tps.SetY2NDC(0.70)
 
-            if ("countsHisto" in histo.GetName()) :
+            if "countsHisto" in histo.GetName() :
                 outString=histo.GetName().ljust(20)
                 outString+=plotSpec.sampleNames[iHisto].ljust(12)
                 outString+=": "
@@ -242,10 +264,10 @@ def histoLoop(plotSpec,histoList) :
             histo.GetZaxis().SetTitleOffset(1.3)
             r.gPad.SetRightMargin(0.15)
             r.gPad.SetTicky()
-            if (doColzFor2D) : histo.Draw("colz")
-            else :             histo.Draw()
+            if doColzFor2D : histo.Draw("colz")
+            else :           histo.Draw()
 
-            if (doLog2D) :
+            if doLog2D :
                 if (doScaleByXs) : histo.SetMaximum(2.0*plotSpec.maximum)
                 histo.SetMinimum(getLogMin(plotSpec))
                 r.gPad.SetLogz()
@@ -253,7 +275,7 @@ def histoLoop(plotSpec,histoList) :
                 #histo.SetMaximum(1.1*plotSpec.maximum)
                 histo.SetMinimum(0.0)
 
-            if ("deltaHtOverHt vs mHtOverHt" in histo.GetName()) :
+            if "deltaHtOverHt vs mHtOverHt" in histo.GetName() :
                 histo.GetYaxis().SetRangeUser(0.0,0.7)
                 funcs=[
                     makeAlphaTFunc(0.55),
@@ -264,11 +286,11 @@ def histoLoop(plotSpec,histoList) :
                     func.Draw("same")
                 stuffToKeep.extend(funcs)
             else :
-                if (drawYx) :
+                if drawYx :
                     yx.Draw("same")
                     stuffToKeep.append(yx)
 
-    if (plotSpec.dimension==1) : legend.Draw()
+    if plotSpec.dimension==1 : legend.Draw()
     plotSpec.canvas.Print(plotSpec.psFile,plotSpec.psOptions)
 ##############################
 def onePlotFunction(plotSpec) :
@@ -295,12 +317,17 @@ def makeHistoList(plotSpec) :
         f=r.TFile(plotFileName)
 
         extraName=""
-        if (iSample>0) : extraName+="_"+str(iSample)
+        if iSample>0 : extraName+="_"+str(iSample)
+        if "ptHat" in plotSpec.plotName :
+            print "warning: skipping",plotSpec.plotName
+            continue #temporary hack
         h=f.Get(plotSpec.plotName).Clone(plotSpec.plotName+extraName)
         h.SetDirectory(0)
         histoList.append(h)
 
-        color=getColor(sampleName)
+        color=r.kBlack
+        if plotSpec.lumiList[iSample]==0.0 : 
+            color=getColor(sampleName)
         h.SetLineColor(color)
         h.SetMarkerColor(color)
         if (plotSpec.dimension==1) : shiftOverflows(h)
@@ -316,7 +343,7 @@ def printTimeStamp(canvas,psFile,psOptions) :
     canvas.Print(psFile,psOptions)
     canvas.Clear()
 ##############################
-def plotAll(analysisName,sampleNames,plotFileNames,outputDir) :
+def plotAll(analysisName,sampleNames,plotFileNames,mergeRequest,outputDir) :
     if (len(sampleNames)<1) : return
     setupStyle()
 
@@ -350,6 +377,7 @@ def plotAll(analysisName,sampleNames,plotFileNames,outputDir) :
         plotSpec.canvas=canvas
         plotSpec.sampleNames=sampleNames
         plotSpec.plotFileNames=plotFileNames
+        plotSpec.mergeRequest=mergeRequest
         plotSpec.outputDir=outputDir
         plotSpec.xsList=xsList
         plotSpec.lumiList=lumiList
