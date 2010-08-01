@@ -1,6 +1,6 @@
 Critical
 ---------
-(none)
+* way to avoid hardcoding output directories to particular user
 
 Other
 --------
@@ -13,6 +13,7 @@ Other
 * named arguments everywhere
 
 * display rechits
+* fix circle
 
 * clean up output files
 
@@ -38,14 +39,8 @@ Other
 * non-linear cutflow / directory structured output
 * histo sculpting
 
-* pythia non-bining problem
-
-* fix circle
-
 * profile
 
 * batch queue
 
 * logfiles
-
-* way to avoid hardcoding output directories to particular user
