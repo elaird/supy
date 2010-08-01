@@ -25,6 +25,7 @@ class analysis :
         self.listOfSteps=listOfSteps
         self.calculables=calculables
         self.looperList=[]
+        self.mergeRequestForPlotter={}
         
     def loop(self,profile=False,nCores=1,splitJobsByInputFile=False) :
         nCores=max(1,nCores)
@@ -55,7 +56,7 @@ class analysis :
                 outputPlotFileNamesForPlotter.append(someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName))
         
         import plotter
-        plotter.plotAll(self.name,sampleNamesForPlotter,outputPlotFileNamesForPlotter,self.outputDir)
+        plotter.plotAll(self.name,sampleNamesForPlotter,outputPlotFileNamesForPlotter,self.mergeRequestForPlotter,self.outputDir)
 
     def checkXsAndLumi(self,xs,lumi) :
         if (xs==None and lumi==None) or (xs!=None and lumi!=None) :
@@ -72,17 +73,24 @@ class analysis :
         self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,self.calculables,xs,lumi) )
         return
 
-    def manageNonBinnedSamples(self,ptHatLowerThresholdsAndSampleNames=[],useRejectionMethod=True) :
+    def manageNonBinnedSamples(self,ptHatLowerThresholdsAndSampleNames=[],mergeIntoOnePlot=False,mergeName="",useRejectionMethod=True) :
         if not useRejectionMethod :
             raise Exception("the other method of combining non-binned samples is not yet implemented")
         looperIndexDict={}
+        mergeDict={}
         for item in ptHatLowerThresholdsAndSampleNames :
             ptHatLowerThreshold=item[0]
             sampleName=item[1]
+
+            #find the associated looper
             for iLooper in range(len(self.looperList)) :
                 looper=self.looperList[iLooper]
                 if sampleName==looper.name :
                     looperIndexDict[ptHatLowerThreshold]=iLooper
+
+            mergeDict[sampleName]=mergeName
+        #inform the plotter of the merge request
+        if mergeIntoOnePlot : self.mergeRequestForPlotter=mergeDict
 
         ptHatLowerThresholdsAndSampleNames.sort()
         for iItem in range(len(ptHatLowerThresholdsAndSampleNames)) :
