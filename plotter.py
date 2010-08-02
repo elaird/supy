@@ -343,7 +343,7 @@ def printTimeStamp(canvas,psFile,psOptions) :
     canvas.Print(psFile,psOptions)
     canvas.Clear()
 ##############################
-def plotAll(analysisName,sampleNames,plotFileNames,mergeRequest,outputDir) :
+def plotAll(analysisName,sampleNames,plotFileNames,mergeRequest,outputDir,hyphens) :
     if (len(sampleNames)<1) : return
     setupStyle()
 
@@ -394,6 +394,7 @@ def plotAll(analysisName,sampleNames,plotFileNames,mergeRequest,outputDir) :
     os.system("ps2pdf "+psFile+" "+pdfFile)
     os.system("gzip -f "+psFile)
     print "The output file \""+pdfFile+"\" has been written."
+    print hyphens
     #print "The output file \""+psFile+".gz\" has been written."
 ##############################
 class onePlotSpec :
