@@ -1,5 +1,5 @@
 import ROOT as r
-import os
+import os,math
 ##############################
 doLog1D=True
 doLog2D=True
@@ -7,7 +7,7 @@ drawYx=False
 doMetFit=False
 doScaleByXs=True
 doColzFor2D=True
-lumiToUseInAbsenceOfData=100 #pb^-1
+lumiToUseInAbsenceOfData=100 #/pb
 ##############################
 colorDict={}
 #colorDict["currentColorIndex"]=r.kGreen
@@ -67,13 +67,26 @@ def get_Xs_Lumi_Event_Job_Numbers(plotFileNameDict) :
 
     return [xsDict,lumiDict,nEventsDict,nJobsDict]
 ##############################
-def shiftOverflows(histo) :
+def combineBinContentAndError(histo,binToContainCombo,binToBeKilled) :
+    xflows=histo.GetBinContent(binToBeKilled)
+    xflowError=histo.GetBinError(binToBeKilled)
+    
+    currentContent=histo.GetBinContent(binToContainCombo)
+    currentError=histo.GetBinError(binToContainCombo)
+    
+    histo.SetBinContent(binToBeKilled,0.0)
+    histo.SetBinContent(binToContainCombo,currentContent+xflows)
+    
+    histo.SetBinError(binToBeKilled,0.0)
+    histo.SetBinError(binToContainCombo,math.sqrt(xflowError**2+currentError**2))
+##############################
+def shiftUnderAndOverflows(histo) :
     bins=histo.GetNbinsX()
     entries=histo.GetEntries()
-    overflows=histo.GetBinContent(bins+1)
-    lastBinContent=histo.GetBinContent(bins)
-    histo.SetBinContent(bins+1,0.0)
-    histo.SetBinContent(bins,lastBinContent+overflows)
+    
+    combineBinContentAndError(histo,binToContainCombo=1   ,binToBeKilled=0     )
+    combineBinContentAndError(histo,binToContainCombo=bins,binToBeKilled=bins+1)
+
     histo.SetEntries(entries)
 ##############################
 def scaleHistos(histoDict,plotSpec) :
@@ -173,24 +186,24 @@ def histoLoop(plotSpec,histoDict) :
         #merge requested histos
         targetName=sampleName
         if sampleName in plotSpec["mergeRequest"] :
-            targetName=plotSpec.mergeRequest[sampleName]
+            targetName=plotSpec["mergeRequest"][sampleName]
+        if plotSpec["mergeAllMc"] :
+            if plotSpec["xsDict"][sampleName]!=0.0 : #exclude data
+                if  "lm" not in sampleName : #exclude SUSY
+                    targetName="all MC"
         
         if sampleName!=targetName :
             someName=histo.GetName().replace("_"+str(count),"")+targetName
-            histo=r.gDirectory.Get(someName)
-            if histo==None :
-                print "histo=None"
-                newHisto=histo.Clone(someName)
-                print "histo=",histo
+            isPresent=r.gDirectory.Get(someName)
+            if not isPresent :
+                mergedHisto=histo.Clone(someName)
+                legend.AddEntry(mergedHisto,targetName,"l")
             else :
-                print "adding to histo"
-                newHisto.Add(histo)
-            stuffToKeep.append(newHisto)
-            print sampleName,targetName
-            print "ls:"
-            r.gDirectory.ls()
-            print
-        legend.AddEntry(histo,sampleName,"l")
+                mergedHisto.Add(histo)
+            stuffToKeep.append(mergedHisto)
+            histo=mergedHisto
+        else :
+            legend.AddEntry(histo,sampleName,"l")
 
         yx=r.TF1("yx","x",histo.GetXaxis().GetXmin(),histo.GetXaxis().GetXmax())
         yx.SetLineColor(r.kBlue)
@@ -310,9 +323,6 @@ def makeHistoDict(plotSpec) :
 
         extraName=""
         if count>0 : extraName+="_"+str(count)
-        #if "ptHat" in plotSpec["plotName"] :
-        #    print "warning: skipping",plotSpec["plotName"]
-        #    continue #temporary hack
         h1=f.Get(plotSpec["plotName"])
         if not h1 : continue
         h=h1.Clone(plotSpec["plotName"]+extraName)
@@ -324,7 +334,7 @@ def makeHistoDict(plotSpec) :
             color=getColor(sampleName)
         h.SetLineColor(color)
         h.SetMarkerColor(color)
-        if plotSpec["dimension"]==1 : shiftOverflows(h)
+        if plotSpec["dimension"]==1 : shiftUnderAndOverflows(h)
         count+=1
 
     return histoDict
@@ -338,7 +348,7 @@ def printTimeStamp(canvas,psFile,psOptions) :
     canvas.Print(psFile,psOptions)
     canvas.Clear()
 ##############################
-def plotAll(analysisName,plotFileNameDict,mergeRequest,outputDir,hyphens) :
+def plotAll(analysisName,plotFileNameDict,mergeAllMc,mergeRequest,outputDir,hyphens) :
     if len(plotFileNameDict)<1 : return
     setupStyle()
 
@@ -370,6 +380,7 @@ def plotAll(analysisName,plotFileNameDict,mergeRequest,outputDir,hyphens) :
         plotSpec["dimension"]        = dimensionDict[plotName]
         plotSpec["canvas"]           = canvas
         plotSpec["plotFileNameDict"] = plotFileNameDict
+        plotSpec["mergeAllMc"]       = mergeAllMc
         plotSpec["mergeRequest"]     = mergeRequest
         plotSpec["outputDir"]        = outputDir
         plotSpec["xsDict"]           = xsDict
