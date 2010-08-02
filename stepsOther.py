@@ -11,7 +11,7 @@ class crockVarCalcDiff(analysisStep) :
         moreName = "(Checking that crockVars == calculable, %s,%s)",(exV,calc)
     def uponAcceptance(self,eventVars) :
         print  eventVars["crock"][self.exV], eventVars[self.calc]
-
+#####################################
 class skimmer(analysisStep) :
     #special __doc__ assignment below
     
@@ -26,6 +26,7 @@ class skimmer(analysisStep) :
     def setup(self,chain,fileDir,name) :
         self.fileDir=fileDir
         self.outputFileName=self.outputDir+"/"+name+"_skim.root"
+        os.system("mkdir -p "+self.outputDir)
         self.outputFile=r.TFile(self.outputFileName,"RECREATE")
         self.outputFile.mkdir(self.fileDir)
         self.outputFile.cd(self.fileDir)
@@ -424,6 +425,7 @@ class displayer(analysisStep) :
     def setup(self,chain,fileDir,name) :
         someDir=r.gDirectory
         self.outputFileName=self.outputDir+"/"+name+"_displays.root"
+        os.system("mkdir -p "+self.outputDir)
         self.outputFile=r.TFile(self.outputFileName,"RECREATE")
         someDir.cd()
         
