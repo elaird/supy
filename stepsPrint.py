@@ -251,17 +251,6 @@ class recHitHistogrammer(analysisStep) :
         self.detector=detector
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
-        
-    def bookHistos(self) :
-        self.ptMaxHisto1=r.TH1D("ptMaxHisto1"+self.algoType+self.detector,"ptMaxHisto1"+self.algoType+self.detector,100,0.0,200.0)
-        self.ptMaxHisto2=r.TH1D("ptMaxHisto2"+self.algoType+self.detector,"ptMaxHisto2"+self.algoType+self.detector,100,0.0,200.0)
-        self.ptSumHisto1=r.TH1D("ptSumHisto1"+self.algoType+self.detector,"ptSumHisto1"+self.algoType+self.detector,100,0.0,200.0)
-        self.ptSumHisto2=r.TH1D("ptSumHisto2"+self.algoType+self.detector,"ptSumHisto2"+self.algoType+self.detector,100,0.0,200.0)
-
-        self.sumVsPtHisto=r.TH2D("sumVsPtHisto"+self.algoType+self.detector,
-                                 "sumVsPtHisto"+self.algoType+self.detector,
-                                 100,0.0,200.0,
-                                 100,0.0,200.0)
     
     def select(self,eventVars) :
         flaggedP4s=eventVars["rechit"+self.algoType+"P4"+self.detector]
@@ -276,14 +265,21 @@ class recHitHistogrammer(analysisStep) :
         maxPt=max(pTs)
         sumPt=sum(pTs)
 
-        self.sumVsPtHisto.Fill(leadingJetPt,sumPt)
+        self.sumVsPtHisto.Fill
+        self.sumVsPtHisto=r.TH2D((leadingJetPt,sumPt),"sumVsPtHisto"+self.algoType+self.detector,
+                                 (100,100),
+                                 (0.0,0.0),
+                                 (200.0,200.0),
+                                 "sumVsPtHisto"+self.algoType+self.detector,
+                                 )
         
         if leadingJetPt<30.0 :
-            self.ptMaxHisto1.Fill(maxPt)
+            self.book(eventVars).fill(maxPt,"ptMaxHisto1"+self.algoType+self.detector,100,0.0,200.0,"ptMaxHisto1"+self.algoType+self.detector)
+            self.book(eventVars).fill(sumPt,"ptSumHisto1"+self.algoType+self.detector,100,0.0,200.0,"ptSumHisto1"+self.algoType+self.detector)
             self.ptSumHisto1.Fill(sumPt)
         elif leadingJetPt>60.0 :
-            self.ptMaxHisto2.Fill(maxPt)
-            self.ptSumHisto2.Fill(sumPt)
+            self.book(eventVars).fill(maxPt,"ptMaxHisto2"+self.algoType+self.detector,100,0.0,200.0,"ptMaxHisto2"+self.algoType+self.detector)
+            self.book(eventVars).fill(sumPt,"ptSumHisto2"+self.algoType+self.detector,100,0.0,200.0,"ptSumHisto2"+self.algoType+self.detector)
 
         #special silliness
         if leadingJetPt<70.0 : return False

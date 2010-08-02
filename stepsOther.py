@@ -166,16 +166,9 @@ class objectPtVetoer(analysisStep) :
         if p4s.size() <= self.index : return True
         return p4s.at(self.index).pt() < self.ptThreshold
 
-#    def bookHistos(self) :
-#        nBins=100
-#        etaMin=-5.0
-#        etaMax=5.0
-#        title=";#eta;events / bin"
-#        self.etaRejected=r.TH1D(self.objectCollection+"Eta"+self.objectSuffix,title,nBins,etaMin,etaMax)
-
 #    def uponRejection(self,eventVars) :
 #        p4Vector=eventVars[self.objectCollection+self.objectP4String+self.objectSuffix]
-#        self.etaRejected.Fill(p4Vector[self.objectIndex].eta())
+#        self.book(eventVars).fill(p4Vector[self.objectIndex].eta(),self.objectCollection+"Eta"+self.objectSuffix,100,-5.0,5.0,";#eta;events / bin")
 #####################################
 class soloObjectPtSelector(analysisStep) :
     """soloObjectPtSelector"""

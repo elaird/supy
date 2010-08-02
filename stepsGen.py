@@ -122,7 +122,7 @@ class genParticleCounter(analysisStep) :
         #self.printDict(self.pdgToCategory)
         self.maxCountsPerCategory=2 #0 ... this number counted explicitly; otherwise overflows
 
-    def bookHistos(self) :
+    def bookHistos(self) :#needs to be migrated to use book class
         histoBaseName="genParticleCounter"
 
         nCategories=len(self.categories)
