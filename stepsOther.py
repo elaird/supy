@@ -420,11 +420,6 @@ class displayer(analysisStep) :
     def switchGenOn(self) :
         self.doGen=True
 
-    def bookHistos(self) :
-        epsilon=1.0e-6
-        self.mhtLlHisto=r.TH2D("mhtLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashH_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
-        self.metLlHisto=r.TH2D("metLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashE_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
-        
     def setup(self,chain,fileDir,name) :
         someDir=r.gDirectory
         self.outputFileName=self.outputDir+"/"+name+"_displays.root"
@@ -451,6 +446,10 @@ class displayer(analysisStep) :
             self.makeAlphaTFunc(0.50,r.kOrange+3),
             self.makeAlphaTFunc(0.45,r.kOrange+7)
             ]
+
+        epsilon=1.0e-6
+        self.mhtLlHisto=r.TH2D("mhtLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashH_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
+        self.metLlHisto=r.TH2D("metLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashE_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
 
     def endFunc(self,chain,hyphens,nEvents,xs) :
         self.outputFile.Write()
@@ -556,12 +555,12 @@ class displayer(analysisStep) :
             
     def drawMht (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if (not hasattr(self,"mhtEntryInLegend")) :
+        if not hasattr(self,"mhtEntryInLegend") :
             self.mhtEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"#slashH_{T} ("+self.jetCollection+")","l")
 
-        mht=eventVars["crock"][self.jetCollection+"Mht"+self.jetSuffix]
+        mht=eventVars["%sSumP4%s"%(self.jetCollection,self.jetSuffix)].pt()
         self.drawP4(mht,color,lineWidth,arrowSize)
             
     def drawHt (self,eventVars,color,lineWidth,arrowSize) :
@@ -807,11 +806,9 @@ class counter(analysisStep) :
     def __init__(self,label) :
         self.label = label
         self.moreName = '("%s")' % label
-    def bookHistos(self) :
-        self.countsHisto = r.TH1D("countsHisto_"+self.label,";dummy axis;number of events",1,-0.5,0.5)
 
     def uponAcceptance(self,eventVars) :
-        self.countsHisto.Fill(0.0)
+        self.book(eventVars).fill(0.0,"countsHisto_"+self.label,1,-0.5,0.5,";dummy axis;number of events")
 #####################################
 class pickEventSpecMaker(analysisStep) :
     """pickEventSpecMaker"""
@@ -820,7 +817,7 @@ class pickEventSpecMaker(analysisStep) :
         self.outputFileName = outputFileName
         self.dataSetName = dataSetName
 
-    def bookHistos(self) :
+    def setup(self,chain,fileDir,name) :
         self.outputFile = open(self.outputFileName,"w")
         
     def uponAcceptance(self,eventVars) :
@@ -836,13 +833,12 @@ class pickEventSpecMaker(analysisStep) :
         self.outputFile.close()
         print "The pick events spec. file \""+self.outputFileName+"\" has been written."
 #####################################
-#class bxHistogrammer(analysisStep) :
-#    """bxHistogrammer"""
-#
-#    def bookHistos(self) :
-#        nBx=3564+1 #one extra in case count from 1
-#        self.bxHisto=r.TH1D("bx",";bx of event;events / bin",nBx,-0.5,nBx-0.5)
-#
-#    def uponAcceptance(self,eventVars) :
-#        self.bxHisto.Fill(eventVars["bunch"])
+class bxHistogrammer(analysisStep) :
+    """bxHistogrammer"""
+
+    def __init__(self) :
+        self.nBx=3564+1 #one extra in case count from 1
+
+    def uponAcceptance(self,eventVars) :
+        self.book.fill(eventVars["bunch"],"bx",self.nBx,-0.5,0.5,";bx of event;events / bin")
 #####################################
