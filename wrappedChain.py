@@ -37,7 +37,9 @@ class wrappedChain(dict) :
         for nTree in range(chain.GetNtrees()) :
             chain.LoadTree(iTreeFirstEntry)
             for node in self.__activeNodeList : node.setAddress() 
-            nTreeEntries = chain.GetTree().GetEntries()
+            tree = chain.GetTree()
+            if not tree : continue
+            nTreeEntries = tree.GetEntries()
 
             for iTreeEntry in range( nTreeEntries )  :
                 self.entry = iTreeFirstEntry + iTreeEntry
