@@ -1,7 +1,7 @@
 from wrappedChain import *
 
 class indices(wrappedChain.calculable) :
-    """JetIndices producer"""
+    def name(self) : return "%sIndices%s"% self.cs
     
     def __init__(self, collection = None, suffix = None, ptMin = None, etaMax = None, flagName = None ):
         self.cs = (collection,suffix)
@@ -16,8 +16,6 @@ class indices(wrappedChain.calculable) :
         
         self.value = {}
 
-    def name(self) : return "%sIndices%s"% self.cs
-
     def update(self,ignored) :
         p4s    = self.source['%sCorrectedP4%s'%self.cs]
         jetIds = self.source[self.flagName % self.cs] if self.flagName else p4s.size()*[1]
@@ -31,19 +29,31 @@ class indices(wrappedChain.calculable) :
             elif jetIds.at(iJet) and abs(p4s.at(iJet).eta()) < self.etaMax :
                 self.value["clean"].append(iJet)
             else: self.value["other"].append(iJet)
-    
 
+##############################
 class sumPt(wrappedChain.calculable) :
+    def name(self) : return "%sSumPt%s"% self.cs
+
     def __init__(self, collection = None, suffix = None) :
         self.cs = collection, suffix
         self.p4sName = '%sCorrectedP4%s' % self.cs
         self.indicesName = "%sIndices%s" % self.cs
-
-    def name(self) : return "%sSumPt%s"% self.cs
 
     def update(self,ignored) :
         p4s = self.source[self.p4sName]
         indices = self.source[self.indicesName]["clean"]
         self.value = reduce( lambda x,i: x+p4s.at(i).pt(), indices , 0)
 
+##############################
+class sumP4(wrappedChain.calculable) :
+    def name(self) : return "%sSumP4%s" % self.cs
 
+    def __init__(self, collection = None, suffix = None) :
+        self.cs = collection, suffix
+        self.p4sName = "%sCorrectedP4%s" % self.cs
+        self.indicesName = "%sIndices%s" % self.cs
+
+    def update(self,ignored) :
+        p4s = self.source[self.p4sName]
+        indices = self.source[self.indicesName]["clean"]
+        self.value = reduce( lambda x,i: x+p4s.at(i), indices) if p4s.size() else None
