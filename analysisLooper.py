@@ -107,7 +107,6 @@ class analysisLooper :
     def setupSteps(self) :
         returnValue=True
         for step in self.steps :
-            step.bookHistos()
             step.books = self.books
             if self.quietMode : step.makeQuiet()
             if self.splitMode : step.setSplitMode()

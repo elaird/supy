@@ -61,8 +61,6 @@ class analysisStep :
             print outString
             print outString2+statString
 
-    def bookHistos(self) : return
-
     def book(self,eventVars) :
         if not self.needToConsiderPtHatThresholds :
             return self.books[None]
