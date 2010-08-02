@@ -25,7 +25,7 @@ class wrappedChain(dict) :
             dict.__getitem__(self, name).source = self
             dict.__getitem__(self, name).updated = False
 
-    def activeKeys() : return self.__activeNodes.keys()
+    def activeKeys(self) : return self.__activeNodes.keys()
 
     def entries(self, nEntries = -1 ) :
         """Generate the access dictionary (self) for each entry in TTree."""
