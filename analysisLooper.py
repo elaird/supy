@@ -6,7 +6,7 @@ import ROOT as r
 class analysisLooper :
     """class to set up and loop over events"""
 
-    def __init__(self,fileDirectory,treeName,hyphens,outputDir,inputFiles,name,nEvents,outputPrefix,steps,calculables,xs,lumi):
+    def __init__(self,fileDirectory,treeName,hyphens,outputDir,inputFiles,name,nEvents,outputPrefix,steps,calculables,xs,lumi,computeEntriesForReport=False):
         self.fileDirectory=fileDirectory
         self.treeName=treeName
         self.hyphens=hyphens
@@ -29,7 +29,7 @@ class analysisLooper :
         self.splitMode=False
         self.quietMode=False
 
-        self.computeEntriesForReport=False
+        self.computeEntriesForReport=computeEntriesForReport
 
         self.outputPlotFileName=self.outputDir+"/"+self.outputPrefix+"_"+self.name+"_plots.root"
         self.outputStepDataFileName=self.outputPlotFileName.replace(".root",".steps")
@@ -146,6 +146,7 @@ class analysisLooper :
         if not self.quietMode : print self.hyphens
         #r.gDirectory.ls()
         objectList=r.gDirectory.GetList()
+        os.system("mkdir -p "+self.outputDir)
         outputFile=r.TFile(self.outputPlotFileName,"RECREATE")
         zombie=outputFile.IsZombie()
 
