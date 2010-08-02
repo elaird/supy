@@ -13,6 +13,5 @@ class chain_access(wrappedChain.calculable) :
     def update(self,ignored) : self.value = self.source._wrappedChain__chain
 
 class crock(wrappedChain.calculable) :
-    def __init__(self,name="crock") : self.__name=name
-    def name(self) : return self.__name
     def update(self,localEntry) : self.value = {}
+

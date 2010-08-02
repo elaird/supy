@@ -1,27 +1,26 @@
 from wrappedChain import *
 
-class jetIndicesFromFlag(wrappedChain.calculable) :
+class indices(wrappedChain.calculable) :
     """JetIndices producer"""
     
-    def __init__(self,jetCollection,jetSuffix,jetPtMin=20.0,jetEtaMax=3.0,flagName = "JetIDloose" ):
-        self.collection = jetCollection
-        self.suffix = jetSuffix
-        self.ptThreshold = jetPtMin
-        self.etaMax = jetEtaMax
+    def __init__(self, collection = None, suffix = None, ptMin = None, etaMax = None, flagName = None ):
+        self.cs = (collection,suffix)
+        self.ptThreshold = ptMin
+        self.etaMax = etaMax
         self.flagName = None if not flagName else \
-                        flagName if jetCollection[-2:] != "PF" else \
-                        "PF"+flagName
+                        "%s"+flagName+"%s" if collection[-2:] != "PF" else \
+                        "%sPF"+flagName+"%s"
 
-        self.moreName = "(%s; %s; %s; "%(jetCollection,jetSuffix,flagName)
-        self.moreName2 = " corr. pT>=%.1f GeV; |eta|<=%.1f)"%(jetPtMin , jetEtaMax)
+        self.moreName = "(%s; %s; %s; "% (self.cs[0], self.cs[1],flagName)
+        self.moreName2 = " corr. pT>=%.1f GeV; |eta|<=%.1f)"% (ptMin , etaMax)
         
         self.value = {}
 
-    def name(self) : return "%sIndices%s"% (self.collection,self.suffix)
+    def name(self) : return "%sIndices%s"% self.cs
 
     def update(self,ignored) :
-        p4s    = self.source['%sCorrectedP4%s'% (self.collection,self.suffix)]
-        jetIds = self.source[self.collection + self.flagName + self.suffix] if self.flagName else p4s.size()*[1]
+        p4s    = self.source['%sCorrectedP4%s'%self.cs]
+        jetIds = self.source[self.flagName % self.cs] if self.flagName else p4s.size()*[1]
 
         self.value["clean"] = []
         self.value["other"] = []
@@ -34,9 +33,9 @@ class jetIndicesFromFlag(wrappedChain.calculable) :
             else: self.value["other"].append(iJet)
     
 
-class jetSumPt(wrappedChain.calculable) :
-    def __init__(self,jetCollection,jetSuffix) :
-        self.cs = jetCollection,jetSuffix
+class sumPt(wrappedChain.calculable) :
+    def __init__(self, collection = None, suffix = None) :
+        self.cs = collection, suffix
         self.p4sName = '%sCorrectedP4%s' % self.cs
         self.indicesName = "%sIndices%s" % self.cs
 

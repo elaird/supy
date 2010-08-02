@@ -1,32 +1,20 @@
 from wrappedChain import *
+from inspect import isclass,ismodule
 import calculablesJet
 import calculablesOther
-import inspect
-
-def allDefaultCalculables() :
-    return defaultCalculablesOther() + \
-           defaultCalculablesJet()
-
-def defaultCalculablesOther() :
-    otherCalculables = []
-    for memb in [eval("calculablesOther."+i) for i in dir(calculablesOther)] :
-        if inspect.isclass(memb) and issubclass(memb,wrappedChain.calculable) :
-            otherCalculables.append( memb() )
-    return otherCalculables
-
-def defaultCalculablesJet() :
-    jetTypes = ["ak5Jet","ak5JetJPT","ak5JetPF"]
-    jetSuffixes = ["Pat"]
-    jetCalculables = []
-    for memb in [eval("calculablesJet."+i) for i in dir(calculablesJet)] :
-        if inspect.isclass(memb) and issubclass(memb,wrappedChain.calculable) :
-            for collection in jetTypes:
-                for suffix in jetSuffixes:
-                    jetCalculables.append( memb(collection,suffix))
-
-    jetCalculables.append( calculablesJet.jetIndicesFromFlag("gen","",flagName=None))
-
-    return jetCalculables
 
 
+def zeroArgs() :
+    """Returns a list of instances of all zero argument calculables."""
+
+    zeroArg = []
+    for moduleName in globals() :
+        if not ismodule(eval(moduleName)) : continue
+        for className in dir(eval(moduleName)) :
+            calc = eval("%s.%s"%(moduleName,className))
+            if not isclass(calc) : continue
+            if not issubclass(calc, wrappedChain.calculable) : continue
+            try: eval('%s.%s.__init__.im_func'%(moduleName,className))
+            except: zeroArg.append(calc())
+    return zeroArg
 
