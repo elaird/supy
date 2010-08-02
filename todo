@@ -1,13 +1,26 @@
+other mc samples
+all data in the bag
+
 Critical
 ---------
+* recipe for anyone to reproduce results in 5 minutes
 * way to avoid hardcoding output directories to particular user
+* report configuration of calculables
+* move default calculables to analysis
+* easier replacement of calculables (configure calculables via config file rather than hardcoded)
+* warn about partial run over data
+* lumi/run list of actually processed jobs
+
+Document
+----------
+* spec for handling colliding CRAB results
+* spec for weighting sim appropriately by cross-section, to default lumi, or to lumi specified by data
+* two schemes for handling overlapping cross sections (pythia qcd)
 
 Other
 --------
-* move default calculables to analysis
-* easier replacement of calculables
-* report configuration of calculables
-
+* organize files in cvs
+* skimmer 2,3 should raise exceptions
 * defer srmls until jobs runs
 
 * named arguments everywhere
@@ -18,8 +31,6 @@ Other
 * clean up output files
 
 * option to skip computation of nEvents in TChain
-
-* warn about partial run over data
 
 * keep lumiTree unskimmed
 * jsonMaker
