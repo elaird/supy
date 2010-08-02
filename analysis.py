@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os,sys,copy,cPickle
+sys.argv.append("-b")#try to set batch mode as early as possible
 import utils,steps
 from analysisLooper import analysisLooper
 import ROOT as r
@@ -46,21 +47,19 @@ class analysis :
             self.profile(nCores) #profile the code while doing so
 
     def plot(self) :
-        sampleNamesForPlotter=[]
+        plotFileNamesDict={}
         outputPlotFileNamesForPlotter=[]
         if (not hasattr(self,"parentDict")) or len(self.parentDict)==0 :
             for looper in self.listOfLoopers :
-                sampleNamesForPlotter.append(looper.name)
-                outputPlotFileNamesForPlotter.append(looper.outputPlotFileName)
+                plotFileNamesDict[looper.name]=looper.outputPlotFileName
         else :
             for parent in self.parentDict :
-                sampleNamesForPlotter.append(parent)
                 iSomeLooper=self.parentDict[parent][0]
                 someLooper=self.listOfLoopers[iSomeLooper]
-                outputPlotFileNamesForPlotter.append(someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName))
+                plotFileNamesDict[parent]=someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName)
         
         import plotter
-        plotter.plotAll(self.name,sampleNamesForPlotter,outputPlotFileNamesForPlotter,self.mergeRequestForPlotter,self.outputDir,self.hyphens)
+        plotter.plotAll(self.name,plotFileNameDict,self.mergeRequestForPlotter,self.outputDir,self.hyphens)
 
     def checkXsAndLumi(self,xs,lumi) :
         if (xs==None and lumi==None) or (xs!=None and lumi!=None) :
