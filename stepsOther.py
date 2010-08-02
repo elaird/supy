@@ -31,6 +31,9 @@ class skimmer(analysisStep) :
         self.outputFile.mkdir(self.fileDir)
         self.outputFile.cd(self.fileDir)
         self.outputTree=chain.CloneTree(0)        #clone structure of tree (but no entries)
+        if not self.outputTree :                  #in case the chain has 0 entries
+            r.gROOT.cd()
+            return
         self.outputTree.SetDirectory(r.gDirectory)#put output tree in correct place
         chain.CopyAddresses(self.outputTree)      #associate branch addresses
 
@@ -42,7 +45,6 @@ class skimmer(analysisStep) :
             extraName=self.outputTree.GetName()+"Extra"
             self.outputTreeExtra=r.TTree(extraName,extraName)
             self.outputTreeExtra.SetDirectory(r.gDirectory)
-
         r.gROOT.cd()
 
     def select(self,eventVars) :
@@ -87,9 +89,10 @@ class skimmer(analysisStep) :
         
     def endFunc(self,chain,hyphens,nEvents,xs) :
         print hyphens
-        self.outputFile.cd(self.fileDir)
-        self.outputTree.Write()
-        if (self.alsoWriteExtraTree) :
+        if self.outputTree :
+            self.outputFile.cd(self.fileDir)
+            self.outputTree.Write()
+        if self.alsoWriteExtraTree :
             self.outputTreeExtra.Write()
         self.outputFile.Close()
         print "The skim file \""+self.outputFileName+"\" has been written."
