@@ -224,12 +224,12 @@ class recHitPrinter(analysisStep) :
 
         print "flagged "+self.detector+" RecHits"
         someString="   i      pT (GeV)                  eta   phi"
-        hypens    ="---------------------------------------------"
+        hyphens    ="---------------------------------------------"
         for tuple in self.bitInfo :
             someString+=tuple[0].rjust(15)
-            hypens+="".rjust(15,"-")
+            hyphens+="".rjust(15,"-")
         print someString
-        print hypens
+        print hyphens
 
         self.sum.SetCoordinates(0.0,0.0,0.0,0.0)
         nFlagged=len(flaggedP4s)

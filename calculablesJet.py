@@ -12,8 +12,8 @@ class jetIndicesFromFlag(wrappedChain.calculable) :
                         flagName if jetCollection[-2:] != "PF" else \
                         "PF"+flagName
 
-        self.moreName = "(%s; %s; %s; ", (jetCollection,jetSuffix,flagName)
-        self.moreName2 = " corr. pT>=%.1f GeV; |eta|<=%.1f)" , (jetPtMin , jetEtaMax)
+        self.moreName = "(%s; %s; %s; "%(jetCollection,jetSuffix,flagName)
+        self.moreName2 = " corr. pT>=%.1f GeV; |eta|<=%.1f)"%(jetPtMin , jetEtaMax)
         
         self.value = {}
 
