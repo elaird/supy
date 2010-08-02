@@ -63,8 +63,8 @@ class analysisLooper :
         if self.splitMode : self.pickleStepData()
         if not self.quietMode : print self.hyphens
         
-        #free up memory
-        del self.inputChain
+        #free up memory (http://wlav.web.cern.ch/wlav/pyroot/memory.html)
+        self.inputChain.IsA().Destructor( self.inputChain )
 
     def processEvent(self,eventVars) :
         extraVars=self.extraVariableContainer
@@ -82,6 +82,8 @@ class analysisLooper :
         if not self.quietMode : print outString+":"
 
         self.inputChain=r.TChain("chain")
+        r.SetOwnership(self.inputChain,False)
+        
         for infile in inputFiles :
             self.inputChain.Add(infile+"/"+self.fileDirectory+"/"+self.treeName)
 
