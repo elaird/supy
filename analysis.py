@@ -31,10 +31,10 @@ class analysis :
         self.listOfLoopers=[]
         self.mergeRequestForPlotter={}
         
-    def loop(self,profile=False,nCores=1,splitJobsByInputFile=False) :
-        nCores=max(1,nCores)
-
-        if splitJobsByInputFile : self.splitLoopers()
+    def loop(self, profile = False, nCores = 1, splitJobsByInputFile = None) :
+        nCores = max(1,nCores)
+        if splitJobsByInputFile!=False and (splitJobsByInputFile or nCores>1) :
+            self.splitLoopers()
 
         #prepare loopers
         self.makeParentDict(self.listOfLoopers)
@@ -67,12 +67,17 @@ class analysis :
             raise Exception("sample must have either a xs or a lumi specified")
         return lumi==None
         
-    def addSample(self,sampleName,listOfFileNames=[],nEvents=-1,xs=None,lumi=None,computeEntriesForReport=False) :
-        isMc=self.checkXsAndLumi(xs,lumi)
+    def addSample(self, sampleName, listOfFileNames = [], nEvents = -1, nMaxFiles = -1, xs = None, lumi = None, computeEntriesForReport = False) :
+        isMc = self.checkXsAndLumi(xs,lumi)
+        if (not isMc) and (nEvents!=-1 or nMaxFiles!=-1) :
+            print "Warning, not running over full data sample: wrong lumi?"
 
-        listOfSteps=[]
-        if isMc : listOfSteps=steps.removeStepsForMc(self.listOfSteps)
-        else :    listOfSteps=steps.removeStepsForData(self.listOfSteps)
+        if nMaxFiles >= 0 :
+            listOfFileNames = listOfFileNames[:nMaxFiles]
+
+        listOfSteps = []
+        if isMc : listOfSteps = steps.removeStepsForMc(self.listOfSteps)
+        else :    listOfSteps = steps.removeStepsForData(self.listOfSteps)
 
         self.listOfLoopers.append(analysisLooper(self.fileDirectory,
                                                  self.treeName,
