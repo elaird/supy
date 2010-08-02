@@ -192,8 +192,8 @@ class cleanNJetAlphaProducer(analysisStep) :
 
         self.helper.go(p4s,self.cleanJetIndices)
         nJetDeltaHt = self.helper.GetMinDiff()
-        mht = eventVars["%sSumP4%s"].pt()
-        nJetAlphaT = 0.5*(1.0-nJetDeltaHt/ht)/r.TMath.sqrt(1.0-(mht.pt()/ht)**2)
+        mht = eventVars["%sSumP4%s"%self.cs].pt()
+        nJetAlphaT = 0.5*(1.0-nJetDeltaHt/ht)/r.TMath.sqrt(1.0-(mht/ht)**2)
 
         self.setExtraVars(eventVars,nJetDeltaHt,nJetAlphaT)
         return True
@@ -247,11 +247,11 @@ class cleanDiJetAlphaProducer(analysisStep) :
         return True
 
     def setExtraVars(self,eventVars,diJetM,diJetMinPt,diJetMinEt,diJetAlpha,diJetAlpha_Et) :
-            eventVars["crock"][self.jetCollection+"diJetM"       +self.jetSuffix]=diJetM
-            eventVars["crock"][self.jetCollection+"diJetMinPt"   +self.jetSuffix]=diJetMinPt
-            eventVars["crock"][self.jetCollection+"diJetMinEt"   +self.jetSuffix]=diJetMinEt
-            eventVars["crock"][self.jetCollection+"diJetAlpha"   +self.jetSuffix]=diJetAlpha
-            eventVars["crock"][self.jetCollection+"diJetAlpha_Et"+self.jetSuffix]=diJetAlpha_Et
+            eventVars["crock"]["%sdiJetM%s"       %self.cs]=diJetM
+            eventVars["crock"]["%sdiJetMinPt%s"   %self.cs]=diJetMinPt
+            eventVars["crock"]["%sdiJetMinEt%s"   %self.cs]=diJetMinEt
+            eventVars["crock"]["%sdiJetAlpha%s"   %self.cs]=diJetAlpha
+            eventVars["crock"]["%sdiJetAlpha_Et%s"%self.cs]=diJetAlpha_Et
 #####################################
 class alphaHistogrammer(analysisStep) :
     """alphaHistogrammer"""
@@ -277,7 +277,7 @@ class alphaHistogrammer(analysisStep) :
         book.fill( eventVars["crock"]["%snJetAlphaT%s"%self.cs], "%snjet_alphaT%s", bins,min,max,
                    title = ";N-jet #alpha_{T} (using p_{T});events / bin")
 
-        book.fill( deltaHt, "njet_deltaHt"%self.cs, 50,0.0,500,
+        book.fill( deltaHt, "%snjet_deltaHt%s"%self.cs, 50,0.0,500,
                    title = ";N-jet #Delta H_{T} (GeV);events / bin")
 
         book.fill( (mht/ht,deltaHt/ht), "%s_deltaHtOverHt_vs_mHtOverHt_%s"%self.cs, (30,30), (0.0,0.0), (1.0,0.7),
@@ -323,7 +323,7 @@ class deltaPhiSelector(analysisStep) :
         self.cs = (collection,suffix)
         self.minAbs = minAbs
         self.maxAbs = maxAbs
-        self.moreName = ("(%s; %s; minAbs=%.1f; maxAbs=%.1f)" % (self.cs[0],self.cs[1],minAbs,maxAbs)
+        self.moreName = "(%s; %s; minAbs=%.1f; maxAbs=%.1f)" % (self.cs[0],self.cs[1],minAbs,maxAbs)
     
     def select(self,eventVars) :
         value = abs( eventVars["crock"]["%sdeltaPhi01%s"%self.cs] )
@@ -337,7 +337,7 @@ class mHtOverHtSelector(analysisStep) :
         self.cs = (collection,suffix)
         self.min = min
         self.max = max
-        self.moreName = ("(%s; %s; min=%.1f; max=%.1f)" % (self.cs[0],self.cs[1],min,max)
+        self.moreName = "(%s; %s; min=%.1f; max=%.1f)" % (self.cs[0],self.cs[1],min,max)
     
     def select(self,eventVars) :
         mht = eventVars["%sSumP4%s"%self.cs].pt()
