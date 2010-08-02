@@ -34,7 +34,7 @@ class analysis :
     def loop(self,profile=False,nCores=1,splitJobsByInputFile=False) :
         nCores=max(1,nCores)
 
-        if splitJobsByInputFile : self.splitUpLoopers()
+        if splitJobsByInputFile : self.splitLoopers()
 
         #prepare loopers
         self.makeParentDict(self.listOfLoopers)
@@ -131,7 +131,7 @@ class analysis :
                     self.listOfLoopers[index].needToConsiderPtHatThresholds=True
         return
     
-    def splitUpLoopers(self) :
+    def splitLoopers(self) :
         outListOfLoopers=[]
         for looper in self.listOfLoopers :
             fileIndex=0
