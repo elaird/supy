@@ -28,7 +28,7 @@ class analysis :
         
         self.listOfSteps=listOfSteps
         self.listOfCalculables=listOfCalculables
-        self.looperList=[]
+        self.listOfLoopers=[]
         self.mergeRequestForPlotter={}
         
     def loop(self,profile=False,nCores=1,splitJobsByInputFile=False) :
@@ -37,7 +37,7 @@ class analysis :
         if splitJobsByInputFile : self.splitUpLoopers()
 
         #prepare loopers
-        self.makeParentDict(self.looperList)
+        self.makeParentDict(self.listOfLoopers)
 
         #loop over samples and make TFiles containing histograms
         if not profile :
@@ -49,14 +49,14 @@ class analysis :
         sampleNamesForPlotter=[]
         outputPlotFileNamesForPlotter=[]
         if (not hasattr(self,"parentDict")) or len(self.parentDict)==0 :
-            for looper in self.looperList :
+            for looper in self.listOfLoopers :
                 sampleNamesForPlotter.append(looper.name)
                 outputPlotFileNamesForPlotter.append(looper.outputPlotFileName)
         else :
             for parent in self.parentDict :
                 sampleNamesForPlotter.append(parent)
                 iSomeLooper=self.parentDict[parent][0]
-                someLooper=self.looperList[iSomeLooper]
+                someLooper=self.listOfLoopers[iSomeLooper]
                 outputPlotFileNamesForPlotter.append(someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName))
         
         import plotter
@@ -74,7 +74,7 @@ class analysis :
         if isMc : listOfSteps=steps.removeStepsForMc(self.listOfSteps)
         else :    listOfSteps=steps.removeStepsForData(self.listOfSteps)
 
-        self.looperList.append(analysisLooper(self.fileDirectory,
+        self.listOfLoopers.append(analysisLooper(self.fileDirectory,
                                               self.treeName,
                                               self.hyphens,
                                               self.outputDir,
@@ -99,8 +99,8 @@ class analysis :
             sampleName=item[1]
 
             #find the associated looper
-            for iLooper in range(len(self.looperList)) :
-                looper=self.looperList[iLooper]
+            for iLooper in range(len(self.listOfLoopers)) :
+                looper=self.listOfLoopers[iLooper]
                 if sampleName==looper.name :
                     looperIndexDict[ptHatLowerThreshold]=iLooper
 
@@ -118,22 +118,22 @@ class analysis :
             if iItem<len(ptHatLowerThresholdsAndSampleNames)-1 :
                 nextPtHatLowerThreshold=ptHatLowerThresholdsAndSampleNames[iItem+1][0]
                 nextLooperIndex=looperIndexDict[nextPtHatLowerThreshold]
-                self.looperList[thisLooperIndex].xs-=self.looperList[nextLooperIndex].xs
+                self.listOfLoopers[thisLooperIndex].xs-=self.listOfLoopers[nextLooperIndex].xs
 
                 if useRejectionMethod :
-                    self.looperList[thisLooperIndex].needToConsiderPtHatThresholds=False
-                    steps.insertPtHatFilter(self.looperList[thisLooperIndex].steps,nextPtHatLowerThreshold)
+                    self.listOfLoopers[thisLooperIndex].needToConsiderPtHatThresholds=False
+                    steps.insertPtHatFilter(self.listOfLoopers[thisLooperIndex].steps,nextPtHatLowerThreshold)
 
             #inform relevant loopers of the ptHat thresholds
             for index in looperIndexDict.values() :
-                self.looperList[index].ptHatThresholds.append(float(thisPtHatLowerThreshold))
+                self.listOfLoopers[index].ptHatThresholds.append(float(thisPtHatLowerThreshold))
                 if not useRejectionMethod :
-                    self.looperList[index].needToConsiderPtHatThresholds=True
+                    self.listOfLoopers[index].needToConsiderPtHatThresholds=True
         return
     
     def splitUpLoopers(self) :
         outListOfLoopers=[]
-        for looper in self.looperList :
+        for looper in self.listOfLoopers :
             fileIndex=0
             for iFileName in range(len(looper.inputFiles)) :
                 outListOfLoopers.append(analysisLooper(self.fileDirectory,
@@ -151,12 +151,12 @@ class analysis :
                                                        )
                                         )
                 outListOfLoopers[-1].doSplitMode(looper.name)
-        self.looperList=outListOfLoopers
+        self.listOfLoopers=outListOfLoopers
 
-    def makeParentDict(self,looperList) :
+    def makeParentDict(self,listOfLoopers) :
         self.parentDict={}
-        for iLooper in range(len(looperList)) :
-            looper=looperList[iLooper]
+        for iLooper in range(len(listOfLoopers)) :
+            looper=listOfLoopers[iLooper]
             if looper.splitMode :
                 if looper.parentName in self.parentDict :
                     self.parentDict[looper.parentName].append(iLooper)
@@ -170,12 +170,12 @@ class analysis :
         looper.printStats()
         print self.hyphens
 
-    def mergeSplitOutput(self,looperList) :
+    def mergeSplitOutput(self,listOfLoopers) :
         #combine output
         for parent in self.parentDict :
             #print parent,parentDict[parent]
             iSomeLooper=self.parentDict[parent][0]
-            someLooper=looperList[iSomeLooper]
+            someLooper=listOfLoopers[iSomeLooper]
             outputPlotFileName=someLooper.outputPlotFileName.replace(someLooper.name,parent)
             inFileList=[]
             displayFileList=[]
@@ -183,10 +183,10 @@ class analysis :
             isFirstLooper=True
             for iLooper in self.parentDict[parent] :
                 #add the root file to hadd command
-                inFileList.append(looperList[iLooper].outputPlotFileName)
+                inFileList.append(listOfLoopers[iLooper].outputPlotFileName)
 
                 #read in the step data
-                stepDataFileName=os.path.expanduser(looperList[iLooper].outputStepDataFileName)
+                stepDataFileName=os.path.expanduser(listOfLoopers[iLooper].outputStepDataFileName)
                 stepDataFile=open(stepDataFileName)
                 stepDataList=cPickle.load(stepDataFile)
                 stepDataFile.close()
@@ -229,7 +229,7 @@ class analysis :
         if nCores>1 :
             from multiprocessing import Pool
             pool=Pool(processes=nCores)
-            pool.map(utils.goFunc,self.looperList)
+            pool.map(utils.goFunc,self.listOfLoopers)
         else :
-            map(utils.goFunc,self.looperList)
-        self.mergeSplitOutput(self.looperList)
+            map(utils.goFunc,self.listOfLoopers)
+        self.mergeSplitOutput(self.listOfLoopers)
