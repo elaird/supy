@@ -265,7 +265,6 @@ class cleanNJetAlphaProducer(analysisStep) :
     def setExtraVars(self,eventVars,nJetDeltaHt,nJetAlphaT) :
         eventVars["crock"][self.jetCollection+"nJetDeltaHt"+self.jetSuffix]=nJetDeltaHt
         eventVars["crock"][self.jetCollection+"nJetAlphaT" +self.jetSuffix]=nJetAlphaT
-        print "hi"
 #####################################
 class cleanDiJetAlphaProducer(analysisStep) :
     """cleanDiJetAlphaProducer"""
