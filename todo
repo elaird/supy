@@ -1,12 +1,12 @@
 Critical
 ---------
 * recipe for anyone to reproduce results in 5 minutes
-* lumi/run list of actually processed jobs (jsonMaker)
 * cross section in database
 
 Processing
 -----------
 photon plus jet mc sample
+skim MC
 
 Document
 ----------
@@ -26,7 +26,7 @@ Other
 * fix circle
 
 * keep lumiTree unskimmed
-* jsonMaker
+* lumi/run list of actually processed jobs (jsonMaker)
 * skimmer prefix and suffix
 * phase out crock
 
