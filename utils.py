@@ -121,7 +121,7 @@ def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
     if pruneList :   fileList=pruneCrabDuplicates(fileList,size)
     return fileList
 #####################################
-def fileListFromDisk(location,itemsToSkip=[],sizeThreshold=0,pruneList=False) :
+def fileListFromDisk(location,itemsToSkip=[],sizeThreshold=0) :
     fileList=[]
     cmd="ls -l "+location
     #print cmd
@@ -138,6 +138,5 @@ def fileListFromDisk(location,itemsToSkip=[],sizeThreshold=0,pruneList=False) :
             if item in fileName : acceptFile=False
         if acceptFile : fileList.append(location+"/"+fileName)
             
-    if pruneList :   fileList=pruneCrabDuplicates(fileList,size)
     return fileList
 #####################################        
