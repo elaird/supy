@@ -18,7 +18,7 @@ globalSetup(listOfSourceFiles=["pragmas.h","helpers.C"])
 class analysis :
     """base class for an analysis"""
     
-    def __init__(self,name="name",outputDir="/tmp/",listOfSteps=[],calculables=[],fileDirectory="susyTree",treeName="tree") :
+    def __init__(self,name="name",outputDir="/tmp/",listOfSteps=[],listOfCalculables=[],fileDirectory="susyTree",treeName="tree") :
         for arg in ["name","outputDir"] :
             exec("self."+arg+"="+arg)
 
@@ -27,7 +27,7 @@ class analysis :
         self.treeName=treeName
         
         self.listOfSteps=listOfSteps
-        self.calculables=calculables
+        self.listOfCalculables=listOfCalculables
         self.looperList=[]
         self.mergeRequestForPlotter={}
         
@@ -83,7 +83,7 @@ class analysis :
                                               nEvents,
                                               self.name,
                                               listOfSteps,
-                                              self.calculables,
+                                              self.listOfCalculables,
                                               xs,
                                               lumi)
                                )
@@ -145,7 +145,7 @@ class analysis :
                                                        looper.nEvents,
                                                        looper.outputPrefix,
                                                        copy.deepcopy(looper.steps),
-                                                       self.calculables,
+                                                       self.listOfCalculables,
                                                        looper.xs,
                                                        looper.lumi
                                                        )
