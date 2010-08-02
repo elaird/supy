@@ -17,7 +17,6 @@ def makeSteps() :
     leptonSuffix="Pat"
     #leptonSuffix="PF"
     
-    corrRatherThanUnCorr=True
     nCleanJets=2
     
     listOfSteps=[
@@ -32,25 +31,29 @@ def makeSteps() :
         
         steps.nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
         steps.nOtherJetEventFilter(jetCollection,jetSuffix,1),
-        steps.cleanJetPtHistogrammer(jetCollection,jetSuffix,True),
+        steps.cleanJetPtHistogrammer(jetCollection,jetSuffix),
         steps.hbheNoiseFilter(),
         steps.cleanJetHtMhtProducer(jetCollection,jetSuffix),
-        steps.cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,corrRatherThanUnCorr),
-        #steps.extraVariablePtGreaterFilter(100.0,jetCollection+"Mht"+jetSuffix),
+        steps.cleanJetHtMhtHistogrammer(jetCollection,jetSuffix),
+        #steps.crockVariablePtGreaterFilter(100.0,jetCollection+"Mht"+jetSuffix),
         
         steps.variableGreaterFilter(300.0,jetCollection+"SumPt"+jetSuffix),
         steps.cleanDiJetAlphaProducer(jetCollection,jetSuffix),
         steps.cleanNJetAlphaProducer(jetCollection,jetSuffix),
         steps.alphaHistogrammer(jetCollection,jetSuffix),
         
-        #steps.variableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
-        #steps.displayer(jetCollection,jetSuffix,metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/elaird1/tmp/",scale=200.0),
-        #steps.eventPrinter(),
-        #steps.jetPrinter(jetCollection,jetSuffix),
-        #steps.htMhtPrinter(jetCollection,jetSuffix),
-        #steps.nJetAlphaTPrinter(jetCollection,jetSuffix),
+        steps.crockVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
+        steps.displayer(jetCollection,jetSuffix,metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/elaird1/tmp/",scale=200.0),
+        steps.eventPrinter(),
+        steps.jetPrinter(jetCollection,jetSuffix),
+        steps.htMhtPrinter(jetCollection,jetSuffix),
+        steps.nJetAlphaTPrinter(jetCollection,jetSuffix),
         ]
     return listOfSteps
+
+#def dummy(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
+#    return []
+#utils.fileListFromSrmLs=dummy
 
 a=analysis.analysis(name="hadronicLook",
                     outputDir="/vols/cms02/elaird1/tmp/",
@@ -58,54 +61,76 @@ a=analysis.analysis(name="hadronicLook",
                     calculables=calculables.allDefaultCalculables()
                     )
 
+a.addSample(sampleName="JetMETTau.Run2010A",
+                listOfFileNames=utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/take2/JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn",pruneList=False,nMaxFiles=-1),
+                nEvents=-1,
+                lumi=0.120,#/pb
+                )
+
 a.addSample(sampleName="qcd_py_pt30",
                 listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/gouskos//ICF/automated/2010_06_24_18_09_51/",
-                                                        nMaxFiles=10),
-                nEvents=100,
+                                                        nMaxFiles=1),
+                nEvents=-1,
                 xs=6.041e+07#pb
                 )
 
 a.addSample(sampleName="qcd_py_pt80",
                 listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/gouskos//ICF/automated/2010_07_06_00_55_17/",
-                                                        nMaxFiles=10),
-                nEvents=100,
+                                                        nMaxFiles=1),
+                nEvents=-1,
                 xs=9.238e+05#pb
                 )
 
 a.addSample(sampleName="qcd_py_pt170",
                 listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/gouskos//ICF/automated/2010_07_06_01_33_23/",
-                                                        nMaxFiles=10),
-                nEvents=100,
+                                                        nMaxFiles=1),
+                nEvents=-1,
                 xs=2.547e+04#pb
                 )
 
-a.manageNonBinnedSamples(ptHatLowerThresholdsAndSampleNames=[(30,"qcd_py_pt30"),(80,"qcd_py_pt80"),(170,"qcd_py_pt170")])
+a.manageNonBinnedSamples(ptHatLowerThresholdsAndSampleNames=[(30,"qcd_py_pt30"),(80,"qcd_py_pt80"),(170,"qcd_py_pt170")])#,mergeIntoOnePlot=True,mergeName="qcd_py")
 
 a.addSample(sampleName="tt_tauola_mg",
-                listOfFileNames=utils.getCommandOutput2("ls /vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root | grep -v 4_2").split("\n")[:10],
-                nEvents=10,
+                listOfFileNames=utils.getCommandOutput2("ls /vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root | grep -v 4_2").split("\n")[:1],
+                nEvents=-1,
                 xs=95.0#pb
                 )
 
-#a.addSample(sampleName="lm0",
-#                listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bainbrid/ICF/automated/2010_07_16_12_54_00/LM0.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/",
-#                                                        nMaxFiles=6),
-#                nEvents=-1,
-#                xs=38.93#pb
-#                )
-#
-#a.addSample(sampleName="lm1",
-#                listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bainbrid/ICF/automated/2010_07_12_17_52_54/LM1.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/",
-#                                                        nMaxFiles=6),
-#                nEvents=-1,
-#                xs=4.888#pb
-#                )
-#
-#a.addSample(sampleName="JetMETTau.Run2010A",
-#                listOfFileNames=utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/take2/JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn",pruneList=False,nMaxFiles=-1),
-#                nEvents=-1,
-#                lumi=0.120,#/pb
-#                )
+a.addSample(sampleName="z_inv_mg",
+                listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/zph04/ICF/automated/2010_07_14_11_52_58/",
+                                                        itemsToSkip=["14_3.root"],
+                                                        nMaxFiles=-1),
+                nEvents=-1,
+                xs=4500.0#pb
+                )
+
+a.addSample(sampleName="z_jets_mg",
+                listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/jad/ICF/automated//2010_07_05_22_43_20/",
+                                                        nMaxFiles=1),
+                nEvents=100,
+                xs=2400.0#pb
+                )
+
+a.addSample(sampleName="w_jets_mg",
+                listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/jad/ICF/automated//2010_06_18_22_33_23/",
+                                                        nMaxFiles=-1),
+                nEvents=-1,
+                xs=24170.0#pb
+                )
+
+a.addSample(sampleName="lm0",
+                listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bainbrid/ICF/automated/2010_07_16_12_54_00/LM0.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/",
+                                                        nMaxFiles=1),
+                nEvents=-1,
+                xs=38.93#pb
+                )
+
+a.addSample(sampleName="lm1",
+                listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bainbrid/ICF/automated/2010_07_12_17_52_54/LM1.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/",
+                                                        nMaxFiles=1),
+                nEvents=-1,
+                xs=4.888#pb
+                )
 
 a.loop(nCores=1,
        splitJobsByInputFile=False
