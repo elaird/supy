@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import analysis,utils,calculables,steps
+import os,analysis,utils,steps,calculables,calculablesJet
 
 def makeSteps() :
     jetCollection="ak5Jet"
@@ -43,7 +43,7 @@ def makeSteps() :
         steps.alphaHistogrammer(jetCollection,jetSuffix),
         
         steps.crockVariableGreaterFilter(0.6,jetCollection+"nJetAlphaT"+jetSuffix),
-        steps.displayer(jetCollection,jetSuffix,metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/elaird1/tmp/",scale=200.0),
+        steps.displayer(jetCollection,jetSuffix,metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/%s/tmp/"%os.environ["USER"],scale=200.0),
         steps.eventPrinter(),
         steps.jetPrinter(jetCollection,jetSuffix),
         steps.htMhtPrinter(jetCollection,jetSuffix),
@@ -51,14 +51,22 @@ def makeSteps() :
         ]
     return listOfSteps
 
+def makeCalculables() :
+    jettypes = ["ak5Jet","ak5JetJPT","ak5JetPF"]
+    listOfCalculables = calculables.zeroArgs()
+    listOfCalculables += [ calculablesJet.indices( collection = col, suffix = "Pat", ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for col in jettypes]
+    listOfCalculables += [ calculablesJet.sumPt( collection = col, suffix = "Pat")                                                        for col in jettypes]
+
+    return listOfCalculables
+
 #def dummy(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
 #    return []
 #utils.fileListFromSrmLs=dummy
 
 a=analysis.analysis(name="hadronicLook",
-                    outputDir="/vols/cms02/elaird1/tmp/",
-                    listOfSteps=makeSteps(),
-                    calculables=calculables.allDefaultCalculables()
+                    outputDir="/vols/cms02/%s/tmp/"%os.environ["USER"],
+                    listOfSteps = makeSteps(),
+                    listOfCalculables = makeCalculables()
                     )
 
 a.addSample(sampleName="JetMETTau.Run2010A",
@@ -132,8 +140,8 @@ a.addSample(sampleName="lm1",
                 xs=4.888#pb
                 )
 
-a.loop(nCores=1,
-       splitJobsByInputFile=False
-       )
+a.loop( nCores = 1,
+        splitJobsByInputFile = False
+        )
 
 a.plot()
