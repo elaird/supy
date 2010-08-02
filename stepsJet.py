@@ -346,35 +346,22 @@ class mHtOverHtSelector(analysisStep) :
         value = mht/ht
         if (value<self.min or value>self.max) : return False
         return True
-#####################################
 class deltaPhiHistogrammer(analysisStep) :
     """deltaPhiHistogrammer"""
 
-    def __init__(self,jetCollection,jetSuffix) :
-        self.jetCollection = jetCollection
-        self.jetSuffix = jetSuffix
-
-    def bookHistos(self) :
-        bins=50
-        min=-4.0
-        max= 4.0
-        title=self.jetCollection+" deltaPhi01 "+self.jetSuffix
-        self.deltaPhi01_Histo=r.TH1D(title,";"+title+";events / bin",bins,min,max)
-
-        bins=20
-        min= 0.0
-        max=10.0
-        title=self.jetCollection+" deltaR01 "+self.jetSuffix
-        self.deltaR01_Histo=r.TH1D(title,";"+title+";events / bin",bins,min,max)
-
-        bins=50
-        min=-10.0
-        max= 10.0
-        title=self.jetCollection+" deltaEta01 "+self.jetSuffix
-        self.deltaEta01_Histo=r.TH1D(title,";"+title+";events / bin",bins,min,max)
+    def __init__(self,collection,suffix) :
+        self.cs = (collection,suffix)
         
     def uponAcceptance (self,eventVars) :
-        self.deltaPhi01_Histo.Fill(eventVars["crock"][self.jetCollection+"deltaPhi01"+self.jetSuffix])
-        self.deltaR01_Histo.Fill(  eventVars["crock"][self.jetCollection+"deltaR01"+self.jetSuffix])
-        self.deltaEta01_Histo.Fill(eventVars["crock"][self.jetCollection+"deltaEta01"+self.jetSuffix])
+        book = self.book(eventVars)
+
+        var = "%sdeltaPhi01%s"%self.cs
+        book.fill( eventVars["crock"][var], var, 50, -4.0, 4.0, title = var+";events / bin")
+
+        var = "%sdeltaR01%s"%self.cs
+        book.fill( eventVars["crock"][var], var, 20, 0.0, 10.0, title = var+";events / bin")
+
+        var = "%sdeltaEta01%s"%self.cs
+        book.fill( eventVars["crock"][var], var, 50, -10, 10.0, title = var+";events / bin")
+
 #####################################
