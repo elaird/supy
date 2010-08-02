@@ -1,6 +1,3 @@
-other mc samples
-all data in the bag
-
 Critical
 ---------
 * recipe for anyone to reproduce results in 5 minutes
@@ -12,6 +9,11 @@ Critical
 * lumi/run list of actually processed jobs (jsonMaker)
 * cross section in database
 
+Processing
+-----------
+other mc samples
+all data in the bag
+
 Document
 ----------
 * email spec for handling colliding CRAB results
@@ -22,7 +24,6 @@ Other
 --------
 * handle subdirectories of input file directories
 * organize files in cvs
-* skimmer 2,3 should raise exceptions
 * defer srmls until jobs runs
 
 * named arguments everywhere
@@ -31,8 +32,6 @@ Other
 * fix circle
 
 * clean up output files
-
-* option to skip computation of nEvents in TChain
 
 * keep lumiTree unskimmed
 * jsonMaker
