@@ -34,8 +34,6 @@ class analysisLooper :
         self.outputPlotFileName=self.outputDir+"/"+self.outputPrefix+"_"+self.name+"_plots.root"
         self.outputStepDataFileName=self.outputPlotFileName.replace(".root",".steps")
 
-        self.extraVariableContainer=eventVariableContainer()
-
     def go(self) :
         self.setupChain(self.inputFiles)
 
@@ -67,10 +65,8 @@ class analysisLooper :
         self.inputChain.IsA().Destructor( self.inputChain )
 
     def processEvent(self,eventVars) :
-        extraVars=self.extraVariableContainer
-        
         for step in self.steps :
-            if not step.go(eventVars,extraVars) : break
+            if not step.go(eventVars) : break
 
     def setupChain(self,inputFiles) :
         nFiles=len(inputFiles)
@@ -192,7 +188,4 @@ class analysisLooper :
         outFile=open(outFileName,"w")
         cPickle.dump(outList,outFile)
         outFile.close()
-#####################################
-class eventVariableContainer :
-    """holds the values of variables that are not in the tree"""
 #####################################

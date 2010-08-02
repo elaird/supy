@@ -3,14 +3,14 @@ import ROOT as r
 from analysisStep import analysisStep
 import utils
 #####################################
-class extraVarCalcDiff(analysisStep) :
-    """extraVarCalcDiff"""
+class crockVarCalcDiff(analysisStep) :
+    """crockVarCalcDiff"""
     def __init__(self,exV,calc) :
         self.exV = exV
         self.calc = calc
-        moreName = "(Checking that extraVars == calculable, %s,%s)",(exV,calc)
-    def uponAcceptance(self,eventVars,extraVars) :
-        print  getattr(extraVars,self.exV), eventVars[self.calc]
+        moreName = "(Checking that crockVars == calculable, %s,%s)",(exV,calc)
+    def uponAcceptance(self,eventVars) :
+        print  eventVars["crock"][self.exV], eventVars[self.calc]
 
 class skimmer(analysisStep) :
     #special __doc__ assignment below
@@ -44,7 +44,7 @@ class skimmer(analysisStep) :
 
         r.gROOT.cd()
 
-    def select(self,eventVars,extraVars) :
+    def select(self,eventVars) :
         #read all the data for this event
         if eventVars["chain"].GetEntry(eventVars["entry"],1)<=0 :
             return False #skip this event in case of i/o error
@@ -53,36 +53,36 @@ class skimmer(analysisStep) :
         
         #optionally fill an extra tree
         if self.alsoWriteExtraTree :
-            if not self.outputTreeExtraIsSetup : self.setupExtraTree(extraVars)
-            self.fillExtraVariables(extraVars)
+            if not self.outputTreeExtraIsSetup : self.setupExtraTree(eventVars)
+            self.fillExtraVariables(eventVars)
             self.outputTreeExtra.Fill()
             
         return True
 
-    def setupExtraTree(self,extraVars) :
-        extraVarsCopy=copy.deepcopy(extraVars)
-        branchNameList=dir(extraVarsCopy)
+    def setupExtraTree(self,eventVars) :
+        crockCopy=copy.deepcopy(eventVars["crock"])
+        branchNameList=dir(crockCopy)
         skipList=['__doc__','__init__','__module__']
 
         #set up remaining suitable branches as doubles
         for branchName in branchNameList :
             if (branchName in skipList) : continue
 
-            thisType=type(getattr(extraVars,branchName))
+            thisType=type(eventVars["crock"][branchName])
             if (thisType in self.supportedBuiltInTypes) :
                 self.arrayDictionary[branchName]=array.array('d',[0.0])
                 self.outputTreeExtra.Branch(branchName,self.arrayDictionary[branchName],branchName+"/D")
             elif (thisType in self.supportedOtherTypes) :
-                self.outputTreeExtra.Branch(branchName,getattr(extraVars,branchName))                
+                self.outputTreeExtra.Branch(branchName,eventVars["crock"][branchName])
             else :
                 #print "The variable \""+branchName+"\" has been rejected from the extra tree."
                 continue
             
         self.outputTreeExtraIsSetup=True
 
-    def fillExtraVariables(self,extraVars) :
+    def fillExtraVariables(self,eventVars) :
         for key in self.arrayDictionary :
-            self.arrayDictionary[key][0]=getattr(extraVars,key)
+            self.arrayDictionary[key][0]=eventVars["crock"][key]
         
     def endFunc(self,chain,hyphens,nEvents,xs) :
         print hyphens
@@ -98,141 +98,10 @@ class skimmer(analysisStep) :
         if nEvents>0 : effXs=(xs+0.0)*self.nPass/nEvents
         print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",effXs
 #####################################
-class skimmer2(analysisStep) :
-    """skimmer2"""
-    
-    def __init__(self,outputDir,alsoWriteExtraTree=False) :
-        self.outputDir=outputDir
-        self.moreName="(see below)"
-        self.alsoWriteExtraTree=alsoWriteExtraTree
-        self.outputTreeExtraIsSetup=False
-
-    def setup(self,chain,fileDir,name) :
-        self.eventList=r.TEventList("eventList")
-        self.eventList.SetDirectory(chain.GetDirectory())
-        
-        self.fileDir=fileDir
-        self.outputFileName=self.outputDir+"/"+name+"_skim.root"
-        self.outputFile=r.TFile(self.outputFileName,"RECREATE")
-        self.outputFile.mkdir(self.fileDir)
-        self.outputFile.cd(self.fileDir)
-
-        if self.alsoWriteExtraTree :
-            self.arrayDictionary={}
-            self.supportedBuiltInTypes=[type(True),type(0),type(0L),type(0.0)]
-            self.supportedOtherTypes=[type(r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0))]
-            
-            extraName=chain.GetName()+"Extra"
-            self.outputTreeExtra=r.TTree(extraName,extraName)
-            self.outputTreeExtra.SetDirectory(r.gDirectory)
-
-        r.gROOT.cd()
-
-    def uponAcceptance(self,eventVars,extraVars) :
-        self.eventList.Enter(eventVars["entry"])
-
-        #optionally fill an extra tree
-        if self.alsoWriteExtraTree :
-            if not self.outputTreeExtraIsSetup : self.setupExtraTree(extraVars)
-            self.fillExtraVariables(extraVars)
-            self.outputTreeExtra.Fill()
-
-    def setupExtraTree(self,extraVars) :
-        extraVarsCopy=copy.deepcopy(extraVars)
-        branchNameList=dir(extraVarsCopy)
-        skipList=['__doc__','__init__','__module__']
-
-        #set up remaining suitable branches as doubles
-        for branchName in branchNameList :
-            if (branchName in skipList) : continue
-
-            thisType=type(getattr(extraVars,branchName))
-            if (thisType in self.supportedBuiltInTypes) :
-                self.arrayDictionary[branchName]=array.array('d',[0.0])
-                self.outputTreeExtra.Branch(branchName,self.arrayDictionary[branchName],branchName+"/D")
-            elif (thisType in self.supportedOtherTypes) :
-                self.outputTreeExtra.Branch(branchName,getattr(extraVars,branchName))                
-            else :
-                #print "The variable \""+branchName+"\" has been rejected from the extra tree."
-                continue
-            
-        self.outputTreeExtraIsSetup=True
-
-    def fillExtraVariables(self,extraVars) :
-        for key in self.arrayDictionary :
-            self.arrayDictionary[key][0]=getattr(extraVars,key)
-        
-    def endFunc(self,chain,hyphens,nEvents,xs) :
-        print hyphens
-        self.eventList.Print("all")
-        chain.SetEventList(self.eventList)
-        self.outputFile.cd(self.fileDir)
-
-        print "writing skim file..."
-        tree=chain.CopyTree("")
-        tree.Write()
-        if self.alsoWriteExtraTree :
-            self.outputTreeExtra.Write()
-
-        self.outputFile.Close()
-        print "The skim file \""+self.outputFileName+"\" has been written."
-        effXs=0.0
-        if nEvents>0 : effXs=(xs+0.0)*self.nPass/nEvents
-        print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",effXs
-#####################################
-class skimmer3(analysisStep) :
-    """skimmer3"""
-    
-    def __init__(self,outputDir) :
-        self.outputDir=outputDir
-        self.moreName="(see below)"
-
-    def setup(self,chain,fileDir,name) :
-        self.eventLists=[ r.TEventList("eventList%d"%iTree) for iTree in range(chain.GetNtrees()) ]
-        
-        self.fileDir=fileDir
-        self.outName=name
-
-    def uponAcceptance(self,eventVars,extraVars) :
-        self.eventLists[eventVars["chain"].GetTreeNumber()].Enter(eventVars["localEntry"])
-
-    def endFunc(self,inChain,hyphens,nEvents,xs) :
-        #for eventList in self.eventLists :
-        #    eventList.Print("all")
-        chain=inChain.Clone("newChain")
-        iTreeFirstEntry = 0
-        for iTree in range(chain.GetNtrees()) :
-            chain.LoadTree(iTreeFirstEntry)
-            if iTree!=chain.GetTreeNumber() : continue
-
-            inTree=chain.GetTree()
-            nEntries=inTree.GetEntries()
-            iTreeFirstEntry+=nEntries
-
-            #make and output file for this tree
-            outputFileName=self.outputDir+"/"+self.outName+"_skim_"+str(iTree)+".root"
-            print hyphens
-            print "writing skim file",outputFileName
-            self.outputFile=r.TFile(outputFileName,"RECREATE")
-            self.outputFile.mkdir(self.fileDir).cd()
-
-            #make a skimmed tree
-            inTree.SetEventList(self.eventLists[iTree])
-            tree=inTree.CopyTree("")
-            #r.gDirectory.pwd()
-            tree.SetDirectory(r.gDirectory)
-            tree.Write()
-            self.outputFile.Close()
-
-            #effXs=0.0
-            #if nEvents>0 : effXs=(xs+0.0)*self.nPass/nEvents
-            #print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",effXs
-        del chain
-#####################################
 class hbheNoiseFilter(analysisStep) :
     """hbheNoiseFilter"""
 
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         return eventVars["hbheNoiseFilterResult"]
 #####################################
 class variableGreaterFilter(analysisStep) :
@@ -243,8 +112,19 @@ class variableGreaterFilter(analysisStep) :
         self.variable = variable
         self.moreName = "(%s>=%.1f)" % (variable,threshold)
 
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         return eventVars[self.variable]>=self.threshold
+#####################################
+class crockVariableGreaterFilter(analysisStep) :
+    """crockVariableGreaterFilter"""
+
+    def __init__(self,threshold,variable):
+        self.threshold = threshold
+        self.variable = variable
+        self.moreName = "(%s>=%.1f)" % (variable,threshold)
+
+    def select (self,eventVars) :
+        return eventVars["crock"][self.variable]>=self.threshold
 #####################################
 class variablePtGreaterFilter(analysisStep) :
     """variablePtGreaterFilter"""
@@ -254,8 +134,19 @@ class variablePtGreaterFilter(analysisStep) :
         self.variable = variable
         self.moreName = "(%s>=%.1f)" % (variable,threshold)
 
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         return eventVars[self.variable].pt()>=self.threshold
+#####################################
+class crockVariablePtGreaterFilter(analysisStep) :
+    """crockVariablePtGreaterFilter"""
+
+    def __init__(self,threshold,variable):
+        self.threshold = threshold
+        self.variable = variable
+        self.moreName = "(%s>=%.1f)" % (variable,threshold)
+
+    def select (self,eventVars) :
+        return eventVars["crock"][self.variable].pt()>=self.threshold
 #####################################
 class objectPtVetoer(analysisStep) :
     """objectPtVetoer"""
@@ -266,7 +157,7 @@ class objectPtVetoer(analysisStep) :
         self.varName = collection + p4String + suffix
         self.moreName = "(%s; %s; corr. pT[%d]< %.1f GeV)" % (collection, suffix, index, ptThreshold )
 
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         p4s = eventVars[self.varName]
         if p4s.size() <= self.index : return True
         return p4s.at(self.index).pt() < self.ptThreshold
@@ -278,7 +169,7 @@ class objectPtVetoer(analysisStep) :
 #        title=";#eta;events / bin"
 #        self.etaRejected=r.TH1D(self.objectCollection+"Eta"+self.objectSuffix,title,nBins,etaMin,etaMax)
 
-#    def uponRejection(self,eventVars,extraVars) :
+#    def uponRejection(self,eventVars) :
 #        p4Vector=eventVars[self.objectCollection+self.objectP4String+self.objectSuffix]
 #        self.etaRejected.Fill(p4Vector[self.objectIndex].eta())
 #####################################
@@ -290,7 +181,7 @@ class soloObjectPtSelector(analysisStep) :
         self.varName = collection + p4String + suffix        
         self.moreName = "(%s; %s; corr. pT> %.1f GeV)" % (collection, suffix, ptThreshold )
 
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         return self.ptThreshold <= eventVars[self.varName].pt()
 #####################################
 class vertexRequirementFilterOld(analysisStep) :
@@ -303,7 +194,7 @@ class vertexRequirementFilterOld(analysisStep) :
 
         self.moreName = "(>=%d ve.tr.; chi2/ndf<%.1f; abs(z)<%.1f)" % (minVertexNtracks, maxVertexChi2Ndf, maxVertexZ )
 
-    def select(self,eventVars,extraVars) :
+    def select(self,eventVars) :
         pos = eventVars["vertexPosition"]
         for i in range(pos.size()) :
             if eventVars["vertexNtrks"].at(i) >= self.minVertexNtracks and \
@@ -321,7 +212,7 @@ class vertexRequirementFilter(analysisStep) :
         self.maxVertexZ = maxVertexZ
         self.moreName = "(any v: !fake; ndf>=%.1f;abs(z)<%.1f)" % (minVertexNdof,maxVertexZ)
 
-    def select(self,eventVars,extraVars) :
+    def select(self,eventVars) :
         fake,ndof,pos = eventVars["vertexIsFake"], eventVars["vertexNdof"], eventVars["vertexPosition"]
         
         for i in range(pos.size()) :
@@ -340,7 +231,7 @@ class monsterEventFilter(analysisStep) :
 
         self.moreName = "(<=%d tracks or >%.1f good fraction)" % (maxNumTracks, minGoodTrackFraction)
 
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         nTracks    = eventVars["tracksNEtaLT0p9AllTracks"] + eventVars["tracksNEta0p9to1p5AllTracks"] + eventVars["tracksNEtaGT1p5AllTracks"]
         nGoodTracks = eventVars["tracksNEtaLT0p9HighPurityTracks"] + eventVars["tracksNEta0p9to1p5HighPurityTracks"] + eventVars["tracksNEtaGT1p5HighPurityTracks"]
         return (nTracks <= self.maxNumTracks or nGoodTracks > self.minGoodTrackFraction*nTracks)
@@ -352,7 +243,7 @@ class touchstuff(analysisStep) :
         self.stuff = stuff
         self.moreName = "touch all in %s" % str(stuff)
         
-    def uponAcceptance(self,eventVars,extraVars) :
+    def uponAcceptance(self,eventVars) :
         for s in self.stuff : eventVars[s]
 #####################################
 class runNumberFilter(analysisStep) :
@@ -364,7 +255,7 @@ class runNumberFilter(analysisStep) :
 
         self.moreName = "run%s in list %s" % ( ("" if self.accept else " not"),str(runList) )
         
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         return not ((eventVars["run"] in self.runList) ^ self.accept)
 
 #####################################
@@ -433,7 +324,7 @@ class goodRunsOnly2009(analysisStep) :
         for tuple in self.runLsList :
             self.runDict[tuple[0]]=[tuple[1],tuple[2]]
         
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         if eventVars["run"] not in self.runDict : return False
         ls = eventVars["lumiSection"]
         if ls < self.runDict[run][0] or \
@@ -447,7 +338,7 @@ class runHistogrammer(analysisStep) :
     def __init__(self) :
         self.runDict={}
         
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         run = eventVars["run"]
         if run in self.runDict :
             self.runDict[run] += 1
@@ -481,8 +372,8 @@ class metGroupNoiseEventFilter(analysisStep) :
             self.setOfBadTuples.add( (run,ls,event) )
         inFile.close()
         
-    def select (self,e,extraVars) :
-        return  (e["run"],e["lumiSection"],e["event"])   not in   self.setOfBadTuples
+    def select (self,eventVars) :
+        return  (eventVars["run"],eventVars["lumiSection"],eventVars["event"])   not in   self.setOfBadTuples
 #####################################
 class bxFilter(analysisStep) :
     """bxFilter"""
@@ -491,13 +382,13 @@ class bxFilter(analysisStep) :
         self.bxList = bxList
         self.moreName = "[%s]" % ",".join(bxList)
 
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         return eventVars["bunch"] in self.bxList
 #####################################
 class displayer(analysisStep) :
     #special __doc__ assignment below
     
-    def __init__(self,jetCollection="",jetSuffix="",metCollection="",metSuffix="",leptonSuffix="",genJetCollection="",outputDir="",scale=200.0,fakerMode=False) :
+    def __init__(self,jetCollection="",jetSuffix="",metCollection="",metSuffix="",leptonSuffix="",genJetCollection="",outputDir="",scale=200.0) :
         self.__doc__=self.displayerStepName
         self.outputDir=outputDir
         self.moreName="(see below)"
@@ -509,8 +400,6 @@ class displayer(analysisStep) :
         self.leptonSuffix=leptonSuffix
         self.genJetCollection=genJetCollection
         
-        self.fakerMode=fakerMode
-
         self.doGen=False
         self.doLeptons=True
 
@@ -568,15 +457,15 @@ class displayer(analysisStep) :
             utils.psFromRoot([self.outputFileName],psFileName,self.quietMode)
         del self.canvas
 
-    def drawEventInfo(self,eventVars,extraVars,color) :
+    def drawEventInfo(self,eventVars,color) :
         self.text.SetTextSize(0.02)
         self.text.SetTextFont(80)
         self.text.SetTextColor(color)
         x=0.1
         self.text.DrawText(x,0.80,"Run   %#10d"%eventVars["run"])
-        if (not self.fakerMode) : self.text.DrawText(x,0.78,"Ls    %#10d"%eventVars["lumiSection"])
+        self.text.DrawText(x,0.78,"Ls    %#10d"%eventVars["lumiSection"])
         self.text.DrawText(x,0.76,"Event %#10d"%eventVars["event"])
-        if (not self.fakerMode) : self.text.DrawText(x,0.74,"Bx    %#10d"%eventVars["bunch"])
+        self.text.DrawText(x,0.74,"Bx    %#10d"%eventVars["bunch"])
         
     def drawSkeleton(self,color) :
         #self.canvas.cd(2)
@@ -610,7 +499,7 @@ class displayer(analysisStep) :
         self.arrow.SetFillColor(color)
         self.arrow.DrawArrow(self.x0,self.y0,x1,y1)
         
-    def drawGenJets (self,eventVars,extraVars,color,lineWidth,arrowSize) :
+    def drawGenJets (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"genJetEntryInLegend")) :
             self.genJetEntryInLegend=True
@@ -621,44 +510,36 @@ class displayer(analysisStep) :
         for jet in p4Vector :
             self.drawP4(jet,color,lineWidth,arrowSize)
             
-    def drawCleanJets (self,eventVars,extraVars,color,lineWidth,arrowSize) :
+    def drawCleanJets (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if (not hasattr(self,"cleanJetEntryInLegend")) :
+        if not hasattr(self,"cleanJetEntryInLegend") :
             self.cleanJetEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"clean jets ("+self.jetCollection+")","l")
 
-        if (not self.fakerMode) :
-            p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
-            cleanJetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]["clean"]
-            for iJet in cleanJetIndices :
-                self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
-        else :
-            for jet in extraVars.icfCleanJets :
-                self.drawP4(jet,color,lineWidth,arrowSize)
+        p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
+        cleanJetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]["clean"]
+        for iJet in cleanJetIndices :
+            self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
-    def drawOtherJets (self,eventVars,extraVars,color,lineWidth,arrowSize) :
+    def drawOtherJets (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"otherJetEntryInLegend")) :
             self.otherJetEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"\"other\" jets","l")
 
-        if (self.fakerMode) : return
-
         p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
         otherJetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]["other"]
         for index in otherJetIndices :
             self.drawP4(p4Vector[index],color,lineWidth,arrowSize)
             
-    def drawLowPtJets (self,eventVars,extraVars,color,lineWidth,arrowSize) :
+    def drawLowPtJets (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"lowPtJetEntryInLegend")) :
             self.lowPtJetEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"low p_{T} jets ("+self.jetCollection+")","l")
-
-        if (self.fakerMode) : return
 
         p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
         cleanJetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]["clean"]
@@ -668,17 +549,17 @@ class displayer(analysisStep) :
             if (iJet in otherJetIndices) : continue
             self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
-    def drawMht (self,eventVars,extraVars,color,lineWidth,arrowSize) :
+    def drawMht (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"mhtEntryInLegend")) :
             self.mhtEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"#slashH_{T} ("+self.jetCollection+")","l")
 
-        mht=getattr(extraVars,self.jetCollection+"Mht"+self.jetSuffix)
+        mht=eventVars["crock"][self.jetCollection+"Mht"+self.jetSuffix]
         self.drawP4(mht,color,lineWidth,arrowSize)
             
-    def drawHt (self,eventVars,extraVars,color,lineWidth,arrowSize) :
+    def drawHt (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"htEntryInLegend")) :
             self.htEntryInLegend=True
@@ -692,21 +573,21 @@ class displayer(analysisStep) :
         self.line.SetLineColor(color)
         self.line.DrawLine(self.x0-l/2.0,y,self.x0+l/2.0,y)
         
-    def drawNJetDeltaHt (self,eventVars,extraVars,color,lineWidth,arrowSize) :
+    def drawNJetDeltaHt (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"deltaHtEntryInLegend")) :
             self.deltaHtEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"#DeltaH_{T} ("+self.jetCollection+")","l")
 
-        deltaHt=getattr(extraVars,self.jetCollection+"nJetDeltaHt"+self.jetSuffix)
+        deltaHt=eventVars["crock"][self.jetCollection+"nJetDeltaHt"+self.jetSuffix]
         y=self.y0-self.radius-0.03
         l=deltaHt*self.radius/self.scale
         self.line.SetLineColor(color)
         self.line.DrawLine(self.x0-l/2.0,y,self.x0+l/2.0,y)
 
 
-    def drawMet (self,eventVars,extraVars,color,lineWidth,arrowSize) :
+    def drawMet (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"metEntryInLegend")) :
             self.metEntryInLegend=True
@@ -716,7 +597,7 @@ class displayer(analysisStep) :
         met=eventVars[self.metCollection+"P4"+self.metSuffix]
         self.drawP4(met,color,lineWidth,arrowSize)
             
-    def drawGenMet (self,eventVars,extraVars,color,lineWidth,arrowSize) :
+    def drawGenMet (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"genMetEntryInLegend")) :
             self.genMetEntryInLegend=True
@@ -726,29 +607,27 @@ class displayer(analysisStep) :
         genMet=eventVars[self.metCollection+"GenMetP4"+self.metSuffix]
         self.drawP4(genMet,color,lineWidth,arrowSize)
             
-    def drawMuons (self,eventVars,extraVars,color,lineWidth,arrowSize) :
+    def drawMuons (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"muonEntryInLegend")) :
             self.muonEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"muons ("+self.muonSuffix+")","l")
-        if (self.fakerMode) : return
         p4Vector=eventVars[self.muonCollection+'P4'+self.muonSuffix]
         for iJet in range(len(p4Vector)) :
             self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
-    def drawElectrons (self,eventVars,extraVars,color,lineWidth,arrowSize) :
+    def drawElectrons (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"electronEntryInLegend")) :
             self.electronEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"electrons ("+self.electronSuffix+")","l")
-        if (self.fakerMode) : return
         p4Vector=eventVars[self.electronCollection+'P4'+self.electronSuffix]
         for iJet in range(len(p4Vector)) :
             self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
-    def drawPhotons (self,eventVars,extraVars,color,lineWidth,arrowSize) :
+    def drawPhotons (self,eventVars,color,lineWidth,arrowSize) :
         #temporary hack
         if self.leptonSuffix=="PF" : return
 
@@ -757,23 +636,21 @@ class displayer(analysisStep) :
             self.photonEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"photons ("+self.photonSuffix+")","l")
-        if (self.fakerMode) : return
         p4Vector=eventVars[self.photonCollection+'P4'+self.photonSuffix]
         for iJet in range(len(p4Vector)) :
             self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
-    def drawTaus (self,eventVars,extraVars,color,lineWidth,arrowSize) :
+    def drawTaus (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"tauEntryInLegend")) :
             self.tauEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"taus ("+self.tauSuffix+")","l")
-        if (self.fakerMode) : return
         p4Vector=eventVars[self.tauCollection+'P4'+self.tauSuffix]
         for iJet in range(len(p4Vector)) :
             self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
-    def drawCleanedRecHits (self,eventVars,extraVars,color,lineWidth,arrowSize) :
+    def drawCleanedRecHits (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"cleantedRecHitEntryInLegend")) :
             self.cleanedRecHitEntryInLegend=True
@@ -795,7 +672,7 @@ class displayer(analysisStep) :
         alphaTFunc.SetNpx(300)
         return alphaTFunc
 
-    def drawAlphaPlot (self,eventVars,extraVars,color) :
+    def drawAlphaPlot (self,eventVars,color) :
         stuffToKeep=[]
         pad=r.TPad("pad","pad",0.01+2.0*self.radius,0.01+self.radius,0.95,0.63)
         pad.cd()
@@ -803,10 +680,10 @@ class displayer(analysisStep) :
         title=";#slashH_{T}/H_{T};#DeltaH_{T}/H_{T}"
         alphaHisto=r.TH2D("alphaHisto",title,100,0.0,1.0,100,0.0,0.7)
 
-        mht=getattr(extraVars,self.jetCollection+"Mht"+self.jetSuffix).pt()
+        mht=eventVars["crock"][self.jetCollection+"Mht"+self.jetSuffix].pt()
         ht = eventVars[self.jetCollection+"SumPt"+self.jetSuffix]
-        deltaHt=getattr(extraVars,self.jetCollection+"nJetDeltaHt"+self.jetSuffix)
-        alphaT=getattr(extraVars,self.jetCollection+"nJetAlphaT"+self.jetSuffix)
+        deltaHt=eventVars["crock"][self.jetCollection+"nJetDeltaHt"+self.jetSuffix]
+        alphaT=eventVars["crock"][self.jetCollection+"nJetAlphaT"+self.jetSuffix]
         
         alphaHisto.Fill(mht/ht,deltaHt/ht)
         alphaHisto.SetStats(False)
@@ -833,17 +710,17 @@ class displayer(analysisStep) :
         for i in range(len(mhts)) :
             histo.Fill(lls[i],mhts[i])
         
-    def drawMhtLlPlot (self,eventVars,extraVars,color) :
+    def drawMhtLlPlot (self,eventVars,color) :
         stuffToKeep=[]
         pad=r.TPad("pad","pad",self.x0+0.37*self.radius,0.63,0.95,0.95)
         pad.cd()
         pad.SetLeftMargin(0.3)
         pad.SetRightMargin(0.15)
 
-        mets=getattr(extraVars,self.jetCollection+"mets"+self.jetSuffix)
-        mhts=getattr(extraVars,self.jetCollection+"mhts"+self.jetSuffix)
-        lls=getattr(extraVars,self.jetCollection+"lls"+self.jetSuffix)
-        nVariedJets=getattr(extraVars,self.jetCollection+"nVariedJets"+self.jetSuffix)
+        mets=eventVars["crock"][self.jetCollection+"mets"+self.jetSuffix]
+        mhts=eventVars["crock"][self.jetCollection+"mhts"+self.jetSuffix]
+        lls=eventVars["crock"][self.jetCollection+"lls"+self.jetSuffix]
+        nVariedJets=eventVars["crock"][self.jetCollection+"nVariedJets"+self.jetSuffix]
         
         self.mhtLlHisto.Reset()
         self.metLlHisto.Reset()
@@ -879,39 +756,39 @@ class displayer(analysisStep) :
         pad.Draw()
         return stuffToKeep
         
-    def uponAcceptance (self,eventVars,extraVars) :
+    def uponAcceptance (self,eventVars) :
         self.canvas.Clear()
 
         g1=self.drawSkeleton(r.kYellow+1)
-        self.drawEventInfo  (eventVars,extraVars,r.kBlack)
+        self.drawEventInfo  (eventVars,r.kBlack)
 
         defArrowSize=0.5*self.arrow.GetDefaultArrowSize()
         defWidth=1
         #                                        color     , width   , arrow size
 
         if self.doGen :
-            self.drawGenJets    (eventVars,extraVars,r.kBlack  , defWidth, defArrowSize      )
-        self.drawCleanJets      (eventVars,extraVars,r.kBlue   , defWidth, defArrowSize*2/3.0)
-        self.drawLowPtJets      (eventVars,extraVars,r.kCyan   , defWidth, defArrowSize*1/6.0)
-        #self.drawOtherJets      (eventVars,extraVars,r.kBlack  )
-        self.drawHt             (eventVars,extraVars,r.kBlue+3 , defWidth, defArrowSize*1/6.0)
-        self.drawNJetDeltaHt    (eventVars,extraVars,r.kBlue-9 , defWidth, defArrowSize*1/6.0)
-        self.drawMht            (eventVars,extraVars,r.kRed    , defWidth, defArrowSize*3/6.0)
-        self.drawMet            (eventVars,extraVars,r.kGreen  , defWidth, defArrowSize*2/6.0)
-        #self.drawCleanedRecHits (eventVars,extraVars,r.kBrown  , defWidth, defArrowSize*2/6.0)
-        if (self.doGen) : self.drawGenMet     (eventVars,extraVars,r.kMagenta, defWidth, defArrowSize*2/6.0)
+            self.drawGenJets    (eventVars,r.kBlack  , defWidth, defArrowSize      )
+        self.drawCleanJets      (eventVars,r.kBlue   , defWidth, defArrowSize*2/3.0)
+        self.drawLowPtJets      (eventVars,r.kCyan   , defWidth, defArrowSize*1/6.0)
+        #self.drawOtherJets      (eventVars,r.kBlack  )
+        self.drawHt             (eventVars,r.kBlue+3 , defWidth, defArrowSize*1/6.0)
+        self.drawNJetDeltaHt    (eventVars,r.kBlue-9 , defWidth, defArrowSize*1/6.0)
+        self.drawMht            (eventVars,r.kRed    , defWidth, defArrowSize*3/6.0)
+        self.drawMet            (eventVars,r.kGreen  , defWidth, defArrowSize*2/6.0)
+        #self.drawCleanedRecHits (eventVars,r.kBrown  , defWidth, defArrowSize*2/6.0)
+        if (self.doGen) : self.drawGenMet     (eventVars,r.kMagenta, defWidth, defArrowSize*2/6.0)
 
         if (self.doLeptons) :
-            self.drawMuons      (eventVars,extraVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
-            self.drawElectrons  (eventVars,extraVars,r.kOrange+7, defWidth, defArrowSize*2/6.0)
-            self.drawPhotons    (eventVars,extraVars,r.kOrange  , defWidth, defArrowSize*2/6.0)
-            #self.drawTaus       (eventVars,extraVars,r.kYellow , defWidth, defArrowSize*2/6.0)
+            self.drawMuons      (eventVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
+            self.drawElectrons  (eventVars,r.kOrange+7, defWidth, defArrowSize*2/6.0)
+            self.drawPhotons    (eventVars,r.kOrange  , defWidth, defArrowSize*2/6.0)
+            #self.drawTaus       (eventVars,r.kYellow , defWidth, defArrowSize*2/6.0)
 
         self.legend.Draw("same")        
-        g2=self.drawAlphaPlot(eventVars,extraVars,r.kBlack)
+        g2=self.drawAlphaPlot(eventVars,r.kBlack)
         
         r.gStyle.SetOptStat(110011)
-        #g3=self.drawMhtLlPlot(eventVars,extraVars,r.kBlack)
+        #g3=self.drawMhtLlPlot(eventVars,r.kBlack)
 
         someDir=r.gDirectory
         self.outputFile.cd()
@@ -928,7 +805,7 @@ class counter(analysisStep) :
     def bookHistos(self) :
         self.countsHisto = r.TH1D("countsHisto_"+self.label,";dummy axis;number of events",1,-0.5,0.5)
 
-    def uponAcceptance(self,eventVars,extraVars) :
+    def uponAcceptance(self,eventVars) :
         self.countsHisto.Fill(0.0)
 #####################################
 class pickEventSpecMaker(analysisStep) :
@@ -941,7 +818,7 @@ class pickEventSpecMaker(analysisStep) :
     def bookHistos(self) :
         self.outputFile = open(self.outputFileName,"w")
         
-    def uponAcceptance(self,eventVars,extraVars) :
+    def uponAcceptance(self,eventVars) :
         line=""
         line+="%14d"%eventVars["run"]
         line+="%14d"%eventVars["event"]
@@ -961,6 +838,6 @@ class pickEventSpecMaker(analysisStep) :
 #        nBx=3564+1 #one extra in case count from 1
 #        self.bxHisto=r.TH1D("bx",";bx of event;events / bin",nBx,-0.5,nBx-0.5)
 #
-#    def uponAcceptance(self,eventVars,extraVars) :
+#    def uponAcceptance(self,eventVars) :
 #        self.bxHisto.Fill(eventVars["bunch"])
 #####################################

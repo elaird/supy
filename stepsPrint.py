@@ -13,7 +13,7 @@ class progressPrinter(analysisStep) :
         self.moreName+=str(self.factor)+","
         self.moreName+=str(self.cut)+")"
 
-    def uponAcceptance (self,eventVars,extraVars) :
+    def uponAcceptance (self,eventVars) :
         if (self.nTotal==self.num) :
             self.num=self.factor*self.num
             toPrint="event "+str(self.nTotal).rjust(self.integerWidth," ")
@@ -29,7 +29,7 @@ class printstuff(analysisStep) :
         self.moreName = "print all in %s" % str(stuff)
         print '\t'.join(stuff)
         
-    def uponAcceptance(self,eventVars,extraVars) :
+    def uponAcceptance(self,eventVars) :
         print '\t'.join([str(eventVars[s]) for s in self.stuff])
 #####################################
 class eventPrinter(analysisStep) :
@@ -38,7 +38,7 @@ class eventPrinter(analysisStep) :
     def __init__(self) :
         self.nHyphens=56
 
-    def uponAcceptance(self,eventVars,extraVars) :
+    def uponAcceptance(self,eventVars) :
         print
         print "".ljust(self.nHyphens,"-")
         outString ="run %7d"%eventVars["run"]
@@ -59,7 +59,7 @@ class jetPrinter(analysisStep) :
         self.moreName+=self.jetSuffix
         self.moreName+=")"
 
-    def uponAcceptance (self,eventVars,extraVars) :
+    def uponAcceptance (self,eventVars) :
         p4Vector        =eventVars[self.jetCollection+'CorrectedP4'     +self.jetSuffix]
         corrFactorVector=eventVars[self.jetCollection+'CorrFactor'      +self.jetSuffix]
         jetEmfVector    =eventVars[self.jetCollection+'EmEnergyFraction'+self.jetSuffix]
@@ -95,9 +95,9 @@ class htMhtPrinter(analysisStep) :
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
         
-    def uponAcceptance(self,eventVars,extraVars) :
-        outString ="HT %#6.1f GeV"   %getattr(extraVars,self.jetCollection+"Ht"+self.jetSuffix)
-        outString+="; MHT %#6.1f GeV"%getattr(extraVars,self.jetCollection+"Mht"+self.jetSuffix).pt()
+    def uponAcceptance(self,eventVars) :
+        outString ="HT %#6.1f GeV"   %eventVars[self.jetCollection+"SumPt"+self.jetSuffix]
+        outString+="; MHT %#6.1f GeV"%eventVars["crock"][self.jetCollection+"Mht"+self.jetSuffix].pt()
         print outString
 #####################################
 class diJetAlphaPrinter(analysisStep) :
@@ -107,10 +107,10 @@ class diJetAlphaPrinter(analysisStep) :
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
         
-    def uponAcceptance(self,eventVars,extraVars) :
-        outString ="di-jet minPt %#6.1f GeV" %getattr(extraVars,self.jetCollection+"diJetMinPt"+self.jetSuffix)
-        outString+="; di-jet m %#6.1f GeV"   %getattr(extraVars,self.jetCollection+"diJetM"    +self.jetSuffix)
-        outString+="; di-jet alpha  %#6.3f"  %getattr(extraVars,self.jetCollection+"diJetAlpha"+self.jetSuffix)
+    def uponAcceptance(self,eventVars) :
+        outString ="di-jet minPt %#6.1f GeV" %eventVars["crock"][self.jetCollection+"diJetMinPt"+self.jetSuffix]
+        outString+="; di-jet m %#6.1f GeV"   %eventVars["crock"][self.jetCollection+"diJetM"    +self.jetSuffix]
+        outString+="; di-jet alpha  %#6.3f"  %eventVars["crock"][self.jetCollection+"diJetAlpha"+self.jetSuffix]
         print outString
 #####################################
 class nJetAlphaTPrinter(analysisStep) :
@@ -120,9 +120,9 @@ class nJetAlphaTPrinter(analysisStep) :
         self.jetCollection=jetCollection
         self.jetSuffix=jetSuffix
         
-    def uponAcceptance(self,eventVars,extraVars) :
-        outString ="n-jet deltaHT %#6.3f"  %getattr(extraVars,self.jetCollection+"nJetDeltaHt"+self.jetSuffix)
-        outString+=";  n-jet alphaT %#6.3f"%getattr(extraVars,self.jetCollection+"nJetAlphaT"+self.jetSuffix)
+    def uponAcceptance(self,eventVars) :
+        outString ="n-jet deltaHT %#6.3f"  %eventVars["crock"][self.jetCollection+"nJetDeltaHt"+self.jetSuffix]
+        outString+=";  n-jet alphaT %#6.3f"%eventVars["crock"][self.jetCollection+"nJetAlphaT"+self.jetSuffix]
         print outString
 #####################################
 class particleP4Printer(analysisStep) :
@@ -138,7 +138,7 @@ class particleP4Printer(analysisStep) :
         self.moreName+=")"
         self.nHyphens=56
 
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         p4Vector=eventVars[self.collection+'P4'+self.suffix]
 
         nParticles=len(p4Vector)
@@ -167,7 +167,7 @@ class metPrinter(analysisStep) :
         self.moreName+=")"
         self.nHyphens=56
 
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         print
         for met in self.collections :
             metVector=eventVars[met]
@@ -186,7 +186,7 @@ class nFlaggedRecHitFilter(analysisStep) :
         self.detector=detector
         self.nFlagged=nFlagged
 
-    def select(self,eventVars,extraVars) :
+    def select(self,eventVars) :
         return len(eventVars["rechit"+self.algoType+"P4"+self.detector])>=self.nFlagged
 #####################################
 class recHitPrinter(analysisStep) :
@@ -219,7 +219,7 @@ class recHitPrinter(analysisStep) :
             outString+="%14d"%self.bitSet(word,self.bitInfo[i][1])
         return outString
     
-    def uponAcceptance(self,eventVars,extraVars) :
+    def uponAcceptance(self,eventVars) :
         flaggedP4s=eventVars["rechit"+self.algoType+"P4"+self.detector]
 
         print "flagged "+self.detector+" RecHits"
@@ -263,7 +263,7 @@ class recHitHistogrammer(analysisStep) :
                                  100,0.0,200.0,
                                  100,0.0,200.0)
     
-    def select(self,eventVars,extraVars) :
+    def select(self,eventVars) :
         flaggedP4s=eventVars["rechit"+self.algoType+"P4"+self.detector]
         leadingJetPt=eventVars[self.jetCollection+"CorrectedP4"+self.jetSuffix][0].pt()
         

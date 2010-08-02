@@ -5,7 +5,7 @@ import math
 class physicsDeclared(analysisStep) :
     """physicsDeclared"""
 
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         return eventVars["physicsDeclared"]
 #####################################
 class techBitFilter(analysisStep) :
@@ -24,7 +24,7 @@ class techBitFilter(analysisStep) :
             if (i!=len(self.bitList)-1) : self.moreName+=","
             else : self.moreName+="]"
         
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         l1techbits = eventVars["l1techbits"]
         anyBitInList=False
         for bit in self.bitList:
@@ -37,7 +37,7 @@ class techBitFilter(analysisStep) :
 class triggerTest(analysisStep) :
     """triggerTest"""
 
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         #print eventVars["l1techbits"][9],eventVars["L1triggered"]["L1Tech_HCAL_HF_totalOR_minBias.v0"]
         L1 = eventVars["L1triggered"]
         print "bit 9=%d; v0=%d; v1=%d" % \
@@ -53,7 +53,7 @@ class triggerNameDump(analysisStep) :
         self.varName = triggerLevel + "triggered"
         self.moreName = "("+self.varName+")"
 
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         for pair in eventVars[self.varName] :
             print pair.first
         return True
@@ -65,7 +65,7 @@ class hltFilter(analysisStep) :
         self.hltPathName = hltPathName
         self.moreName="("+self.hltPathName+")"
 
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         return eventVars["triggered"][self.hltPathName]
 #####################################
 class hltPrescaleHistogrammer(analysisStep) :
@@ -76,7 +76,7 @@ class hltPrescaleHistogrammer(analysisStep) :
         self.moreName = "("+str(self.listOfHltPaths)+")"
         self.nBinsX = len(self.listOfHltPaths)
 
-    def uponAcceptance(self,eventVars,extraVars) :
+    def uponAcceptance(self,eventVars) :
         for iPath in range(len(self.listOfHltPaths)) :
             value = eventVars["prescaled"][self.listOfHltPaths[iPath]]
             if value<=0.0 : continue

@@ -16,13 +16,13 @@ class ptHatFilter(analysisStep) :
         self.maxPtHat=maxPtHat
         self.moreName = "(pthat<%.1f)"%maxPtHat
 
-    def select (self,eventVars,extraVars) :
+    def select (self,eventVars) :
         return eventVars["genpthat"]<self.maxPtHat
 #####################################
 class ptHatHistogrammer(analysisStep) :
     """ptHatHistogrammer"""
 
-    def uponAcceptance (self,eventVars,extraVars) :
+    def uponAcceptance (self,eventVars) :
         self.book(eventVars).fill(eventVars["genpthat"], "ptHat", 200,0.0,1000.0, title=";#hat{p_{T}};events / bin")
 #####################################
 class susyScanPointPrinter(analysisStep) :
@@ -38,7 +38,7 @@ class susyScanPointPrinter(analysisStep) :
                             "susyScanTanBeta"
                             ]
         
-    def uponAcceptance (self,eventVars,extraVars) :
+    def uponAcceptance (self,eventVars) :
         outString=""
         for leafName in self.leavesToPrint :
             outString+=leafName.replace("susyScan","")+" = "+str(eventVars[leafName])+"\t"
@@ -56,15 +56,15 @@ class genJetPrinter(analysisStep) :
         self.moreName+=self.jetSuffix
         self.moreName+=")"
 
-    def uponAcceptance (self,eventVars,extraVars) :
+    def uponAcceptance (self,eventVars) :
         p4Vector        =eventVars[self.jetCollection+'GenJetP4'     +self.jetSuffix]
         #emEnergy        =eventVars[self.jetCollection+'EmEnergy'        +self.jetSuffix]
         #hadEnergy       =eventVars[self.jetCollection+'HadEnergy'       +self.jetSuffix]
         #invisibleEnergy =eventVars[self.jetCollection+'InvisibleEnergy' +self.jetSuffix]
         #auxiliaryEnergy =eventVars[self.jetCollection+'AuxiliaryEnergy' +self.jetSuffix]
 
-        #cleanJetIndices=getattr(extraVars,self.jetCollection+"cleanJetIndices"+self.jetSuffix)
-        #otherJetIndices=getattr(extraVars,self.jetCollection+"otherJetIndices"+self.jetSuffix)
+        #cleanJetIndices=eventVars["crock"][self.jetCollection+"cleanJetIndices"+self.jetSuffix]
+        #otherJetIndices=eventVars["crock"][self.jetCollection+"otherJetIndices"+self.jetSuffix]
 
         print " jet   pT (GeV)    eta    phi    emF   hadF   invF   auxF"
         print "---------------------------------------------------------"
@@ -172,26 +172,26 @@ class genParticleCounter(analysisStep) :
         for i in range(-upper,-lower+1) :
             self.pdgToCategory[i]=label
 
-    def zeroCategoryCounts(self,extraVars) :
-        extraVars.categoryCounts={}
+    def zeroCategoryCounts(self,eventVars) :
+        eventVars["crock"]["categoryCounts"]={}
         for key in self.categories :
-            extraVars.categoryCounts[key]=0
+            eventVars["crock"]["categoryCounts"][key]=0
 
     def isSusy(self,pdgId) :
         reducedPdgId=abs(pdgId)/1000000
         #if (reducedPdgId==2) : print "isSusy(",pdgId,"):",reducedPdgId,reducedPdgId==1 or reducedPdgId==2
         return reducedPdgId==1 or reducedPdgId==2
 
-    def incrementCategory(self,pdgId,extraVars) :
+    def incrementCategory(self,pdgId,eventVars) :
         if pdgId in self.pdgToCategory:
             category=self.pdgToCategory[pdgId]
         else :
             category=self.badCategoryName
-        extraVars.categoryCounts[category]+=1
+        eventVars["crock"]["categoryCounts"][category]+=1
         #print "found one:",iParticle,pdgId
 
-    def doCounting (self,eventVars,extraVars) :
-        self.zeroCategoryCounts(extraVars)
+    def doCounting (self,eventVars) :
+        self.zeroCategoryCounts(eventVars)
 
         if not eventVars["genHandleValid"] : return
         #print dir(eventVars)
@@ -211,16 +211,16 @@ class genParticleCounter(analysisStep) :
             if self.isSusy(eventVars["genPdgId"].at(motherIndex)) : continue
         
             pdgId=eventVars["genPdgId"].at(iParticle)
-            self.incrementCategory(pdgId,extraVars)
-        #self.printDict(extraVars.categoryCounts)
+            self.incrementCategory(pdgId,eventVars)
+        #self.printDict(eventVars.categoryCounts)
         
-    def fillHistograms (self,eventVars,extraVars) :
+    def fillHistograms (self,eventVars) :
         if abs(eventVars["susyScanTanBeta"]-self.tanBeta)>self.tanBetaThreshold : return
 
         #make code string
         codeString=""
         for category in self.categories :
-            count=extraVars.categoryCounts[category]
+            count=eventVars["crock"]["categoryCounts"][category]
             if count>self.maxCountsPerCategory :
                 count=self.maxCountsPerCategory+1
             codeString+=str(count)
@@ -235,9 +235,9 @@ class genParticleCounter(analysisStep) :
         self.nEventsHisto.Fill(m0,m12)
         self.xsHisto.Fill(m0,m12,xs)
         
-    def uponAcceptance (self,eventVars,extraVars) :
-        self.doCounting(eventVars,extraVars)
-        self.fillHistograms(eventVars,extraVars)
+    def uponAcceptance (self,eventVars) :
+        self.doCounting(eventVars)
+        self.fillHistograms(eventVars)
 #####################################
 class genParticleCounterOld(analysisStep) :
     """genParticleCounterOld"""
@@ -251,24 +251,24 @@ class genParticleCounterOld(analysisStep) :
         for i in range(2000005,2000007) : self.d[i]="q~_A"
         self.d[1000021]="g~"
         
-    def uponAcceptance (self,eventVars,extraVars) :
-        extraVars.particleCounts={}
-        extraVars.particleCounts["q~_L"]=0
-        extraVars.particleCounts["q~_R"]=0
-        extraVars.particleCounts["q~_A"]=0
-        extraVars.particleCounts["g~"  ]=0
+    def uponAcceptance (self,eventVars) :
+        eventVars["crock"]["particleCounts"]={}
+        eventVars["crock"]["particleCounts"]["q~_L"]=0
+        eventVars["crock"]["particleCounts"]["q~_R"]=0
+        eventVars["crock"]["particleCounts"]["q~_A"]=0
+        eventVars["crock"]["particleCounts"]["g~"  ]=0
 
         for pdgId in eventVars["genPdgId"] :
             if pdgId in self.d :
                 category=self.d[pdgId]
-                if (not category in extraVars.particleCounts) :
-                    extraVars.particleCounts[category]=1
+                if (not category in eventVars["crock"]["particleCounts"]) :
+                    eventVars["crock"]["particleCounts"][category]=1
                 else :
-                    extraVars.particleCounts[category]+=1                
-
-        for key in extraVars.particleCounts :
-            counts=extraVars.particleCounts[key]
-            if (counts>0) : print key,counts
+                    eventVars["crock"]["particleCounts"][category]+=1                
+                    
+        for key in eventVars["particleCounts"] :
+            counts=eventVars["particleCounts"][key]
+            if counts>0 : print key,counts
 #####################################
 class genParticlePrinter(analysisStep) :
     """genParticlePrinter"""
@@ -278,7 +278,7 @@ class genParticlePrinter(analysisStep) :
         self.sumP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         self.zeroP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         
-    def uponAcceptance (self,eventVars,extraVars) :
+    def uponAcceptance (self,eventVars) :
 
         self.sumP4.SetCoordinates(0.0,0.0,0.0,0.0)
 

@@ -16,7 +16,7 @@ class leadingJetPtHistogrammer(analysisStep) :
                                       +";p_{T} (GeV) of leading "+self.jetCollection2+" jet"
                                       +";events / bin",20,0.0,50.0,20,0.0,50.0)
 
-    def uponAcceptance (self,evetVars,extraVars) :
+    def uponAcceptance (self,evetVars) :
         pt1 = eventVars[self.p4jets1].at(0).pt()
         pt2 = eventVars[self.p4jets1].at(0).pt()
         self.leadingJetPtHisto.Fill(pt1,pt2)

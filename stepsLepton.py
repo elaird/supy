@@ -8,7 +8,7 @@ class leptonFilter(analysisStep) :
             self.minPt=minPt
             self.moreName="(nLeptons >= %d, pt > %f)" % (self.nMinLeptons, self.minPt)
 
-        def select(self,eventVars,extraVars) :
+        def select(self,eventVars) :
             # muons
             nMuonsPF = len(eventVars["muonP4PF"])
             nMuonsPAT = len(eventVars["muonP4Pat"])

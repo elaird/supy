@@ -17,24 +17,24 @@ class analysisStep :
     splitMode=False
     needToConsiderPtHatThresholds=False
     
-    def go(self,eventVars,extraVars) :
+    def go(self,eventVars) :
         self.nTotal+=1
 
         if self.selectNotImplemented :
             self.nPass+=1
             if (self.uponAcceptanceImplemented) :
-                self.uponAcceptance(eventVars,extraVars)
+                self.uponAcceptance(eventVars)
             return True
 
-        if self.select(eventVars,extraVars) :
+        if self.select(eventVars) :
             self.nPass+=1
             if (self.uponAcceptanceImplemented) :
-                self.uponAcceptance(eventVars,extraVars)
+                self.uponAcceptance(eventVars)
             return True
         else :
             self.nFail+=1
             if (self.uponRejectionImplemented) :
-                self.uponRejection(eventVars,extraVars)
+                self.uponRejection(eventVars)
             return False
 
     def name(self) :
