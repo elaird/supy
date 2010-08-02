@@ -67,7 +67,7 @@ class analysis :
             raise Exception("sample must have either a xs or a lumi specified")
         return lumi==None
         
-    def addSample(self,sampleName,listOfFileNames=[],nEvents=-1,xs=None,lumi=None) :
+    def addSample(self,sampleName,listOfFileNames=[],nEvents=-1,xs=None,lumi=None,computeEntriesForReport=False) :
         isMc=self.checkXsAndLumi(xs,lumi)
 
         listOfSteps=[]
@@ -85,7 +85,9 @@ class analysis :
                                                  listOfSteps,
                                                  self.listOfCalculables,
                                                  xs,
-                                                 lumi)
+                                                 lumi,
+                                                 computeEntriesForReport
+                                                 )
                                )
         return
 
@@ -147,7 +149,8 @@ class analysis :
                                                        copy.deepcopy(looper.steps),
                                                        self.listOfCalculables,
                                                        looper.xs,
-                                                       looper.lumi
+                                                       looper.lumi,
+                                                       looper.computeEntriesForReport
                                                        )
                                         )
                 outListOfLoopers[-1].doSplitMode(looper.name)

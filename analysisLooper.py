@@ -6,7 +6,7 @@ import ROOT as r
 class analysisLooper :
     """class to set up and loop over events"""
 
-    def __init__(self,fileDirectory,treeName,hyphens,outputDir,inputFiles,name,nEvents,outputPrefix,steps,calculables,xs,lumi,computeEntriesForReport=False):
+    def __init__(self,fileDirectory,treeName,hyphens,outputDir,inputFiles,name,nEvents,outputPrefix,steps,calculables,xs,lumi,computeEntriesForReport):
         self.fileDirectory=fileDirectory
         self.treeName=treeName
         self.hyphens=hyphens
