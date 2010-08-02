@@ -6,8 +6,7 @@ Critical
 
 Processing
 -----------
-other mc samples
-all data in the bag
+photon plus jet mc sample
 
 Document
 ----------
@@ -37,8 +36,6 @@ Other
 * list the selection on the plot
 
 * better sample organization
-
-* Book
 
 * non-linear cutflow / directory structured output
 * histo sculpting
