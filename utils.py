@@ -85,7 +85,7 @@ def fileListFromSrmLs(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMa
     #print cmd
     output=getCommandOutput2(cmd)
     for line in output.split("\n") :
-        if "SusyCAF_Tree" not in line : continue
+        if ".root" not in line : continue
         acceptFile=True
         fields=line.split()
         size=float(fields[0])
@@ -108,7 +108,7 @@ def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nM
     #print cmd
     output=getCommandOutput2(cmd)
     for line in output.split("\n") :
-        if "SusyCAF_Tree" not in line : continue
+        if ".root" not in line : continue
         acceptFile=True
         fields=line.split()
         size=float(fields[-5])
