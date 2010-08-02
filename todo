@@ -21,6 +21,7 @@ Document
 
 Other
 --------
+* handle subdirectories of input file directories
 * organize files in cvs
 * skimmer 2,3 should raise exceptions
 * defer srmls until jobs runs
