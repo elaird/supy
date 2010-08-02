@@ -10,7 +10,7 @@ class wrappedChain(dict) :
         self.__activeNodeList = []
         self.__chain = chain
 
-        if chain.GetEntries()==0 : return
+        if (not chain) or chain.GetEntries()==0 : return
         chain.GetEntry(0)
         for branch in chain.GetListOfBranches() :
             nameB = branch.GetName()
@@ -29,6 +29,7 @@ class wrappedChain(dict) :
 
     def entries(self, nEntries = -1 ) :
         """Generate the access dictionary (self) for each entry in TTree."""
+        if not self.__chain: return
         chain = self.__chain
         nEntries = (lambda x,y : min(x,y) if x>=0 else y)( nEntries, chain.GetEntries() )
         iTreeFirstEntry = 0
