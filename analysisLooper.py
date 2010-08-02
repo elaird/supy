@@ -6,9 +6,10 @@ import ROOT as r
 class analysisLooper :
     """class to set up and loop over events"""
 
-    def __init__(self,outputDir,inputFiles,name,nEvents,outputPrefix,steps,calculables,xs,lumi):
-        self.hyphens="".ljust(95,"-")
-
+    def __init__(self,fileDirectory,treeName,hyphens,outputDir,inputFiles,name,nEvents,outputPrefix,steps,calculables,xs,lumi):
+        self.fileDirectory=fileDirectory
+        self.treeName=treeName
+        self.hyphens=hyphens
         self.name=name
         self.nEvents=nEvents
         self.inputFiles=inputFiles
@@ -28,23 +29,14 @@ class analysisLooper :
         self.splitMode=False
         self.quietMode=False
 
-        self.fileDirectory="susyTree"
-        self.treeName="tree"
+        self.computeEntriesForReport=False
 
         self.outputPlotFileName=self.outputDir+"/"+self.outputPrefix+"_"+self.name+"_plots.root"
         self.outputStepDataFileName=self.outputPlotFileName.replace(".root",".steps")
 
     def go(self) :
         self.setupChain(self.inputFiles)
-
-        #set up books
-        self.books = {}
-        self.books[None] = autoBook()
-        #make books for ptHat bins (keyed by lower threshold)
-        for iThreshold in range(len(self.ptHatThresholds)) :
-            self.books[iThreshold+1]=autoBook()
-
-        #set up steps
+        self.setupBooks()
         useSetBranchAddress=self.setupSteps()
 
         #loop through entries
@@ -55,7 +47,7 @@ class analysisLooper :
         self.nEvents=0
         if hasattr(chainWrapper,"entry") : self.nEvents=1+chainWrapper.entry
 
-        self.printStats()
+        self.printStats(chainWrapper.activeKeys())
         self.endSteps()
         self.writeHistos()
         if self.splitMode : self.pickleStepData()
@@ -92,7 +84,9 @@ class analysisLooper :
         outString="contain"
         if (nFiles==1) : outString+="s"
 
-        outString+=" "+str(self.inputChain.GetEntries())
+        if self.computeEntriesForReport : outString+=" "+str(self.inputChain.GetEntries())
+        else :                            outString+=" (not computed)"
+
         outString+=" events."
         if self.xs!=None :   outString+=" (xs=%6.4g"%self.xs+" pb)"
         if self.lumi!=None : outString+=" (lumi=%6.4g"%self.lumi+" / pb)"
@@ -100,6 +94,14 @@ class analysisLooper :
         if not self.quietMode : print outString
         if not self.quietMode : print self.hyphens
         r.gROOT.cd()
+
+    def setupBooks(self) :
+        #set up books
+        self.books = {}
+        self.books[None] = autoBook()
+        #make books for ptHat bins (keyed by lower threshold)
+        for iThreshold in range(len(self.ptHatThresholds)) :
+            self.books[iThreshold+1]=autoBook()
 
     def setupSteps(self) :
         returnValue=True
@@ -123,8 +125,19 @@ class analysisLooper :
         self.quietMode=True
         self.parentName=parentName
     
-    def printStats(self) :
+    def printStats(self,activeKeys) :
         if not self.quietMode :
+            #print configuration of calculables
+            print self.hyphens            
+            print "Configuration of calculables used:"
+            for calc in self.calculables :
+                if calc.name() not in activeKeys : continue
+                outString=calc.name()
+                if hasattr(calc,"moreName")  : outString+=" "+str(calc.moreName)
+                if hasattr(calc,"moreName2") : outString+=" "+str(calc.moreName2)
+                print outString
+                
+            #print step statistics
             print self.hyphens
             for step in self.steps :
                 step.printStatistics()
