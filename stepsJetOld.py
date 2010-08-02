@@ -45,6 +45,31 @@ class cleanGenJetIndexProducer(analysisStep) :
         self.jetLoop(eventVars)
         return True
 #####################################
+class cleanJetHtMhtProducer(analysisStep) :
+    """cleanJetHtMhtProducer"""
+
+    def __init__(self,jetCollection,jetSuffix):
+        self.cs = (jetCollection,jetSuffix)
+        self.indicesName = "%sIndices%s" % self.cs
+
+        self.moreName="(%s; %s)"% self.cs
+        self.helper=r.htMhtHelper()
+        self.cleanJetIndices=r.std.vector('int')()
+        self.cleanJetIndices.reserve(256)
+        
+    def select (self,eventVars) :
+        p4Vector=eventVars["%sCorrectedP4%s"%self.cs]
+        cleanJetIndices = eventVars[self.indicesName]["clean"]
+
+        self.cleanJetIndices.clear()
+        for index in cleanJetIndices :
+            self.cleanJetIndices.push_back(index)
+
+        self.helper.Loop(p4Vector,self.cleanJetIndices)
+        eventVars["crock"]["%sMht%s" %self.cs]=self.helper.GetMht()
+        eventVars["crock"]["%sHtEt%s"%self.cs]=self.helper.GetHtEt()
+        return True
+#####################################
 class cleanJetIndexProducer(analysisStep) :
     """cleanJetIndexProducer"""
 
