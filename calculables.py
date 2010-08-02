@@ -1,5 +1,5 @@
 from wrappedChain import *
-from inspect import isclass,ismodule
+from inspect import isclass,ismodule,getargspec
 import calculablesJet
 import calculablesOther
 
@@ -14,7 +14,9 @@ def zeroArgs() :
             calc = eval("%s.%s"%(moduleName,className))
             if not isclass(calc) : continue
             if not issubclass(calc, wrappedChain.calculable) : continue
-            try: eval('%s.%s.__init__.im_func'%(moduleName,className))
+            try:
+                args = len(getargspec(eval("%s.%s.__init__.im_func"%(moduleName,className)))[0])
+                if args < 2 :
+                    zeroArg.append(calc())
             except: zeroArg.append(calc())
     return zeroArg
-
