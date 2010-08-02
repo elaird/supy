@@ -18,10 +18,14 @@ globalSetup(listOfSourceFiles=["pragmas.h","helpers.C"])
 class analysis :
     """base class for an analysis"""
     
-    def __init__(self,name="name",outputDir="/tmp/",listOfSteps=[],calculables=[]) :
+    def __init__(self,name="name",outputDir="/tmp/",listOfSteps=[],calculables=[],fileDirectory="susyTree",treeName="tree") :
         for arg in ["name","outputDir"] :
             exec("self."+arg+"="+arg)
 
+        self.hyphens="".ljust(95,"-")
+        self.fileDirectory=fileDirectory
+        self.treeName=treeName
+        
         self.listOfSteps=listOfSteps
         self.calculables=calculables
         self.looperList=[]
@@ -56,7 +60,7 @@ class analysis :
                 outputPlotFileNamesForPlotter.append(someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName))
         
         import plotter
-        plotter.plotAll(self.name,sampleNamesForPlotter,outputPlotFileNamesForPlotter,self.mergeRequestForPlotter,self.outputDir)
+        plotter.plotAll(self.name,sampleNamesForPlotter,outputPlotFileNamesForPlotter,self.mergeRequestForPlotter,self.outputDir,self.hyphens)
 
     def checkXsAndLumi(self,xs,lumi) :
         if (xs==None and lumi==None) or (xs!=None and lumi!=None) :
@@ -70,7 +74,19 @@ class analysis :
         if isMc : listOfSteps=steps.removeStepsForMc(self.listOfSteps)
         else :    listOfSteps=steps.removeStepsForData(self.listOfSteps)
 
-        self.looperList.append( analysisLooper(self.outputDir,listOfFileNames,sampleName,nEvents,self.name,listOfSteps,self.calculables,xs,lumi) )
+        self.looperList.append(analysisLooper(self.fileDirectory,
+                                              self.treeName,
+                                              self.hyphens,
+                                              self.outputDir,
+                                              listOfFileNames,
+                                              sampleName,
+                                              nEvents,
+                                              self.name,
+                                              listOfSteps,
+                                              self.calculables,
+                                              xs,
+                                              lumi)
+                               )
         return
 
     def manageNonBinnedSamples(self,ptHatLowerThresholdsAndSampleNames=[],mergeIntoOnePlot=False,mergeName="",useRejectionMethod=True) :
@@ -120,7 +136,10 @@ class analysis :
         for looper in self.looperList :
             fileIndex=0
             for iFileName in range(len(looper.inputFiles)) :
-                outListOfLoopers.append(analysisLooper(looper.outputDir,
+                outListOfLoopers.append(analysisLooper(self.fileDirectory,
+                                                       self.treeName,
+                                                       self.hyphens,
+                                                       looper.outputDir,
                                                        [looper.inputFiles[iFileName]],
                                                        looper.name+"_"+str(iFileName),
                                                        looper.nEvents,
@@ -145,11 +164,11 @@ class analysis :
                     self.parentDict[looper.parentName]=[iLooper]
 
     def looperPrint(self,parent,looper) :
-        print looper.hyphens
+        print self.hyphens
         print parent
         looper.quietMode=False
         looper.printStats()
-        print looper.hyphens
+        print self.hyphens
 
     def mergeSplitOutput(self,looperList) :
         #combine output
@@ -193,11 +212,11 @@ class analysis :
             #print cmd
             hAddOut=utils.getCommandOutput2(cmd)
             print hAddOut[:-1]
-            print someLooper.hyphens
+            print self.hyphens
             if len(displayFileList)>0 :
                 outputFileName=displayFileList[0].replace(someLooper.name,someLooper.parentName).replace(".root",".ps")
                 utils.psFromRoot(displayFileList,outputFileName,beQuiet=False)
-                print someLooper.hyphens
+                print self.hyphens
 
     def profile(self,nCores) :
         if nCores>1 : raise ValueError("to profile, nCores must equal one")
