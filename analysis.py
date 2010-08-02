@@ -59,7 +59,7 @@ class analysis :
                 plotFileNamesDict[parent]=someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName)
         
         import plotter
-        plotter.plotAll(self.name,plotFileNameDict,self.mergeRequestForPlotter,self.outputDir,self.hyphens)
+        plotter.plotAll(self.name,plotFileNamesDict,self.mergeRequestForPlotter,self.outputDir,self.hyphens)
 
     def checkXsAndLumi(self,xs,lumi) :
         if (xs==None and lumi==None) or (xs!=None and lumi!=None) :
