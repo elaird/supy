@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import analysis,utils,calculables,steps
+import analysis,utils,calculables,steps,os
 
 def makeSteps() :
     jetAlgoList=[("ak5Jet"+jetType,"Pat") for jetType in ["","PF","JPT"]]
@@ -11,27 +11,37 @@ def makeSteps() :
                steps.physicsDeclared(),
                steps.vertexRequirementFilter(5.0,15.0),
                steps.monsterEventFilter(10,0.25),
-               steps.skimmer("/vols/cms02/elaird1/"),
+               steps.skimmer("/vols/cms02/%s/"%os.environ["USER"]),
                ]
     return stepList
 
+def makeCalculables() :
+    return calculables.zeroArgs()
+
 a=analysis.analysis(name="hadronicSkim",
-                    outputDir="/vols/cms02/elaird1/tmp/",
+                    outputDir="/vols/cms02/%s/tmp/"%os.environ["USER"],
                     listOfSteps=makeSteps(),
-                    calculables=calculables.allDefaultCalculables()                    
+                    listOfCalculables=makeCalculables()
                     )
 
-a.addSample(sampleName="JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn",
-            listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_16_52_06/",nMaxFiles=-1),
-            lumi=0.012,                
-            nEvents=-1)
+#a.addSample(sampleName="JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn",
+#            listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_16_52_06/",
+#                                                    nMaxFiles=-1),
+#            lumi=0.012,#/pb
+#            nEvents=-1)
 
 a.addSample(sampleName="JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn",
             listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_17_20_35/",
-                                                    itemsToSkip=["123_5_062","79_1_034"],
                                                     nMaxFiles=-1),
-            lumi=0.120,
+            lumi=0.120,#/pb
             nEvents=-1)
+
+#a.addSample(sampleName="JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn",
+#            listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_15_40_06/",
+#                                                    nMaxFiles=-1),
+#            lumi=0.1235,#/pb
+#            nEvents=-1)
+
 
 a.loop(nCores=6,splitJobsByInputFile=True)
 #a.plot()
