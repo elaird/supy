@@ -9,11 +9,13 @@ Critical
 * move default calculables to analysis
 * easier replacement of calculables (configure calculables via config file rather than hardcoded)
 * warn about partial run over data
-* lumi/run list of actually processed jobs
+* lumi/run list of actually processed jobs (jsonMaker)
+* make name of tree and directory configurable
+* cross section in database
 
 Document
 ----------
-* spec for handling colliding CRAB results
+* email spec for handling colliding CRAB results
 * spec for weighting sim appropriately by cross-section, to default lumi, or to lumi specified by data
 * two schemes for handling overlapping cross sections (pythia qcd)
 
