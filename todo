@@ -24,6 +24,8 @@ Other
 
 * named arguments everywhere
 
+* shift underflows
+
 * display rechits
 * fix circle
 
