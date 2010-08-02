@@ -75,7 +75,7 @@ def pruneCrabDuplicates(inList,sizes) :
     print "Resolved file duplications (pruned): %d" % resolved
     return outList
 #####################################
-def fileListFromSrmLs(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
+def fileListFromSrmLs(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
     srmPrefix="srm://gfe02.grid.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN="
     dCachePrefix="dcap://gfe02.grid.hep.ph.ic.ac.uk:22128"
 
@@ -99,10 +99,9 @@ def fileListFromSrmLs(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMa
             sizes.append(size)
 
     if pruneList :   fileList=pruneCrabDuplicates(fileList,sizes)
-    if nMaxFiles>0 : fileList=fileList[:nMaxFiles]
     return fileList
 #####################################    
-def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
+def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
     fileList=[]
     cmd="nsls -l "+location
     #print cmd
@@ -120,10 +119,9 @@ def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nM
         if acceptFile : fileList.append("rfio:///"+location+"/"+fileName)
             
     if pruneList :   fileList=pruneCrabDuplicates(fileList,size)
-    if nMaxFiles>0 : fileList=fileList[:nMaxFiles]
     return fileList
 #####################################
-def fileListFromDisk(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
+def fileListFromDisk(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
     fileList=[]
     cmd="ls -l "+location
     #print cmd
@@ -141,6 +139,5 @@ def fileListFromDisk(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMax
         if acceptFile : fileList.append(location+"/"+fileName)
             
     if pruneList :   fileList=pruneCrabDuplicates(fileList,size)
-    if nMaxFiles>0 : fileList=fileList[:nMaxFiles]
     return fileList
 #####################################        
