@@ -406,7 +406,7 @@ class deltaPhiSelector(analysisStep) :
         self.maxAbs = maxAbs
     
     def select(self,eventVars) :
-        value = abs( eventVars["crock"[self.jetCollection+"deltaPhi01"+self.jetSuffix] )
+        value = abs( eventVars["crock"][self.jetCollection+"deltaPhi01"+self.jetSuffix] )
         if (value<self.minAbs or value>self.maxAbs) : return False
         return True
 #####################################
