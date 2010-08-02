@@ -188,11 +188,14 @@ class analysis :
                 #add the root file to hadd command
                 inFileList.append(listOfLoopers[iLooper].outputPlotFileName)
 
-                #read in the step data
-                stepDataFileName=os.path.expanduser(listOfLoopers[iLooper].outputStepDataFileName)
-                stepDataFile=open(stepDataFileName)
-                stepDataList=cPickle.load(stepDataFile)
-                stepDataFile.close()
+                #read in the step and calculable data
+                stepAndCalculableDataFileName=os.path.expanduser(listOfLoopers[iLooper].outputStepAndCalculableDataFileName)
+                stepAndCalculableDataFile=open(stepAndCalculableDataFileName)
+                stepDataList,calculableConfigDict=cPickle.load(stepAndCalculableDataFile)
+                stepAndCalculableDataFile.close()
+
+                #clean up
+                os.remove(stepAndCalculableDataFileName)
 
                 #add stats to those of someLooper
                 for i in range(len(someLooper.steps)) :
@@ -207,6 +210,12 @@ class analysis :
 
                     if someLooper.steps[i].__doc__==someLooper.steps[i].displayerStepName :
                         displayFileList.append(stepDataList[i]["outputFileName"])
+
+                if isFirstLooper :
+                    someLooper.calculableConfigDict={}
+                for item in calculableConfigDict :
+                    someLooper.calculableConfigDict[item]=calculableConfigDict[item]
+                        
                 isFirstLooper=False
 
             self.looperPrint(parent,someLooper)
@@ -214,6 +223,10 @@ class analysis :
             cmd="hadd -f "+outputPlotFileName+" "+inFiles+" | grep -v 'Source file' | grep -v 'Target path'"
             #print cmd
             hAddOut=utils.getCommandOutput2(cmd)
+            #clean up
+            for fileName in inFileList :
+                os.remove(fileName)
+            
             print hAddOut[:-1]
             print self.hyphens
             if len(displayFileList)>0 :

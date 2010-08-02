@@ -32,7 +32,7 @@ class analysisLooper :
         self.computeEntriesForReport=computeEntriesForReport
 
         self.outputPlotFileName=self.outputDir+"/"+self.outputPrefix+"_"+self.name+"_plots.root"
-        self.outputStepDataFileName=self.outputPlotFileName.replace(".root",".steps")
+        self.outputStepAndCalculableDataFileName=self.outputPlotFileName.replace(".root",".pickledData")
 
     def go(self) :
         self.setupChain(self.inputFiles)
@@ -47,10 +47,11 @@ class analysisLooper :
         self.nEvents=0
         if hasattr(chainWrapper,"entry") : self.nEvents=1+chainWrapper.entry
 
-        self.printStats(chainWrapper.activeKeys())
+        self.makeDictOfCalculableConfigs(chainWrapper.activeKeys())
+        self.printStats()
         self.endSteps()
         self.writeHistos()
-        if self.splitMode : self.pickleStepData()
+        if self.splitMode : self.pickleStepAndCalculableData()
         if not self.quietMode : print self.hyphens
         
         #free up memory (http://wlav.web.cern.ch/wlav/pyroot/memory.html)
@@ -85,11 +86,11 @@ class analysisLooper :
         if (nFiles==1) : outString+="s"
 
         if self.computeEntriesForReport : outString+=" "+str(self.inputChain.GetEntries())
-        else :                            outString+=" (not computed)"
+        else :                            outString+=" (number not computed)"
 
         outString+=" events."
-        if self.xs!=None :   outString+=" (xs=%6.4g"%self.xs+" pb)"
-        if self.lumi!=None : outString+=" (lumi=%6.4g"%self.lumi+" / pb)"
+        if self.xs!=None :   outString+=" (xs input =%6.4g"%self.xs+" pb)"
+        if self.lumi!=None : outString+=" (lumi input =%6.4g"%self.lumi+" / pb)"
             
         if not self.quietMode : print outString
         if not self.quietMode : print self.hyphens
@@ -124,18 +125,22 @@ class analysisLooper :
         self.splitMode=True
         self.quietMode=True
         self.parentName=parentName
-    
-    def printStats(self,activeKeys) :
+
+    def makeDictOfCalculableConfigs(self,activeKeys) :
+        self.calculableConfigDict={}
+        for calc in self.calculables :
+            if calc.name() not in activeKeys : continue
+            self.calculableConfigDict[calc.name()]=""
+            if hasattr(calc,"moreName")  : self.calculableConfigDict[calc.name()]+=" "+str(calc.moreName)
+            if hasattr(calc,"moreName2") : self.calculableConfigDict[calc.name()]+=" "+str(calc.moreName2)
+
+    def printStats(self) :
         if not self.quietMode :
             #print configuration of calculables
             print self.hyphens            
             print "Configuration of calculables used:"
-            for calc in self.calculables :
-                if calc.name() not in activeKeys : continue
-                outString=calc.name()
-                if hasattr(calc,"moreName")  : outString+=" "+str(calc.moreName)
-                if hasattr(calc,"moreName2") : outString+=" "+str(calc.moreName2)
-                print outString
+            for item in self.calculableConfigDict :
+                print item,self.calculableConfigDict[item]
                 
             #print step statistics
             print self.hyphens
@@ -188,18 +193,18 @@ class analysisLooper :
             if hasattr(step,"endFunc") :
                 step.endFunc(self.inputChain,self.hyphens,self.nEvents,self.xs)
 
-    def pickleStepData(self) :
+    def pickleStepAndCalculableData(self) :
         keepList=["nTotal","nPass","nFail","outputFileName"]
         keepList.extend(["__doc__","moreName","moreName2"])#not strictly needed; only for debugging
-        outList=[]
+        outListSteps=[]
         for step in self.steps :
-            outList.append( {} )
+            outListSteps.append( {} )
             for item in keepList :
-                if hasattr(step,item): outList[-1][item]=getattr(step,item)
+                if hasattr(step,item): outListSteps[-1][item]=getattr(step,item)
 
         import os,cPickle
-        outFileName=os.path.expanduser(self.outputStepDataFileName)
+        outFileName=os.path.expanduser(self.outputStepAndCalculableDataFileName)
         outFile=open(outFileName,"w")
-        cPickle.dump(outList,outFile)
+        cPickle.dump([outListSteps,self.calculableConfigDict],outFile)
         outFile.close()
 #####################################
