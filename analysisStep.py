@@ -13,6 +13,8 @@ class analysisStep :
     moreName2=""
     skimmerStepName="skimmer"
     displayerStepName="displayer"
+    jsonMakerStepName="jsonMaker"
+    
     quietMode=False
     splitMode=False
     needToConsiderPtHatThresholds=False

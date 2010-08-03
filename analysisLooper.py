@@ -216,8 +216,9 @@ class analysisLooper :
                 step.endFunc(self.inputChain,self.otherChainDict,self.hyphens,self.nEvents,self.xs)
 
     def pickleStepAndCalculableData(self) :
-        keepList=["nTotal","nPass","nFail","outputFileName"]
-        keepList.extend(["__doc__","moreName","moreName2"])#not strictly needed; only for debugging
+        keepList=["nTotal","nPass","nFail"]                 #used by all steps
+        keepList.extend(["outputFileName","runLsDict"])     #for displayer,skimmer,jsonMaker
+        keepList.extend(["__doc__","moreName","moreName2"]) #not strictly needed; only for debugging
         outListSteps=[]
         for step in self.steps :
             outListSteps.append( {} )

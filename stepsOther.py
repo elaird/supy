@@ -848,12 +848,22 @@ class bxHistogrammer(analysisStep) :
 class jsonMaker(analysisStep) :
     """jsonMaker"""
 
-    def __init__(self) :
+    def __init__(self,outputDir) :
         self.runLsDict=collections.defaultdict(list)
+        self.outputDir=outputDir
+        self.moreName="(see below)"
 
+    def setup(self,chain,fileDir,name) :
+        self.outputFileName=self.outputDir+"/"+name+".json"
+        os.system("mkdir -p "+self.outputDir)
+        
     def uponAcceptance(self,eventVars) :
         self.runLsDict[eventVars["run"]].append(eventVars["lumiSection"])
-
+    
     def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
-        print self.runLsDict
+        if self.splitMode : return
+        if not self.quietMode : print hyphens
+        sillyDict={}
+        sillyDict[1]=[self.runLsDict]
+        utils.mergeRunLsDicts(sillyDict,self.outputFileName,hyphens)
 #####################################

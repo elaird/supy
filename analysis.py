@@ -195,6 +195,8 @@ class analysis :
             inFileList=[]
             displayFileDict=collections.defaultdict(list)
             skimmerFileDict=collections.defaultdict(list)
+            runLsDict=collections.defaultdict(list)
+            jsonFileDict=collections.defaultdict(list)
             
             isFirstLooper=True
             for iLooper in self.parentDict[parent] :
@@ -225,6 +227,9 @@ class analysis :
                         displayFileDict[i].append(stepDataList[i]["outputFileName"])
                     if someLooper.steps[i].__doc__==someLooper.steps[i].skimmerStepName :
                         skimmerFileDict[i].append(stepDataList[i]["outputFileName"])
+                    if someLooper.steps[i].__doc__==someLooper.steps[i].jsonMakerStepName :
+                        runLsDict[i].append(stepDataList[i]["runLsDict"])
+                        jsonFileDict[i].append(stepDataList[i]["outputFileName"])
 
                 if isFirstLooper :
                     someLooper.calculableConfigDict={}
@@ -244,22 +249,30 @@ class analysis :
             
             print hAddOut[:-1].replace("Target","The output")+" has been written."
             print self.hyphens
-            if len(displayFileDict)>0 :
-                outputFileName=displayFileDict.values()[0].replace(someLooper.name,someLooper.parentName).replace(".root",".ps")
-                utils.psFromRoot(displayFileDict.values(),outputFileName,beQuiet=False)
+
+            self.mergeDisplays(displayFileDict,someLooper)
+            self.reportEffectiveXs(skimmerFileDict,someLooper)
+            utils.mergeRunLsDicts(runLsDict,jsonFileDict.values()[0][0],self.hyphens,printHyphens=True)
+            
+    def reportEffectiveXs(self,skimmerFileDict,someLooper) :
+        if len(skimmerFileDict)>0 :
+            for skimmerIndex,skimFileNames in skimmerFileDict.iteritems() :
+                if someLooper.xs==None :
+                    print "The",len(skimFileNames),"skim files have been written."
+                else :
+                    effXs=0.0
+                    nEvents=someLooper.steps[0].nTotal
+                    nPass=someLooper.steps[skimmerIndex].nPass
+                    if nEvents>0 : effXs=(someLooper.xs+0.0)*nPass/nEvents
+                    print "The",len(skimFileNames),"skim files have effective XS =",someLooper.xs,"*",nPass,"/",nEvents,"=",effXs
+                print "( e.g.",skimFileNames[0],")"
                 print self.hyphens
-            if len(skimmerFileDict)>0 :
-                for skimmerIndex,skimFileNames in skimmerFileDict.iteritems() :
-                    if someLooper.xs==None :
-                        print "The",len(skimFileNames),"skim files have been written."
-                    else :
-                        effXs=0.0
-                        nEvents=someLooper.steps[0].nTotal
-                        nPass=someLooper.steps[skimmerIndex].nPass
-                        if nEvents>0 : effXs=(someLooper.xs+0.0)*nPass/nEvents
-                        print "The",len(skimFileNames),"skim files have effective XS =",someLooper.xs,"*",nPass,"/",nEvents,"=",effXs
-                    print "( e.g.",skimFileNames[0],")"
-                    print self.hyphens
+
+    def mergeDisplays(self,displayFileDict,someLooper) :
+        if len(displayFileDict)>0 :
+            outputFileName=displayFileDict.values()[0].replace(someLooper.name,someLooper.parentName).replace(".root",".ps")
+            utils.psFromRoot(displayFileDict.values(),outputFileName,beQuiet=False)
+            print self.hyphens
 
     def profile(self,nCores) :
         if nCores>1 : raise ValueError("to profile, nCores must equal one")
