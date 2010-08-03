@@ -21,10 +21,11 @@ Other
 
 * named arguments everywhere
 
+* pickle effective xs
+
 * display rechits
 * fix circle
 
-* keep lumiTree unskimmed
 * lumi/run list of actually processed jobs (jsonMaker)
 * skimmer prefix and suffix
 * phase out crock
