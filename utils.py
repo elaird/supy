@@ -71,8 +71,9 @@ def pruneCrabDuplicates(inList,sizes) :
             if len(val) > 1 : resolved += 1
         else: abandoned += 1
 
-    print "Unresolved files duplications: %d" % abandoned
-    print "Resolved file duplications (pruned): %d" % resolved
+    if abandoned>0 or resolved>0 :
+        print "Unresolved files duplications: %d" % abandoned
+        print "Resolved file duplications (pruned): %d" % resolved
     return outList
 #####################################
 def fileListFromSrmLs(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
@@ -81,7 +82,7 @@ def fileListFromSrmLs(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
 
     fileList=[]
     sizes=[]
-    cmd="srmls "+srmPrefix+"/"+location
+    cmd="srmls "+srmPrefix+"/"+location+" 2>&1 | grep -v JAVA_OPTIONS"
     #print cmd
     output=getCommandOutput2(cmd)
     for line in output.split("\n") :
