@@ -24,24 +24,14 @@ a=analysis.analysis(name = "hadronicSkim",
                     listOfCalculables = makeCalculables()
                     )
 
-a.addSample(sampleName = "JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn",
-            lumi = 0.012,#/pb
-            listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_16_52_06/"),
-            nMaxFiles = -1,
-            nEvents = -1)
+a.addSample(sampleName = "JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn", nMaxFiles = -1, nEvents = -1, lumi = 0.012,#/pb
+            listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_16_52_06/") )
 
-a.addSample(sampleName = "JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn",
-            lumi = 0.120,#/pb
-            listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_17_20_35/"),
-            nMaxFiles = -1,
-            nEvents = -1)
+a.addSample(sampleName = "JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn", nMaxFiles = -1, nEvents = -1, lumi = 0.120,#/pb
+            listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_17_20_35/") )
 
-a.addSample(sampleName = "JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn",
-            lumi = 0.1235,#/pb
-            listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_15_40_06/"),
-            nMaxFiles = -1,
-            nEvents = -1)
+a.addSample(sampleName = "JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn", nMaxFiles = -1, nEvents = -1, lumi = 0.1235,#/pb
+            listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_15_40_06/") )
 
-
-a.loop( nCores = 1, splitJobsByInputFile = False)
+a.loop( nCores = 6 )
 #a.plot()
