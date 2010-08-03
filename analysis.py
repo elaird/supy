@@ -247,8 +247,15 @@ class analysis :
                 print self.hyphens
             if len(skimmerFileDict)>0 :
                 for skimmerIndex,skimFileNames in skimmerFileDict.iteritems() :
-                    print "The",len(skimmerFileDict),"skim files have effective xs XXX."
-                    print "(e.g.",skimFileNames[0],")"
+                    if someLooper.xs==None :
+                        print "The",len(skimFileNames),"skim files have been written."
+                    else :
+                        effXs=0.0
+                        nEvents=someLooper.steps[0].nTotal
+                        nPass=someLooper.steps[skimmerIndex].nPass
+                        if nEvents>0 : effXs=(someLooper.xs+0.0)*nPass/nEvents
+                        print "The",len(skimFileNames),"skim files have effective XS =",someLooper.xs,"*",nPass,"/",nEvents,"=",effXs
+                    print "( e.g.",skimFileNames[0],")"
                     print self.hyphens
 
     def profile(self,nCores) :
