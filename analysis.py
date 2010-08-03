@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os,sys,copy,cPickle
+import os,sys,copy,cPickle,collections
 sys.argv.append("-b")#try to set batch mode as early as possible
 import utils,steps
 from analysisLooper import analysisLooper
@@ -190,9 +190,9 @@ class analysis :
             someLooper=listOfLoopers[iSomeLooper]
             outputPlotFileName=someLooper.outputPlotFileName.replace(someLooper.name,parent)
             inFileList=[]
-            displayFileList=[]
-            skimFileList=[]
-        
+            displayFileDict=collections.defaultdict(list)
+            skimmerFileDict=collections.defaultdict(list)
+            
             isFirstLooper=True
             for iLooper in self.parentDict[parent] :
                 #add the root file to hadd command
@@ -219,9 +219,9 @@ class analysis :
                     someLooper.steps[i].nFail +=stepDataList[i]["nFail" ]
 
                     if someLooper.steps[i].__doc__==someLooper.steps[i].displayerStepName :
-                        displayFileList.append(stepDataList[i]["outputFileName"])
+                        displayFileDict[i].append(stepDataList[i]["outputFileName"])
                     if someLooper.steps[i].__doc__==someLooper.steps[i].skimmerStepName :
-                        skimFileList.append(stepDataList[i]["outputFileName"])
+                        skimmerFileDict[i].append(stepDataList[i]["outputFileName"])
 
                 if isFirstLooper :
                     someLooper.calculableConfigDict={}
@@ -239,17 +239,17 @@ class analysis :
             for fileName in inFileList :
                 os.remove(fileName)
             
-            print hAddOut[:-1]
+            print hAddOut[:-1].replace("Target","The output")+" has been written."
             print self.hyphens
-            if len(displayFileList)>0 :
-                outputFileName=displayFileList[0].replace(someLooper.name,someLooper.parentName).replace(".root",".ps")
-                utils.psFromRoot(displayFileList,outputFileName,beQuiet=False)
+            if len(displayFileDict)>0 :
+                outputFileName=displayFileDict.values()[0].replace(someLooper.name,someLooper.parentName).replace(".root",".ps")
+                utils.psFromRoot(displayFileDict.values(),outputFileName,beQuiet=False)
                 print self.hyphens
-            if len(skimFileList)>0 :
-                skimFileList.sort()
-                print "The",len(skimFileList),"skim files have effective xs XXX."
-                print "(e.g.",skimFileList[0],")"
-                print self.hyphens
+            if len(skimmerFileDict)>0 :
+                for skimmerIndex,skimFileNames in skimmerFileDict.iteritems() :
+                    print "The",len(skimmerFileDict),"skim files have effective xs XXX."
+                    print "(e.g.",skimFileNames[0],")"
+                    print self.hyphens
 
     def profile(self,nCores) :
         if nCores>1 : raise ValueError("to profile, nCores must equal one")
