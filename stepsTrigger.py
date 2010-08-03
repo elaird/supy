@@ -93,34 +93,42 @@ class hltPrescaleHistogrammer(analysisStep) :
 class hltTurnOnHistogrammer(analysisStep) :
     """hltTurnOnHistogrammer"""
 
-    def __init__(self, probeTrigger = None, var = None, tagTriggers = None, binsMinMax = None) :
+    def __init__(self, probeTrig = None, var = None, tagTrigs = None, binsMinMax = None) :
         self.var = var
         self.bmm = binsMinMax
-        self.probeTrigger = probeTrigger
-        self.tagTriggers = tagTriggers
-        self.tagString = reduce(lambda x,y: "%s%s"%(x,y.strip('HLT')), self.tagTriggers, "")
+        self.probeTrigger = probeTrig
+        self.tagTriggers = tagTrigs
 
-        self.moreName = "(%s turnon vs. %s" % (probeTrigger,var)
-        self.moreName2 = "given one of %s )" % (str(tagTriggers))
+        self.probeTitle = ( "%s-%s"%(probeTrig,var),
+                            "pass %s given %s;%s; events / bin" % (probeTrig,str(tagTrigs),var) )
+        self.tagTitle = ( "%s-%s"%(str(tagTrigs),var),
+                          "pass %s;%s; events / bin" % (str(tagTrigs),var))
+
+        self.moreName = "(%s turnon vs. %s" % (probeTrig,var)
+        self.moreName2 = "given one of %s )" % (str(tagTrigs))
 
     def uponAcceptance(self,eventVars) :
         tag = reduce(lambda x,y: x or y, [eventVars["triggered"][t] for t in self.tagTriggers], False)
-        probe = eventVars["triggered"][self.probe]
+        probe = eventVars["triggered"][self.probeTrigger]
         types = [] if not tag else \
-                [self.tagString] if not probe else \
-                [self.tagString, self.probeTrigger]
+                [self.tagTitle] if not probe else \
+                [self.tagTitle, self.probeTitle]
+        value = eventVars[self.var]
+        if value==None : return
         for t in types :
-            self.book(eventVars).fill( eventVars[self.var], "%s-%s"%(t,self.var), self.bmm[0],self.bmm[1],self.bmm[2],
-                                       title = "pass %s;%s; events / bin" % (t,self.var) )
+            self.book(eventVars).fill( value, t[0], self.bmm[0],self.bmm[1],self.bmm[2], title = t[1] )
         
-#     def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
-#         book = self.book(eventVars)
-#         tag = book["%s-%s"%(self.tagString,self.var)]
-#         probe = book["%s-%s"%(self.probeTrigger,self.var)]
+    def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
+        for book in self.books.values() :
+            tag = self.tagTitle[0]
+            probe = self.probeTitle[0]
+            efficiency = "%s-%s-%s"%(self.probeTrigger,str(self.tagTriggers),self.var)
 
-#         efficiencyName = "%s-%s-%s"%(self.probeTrigger,self.tagString,self.var)
-#         book[efficiencyName] = probe.Clone(efficiencyName)
-#         book[efficiencyName].SetTitle("Efficiency;%s;N%s/N%s"%(self.var,self.probeTrigger,self.tagString))
-#         book[efficiencyName].Divide(tag)
-        
+            if not (tag in book and \
+                    probe in book) : continue
+            
+            book[efficiency] = book[probe].Clone(efficiency)
+            book[efficiency].SetTitle("Efficiency;%s;n%s / n%s"%(self.var,self.probeTrigger,str(self.tagTriggers)))
+            book[efficiency].Divide(book[tag])
+            book[efficiency].SetBit(r.TH1.kIsAverage)
 #####################################

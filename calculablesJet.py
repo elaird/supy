@@ -11,7 +11,7 @@ class indices(wrappedChain.calculable) :
                         "%s"+flagName+"%s" if collection[-2:] != "PF" else \
                         "%sPF"+flagName+"%s"
 
-        self.moreName = "(%s; %s; %s; "% (self.cs[0], self.cs[1],flagName)
+        self.moreName = "(%s; %s; %s; "% (self.cs[0], self.cs[1],flagName if flagName else "")
         self.moreName2 = " corr. pT>=%.1f GeV; |eta|<=%.1f)"% (ptMin , etaMax)
         
         self.value = {}
@@ -26,7 +26,7 @@ class indices(wrappedChain.calculable) :
         for iJet in range(p4s.size()) :
             if p4s.at(iJet).pt() < self.ptThreshold : #pt cut, assumes sorted
                 break 
-            elif jetIds.at(iJet) and abs(p4s.at(iJet).eta()) < self.etaMax :
+            elif jetIds[iJet] and abs(p4s.at(iJet).eta()) < self.etaMax :
                 self.value["clean"].append(iJet)
             else: self.value["other"].append(iJet)
 
@@ -70,5 +70,5 @@ class leadingPt(wrappedChain.calculable) :
     def update(self,ignored) :
         p4s = self.source[self.p4sName]
         indices = self.source[self.indicesName]["clean"]
-        self.value = p4s.at(indices[0]) if len(indices) else None
+        self.value = p4s.at(indices[0]).pt() if len(indices) else None
 
