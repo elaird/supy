@@ -90,3 +90,37 @@ class hltPrescaleHistogrammer(analysisStep) :
                 for iPath in range(self.nBinsX) :
                     book[key].GetXaxis().SetBinLabel(iPath+1,self.listOfHltPaths[iPath])
 #####################################
+class hltTurnOnHistogrammer(analysisStep) :
+    """hltTurnOnHistogrammer"""
+
+    def __init__(self, probeTrigger = None, var = None, tagTriggers = None, binsMinMax = None) :
+        self.var = var
+        self.bmm = binsMinMax
+        self.probeTrigger = probeTrigger
+        self.tagTriggers = tagTriggers
+        self.tagString = reduce(lambda x,y: "%s%s"%(x,y.strip('HLT')), self.tagTriggers, "")
+
+        self.moreName = "(%s turnon vs. %s" % (probeTrigger,var)
+        self.moreName2 = "given one of %s )" % (str(tagTriggers))
+
+    def uponAcceptance(self,eventVars) :
+        tag = reduce(lambda x,y: x or y, [eventVars["triggered"][t] for t in self.tagTriggers], False)
+        probe = eventVars["triggered"][self.probe]
+        types = [] if not tag else \
+                [self.tagString] if not probe else \
+                [self.tagString, self.probeTrigger]
+        for t in types :
+            self.book(eventVars).fill( eventVars[self.var], "%s-%s"%(t,self.var), self.bmm[0],self.bmm[1],self.bmm[2],
+                                       title = "pass %s;%s; events / bin" % (t,self.var) )
+        
+#     def endFunc(self,chain,hyphens,nEvents,xs) :
+#         book = self.book(eventVars)
+#         tag = book["%s-%s"%(self.tagString,self.var)]
+#         probe = book["%s-%s"%(self.probeTrigger,self.var)]
+
+#         efficiencyName = "%s-%s-%s"%(self.probeTrigger,self.tagString,self.var)
+#         book[efficiencyName] = probe.Clone(efficiencyName)
+#         book[efficiencyName].SetTitle("Efficiency;%s;N%s/N%s"%(self.var,self.probeTrigger,self.tagString))
+#         book[efficiencyName].Divide(tag)
+        
+#####################################

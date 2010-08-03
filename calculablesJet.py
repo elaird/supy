@@ -57,3 +57,18 @@ class sumP4(wrappedChain.calculable) :
         p4s = self.source[self.p4sName]
         indices = self.source[self.indicesName]["clean"]
         self.value = reduce( lambda x,i: x+p4s.at(i), indices[1:], p4s.at(indices[0]) ) if len(indices) else None
+
+##############################
+class leadingPt(wrappedChain.calculable) :
+    def name(self) : return "%sLeadingPt%s"% self.cs
+
+    def __init__(self, collection = None, suffix = None) :
+        self.cs = collection, suffix
+        self.p4sName = '%sCorrectedP4%s' % self.cs
+        self.indicesName = "%sIndices%s" % self.cs
+
+    def update(self,ignored) :
+        p4s = self.source[self.p4sName]
+        indices = self.source[self.indicesName]["clean"]
+        self.value = p4s.at(indices[0]) if len(indices) else None
+
