@@ -252,7 +252,9 @@ class analysis :
 
             self.mergeDisplays(displayFileDict,someLooper)
             self.reportEffectiveXs(skimmerFileDict,someLooper)
-            utils.mergeRunLsDicts(runLsDict,jsonFileDict.values()[0][0],self.hyphens,printHyphens=True)
+
+            if len(jsonFileDict.values())>0 and len(jsonFileDict.values()[0])>0 :
+                utils.mergeRunLsDicts(runLsDict,jsonFileDict.values()[0][0],self.hyphens,printHyphens=True)
             
     def reportEffectiveXs(self,skimmerFileDict,someLooper) :
         if len(skimmerFileDict)>0 :
