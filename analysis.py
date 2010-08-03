@@ -99,7 +99,7 @@ class analysis :
                                )
         return
 
-    def manageNonBinnedSamples(self,ptHatLowerThresholdsAndSampleNames=[],mergeIntoOnePlot=False,mergeName="",useRejectionMethod=True) :
+    def manageNonBinnedSamples(self,ptHatLowerThresholdsAndSampleNames=[],mergeIntoOneHistogramCalled="",useRejectionMethod=True) :
         if not useRejectionMethod :
             raise Exception("the other method of combining non-binned samples is not yet implemented")
         looperIndexDict={}
@@ -113,10 +113,13 @@ class analysis :
                 looper=self.listOfLoopers[iLooper]
                 if sampleName==looper.name :
                     looperIndexDict[ptHatLowerThreshold]=iLooper
+                for step in looper.steps :
+                    if step.__doc__==step.skimmerStepName :
+                        raise Exception("do not manage non-binned samples when skimming")
 
-            mergeDict[sampleName]=mergeName
+            mergeDict[sampleName]=mergeIntoOneHistogramCalled
         #inform the plotter of the merge request
-        if mergeIntoOnePlot : self.mergeRequestForPlotter=mergeDict
+        if mergeIntoOneHistogramCalled!="" : self.mergeRequestForPlotter=mergeDict
 
         ptHatLowerThresholdsAndSampleNames.sort()
         for iItem in range(len(ptHatLowerThresholdsAndSampleNames)) :
