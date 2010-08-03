@@ -40,6 +40,7 @@ def makeSteps() :
         steps.cleanDiJetAlphaProducer(jetCollection,jetSuffix),
         steps.cleanNJetAlphaProducer(jetCollection,jetSuffix),
         steps.alphaHistogrammer(jetCollection,jetSuffix),
+        #steps.crockVarCalcDiff("ak5JetnJetAlphaTPat","ak5JetAlphaTPat"),
         
         steps.crockVariableGreaterFilter(0.55,jetCollection+"nJetAlphaT"+jetSuffix),
         #steps.displayer(jetCollection,jetSuffix,metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/%s/tmp/"%os.environ["USER"],scale=200.0),
@@ -56,6 +57,8 @@ def makeCalculables() :
     listOfCalculables += [ calculablesJet.indices( collection = col, suffix = "Pat", ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for col in jettypes]
     listOfCalculables += [ calculablesJet.sumPt( collection = col, suffix = "Pat")                                                        for col in jettypes]
     listOfCalculables += [ calculablesJet.sumP4( collection = col, suffix = "Pat")                                                        for col in jettypes]
+    listOfCalculables += [ calculablesJet.deltaPseudoJet( collection = col, suffix = "Pat") for col in jettypes ]
+    listOfCalculables += [ calculablesJet.alphaT( collection = col, suffix = "Pat") for col in jettypes ]
     return listOfCalculables
 
 #def dummy(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
@@ -74,8 +77,8 @@ a=analysis.analysis(name = "hadronicLook",
 # a.addSample( sampleName="qcd_py_pt30", nMaxFiles = 6, nEvents = -1, xs = 6.041e+07,#pb
 #              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/gouskos//ICF/automated/2010_06_24_18_09_51/") )
 
-# a.addSample( sampleName="qcd_py_pt80", nMaxFiles=6, nEvents=-1, xs = 9.238e+05,#pb
-#              listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/gouskos//ICF/automated/2010_07_06_00_55_17/"))
+a.addSample( sampleName="qcd_py_pt80", nMaxFiles=1, nEvents=100000, xs = 9.238e+05,#pb
+             listOfFileNames=utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/gouskos//ICF/automated/2010_07_06_00_55_17/"))
 
 # a.addSample( sampleName="qcd_py_pt170", nMaxFiles = 6, nEvents = -1, xs = 2.547e+04,#pb
 #              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/gouskos//ICF/automated/2010_07_06_01_33_23/") )
@@ -85,14 +88,14 @@ a=analysis.analysis(name = "hadronicLook",
 # a.addSample( sampleName="tt_tauola_mg", nMaxFiles = 6, nEvents = -1, xs = 95.0,#pb
 #              listOfFileNames = utils.getCommandOutput2("ls /vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root | grep -v 4_2").split("\n") )
 
-a.addSample( sampleName="gammajets_mg_pt40_100", nMaxFiles = 6, nEvents = -1, xs = 23620,#pb
-             listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb//ICF/automated/2010_07_26_15_14_40//PhotonJets_Pt40to100-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/"))
+# a.addSample( sampleName="gammajets_mg_pt40_100", nMaxFiles = 1, nEvents = -1, xs = 23620,#pb
+#              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb//ICF/automated/2010_07_26_15_14_40//PhotonJets_Pt40to100-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/"))
 
-a.addSample( sampleName="gammajets_mg_pt100_200", nMaxFiles = 6, nEvents = -1, xs = 3476,#pb
-             listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt100to200-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/"))
+# a.addSample( sampleName="gammajets_mg_pt100_200", nMaxFiles = 6, nEvents = -1, xs = 3476,#pb
+#              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt100to200-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/"))
 
-a.addSample( sampleName="gammajets_mg_pt200", nMaxFiles = 6, nEvents = -1, xs = 485,#pb
-             listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt200toInf-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/"))
+# a.addSample( sampleName="gammajets_mg_pt200", nMaxFiles = 6, nEvents = -1, xs = 485,#pb
+#              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt200toInf-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/"))
 
 # a.addSample( sampleName="z_inv_mg", nMaxFiles = 6, nEvents = -1, xs=4500.0,#pb
 #              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/zph04/ICF/automated/2010_07_14_11_52_58/",
