@@ -85,13 +85,13 @@ a=analysis.analysis(name = "hadronicLook",
 # a.addSample( sampleName="tt_tauola_mg", nMaxFiles = 6, nEvents = -1, xs = 95.0,#pb
 #              listOfFileNames = utils.getCommandOutput2("ls /vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root | grep -v 4_2").split("\n") )
 
-a.addSample( sampleName="gammajets_mg_pt40_100", nMaxFiles = 6, nEvents = -1, xs = 0,#pb   #FIX
+a.addSample( sampleName="gammajets_mg_pt40_100", nMaxFiles = 6, nEvents = -1, xs = 23620,#pb
              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb//ICF/automated/2010_07_26_15_14_40//PhotonJets_Pt40to100-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/"))
 
-a.addSample( sampleName="gammajets_mg_pt100_200", nMaxFiles = 6, nEvents = -1, xs = 0,#pb   #FIX
+a.addSample( sampleName="gammajets_mg_pt100_200", nMaxFiles = 6, nEvents = -1, xs = 3476,#pb
              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt100to200-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/"))
 
-a.addSample( sampleName="gammajets_mg_pt200", nMaxFiles = 6, nEvents = -1, xs = 0,#pb   #FIX
+a.addSample( sampleName="gammajets_mg_pt200", nMaxFiles = 6, nEvents = -1, xs = 485,#pb
              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt200toInf-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/"))
 
 # a.addSample( sampleName="z_inv_mg", nMaxFiles = 6, nEvents = -1, xs=4500.0,#pb
@@ -110,5 +110,5 @@ a.addSample( sampleName="gammajets_mg_pt200", nMaxFiles = 6, nEvents = -1, xs = 
 # a.addSample( sampleName="lm1", nMaxFiles = -1, nEvents = -1, xs = 4.888,#pb
 #              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bainbrid/ICF/automated/2010_07_12_17_52_54/LM1.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/") )
 
-a.loop( nCores = 6 )
-a.plot( mergeAllMc=False )
+a.loop( nCores = 1 )
+#a.plot( mergeAllMc=False )
