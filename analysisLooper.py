@@ -6,9 +6,13 @@ import ROOT as r
 class analysisLooper :
     """class to set up and loop over events"""
 
-    def __init__(self,fileDirectory,treeName,hyphens,outputDir,inputFiles,name,nEvents,outputPrefix,steps,calculables,xs,lumi,computeEntriesForReport):
+    def __init__(self,fileDirectory,treeName,otherTreesToKeepWhenSkimming,
+                 hyphens,outputDir,inputFiles,name,nEvents,outputPrefix,steps,calculables,xs,lumi,computeEntriesForReport):
+
         self.fileDirectory=fileDirectory
         self.treeName=treeName
+        self.otherTreesToKeepWhenSkimming=otherTreesToKeepWhenSkimming
+        
         self.hyphens=hyphens
         self.name=name
         self.nEvents=nEvents
@@ -35,7 +39,7 @@ class analysisLooper :
         self.outputStepAndCalculableDataFileName=self.outputPlotFileName.replace(".root",".pickledData")
 
     def go(self) :
-        self.setupChain(self.inputFiles)
+        self.setupChains(self.inputFiles)
         self.setupBooks()
         useSetBranchAddress=self.setupSteps()
 
@@ -56,12 +60,14 @@ class analysisLooper :
         
         #free up memory (http://wlav.web.cern.ch/wlav/pyroot/memory.html)
         self.inputChain.IsA().Destructor( self.inputChain )
+        for chain in self.otherChainDict.values() :
+            chain.IsA().Destructor( chain )
 
     def processEvent(self,eventVars) :
         for step in self.steps :
             if not step.go(eventVars) : break
 
-    def setupChain(self,inputFiles) :
+    def setupChains(self,inputFiles) :
         nFiles=len(inputFiles)
         alreadyPrintedEllipsis=False
 
@@ -73,8 +79,19 @@ class analysisLooper :
         self.inputChain=r.TChain("chain")
         r.SetOwnership(self.inputChain,False)
         
+        self.otherChainDict={}
+        otherChainCount=0
+        for item in self.otherTreesToKeepWhenSkimming :
+            self.otherChainDict[item]=r.TChain("chain%d"%otherChainCount)
+            r.SetOwnership(self.otherChainDict[item],False)
+        
         for infile in inputFiles :
+            #add main tree to main chain
             self.inputChain.Add(infile+"/"+self.fileDirectory+"/"+self.treeName)
+
+            #add other trees to other chains
+            for (dirName,treeName),chain in self.otherChainDict.iteritems() :
+                chain.Add(infile+"/"+dirName+"/"+treeName)
 
             if (inputFiles.index(infile)<2 or inputFiles.index(infile)>(nFiles-3) ) :
                 if not self.quietMode : print infile
@@ -146,6 +163,34 @@ class analysisLooper :
             for step in self.steps :
                 step.printStatistics()
 
+    def writeAllObjects(self) :
+        for object in objectList :
+            object.Write()
+            object.Delete()
+
+    def writeHistosFromBooks(self) :
+        for book in self.books.values() :
+            for object in book.values() :
+                object.Write()
+                object.Delete()
+
+    def writeSpecialHistos(self) :
+        xsHisto=r.TH1D("xsHisto",";dummy axis;#sigma (pb)",1,-0.5,0.5)
+        if self.xs!=None : xsHisto.SetBinContent(1,self.xs)
+        xsHisto.Write()
+        
+        lumiHisto=r.TH1D("lumiHisto",";dummy axis;integrated luminosity (pb^{-1})",1,-0.5,0.5)
+        if self.lumi!=None : lumiHisto.SetBinContent(1,self.lumi)
+        lumiHisto.Write()
+        
+        nEventsHisto=r.TH1D("nEventsHisto",";dummy axis;N_{events} read in",1,-0.5,0.5)
+        nEventsHisto.SetBinContent(1,self.nEvents)
+        nEventsHisto.Write()
+        
+        nJobsHisto=r.TH1D("nJobsHisto",";dummy axis;N_{jobs}",1,-0.5,0.5)
+        nJobsHisto.SetBinContent(1,1)
+        nJobsHisto.Write()
+
     def writeHistos(self) :
         if not self.quietMode : print self.hyphens
         #r.gDirectory.ls()
@@ -154,31 +199,9 @@ class analysisLooper :
         outputFile=r.TFile(self.outputPlotFileName,"RECREATE")
         zombie=outputFile.IsZombie()
 
-        for object in objectList :
-            object.Write()
-            object.Delete()
-
-        for book in self.books.values() :
-            for object in book.values() :
-                object.Write()
-                object.Delete()
-
-        #write some "special" histograms
-        xsHisto=r.TH1D("xsHisto",";dummy axis;#sigma (pb)",1,-0.5,0.5)
-        if self.xs!=None : xsHisto.SetBinContent(1,self.xs)
-        xsHisto.Write()
-            
-        lumiHisto=r.TH1D("lumiHisto",";dummy axis;integrated luminosity (pb^{-1})",1,-0.5,0.5)
-        if self.lumi!=None : lumiHisto.SetBinContent(1,self.lumi)
-        lumiHisto.Write()
-            
-        nEventsHisto=r.TH1D("nEventsHisto",";dummy axis;N_{events} read in",1,-0.5,0.5)
-        nEventsHisto.SetBinContent(1,self.nEvents)
-        nEventsHisto.Write()
-        
-        nJobsHisto=r.TH1D("nJobsHisto",";dummy axis;N_{jobs}",1,-0.5,0.5)
-        nJobsHisto.SetBinContent(1,1)
-        nJobsHisto.Write()
+        #self.writeAllObjects()
+        self.writeHistosFromBooks()
+        self.writeSpecialHistos()
         
         outputFile.Close()
         if not zombie :
@@ -190,7 +213,7 @@ class analysisLooper :
     def endSteps(self) :
         for step in self.steps :
             if hasattr(step,"endFunc") :
-                step.endFunc(self.inputChain,self.hyphens,self.nEvents,self.xs)
+                step.endFunc(self.inputChain,self.otherChainDict,self.hyphens,self.nEvents,self.xs)
 
     def pickleStepAndCalculableData(self) :
         keepList=["nTotal","nPass","nFail","outputFileName"]

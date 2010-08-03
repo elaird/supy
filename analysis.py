@@ -19,13 +19,16 @@ globalSetup(listOfSourceFiles=["pragmas.h","helpers.C"])
 class analysis :
     """base class for an analysis"""
     
-    def __init__(self,name="name",outputDir="/tmp/",listOfSteps=[],listOfCalculables=[],fileDirectory="susyTree",treeName="tree") :
+    def __init__(self,name="name",outputDir="/tmp/",listOfSteps=[],listOfCalculables=[],
+                 mainTree=("susyTree","tree"),
+                 otherTreesToKeepWhenSkimming=[("lumiTree","tree")]) :
         for arg in ["name","outputDir"] :
             exec("self."+arg+"="+arg)
 
         self.hyphens="".ljust(95,"-")
-        self.fileDirectory=fileDirectory
-        self.treeName=treeName
+        self.fileDirectory=mainTree[0]
+        self.treeName=mainTree[1]
+        self.otherTreesToKeepWhenSkimming=otherTreesToKeepWhenSkimming
         
         self.listOfSteps=listOfSteps
         self.listOfCalculables=listOfCalculables
@@ -80,6 +83,7 @@ class analysis :
 
         self.listOfLoopers.append(analysisLooper(self.fileDirectory,
                                                  self.treeName,
+                                                 self.otherTreesToKeepWhenSkimming,
                                                  self.hyphens,
                                                  self.outputDir,
                                                  listOfFileNames,
@@ -144,6 +148,7 @@ class analysis :
             for iFileName in range(len(looper.inputFiles)) :
                 outListOfLoopers.append(analysisLooper(self.fileDirectory,
                                                        self.treeName,
+                                                       self.otherTreesToKeepWhenSkimming,                                                       
                                                        self.hyphens,
                                                        looper.outputDir,
                                                        [looper.inputFiles[iFileName]],
@@ -186,6 +191,7 @@ class analysis :
             outputPlotFileName=someLooper.outputPlotFileName.replace(someLooper.name,parent)
             inFileList=[]
             displayFileList=[]
+            skimFileList=[]
         
             isFirstLooper=True
             for iLooper in self.parentDict[parent] :
@@ -214,6 +220,8 @@ class analysis :
 
                     if someLooper.steps[i].__doc__==someLooper.steps[i].displayerStepName :
                         displayFileList.append(stepDataList[i]["outputFileName"])
+                    if someLooper.steps[i].__doc__==someLooper.steps[i].skimmerStepName :
+                        skimFileList.append(stepDataList[i]["outputFileName"])
 
                 if isFirstLooper :
                     someLooper.calculableConfigDict={}
@@ -236,6 +244,11 @@ class analysis :
             if len(displayFileList)>0 :
                 outputFileName=displayFileList[0].replace(someLooper.name,someLooper.parentName).replace(".root",".ps")
                 utils.psFromRoot(displayFileList,outputFileName,beQuiet=False)
+                print self.hyphens
+            if len(skimFileList)>0 :
+                skimFileList.sort()
+                print "The",len(skimFileList),"skim files have effective xs XXX."
+                print "(e.g.",skimFileList[0],")"
                 print self.hyphens
 
     def profile(self,nCores) :

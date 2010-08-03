@@ -87,20 +87,28 @@ class skimmer(analysisStep) :
         for key in self.arrayDictionary :
             self.arrayDictionary[key][0]=eventVars["crock"][key]
         
-    def endFunc(self,chain,hyphens,nEvents,xs) :
-        print hyphens
-        if self.outputTree :
-            self.outputFile.cd(self.fileDir)
-            self.outputTree.Write()
-        if self.alsoWriteExtraTree :
-            self.outputTreeExtra.Write()
+    def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
+        if not self.quietMode : print hyphens
+
+        self.outputFile.cd(self.fileDir)                          #cd to file
+        if self.outputTree :         self.outputTree.Write()      #write main tree
+        if self.alsoWriteExtraTree : self.outputTreeExtra.Write() #write a tree with "extra" variables
+
+        #store other chains
+        for (dirName,treeName),chain in otherChainDict.iteritems() :
+            self.outputFile.mkdir(dirName).cd()
+            outChain=chain.CloneTree()
+            outChain.SetName(treeName)
+            outChain.SetDirectory(r.gDirectory)
+            outChain.Write()
+        
         self.outputFile.Close()
-        print "The skim file \""+self.outputFileName+"\" has been written."
+        if not self.quietMode : print "The skim file \""+self.outputFileName+"\" has been written."
 
         if xs==None : return
         effXs=0.0
         if nEvents>0 : effXs=(xs+0.0)*self.nPass/nEvents
-        print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",effXs
+        if not self.quietMode : print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",effXs
 #####################################
 class hbheNoiseFilter(analysisStep) :
     """hbheNoiseFilter"""
