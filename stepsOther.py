@@ -1,4 +1,4 @@
-import copy,array,os
+import copy,array,os,collections
 import ROOT as r
 from analysisStep import analysisStep
 import utils
@@ -97,10 +97,12 @@ class skimmer(analysisStep) :
         #store other chains
         for (dirName,treeName),chain in otherChainDict.iteritems() :
             self.outputFile.mkdir(dirName).cd()
-            outChain=chain.CloneTree()
-            outChain.SetName(treeName)
-            outChain.SetDirectory(r.gDirectory)
-            outChain.Write()
+            if chain :
+                outChain=chain.CloneTree()
+            if outChain :
+                outChain.SetName(treeName)
+                outChain.SetDirectory(r.gDirectory)
+                outChain.Write()
         
         self.outputFile.Close()
         if not self.quietMode : print "The skim file \""+self.outputFileName+"\" has been written."
@@ -842,4 +844,16 @@ class bxHistogrammer(analysisStep) :
 
     def uponAcceptance(self,eventVars) :
         self.book.fill(eventVars["bunch"],"bx",self.nBx,-0.5,0.5,";bx of event;events / bin")
+#####################################
+class jsonMaker(analysisStep) :
+    """jsonMaker"""
+
+    def __init__(self) :
+        self.runLsDict=collections.defaultdict(list)
+
+    def uponAcceptance(self,eventVars) :
+        self.runLsDict[eventVars["run"]].append(eventVars["lumiSection"])
+
+    def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
+        print self.runLsDict
 #####################################
