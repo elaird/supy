@@ -83,7 +83,7 @@ class hltPrescaleHistogrammer(analysisStep) :
             self.book(eventVars).fill( (iPath,math.log10(value)), "hltPrescaleHisto", (self.nBinsX,100), (-0.5,-0.5), (self.nBinsX-0.5,4,5),
                                        title="hltPrescaleHisto;;log_{10}(prescale value);events / bin")
 
-    def endFunc(self,chain,hyphens,nEvents,xs) :
+    def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
         key="hltPrescaleHisto"
         for book in self.books.values() :
             if key in book :
@@ -113,7 +113,7 @@ class hltTurnOnHistogrammer(analysisStep) :
             self.book(eventVars).fill( eventVars[self.var], "%s-%s"%(t,self.var), self.bmm[0],self.bmm[1],self.bmm[2],
                                        title = "pass %s;%s; events / bin" % (t,self.var) )
         
-#     def endFunc(self,chain,hyphens,nEvents,xs) :
+#     def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
 #         book = self.book(eventVars)
 #         tag = book["%s-%s"%(self.tagString,self.var)]
 #         probe = book["%s-%s"%(self.probeTrigger,self.var)]

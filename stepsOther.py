@@ -452,7 +452,7 @@ class displayer(analysisStep) :
         self.mhtLlHisto=r.TH2D("mhtLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashH_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
         self.metLlHisto=r.TH2D("metLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashE_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
 
-    def endFunc(self,chain,hyphens,nEvents,xs) :
+    def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
         self.outputFile.Write()
         self.outputFile.Close()
         #if not self.quietMode : print "The display file \""+self.outputFileName+"\" has been written."
@@ -829,7 +829,7 @@ class pickEventSpecMaker(analysisStep) :
         line+="   "+self.dataSetName+"\n"
         self.outputFile.write(line) #slow: faster to buffer output, write less frequently
 
-    def endFunc(self,chain,hyphens,nEvents,xs) :
+    def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
         print hyphens
         self.outputFile.close()
         print "The pick events spec. file \""+self.outputFileName+"\" has been written."
