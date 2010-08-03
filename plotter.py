@@ -375,21 +375,21 @@ def plotAll(analysisName,plotFileNameDict,mergeAllMc,mergeRequest,scaleByAreaRat
     for plotName in dimensionDict :
         plotSpec={}
 
-        plotSpec["lumiValue"]               = lumiValue
-        plotSpec["plotName"]                = plotName
-        plotSpec["dimension"]               = dimensionDict[plotName]
-        plotSpec["canvas"]                  = canvas
-        plotSpec["plotFileNameDict"]        = plotFileNameDict
+        plotSpec["lumiValue"]                 = lumiValue
+        plotSpec["plotName"]                  = plotName
+        plotSpec["dimension"]                 = dimensionDict[plotName]
+        plotSpec["canvas"]                    = canvas
+        plotSpec["plotFileNameDict"]          = plotFileNameDict
         plotSpec["scaleByAreaRatherThanByXs"] = scaleByAreaRatherThanByXs
-        plotSpec["mergeAllMc"]              = mergeAllMc
-        plotSpec["mergeRequest"]            = mergeRequest
-        plotSpec["outputDir"]               = outputDir
-        plotSpec["xsDict"]                  = xsDict
-        plotSpec["lumiDict"]                = lumiDict
-        plotSpec["nEventsDict"]             = nEventsDict
-        plotSpec["nJobsDict"]               = nJobsDict
-        plotSpec["psFile"]                  = psFile
-        plotSpec["psOptions"]               = psOptions
+        plotSpec["mergeAllMc"]                = mergeAllMc
+        plotSpec["mergeRequest"]              = mergeRequest
+        plotSpec["outputDir"]                 = outputDir
+        plotSpec["xsDict"]                    = xsDict
+        plotSpec["lumiDict"]                  = lumiDict
+        plotSpec["nEventsDict"]               = nEventsDict
+        plotSpec["nJobsDict"]                 = nJobsDict
+        plotSpec["psFile"]                    = psFile
+        plotSpec["psOptions"]                 = psOptions
 
         onePlotFunction(plotSpec)
 
