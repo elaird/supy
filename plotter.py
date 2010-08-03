@@ -190,7 +190,7 @@ def histoLoop(plotSpec,histoDict) :
         if plotSpec["mergeAllMc"] :
             if plotSpec["xsDict"][sampleName]!=0.0 : #exclude data
                 if  "lm" not in sampleName : #exclude SUSY
-                    targetName="all MC"
+                    targetName="all SM MC"
         
         if sampleName!=targetName :
             someName=histo.GetName().replace("_"+str(count),"")+targetName
