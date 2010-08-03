@@ -5,7 +5,6 @@ doLog1D=True
 doLog2D=True
 drawYx=False
 doMetFit=False
-doScaleByXs=True
 doColzFor2D=True
 lumiToUseInAbsenceOfData=100 #/pb
 ##############################
@@ -119,17 +118,18 @@ def scaleHistos(histoDict,plotSpec) :
 ##############################
 def scale1DHistosByArea(histoDict) :
     max=0.0
-    if (len(histoDict)<1) : return max
-    
-    integral0=histoList[0].Integral(0,histoList[0].GetNbinsX()+1)
-    for iHisto in range(len(histoList)) :
-        histo=histoList[iHisto]
-        if (histo.GetName()=="xsHisto" or histo.GetName()=="nEventsHisto") :
+    if len(histoDict)<1 : return max
+
+    histo0=histoDict.values()[0]
+    integral0=histo0.Integral(0,histo0.GetNbinsX()+1)
+    for histo in histoDict.values() :
+        if histo.GetName()=="xsHisto" or histo.GetName()=="nEventsHisto" :
             continue
         integralThis=histo.Integral(0,histo.GetNbinsX()+1)
-        histo.Scale(integral0/integralThis)
+        if integralThis>0.0 :
+            histo.Scale(integral0/integralThis)
         hMax=histo.GetMaximum()
-        if (hMax>max) : max=hMax
+        if hMax>max : max=hMax
     return max
 ##############################
 def metFit(histo) :
@@ -142,7 +142,7 @@ def metFit(histo) :
     return func
 ##############################
 def getLogMin(plotSpec) :
-    if not doScaleByXs :
+    if plotSpec["scaleByAreaRatherThanByXs"] :
         return 0.5
     else :
         factorList=[]
@@ -256,8 +256,8 @@ def histoLoop(plotSpec,histoDict) :
                 outString+="%#8.2f"%histo.GetBinContent(1)
                 outString+=" +/-"
                 outString+="%#8.2f"%histo.GetBinError(1)
-                if doScaleByXs : print outString
-                else : print "for counts, set doScaleByXs=True"
+                if not plotSpec["scaleByAreaRatherThanByXs"] : print outString
+                else : print "for counts, set scaleByAreaRatherThanByXs=False"
             
         #2D here
         else :
@@ -273,7 +273,7 @@ def histoLoop(plotSpec,histoDict) :
             else :           histo.Draw()
 
             if doLog2D :
-                if doScaleByXs : histo.SetMaximum(2.0*plotSpec["maximum"])
+                if not plotSpec["scaleByAreaRatherThanByXs"] : histo.SetMaximum(2.0*plotSpec["maximum"])
                 histo.SetMinimum(getLogMin(plotSpec))
                 r.gPad.SetLogz()
             else :
@@ -305,12 +305,12 @@ def onePlotFunction(plotSpec) :
     histoDict=makeHistoDict(plotSpec)
     if plotSpec["dimension"]==1 :
         plotSpec["canvas"].Divide(1,1)
-        if not doScaleByXs :
+        if plotSpec["scaleByAreaRatherThanByXs"] :
             plotSpec["maximum"]=scale1DHistosByArea(histoDict)
     else :
         plotSpec["canvas"].Divide(len(histoDict),1)
 
-    if doScaleByXs :
+    if not plotSpec["scaleByAreaRatherThanByXs"] :
         plotSpec["maximum"]=scaleHistos(histoDict,plotSpec)
     histoLoop(plotSpec,histoDict)
 ##############################
@@ -348,7 +348,7 @@ def printTimeStamp(canvas,psFile,psOptions) :
     canvas.Print(psFile,psOptions)
     canvas.Clear()
 ##############################
-def plotAll(analysisName,plotFileNameDict,mergeAllMc,mergeRequest,outputDir,hyphens) :
+def plotAll(analysisName,plotFileNameDict,mergeAllMc,mergeRequest,scaleByAreaRatherThanByXs,outputDir,hyphens) :
     if len(plotFileNameDict)<1 : return
     setupStyle()
 
@@ -369,26 +369,27 @@ def plotAll(analysisName,plotFileNameDict,mergeAllMc,mergeRequest,outputDir,hyph
     lumiValue=lumiToUseInAbsenceOfData
     if nDataSamples==1 :
         lumiValue=max(lumiDict.values())
-    elif nDataSamples>1 :
+    elif nDataSamples>1 and not scaleByAreaRatherThanByXs :
         raise Exception("at the moment, plotting multiple data samples is not supported")
 
     for plotName in dimensionDict :
         plotSpec={}
 
-        plotSpec["lumiValue"]        = lumiValue
-        plotSpec["plotName"]         = plotName
-        plotSpec["dimension"]        = dimensionDict[plotName]
-        plotSpec["canvas"]           = canvas
-        plotSpec["plotFileNameDict"] = plotFileNameDict
-        plotSpec["mergeAllMc"]       = mergeAllMc
-        plotSpec["mergeRequest"]     = mergeRequest
-        plotSpec["outputDir"]        = outputDir
-        plotSpec["xsDict"]           = xsDict
-        plotSpec["lumiDict"]         = lumiDict
-        plotSpec["nEventsDict"]      = nEventsDict
-        plotSpec["nJobsDict"]        = nJobsDict
-        plotSpec["psFile"]           = psFile
-        plotSpec["psOptions"]        = psOptions
+        plotSpec["lumiValue"]               = lumiValue
+        plotSpec["plotName"]                = plotName
+        plotSpec["dimension"]               = dimensionDict[plotName]
+        plotSpec["canvas"]                  = canvas
+        plotSpec["plotFileNameDict"]        = plotFileNameDict
+        plotSpec["scaleByAreaRatherThanByXs"] = scaleByAreaRatherThanByXs
+        plotSpec["mergeAllMc"]              = mergeAllMc
+        plotSpec["mergeRequest"]            = mergeRequest
+        plotSpec["outputDir"]               = outputDir
+        plotSpec["xsDict"]                  = xsDict
+        plotSpec["lumiDict"]                = lumiDict
+        plotSpec["nEventsDict"]             = nEventsDict
+        plotSpec["nJobsDict"]               = nJobsDict
+        plotSpec["psFile"]                  = psFile
+        plotSpec["psOptions"]               = psOptions
 
         onePlotFunction(plotSpec)
 
