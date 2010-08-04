@@ -5,21 +5,21 @@ from analysisStep import analysisStep
 class progressPrinter(analysisStep) :
     """progressPrinter"""
 
-    def __init__(self,factor,cut):
+    def __init__(self,suppressionFactor=2,suppressionOffset=300):
         self.num=1
-        self.factor=factor
-        self.cut=cut
-        self.moreName="("
-        self.moreName+=str(self.factor)+","
-        self.moreName+=str(self.cut)+")"
+        self.suppressionFactor=suppressionFactor
+        self.suppressionOffset=suppressionOffset
+        self.moreName="(factor="
+        self.moreName+=str(self.suppressionFactor)+", offset="
+        self.moreName+=str(self.suppressionOffset)+")"
 
     def uponAcceptance (self,eventVars) :
-        if (self.nTotal==self.num) :
-            self.num=self.factor*self.num
-            toPrint="event "+str(self.nTotal).rjust(self.integerWidth," ")
-            toPrint=toPrint.ljust(self.docWidth+self.moreWidth+1)+time.ctime()
-            if (self.num==self.factor or self.num>self.cut) and not self.quietMode :
-                print toPrint
+        if self.nTotal!=self.num : return
+        self.num=self.suppressionFactor*self.num
+        toPrint="event "+str(self.nTotal).rjust(self.integerWidth," ")
+        toPrint=toPrint.ljust(self.docWidth+self.moreWidth+1)+time.ctime()
+        if (self.num==self.suppressionFactor or self.num>self.suppressionOffset) and not self.quietMode :
+            print toPrint
 #####################################
 class printstuff(analysisStep) :
     """printstuff"""
