@@ -37,6 +37,8 @@ class analysis :
         self.listOfLoopers=[]
         self.mergeRequestForPlotter={}
         self.listOfOutputPlotFileNames=[]
+
+        self.hasLooped=False
         
     def loop(self, profile = False, nCores = 1, splitJobsByInputFile = None) :
         nCores = max(1,nCores)
@@ -51,6 +53,7 @@ class analysis :
             self.loopOverSamples(nCores)
         else :
             self.profile(nCores) #profile the code while doing so
+        self.hasLooped=True            
 
     def plot(self,mergeAllStandardModelMc=False,scaleByAreaRatherThanByXs=False) :
         plotFileNamesDict={}
@@ -63,7 +66,8 @@ class analysis :
                 iSomeLooper=self.parentDict[parent][0]
                 someLooper=self.listOfLoopers[iSomeLooper]
                 plotFileNamesDict[parent]=someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName)
-        
+
+        if not self.hasLooped : print self.hyphens
         import plotter
         plotter.plotAll(self.name,plotFileNamesDict,mergeAllStandardModelMc,self.mergeRequestForPlotter,scaleByAreaRatherThanByXs,self.outputDir,self.hyphens)
 
