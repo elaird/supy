@@ -1,24 +1,25 @@
 #!/usr/bin/env python
-
 import os,analysis,utils,steps,calculables,calculablesJet
 
+jetTypes = [ (col,"Pat") for col in ["ak5Jet","ak5JetJPT","ak5JetPF"]]
+
 def makeSteps() :
-    jetTypes = ["ak5Jet","ak5JetJPT","ak5JetPF"]
-    stepList = [ steps.progressPrinter(2,300),
+    stepList = [ steps.progressPrinter(),
                  steps.techBitFilter([0],True),
                  steps.physicsDeclared(),
-                 steps.vertexRequirementFilter(5.0,15.0),
-                 steps.monsterEventFilter(10,0.25) ]
-    stepList+= [ steps.hltTurnOnHistogrammer(probeTrig = "HLT_Jet50U", var = "%sLeadingPtPat"%col, tagTrigs = ["HLT_Jet30U"], binsMinMax = (75,0,150) ) \
+                 steps.vertexRequirementFilter(),
+                 steps.monsterEventFilter(),
+                 steps.hbheNoiseFilter() ]
+    stepList+= [ steps.maxNOtherJetEventFilter(col,0) for col in jetTypes ]
+    stepList+= [ steps.hltTurnOnHistogrammer(probeTrig = "HLT_Jet50U", var = "%sLeadingPt%s"%col, tagTrigs = ["HLT_Jet30U"], binsMinMax = (240,0,120) ) \
                  for col in jetTypes ]
     return stepList
 
 def makeCalculables() :
-    jetTypes = ["ak5Jet","ak5JetJPT","ak5JetPF"]
     calcs =  calculables.zeroArgs()
-    calcs += [ calculablesJet.leadingPt( collection = col, suffix="Pat") for col in jetTypes] 
-    calcs += [ calculablesJet.indices( collection = col, suffix = "Pat", ptMin = 20., etaMax = 3.0, flagName = "JetIDloose") for col in jetTypes[:-1] ]
-    calcs += [ calculablesJet.pfIndicesByHand( collection = "ak5JetPF", suffix = "Pat", ptMin = 20., etaMax = 3.0,
+    calcs += [ calculablesJet.leadingPt( collection = col) for col in jetTypes] 
+    calcs += [ calculablesJet.indices( collection = col, ptMin = 20., etaMax = 3.0, flagName = "JetIDloose") for col in jetTypes[:-1] ]
+    calcs += [ calculablesJet.pfIndicesByHand( collection = jetTypes[2], ptMin = 20., etaMax = 3.0,
                                                fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]
     return calcs
 
@@ -28,25 +29,64 @@ a=analysis.analysis( name = "triggerTurnOn",
                      listOfCalculables = makeCalculables()
                     )
 
-a.addSample( sampleName = "JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn", nMaxFiles = 1, nEvents = -1, lumi = 0.012,#/pb
+a.addSample( sampleName = "JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn", nMaxFiles = -1, nEvents = -1, lumi = 0.012,#/pb
              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_16_52_06/"))
 
-a.addSample( sampleName = "JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn", nMaxFiles = 1, nEvents = -1, lumi = 0.120,#/pb
+a.addSample( sampleName = "JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn", nMaxFiles = -1, nEvents = -1, lumi = 0.120,#/pb
              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_17_20_35/"))
 
-a.addSample( sampleName = "JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn", nMaxFiles = 1, nEvents = -1, lumi = 0.1235,#/pb
+a.addSample( sampleName = "JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn", nMaxFiles = -1, nEvents = -1, lumi = 0.1235,#/pb
              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_15_40_06/"))
 
-a.loop( nCores = 3 )
-
+a.loop( nCores = 6 )
+#a.plot()
 
 #########################################################
 
 import ROOT as r
+import re
 outFiles = a.listOfOutputPlotFileNames
 
 fileName = "triggerTurnOn_plots.root"
 os.system("rm %s >& /dev/null" % fileName)
 os.system('hadd %s %s | grep "Target file:"' % (fileName, ' '.join(outFiles)))
+
+hists = 3*[None]
+vars = ["ak5JetLeadingPtPat", "ak5JetJPTLeadingPtPat","ak5JetPFLeadingPtPat"]
+labels = ["Calo","JetPlusTracks","Particle Flow"]
+colors = [r.kRed, r.kGreen, r.kBlue]
+
 file = r.TFile.Open(fileName)
-r.gDirectory.ls()
+for var,tag,probe in filter( lambda i: len(i)==3, \
+                             [ tuple(re.split(r"(\w*)_given_(\w*)_and_(\w*)",name)[1:-1])
+                               for name in [ key.GetName() for key in file.GetListOfKeys()] ] ) :
+    num = file.Get("%s_given_%s_and_%s" % (var,tag,probe) )
+    denom = file.Get("%s_given_%s" % (var,tag))
+    name = "efficiencyBy_%s_of_%s_given_%s"%(var,probe,tag)
+    hist = num.Clone(name)
+    hist.Divide(num,denom,1,1,"B") #binomial errors
+    hist.GetYaxis().SetTitle("efficiency")
+    hist.SetTitle("Probability of %s given %s" % (probe,tag))
+
+    if var in vars :
+        hists[vars.index(var)] = hist
+        hist.GetXaxis().SetTitle("Leading Jet p_{T}  (GeV)")
+        hist.GetXaxis().SetLimits(20,120)
+        hist.SetMaximum(1)
+
+r.gROOT.SetStyle("Plain")
+r.gStyle.SetOptStat(0)
+leg = r.TLegend(0.15,0.6,0.4,0.87)
+c = r.TCanvas("c","",800,600)
+c.SetGridx()
+c.SetGridy()
+
+same = ""
+for i in range(3) :
+    hists[i].SetLineColor(colors[i])
+    leg.AddEntry(hists[i],labels[i])
+    hists[i].Draw(same)
+    same = "same"
+leg.Draw()
+
+c.Print("triggerTurnOn.eps")
