@@ -4,12 +4,12 @@ import math
 class indices(wrappedChain.calculable) :
     def name(self) : return "%sIndices%s"% self.cs
     
-    def __init__(self, collection = None, suffix = None, ptMin = None, etaMax = None, flagName = None ):
-        self.cs = (collection,suffix)
+    def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None ):
+        self.cs = collection
         self.ptThreshold = ptMin
         self.etaMax = etaMax
         self.flagName = None if not flagName else \
-                        "%s"+flagName+"%s" if collection[-2:] != "PF" else \
+                        "%s"+flagName+"%s" if self.cs[0][-2:] != "PF" else \
                         "%sPF"+flagName+"%s"
         self.flagName = self.flagName % self.cs if self.flagName else None
         self.p4sName = '%sCorrectedP4%s'%self.cs
@@ -49,8 +49,8 @@ class leadingPt(wrappedChain.calculable) :
 class sumPt(wrappedChain.calculable) :
     def name(self) : return "%sSumPt%s"% self.cs
 
-    def __init__(self, collection = None, suffix = None) :
-        self.cs = collection, suffix
+    def __init__(self, collection = None) :
+        self.cs = collection
         self.p4sName = '%sCorrectedP4%s' % self.cs
         self.indicesName = "%sIndices%s" % self.cs
 
@@ -62,8 +62,8 @@ class sumPt(wrappedChain.calculable) :
 class sumP4(wrappedChain.calculable) :
     def name(self) : return "%sSumP4%s" % self.cs
 
-    def __init__(self, collection = None, suffix = None) :
-        self.cs = (collection, suffix)
+    def __init__(self, collection = None) :
+        self.cs = collection
         self.p4sName = "%sCorrectedP4%s" % self.cs
         self.indicesName = "%sIndices%s" % self.cs
 
@@ -75,8 +75,8 @@ class sumP4(wrappedChain.calculable) :
 class deltaPseudoJet(wrappedChain.calculable) :
     def name(self) : return "%sDeltaPseudoJet%s" % self.cs
 
-    def __init__(self, collection = None, suffix = None) :
-        self.cs = (collection, suffix)
+    def __init__(self, collection = None) :
+        self.cs = collection
         self.p4sName = "%sCorrectedP4%s" % self.cs
         self.indicesName = "%sIndices%s" % self.cs
 
@@ -96,8 +96,8 @@ class deltaPseudoJet(wrappedChain.calculable) :
 class alphaT(wrappedChain.calculable) :
     def name(self) : return "%sAlphaT%s" % self.cs
 
-    def __init__(self, collection = None, suffix = None ) :
-        self.cs = (collection, suffix)
+    def __init__(self, collection = None ) :
+        self.cs = collection
         self.sumP4Name = "%sSumP4%s" % self.cs
         self.sumPtName = "%sSumPt%s" % self.cs
         self.deltaPseudoName = "%sDeltaPseudoJet%s" % self.cs
@@ -111,8 +111,8 @@ class alphaT(wrappedChain.calculable) :
 class diJetAlpha(wrappedChain.calculable) :
     def name(self) : return "%sDiJetAlpha%s" % self.cs
     
-    def __init__(self,collection = None, suffix = None) :
-        self.cs = (collection,suffix)
+    def __init__(self,collection = None) :
+        self.cs = collection
         self.indicesName = "%sIndices%s" % self.cs
         self.p4String = "%sCorrectedP4%s" % self.cs
         
@@ -132,8 +132,8 @@ class diJetAlpha(wrappedChain.calculable) :
 class deltaX01(wrappedChain.calculable) :
     def name(self) : return "%sDeltaX01%s" % self.cs
 
-    def __init__(self,collection = None, suffix = None) :
-        self.cs = (collection,suffix)
+    def __init__(self,collection = None) :
+        self.cs = collection
         self.indicesName = "%sIndices%s" % self.cs
         self.p4String = "%sCorrectedP4%s" % self.cs
         

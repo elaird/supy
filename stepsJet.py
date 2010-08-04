@@ -4,12 +4,12 @@ from analysisStep import analysisStep
 class jetPtSelector(analysisStep) :
     """jetPtSelector"""
 
-    def __init__(self,collection,suffix,jetPtThreshold,jetIndex):
+    def __init__(self,cs,jetPtThreshold,jetIndex):
         self.jetIndex = jetIndex
         self.jetPtThreshold = jetPtThreshold
-        self.p4sName = "%sCorrectedP4%s" % (collection,suffix)
-        
-        self.moreName = "(%s; %s; corr. pT[%d]>=%.1f GeV)" % (collection, suffix, jetIndex, jetPtThreshold)
+        self.cs = cs
+        self.p4sName = "%sCorrectedP4%s" % self.cs
+        self.moreName = "(%s %s; corr. pT[%d]>=%.1f GeV)" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
 
     def select (self,eventVars) :
         p4s = eventVars[self.p4sName]
@@ -19,12 +19,12 @@ class jetPtSelector(analysisStep) :
 class jetPtVetoer(analysisStep) :
     """jetPtVetoer"""
 
-    def __init__(self,collection,suffix,jetPtThreshold,jetIndex):
+    def __init__(self,cs,jetPtThreshold,jetIndex):
         self.jetPtThreshold = jetPtThreshold
         self.jetIndex = jetIndex
-        self.jetP4s = "%sCorrectedP4%s" % (collection,suffix)
-        
-        self.moreName = "(%s; %s; corr. pT[%d]<%.1f GeV)" % (jetCollection, jetSuffix, jetIndex, jetPtThreshold)
+        self.cs = cs
+        self.jetP4s = "%sCorrectedP4%s" % self.cs
+        self.moreName = "(%s %s; corr. pT[%d]<%.1f GeV)" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
 
     def select (self,eventVars) :
         p4s = eventVars[self.jetP4s]
@@ -64,7 +64,7 @@ class cleanJetEmfFilter(analysisStep) :
         self.ptMin = ptMin
         self.emfMax = emfMax
         
-        self.moreName = "(%s; %s" % (collection,suffix)
+        self.moreName = "(%s %s" % (collection,suffix)
         self.moreName2 = " corr. pT>=%.1f GeV; EMF<=%.1f)" % (ptMin,emfMax)
 
     def select (self,eventVars) :
@@ -93,10 +93,11 @@ class nCleanJetHistogrammer(analysisStep) :
 class minNCleanJetEventFilter(analysisStep) :
     """minNCleanJetEventFilter"""
 
-    def __init__(self,collection,suffix,minNCleanJets):
+    def __init__(self,cs,minNCleanJets):
         self.minNCleanJets = minNCleanJets
-        self.indicesName = "%sIndices%s" % (collection,suffix)
-        self.moreName = "(%s %s>=%d)" % (collection,suffix,minNCleanJets)
+        self.cs = cs
+        self.indicesName = "%sIndices%s" % self.cs
+        self.moreName = "(%s %s>=%d)" % (self.cs[0], self.cs[1], minNCleanJets)
         
     def select (self,eventVars) :
         return len(eventVars[self.indicesName]["clean"]) >= self.minNCleanJets
@@ -104,10 +105,11 @@ class minNCleanJetEventFilter(analysisStep) :
 class maxNOtherJetEventFilter(analysisStep) :
     """maxNOtherJetEventFilter"""
 
-    def __init__(self,collection,suffix,maxNOtherJets):
+    def __init__(self,cs,maxNOtherJets):
         self.maxNOtherJets = maxNOtherJets
-        self.indicesName = "%sIndices%s" % (collection,suffix)
-        self.moreName = "(%s %s<=%d)" % (collection,suffix,maxNOtherJets)
+        self.cs = cs
+        self.indicesName = "%sIndices%s" % self.cs
+        self.moreName = "(%s %s<=%d)" % (self.cs[0], self.cs[1], maxNOtherJets)
         
     def select (self,eventVars) :
         return len(eventVars[self.indicesName]["other"]) <= self.maxNOtherJets
@@ -115,11 +117,10 @@ class maxNOtherJetEventFilter(analysisStep) :
 class cleanJetHtMhtHistogrammer(analysisStep) :
     """cleanJetHtMhtHistogrammer"""
 
-    def __init__(self,collection,suffix):
-        self.cs = (collection,suffix)
+    def __init__(self,cs):
+        self.cs = cs
         self.histoMax = 1.0e3
-
-        self.moreName="(%s; %s)" % self.cs
+        self.moreName="(%s %s)" % self.cs
 
     def uponAcceptance (self,eventVars) :
         sumP4 = eventVars["%sSumP4%s"%self.cs]
@@ -138,9 +139,9 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
 class cleanJetPtHistogrammer(analysisStep) :
     """cleanJetPtHistogrammer"""
 
-    def __init__(self,collection,suffix) :
-        self.cs = (collection,suffix)
-        self.moreName="(%s; %s)" % self.cs
+    def __init__(self,cs) :
+        self.cs = cs
+        self.moreName="(%s %s)" % self.cs
         self.indicesName = "%sIndices%s" % self.cs
         self.p4sName = "%sCorrectedP4%s" % self.cs
         self.cFactorName = "%sCorrFactor%s" % self.cs
@@ -160,9 +161,9 @@ class cleanJetPtHistogrammer(analysisStep) :
 class alphaHistogrammer(analysisStep) :
     """alphaHistogrammer"""
 
-    def __init__(self,collection,suffix) :
-        self.cs = (collection,suffix)
-        self.moreName = "(%s; %s)"%self.cs
+    def __init__(self,cs) :
+        self.cs = cs
+        self.moreName = "(%s %s)"%self.cs
         
     def uponAcceptance (self,eventVars) :
         book = self.book(eventVars)
