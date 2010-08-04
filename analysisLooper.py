@@ -8,7 +8,7 @@ class analysisLooper :
 
     def __init__(self,fileDirectory,treeName,otherTreesToKeepWhenSkimming,
                  hyphens,outputDir,inputFiles,name,nEvents,outputPlotFileName,steps,calculables,xs,lumi,
-                 computeEntriesForReport,printLeavesUsed):
+                 computeEntriesForReport,printNodesUsed):
 
         self.fileDirectory=fileDirectory
         self.treeName=treeName
@@ -34,7 +34,7 @@ class analysisLooper :
         self.quietMode=False
 
         self.computeEntriesForReport=computeEntriesForReport
-        self.printLeavesUsed=printLeavesUsed
+        self.printNodesUsed=printNodesUsed
 
         self.outputPlotFileName=outputPlotFileName
         self.outputStepAndCalculableDataFileName=self.outputPlotFileName.replace(".root",".pickledData")
@@ -162,18 +162,22 @@ class analysisLooper :
                                    
     def printStats(self) :
         if not self.quietMode :
-            if self.printLeavesUsed :
+            calcs = self.calculableConfigDict.keys()
+            calcs.sort()
+            self.listOfLeavesUsed.sort()
+            if self.printNodesUsed :
             	print self.hyphens
-            	self.listOfLeavesUsed.sort()
             	print "Leaves accessed:"
             	print str(self.listOfLeavesUsed).replace("'","")
+            	print self.hyphens
+                print "Calculables accessed:"
+                print str(calcs).replace("'","")
 
             print self.hyphens
-            print "Calculables accessed:"
-            items=self.calculableConfigDict.keys()
-            items.sort()
-            for item in items :
-                print item,self.calculableConfigDict[item]
+            print "Calculables' configuration:"
+            for calc in calcs :
+                if self.calculableConfigDict[calc]!="" :
+                    print calc,self.calculableConfigDict[calc]
                 
             #print step statistics
             if not len(self.steps) : return

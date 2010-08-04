@@ -22,7 +22,7 @@ class analysis :
     def __init__(self,name="name",outputDir="/tmp/",listOfSteps=[],listOfCalculables=[],
                  mainTree=("susyTree","tree"),
                  otherTreesToKeepWhenSkimming=[("lumiTree","tree")],
-                 printLeavesUsed=False) :
+                 printNodesUsed=False) :
         for arg in ["name","outputDir"] :
             exec("self."+arg+"="+arg)
 
@@ -30,7 +30,7 @@ class analysis :
         self.fileDirectory=mainTree[0]
         self.treeName=mainTree[1]
         self.otherTreesToKeepWhenSkimming=otherTreesToKeepWhenSkimming
-        self.printLeavesUsed=printLeavesUsed
+        self.printNodesUsed=printNodesUsed
         
         self.listOfSteps=listOfSteps
         self.listOfCalculables=listOfCalculables
@@ -108,7 +108,7 @@ class analysis :
                                                  xs,
                                                  lumi,
                                                  computeEntriesForReport,
-                                                 self.printLeavesUsed
+                                                 self.printNodesUsed
                                                  )
                                )
         return
@@ -178,7 +178,7 @@ class analysis :
                                                        looper.xs,
                                                        looper.lumi,
                                                        looper.computeEntriesForReport,
-                                                       looper.printLeavesUsed
+                                                       looper.printNodesUsed
                                                        )
                                         )
                 outListOfLoopers[-1].doSplitMode(looper.name)
