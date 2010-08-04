@@ -52,7 +52,7 @@ class analysis :
         else :
             self.profile(nCores) #profile the code while doing so
 
-    def plot(self,mergeAllMc=False,scaleByAreaRatherThanByXs=False) :
+    def plot(self,mergeAllStandardModelMc=False,scaleByAreaRatherThanByXs=False) :
         plotFileNamesDict={}
         outputPlotFileNamesForPlotter=[]
         if (not hasattr(self,"parentDict")) or len(self.parentDict)==0 :
@@ -65,7 +65,7 @@ class analysis :
                 plotFileNamesDict[parent]=someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName)
         
         import plotter
-        plotter.plotAll(self.name,plotFileNamesDict,mergeAllMc,self.mergeRequestForPlotter,scaleByAreaRatherThanByXs,self.outputDir,self.hyphens)
+        plotter.plotAll(self.name,plotFileNamesDict,mergeAllStandardModelMc,self.mergeRequestForPlotter,scaleByAreaRatherThanByXs,self.outputDir,self.hyphens)
 
     def checkXsAndLumi(self,xs,lumi) :
         if (xs==None and lumi==None) or (xs!=None and lumi!=None) :

@@ -205,7 +205,7 @@ def histoLoop(plotSpec,histoDict) :
         targetName=sampleName
         if sampleName in plotSpec["mergeRequest"] :
             targetName=plotSpec["mergeRequest"][sampleName]
-        if plotSpec["mergeAllMc"] :
+        if plotSpec["mergeAllStandardModelMc"] :
             if plotSpec["xsDict"][sampleName]!=0.0 : #exclude data
                 if  "lm" not in sampleName : #exclude SUSY
                     targetName="all SM MC"
@@ -223,6 +223,7 @@ def histoLoop(plotSpec,histoDict) :
         else :
             legend.AddEntry(histo,sampleName,"l")
 
+        if histo.GetEntries()==0 : continue
         yx=r.TF1("yx","x",histo.GetXaxis().GetXmin(),histo.GetXaxis().GetXmax())
         yx.SetLineColor(r.kBlue)
         yx.SetLineWidth(1)
@@ -366,7 +367,7 @@ def printTimeStamp(canvas,psFile,psOptions) :
     canvas.Print(psFile,psOptions)
     canvas.Clear()
 ##############################
-def plotAll(analysisName,plotFileNameDict,mergeAllMc,mergeRequest,scaleByAreaRatherThanByXs,outputDir,hyphens) :
+def plotAll(analysisName,plotFileNameDict,mergeAllStandardModelMc,mergeRequest,scaleByAreaRatherThanByXs,outputDir,hyphens) :
     if len(plotFileNameDict)<1 : return
     setupStyle()
 
@@ -394,14 +395,14 @@ def plotAll(analysisName,plotFileNameDict,mergeAllMc,mergeRequest,scaleByAreaRat
         plotSpec={}
         plotName=plotListItem[3]
         dimension=plotListItem[2]
-        
+
         plotSpec["lumiValue"]                 = lumiValue
         plotSpec["plotName"]                  = plotName
         plotSpec["dimension"]                 = dimension
         plotSpec["canvas"]                    = canvas
         plotSpec["plotFileNameDict"]          = plotFileNameDict
         plotSpec["scaleByAreaRatherThanByXs"] = scaleByAreaRatherThanByXs
-        plotSpec["mergeAllMc"]                = mergeAllMc
+        plotSpec["mergeAllStandardModelMc"]   = mergeAllStandardModelMc
         plotSpec["mergeRequest"]              = mergeRequest
         plotSpec["outputDir"]                 = outputDir
         plotSpec["xsDict"]                    = xsDict
