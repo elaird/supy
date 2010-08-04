@@ -31,6 +31,7 @@ Other
 * fix extra tree functionality in skimmer
 
 * tdrPlotter
+* ratios
 * list the selection on the plot
 
 * non-linear cutflow / directory structured output
