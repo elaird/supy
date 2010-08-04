@@ -7,7 +7,8 @@ class analysisLooper :
     """class to set up and loop over events"""
 
     def __init__(self,fileDirectory,treeName,otherTreesToKeepWhenSkimming,
-                 hyphens,outputDir,inputFiles,name,nEvents,outputPlotFileName,steps,calculables,xs,lumi,computeEntriesForReport):
+                 hyphens,outputDir,inputFiles,name,nEvents,outputPlotFileName,steps,calculables,xs,lumi,
+                 computeEntriesForReport,printLeavesUsed):
 
         self.fileDirectory=fileDirectory
         self.treeName=treeName
@@ -33,6 +34,7 @@ class analysisLooper :
         self.quietMode=False
 
         self.computeEntriesForReport=computeEntriesForReport
+        self.printLeavesUsed=printLeavesUsed
 
         self.outputPlotFileName=outputPlotFileName
         self.outputStepAndCalculableDataFileName=self.outputPlotFileName.replace(".root",".pickledData")
@@ -160,10 +162,12 @@ class analysisLooper :
                                    
     def printStats(self) :
         if not self.quietMode :
-            print self.hyphens
-            self.listOfLeavesUsed.sort()
-            print "List of leaves used:"
-            print self.listOfLeavesUsed
+            if self.printLeavesUsed :
+            	print self.hyphens
+            	self.listOfLeavesUsed.sort()
+            	print "List of leaves used:"
+            	print str(self.listOfLeavesUsed).replace("'","")
+
             print self.hyphens
             print "Configuration of calculables used:"
             items=self.calculableConfigDict.keys()
