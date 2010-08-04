@@ -48,7 +48,7 @@ class genParticleCounter(wrappedChain.calculable) :
 
     def zeroCategoryCounts(self) :
         for key in self.categories :
-            selv.value[key]=0
+            self.value[key]=0
 
     def isSusy(self,pdgId) :
         reducedPdgId=abs(pdgId)/1000000
