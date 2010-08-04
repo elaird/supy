@@ -129,3 +129,27 @@ class diJetAlpha(wrappedChain.calculable) :
         else :
             self.value=p4s.at(cleanJetIndices[1]).pt()/mass
 ##############################
+class deltaX01(wrappedChain.calculable) :
+    def name(self) : return "%sDeltaX01%s" % self.cs
+
+    def __init__(self,collection = None, suffix = None) :
+        self.cs = (collection,suffix)
+        self.indicesName = "%sIndices%s" % self.cs
+        self.p4String = "%sCorrectedP4%s" % self.cs
+        
+    def update(self,ignored) :
+        self.value={}
+        
+        cleanJetIndices = self.source[self.indicesName]["clean"]
+        if len(cleanJetIndices)<2 :
+            self.value["phi"]=None
+            self.value["eta"]=None
+            self.value["R"]=None
+            return
+        p4s=self.source[self.p4String]
+        jet0=p4s.at(cleanJetIndices[0])
+        jet1=p4s.at(cleanJetIndices[1])
+        self.value["phi"] = r.Math.VectorUtil.DeltaPhi(jet0,jet1)
+        self.value["R"  ] = r.Math.VectorUtil.DeltaR(jet0,jet1)
+        self.value["eta"] = jet0.eta()-jet1.eta()
+##############################
