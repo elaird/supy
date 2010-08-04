@@ -109,4 +109,4 @@ a.addSample( sampleName="lm1", nMaxFiles = 1, nEvents = -1, xs = 4.888,#pb
              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bainbrid/ICF/automated/2010_07_12_17_52_54/LM1.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/") )
 
 #a.loop( nCores = 6 )
-a.plot( mergeAllStandardModelMc=True )
+a.plot( mergeAllStandardModelMc=False )
