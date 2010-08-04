@@ -29,6 +29,7 @@ Other
 * organize files in cvs
 
 * skimmer prefix and suffix
+* fix extra tree functionality in skimmer
 
 * tdrPlotter
 * list the selection on the plot
