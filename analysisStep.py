@@ -1,6 +1,6 @@
 from bisect import bisect
 #####################################
-class analysisStep :
+class analysisStep(object) :
     """generic analysis step"""
 
     nPass=0
@@ -24,18 +24,18 @@ class analysisStep :
 
         if self.selectNotImplemented :
             self.nPass+=1
-            if (self.uponAcceptanceImplemented) :
+            if self.uponAcceptanceImplemented :
                 self.uponAcceptance(eventVars)
             return True
 
         if self.select(eventVars) :
             self.nPass+=1
-            if (self.uponAcceptanceImplemented) :
+            if self.uponAcceptanceImplemented :
                 self.uponAcceptance(eventVars)
             return True
         else :
             self.nFail+=1
-            if (self.uponRejectionImplemented) :
+            if self.uponRejectionImplemented :
                 self.uponRejection(eventVars)
             return False
 
@@ -43,7 +43,7 @@ class analysisStep :
         return self.__doc__.ljust(self.docWidth)+self.moreName.ljust(self.moreWidth)
 
     def name2(self) :
-        return "".ljust(self.docWidth)+self.moreName2.ljust(self.moreWidth)
+        return "" if self.moreName2=="" else "\n"+"".ljust(self.docWidth)+self.moreName2.ljust(self.moreWidth)
 
     def makeQuiet(self) :
         self.quietMode=True
@@ -52,16 +52,9 @@ class analysisStep :
         self.splitMode=True
         
     def printStatistics(self) :
-        outString=self.name()
-        outString2=self.name2()
-        statString =   " nPass ="+str(self.nPass) .rjust(self.integerWidth)+";"
-        statString+= "   nFail ="+str(self.nFail) .rjust(self.integerWidth)+";"
-        #statString+="   nTotal ="+str(self.nTotal).rjust(self.integerWidth)+";"
-        if self.moreName2=="" :
-            print outString+statString
-        else :
-            print outString
-            print outString2+statString
+        statString = "" if not hasattr(self,"select") else \
+                     "  %s %s" % ( str(self.nPass) .rjust(self.integerWidth), ("("+str(self.nFail)+")").rjust(self.integerWidth+2) )
+        print "%s%s%s" % (self.name(),self.name2(),statString)
 
     def book(self,eventVars) :
         if not self.needToConsiderPtHatThresholds :

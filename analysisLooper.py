@@ -165,19 +165,21 @@ class analysisLooper :
             if self.printLeavesUsed :
             	print self.hyphens
             	self.listOfLeavesUsed.sort()
-            	print "List of leaves used:"
+            	print "Leaves accessed:"
             	print str(self.listOfLeavesUsed).replace("'","")
 
             print self.hyphens
-            print "Configuration of calculables used:"
+            print "Calculables accessed:"
             items=self.calculableConfigDict.keys()
             items.sort()
             for item in items :
                 print item,self.calculableConfigDict[item]
                 
             #print step statistics
+            if not len(self.steps) : return
             print self.hyphens
-            print "Configurations and statistics of steps:"
+            width = self.steps[0].integerWidth
+            print "Steps:%s" % ("nPass ".rjust(width) + "(nFail)".rjust(width+2)).rjust(len(self.hyphens)-len("Steps:"))
             for step in self.steps :
                 step.printStatistics()
 
