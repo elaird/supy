@@ -307,6 +307,11 @@ def histoLoop(plotSpec,histoDict) :
 
         if not histo.GetEntries() : continue
 
+        yx=r.TF1("yx","x",histo.GetXaxis().GetXmin(),histo.GetXaxis().GetXmax())
+        yx.SetLineColor(r.kBlue)
+        yx.SetLineWidth(1)
+        yx.SetNpx(300)
+
         #1D here
         if plotSpec["dimension"]==1 :
             plot1D(plotSpec,histo,count)
