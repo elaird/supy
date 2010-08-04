@@ -1,7 +1,7 @@
 -----------
 | License |
 -----------
-GPLv3
+GPLv3 (http://www.gnu.org/licenses/gpl.html)
 
 ----------------
 | Instructions |
@@ -11,22 +11,13 @@ GPLv3
 - or see note (A)
 
 1) Check out the code:
-cvs co -d supy -r V6-1 UserCode/elaird/supy
+cvs co -d supy -r V8-3 UserCode/elaird/supy
 
-2) Define some samples you would like to analyze:
-- Edit samples.py (add a function to sampleDictionaryHolder).
-
-3) Define a "cut flow":
-- Edit lists.py (add a function to listDictionaryHolder).
-
-4) Define an analysis:
-- See analyses/example.py for an example.
-
-5) modify $PYTHONPATH so that supy modules can be imported:
+2) modify $PYTHONPATH so that supy modules can be imported:
 - cd supy
 - source supyenv.sh
 
-6) Run it!
+3) Run it!
 - python analyses/example.py
 
 ---------
