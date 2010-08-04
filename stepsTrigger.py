@@ -73,7 +73,9 @@ class hltPrescaleHistogrammer(analysisStep) :
 
     def __init__(self,listOfHltPaths) :
         self.listOfHltPaths = listOfHltPaths
-        self.moreName = "("+str(self.listOfHltPaths)+")"
+        self.moreName = "("
+        self.moreName+=str(self.listOfHltPaths).replace("HLT_","").replace("[","").replace("]","").replace(", ",",").replace("'","")
+        self.moreName+=")"
         self.nBinsX = len(self.listOfHltPaths)
 
     def uponAcceptance(self,eventVars) :

@@ -37,9 +37,9 @@ class leadingUnCorrJetPtSelector(analysisStep) :
     def __init__(self,jetCollectionsAndSuffixes,jetPtThreshold):
         self.jetCollectionsAndSuffixes = jetCollectionsAndSuffixes
         self.jetPtThreshold = jetPtThreshold
-
         self.moreName = "("+''.join(["%s%s;" % cS for cS in self.jetCollectionsAndSuffixes])
-        self.moreName2 = "corr. pT[leading uncorr. jet]>=%.1f GeV" % self.jetPtThreshold 
+        self.moreName2 = "corr pT[leading uncorr jet]>=%.1f GeV" % self.jetPtThreshold 
+        self.moreName2+=")"
 
     def select (self,eventVars) :
         # Corrected pt of leading jet (by uncorrected pt) >= threshold
