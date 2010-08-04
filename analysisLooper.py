@@ -188,7 +188,8 @@ class analysisLooper :
 
     def writeHistosFromBooks(self) :
         for book in self.books.values() :
-            for object in book.values() :
+            for item in book.fillOrder :
+                object=book[item]
                 object.Write()
                 object.Delete()
 
