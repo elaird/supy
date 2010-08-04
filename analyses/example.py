@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
-import analysis,utils,calculables,steps
+import os
+import analysis,utils,calculables,calculablesJet,steps
 
 def makeSteps() :
     jetCollection="ak5Jet"
     jetSuffix="Pat"
     jetPtThreshold=10.0
-    nCleanJets=2
-    jetEtaMax=3.0
     
     outSteps=[
         steps.progressPrinter(2,300),
@@ -20,42 +19,46 @@ def makeSteps() :
         steps.jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,1),#next corrected jet
         #steps.jetPtVetoer(jetCollection,jetSuffix,jetPtThreshold,2),#next corrected jet
 
-        steps.nCleanJetEventFilter(jetCollection,jetSuffix,nCleanJets),
-        steps.nOtherJetEventFilter(jetCollection,jetSuffix,1),
-        steps.cleanJetPtHistogrammer(jetCollection,jetSuffix),
+        steps.minNCleanJetEventFilter(jetCollection,jetSuffix,2),
+        steps.maxNOtherJetEventFilter(jetCollection,jetSuffix,0),
 
-        steps.cleanJetHtMhtProducer(jetCollection,jetSuffix),
-        steps.cleanJetHtMhtHistogrammer(jetCollection,jetSuffix,True),
+        steps.cleanJetPtHistogrammer(jetCollection,jetSuffix),
+        steps.cleanJetHtMhtHistogrammer(jetCollection,jetSuffix),
         #steps.variableGreaterFilter(25.0,jetCollection+"SumPt"+jetSuffix),
 
         steps.cleanDiJetAlphaProducer(jetCollection,jetSuffix),
-        steps.cleanNJetAlphaProducer(jetCollection,jetSuffix),
         steps.alphaHistogrammer(jetCollection,jetSuffix),
 
         #steps.skimmer("/tmp/"),
         ]
     return outSteps
-    
+
+def makeCalculables() :
+    jettypes = ["ak5Jet","ak5JetJPT","ak5JetPF"]
+    listOfCalculables = calculables.zeroArgs()
+    listOfCalculables += [ calculablesJet.indices( collection = col, suffix = "Pat", ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for col in jettypes]
+    listOfCalculables += [ calculablesJet.sumPt( collection = col, suffix = "Pat")                                                        for col in jettypes]
+    listOfCalculables += [ calculablesJet.sumP4( collection = col, suffix = "Pat")                                                        for col in jettypes]
+    listOfCalculables += [ calculablesJet.deltaPseudoJet( collection = col, suffix = "Pat") for col in jettypes ]
+    listOfCalculables += [ calculablesJet.alphaT( collection = col, suffix = "Pat") for col in jettypes ]
+    return listOfCalculables
+
 a=analysis.analysis(name="example",
-                    outputDir="/tmp/",
+                    outputDir = "/tmp/%s/"%os.environ["USER"],
                     listOfSteps=makeSteps(),
-                    calculables=calculables.allDefaultCalculables()                    
+                    listOfCalculables=makeCalculables(),
                     )
 
-a.addSample(sampleName="Example_Skimmed_900_GeV_Data",
-            listOfFileNames=["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_Data.root"],
-            lumi=1.0e-5, #/pb
-            nEvents=-1)
+a.addSample(sampleName="Example_Skimmed_900_GeV_Data", nEvents = -1, lumi = 1.0e-5, #/pb
+            listOfFileNames=["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_Data.root"] )
 
-a.addSample(sampleName="Example_Skimmed_900_GeV_MC",
-            listOfFileNames=["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_MC.root"],
-            xs=1.0e3, #pb
-            nEvents=100)
+a.addSample(sampleName="Example_Skimmed_900_GeV_MC", nEvents = 100, xs = 1.0e3, #pb
+            listOfFileNames=["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_MC.root"] )
+
 
 #loop over events and make root files containing histograms
 a.loop(profile=False,              #profile the code
-       nCores=1,                   #use multiple cores to process samples in parallel
-       splitJobsByInputFile=False  #process all input files (rather than just samples) in parallel
+       nCores=1,                   #use multiple cores to process input files in parallel
        )
 
 #make a pdf file with plots from the histograms created above

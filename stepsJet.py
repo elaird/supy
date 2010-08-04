@@ -266,7 +266,7 @@ class alphaHistogrammer(analysisStep) :
 
         mht = eventVars["%sSumP4%s"%self.cs].pt() 
         ht = eventVars["%sSumPt%s"%self.cs]
-        deltaHt = eventVars["crock"]["%snJetDeltaHt%s"%self.cs]
+        deltaHt = eventVars["%sDeltaPseudoJet%s"%self.cs]
 
         book.fill( eventVars["crock"]["%sdiJetAlpha%s"%self.cs], "%sdijet_alpha%s"%self.cs, bins,min,max,
                    title = ";di-jet #alpha (using p_{T});events / bin")
