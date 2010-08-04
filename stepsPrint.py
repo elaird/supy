@@ -50,9 +50,9 @@ class eventPrinter(analysisStep) :
 class jetPrinter(analysisStep) :
     """jetPrinter"""
 
-    def __init__(self,jetCollection,jetSuffix) :
-        self.jetCollection=jetCollection
-        self.jetSuffix=jetSuffix
+    def __init__(self,cs) :
+        self.jetCollection=cs[0]
+        self.jetSuffix=cs[1]
         self.moreName="("
         self.moreName+=self.jetCollection
         self.moreName+="; "
@@ -91,9 +91,9 @@ class jetPrinter(analysisStep) :
 class htMhtPrinter(analysisStep) :
     """htMhtPrinter"""
 
-    def __init__(self,jetCollection,jetSuffix) :
-        self.jetCollection=jetCollection
-        self.jetSuffix=jetSuffix
+    def __init__(self,cs) :
+        self.jetCollection=cs[0]
+        self.jetSuffix=cs[1]
         
     def uponAcceptance(self,eventVars) :
         outString ="HT %#6.1f GeV"   %eventVars[self.jetCollection+"SumPt"+self.jetSuffix]
@@ -103,9 +103,9 @@ class htMhtPrinter(analysisStep) :
 class diJetAlphaPrinter(analysisStep) :
     """diJetAlphaPrinter"""
 
-    def __init__(self,jetCollection,jetSuffix) :
-        self.jetCollection=jetCollection
-        self.jetSuffix=jetSuffix
+    def __init__(self,jets) :
+        self.jetCollection=jets[0]
+        self.jetSuffix=jets[1]
         
     def uponAcceptance(self,eventVars) :
         outString="di-jet alpha  %#6.3f"%eventVars[self.jetCollection+"DiJetAlpha"+self.jetSuffix]
@@ -114,9 +114,9 @@ class diJetAlphaPrinter(analysisStep) :
 class nJetAlphaTPrinter(analysisStep) :
     """nJetAlphaTPrinter"""
 
-    def __init__(self,jetCollection,jetSuffix) :
-        self.jetCollection=jetCollection
-        self.jetSuffix=jetSuffix
+    def __init__(self,jets) :
+        self.jetCollection=jets[0]
+        self.jetSuffix=jets[1]
         
     def uponAcceptance(self,eventVars) :
         outString ="n-jet deltaHT %#6.3f"  %eventVars[self.jetCollection+"DeltaPseudoJet"+self.jetSuffix]
