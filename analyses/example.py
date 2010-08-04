@@ -4,41 +4,40 @@ import os
 import analysis,utils,calculables,calculablesJet,steps
 
 def makeSteps() :
-    jetCollection="ak5Jet"
-    jetSuffix="Pat"
-    jetPtThreshold=10.0
+    jets=("ak5Jet","Pat")
+    minJetPt=10.0
     
     outSteps=[
-        steps.progressPrinter(2,300),
+        steps.progressPrinter(),
         steps.techBitFilter([0],True),
         steps.physicsDeclared(),
-        steps.vertexRequirementFilter(5.0,15.0),
-        steps.monsterEventFilter(10,0.25),
+        steps.vertexRequirementFilter(),
+        steps.monsterEventFilter(),
 
-        steps.jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,0),#leading corrected jet
-        steps.jetPtSelector(jetCollection,jetSuffix,jetPtThreshold,1),#next corrected jet
-        #steps.jetPtVetoer(jetCollection,jetSuffix,jetPtThreshold,2),#next corrected jet
-        steps.minNCleanJetEventFilter(jetCollection,jetSuffix,2),
-        steps.maxNOtherJetEventFilter(jetCollection,jetSuffix,0),
-
-        steps.cleanJetPtHistogrammer(jetCollection,jetSuffix),
-        steps.cleanJetHtMhtHistogrammer(jetCollection,jetSuffix),
-        #steps.variableGreaterFilter(25.0,jetCollection+"SumPt"+jetSuffix),
-
-        steps.alphaHistogrammer(jetCollection,jetSuffix),
+        steps.jetPtSelector(jets,minJetPt,0),#leading corrected jet
+        steps.jetPtSelector(jets,minJetPt,1),#next corrected jet
+        #steps.jetPtVetoer( jets,minJetPt,2),#next corrected jet
+        steps.minNCleanJetEventFilter(jets,2),
+        steps.maxNOtherJetEventFilter(jets,0),
+        
+        steps.cleanJetPtHistogrammer(jets),
+        steps.cleanJetHtMhtHistogrammer(jets),
+        #steps.variableGreaterFilter(25.0,jets[0]+"SumPt"+jets[1]),
+        
+        steps.alphaHistogrammer(jets),
         #steps.skimmer("/tmp/%s/"%os.environ["USER"]),
         ]
     return outSteps
 
 def makeCalculables() :
-    jettypes = ["ak5Jet","ak5JetJPT","ak5JetPF"]
+    jetTypes = [("ak5Jet","Pat"),("ak5JetJPT","Pat"),("ak5JetPF","Pat")]
     listOfCalculables = calculables.zeroArgs()
-    listOfCalculables += [ calculablesJet.indices(        collection = col, suffix = "Pat", ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for col in jettypes]
-    listOfCalculables += [ calculablesJet.sumPt(          collection = col, suffix = "Pat") for col in jettypes ]
-    listOfCalculables += [ calculablesJet.sumP4(          collection = col, suffix = "Pat") for col in jettypes ]
-    listOfCalculables += [ calculablesJet.deltaPseudoJet( collection = col, suffix = "Pat") for col in jettypes ]
-    listOfCalculables += [ calculablesJet.alphaT(         collection = col, suffix = "Pat") for col in jettypes ]
-    listOfCalculables += [ calculablesJet.diJetAlpha(     collection = col, suffix = "Pat") for col in jettypes ]
+    listOfCalculables += [ calculablesJet.indices(        collection = jetType, ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for jetType in jetTypes]
+    listOfCalculables += [ calculablesJet.sumPt(          collection = jetType) for jetType in jetTypes ]
+    listOfCalculables += [ calculablesJet.sumP4(          collection = jetType) for jetType in jetTypes ]
+    listOfCalculables += [ calculablesJet.deltaPseudoJet( collection = jetType) for jetType in jetTypes ]
+    listOfCalculables += [ calculablesJet.alphaT(         collection = jetType) for jetType in jetTypes ]
+    listOfCalculables += [ calculablesJet.diJetAlpha(     collection = jetType) for jetType in jetTypes ]
     return listOfCalculables
 
 a=analysis.analysis(name="example",
