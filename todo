@@ -15,9 +15,10 @@ Document
 Other
 --------
 * merging histos for different samples (eg, add all mc)
-* phase out crock
 * defer srmls until jobs runs
 * named arguments everywhere
+
+* list used leaves
 
 * display rechits
 * fix circle
