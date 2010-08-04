@@ -4,9 +4,11 @@ class autoBook(dict) :
     def __init__(self,title="") :
         self.title = title
         self.__directory = 0 if title=="" else r.TDirectory(title,title)
+        self.fillOrder = []
         
     def fill(self,x, name, N, low, up, w=1, title="") :
         if not name in self :
+            self.fillOrder.append(name)
             self[name] = \
                 r.TH1D(    name,title,N,low,up) if type(x)!=tuple else \
                 r.TProfile(name,title,N,low,up) if type(N)!=tuple else \
@@ -25,5 +27,3 @@ class autoBook(dict) :
         elif  type(N)!=tuple : self[name].Fill(x[0],x[1],w)
         elif  len(N)==2      : self[name].Fill(x[0],x[1],w)
         else                 : self[name].Fill(x[0],x[1],x[2],w)
-        
-
