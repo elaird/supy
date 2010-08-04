@@ -34,6 +34,7 @@ class analysis :
         self.listOfCalculables=listOfCalculables
         self.listOfLoopers=[]
         self.mergeRequestForPlotter={}
+        self.listOfOutputPlotFileNames=[]
         
     def loop(self, profile = False, nCores = 1, splitJobsByInputFile = None) :
         nCores = max(1,nCores)
@@ -68,6 +69,12 @@ class analysis :
         if (xs==None and lumi==None) or (xs!=None and lumi!=None) :
             raise Exception("sample must have either a xs or a lumi specified")
         return lumi==None
+
+    def makeOutputPlotFileName(self,sampleName,isChild=False) :
+        answer=self.outputDir+"/"+self.name+"_"+sampleName+"_plots.root"
+        if not isChild :
+            self.listOfOutputPlotFileNames.append(answer)
+        return answer
         
     def addSample(self, sampleName, listOfFileNames = [], nEvents = -1, nMaxFiles = -1, xs = None, lumi = None, computeEntriesForReport = False) :
         isMc = self.checkXsAndLumi(xs,lumi)
@@ -89,7 +96,7 @@ class analysis :
                                                  listOfFileNames,
                                                  sampleName,
                                                  nEvents,
-                                                 self.name,
+                                                 self.makeOutputPlotFileName(sampleName),
                                                  listOfSteps,
                                                  self.listOfCalculables,
                                                  xs,
@@ -149,15 +156,16 @@ class analysis :
         for looper in self.listOfLoopers :
             fileIndex=0
             for iFileName in range(len(looper.inputFiles)) :
+                sampleName=looper.name+"_"+str(iFileName)
                 outListOfLoopers.append(analysisLooper(self.fileDirectory,
                                                        self.treeName,
                                                        self.otherTreesToKeepWhenSkimming,                                                       
                                                        self.hyphens,
                                                        looper.outputDir,
                                                        [looper.inputFiles[iFileName]],
-                                                       looper.name+"_"+str(iFileName),
+                                                       sampleName,
                                                        looper.nEvents,
-                                                       looper.outputPrefix,
+                                                       self.makeOutputPlotFileName(sampleName,isChild=True),
                                                        copy.deepcopy(looper.steps),
                                                        self.listOfCalculables,
                                                        looper.xs,

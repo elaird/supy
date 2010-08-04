@@ -7,7 +7,7 @@ class analysisLooper :
     """class to set up and loop over events"""
 
     def __init__(self,fileDirectory,treeName,otherTreesToKeepWhenSkimming,
-                 hyphens,outputDir,inputFiles,name,nEvents,outputPrefix,steps,calculables,xs,lumi,computeEntriesForReport):
+                 hyphens,outputDir,inputFiles,name,nEvents,outputPlotFileName,steps,calculables,xs,lumi,computeEntriesForReport):
 
         self.fileDirectory=fileDirectory
         self.treeName=treeName
@@ -27,7 +27,6 @@ class analysisLooper :
         self.ptHatThresholds=[]
         
         self.outputDir=outputDir
-        self.outputPrefix=outputPrefix
 
         self.parentName=name
         self.splitMode=False
@@ -35,7 +34,7 @@ class analysisLooper :
 
         self.computeEntriesForReport=computeEntriesForReport
 
-        self.outputPlotFileName=self.outputDir+"/"+self.outputPrefix+"_"+self.name+"_plots.root"
+        self.outputPlotFileName=outputPlotFileName
         self.outputStepAndCalculableDataFileName=self.outputPlotFileName.replace(".root",".pickledData")
 
     def go(self) :
