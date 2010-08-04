@@ -51,7 +51,9 @@ class analysisLooper :
         self.nEvents=0
         if hasattr(chainWrapper,"entry") : self.nEvents=1+chainWrapper.entry
 
-        self.makeDictOfCalculableConfigs(chainWrapper.activeKeys())
+        activeKeys=chainWrapper.activeKeys()
+        self.makeDictOfCalculableConfigs(activeKeys)
+        self.makeListOfLeavesUsed(activeKeys)
         self.printStats()
         self.endSteps()
         self.writeHistos()
@@ -150,9 +152,19 @@ class analysisLooper :
             if hasattr(calc,"moreName")  : self.calculableConfigDict[calc.name()]+=" "+str(calc.moreName)
             if hasattr(calc,"moreName2") : self.calculableConfigDict[calc.name()]+=" "+str(calc.moreName2)
 
+    def makeListOfLeavesUsed(self,activeKeys) :
+        self.listOfLeavesUsed=[]
+        listOfCalcNames=[calc.name() for calc in self.calculables]
+        for key in activeKeys :
+            if key in listOfCalcNames : continue
+            self.listOfLeavesUsed.append(key)
+        self.listOfLeavesUsed.sort()
+                                   
     def printStats(self) :
         if not self.quietMode :
-            print self.hyphens            
+            print self.hyphens
+            print "List of leaves used:",self.listOfLeavesUsed
+            print self.hyphens
             print "Configuration of calculables used:"
             items=self.calculableConfigDict.keys()
             items.sort()
