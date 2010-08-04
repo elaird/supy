@@ -452,3 +452,34 @@ class deltaPhiProducer(analysisStep) :
             eventVars["crock"]["%sdeltaEta01%s"%self.cs] = jet0.eta()-jet1.eta()
         return True
 #####################################
+class genParticleCounterOld(analysisStep) :
+    """genParticleCounterOld"""
+
+    def __init__(self):
+        self.d={}
+
+        for i in range(1000001,1000005) : self.d[i]="q~_L"
+        for i in range(1000005,1000007) : self.d[i]="q~_A"
+        for i in range(2000001,2000005) : self.d[i]="q~_R"
+        for i in range(2000005,2000007) : self.d[i]="q~_A"
+        self.d[1000021]="g~"
+        
+    def uponAcceptance (self,eventVars) :
+        eventVars["crock"]["particleCounts"]={}
+        eventVars["crock"]["particleCounts"]["q~_L"]=0
+        eventVars["crock"]["particleCounts"]["q~_R"]=0
+        eventVars["crock"]["particleCounts"]["q~_A"]=0
+        eventVars["crock"]["particleCounts"]["g~"  ]=0
+
+        for pdgId in eventVars["genPdgId"] :
+            if pdgId in self.d :
+                category=self.d[pdgId]
+                if (not category in eventVars["crock"]["particleCounts"]) :
+                    eventVars["crock"]["particleCounts"][category]=1
+                else :
+                    eventVars["crock"]["particleCounts"][category]+=1                
+                    
+        for key in eventVars["particleCounts"] :
+            counts=eventVars["particleCounts"][key]
+            if counts>0 : print key,counts
+#####################################
