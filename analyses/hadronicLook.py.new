@@ -37,12 +37,9 @@ def makeSteps() :
         #steps.crockVariablePtGreaterFilter(100.0,jetCollection+"Mht"+jetSuffix),
         
         steps.variableGreaterFilter(300.0,jetCollection+"SumPt"+jetSuffix),
-        steps.cleanDiJetAlphaProducer(jetCollection,jetSuffix),
-        steps.cleanNJetAlphaProducer(jetCollection,jetSuffix),
         steps.alphaHistogrammer(jetCollection,jetSuffix),
-        #steps.crockVarCalcDiff("ak5JetnJetAlphaTPat","ak5JetAlphaTPat"),
         
-        steps.crockVariableGreaterFilter(0.55,jetCollection+"nJetAlphaT"+jetSuffix),
+        steps.variableGreaterFilter(0.55,jetCollection+"AlphaT"+jetSuffix),
         #steps.displayer(jetCollection,jetSuffix,metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/%s/tmp/"%os.environ["USER"],scale=200.0),
         #steps.eventPrinter(),
         #steps.jetPrinter(jetCollection,jetSuffix),
@@ -59,6 +56,7 @@ def makeCalculables() :
     listOfCalculables += [ calculablesJet.sumP4( collection = col, suffix = "Pat")                                                        for col in jettypes]
     listOfCalculables += [ calculablesJet.deltaPseudoJet( collection = col, suffix = "Pat") for col in jettypes ]
     listOfCalculables += [ calculablesJet.alphaT( collection = col, suffix = "Pat") for col in jettypes ]
+    listOfCalculables += [ calculablesJet.diJetAlpha( collection = col, suffix = "Pat") for col in jettypes ]
     return listOfCalculables
 
 #def dummy(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
