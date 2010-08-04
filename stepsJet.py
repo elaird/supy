@@ -9,7 +9,7 @@ class jetPtSelector(analysisStep) :
         self.jetPtThreshold = jetPtThreshold
         self.cs = cs
         self.p4sName = "%sCorrectedP4%s" % self.cs
-        self.moreName = "(%s %s; corr. pT[%d]>=%.1f GeV)" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
+        self.moreName = "(%s %s; pT[%d]>=%.1f GeV)" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
 
     def select (self,eventVars) :
         p4s = eventVars[self.p4sName]
@@ -24,7 +24,7 @@ class jetPtVetoer(analysisStep) :
         self.jetIndex = jetIndex
         self.cs = cs
         self.jetP4s = "%sCorrectedP4%s" % self.cs
-        self.moreName = "(%s %s; corr. pT[%d]<%.1f GeV)" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
+        self.moreName = "(%s %s; pT[%d]<%.1f GeV)" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
 
     def select (self,eventVars) :
         p4s = eventVars[self.jetP4s]
@@ -65,7 +65,7 @@ class cleanJetEmfFilter(analysisStep) :
         self.emfMax = emfMax
         
         self.moreName = "(%s %s" % (collection,suffix)
-        self.moreName2 = " corr. pT>=%.1f GeV; EMF<=%.1f)" % (ptMin,emfMax)
+        self.moreName2 = " pT>=%.1f GeV; EMF<=%.1f)" % (ptMin,emfMax)
 
     def select (self,eventVars) :
         p4s = eventVars[self.p4sName]

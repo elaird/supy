@@ -148,7 +148,7 @@ class objectPtVetoer(analysisStep) :
         self.index = index
         self.ptThreshold = ptThreshold
         self.varName = collection + p4String + suffix
-        self.moreName = "(%s; %s; corr. pT[%d]< %.1f GeV)" % (collection, suffix, index, ptThreshold )
+        self.moreName = "(%s; %s; pT[%d]< %.1f GeV)" % (collection, suffix, index, ptThreshold )
 
     def select (self,eventVars) :
         p4s = eventVars[self.varName]
@@ -165,7 +165,7 @@ class soloObjectPtSelector(analysisStep) :
     def __init__(self, collection, p4String, suffix, ptThreshold):
         self.ptThreshold = ptThreshold
         self.varName = collection + p4String + suffix        
-        self.moreName = "(%s; %s; corr. pT> %.1f GeV)" % (collection, suffix, ptThreshold )
+        self.moreName = "(%s; %s; pT> %.1f GeV)" % (collection, suffix, ptThreshold )
 
     def select (self,eventVars) :
         return self.ptThreshold <= eventVars[self.varName].pt()
