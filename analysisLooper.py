@@ -152,10 +152,11 @@ class analysisLooper :
 
     def printStats(self) :
         if not self.quietMode :
-            #print configuration of calculables
             print self.hyphens            
             print "Configuration of calculables used:"
-            for item in self.calculableConfigDict :
+            items=self.calculableConfigDict.keys()
+            items.sort()
+            for item in items :
                 print item,self.calculableConfigDict[item]
                 
             #print step statistics
