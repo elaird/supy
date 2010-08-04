@@ -20,9 +20,9 @@ def makeSteps() :
         steps.progressPrinter(),
         
         steps.ptHatHistogrammer(),
-        steps.jetPtSelector(jets,80.0,0),
+        steps.jetPtSelector(jets,100.0,0),
         #steps.jetPtSelector(jets,40.0,1),
-        steps.leadingUnCorrJetPtSelector( [jets],80.0 ),
+        steps.leadingUnCorrJetPtSelector( [jets],100.0 ),
         steps.hltFilter("HLT_Jet50U"),
         steps.hltPrescaleHistogrammer(["HLT_ZeroBias","HLT_Jet15U","HLT_Jet30U","HLT_Jet50U","HLT_MET45"]),
 
@@ -33,10 +33,10 @@ def makeSteps() :
         steps.cleanJetHtMhtHistogrammer(jets),
         #steps.crockVariablePtGreaterFilter(100.0,jetCollection+"Mht"+jetSuffix),
         
-        steps.variableGreaterFilter(300.0,jets[0]+"SumPt"+jets[1]),
+        steps.variableGreaterFilter(300.0,"%sSumPt%s"%jets),
         steps.alphaHistogrammer(jets),
         
-        steps.variableGreaterFilter(0.55,jets[0]+"AlphaT"+jets[1]),
+        steps.variableGreaterFilter(0.55,"%sAlphaT%s"%jets),
         #steps.displayer(jets[0],jets[1],metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/%s/tmp/"%os.environ["USER"],scale=200.0),
         #steps.eventPrinter(),
         #steps.jetPrinter(jets),
@@ -108,5 +108,5 @@ a.addSample( sampleName="lm0", nMaxFiles = 1, nEvents = -1, xs = 38.93,#pb
 a.addSample( sampleName="lm1", nMaxFiles = 1, nEvents = -1, xs = 4.888,#pb
              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bainbrid/ICF/automated/2010_07_12_17_52_54/LM1.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/") )
 
-#a.loop( nCores = 6 )
+a.loop( nCores = 6 )
 a.plot( mergeAllStandardModelMc=False )
