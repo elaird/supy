@@ -1,5 +1,5 @@
 import ROOT as r
-import os,math
+import os,math,collections
 ##############################
 doLog1D=True
 doLog2D=True
@@ -38,18 +38,36 @@ def setupStyle() :
     #r.gStyle.SetOptStat(111111)
 ##############################
 def getNamesAndDimensions(plotFileNameDict) :
-    dimensionDict={}
+    nFilesDict   =collections.defaultdict(int)  #nFilesContainingThisPlot
+    rankDict     =collections.defaultdict(list) #list of ranks in the files
+    dimensionDict=collections.defaultdict(int)  #plot dimension
+    
     for plotFileName in plotFileNameDict.values() :
-        f0=r.TFile(plotFileName)
-        keys=f0.GetListOfKeys()
-        for key in keys :
-            name=key.GetName()
-            className=object=f0.Get(name).ClassName()
-            if className[0:2]=="TH" :
-                dimensionDict[name]=int(className[2])
-            else :
-                dimensionDict[name]=0
-    return dimensionDict
+        f=r.TFile(plotFileName)
+        keys=f.GetListOfKeys()
+        for iKey in range(len(keys)) :
+            plotName=keys[iKey].GetName()
+            className=object=f.Get(plotName).ClassName()
+            dimension=0
+            if className[0:2]=="TH" : dimension=int(className[2])
+            nFilesDict[plotName]+=1
+            rankDict[plotName].append(iKey)
+            dimensionDict[plotName]=dimension
+            
+    plotList=[]
+    for plotName in nFilesDict.keys() :
+        #compute the average rank
+        avgRank=0.0
+        for rank in rankDict[plotName] :
+            avgRank+=rank
+        avgRank/=len(rankDict[plotName])
+
+        #add to the list
+        plotList.append( (nFilesDict[plotName],-avgRank,dimensionDict[plotName],plotName) )
+
+    plotList.sort()
+    plotList.reverse()
+    return plotList
 ##############################
 def get_Xs_Lumi_Event_Job_Numbers(plotFileNameDict) :
     xsDict={}
@@ -361,7 +379,7 @@ def plotAll(analysisName,plotFileNameDict,mergeAllMc,mergeRequest,scaleByAreaRat
     
     printTimeStamp(canvas,psFile,psOptions)
     
-    dimensionDict=getNamesAndDimensions(plotFileNameDict)
+    plotList=getNamesAndDimensions(plotFileNameDict)
     
     xsDict,lumiDict,nEventsDict,nJobsDict=get_Xs_Lumi_Event_Job_Numbers(plotFileNameDict)
 
@@ -372,12 +390,14 @@ def plotAll(analysisName,plotFileNameDict,mergeAllMc,mergeRequest,scaleByAreaRat
     elif nDataSamples>1 and not scaleByAreaRatherThanByXs :
         raise Exception("at the moment, plotting multiple data samples is not supported")
 
-    for plotName in dimensionDict :
+    for plotListItem in plotList :
         plotSpec={}
-
+        plotName=plotListItem[3]
+        dimension=plotListItem[2]
+        
         plotSpec["lumiValue"]                 = lumiValue
         plotSpec["plotName"]                  = plotName
-        plotSpec["dimension"]                 = dimensionDict[plotName]
+        plotSpec["dimension"]                 = dimension
         plotSpec["canvas"]                    = canvas
         plotSpec["plotFileNameDict"]          = plotFileNameDict
         plotSpec["scaleByAreaRatherThanByXs"] = scaleByAreaRatherThanByXs
