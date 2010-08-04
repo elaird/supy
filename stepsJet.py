@@ -268,13 +268,15 @@ class alphaHistogrammer(analysisStep) :
         ht = eventVars["%sSumPt%s"%self.cs]
         deltaHt = eventVars["%sDeltaPseudoJet%s"%self.cs]
 
-        book.fill( eventVars["crock"]["%sdiJetAlpha%s"%self.cs], "%sdijet_alpha%s"%self.cs, bins,min,max,
-                   title = ";di-jet #alpha (using p_{T});events / bin")
+        diJetAlpha=eventVars["%sDiJetAlpha%s"%self.cs]
+        if diJetAlpha :
+            book.fill( diJetAlpha, "%sdijet_alpha%s"%self.cs, bins,min,max,
+                       title = ";di-jet #alpha (using p_{T});events / bin")
 
         # book.fill( eventVars["crock"]["%sdiJetAlpha_Et%s"%self.cs], "%sdijet_alpha_ET%s"%self.cs, bins,min,max,
         #            title = ";di-jet #alpha (using E_{T});events / bin")
 
-        book.fill( eventVars["%sAlphaT%s"%self.cs], "%snjet_alphaT%s", bins,min,max,
+        book.fill( eventVars["%sAlphaT%s"%self.cs], "%snjet_alphaT%s"%self.cs, bins,min,max,
                    title = ";N-jet #alpha_{T} (using p_{T});events / bin")
 
         book.fill( deltaHt, "%snjet_deltaHt%s"%self.cs, 50,0.0,500,
