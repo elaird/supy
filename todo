@@ -17,6 +17,7 @@ Other
 * merging histos for different samples (eg, add all mc)
 * defer srmls until jobs runs
 * named arguments everywhere
+* update example files
 
 * display rechits
 * fix circle
