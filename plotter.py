@@ -285,8 +285,10 @@ def histoLoop(plotSpec,histoDict) :
     for sampleName,histo in histoDict.iteritems() :
         #merge requested histos
         targetName=sampleName
-        if sampleName in plotSpec["mergeRequest"] :
-            targetName=plotSpec["mergeRequest"][sampleName]
+
+        for mergeRequest in plotSpec["mergeRequests"] :
+            if sampleName in mergeRequest :
+                targetName=mergeRequest[sampleName]
         if plotSpec["mergeAllStandardModelMc"] :
             if plotSpec["xsDict"][sampleName]!=0.0 : #exclude data
                 if  "lm" not in sampleName : #exclude SUSY
@@ -372,7 +374,7 @@ def printTimeStamp(canvas,psFile,psOptions) :
     canvas.Print(psFile,psOptions)
     canvas.Clear()
 ##############################
-def plotAll(analysisName,plotFileNameDict,mergeAllStandardModelMc,mergeRequest,scaleByAreaRatherThanByXs,outputDir,hyphens) :
+def plotAll(analysisName,plotFileNameDict,mergeAllStandardModelMc,mergeRequests,scaleByAreaRatherThanByXs,outputDir,hyphens) :
     if len(plotFileNameDict)<1 : return
     setupStyle()
 
@@ -408,7 +410,7 @@ def plotAll(analysisName,plotFileNameDict,mergeAllStandardModelMc,mergeRequest,s
         plotSpec["plotFileNameDict"]          = plotFileNameDict
         plotSpec["scaleByAreaRatherThanByXs"] = scaleByAreaRatherThanByXs
         plotSpec["mergeAllStandardModelMc"]   = mergeAllStandardModelMc
-        plotSpec["mergeRequest"]              = mergeRequest
+        plotSpec["mergeRequests"]             = mergeRequests
         plotSpec["outputDir"]                 = outputDir
         plotSpec["xsDict"]                    = xsDict
         plotSpec["lumiDict"]                  = lumiDict

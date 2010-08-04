@@ -35,7 +35,7 @@ class analysis :
         self.listOfSteps=listOfSteps
         self.listOfCalculables=listOfCalculables
         self.listOfLoopers=[]
-        self.mergeRequestForPlotter={}
+        self.mergeRequestsForPlotter=[]
         self.listOfOutputPlotFileNames=[]
 
         self.hasLooped=False
@@ -69,7 +69,7 @@ class analysis :
 
         if not self.hasLooped : print self.hyphens
         import plotter
-        plotter.plotAll(self.name,plotFileNamesDict,mergeAllStandardModelMc,self.mergeRequestForPlotter,scaleByAreaRatherThanByXs,self.outputDir,self.hyphens)
+        plotter.plotAll(self.name,plotFileNamesDict,mergeAllStandardModelMc,self.mergeRequestsForPlotter,scaleByAreaRatherThanByXs,self.outputDir,self.hyphens)
 
     def checkXsAndLumi(self,xs,lumi) :
         if (xs==None and lumi==None) or (xs!=None and lumi!=None) :
@@ -113,6 +113,12 @@ class analysis :
                                )
         return
 
+    def mergeHistogramsWhenPlotting(self,source=[],target="") :
+        outDict={}
+        for item in source :
+            outDict[item]=target
+        self.mergeRequestsForPlotter.append(outDict)
+        
     def manageNonBinnedSamples(self,ptHatLowerThresholdsAndSampleNames=[],mergeIntoOneHistogramCalled="",useRejectionMethod=True) :
         if not useRejectionMethod :
             raise Exception("the other method of combining non-binned samples is not yet implemented")
@@ -133,7 +139,7 @@ class analysis :
 
             mergeDict[sampleName]=mergeIntoOneHistogramCalled
         #inform the plotter of the merge request
-        if mergeIntoOneHistogramCalled!="" : self.mergeRequestForPlotter=mergeDict
+        if mergeIntoOneHistogramCalled!="" : self.mergeRequestsForPlotter.append(mergeDict)
 
         ptHatLowerThresholdsAndSampleNames.sort()
         for iItem in range(len(ptHatLowerThresholdsAndSampleNames)) :
