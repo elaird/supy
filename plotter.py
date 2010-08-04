@@ -180,6 +180,88 @@ def makeAlphaTFunc(alphaTValue) :
     alphaTFunc.SetNpx(300)
     return alphaTFunc
 ##############################
+def plot1D(plotSpec,histo,count) :
+    r.gPad.SetRightMargin(0.15)
+    r.gPad.SetTicky()            
+    if count==0 :
+        histo.Draw()
+        if doLog1D :
+            histo.SetMaximum(2.0*plotSpec["maximum"])
+            histo.SetMinimum(getLogMin(plotSpec))
+            r.gPad.SetLogy()
+        else :
+            histo.SetMaximum(1.1*plotSpec["maximum"])
+            histo.SetMinimum(0.0)
+
+    else :
+        histo.Draw("same")
+        r.gStyle.SetOptFit(0)
+        if doMetFit and "met" in histo.GetName() :
+            r.gStyle.SetOptFit(1111)
+            func=metFit(histo)
+            stuffToKeep.append(func)
+                    
+            r.gPad.Update()
+            tps=histo.FindObject("stats")
+            stuffToKeep.append(tps)
+            tps.SetLineColor(histo.GetLineColor())
+            tps.SetTextColor(histo.GetLineColor())
+            if iHisto==0 :
+                tps.SetX1NDC(0.75)
+                tps.SetX2NDC(0.95)
+                tps.SetY1NDC(0.75)
+                tps.SetY2NDC(0.95)
+            else :
+                tps.SetX1NDC(0.75)
+                tps.SetX2NDC(0.95)
+                tps.SetY1NDC(0.50)
+                tps.SetY2NDC(0.70)
+
+    if "countsHisto" in histo.GetName() :
+        outString=histo.GetName().ljust(20)
+        outString+=sampleName.ljust(12)
+        outString+=": "
+        outString+="%#8.2f"%histo.GetBinContent(1)
+        outString+=" +/-"
+        outString+="%#8.2f"%histo.GetBinError(1)
+        if not plotSpec["scaleByAreaRatherThanByXs"] : print outString
+        else : print "for counts, set scaleByAreaRatherThanByXs=False"
+##############################
+def plot2D(plotSpec,histo,count,sampleName,yx) :
+    plotSpec["canvas"].cd(count+1)
+    histo.GetYaxis().SetTitleOffset(1.2)
+    oldTitle=histo.GetTitle()
+    histo.SetTitle(oldTitle+sampleName)
+    histo.SetStats(False)
+    histo.GetZaxis().SetTitleOffset(1.3)
+    r.gPad.SetRightMargin(0.15)
+    r.gPad.SetTicky()
+    if doColzFor2D : histo.Draw("colz")
+    else :           histo.Draw()
+
+    if doLog2D :
+        if not plotSpec["scaleByAreaRatherThanByXs"] : histo.SetMaximum(2.0*plotSpec["maximum"])
+        histo.SetMinimum(getLogMin(plotSpec))
+        r.gPad.SetLogz()
+    else :
+        #histo.SetMaximum(1.1*plotSpec.maximum)
+        histo.SetMinimum(0.0)
+
+        if "deltaHtOverHt_vs_mHtOverHt" in histo.GetName() :
+            histo.GetYaxis().SetRangeUser(0.0,0.7)
+            funcs=[
+                makeAlphaTFunc(0.55),
+                makeAlphaTFunc(0.50),
+                makeAlphaTFunc(0.45)
+                ]
+            for func in funcs :
+                func.Draw("same")
+            stuffToKeep.extend(funcs)
+        else :
+            if drawYx :
+                yx.Draw("same")
+                stuffToKeep.append(yx)
+##############################
 def histoLoop(plotSpec,histoDict) :
     stuffToKeep=[]
 
@@ -223,96 +305,14 @@ def histoLoop(plotSpec,histoDict) :
         else :
             legend.AddEntry(histo,sampleName,"l")
 
-        if histo.GetEntries()==0 : continue
-        yx=r.TF1("yx","x",histo.GetXaxis().GetXmin(),histo.GetXaxis().GetXmax())
-        yx.SetLineColor(r.kBlue)
-        yx.SetLineWidth(1)
-        yx.SetNpx(300)
+        if not histo.GetEntries() : continue
 
         #1D here
         if plotSpec["dimension"]==1 :
-            r.gPad.SetRightMargin(0.15)
-            r.gPad.SetTicky()            
-            if count==0 :
-                histo.Draw()
-                if doLog1D :
-                    histo.SetMaximum(2.0*plotSpec["maximum"])
-                    histo.SetMinimum(getLogMin(plotSpec))
-                    r.gPad.SetLogy()
-                else :
-                    histo.SetMaximum(1.1*plotSpec["maximum"])
-                    histo.SetMinimum(0.0)
-
-            else :
-                histo.Draw("same")
-
-            r.gStyle.SetOptFit(0)
-            if doMetFit and "met" in histo.GetName() :
-                r.gStyle.SetOptFit(1111)
-                func=metFit(histo)
-                stuffToKeep.append(func)
-                    
-                r.gPad.Update()
-                tps=histo.FindObject("stats")
-                stuffToKeep.append(tps)
-                tps.SetLineColor(histo.GetLineColor())
-                tps.SetTextColor(histo.GetLineColor())
-                if (iHisto==0) :
-                    tps.SetX1NDC(0.75)
-                    tps.SetX2NDC(0.95)
-                    tps.SetY1NDC(0.75)
-                    tps.SetY2NDC(0.95)
-                else :
-                    tps.SetX1NDC(0.75)
-                    tps.SetX2NDC(0.95)
-                    tps.SetY1NDC(0.50)
-                    tps.SetY2NDC(0.70)
-
-            if "countsHisto" in histo.GetName() :
-                outString=histo.GetName().ljust(20)
-                outString+=sampleName.ljust(12)
-                outString+=": "
-                outString+="%#8.2f"%histo.GetBinContent(1)
-                outString+=" +/-"
-                outString+="%#8.2f"%histo.GetBinError(1)
-                if not plotSpec["scaleByAreaRatherThanByXs"] : print outString
-                else : print "for counts, set scaleByAreaRatherThanByXs=False"
-            
+            plot1D(plotSpec,histo,count)
         #2D here
         else :
-            plotSpec["canvas"].cd(count+1)
-            histo.GetYaxis().SetTitleOffset(1.2)
-            oldTitle=histo.GetTitle()
-            histo.SetTitle(oldTitle+sampleName)
-            histo.SetStats(False)
-            histo.GetZaxis().SetTitleOffset(1.3)
-            r.gPad.SetRightMargin(0.15)
-            r.gPad.SetTicky()
-            if doColzFor2D : histo.Draw("colz")
-            else :           histo.Draw()
-
-            if doLog2D :
-                if not plotSpec["scaleByAreaRatherThanByXs"] : histo.SetMaximum(2.0*plotSpec["maximum"])
-                histo.SetMinimum(getLogMin(plotSpec))
-                r.gPad.SetLogz()
-            else :
-                #histo.SetMaximum(1.1*plotSpec.maximum)
-                histo.SetMinimum(0.0)
-
-            if "deltaHtOverHt vs mHtOverHt" in histo.GetName() :
-                histo.GetYaxis().SetRangeUser(0.0,0.7)
-                funcs=[
-                    makeAlphaTFunc(0.55),
-                    makeAlphaTFunc(0.50),
-                    makeAlphaTFunc(0.45)
-                    ]
-                for func in funcs :
-                    func.Draw("same")
-                stuffToKeep.extend(funcs)
-            else :
-                if drawYx :
-                    yx.Draw("same")
-                    stuffToKeep.append(yx)
+            plot2D(plotSpec,histo,count,sampleName,yx)
         count+=1
     if plotSpec["dimension"]==1 : legend.Draw()
     plotSpec["canvas"].Print(plotSpec["psFile"],plotSpec["psOptions"])
