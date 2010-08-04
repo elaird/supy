@@ -108,3 +108,24 @@ class alphaT(wrappedChain.calculable) :
         dPseudo = self.source[self.deltaPseudoName]
         self.value = 0.5 * ( sumPt - dPseudo ) / math.sqrt( sumPt*sumPt - sumP4.Perp2() ) 
 ##############################
+class diJetAlpha(wrappedChain.calculable) :
+    def name(self) : return "%sDiJetAlpha%s" % self.cs
+    
+    def __init__(self,collection = None, suffix = None) :
+        self.cs = (collection,suffix)
+        self.indicesName = "%sIndices%s" % self.cs
+        self.p4String = "%sCorrectedP4%s" % self.cs
+        
+    def update(self,ignored) :
+        cleanJetIndices = self.source[self.indicesName]["clean"]
+        #return if not dijet
+        if len(cleanJetIndices)!=2 :
+            self.value=None
+            return
+        p4s=self.source[self.p4String]
+        mass=(p4s.at(cleanJetIndices[0])+p4s.at(cleanJetIndices[1])).M()
+        if mass<=0.0 :
+            self.value=None
+        else :
+            self.value=p4s.at(cleanJetIndices[1]).pt()/mass
+##############################
