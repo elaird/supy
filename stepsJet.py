@@ -157,102 +157,6 @@ class cleanJetPtHistogrammer(analysisStep) :
             if iJet==0 :#assumes sorted
                 self.book(eventVars).fill(pt, "%sptLeading%s"%self.cs, 50, 0.0, 500.0, title=";p_{T} (GeV) of leading clean jet;events / bin")
 #####################################
-class cleanNJetAlphaProducer(analysisStep) :
-    """cleanNJetAlphaProducer"""
-
-    def __init__(self,collection,suffix):
-        self.cs = (collection,suffix)
-        self.moreName = "(%s; %s)" % self.cs
-
-        self.helper = r.alphaHelper()
-        self.cleanJetIndices = r.std.vector('int')()
-        self.cleanJetIndices.reserve(256)
-
-    def select (self,eventVars) :
-        nJetDeltaHt=0.0
-        nJetAlphaT=0.0
-
-        #return if fewer than two clean jets
-        cleanJetIndices = eventVars["%sIndices%s"%self.cs]["clean"]
-        if (len(cleanJetIndices)<2) :
-            self.setExtraVars(eventVars,nJetDeltaHt,nJetAlphaT)
-            return True
-
-        #return if HT is tiny
-        ht = eventVars["%sSumPt%s"%self.cs]
-        if (ht<=1.0e-2) :
-            self.setExtraVars(eventVars,nJetDeltaHt,nJetAlphaT)
-            return True
-
-        p4s = eventVars["%sCorrectedP4%s"%self.cs]
-
-        self.cleanJetIndices.clear()
-        for index in cleanJetIndices :
-            self.cleanJetIndices.push_back(index)
-
-        self.helper.go(p4s,self.cleanJetIndices)
-        nJetDeltaHt = self.helper.GetMinDiff()
-        mht = eventVars["%sSumP4%s"%self.cs].pt()
-        nJetAlphaT = 0.5*(1.0-nJetDeltaHt/ht)/r.TMath.sqrt(1.0-(mht/ht)**2)
-
-        self.setExtraVars(eventVars,nJetDeltaHt,nJetAlphaT)
-        return True
-
-    def setExtraVars(self,eventVars,nJetDeltaHt,nJetAlphaT) :
-        eventVars["crock"]["%snJetDeltaHt%s"%self.cs] = nJetDeltaHt
-        eventVars["crock"]["%snJetAlphaT%s"%self.cs] = nJetAlphaT
-#####################################
-class cleanDiJetAlphaProducer(analysisStep) :
-    """cleanDiJetAlphaProducer"""
-
-    def __init__(self,collection,suffix):
-        self.cs = (collection,suffix)
-        self.indicesName = "%sIndices%s" % self.cs
-        self.moreName = "(%s; %s;)" % self.cs
-        self.lvSum = r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
-        
-    def select (self,eventVars) :
-        self.lvSum.SetCoordinates(0.0,0.0,0.0,0.0)
-
-        diJetM       =0.0
-        diJetMinPt   =1.0e6
-        diJetMinEt   =1.0e6
-        diJetAlpha   =0.0
-        diJetAlpha_Et=0.0
-
-        cleanJetIndices = eventVars[self.indicesName]["clean"]
-        #return if not dijet
-        if (len(cleanJetIndices)!=2) :
-            self.setExtraVars(eventVars,diJetM,diJetMinPt,diJetMinEt,diJetAlpha,diJetAlpha_Et)
-            return True
-            
-        p4s = eventVars["%sCorrectedP4%s" % self.cs]
-        for iJet in cleanJetIndices :
-            jet = p4s.at(iJet)
-            pt = jet.pt()
-            Et = jet.Et()
-
-            if (pt<diJetMinPt) : diJetMinPt=pt
-            if (Et<diJetMinEt) : diJetMinEt=Et
-
-            self.lvSum += jet
-
-        diJetM = self.lvSum.M()
-        
-        if (diJetM>0.0) :
-            diJetAlpha   =diJetMinPt/diJetM
-            diJetAlpha_Et=diJetMinEt/diJetM
-
-        self.setExtraVars(eventVars,diJetM,diJetMinPt,diJetMinEt,diJetAlpha,diJetAlpha_Et)
-        return True
-
-    def setExtraVars(self,eventVars,diJetM,diJetMinPt,diJetMinEt,diJetAlpha,diJetAlpha_Et) :
-            eventVars["crock"]["%sdiJetM%s"       %self.cs]=diJetM
-            eventVars["crock"]["%sdiJetMinPt%s"   %self.cs]=diJetMinPt
-            eventVars["crock"]["%sdiJetMinEt%s"   %self.cs]=diJetMinEt
-            eventVars["crock"]["%sdiJetAlpha%s"   %self.cs]=diJetAlpha
-            eventVars["crock"]["%sdiJetAlpha_Et%s"%self.cs]=diJetAlpha_Et
-#####################################
 class alphaHistogrammer(analysisStep) :
     """alphaHistogrammer"""
 
@@ -273,9 +177,6 @@ class alphaHistogrammer(analysisStep) :
             book.fill( diJetAlpha, "%sdijet_alpha%s"%self.cs, bins,min,max,
                        title = ";di-jet #alpha (using p_{T});events / bin")
 
-        # book.fill( eventVars["crock"]["%sdiJetAlpha_Et%s"%self.cs], "%sdijet_alpha_ET%s"%self.cs, bins,min,max,
-        #            title = ";di-jet #alpha (using E_{T});events / bin")
-
         book.fill( eventVars["%sAlphaT%s"%self.cs], "%snjet_alphaT%s"%self.cs, bins,min,max,
                    title = ";N-jet #alpha_{T} (using p_{T});events / bin")
 
@@ -295,29 +196,6 @@ class metHistogrammer(analysisStep) :
     def uponAcceptance (self,eventVars) :
         self.book(eventVars).fill( eventVars[self.metCollection].pt(), "%s_%s" % self.ct, 80, 0.0, 80.0, title = "; p_{T} (GeV);events / bin")
 #####################################
-class deltaPhiProducer(analysisStep) :
-    """deltaPhiProducer"""
-
-    def __init__(self,collection,suffix) :
-        self.cs = (collection,suffix)
-    
-    def select(self,eventVars) :
-
-        eventVars["crock"]["%sdeltaPhi01%s"%self.cs] =  -4.0
-        eventVars["crock"]["%sdeltaR01%s"  %self.cs] = -40.0
-        eventVars["crock"]["%sdeltaEta01%s"%self.cs] = -40.0
-
-        p4s = eventVars['%sCorrectedP4%s'%self.cs]
-        index = eventVars["%sIndices%s"%self.cs]["clean"]
-
-        if len(index)>=2 :
-            jet0 = p4s[index[0]]
-            jet1 = p4s[index[1]]
-            eventVars["crock"]["%sdeltaPhi01%s"%self.cs] = r.Math.VectorUtil.DeltaPhi(jet0,jet1)
-            eventVars["crock"]["%sdeltaR01%s"  %self.cs] = r.Math.VectorUtil.DeltaR(jet0,jet1)
-            eventVars["crock"]["%sdeltaEta01%s"%self.cs] = jet0.eta()-jet1.eta()
-        return True
-#####################################
 class deltaPhiSelector(analysisStep) :
     """deltaPhiSelector"""
 
@@ -328,8 +206,8 @@ class deltaPhiSelector(analysisStep) :
         self.moreName = "(%s; %s; minAbs=%.1f; maxAbs=%.1f)" % (self.cs[0],self.cs[1],minAbs,maxAbs)
     
     def select(self,eventVars) :
-        value = abs( eventVars["crock"]["%sdeltaPhi01%s"%self.cs] )
-        if (value<self.minAbs or value>self.maxAbs) : return False
+        value = abs( eventVars["%sdeltaX01%s"%self.cs]["phi"] )
+        if value<self.minAbs or value>self.maxAbs : return False
         return True
 #####################################
 class mHtOverHtSelector(analysisStep) :
@@ -348,6 +226,7 @@ class mHtOverHtSelector(analysisStep) :
         value = mht/ht
         if (value<self.min or value>self.max) : return False
         return True
+#####################################
 class deltaPhiHistogrammer(analysisStep) :
     """deltaPhiHistogrammer"""
 
@@ -357,13 +236,8 @@ class deltaPhiHistogrammer(analysisStep) :
     def uponAcceptance (self,eventVars) :
         book = self.book(eventVars)
 
-        var = "%sdeltaPhi01%s"%self.cs
-        book.fill( eventVars["crock"][var], var, 50, -4.0, 4.0, title = var+";events / bin")
-
-        var = "%sdeltaR01%s"%self.cs
-        book.fill( eventVars["crock"][var], var, 20, 0.0, 10.0, title = var+";events / bin")
-
-        var = "%sdeltaEta01%s"%self.cs
-        book.fill( eventVars["crock"][var], var, 50, -10, 10.0, title = var+";events / bin")
-
+        var = "%sdeltaX01%s"%self.cs
+        book.fill( eventVars[var]["phi"], var, 50, -4.0, 4.0, title = var+";events / bin")
+        book.fill( eventVars[var]["R"]  , var, 20, 0.0, 10.0, title = var+";events / bin")
+        book.fill( eventVars[var]["eta"], var, 50, -10, 10.0, title = var+";events / bin")
 #####################################

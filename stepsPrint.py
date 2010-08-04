@@ -97,7 +97,7 @@ class htMhtPrinter(analysisStep) :
         
     def uponAcceptance(self,eventVars) :
         outString ="HT %#6.1f GeV"   %eventVars[self.jetCollection+"SumPt"+self.jetSuffix]
-        outString+="; MHT %#6.1f GeV"%eventVars["crock"][self.jetCollection+"Mht"+self.jetSuffix].pt()
+        outString+="; MHT %#6.1f GeV"%eventVars[self.jetCollection+"SumP4"+self.jetSuffix].pt()
         print outString
 #####################################
 class diJetAlphaPrinter(analysisStep) :
@@ -108,9 +108,7 @@ class diJetAlphaPrinter(analysisStep) :
         self.jetSuffix=jetSuffix
         
     def uponAcceptance(self,eventVars) :
-        outString ="di-jet minPt %#6.1f GeV" %eventVars["crock"][self.jetCollection+"diJetMinPt"+self.jetSuffix]
-        outString+="; di-jet m %#6.1f GeV"   %eventVars["crock"][self.jetCollection+"diJetM"    +self.jetSuffix]
-        outString+="; di-jet alpha  %#6.3f"  %eventVars["crock"][self.jetCollection+"diJetAlpha"+self.jetSuffix]
+        outString="di-jet alpha  %#6.3f"%eventVars[self.jetCollection+"DiJetAlpha"+self.jetSuffix]
         print outString
 #####################################
 class nJetAlphaTPrinter(analysisStep) :
@@ -121,8 +119,8 @@ class nJetAlphaTPrinter(analysisStep) :
         self.jetSuffix=jetSuffix
         
     def uponAcceptance(self,eventVars) :
-        outString ="n-jet deltaHT %#6.3f"  %eventVars["crock"][self.jetCollection+"nJetDeltaHt"+self.jetSuffix]
-        outString+=";  n-jet alphaT %#6.3f"%eventVars["crock"][self.jetCollection+"nJetAlphaT"+self.jetSuffix]
+        outString ="n-jet deltaHT %#6.3f"  %eventVars[self.jetCollection+"DeltaPseudoJet"+self.jetSuffix]
+        outString+=";  n-jet alphaT %#6.3f"%eventVars[self.jetCollection+"AlphaT"+self.jetSuffix]
         print outString
 #####################################
 class particleP4Printer(analysisStep) :

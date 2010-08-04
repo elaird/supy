@@ -38,6 +38,7 @@ class skimmer(analysisStep) :
         chain.CopyAddresses(self.outputTree)      #associate branch addresses
 
         if self.alsoWriteExtraTree :
+            raise Exception("at the moment, adding the extra tree with the skimmer is broken")
             self.arrayDictionary={}
             self.supportedBuiltInTypes=[type(True),type(0),type(0L),type(0.0)]
             self.supportedOtherTypes=[type(r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0))]
@@ -129,17 +130,6 @@ class variableGreaterFilter(analysisStep) :
     def select (self,eventVars) :
         return eventVars[self.variable]>=self.threshold
 #####################################
-class crockVariableGreaterFilter(analysisStep) :
-    """crockVariableGreaterFilter"""
-
-    def __init__(self,threshold,variable):
-        self.threshold = threshold
-        self.variable = variable
-        self.moreName = "(%s>=%.1f)" % (variable,threshold)
-
-    def select (self,eventVars) :
-        return eventVars["crock"][self.variable]>=self.threshold
-#####################################
 class variablePtGreaterFilter(analysisStep) :
     """variablePtGreaterFilter"""
 
@@ -150,17 +140,6 @@ class variablePtGreaterFilter(analysisStep) :
 
     def select (self,eventVars) :
         return eventVars[self.variable].pt()>=self.threshold
-#####################################
-class crockVariablePtGreaterFilter(analysisStep) :
-    """crockVariablePtGreaterFilter"""
-
-    def __init__(self,threshold,variable):
-        self.threshold = threshold
-        self.variable = variable
-        self.moreName = "(%s>=%.1f)" % (variable,threshold)
-
-    def select (self,eventVars) :
-        return eventVars["crock"][self.variable].pt()>=self.threshold
 #####################################
 class objectPtVetoer(analysisStep) :
     """objectPtVetoer"""
@@ -587,7 +566,7 @@ class displayer(analysisStep) :
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"#DeltaH_{T} ("+self.jetCollection+")","l")
 
-        deltaHt=eventVars["crock"][self.jetCollection+"nJetDeltaHt"+self.jetSuffix]
+        deltaHt=eventVars[self.jetCollection+"DeltaPseudoJet"+self.jetSuffix]
         y=self.y0-self.radius-0.03
         l=deltaHt*self.radius/self.scale
         self.line.SetLineColor(color)
@@ -687,10 +666,10 @@ class displayer(analysisStep) :
         title=";#slashH_{T}/H_{T};#DeltaH_{T}/H_{T}"
         alphaHisto=r.TH2D("alphaHisto",title,100,0.0,1.0,100,0.0,0.7)
 
-        mht=eventVars["crock"][self.jetCollection+"Mht"+self.jetSuffix].pt()
+        mht=eventVars[self.jetCollection+"SumP4"+self.jetSuffix].pt()
         ht = eventVars[self.jetCollection+"SumPt"+self.jetSuffix]
-        deltaHt=eventVars["crock"][self.jetCollection+"nJetDeltaHt"+self.jetSuffix]
-        alphaT=eventVars["crock"][self.jetCollection+"nJetAlphaT"+self.jetSuffix]
+        deltaHt=eventVars[self.jetCollection+"DeltaPseudoJet"+self.jetSuffix]
+        alphaT =eventVars[self.jetCollection+"AlphaT"+self.jetSuffix]
         
         alphaHisto.Fill(mht/ht,deltaHt/ht)
         alphaHisto.SetStats(False)
@@ -724,10 +703,10 @@ class displayer(analysisStep) :
         pad.SetLeftMargin(0.3)
         pad.SetRightMargin(0.15)
 
-        mets=eventVars["crock"][self.jetCollection+"mets"+self.jetSuffix]
-        mhts=eventVars["crock"][self.jetCollection+"mhts"+self.jetSuffix]
-        lls=eventVars["crock"][self.jetCollection+"lls"+self.jetSuffix]
-        nVariedJets=eventVars["crock"][self.jetCollection+"nVariedJets"+self.jetSuffix]
+        mets       =eventVars[self.jetCollection+"mets"+self.jetSuffix]
+        mhts       =eventVars[self.jetCollection+"mhts"+self.jetSuffix]
+        lls        =eventVars[self.jetCollection+"lls"+self.jetSuffix]
+        nVariedJets=eventVars[self.jetCollection+"nVariedJets"+self.jetSuffix]
         
         self.mhtLlHisto.Reset()
         self.metLlHisto.Reset()
