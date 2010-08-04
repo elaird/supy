@@ -15,30 +15,26 @@ Document
 
 Other
 --------
-* handle subdirectories of input file directories
-* organize files in cvs
+* merging histos for different samples (eg, add all mc)
+* phase out crock
 * defer srmls until jobs runs
-
 * named arguments everywhere
 
 * display rechits
 * fix circle
 
+* profile
+* batch queue
+* logfiles
+
+* organize files in cvs
+
 * skimmer prefix and suffix
-* phase out crock
 
-* reincarnate plotter
 * tdrPlotter
-* merging histos for different samples (eg, add all mc)
 * list the selection on the plot
-
-* better sample organization
 
 * non-linear cutflow / directory structured output
 * histo sculpting
 
-* profile
-
-* batch queue
-
-* logfiles
+* handle subdirectories of input file directories
