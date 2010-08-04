@@ -193,7 +193,7 @@ class vertexRequirementFilterOld(analysisStep) :
 class vertexRequirementFilter(analysisStep) :
     """vertexRequirementFilter"""
     
-    def __init__(self,minVertexNdof,maxVertexZ) :
+    def __init__(self,minVertexNdof=5.0,maxVertexZ=15.0) :
         self.minVertexNdof = minVertexNdof
         self.maxVertexZ = maxVertexZ
         self.moreName = "(any v: !fake; ndf>=%.1f;abs(z)<%.1f)" % (minVertexNdof,maxVertexZ)
@@ -211,7 +211,7 @@ class vertexRequirementFilter(analysisStep) :
 class monsterEventFilter(analysisStep) :
     """monsterEventFilter"""
     
-    def __init__(self,maxNumTracks,minGoodTrackFraction) :
+    def __init__(self,maxNumTracks=10,minGoodTrackFraction=0.25) :
         self.maxNumTracks=maxNumTracks
         self.minGoodTrackFraction=minGoodTrackFraction
 
