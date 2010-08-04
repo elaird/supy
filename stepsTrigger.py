@@ -104,13 +104,15 @@ class hltTurnOnHistogrammer(analysisStep) :
         self.probeTrigger = probeTrig
         self.tagTriggers = tagTrigs
 
-        self.probeTitle = ( "%s-%s"%(probeTrig,var),
-                            "pass %s given %s;%s; events / bin" % (probeTrig,str(tagTrigs),var) )
-        self.tagTitle = ( "%s-%s"%(str(tagTrigs),var),
-                          "pass %s;%s; events / bin" % (str(tagTrigs),var))
+        tagString = '-'.join(map(lambda s: s.lstrip("HLT_"),tagTrigs))
+        probeString = probeTrig.lstrip("HLT_")
+        
+        self.probeTitle = ( "%s_given_%s_and_%s" % (var, tagString, probeString),
+                            "pass %s given %s;%s; events / bin" % (probeString, tagString, var) )
+        self.tagTitle = ( "%s_given_%s"% (var, tagString),
+                          "pass %s;%s; events / bin" % (tagString,var))
 
-        self.moreName = "(%s turnon vs. %s" % (probeTrig,var)
-        self.moreName2 = "given one of %s )" % (str(tagTrigs))
+        self.moreName = "(%s given; %s; and %s )" % (var, ", ".join(tagString.split('-')), probeString)
 
     def uponAcceptance(self,eventVars) :
         tag = reduce(lambda x,y: x or y, [eventVars["triggered"][t] for t in self.tagTriggers], False)
@@ -123,17 +125,17 @@ class hltTurnOnHistogrammer(analysisStep) :
         for t in types :
             self.book(eventVars).fill( value, t[0], self.bmm[0],self.bmm[1],self.bmm[2], title = t[1] )
         
-    def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
-        for book in self.books.values() :
-            tag = self.tagTitle[0]
-            probe = self.probeTitle[0]
-            efficiency = "%s-%s-%s"%(self.probeTrigger,str(self.tagTriggers),self.var)
+#     def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
+#         for book in self.books.values() :
+#             tag = self.tagTitle[0]
+#             probe = self.probeTitle[0]
+#             efficiency = "%s-%s-%s"%(self.probeTrigger,str(self.tagTriggers),self.var)
 
-            if not (tag in book and \
-                    probe in book) : continue
+#             if not (tag in book and \
+#                     probe in book) : continue
             
-            book[efficiency] = book[probe].Clone(efficiency)
-            book[efficiency].SetTitle("Efficiency;%s;n%s / n%s"%(self.var,self.probeTrigger,str(self.tagTriggers)))
-            book[efficiency].Divide(book[tag])
-            book[efficiency].SetBit(r.TH1.kIsAverage)
+#             book[efficiency] = book[probe].Clone(efficiency)
+#             book[efficiency].SetTitle("Efficiency;%s;n%s / n%s"%(self.var,self.probeTrigger,str(self.tagTriggers)))
+#             book[efficiency].Divide(book[tag])
+#             book[efficiency].SetBit(r.TH1.kIsAverage)
 #####################################

@@ -21,27 +21,28 @@ def makeSteps() :
     
     listOfSteps=[
         steps.progressPrinter(2,300),
-        
-        steps.ptHatHistogrammer(),
-        steps.jetPtSelector(jetCollection,jetSuffix,80.0,0),
-        #steps.jetPtSelector(jetCollection,jetSuffix,40.0,1),            
-        steps.leadingUnCorrJetPtSelector( [(jetCollection,jetSuffix)],80.0 ),
-        steps.hltFilter("HLT_Jet50U"),            
-        steps.hltPrescaleHistogrammer(["HLT_ZeroBias","HLT_Jet15U","HLT_Jet30U","HLT_Jet50U","HLT_MET45"]),
+        steps.touchstuff(["ak5JetCorrectedP4Pat","ak5JetJetIDloosePat"]),
+        steps.touchstuff(["ak5JetIndicesPat"])
+#         steps.ptHatHistogrammer(),
+#         steps.jetPtSelector(jetCollection,jetSuffix,80.0,0),
+#         #steps.jetPtSelector(jetCollection,jetSuffix,40.0,1),            
+#         steps.leadingUnCorrJetPtSelector( [(jetCollection,jetSuffix)],80.0 ),
+#         steps.hltFilter("HLT_Jet50U"),            
+#         steps.hltPrescaleHistogrammer(["HLT_ZeroBias","HLT_Jet15U","HLT_Jet30U","HLT_Jet50U","HLT_MET45"]),
 
-        steps.minNCleanJetEventFilter(jetCollection,jetSuffix,2),
-        steps.maxNOtherJetEventFilter(jetCollection,jetSuffix,0),
-        steps.cleanJetPtHistogrammer(jetCollection,jetSuffix),
-        steps.hbheNoiseFilter(),
-        steps.cleanJetHtMhtHistogrammer(jetCollection,jetSuffix),
-        #steps.crockVariablePtGreaterFilter(100.0,jetCollection+"Mht"+jetSuffix),
+#         steps.minNCleanJetEventFilter(jetCollection,jetSuffix,2),
+#         steps.maxNOtherJetEventFilter(jetCollection,jetSuffix,0),
+#         steps.cleanJetPtHistogrammer(jetCollection,jetSuffix),
+#         steps.hbheNoiseFilter(),
+#         steps.cleanJetHtMhtHistogrammer(jetCollection,jetSuffix),
+#         #steps.crockVariablePtGreaterFilter(100.0,jetCollection+"Mht"+jetSuffix),
         
-        steps.variableGreaterFilter(300.0,jetCollection+"SumPt"+jetSuffix),
-        steps.alphaHistogrammer(jetCollection,jetSuffix),
+#         steps.variableGreaterFilter(300.0,jetCollection+"SumPt"+jetSuffix),
+#         steps.alphaHistogrammer(jetCollection,jetSuffix),
         
-        steps.variableGreaterFilter(0.55,jetCollection+"AlphaT"+jetSuffix),
-        #steps.displayer(jetCollection,jetSuffix,metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/%s/tmp/"%os.environ["USER"],scale=200.0),
-        #steps.eventPrinter(),
+#         steps.variableGreaterFilter(0.55,jetCollection+"AlphaT"+jetSuffix),
+#         #steps.displayer(jetCollection,jetSuffix,metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/%s/tmp/"%os.environ["USER"],scale=200.0),
+#         #steps.eventPrinter(),
         #steps.jetPrinter(jetCollection,jetSuffix),
         #steps.htMhtPrinter(jetCollection,jetSuffix),
         #steps.nJetAlphaTPrinter(jetCollection,jetSuffix),
@@ -111,5 +112,5 @@ a.addSample( sampleName="qcd_py_pt80", nMaxFiles=1, nEvents=100000, xs = 9.238e+
 # a.addSample( sampleName="lm1", nMaxFiles = -1, nEvents = -1, xs = 4.888,#pb
 #              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bainbrid/ICF/automated/2010_07_12_17_52_54/LM1.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/") )
 
-a.loop( nCores = 1 )
+a.loop( nCores = 1 , profile = True)
 #a.plot( mergeAllMc=False )

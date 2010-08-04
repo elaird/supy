@@ -6,38 +6,82 @@ class indices(wrappedChain.calculable) :
     
     def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None ):
         self.cs = collection
-        self.ptThreshold = ptMin
+        self.ptMin = ptMin
         self.etaMax = etaMax
+        self.p4sName = '%sCorrectedP4%s' % self.cs
         self.flagName = None if not flagName else \
-                        "%s"+flagName+"%s" if self.cs[0][-2:] != "PF" else \
-                        "%sPF"+flagName+"%s"
-        self.flagName = self.flagName % self.cs if self.flagName else None
-        self.p4sName = '%sCorrectedP4%s'%self.cs
-
-        self.moreName = "(%s; %s; %s; "% (self.cs[0], self.cs[1],flagName if flagName else "")
-        self.moreName2 = " corr. pT>=%.1f GeV; |eta|<=%.1f)"% (ptMin , etaMax)
-        
+                        ( "%s"+flagName+"%s" if collection[-2:] != "PF" else \
+                          "%sPF"+flagName+"%s" ) % self.cs
+        self.moreName = "(pT>=%.1f GeV; |eta|<%.1f; %s)"% (ptMin, etaMax, flagName if flagName else "")
         self.value = {}
 
     def update(self,ignored) :
         p4s    = self.source[self.p4sName]
         jetIds = self.source[self.flagName] if self.flagName else p4s.size()*[1]
 
-        self.value["clean"] = []
-        self.value["other"] = []
+        clean = self.value["clean"] = []
+        other = self.value["other"] = []
 
-        for iJet in range(p4s.size()) :
-            if p4s.at(iJet).pt() < self.ptThreshold : #pt cut, assumes sorted
-                break 
-            elif jetIds[iJet] and abs(p4s.at(iJet).eta()) < self.etaMax :
-                self.value["clean"].append(iJet)
-            else: self.value["other"].append(iJet)
-##############################
+        for i in range(p4s.size()) :
+            if p4s.at(i).pt() < self.ptMin : break #pt cut, assumes sorted
+            elif jetIds[i] and abs(p4s.at(i).eta()) < self.etaMax :
+                clean.append(i)
+            else: other.append(i)
+
+############################
+class pfIndicesByHand(wrappedChain.calculable) :
+    def name(self) : return "%sIndices%s" % self.cs
+
+    def __init__(self, collection = None, ptMin = None, etaMax = None,
+                 fNeutralEmMax = None, fChargedEmMax = None, fNeutralHadMax = None, fChargedHadMin = None, nChargedMin = None) :
+
+        self.cs = collection
+        self.p4sName = '%sCorrectedP4%s' % self.cs
+        self.ptMin = ptMin
+        self.etaMax = etaMax
+
+        self.moreName = "(pT>=%.1f; |eta|<%.1f; pfN_em<%.1f; fC_em<%.1f; fN_had<%.1f; and" % \
+                        ( ptMin, etaMax, fNeutralEmMax,fChargedEmMax,fNeutralHadMax)
+        self.moreName2 = " |eta|>2.4 or {fC_had>%.1f; nC>%d})" % (fChargedHadMin, nChargedMin)
+        
+        self.fNeutralEmMax  = fNeutralEmMax   ;  self.fNeutralEmName  = "%sFneutralEm%s" % self.cs   
+        self.fChargedEmMax  = fChargedEmMax   ;  self.fChargedEmName  = "%sFchargedEm%s" % self.cs   
+        self.fNeutralHadMax = fNeutralHadMax  ;  self.fNeutralHadName = "%sFneutralHad%s" % self.cs  
+        self.fChargedHadMin = fChargedHadMin  ;  self.fChargedHadName = "%sFchargedHad%s" % self.cs  
+        self.nChargedMin    = nChargedMin     ;  self.nChargedName    = "%sNcharged%s" % self.cs     
+
+        self.value = {}
+
+    def update(self,ignored) :
+        p4s = self.source[self.p4sName]
+        fNeutralEm  = self.source[self.fNeutralEmName ]
+        fChargedEm  = self.source[self.fChargedEmName ]
+        fNeutralHad = self.source[self.fNeutralHadName]
+        fChargedHad = self.source[self.fChargedHadName]
+        nCharged    = self.source[self.nChargedName   ]
+
+        clean = self.value["clean"] = []
+        other = self.value["other"] = []
+
+        for i in range(p4s.size()) :
+            if p4s.at(i).pt() < self.ptMin : break #pt cut, assumes sorted
+            absEta = p4s.at(i).eta()
+            if absEta < self.etaMax and \
+                   fNeutralEm.at(i) < self.fNeutralEmMax and \
+                   fChargedEm.at(i) < self.fChargedEmMax and \
+                   fNeutralHad.at(i) < self.fNeutralHadMax and \
+                   ( absEta > 2.4 or \
+                     fChargedHad.at(i) > self.fChargedHadMin and \
+                     nCharged.at(i) > self.nChargedMin ) :
+                clean.append(i)
+            else: other.append(i)
+
+#############################
 class leadingPt(wrappedChain.calculable) :
     def name(self) : return "%sLeadingPt%s"% self.cs
 
-    def __init__(self, collection = None, suffix = None) :
-        self.cs = collection, suffix
+    def __init__(self, collection = None) :
+        self.cs = collection
         self.p4sName = '%sCorrectedP4%s' % self.cs
         self.indicesName = "%sIndices%s" % self.cs
 
@@ -96,7 +140,7 @@ class deltaPseudoJet(wrappedChain.calculable) :
 class alphaT(wrappedChain.calculable) :
     def name(self) : return "%sAlphaT%s" % self.cs
 
-    def __init__(self, collection = None ) :
+    def __init__(self, collection = None) :
         self.cs = collection
         self.sumP4Name = "%sSumP4%s" % self.cs
         self.sumPtName = "%sSumPt%s" % self.cs
