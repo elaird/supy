@@ -206,7 +206,7 @@ class analysis :
                 #read in the step and calculable data
                 stepAndCalculableDataFileName=os.path.expanduser(listOfLoopers[iLooper].outputStepAndCalculableDataFileName)
                 stepAndCalculableDataFile=open(stepAndCalculableDataFileName)
-                stepDataList,calculableConfigDict=cPickle.load(stepAndCalculableDataFile)
+                stepDataList,calculableConfigDict,listOfLeavesUsed=cPickle.load(stepAndCalculableDataFile)
                 stepAndCalculableDataFile.close()
 
                 #clean up
@@ -233,9 +233,10 @@ class analysis :
 
                 if isFirstLooper :
                     someLooper.calculableConfigDict={}
+                    someLooper.listOfLeavesUsed=[]
                 for item in calculableConfigDict :
                     someLooper.calculableConfigDict[item]=calculableConfigDict[item]
-                        
+                someLooper.listOfLeavesUsed.extend(listOfLeavesUsed)
                 isFirstLooper=False
 
             self.looperPrint(parent,someLooper)

@@ -158,12 +158,13 @@ class analysisLooper :
         for key in activeKeys :
             if key in listOfCalcNames : continue
             self.listOfLeavesUsed.append(key)
-        self.listOfLeavesUsed.sort()
                                    
     def printStats(self) :
         if not self.quietMode :
             print self.hyphens
-            print "List of leaves used:",self.listOfLeavesUsed
+            self.listOfLeavesUsed.sort()
+            print "List of leaves used:"
+            print self.listOfLeavesUsed
             print self.hyphens
             print "Configuration of calculables used:"
             items=self.calculableConfigDict.keys()
@@ -173,6 +174,7 @@ class analysisLooper :
                 
             #print step statistics
             print self.hyphens
+            print "Configurations and statistics of steps:"
             for step in self.steps :
                 step.printStatistics()
 
@@ -241,6 +243,6 @@ class analysisLooper :
         import os,cPickle
         outFileName=os.path.expanduser(self.outputStepAndCalculableDataFileName)
         outFile=open(outFileName,"w")
-        cPickle.dump([outListSteps,self.calculableConfigDict],outFile)
+        cPickle.dump([outListSteps,self.calculableConfigDict,self.listOfLeavesUsed],outFile)
         outFile.close()
 #####################################
