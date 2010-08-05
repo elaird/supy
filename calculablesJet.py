@@ -4,11 +4,11 @@ import math
 class indices(wrappedChain.calculable) :
     def name(self) : return "%sIndices%s"% self.cs
     
-    def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None ):
+    def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None , p4Name = "CorrectedP4"):
         self.cs = collection
         self.ptMin = ptMin
         self.etaMax = etaMax
-        self.p4sName = '%sCorrectedP4%s' % self.cs
+        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
         self.flagName = None if not flagName else \
                         ( "%s"+flagName+"%s" if collection[-2:] != "PF" else \
                           "%sPF"+flagName+"%s" ) % self.cs
@@ -16,7 +16,7 @@ class indices(wrappedChain.calculable) :
         self.value = {}
 
     def update(self,ignored) :
-        p4s    = self.source[self.p4sName]
+        p4s    = self.source[self.p4Name]
         jetIds = self.source[self.flagName] if self.flagName else p4s.size()*[1]
 
         clean = self.value["clean"] = []
@@ -36,7 +36,8 @@ class pfIndicesByHand(wrappedChain.calculable) :
                  fNeutralEmMax = None, fChargedEmMax = None, fNeutralHadMax = None, fChargedHadMin = None, nChargedMin = None) :
 
         self.cs = collection
-        self.p4sName = '%sCorrectedP4%s' % self.cs
+        self.p4Name = '%sCorrectedP4%s' % self.cs
+        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
         self.ptMin = ptMin
         self.etaMax = etaMax
 
@@ -53,7 +54,7 @@ class pfIndicesByHand(wrappedChain.calculable) :
         self.value = {}
 
     def update(self,ignored) :
-        p4s = self.source[self.p4sName]
+        p4s = self.source[self.p4Name]
         fNeutralEm  = self.source[self.fNeutralEmName ]
         fChargedEm  = self.source[self.fChargedEmName ]
         fNeutralHad = self.source[self.fNeutralHadName]
@@ -80,53 +81,53 @@ class pfIndicesByHand(wrappedChain.calculable) :
 class leadingPt(wrappedChain.calculable) :
     def name(self) : return "%sLeadingPt%s"% self.cs
 
-    def __init__(self, collection = None) :
+    def __init__(self, collection = None, p4Name = "CorrectedP4") :
         self.cs = collection
-        self.p4sName = '%sCorrectedP4%s' % self.cs
+        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
         self.indicesName = "%sIndices%s" % self.cs
 
     def update(self,ignored) :
-        p4s = self.source[self.p4sName]
+        p4s = self.source[self.p4Name]
         indices = self.source[self.indicesName]["clean"]
         self.value = p4s.at(indices[0]).pt() if len(indices) else None
 ##############################
 class sumPt(wrappedChain.calculable) :
     def name(self) : return "%sSumPt%s"% self.cs
 
-    def __init__(self, collection = None) :
+    def __init__(self, collection = None, p4Name = "CorrectedP4") :
         self.cs = collection
-        self.p4sName = '%sCorrectedP4%s' % self.cs
+        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
         self.indicesName = "%sIndices%s" % self.cs
 
     def update(self,ignored) :
-        p4s = self.source[self.p4sName]
+        p4s = self.source[self.p4Name]
         indices = self.source[self.indicesName]["clean"]
         self.value = reduce( lambda x,i: x+p4s.at(i).pt(), indices , 0)
 ##############################
 class sumP4(wrappedChain.calculable) :
     def name(self) : return "%sSumP4%s" % self.cs
 
-    def __init__(self, collection = None) :
+    def __init__(self, collection = None, p4Name = "CorrectedP4") :
         self.cs = collection
-        self.p4sName = "%sCorrectedP4%s" % self.cs
+        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
         self.indicesName = "%sIndices%s" % self.cs
 
     def update(self,ignored) :
-        p4s = self.source[self.p4sName]
+        p4s = self.source[self.p4Name]
         indices = self.source[self.indicesName]["clean"]
         self.value = reduce( lambda x,i: x+p4s.at(i), indices[1:], p4s.at(indices[0]) ) if len(indices) else None
 ##############################
 class deltaPseudoJet(wrappedChain.calculable) :
     def name(self) : return "%sDeltaPseudoJet%s" % self.cs
 
-    def __init__(self, collection = None) :
+    def __init__(self, collection = None, p4Name = "CorrectedP4") :
         self.cs = collection
-        self.p4sName = "%sCorrectedP4%s" % self.cs
+        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
         self.indicesName = "%sIndices%s" % self.cs
 
     def update(self,ignored) :
         indices = self.source[self.indicesName]["clean"]
-        p4s = self.source[self.p4sName]
+        p4s = self.source[self.p4Name]
         
         size = len(indices)
         diff = [0.] * (1<<size)
@@ -155,10 +156,10 @@ class alphaT(wrappedChain.calculable) :
 class diJetAlpha(wrappedChain.calculable) :
     def name(self) : return "%sDiJetAlpha%s" % self.cs
     
-    def __init__(self,collection = None) :
+    def __init__(self,collection = None, p4Name = "CorrectedP4") :
         self.cs = collection
         self.indicesName = "%sIndices%s" % self.cs
-        self.p4String = "%sCorrectedP4%s" % self.cs
+        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
         
     def update(self,ignored) :
         cleanJetIndices = self.source[self.indicesName]["clean"]
@@ -166,7 +167,7 @@ class diJetAlpha(wrappedChain.calculable) :
         if len(cleanJetIndices)!=2 :
             self.value=None
             return
-        p4s=self.source[self.p4String]
+        p4s=self.source[self.p4Name]
         mass=(p4s.at(cleanJetIndices[0])+p4s.at(cleanJetIndices[1])).M()
         if mass<=0.0 :
             self.value=None
@@ -176,10 +177,10 @@ class diJetAlpha(wrappedChain.calculable) :
 class deltaX01(wrappedChain.calculable) :
     def name(self) : return "%sDeltaX01%s" % self.cs
 
-    def __init__(self,collection = None) :
+    def __init__(self,collection = None, p4Name = "CorrectedP4") :
         self.cs = collection
         self.indicesName = "%sIndices%s" % self.cs
-        self.p4String = "%sCorrectedP4%s" % self.cs
+        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
         
     def update(self,ignored) :
         self.value={}
@@ -190,7 +191,7 @@ class deltaX01(wrappedChain.calculable) :
             self.value["eta"]=None
             self.value["R"]=None
             return
-        p4s=self.source[self.p4String]
+        p4s=self.source[self.p4Name]
         jet0=p4s.at(cleanJetIndices[0])
         jet1=p4s.at(cleanJetIndices[1])
         self.value["phi"] = r.Math.VectorUtil.DeltaPhi(jet0,jet1)
