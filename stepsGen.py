@@ -166,10 +166,12 @@ class genParticleCountHistogrammer(analysisStep) :
 class genParticlePrinter(analysisStep) :
     """genParticlePrinter"""
 
-    def __init__(self):
+    def __init__(self,minPt=-1.0,minStatus=-1):
         self.oneP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         self.sumP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
         self.zeroP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
+        self.minPt=minPt
+        self.minStatus=minStatus
         
     def uponAcceptance (self,eventVars) :
 
@@ -183,21 +185,29 @@ class genParticlePrinter(analysisStep) :
 
         size=len(eventVars["genP4"])
         for iGen in range(size) :
+
             p4=eventVars["genP4"][iGen]
+            if p4.pt()<self.minPt :
+                continue
+
+            status=eventVars["genStatus"][iGen]
+            if status<self.minStatus :
+                continue
+
             pdgId=eventVars["genPdgId"][iGen]
             outString=""
             outString+="%#2d"%iGen
-            outString+=" %#3d"%eventVars["genStatus"][iGen]
+            outString+=" %#3d"%status
             outString+="  %#4d"%eventVars["genMother"][iGen]
             outString+=" %#10d"%pdgId
-            if (pdgLookupExists) : outString+=" "+pdgLookup.pdgid_to_name(pdgId).rjust(15)
+            if pdgLookupExists : outString+=" "+pdgLookup.pdgid_to_name(pdgId).rjust(15)
             else :                 outString+="".rjust(16)
             outString+="  %#7.1f"%p4.E()
             outString+="  %#8.1f"%p4.pt()
             outString+="  %#8.1f"%p4.eta()
             outString+="  %#5.1f"%p4.phi()
         
-            if (not (iGen in mothers)) :
+            if not (iGen in mothers) :
                 outString+="   non-mo"
         #        self.sumP4+=self.oneP4
         #        #outString2="non-mo P4 sum".ljust(37)
