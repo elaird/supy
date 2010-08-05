@@ -62,7 +62,7 @@ def getNamesAndDimensions(plotFileNameDict) :
         if nFiles>0 : avgRank/=nFiles
 
         #add to the list
-        plotList.append( (nFilesDict,-avgRank,dimensionDict[plotName],plotName) )
+        plotList.append( (nFiles,-avgRank,dimensionDict[plotName],plotName) )
 
     plotList.sort()
     plotList.reverse()
