@@ -172,13 +172,15 @@ class alphaHistogrammer(analysisStep) :
         mht = eventVars["%sSumP4%s"%self.cs].pt() 
         ht = eventVars["%sSumPt%s"%self.cs]
         deltaHt = eventVars["%sDeltaPseudoJet%s"%self.cs]
+        alphaT = eventVars["%sAlphaT%s"%self.cs]
+        diJetAlpha = eventVars["%sDiJetAlpha%s"%self.cs]
+        indices = eventVars["%sIndices%s"%self.cs]
 
-        diJetAlpha=eventVars["%sDiJetAlpha%s"%self.cs]
         if diJetAlpha :
             book.fill( diJetAlpha, "%sdijet_alpha%s"%self.cs, bins,min,max,
                        title = ";di-jet #alpha (using p_{T});events / bin")
 
-        book.fill( eventVars["%sAlphaT%s"%self.cs], "%snjet_alphaT%s"%self.cs, bins,min,max,
+        book.fill( alphaT, "%snjet_alphaT%s"%self.cs, bins,min,max,
                    title = ";N-jet #alpha_{T} (using p_{T});events / bin")
 
         book.fill( deltaHt, "%snjet_deltaHt%s"%self.cs, 50,0.0,500,
@@ -186,6 +188,10 @@ class alphaHistogrammer(analysisStep) :
 
         book.fill( (mht/ht,deltaHt/ht), "%s_deltaHtOverHt_vs_mHtOverHt_%s"%self.cs, (30,30), (0.0,0.0), (1.0,0.7),
                    title = ";#slash(H_{T}) / H_{T};#Delta H_{T} of two pseudo-jets / H_{T};events / bin")
+
+        for njets in ["ge2jets","2jets" if len(indices) == 2 else "ge3jets"] :
+            book.fill( (alphaT,ht), "%s%s_alphaT_vs_Ht_%s"%(self.cs[0],self.cs[1],njets), (300,200), (0.0,0.0), (3.0,1000),
+                       title = "%s;#alpha_{T};H_{T};events / bin"%njets)
 
 #####################################
 class metHistogrammer(analysisStep) :
