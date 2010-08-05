@@ -38,7 +38,6 @@ def setupStyle() :
     #r.gStyle.SetOptStat(111111)
 ##############################
 def getNamesAndDimensions(plotFileNameDict) :
-    nFilesDict   =collections.defaultdict(int)  #nFilesContainingThisPlot
     rankDict     =collections.defaultdict(list) #list of ranks in the files
     dimensionDict=collections.defaultdict(int)  #plot dimension
     
@@ -50,20 +49,20 @@ def getNamesAndDimensions(plotFileNameDict) :
             className=object=f.Get(plotName).ClassName()
             dimension=0
             if className[0:2]=="TH" : dimension=int(className[2])
-            nFilesDict[plotName]+=1
             rankDict[plotName].append(iKey)
             dimensionDict[plotName]=dimension
             
     plotList=[]
-    for plotName in nFilesDict.keys() :
+    for plotName in rankDict.keys() :
         #compute the average rank
         avgRank=0.0
+        nFiles=len(rankDict[plotName])
         for rank in rankDict[plotName] :
             avgRank+=rank
-        avgRank/=len(rankDict[plotName])
+        if nFiles>0 : avgRank/=nFiles
 
         #add to the list
-        plotList.append( (nFilesDict[plotName],-avgRank,dimensionDict[plotName],plotName) )
+        plotList.append( (nFilesDict,-avgRank,dimensionDict[plotName],plotName) )
 
     plotList.sort()
     plotList.reverse()
