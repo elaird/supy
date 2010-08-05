@@ -295,8 +295,8 @@ class analysis :
 
     def mergeDisplays(self,displayFileDict,someLooper) :
         if len(displayFileDict)>0 :
-            outputFileName=displayFileDict.values()[0].replace(someLooper.name,someLooper.parentName).replace(".root",".ps")
-            utils.psFromRoot(displayFileDict.values(),outputFileName,beQuiet=False)
+            outputFileName=displayFileDict.values()[0][0].replace(someLooper.name,someLooper.parentName).replace(".root",".ps")
+            utils.psFromRoot(displayFileDict.values()[0],outputFileName,beQuiet=False)
             print self.hyphens
 
     def profile(self,nCores) :

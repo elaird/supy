@@ -374,13 +374,13 @@ class bxFilter(analysisStep) :
 class displayer(analysisStep) :
     #special __doc__ assignment below
     
-    def __init__(self,jetCollection="",jetSuffix="",metCollection="",metSuffix="",leptonSuffix="",genJetCollection="",outputDir="",scale=200.0) :
+    def __init__(self,jets=("",""),metCollection="",metSuffix="",leptonSuffix="",genJetCollection="",outputDir="",scale=200.0) :
         self.__doc__=self.displayerStepName
         self.outputDir=outputDir
         self.moreName="(see below)"
         self.scale=scale #GeV
-        self.jetCollection=jetCollection
-        self.jetSuffix=jetSuffix
+        self.jetCollection=jets[0]
+        self.jetSuffix=jets[1]
         self.metCollection=metCollection
         self.metSuffix=metSuffix
         self.leptonSuffix=leptonSuffix
@@ -389,7 +389,7 @@ class displayer(analysisStep) :
         self.doGen=False
         self.doLeptons=True
 
-        if (self.doLeptons) :
+        if self.doLeptons :
             listOfTuples=[("muon",self.leptonSuffix),("electron",self.leptonSuffix),("photon","Pat"),("tau","Pat")]
             for tuple in listOfTuples :
                 particle=tuple[0]
@@ -432,7 +432,9 @@ class displayer(analysisStep) :
         epsilon=1.0e-6
         self.mhtLlHisto=r.TH2D("mhtLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashH_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
         self.metLlHisto=r.TH2D("metLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashE_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
-
+        self.mhtLlHisto.SetDirectory(0)
+        self.metLlHisto.SetDirectory(0)
+        
     def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
         self.outputFile.Write()
         self.outputFile.Close()
@@ -542,8 +544,8 @@ class displayer(analysisStep) :
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"#slashH_{T} ("+self.jetCollection+")","l")
 
-        mht=eventVars["%sSumP4%s"%(self.jetCollection,self.jetSuffix)].pt()
-        self.drawP4(mht,color,lineWidth,arrowSize)
+        mh = -eventVars["%sSumP4%s"%(self.jetCollection,self.jetSuffix)]
+        self.drawP4(mh,color,lineWidth,arrowSize)
             
     def drawHt (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
