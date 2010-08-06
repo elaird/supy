@@ -1,29 +1,29 @@
 import ROOT as r
-import os,math,collections
+import os,math
 ##############################
-doLog1D=True
-doLog2D=True
+doLog=True
 drawYx=False
 doMetFit=False
 doColzFor2D=True
-lumiToUseInAbsenceOfData=100 #/pb
 ##############################
 colorDict={}
 #colorDict["currentColorIndex"]=r.kGreen
 colorDict["currentColorIndex"]=2
 
-colorDict["NT7_LM0"]=r.kBlack
-colorDict["NT7_LM1"]=r.kBlue
+colorDict["JetMETTau.Run2010A"]=r.kBlack
 
-colorDict["NT7_MG_QCD_bin1"]=r.kGreen
-colorDict["NT7_MG_QCD_bin2"]=r.kGreen+2
-colorDict["NT7_MG_QCD_bin3"]=r.kGreen-3
-colorDict["NT7_MG_QCD_bin4"]=r.kGreen+3
+colorDict["lm0"]=r.kRed
+colorDict["lm1"]=r.kRed+1
 
-colorDict["NT7_MG_TT_jets"]=r.kOrange+7
-colorDict["NT7_MG_W_jets"]=r.kOrange
-colorDict["NT7_MG_Z_jets"]=r.kRed
-colorDict["NT7_MG_Z_inv"]=r.kMagenta
+colorDict["standard_model"]=r.kGreen+3
+
+colorDict["qcd_py"]=r.kBlue
+colorDict["tt_tauola_mg"]=r.kOrange
+
+colorDict["g_jets_mg"]=r.kGreen
+colorDict["w_jets_mg"]=28
+colorDict["z_jets_mg"]=r.kYellow-3
+colorDict["z_inv_mg"]=r.kMagenta
 ##############################
 def getColor(label) :
     if not label in colorDict :
@@ -36,52 +36,6 @@ def setupStyle() :
     r.gROOT.SetStyle("Plain")
     r.gStyle.SetPalette(1)
     #r.gStyle.SetOptStat(111111)
-##############################
-def getNamesAndDimensions(plotFileNameDict) :
-    rankDict     =collections.defaultdict(list) #list of ranks in the files
-    dimensionDict=collections.defaultdict(int)  #plot dimension
-    
-    for plotFileName in plotFileNameDict.values() :
-        f=r.TFile(plotFileName)
-        keys=f.GetListOfKeys()
-        for iKey in range(len(keys)) :
-            plotName=keys[iKey].GetName()
-            className=object=f.Get(plotName).ClassName()
-            dimension=0
-            if className[0:2]=="TH" : dimension=int(className[2])
-            rankDict[plotName].append(iKey)
-            dimensionDict[plotName]=dimension
-            
-    plotList=[]
-    for plotName in rankDict.keys() :
-        #compute the average rank
-        avgRank=0.0
-        nFiles=len(rankDict[plotName])
-        for rank in rankDict[plotName] :
-            avgRank+=rank
-        if nFiles>0 : avgRank/=nFiles
-
-        #add to the list
-        plotList.append( (nFiles,-avgRank,dimensionDict[plotName],plotName) )
-
-    plotList.sort()
-    plotList.reverse()
-    return plotList
-##############################
-def get_Xs_Lumi_Event_Job_Numbers(plotFileNameDict) :
-    xsDict={}
-    lumiDict={}
-    nEventsDict={}
-    nJobsDict={}
-    for sampleName,plotFileName in plotFileNameDict.iteritems() :
-        f=r.TFile(plotFileName)
-        nJobs=f.Get("nJobsHisto").GetBinContent(1)
-        xsDict      [sampleName] = f.Get("xsHisto").GetBinContent(1) / nJobs
-        lumiDict    [sampleName] = f.Get("lumiHisto").GetBinContent(1) /  nJobs
-        nEventsDict [sampleName] = f.Get("nEventsHisto").GetBinContent(1)
-        nJobsDict   [sampleName] = nJobs
-
-    return [xsDict,lumiDict,nEventsDict,nJobsDict]
 ##############################
 def combineBinContentAndError(histo,binToContainCombo,binToBeKilled) :
     xflows=histo.GetBinContent(binToBeKilled)
@@ -105,50 +59,6 @@ def shiftUnderAndOverflows(histo) :
 
     histo.SetEntries(entries)
 ##############################
-def scaleHistos(histoDict,plotSpec) :
-    maximum=0.0
-    if len(histoDict)<1 : return maximum
-
-    for sample,histo in histoDict.iteritems() :
-        scale=True
-        if "xsHisto" in histo.GetName() or "lumiHisto" in histo.GetName() :
-            scale=False
-            histo.Scale(1.0/plotSpec["nJobsDict"][sample])
-        if "nEventsHisto" in histo.GetName() : scale=False
-        if "nJobsHisto"   in histo.GetName() : scale=False
-
-        if scale :
-            #scale the MC samples to match the data (if present) or the default lumi value
-            xs=plotSpec["xsDict"][sample]
-            if xs>0.0 and plotSpec["nEventsDict"][sample]>0:
-                histo.Scale(plotSpec["lumiValue"]*xs/plotSpec["nEventsDict"][sample])
-            if plotSpec["dimension"]==1 :
-                newTitle=histo.GetYaxis().GetTitle()+" / "+str(plotSpec["lumiValue"])+" pb^{-1}"
-                histo.GetYaxis().SetTitle(newTitle)
-            if plotSpec["dimension"]==2 :
-                newTitle=histo.GetZaxis().GetTitle()+" / "+str(plotSpec["lumiValue"])+" pb^{-1}"
-                histo.GetZaxis().SetTitle(newTitle)
-
-        hMax=histo.GetMaximum()
-        if hMax>maximum : maximum=hMax
-    return maximum
-##############################
-def scale1DHistosByArea(histoDict) :
-    max=0.0
-    if len(histoDict)<1 : return max
-
-    histo0=histoDict.values()[0]
-    integral0=histo0.Integral(0,histo0.GetNbinsX()+1)
-    for histo in histoDict.values() :
-        if histo.GetName()=="xsHisto" or histo.GetName()=="nEventsHisto" :
-            continue
-        integralThis=histo.Integral(0,histo.GetNbinsX()+1)
-        if integralThis>0.0 :
-            histo.Scale(integral0/integralThis)
-        hMax=histo.GetMaximum()
-        if hMax>max : max=hMax
-    return max
-##############################
 def metFit(histo) :
     funcName="func"
     func=r.TF1(funcName,"[0]*x*exp( -(x-[1])**2 / (2.0*[2])**2 )/[2]",0.5,30.0)
@@ -157,18 +67,6 @@ def metFit(histo) :
     histo.GetFunction(funcName).SetLineWidth(1)
     histo.GetFunction(funcName).SetLineColor(histo.GetLineColor())
     return func
-##############################
-def getLogMin(plotSpec) :
-    if plotSpec["scaleByAreaRatherThanByXs"] :
-        return 0.5
-    else :
-        factorList=[]
-        for sample in plotSpec["plotFileNameDict"].keys() :
-            xs=plotSpec["xsDict"][sample]
-            if plotSpec["nEventsDict"][sample]>0 and plotSpec["nJobsDict"][sample]>0 :
-                if xs>0.0 : factorList.append(plotSpec["lumiValue"]*xs/plotSpec["nEventsDict"][sample])
-                else :      factorList.append(1.0)
-        return 0.5*min(factorList)
 ##############################
 def makeAlphaTFunc(alphaTValue) :
     alphaTFunc=r.TF1("alphaTCurve"+str(alphaTValue),
@@ -179,19 +77,47 @@ def makeAlphaTFunc(alphaTValue) :
     alphaTFunc.SetNpx(300)
     return alphaTFunc
 ##############################
-def plot1D(plotSpec,histo,count) :
+def setColors(plotContainer) :
+    for sampleName,histo in plotContainer["histoDict"].iteritems() :
+        color=getColor(sampleName)
+        histo.SetLineColor(color)
+        histo.SetMarkerColor(color)
+##############################
+def setRanges(plotContainer,logAxes) :
+    globalMax = -1.0
+    globalMin = 1.0e9
+    
+    for histo in plotContainer["histoDict"].values() :
+        max=histo.GetMaximum()
+        if max>globalMax : globalMax=max
+
+        if plotContainer["dimension"]==1 :
+            for iBinX in range(histo.GetNbinsX()+2) :
+                value=histo.GetBinContent(iBinX)
+                if value>0.0 :
+                    if value<globalMin : globalMin=value
+                    
+        if plotContainer["dimension"]==2 :
+            for iBinX in range(histo.GetNbinsX()+2) :
+                for iBinY in range(histo.GetNbinsY()+2) :
+                    value=histo.GetBinContent(iBinX,iBinY)
+                    if value>0.0 :
+                        if value<globalMin : globalMin=value
+                    
+    for histo in plotContainer["histoDict"].values() :
+        if logAxes :
+            histo.SetMaximum(2.0*globalMax)
+            histo.SetMinimum(0.5*globalMin)
+        else :
+            histo.SetMaximum(1.1*globalMax)
+            histo.SetMinimum(0.0)
+##############################
+def plot1D(histo,count,stuffToKeep) :
     r.gPad.SetRightMargin(0.15)
     r.gPad.SetTicky()            
     if count==0 :
         histo.Draw()
-        if doLog1D :
-            histo.SetMaximum(2.0*plotSpec["maximum"])
-            histo.SetMinimum(getLogMin(plotSpec))
-            r.gPad.SetLogy()
-        else :
-            histo.SetMaximum(1.1*plotSpec["maximum"])
-            histo.SetMinimum(0.0)
-
+        if doLog : r.gPad.SetLogy()
     else :
         histo.Draw("same")
         r.gStyle.SetOptFit(0)
@@ -223,146 +149,79 @@ def plot1D(plotSpec,histo,count) :
         outString+="%#8.2f"%histo.GetBinContent(1)
         outString+=" +/-"
         outString+="%#8.2f"%histo.GetBinError(1)
-        if not plotSpec["scaleByAreaRatherThanByXs"] : print outString
-        else : print "for counts, set scaleByAreaRatherThanByXs=False"
+        #if not plotSpec["scaleByAreaRatherThanByXs"] : print outString
+        #else : print "for counts, set scaleByAreaRatherThanByXs=False"
 ##############################
-def plot2D(plotSpec,histo,count,sampleName,yx) :
-    plotSpec["canvas"].cd(count+1)
+def plot2D(canvasDict,histo,count,sampleName,stuffToKeep) :
+    yx=r.TF1("yx","x",histo.GetXaxis().GetXmin(),histo.GetXaxis().GetXmax())
+    yx.SetLineColor(r.kBlue)
+    yx.SetLineWidth(1)
+    yx.SetNpx(300)
+    
+    canvasDict["canvas"].cd(count+1)
     histo.GetYaxis().SetTitleOffset(1.2)
-    oldTitle=histo.GetTitle()
-    histo.SetTitle(oldTitle+sampleName)
+    histo.SetTitle(histo.GetTitle()+sampleName)
     histo.SetStats(False)
     histo.GetZaxis().SetTitleOffset(1.3)
     r.gPad.SetRightMargin(0.15)
     r.gPad.SetTicky()
+    if doLog : r.gPad.SetLogz()
+
     if doColzFor2D : histo.Draw("colz")
     else :           histo.Draw()
 
-    if doLog2D :
-        if not plotSpec["scaleByAreaRatherThanByXs"] : histo.SetMaximum(2.0*plotSpec["maximum"])
-        histo.SetMinimum(getLogMin(plotSpec))
-        r.gPad.SetLogz()
+    if "deltaHtOverHt_vs_mHtOverHt" in histo.GetName() :
+        histo.GetYaxis().SetRangeUser(0.0,0.7)
+        funcs=[
+            makeAlphaTFunc(0.55),
+            makeAlphaTFunc(0.50),
+            makeAlphaTFunc(0.45)
+            ]
+        for func in funcs : func.Draw("same")
+        stuffToKeep.extend(funcs)
     else :
-        #histo.SetMaximum(1.1*plotSpec.maximum)
-        histo.SetMinimum(0.0)
-
-        if "deltaHtOverHt_vs_mHtOverHt" in histo.GetName() :
-            histo.GetYaxis().SetRangeUser(0.0,0.7)
-            funcs=[
-                makeAlphaTFunc(0.55),
-                makeAlphaTFunc(0.50),
-                makeAlphaTFunc(0.45)
-                ]
-            for func in funcs :
-                func.Draw("same")
-            stuffToKeep.extend(funcs)
-        else :
-            if drawYx :
-                yx.Draw("same")
-                stuffToKeep.append(yx)
+        if drawYx :
+            yx.Draw("same")
+            stuffToKeep.append(yx)
 ##############################
-def histoLoop(plotSpec,histoDict) :
+def onePlotFunction(canvasDict,plotContainer) :
+    #prepare canvas
+    canvasDict["canvas"].cd(0)
+    canvasDict["canvas"].Clear()
+    if plotContainer["dimension"]==1 :
+        canvasDict["canvas"].Divide(1,1)
+    else :
+        canvasDict["canvas"].Divide(len(plotContainer["histoDict"]),1)
+
+    #set ranges
+    setRanges(plotContainer,doLog)
+    setColors(plotContainer)
+    
+    #loop over available histos and plot them
     stuffToKeep=[]
-
-    #x1=0.40
-    #x2=0.75
-    #y1=0.75
-    #y2=1.00
-
-    #x1=0.86
-    #x2=1.00
-    #y1=0.50
-    #y2=0.75
-
     x1=0.86
     x2=1.00
     y1=0.60
     y2=0.10
-
     legend=r.TLegend(x1,y1,x2,y2)
     count=0
-    for sampleName,histo in histoDict.iteritems() :
-        #merge requested histos
-        targetName=sampleName
 
-        for mergeRequest in plotSpec["mergeRequests"] :
-            if sampleName in mergeRequest :
-                targetName=mergeRequest[sampleName]
-        if plotSpec["mergeAllStandardModelMc"] :
-            if plotSpec["xsDict"][sampleName]!=0.0 : #exclude data
-                if  "lm" not in sampleName : #exclude SUSY
-                    targetName="all SM MC"
-        
-        if sampleName!=targetName :
-            someName=histo.GetName().replace("_"+str(count),"")+targetName
-            isPresent=r.gDirectory.Get(someName)
-            if not isPresent :
-                mergedHisto=histo.Clone(someName)
-                legend.AddEntry(mergedHisto,targetName,"l")
-            else :
-                mergedHisto.Add(histo)
-            stuffToKeep.append(mergedHisto)
-            histo=mergedHisto
-        else :
-            legend.AddEntry(histo,sampleName,"l")
-
+    sampleNames=plotContainer["histoDict"].keys()
+    sampleNames.sort()
+    
+    for sampleName in sampleNames :
+        histo=plotContainer["histoDict"][sampleName]
         if not histo.GetEntries() : continue
+        legend.AddEntry(histo,sampleName,"l")
 
-        yx=r.TF1("yx","x",histo.GetXaxis().GetXmin(),histo.GetXaxis().GetXmax())
-        yx.SetLineColor(r.kBlue)
-        yx.SetLineWidth(1)
-        yx.SetNpx(300)
-
-        #1D here
-        if plotSpec["dimension"]==1 :
-            plot1D(plotSpec,histo,count)
-        #2D here
+        if plotContainer["dimension"]==1   : plot1D(histo,count,stuffToKeep)
+        elif plotContainer["dimension"]==2 : plot2D(canvasDict,histo,count,sampleName,stuffToKeep)
         else :
-            plot2D(plotSpec,histo,count,sampleName,yx)
+            print "Skipping histo",histo.GetName(),"with dimension",plotContainer["dimension"]
+            continue
         count+=1
-    if plotSpec["dimension"]==1 : legend.Draw()
-    plotSpec["canvas"].Print(plotSpec["psFile"],plotSpec["psOptions"])
-##############################
-def onePlotFunction(plotSpec) :
-    plotSpec["canvas"].cd(0)
-    plotSpec["canvas"].Clear()
-
-    histoDict=makeHistoDict(plotSpec)
-    if plotSpec["dimension"]==1 :
-        plotSpec["canvas"].Divide(1,1)
-        if plotSpec["scaleByAreaRatherThanByXs"] :
-            plotSpec["maximum"]=scale1DHistosByArea(histoDict)
-    else :
-        plotSpec["canvas"].Divide(len(histoDict),1)
-
-    if not plotSpec["scaleByAreaRatherThanByXs"] :
-        plotSpec["maximum"]=scaleHistos(histoDict,plotSpec)
-    histoLoop(plotSpec,histoDict)
-##############################
-def makeHistoDict(plotSpec) :
-    histoDict={}
-
-    count=0
-    for sampleName,plotFileName in plotSpec["plotFileNameDict"].iteritems() :
-        f=r.TFile(plotFileName)
-
-        extraName=""
-        if count>0 : extraName+="_"+str(count)
-        h1=f.Get(plotSpec["plotName"])
-        if not h1 : continue
-        h=h1.Clone(plotSpec["plotName"]+extraName)
-        h.SetDirectory(0)
-        histoDict[sampleName]=h
-
-        color=r.kBlack
-        if plotSpec["lumiDict"][sampleName]==0.0 : 
-            color=getColor(sampleName)
-        h.SetLineColor(color)
-        h.SetMarkerColor(color)
-        if plotSpec["dimension"]==1 : shiftUnderAndOverflows(h)
-        count+=1
-
-    return histoDict
+    if plotContainer["dimension"]==1 : legend.Draw()
+    canvasDict["canvas"].Print(canvasDict["psFile"],canvasDict["psOptions"])
 ##############################
 def printTimeStamp(canvas,psFile,psOptions) :
     text=r.TText()
@@ -373,58 +232,27 @@ def printTimeStamp(canvas,psFile,psOptions) :
     canvas.Print(psFile,psOptions)
     canvas.Clear()
 ##############################
-def plotAll(analysisName,plotFileNameDict,mergeAllStandardModelMc,mergeRequests,scaleByAreaRatherThanByXs,outputDir,hyphens) :
-    if len(plotFileNameDict)<1 : return
+def plotAll(analysisName,listOfPlotContainers,outputDir,hyphens) :
+    if len(listOfPlotContainers)<1 : return
     setupStyle()
 
-    psFile=outputDir+"/"+analysisName+".ps"
-    psOptions="Landscape"
+    canvasDict={}
+    canvasDict["psFile"]=outputDir+"/"+analysisName+".ps"
+    canvasDict["psOptions"]="Landscape"
     
-    canvas=r.TCanvas()
-    canvas.Print(psFile+"[",psOptions)
-    #canvas.SetRightMargin(0.4)
-    
-    printTimeStamp(canvas,psFile,psOptions)
-    
-    plotList=getNamesAndDimensions(plotFileNameDict)
-    
-    xsDict,lumiDict,nEventsDict,nJobsDict=get_Xs_Lumi_Event_Job_Numbers(plotFileNameDict)
+    canvasDict["canvas"]=r.TCanvas()
+    canvasDict["canvas"].Print(canvasDict["psFile"]+"[",canvasDict["psOptions"])
+    #canvasDict["canvas"].SetRightMargin(0.4)
+    printTimeStamp(canvasDict["canvas"],canvasDict["psFile"],canvasDict["psOptions"])
 
-    nDataSamples=len(lumiDict.values())-lumiDict.values().count(0.0)
-    lumiValue=lumiToUseInAbsenceOfData
-    if nDataSamples==1 :
-        lumiValue=max(lumiDict.values())
-    elif nDataSamples>1 and not scaleByAreaRatherThanByXs :
-        raise Exception("at the moment, plotting multiple data samples is not supported")
+    for plotContainer in listOfPlotContainers :
+        onePlotFunction(canvasDict,plotContainer)
 
-    for plotListItem in plotList :
-        plotSpec={}
-        plotName=plotListItem[3]
-        dimension=plotListItem[2]
-
-        plotSpec["lumiValue"]                 = lumiValue
-        plotSpec["plotName"]                  = plotName
-        plotSpec["dimension"]                 = dimension
-        plotSpec["canvas"]                    = canvas
-        plotSpec["plotFileNameDict"]          = plotFileNameDict
-        plotSpec["scaleByAreaRatherThanByXs"] = scaleByAreaRatherThanByXs
-        plotSpec["mergeAllStandardModelMc"]   = mergeAllStandardModelMc
-        plotSpec["mergeRequests"]             = mergeRequests
-        plotSpec["outputDir"]                 = outputDir
-        plotSpec["xsDict"]                    = xsDict
-        plotSpec["lumiDict"]                  = lumiDict
-        plotSpec["nEventsDict"]               = nEventsDict
-        plotSpec["nJobsDict"]                 = nJobsDict
-        plotSpec["psFile"]                    = psFile
-        plotSpec["psOptions"]                 = psOptions
-
-        onePlotFunction(plotSpec)
-
-    canvas.Print(psFile+"]",psOptions)
-    pdfFile=psFile.replace(".ps",".pdf")
-    os.system("ps2pdf "+psFile+" "+pdfFile)
-    os.system("gzip -f "+psFile)
+    canvasDict["canvas"].Print(canvasDict["psFile"]+"]",canvasDict["psOptions"])
+    pdfFile=canvasDict["psFile"].replace(".ps",".pdf")
+    os.system("ps2pdf "+canvasDict["psFile"]+" "+pdfFile)
+    os.system("gzip -f "+canvasDict["psFile"])
     print "The output file \""+pdfFile+"\" has been written."
     print hyphens
-    #print "The output file \""+psFile+".gz\" has been written."
+    #print "The output file \""+canvasDict["psFile"]+".gz\" has been written."
 ##############################
