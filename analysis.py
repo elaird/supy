@@ -35,8 +35,10 @@ class analysis :
         self.listOfSteps=listOfSteps
         self.listOfCalculables=listOfCalculables
         self.listOfLoopers=[]
-        self.mergeRequestsForPlotter=[]
         self.listOfOutputPlotFileNames=[]
+
+        self.histogramMergeRequests=[]
+        self.histogramMergeKeepSources=[]
 
         self.hasLooped=False
         
@@ -55,21 +57,44 @@ class analysis :
             self.profile(nCores) #profile the code while doing so
         self.hasLooped=True            
 
-    def plot(self,mergeAllStandardModelMc=False,scaleByAreaRatherThanByXs=False) :
-        plotFileNamesDict={}
-        outputPlotFileNamesForPlotter=[]
+    def producePlotFileNamesDict(self) :
+        outDict={}
         if (not hasattr(self,"parentDict")) or len(self.parentDict)==0 :
             for looper in self.listOfLoopers :
-                plotFileNamesDict[looper.name]=looper.outputPlotFileName
+                outDict[looper.name]=looper.outputPlotFileName
         else :
             for parent in self.parentDict :
                 iSomeLooper=self.parentDict[parent][0]
                 someLooper=self.listOfLoopers[iSomeLooper]
-                plotFileNamesDict[parent]=someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName)
+                outDict[parent]=someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName)
+        return outDict
 
+    def organizeHistograms(self,
+                           scaleHistograms=True,
+                           scaleByAreaRatherThanByXs=False,
+                           lumiToUseInAbsenceOfData=100,#/pb
+                           ) :
+        import histogramOrganizer
+        return histogramOrganizer.go(self.producePlotFileNamesDict(),
+                                     scaleHistograms,
+                                     scaleByAreaRatherThanByXs,
+                                     lumiToUseInAbsenceOfData,
+                                     self.histogramMergeRequests,
+                                     self.histogramMergeKeepSources,
+                                     )
+
+    def plot(self,scaleByAreaRatherThanByXs=False) :
+        listOfPlotContainers=self.organizeHistograms(scaleByAreaRatherThanByXs=scaleByAreaRatherThanByXs)
         if not self.hasLooped : print self.hyphens
         import plotter
-        plotter.plotAll(self.name,plotFileNamesDict,mergeAllStandardModelMc,self.mergeRequestsForPlotter,scaleByAreaRatherThanByXs,self.outputDir,self.hyphens)
+        plotter.plotAll(self.name,listOfPlotContainers,self.outputDir,self.hyphens)
+
+    def stats(self,moneyPlotName,xCut,yCut) :
+        plotFileNamesDict=self.producePlotFileNamesDict()
+
+        if not self.hasLooped : print self.hyphens
+        import statMan
+        statMan.go(self.name,plotFileNamesDict,moneyPlotName,xCut,yCut)
 
     def checkXsAndLumi(self,xs,lumi) :
         if (xs==None and lumi==None) or (xs!=None and lumi!=None) :
@@ -113,17 +138,25 @@ class analysis :
                                )
         return
 
-    def mergeHistogramsWhenPlotting(self,source=[],target="") :
+    def mergeHistograms(self,source=[],target="", keepSourceHistograms=False) :
         outDict={}
         for item in source :
             outDict[item]=target
-        self.mergeRequestsForPlotter.append(outDict)
+        self.histogramMergeRequests.append(outDict)
+        self.histogramMergeKeepSources.append(keepSourceHistograms)
+
+    def mergeAllHistogramsExceptSome(self,dontMergeList=[],target="",keepSourceHistograms=True) :
+        fileNameDict=self.producePlotFileNamesDict()
+        sources=[]
+        for sampleName in fileNameDict.keys() :
+            if sampleName in dontMergeList : continue
+            sources.append(sampleName)
+        self.mergeHistograms(sources,target,keepSourceHistograms)
         
-    def manageNonBinnedSamples(self,ptHatLowerThresholdsAndSampleNames=[],mergeIntoOneHistogramCalled="",useRejectionMethod=True) :
+    def manageNonBinnedSamples(self,ptHatLowerThresholdsAndSampleNames=[],useRejectionMethod=True) :
         if not useRejectionMethod :
             raise Exception("the other method of combining non-binned samples is not yet implemented")
         looperIndexDict={}
-        mergeDict={}
         for item in ptHatLowerThresholdsAndSampleNames :
             ptHatLowerThreshold=item[0]
             sampleName=item[1]
@@ -137,9 +170,6 @@ class analysis :
                     if step.__doc__==step.skimmerStepName :
                         raise Exception("do not manage non-binned samples when skimming")
 
-            mergeDict[sampleName]=mergeIntoOneHistogramCalled
-        #inform the plotter of the merge request
-        if mergeIntoOneHistogramCalled!="" : self.mergeRequestsForPlotter.append(mergeDict)
 
         ptHatLowerThresholdsAndSampleNames.sort()
         for iItem in range(len(ptHatLowerThresholdsAndSampleNames)) :
