@@ -1,5 +1,33 @@
 from wrappedChain import wrappedChain
 ##############################
+class genMotherPdgId(wrappedChain.calculable) :
+
+    def update(self,ignored) :
+        self.value = map( self.motherId, self.source["genHasMother"], self.source["genMotherStored"], self.source["genMother"])
+
+    def motherId(self, hasMom, momStored, mom) :
+        return 0 if not hasMom else \
+               mom if not momStored else \
+               self.source["genPdgId"].at(mom)
+
+##############################
+class indices(wrappedChain.calculable) :
+    def name(self) : return "genIndices" + self.label
+
+    def __init__(self, pdgs = None, label = None, ptMin = None, etaMax = None ) :
+        self.label = label
+        self.PDGs = frozenset(pdgs)
+        self.ptMin = ptMin
+        self.etaMax = etaMax
+        self.moreName = "(pdgId in %s; pt>%.1f; |eta|<%.1f)" % (str(list(self.PDGs)), ptMin, etaMax)
+
+    def update(self,ignored) :
+        p4s = self.source["genP4"]
+        pdg = self.source["genPdgId"]
+        self.value = filter( lambda i: pdg.at(i) in self.PDGs and p4s.at(i).pt()>self.ptMin and abs(p4s.at(i).eta())<self.etaMax,
+                             range(p4s.size()) )
+
+##############################
 class genParticleCounter(wrappedChain.calculable) :
     def name(self) : return "GenParticleCategoryCounts"
 

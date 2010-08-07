@@ -1,6 +1,8 @@
 from wrappedChain import *
 from inspect import isclass,ismodule,getargspec
 import calculablesJet
+import calculablesGen
+import calculablesPhoton
 import calculablesOther
 
 
