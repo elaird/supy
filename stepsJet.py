@@ -206,22 +206,22 @@ class metHistogrammer(analysisStep) :
 class deltaPhiSelector(analysisStep) :
     """deltaPhiSelector"""
 
-    def __init__(self,collection,suffix,minAbs,maxAbs) :
-        self.cs = (collection,suffix)
+    def __init__(self,cs,minAbs,maxAbs) :
+        self.cs = cs
         self.minAbs = minAbs
         self.maxAbs = maxAbs
         self.moreName = "(%s; %s; minAbs=%.1f; maxAbs=%.1f)" % (self.cs[0],self.cs[1],minAbs,maxAbs)
     
     def select(self,eventVars) :
-        value = abs( eventVars["%sdeltaX01%s"%self.cs]["phi"] )
+        value = abs( eventVars["%sDeltaX01%s"%self.cs]["phi"] )
         if value<self.minAbs or value>self.maxAbs : return False
         return True
 #####################################
 class mHtOverHtSelector(analysisStep) :
     """mHtOverHtSelector"""
 
-    def __init__(self,collection,suffix,min,max) :
-        self.cs = (collection,suffix)
+    def __init__(self,cs,min,max) :
+        self.cs = cs
         self.min = min
         self.max = max
         self.moreName = "(%s; %s; min=%.1f; max=%.1f)" % (self.cs[0],self.cs[1],min,max)
@@ -239,12 +239,23 @@ class deltaPhiHistogrammer(analysisStep) :
 
     def __init__(self,collection,suffix) :
         self.cs = (collection,suffix)
-        
+        self.var = "%sDeltaX01%s"%self.cs
+
     def uponAcceptance (self,eventVars) :
         book = self.book(eventVars)
+        book.fill( eventVars[self.var]["phi"], self.var, 50, -4.0, 4.0, title = ";"+self.var+";events / bin")
+        book.fill( eventVars[self.var]["R"]  , self.var, 20, 0.0, 10.0, title = ";"+self.var+";events / bin")
+        book.fill( eventVars[self.var]["eta"], self.var, 50, -10, 10.0, title = ";"+self.var+";events / bin")
+#####################################
+class deltaPhiStarHistogrammer(analysisStep) :
+    """deltaPhiStarHistogrammer"""
 
-        var = "%sdeltaX01%s"%self.cs
-        book.fill( eventVars[var]["phi"], var, 50, -4.0, 4.0, title = var+";events / bin")
-        book.fill( eventVars[var]["R"]  , var, 20, 0.0, 10.0, title = var+";events / bin")
-        book.fill( eventVars[var]["eta"], var, 50, -10, 10.0, title = var+";events / bin")
+    def __init__(self,cs) :
+        self.cs = cs
+        self.var = "%sDeltaPhiStar%s"%self.cs
+        self.moreName = "(%s %s)"%self.cs
+        self.title=";%s#Delta#phi^{*}%s;events / bin"%self.cs
+        
+    def uponAcceptance (self,eventVars) :
+        self.book(eventVars).fill( eventVars[self.var], self.var, 50, 0.0, r.TMath.Pi(), title = self.title)
 #####################################
