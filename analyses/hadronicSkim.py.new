@@ -34,4 +34,3 @@ a.addSample(sampleName = "JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn", nMaxFiles
             listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_15_40_06/") )
 
 a.loop( nCores = 6 )
-#a.plot()
