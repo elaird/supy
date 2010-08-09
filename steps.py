@@ -11,8 +11,6 @@ def removeStepsForMc(inSteps) :
     dummyBX=bxFilter([])
     dummyPhysDecl=physicsDeclared()
     dummyTechBit0=techBitFilter([0],True)
-    dummyRunList=goodRunsOnly2009("900 GeV","v2")
-    dummyMetGroupFilter=metGroupNoiseEventFilter("v1")
     dummyDisplayer=displayer()
     dummyHltFilter=hltFilter("")
     dummyHbheNoiseFilter=hbheNoiseFilter()
@@ -29,7 +27,7 @@ def removeStepsForMc(inSteps) :
         outSteps.append(copy.deepcopy(step))
 
         #turn on gen stuff
-        if (step.__doc__==dummyDisplayer.__doc__) : outSteps[-1].switchGenOn()
+        if step.__doc__==dummyDisplayer.__doc__ : outSteps[-1].switchGenOn()
     return outSteps
 #####################################
 def removeStepsForData(inSteps) :
