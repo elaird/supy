@@ -100,7 +100,8 @@ def setRanges(plotContainer,logAxes) :
 ##############################
 def plot1D(canvasDict,histo,count,stuffToKeep) :
     r.gPad.SetRightMargin(0.15)
-    r.gPad.SetTicky()            
+    r.gPad.SetTicky()
+    r.gPad.SetTickx()
     if count==0 :
         histo.Draw()
         if canvasDict["doLog"] : r.gPad.SetLogy()
