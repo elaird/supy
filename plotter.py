@@ -18,7 +18,7 @@ def getColor(label,colorDict) :
 ##############################
 def getMarkerStyle(label,markerStyleDict) :
     if not label in markerStyleDict :
-        return 1
+        markerStyleDict[label]=1
     return markerStyleDict[label]
 ##############################
 def combineBinContentAndError(histo,binToContainCombo,binToBeKilled) :
@@ -257,6 +257,10 @@ def plotAll(someAnalysis,
     os.system("ps2pdf "+canvasDict["psFile"]+" "+pdfFile)
     os.system("gzip -f "+canvasDict["psFile"])
     print "The output file \""+pdfFile+"\" has been written."
+    print "colors used:"
+    print colorDict
+    print "marker styles used:"
+    print markerStyleDict
     print someAnalysis.hyphens
     #print "The output file \""+canvasDict["psFile"]+".gz\" has been written."
 ##############################
