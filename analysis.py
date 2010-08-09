@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os,sys,copy,cPickle,collections
-sys.argv.append("-b")#try to set batch mode as early as possible
+sys.argv.append("-b")#set batch mode before importing ROOT
 import utils,steps
 from analysisLooper import analysisLooper
 import ROOT as r
@@ -82,19 +82,6 @@ class analysis :
                                      self.histogramMergeRequests,
                                      self.histogramMergeKeepSources,
                                      )
-
-    def plot(self,scaleByAreaRatherThanByXs=False) :
-        listOfPlotContainers=self.organizeHistograms(scaleByAreaRatherThanByXs=scaleByAreaRatherThanByXs)
-        if not self.hasLooped : print self.hyphens
-        import plotter
-        plotter.plotAll(self.name,listOfPlotContainers,self.outputDir,self.hyphens)
-
-    def stats(self,moneyPlotName,xCut,yCut) :
-        plotFileNamesDict=self.producePlotFileNamesDict()
-
-        if not self.hasLooped : print self.hyphens
-        import statMan
-        statMan.go(self.name,plotFileNamesDict,moneyPlotName,xCut,yCut)
 
     def checkXsAndLumi(self,xs,lumi) :
         if (xs==None and lumi==None) or (xs!=None and lumi!=None) :
