@@ -1,31 +1,10 @@
 import ROOT as r
 import os,math
 ##############################
-doLog=True
-drawYx=False
-doMetFit=False
-doColzFor2D=True
-##############################
-colorDict={}
-#colorDict["currentColorIndex"]=r.kGreen
-colorDict["currentColorIndex"]=2
+def getColor(label,colorDict) :
+    if "currentColorIndex" not in colorDict :
+        colorDict["currentColorIndex"]=2
 
-colorDict["JetMETTau.Run2010A"]=r.kBlack
-
-colorDict["lm0"]=r.kRed
-colorDict["lm1"]=r.kRed+1
-
-colorDict["standard_model"]=r.kGreen+3
-
-colorDict["qcd_py"]=r.kBlue
-colorDict["tt_tauola_mg"]=r.kOrange
-
-colorDict["g_jets_mg"]=r.kGreen
-colorDict["w_jets_mg"]=28
-colorDict["z_jets_mg"]=r.kYellow-3
-colorDict["z_inv_mg"]=r.kMagenta
-##############################
-def getColor(label) :
     if not label in colorDict :
         colorDict[label]=colorDict["currentColorIndex"]
         colorDict["currentColorIndex"]+=1
@@ -77,9 +56,9 @@ def makeAlphaTFunc(alphaTValue) :
     alphaTFunc.SetNpx(300)
     return alphaTFunc
 ##############################
-def setColors(plotContainer) :
+def setColors(plotContainer,colorDict) :
     for sampleName,histo in plotContainer["histoDict"].iteritems() :
-        color=getColor(sampleName)
+        color=getColor(sampleName,colorDict)
         histo.SetLineColor(color)
         histo.SetMarkerColor(color)
 ##############################
@@ -112,16 +91,16 @@ def setRanges(plotContainer,logAxes) :
             histo.SetMaximum(1.1*globalMax)
             histo.SetMinimum(0.0)
 ##############################
-def plot1D(histo,count,stuffToKeep) :
+def plot1D(canvasDict,histo,count,stuffToKeep) :
     r.gPad.SetRightMargin(0.15)
     r.gPad.SetTicky()            
     if count==0 :
         histo.Draw()
-        if doLog : r.gPad.SetLogy()
+        if canvasDict["doLog"] : r.gPad.SetLogy()
     else :
         histo.Draw("same")
         r.gStyle.SetOptFit(0)
-        if doMetFit and "met" in histo.GetName() :
+        if canvasDict["doMetFit"] and "met" in histo.GetName() :
             r.gStyle.SetOptFit(1111)
             func=metFit(histo)
             stuffToKeep.append(func)
@@ -165,9 +144,9 @@ def plot2D(canvasDict,histo,count,sampleName,stuffToKeep) :
     histo.GetZaxis().SetTitleOffset(1.3)
     r.gPad.SetRightMargin(0.15)
     r.gPad.SetTicky()
-    if doLog : r.gPad.SetLogz()
+    if canvasDict["doLog"] : r.gPad.SetLogz()
 
-    if doColzFor2D : histo.Draw("colz")
+    if canvasDict["doColzFor2D"] : histo.Draw("colz")
     else :           histo.Draw()
 
     if "deltaHtOverHt_vs_mHtOverHt" in histo.GetName() :
@@ -180,11 +159,11 @@ def plot2D(canvasDict,histo,count,sampleName,stuffToKeep) :
         for func in funcs : func.Draw("same")
         stuffToKeep.extend(funcs)
     else :
-        if drawYx :
+        if canvasDict["drawYx"] :
             yx.Draw("same")
             stuffToKeep.append(yx)
 ##############################
-def onePlotFunction(canvasDict,plotContainer) :
+def onePlotFunction(plotContainer,canvasDict,colorDict) :
     #prepare canvas
     canvasDict["canvas"].cd(0)
     canvasDict["canvas"].Clear()
@@ -194,8 +173,8 @@ def onePlotFunction(canvasDict,plotContainer) :
         canvasDict["canvas"].Divide(len(plotContainer["histoDict"]),1)
 
     #set ranges
-    setRanges(plotContainer,doLog)
-    setColors(plotContainer)
+    setRanges(plotContainer,canvasDict["doLog"])
+    setColors(plotContainer,colorDict)
     
     #loop over available histos and plot them
     stuffToKeep=[]
@@ -214,7 +193,7 @@ def onePlotFunction(canvasDict,plotContainer) :
         if not histo.GetEntries() : continue
         legend.AddEntry(histo,sampleName,"l")
 
-        if plotContainer["dimension"]==1   : plot1D(histo,count,stuffToKeep)
+        if plotContainer["dimension"]==1   : plot1D(canvasDict,histo,count,stuffToKeep)
         elif plotContainer["dimension"]==2 : plot2D(canvasDict,histo,count,sampleName,stuffToKeep)
         else :
             print "Skipping histo",histo.GetName(),"with dimension",plotContainer["dimension"]
@@ -223,36 +202,51 @@ def onePlotFunction(canvasDict,plotContainer) :
     if plotContainer["dimension"]==1 : legend.Draw()
     canvasDict["canvas"].Print(canvasDict["psFile"],canvasDict["psOptions"])
 ##############################
-def printTimeStamp(canvas,psFile,psOptions) :
+def printTimeStamp(canvasDict) :
     text=r.TText()
     text.SetNDC()
     dateString="file created at ";
     tdt=r.TDatime()
     text.DrawText(0.1,0.3,dateString+tdt.AsString())
-    canvas.Print(psFile,psOptions)
-    canvas.Clear()
+    canvasDict["canvas"].Print(canvasDict["psFile"],canvasDict["psOptions"])
+    canvasDict["canvas"].Clear()
 ##############################
-def plotAll(analysisName,listOfPlotContainers,outputDir,hyphens) :
+def plotAll(someAnalysis,
+            colorDict={},
+            doLog=True,
+            drawYx=False,
+            doMetFit=False,
+            doColzFor2D=True,
+            ) :
+
+    if not someAnalysis.hasLooped : print someAnalysis.hyphens
+    listOfPlotContainers=someAnalysis.organizeHistograms()
+
     if len(listOfPlotContainers)<1 : return
     setupStyle()
 
     canvasDict={}
-    canvasDict["psFile"]=outputDir+"/"+analysisName+".ps"
+    canvasDict["doLog"]=True,
+    canvasDict["drawYx"]=False,
+    canvasDict["doMetFit"]=False,
+    canvasDict["doColzFor2D"]=True,
+    
+    canvasDict["psFile"]=someAnalysis.outputDir+"/"+someAnalysis.name+".ps"
     canvasDict["psOptions"]="Landscape"
     
     canvasDict["canvas"]=r.TCanvas()
     canvasDict["canvas"].Print(canvasDict["psFile"]+"[",canvasDict["psOptions"])
     #canvasDict["canvas"].SetRightMargin(0.4)
-    printTimeStamp(canvasDict["canvas"],canvasDict["psFile"],canvasDict["psOptions"])
+    printTimeStamp(canvasDict)
 
     for plotContainer in listOfPlotContainers :
-        onePlotFunction(canvasDict,plotContainer)
+        onePlotFunction(plotContainer,canvasDict,colorDict)
 
     canvasDict["canvas"].Print(canvasDict["psFile"]+"]",canvasDict["psOptions"])
     pdfFile=canvasDict["psFile"].replace(".ps",".pdf")
     os.system("ps2pdf "+canvasDict["psFile"]+" "+pdfFile)
     os.system("gzip -f "+canvasDict["psFile"])
     print "The output file \""+pdfFile+"\" has been written."
-    print hyphens
+    print someAnalysis.hyphens
     #print "The output file \""+canvasDict["psFile"]+".gz\" has been written."
 ##############################
