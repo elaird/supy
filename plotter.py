@@ -1,6 +1,11 @@
 import ROOT as r
 import os,math
 ##############################
+def setupStyle() :
+    r.gROOT.SetStyle("Plain")
+    r.gStyle.SetPalette(1)
+    #r.gStyle.SetOptStat(111111)
+##############################
 def getColor(label,colorDict) :
     if "currentColorIndex" not in colorDict :
         colorDict["currentColorIndex"]=2
@@ -11,10 +16,10 @@ def getColor(label,colorDict) :
         if colorDict["currentColorIndex"]==5 : colorDict["currentColorIndex"]+=1
     return colorDict[label]
 ##############################
-def setupStyle() :
-    r.gROOT.SetStyle("Plain")
-    r.gStyle.SetPalette(1)
-    #r.gStyle.SetOptStat(111111)
+def getMarkerStyle(label,markerStyleDict) :
+    if not label in markerStyleDict :
+        return 1
+    return markerStyleDict[label]
 ##############################
 def combineBinContentAndError(histo,binToContainCombo,binToBeKilled) :
     xflows=histo.GetBinContent(binToBeKilled)
@@ -56,11 +61,13 @@ def makeAlphaTFunc(alphaTValue) :
     alphaTFunc.SetNpx(300)
     return alphaTFunc
 ##############################
-def setColors(plotContainer,colorDict) :
+def setColorsAndStyles(plotContainer,colorDict,markerStyleDict) :
     for sampleName,histo in plotContainer["histoDict"].iteritems() :
         color=getColor(sampleName,colorDict)
+        markerStyle=getMarkerStyle(sampleName,markerStyleDict)
         histo.SetLineColor(color)
         histo.SetMarkerColor(color)
+        histo.SetMarkerStyle(markerStyle)
 ##############################
 def setRanges(plotContainer,logAxes) :
     globalMax = -1.0
@@ -163,7 +170,7 @@ def plot2D(canvasDict,histo,count,sampleName,stuffToKeep) :
             yx.Draw("same")
             stuffToKeep.append(yx)
 ##############################
-def onePlotFunction(plotContainer,canvasDict,colorDict) :
+def onePlotFunction(plotContainer,canvasDict,colorDict,markerStyleDict) :
     #prepare canvas
     canvasDict["canvas"].cd(0)
     canvasDict["canvas"].Clear()
@@ -174,7 +181,9 @@ def onePlotFunction(plotContainer,canvasDict,colorDict) :
 
     #set ranges
     setRanges(plotContainer,canvasDict["doLog"])
-    setColors(plotContainer,colorDict)
+
+    #set colors and styles
+    setColorsAndStyles(plotContainer,colorDict,markerStyleDict)
     
     #loop over available histos and plot them
     stuffToKeep=[]
@@ -213,6 +222,7 @@ def printTimeStamp(canvasDict) :
 ##############################
 def plotAll(someAnalysis,
             colorDict={},
+            markerStyleDict={},
             doLog=True,
             drawYx=False,
             doMetFit=False,
@@ -240,7 +250,7 @@ def plotAll(someAnalysis,
     printTimeStamp(canvasDict)
 
     for plotContainer in listOfPlotContainers :
-        onePlotFunction(plotContainer,canvasDict,colorDict)
+        onePlotFunction(plotContainer,canvasDict,colorDict,markerStyleDict)
 
     canvasDict["canvas"].Print(canvasDict["psFile"]+"]",canvasDict["psOptions"])
     pdfFile=canvasDict["psFile"].replace(".ps",".pdf")
