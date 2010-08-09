@@ -22,8 +22,6 @@ def removeStepsForMc(inSteps) :
         if step.__doc__==dummyBX.__doc__ : continue
         if step.__doc__==dummyPhysDecl.__doc__ : continue
         if step.moreName==dummyTechBit0.moreName : continue
-        if step.__doc__==dummyRunList.__doc__ : continue
-        if step.__doc__==dummyMetGroupFilter.__doc__ : continue
         outSteps.append(copy.deepcopy(step))
 
         #turn on gen stuff
