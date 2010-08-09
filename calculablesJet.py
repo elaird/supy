@@ -198,3 +198,23 @@ class deltaX01(wrappedChain.calculable) :
         self.value["R"  ] = r.Math.VectorUtil.DeltaR(jet0,jet1)
         self.value["eta"] = jet0.eta()-jet1.eta()
 ##############################
+class deltaPhiStar(wrappedChain.calculable) :
+    def name(self) : return "%sDeltaPhiStar%s" % self.cs
+
+    def __init__(self,collection = None, p4Name = "CorrectedP4") :
+        self.cs = collection
+        self.indicesName = "%sIndices%s" % self.cs
+        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
+        self.sumP4Name = "%sSumP4%s" % self.cs
+        
+    def update(self,ignored) :
+        self.value=None
+
+        jets=self.source[self.p4Name]
+        nJets=jets.size()
+        if nJets==0 :
+            return
+
+        sumP4=self.source[self.sumP4Name]
+        self.value=min([abs(r.Math.VectorUtil.DeltaPhi(jets.at(i),jets.at(i)-sumP4)) for i in range(nJets)])
+##############################
