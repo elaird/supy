@@ -123,6 +123,7 @@ def mergeHistograms(listOfPlotContainers,histogramMergeRequests,histogramMergeKe
 
             #transfer the merged histograms into the container
             for target in newHistos :
+                if newHistos[target]==None : continue
                 container["histoDict"][target]=newHistos[target]
 
         #remove sources if requested (after all mergeRequests)
