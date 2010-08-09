@@ -42,6 +42,8 @@ def makeSteps() :
 
         steps.variableGreaterFilter(0.55,jets[0]+"AlphaT"+jets[1]),
         steps.objectPtVetoer("muon","P4","Pat",20.0,0),
+
+        steps.deltaPhiStarHistogrammer(jets),
         #steps.skimmer("/vols/cms02/%s/"%os.environ["USER"]),
         #steps.displayer(jets,metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/%s/tmp/"%os.environ["USER"],scale=200.0),
 
@@ -61,6 +63,7 @@ def makeCalculables() :
     listOfCalculables += [ calculablesJet.deltaPseudoJet( collection = jetType) for jetType in jetTypes ]
     listOfCalculables += [ calculablesJet.alphaT(         collection = jetType) for jetType in jetTypes ]
     listOfCalculables += [ calculablesJet.diJetAlpha(     collection = jetType) for jetType in jetTypes ]
+    listOfCalculables += [ calculablesJet.deltaPhiStar(   collection = jetType) for jetType in jetTypes ]    
     return listOfCalculables
 
 def dummy(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
@@ -89,7 +92,7 @@ a.addSample( sampleName="JetMETTau.Run2010A", nMaxFiles = -1, nEvents = -1, lumi
 #                                                             (170,"qcd_py_pt170_skim"),
 #                                                             (300,"qcd_py_pt300_skim"),
 #                                                             (470,"qcd_py_pt470_skim"),
-#                                                             ])#,mergeIntoOneHistogramCalled="qcd_py_skim")
+#                                                             ])
 
 #PY QCD
 a.addSample( sampleName="qcd_py_pt30", nMaxFiles = -1, nEvents = -1, xs = 6.041e+07,#pb
@@ -116,6 +119,7 @@ a.addSample( sampleName="gammajets_mg_pt100_200", nMaxFiles = -1, nEvents = -1, 
 a.addSample( sampleName="gammajets_mg_pt200", nMaxFiles = -1, nEvents = -1, xs = 485,#pb
              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt200toInf-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/"))
 
+#OTHER
 a.addSample( sampleName="tt_tauola_mg", nMaxFiles = -1, nEvents = -1, xs = 95.0,#pb
              listOfFileNames = utils.getCommandOutput2("ls /vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root | grep -v 4_2").split("\n") )
 
@@ -152,7 +156,11 @@ colorDict["z_inv_mg"]=r.kMagenta
 colorDict["qcd_py"]=r.kBlue
 colorDict["lm0"]=r.kRed
 colorDict["lm1"]=r.kRed+1
-plotter.plotAll(a,colorDict)
+
+markerStyleDict={}
+markerStyleDict["JetMETTau.Run2010A"]=20
+
+plotter.plotAll(a,colorDict,markerStyleDict)
 
 #import statMan
 #statMan.go(a.organizeHistograms(),
