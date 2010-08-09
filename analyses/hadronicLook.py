@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import os,analysis,utils,steps,calculables,calculablesJet
+import os,analysis,utils,steps,calculables,calculablesJet,plotter
+import ROOT as r
 
 def makeSteps() :
     jets=("ak5Jet","Pat")
@@ -24,7 +25,7 @@ def makeSteps() :
         #steps.jetPtSelector(jets,40.0,1),
         steps.leadingUnCorrJetPtSelector( [jets],100.0 ),
         steps.hltFilter("HLT_Jet50U"),
-        steps.hltPrescaleHistogrammer(["HLT_ZeroBias","HLT_Jet30U","HLT_Jet50U","HLT_MET45"]),
+        steps.hltPrescaleHistogrammer(["HLT_ZeroBias","HLT_Jet50U","HLT_MET45"]),
 
         steps.minNCleanJetEventFilter(jets,2),
         steps.maxNOtherJetEventFilter(jets,0),
@@ -135,9 +136,28 @@ a.addSample( sampleName="lm1", nMaxFiles = -1, nEvents = -1, xs = 4.888,#pb
 
 #a.loop( nCores = 6 )
 
+##plotting
 a.mergeHistograms(target="g_jets_mg", source=["gammajets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
 a.mergeHistograms(target="qcd_py",    source=["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
 a.mergeAllHistogramsExceptSome(target="standard_model",dontMergeList=["JetMETTau.Run2010A","lm0","lm1"],keepSourceHistograms=True)
 
-a.plot()
-#a.stats(moneyPlotName="ak5JetPat_alphaT_vs_Ht_ge2jets",xCut=0.51,yCut=330.0)
+colorDict={}
+colorDict["JetMETTau.Run2010A"]=r.kBlack
+colorDict["standard_model"]=r.kGreen+3
+colorDict["tt_tauola_mg"]=r.kOrange
+colorDict["g_jets_mg"]=r.kGreen
+colorDict["w_jets_mg"]=28
+colorDict["z_jets_mg"]=r.kYellow-3
+colorDict["z_inv_mg"]=r.kMagenta
+colorDict["qcd_py"]=r.kBlue
+colorDict["lm0"]=r.kRed
+colorDict["lm1"]=r.kRed+1
+plotter.plotAll(a,colorDict)
+
+#import statMan
+#statMan.go(a.organizeHistograms(),
+#           dataSampleName="JetMETTau.Run2010A",
+#           mcSampleName="standard_model",
+#           moneyPlotName="ak5JetPat_alphaT_vs_Ht_ge2jets",
+#           xCut=0.51,yCut=330.0)
+#
