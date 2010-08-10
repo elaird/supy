@@ -11,7 +11,7 @@ GPLv3 (http://www.gnu.org/licenses/gpl.html)
 - or see note (A)
 
 1) Check out the code:
-cvs co -d supy -r V8-4 UserCode/elaird/supy
+cvs co -d supy -r V8-5 UserCode/elaird/supy
 
 2) modify $PYTHONPATH so that supy modules can be imported:
 - cd supy
