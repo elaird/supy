@@ -133,6 +133,7 @@ def mergeHistograms(listOfPlotContainers,histogramMergeRequests,histogramMergeKe
 def go(plotFileNamesDict={},
        scaleHistograms=True,
        scaleByAreaRatherThanByXs=False,
+       multipleDisjointDataSamples=False,
        lumiToUseInAbsenceOfData=100,#/pb
        histogramMergeRequests=[],
        histogramMergeKeepSources=[],
@@ -149,8 +150,10 @@ def go(plotFileNamesDict={},
     lumiValue=lumiToUseInAbsenceOfData
     if nDataSamples==1 :
         lumiValue=max(lumiDict.values())
-    elif nDataSamples>1 and not scaleByAreaRatherThanByXs :
-        raise Exception("at the moment, absolute normalization using multiple data samples is not supported")
+    elif multipleDisjointDataSamples :
+        lumiValue=sum(lumiDict.values())
+    else :
+        raise Exception("at the moment, absolute normalization using multiple non-disjoint data samples is not supported")
 
     #scale the histograms
     if scaleHistograms :
