@@ -17,7 +17,7 @@ def makeSteps() :
 
 def makeCalculables() :
     calcs =  calculables.zeroArgs()
-    calcs += [ calculables.leadingJetPt( collection = col) for col in jetTypes] 
+    calcs += calculables.fromJetCollections(jetTypes)
     calcs += [ calculables.jetIndices( collection = col, ptMin = 20., etaMax = 3.0, flagName = "JetIDloose") for col in jetTypes ]
     calcs += [ calculables.PFJetIDloose( collection = jetTypes[2],
                                          fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]

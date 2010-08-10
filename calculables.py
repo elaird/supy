@@ -19,3 +19,18 @@ def zeroArgs() :
                 zeroArg.append(calc())
         except: zeroArg.append(calc())
     return zeroArg
+
+def fromJetCollections(collections) :
+    """Returns a list of instances of all jet calculables taking only the collection as arg."""
+
+    jetCalcs = []
+    for name,calc in globals().iteritems() :
+        if not isclass(calc) : continue
+        if not issubclass(calc, wrappedChain.calculable) : continue
+        try:
+            args = getargspec(eval("%s.__init__.im_func"%str(name)))[0]
+            if "collection" in args :
+                if len(args)==2 or (len(args)==3 and "p4Name" in args) :
+                    for col in collections : jetCalcs.append(calc(col))
+        except: pass
+    return jetCalcs
