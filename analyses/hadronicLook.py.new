@@ -66,9 +66,9 @@ def makeCalculables() :
     listOfCalculables += [ calculablesJet.deltaPhiStar(   collection = jetType) for jetType in jetTypes ]    
     return listOfCalculables
 
-def dummy(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
-    return []
-utils.fileListFromSrmLs=dummy
+#def dummy(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
+#    return []
+#utils.fileListFromSrmLs=dummy
 
 a=analysis.analysis(name = "hadronicLook",
                     outputDir = "/vols/cms02/%s/tmp/"%os.environ["USER"],
