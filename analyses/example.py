@@ -5,7 +5,7 @@ import analysis,utils,calculables,calculablesJet,steps,plotter
 import ROOT as r
 
 def makeSteps() :
-    jets=("ak5Jet","Pat")
+    jets=("ak5JetPF","Pat")
     minJetPt=10.0
     
     outSteps=[
@@ -33,7 +33,9 @@ def makeSteps() :
 def makeCalculables() :
     jetTypes = [("ak5Jet","Pat"),("ak5JetJPT","Pat"),("ak5JetPF","Pat")]
     listOfCalculables = calculables.zeroArgs()
-    listOfCalculables += [ calculablesJet.indices(        collection = jetType, ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for jetType in jetTypes]
+    listOfCalculables += [ calculablesJet.indices(        collection = jetType, ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for jetType in jetTypes[:2]]
+    listOfCalculables += [ calculablesJet.pfIndicesByHand( collection = jetTypes[2], ptMin = 20., etaMax = 3.0,
+                                                           fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]
     listOfCalculables += [ calculablesJet.sumPt(          collection = jetType) for jetType in jetTypes ]
     listOfCalculables += [ calculablesJet.sumP4(          collection = jetType) for jetType in jetTypes ]
     listOfCalculables += [ calculablesJet.deltaPseudoJet( collection = jetType) for jetType in jetTypes ]
