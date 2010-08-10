@@ -166,10 +166,9 @@ def plot2D(canvasDict,histo,count,sampleName,stuffToKeep) :
             ]
         for func in funcs : func.Draw("same")
         stuffToKeep.extend(funcs)
-    else :
-        if canvasDict["drawYx"] :
-            yx.Draw("same")
-            stuffToKeep.append(yx)
+    elif canvasDict["drawYx"] :
+        yx.Draw("same")
+        stuffToKeep.append(yx)
 ##############################
 def onePlotFunction(plotContainer,canvasDict,colorDict,markerStyleDict) :
     #prepare canvas
@@ -237,10 +236,10 @@ def plotAll(someAnalysis,
     setupStyle()
 
     canvasDict={}
-    canvasDict["doLog"]=True,
-    canvasDict["drawYx"]=False,
-    canvasDict["doMetFit"]=False,
-    canvasDict["doColzFor2D"]=True,
+    canvasDict["doLog"]=doLog
+    canvasDict["drawYx"]=drawYx
+    canvasDict["doMetFit"]=doMetFit
+    canvasDict["doColzFor2D"]=doColzFor2D
     
     canvasDict["psFile"]=someAnalysis.outputDir+"/"+someAnalysis.name+".ps"
     canvasDict["psOptions"]="Landscape"
