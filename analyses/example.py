@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import os
-import analysis,utils,calculables,calculablesJet,steps
+import analysis,utils,calculables,calculablesJet,steps,plotter
+import ROOT as r
 
 def makeSteps() :
     jets=("ak5Jet","Pat")
@@ -59,4 +60,11 @@ a.loop(profile=False,   #profile the code
        )
 
 #make a pdf file with plots from the histograms created above
-a.plot()
+colorDict={}
+colorDict["Example_Skimmed_900_GeV_Data"]=r.kBlack
+colorDict["Example_Skimmed_900_GeV_MC"]=r.kRed
+
+markerStyleDict={}
+markerStyleDict["Example_Skimmed_900_GeV_Data"]=20
+
+plotter.plotAll(a,colorDict,markerStyleDict)
