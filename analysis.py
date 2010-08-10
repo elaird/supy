@@ -72,12 +72,14 @@ class analysis :
     def organizeHistograms(self,
                            scaleHistograms=True,
                            scaleByAreaRatherThanByXs=False,
+                           multipleDisjointDataSamples=False,                           
                            lumiToUseInAbsenceOfData=100,#/pb
                            ) :
         import histogramOrganizer
         return histogramOrganizer.go(self.producePlotFileNamesDict(),
                                      scaleHistograms,
                                      scaleByAreaRatherThanByXs,
+                                     multipleDisjointDataSamples,
                                      lumiToUseInAbsenceOfData,
                                      self.histogramMergeRequests,
                                      self.histogramMergeKeepSources,
