@@ -57,7 +57,9 @@ def makeSteps() :
 def makeCalculables() :
     jetTypes = [("ak5Jet","Pat"),("ak5JetJPT","Pat"),("ak5JetPF","Pat")]
     listOfCalculables = calculables.zeroArgs()
-    listOfCalculables += [ calculablesJet.indices( collection = jetType, ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for jetType in jetTypes]
+    listOfCalculables += [ calculablesJet.indices( collection = jetType, ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for jetType in jetTypes[:2]]
+    listOfCalculables += [ calculablesJet.pfIndicesByHand( collection = jetTypes[2], ptMin = 20., etaMax = 3.0,
+                                                           fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]
     listOfCalculables += [ calculablesJet.sumPt(   collection = jetType)                                                      for jetType in jetTypes]
     listOfCalculables += [ calculablesJet.sumP4(   collection = jetType)                                                      for jetType in jetTypes]
     listOfCalculables += [ calculablesJet.deltaPseudoJet( collection = jetType) for jetType in jetTypes ]
@@ -138,7 +140,7 @@ a.addSample( sampleName="lm0", nMaxFiles = -1, nEvents = -1, xs = 38.93,#pb
 a.addSample( sampleName="lm1", nMaxFiles = -1, nEvents = -1, xs = 4.888,#pb
              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bainbrid/ICF/automated/2010_07_12_17_52_54/LM1.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/") )
 
-#a.loop( nCores = 6 )
+a.loop( nCores = 6 )
 
 ##plotting
 a.mergeHistograms(target="g_jets_mg", source=["gammajets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
