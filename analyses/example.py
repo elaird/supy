@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-import analysis,utils,calculables,calculablesJet,steps,plotter
+import analysis,utils,calculables,steps,plotter
 import ROOT as r
 
 def makeSteps() :
@@ -33,20 +33,20 @@ def makeSteps() :
 def makeCalculables() :
     jetTypes = [("ak5Jet","Pat"),("ak5JetJPT","Pat"),("ak5JetPF","Pat")]
     listOfCalculables = calculables.zeroArgs()
-    listOfCalculables += [ calculablesJet.indices( collection = jetType, ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for jetType in jetTypes]
-    listOfCalculables += [ calculablesJet.PFJetIDloose( collection = jetTypes[2],
-                                                        fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]
-    listOfCalculables += [ calculablesJet.sumPt(          collection = jetType) for jetType in jetTypes ]
-    listOfCalculables += [ calculablesJet.sumP4(          collection = jetType) for jetType in jetTypes ]
-    listOfCalculables += [ calculablesJet.deltaPseudoJet( collection = jetType) for jetType in jetTypes ]
-    listOfCalculables += [ calculablesJet.alphaT(         collection = jetType) for jetType in jetTypes ]
-    listOfCalculables += [ calculablesJet.diJetAlpha(     collection = jetType) for jetType in jetTypes ]
+    listOfCalculables += [ calculables.jetIndices( collection = jetType, ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for jetType in jetTypes]
+    listOfCalculables += [ calculables.PFJetIDloose( collection = jetTypes[2],
+                                                     fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]
+    listOfCalculables += [ calculables.jetSumPt(       collection = jetType) for jetType in jetTypes ]
+    listOfCalculables += [ calculables.jetSumP4(       collection = jetType) for jetType in jetTypes ]
+    listOfCalculables += [ calculables.deltaPseudoJet( collection = jetType) for jetType in jetTypes ]
+    listOfCalculables += [ calculables.alphaT(         collection = jetType) for jetType in jetTypes ]
+    listOfCalculables += [ calculables.diJetAlpha(     collection = jetType) for jetType in jetTypes ]
     return listOfCalculables
 
 a=analysis.analysis(name="example",
                     outputDir = "/tmp/%s/"%os.environ["USER"],
-                    listOfSteps=makeSteps(),
-                    listOfCalculables=makeCalculables(),
+                    listOfSteps = makeSteps(),
+                    listOfCalculables = makeCalculables(),
                     )
 
 a.addSample(sampleName="Example_Skimmed_900_GeV_Data", nEvents = -1, lumi = 1.0e-5, #/pb

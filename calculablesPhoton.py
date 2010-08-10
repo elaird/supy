@@ -1,8 +1,7 @@
 from wrappedChain import *
 
-class indices(wrappedChain.calculable) :
-    def name(self) : return "photonIndices"
-    
+class photonIndicesPat(wrappedChain.calculable) :
+
     def __init__(self, ptMin = None, etaMax = None, flagName = None ):
         self.ptMin = ptMin
         self.etaMax = etaMax

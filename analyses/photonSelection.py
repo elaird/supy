@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os,analysis,utils,steps,calculables,calculablesJet,calculablesGen,calculablesPhoton
+import os,analysis,utils,steps,calculables
 
 jetTypes = [("ak5Jet","Pat"),("ak5JetJPT","Pat"),("ak5JetPF","Pat")]
 
@@ -18,12 +18,12 @@ def makeSteps() :
         steps.monsterEventFilter(),
         steps.hbheNoiseFilter(),
 
-        steps.photonSelectionHistogrammer( nametag = "raw", deltaRMax = 0.1, zLike = True, zLikeEnergy = 100 ),
+        steps.photonSelectionHistogrammer( nametag = "raw", deltaRMax = 0.1, zLike = True, zLikeEnergy = 20 ),
         steps.jetPtSelector(jets,100.0,0),
         steps.jetPtSelector(jets,40.0,1),
         steps.minNCleanJetEventFilter(jets,2),
         steps.maxNOtherJetEventFilter(jets,0),
-        steps.photonSelectionHistogrammer( nametag = "jets", deltaRMax = 0.1, zLike = True, zLikeEnergy = 100 ),
+        steps.photonSelectionHistogrammer( nametag = "jets", deltaRMax = 0.1, zLike = True, zLikeEnergy = 20 ),
         #steps.variableGreaterFilter(300.0,"%sSumPt%s"%jets),
         #steps.variableGreaterFilter(0.55,"%sAlphaT%s"%jets),
         ]
@@ -31,14 +31,14 @@ def makeSteps() :
 
 def makeCalculables() :
     listOfCalculables = calculables.zeroArgs()
-    listOfCalculables += [ calculablesJet.indices( collection = jetType, ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for jetType in jetTypes]
-    listOfCalculables += [ calculablesJet.sumPt(   collection = jetType)                                                      for jetType in jetTypes]
-    listOfCalculables += [ calculablesJet.sumP4(   collection = jetType)                                                      for jetType in jetTypes]
-    listOfCalculables += [ calculablesJet.deltaPseudoJet( collection = jetType) for jetType in jetTypes ]
-    listOfCalculables += [ calculablesJet.alphaT(         collection = jetType) for jetType in jetTypes ]
-    listOfCalculables += [ calculablesJet.diJetAlpha(     collection = jetType) for jetType in jetTypes ]
-    listOfCalculables += [ calculablesGen.indices( label = "Photon", pdgs = [22], ptMin = 30, etaMax = 5),
-                           calculablesPhoton.indices( ptMin = 30, etaMax = 5, flagName = "photonIDLoosePat") ]
+    listOfCalculables += [ calculables.jetIndices( collection = jetType, ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for jetType in jetTypes]
+    listOfCalculables += [ calculables.jetSumPt(   collection = jetType)     for jetType in jetTypes ]
+    listOfCalculables += [ calculables.jetSumP4(   collection = jetType)     for jetType in jetTypes ]
+    listOfCalculables += [ calculables.deltaPseudoJet( collection = jetType) for jetType in jetTypes ]
+    listOfCalculables += [ calculables.alphaT(         collection = jetType) for jetType in jetTypes ]
+    listOfCalculables += [ calculables.diJetAlpha(     collection = jetType) for jetType in jetTypes ]
+    listOfCalculables += [ calculables.genIndices( label = "Photon", pdgs = [22], ptMin = 30, etaMax = 5),
+                           calculables.photonIndicesPat( ptMin = 30, etaMax = 5, flagName = "photonIDLoosePat") ]
     return listOfCalculables
 
 a = analysis.analysis( name = "photonSelection",

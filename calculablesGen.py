@@ -11,7 +11,7 @@ class genMotherPdgId(wrappedChain.calculable) :
                self.source["genPdgId"].at(mom)
 
 ##############################
-class indices(wrappedChain.calculable) :
+class genIndices(wrappedChain.calculable) :
     def name(self) : return "genIndices" + self.label
 
     def __init__(self, pdgs = None, label = None, ptMin = None, etaMax = None ) :

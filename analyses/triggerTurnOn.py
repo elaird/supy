@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os,analysis,utils,steps,calculables,calculablesJet
+import os,analysis,utils,steps,calculables
 
 jetTypes = [ (col,"Pat") for col in ["ak5Jet","ak5JetJPT","ak5JetPF"]]
 
@@ -17,10 +17,10 @@ def makeSteps() :
 
 def makeCalculables() :
     calcs =  calculables.zeroArgs()
-    calcs += [ calculablesJet.leadingPt( collection = col) for col in jetTypes] 
-    calcs += [ calculablesJet.indices( collection = col, ptMin = 20., etaMax = 3.0, flagName = "JetIDloose") for col in jetTypes[:-1] ]
-    calcs += [ calculablesJet.pfIndicesByHand( collection = jetTypes[2], ptMin = 20., etaMax = 3.0,
-                                               fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]
+    calcs += [ calculables.leadingJetPt( collection = col) for col in jetTypes] 
+    calcs += [ calculables.jetIndices( collection = col, ptMin = 20., etaMax = 3.0, flagName = "JetIDloose") for col in jetTypes ]
+    calcs += [ calculables.PFJetIDloose( collection = jetTypes[2],
+                                         fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]
     return calcs
 
 a=analysis.analysis( name = "triggerTurnOn",

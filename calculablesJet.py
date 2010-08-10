@@ -1,7 +1,7 @@
 from wrappedChain import *
 import math
 ##############################
-class indices(wrappedChain.calculable) :
+class jetIndices(wrappedChain.calculable) :
     def name(self) : return "%sIndices%s"% self.cs
     
     def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None , p4Name = "CorrectedP4"):
@@ -62,7 +62,7 @@ class PFJetIDloose(wrappedChain.calculable) :
                  nC > self.nChargedMin )
 
 #############################
-class leadingPt(wrappedChain.calculable) :
+class leadingJetPt(wrappedChain.calculable) :
     def name(self) : return "%sLeadingPt%s"% self.cs
 
     def __init__(self, collection = None, p4Name = "CorrectedP4") :
@@ -75,7 +75,7 @@ class leadingPt(wrappedChain.calculable) :
         indices = self.source[self.indicesName]["clean"]
         self.value = p4s.at(indices[0]).pt() if len(indices) else None
 ##############################
-class sumPt(wrappedChain.calculable) :
+class jetSumPt(wrappedChain.calculable) :
     def name(self) : return "%sSumPt%s"% self.cs
 
     def __init__(self, collection = None, p4Name = "CorrectedP4") :
@@ -88,7 +88,7 @@ class sumPt(wrappedChain.calculable) :
         indices = self.source[self.indicesName]["clean"]
         self.value = reduce( lambda x,i: x+p4s.at(i).pt(), indices , 0)
 ##############################
-class sumP4(wrappedChain.calculable) :
+class jetSumP4(wrappedChain.calculable) :
     def name(self) : return "%sSumP4%s" % self.cs
 
     def __init__(self, collection = None, p4Name = "CorrectedP4") :
@@ -158,7 +158,7 @@ class diJetAlpha(wrappedChain.calculable) :
         else :
             self.value=p4s.at(cleanJetIndices[1]).pt()/mass
 ##############################
-class deltaX01(wrappedChain.calculable) :
+class jetDeltaX01(wrappedChain.calculable) :
     def name(self) : return "%sDeltaX01%s" % self.cs
 
     def __init__(self,collection = None, p4Name = "CorrectedP4") :
