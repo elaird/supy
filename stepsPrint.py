@@ -183,9 +183,10 @@ class nFlaggedRecHitFilter(analysisStep) :
         self.algoType=algoType
         self.detector=detector
         self.nFlagged=nFlagged
+        self.p4String="rechit"+self.algoType+"P4"+self.detector
 
     def select(self,eventVars) :
-        return len(eventVars["rechit"+self.algoType+"P4"+self.detector])>=self.nFlagged
+        return len(eventVars[self.p4String])>=self.nFlagged
 #####################################
 class recHitPrinter(analysisStep) :
     """recHitPrinter"""
