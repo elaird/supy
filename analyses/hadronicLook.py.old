@@ -16,6 +16,10 @@ def makeSteps() :
     
     leptonSuffix="Pat"
     #leptonSuffix="PF"
+
+    #for displayer only
+    recHitType="Calo"
+    genJetCollection="ak5Jet"
     
     listOfSteps=[
         steps.progressPrinter(),
@@ -45,7 +49,8 @@ def makeSteps() :
 
         steps.deltaPhiStarHistogrammer(jets),
         #steps.skimmer("/vols/cms02/%s/"%os.environ["USER"]),
-        #steps.displayer(jets,metCollection,metSuffix,leptonSuffix,genJetCollection="ak5Jet",outputDir="/vols/cms02/%s/tmp/"%os.environ["USER"],scale=200.0),
+        #steps.displayer(jets,metCollection,metSuffix,leptonSuffix,genJetCollection,recHitType,recHitPtThreshold=1.0,#GeV
+        #                outputDir="/vols/cms02/%s/tmp/"%os.environ["USER"],scale=200.0),
 
         #steps.eventPrinter(),
         #steps.jetPrinter(jets),
