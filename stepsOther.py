@@ -374,7 +374,8 @@ class bxFilter(analysisStep) :
 class displayer(analysisStep) :
     #special __doc__ assignment below
     
-    def __init__(self,jets=("",""),metCollection="",metSuffix="",leptonSuffix="",genJetCollection="",outputDir="",scale=200.0) :
+    def __init__(self,jets=("",""),metCollection="",metSuffix="",leptonSuffix="",genJetCollection="",
+                 recHitType="",recHitPtThreshold=-1.0,outputDir="",scale=200.0) :
         self.__doc__=self.displayerStepName
         self.outputDir=outputDir
         self.moreName="(see below)"
@@ -385,6 +386,8 @@ class displayer(analysisStep) :
         self.metSuffix=metSuffix
         self.leptonSuffix=leptonSuffix
         self.genJetCollection=genJetCollection
+        self.recHitType=recHitType
+        self.recHitPtThreshold=recHitPtThreshold
         
         self.doGen=False
         self.doLeptons=True
@@ -640,16 +643,22 @@ class displayer(analysisStep) :
             
     def drawCleanedRecHits (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if (not hasattr(self,"cleantedRecHitEntryInLegend")) :
+        if (not hasattr(self,"cleanedRecHitEntryInLegend")) :
             self.cleanedRecHitEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"cleaned RecHits (hack)","l")
+            self.legend.AddEntry(someLine,"cleaned RecHits ("+self.recHitType+")","l")
 
-        algoType="Calo"
-        detector="Hf"
-        flaggedP4s=eventVars["rechit"+algoType+"P4"+detector]
-        for hit in range(len(flaggedP4s)) :
-            self.drawP4(hit,color,lineWidth,arrowSize)
+        if self.recHitType=="Calo" :
+            subDetectors=["Eb","Ee","Hbhe","Hf"]
+
+        if self.recHitType=="PF" :
+            subDetectors=["Ecal","Hcal","Hfem","Hfhad","Ps"]
+
+        for detector in subDetectors :
+            flaggedP4s=eventVars["rechit"+self.recHitType+"P4"+detector]
+            for hit in flaggedP4s :
+                if hit.pt()<self.recHitPtThreshold : continue
+                self.drawP4(hit,color,lineWidth,arrowSize)
             
     def makeAlphaTFunc(self,alphaTValue,color) :
         alphaTFunc=r.TF1(("alphaTCurve ( %#5.3g"%alphaTValue)+" )",
@@ -748,29 +757,31 @@ class displayer(analysisStep) :
         self.canvas.Clear()
 
         g1=self.drawSkeleton(r.kYellow+1)
-        self.drawEventInfo  (eventVars,r.kBlack)
+        self.drawEventInfo(eventVars,r.kBlack)
 
         defArrowSize=0.5*self.arrow.GetDefaultArrowSize()
         defWidth=1
         #                                        color     , width   , arrow size
 
         if self.doGen :
-            self.drawGenJets    (eventVars,r.kBlack  , defWidth, defArrowSize      )
-        self.drawCleanJets      (eventVars,r.kBlue   , defWidth, defArrowSize*2/3.0)
-        self.drawLowPtJets      (eventVars,r.kCyan   , defWidth, defArrowSize*1/6.0)
+            self.drawGenJets    (eventVars,r.kBlack   , defWidth, defArrowSize      )
+        self.drawCleanJets      (eventVars,r.kBlue    , defWidth, defArrowSize*2/3.0)
+        self.drawLowPtJets      (eventVars,r.kCyan    , defWidth, defArrowSize*1/6.0)
         #self.drawOtherJets      (eventVars,r.kBlack  )
-        self.drawHt             (eventVars,r.kBlue+3 , defWidth, defArrowSize*1/6.0)
-        self.drawNJetDeltaHt    (eventVars,r.kBlue-9 , defWidth, defArrowSize*1/6.0)
-        self.drawMht            (eventVars,r.kRed    , defWidth, defArrowSize*3/6.0)
-        self.drawMet            (eventVars,r.kGreen  , defWidth, defArrowSize*2/6.0)
-        #self.drawCleanedRecHits (eventVars,r.kBrown  , defWidth, defArrowSize*2/6.0)
-        if (self.doGen) : self.drawGenMet     (eventVars,r.kMagenta, defWidth, defArrowSize*2/6.0)
+        self.drawHt             (eventVars,r.kBlue+3  , defWidth, defArrowSize*1/6.0)
+        self.drawNJetDeltaHt    (eventVars,r.kBlue-9  , defWidth, defArrowSize*1/6.0)
+        self.drawMht            (eventVars,r.kRed     , defWidth, defArrowSize*3/6.0)
+        self.drawMet            (eventVars,r.kGreen   , defWidth, defArrowSize*2/6.0)
+        if self.doGen :
+            self.drawGenMet     (eventVars,r.kMagenta , defWidth, defArrowSize*2/6.0)
 
-        if (self.doLeptons) :
+        if self.doLeptons :
             self.drawMuons      (eventVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
             self.drawElectrons  (eventVars,r.kOrange+7, defWidth, defArrowSize*2/6.0)
             self.drawPhotons    (eventVars,r.kOrange  , defWidth, defArrowSize*2/6.0)
             #self.drawTaus       (eventVars,r.kYellow , defWidth, defArrowSize*2/6.0)
+
+        self.drawCleanedRecHits (eventVars,r.kOrange-6, defWidth, defArrowSize*2/6.0)
 
         self.legend.Draw("same")        
         g2=self.drawAlphaPlot(eventVars,r.kBlack)
