@@ -254,7 +254,7 @@ class deltaPhiStarHistogrammer(analysisStep) :
         self.cs = cs
         self.var = "%sDeltaPhiStar%s"%self.cs
         self.moreName = "(%s %s)"%self.cs
-        self.title=";%s#Delta#phi^{*}%s;events / bin"%self.cs
+        self.title=";%s #Delta#phi* %s;events / bin"%self.cs
         
     def uponAcceptance (self,eventVars) :
         self.book(eventVars).fill( eventVars[self.var], self.var, 50, 0.0, r.TMath.Pi(), title = self.title)
