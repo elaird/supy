@@ -648,9 +648,9 @@ class displayer(analysisStep) :
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"cleaned RecHits ("+self.recHitType+")","l")
 
+        subDetectors=[]
         if self.recHitType=="Calo" :
             subDetectors=["Eb","Ee","Hbhe","Hf"]
-
         if self.recHitType=="PF" :
             subDetectors=["Ecal","Hcal","Hfem","Hfhad","Ps"]
 
