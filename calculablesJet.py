@@ -10,7 +10,7 @@ class indices(wrappedChain.calculable) :
         self.etaMax = etaMax
         self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
         self.flagName = None if not flagName else \
-                        ( "%s"+flagName+"%s" if collection[-2:] != "PF" else \
+                        ( "%s"+flagName+"%s" if collection[0][-2:] != "PF" else \
                           "%sPF"+flagName+"%s" ) % self.cs
         self.moreName = "(pT>=%.1f GeV; |eta|<%.1f; %s)"% (ptMin, etaMax, flagName if flagName else "")
         self.value = {}
@@ -29,52 +29,37 @@ class indices(wrappedChain.calculable) :
             else: other.append(i)
 
 ############################
-class pfIndicesByHand(wrappedChain.calculable) :
-    def name(self) : return "%sIndices%s" % self.cs
+class PFJetIDloose(wrappedChain.calculable) :
+    def name(self) : return "%sPFJetIDloose%s"%self.cs
 
-    def __init__(self, collection = None, ptMin = None, etaMax = None,
-                 fNeutralEmMax = None, fChargedEmMax = None, fNeutralHadMax = None, fChargedHadMin = None, nChargedMin = None) :
-
+    def __init__(self, collection = None, fNeutralEmMax = None, fChargedEmMax = None, fNeutralHadMax = None, fChargedHadMin = None, nChargedMin = None ) :
         self.cs = collection
-        self.p4Name = '%sCorrectedP4%s' % self.cs
-        self.ptMin = ptMin
-        self.etaMax = etaMax
-
-        self.moreName = "(pT>=%.1f; |eta|<%.1f; pfN_em<%.1f; fC_em<%.1f; fN_had<%.1f; and" % \
-                        ( ptMin, etaMax, fNeutralEmMax,fChargedEmMax,fNeutralHadMax)
-        self.moreName2 = " |eta|>2.4 or {fC_had>%.1f; nC>%d})" % (fChargedHadMin, nChargedMin)
-        
+        self.p4Name = "%sCorrectedP4%s"%self.cs
         self.fNeutralEmMax  = fNeutralEmMax   ;  self.fNeutralEmName  = "%sFneutralEm%s" % self.cs   
         self.fChargedEmMax  = fChargedEmMax   ;  self.fChargedEmName  = "%sFchargedEm%s" % self.cs   
         self.fNeutralHadMax = fNeutralHadMax  ;  self.fNeutralHadName = "%sFneutralHad%s" % self.cs  
         self.fChargedHadMin = fChargedHadMin  ;  self.fChargedHadName = "%sFchargedHad%s" % self.cs  
         self.nChargedMin    = nChargedMin     ;  self.nChargedName    = "%sNcharged%s" % self.cs     
 
-        self.value = {}
-
+        self.moreName = "(fN_em<%.1f; fC_em<%.1f; fN_had<%.1f; |eta|>2.4 or {fC_had>%.1f; nC>%d})" % \
+                        ( fNeutralEmMax,fChargedEmMax,fNeutralHadMax, fChargedHadMin, nChargedMin)
+            
     def update(self,ignored) :
-        p4s = self.source[self.p4Name]
-        fNeutralEm  = self.source[self.fNeutralEmName ]
-        fChargedEm  = self.source[self.fChargedEmName ]
-        fNeutralHad = self.source[self.fNeutralHadName]
-        fChargedHad = self.source[self.fChargedHadName]
-        nCharged    = self.source[self.nChargedName   ]
+        self.value = map(self.passId, 
+                         self.source[self.p4Name],
+                         self.source[self.fNeutralEmName ],
+                         self.source[self.fChargedEmName ],
+                         self.source[self.fNeutralHadName],
+                         self.source[self.fChargedHadName],
+                         self.source[self.nChargedName   ] )
 
-        clean = self.value["clean"] = []
-        other = self.value["other"] = []
-
-        for i in range(p4s.size()) :
-            if p4s.at(i).pt() < self.ptMin : break #pt cut, assumes sorted
-            absEta = p4s.at(i).eta()
-            if absEta < self.etaMax and \
-                   fNeutralEm.at(i) < self.fNeutralEmMax and \
-                   fChargedEm.at(i) < self.fChargedEmMax and \
-                   fNeutralHad.at(i) < self.fNeutralHadMax and \
-                   ( absEta > 2.4 or \
-                     fChargedHad.at(i) > self.fChargedHadMin and \
-                     nCharged.at(i) > self.nChargedMin ) :
-                clean.append(i)
-            else: other.append(i)
+    def passId(self, p4, fNem, fCem, fNhad, fChad, nC ) :
+        return fNem < self.fNeutralEmMax and \
+               fCem < self.fChargedEmMax and \
+               fNhad < self.fNeutralHadMax and \
+               ( abs(p4.eta()) > 2.4 or \
+                 fChad > self.fChargedHadMin and \
+                 nC > self.nChargedMin )
 
 #############################
 class leadingPt(wrappedChain.calculable) :
