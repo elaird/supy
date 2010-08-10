@@ -37,7 +37,6 @@ class pfIndicesByHand(wrappedChain.calculable) :
 
         self.cs = collection
         self.p4Name = '%sCorrectedP4%s' % self.cs
-        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
         self.ptMin = ptMin
         self.etaMax = etaMax
 
