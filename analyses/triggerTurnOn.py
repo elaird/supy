@@ -29,6 +29,10 @@ a=analysis.analysis( name = "triggerTurnOn",
                      listOfCalculables = makeCalculables()
                     )
 
+def dummy(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
+    return []
+utils.fileListFromSrmLs=dummy
+
 a.addSample( sampleName = "JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn", nMaxFiles = -1, nEvents = -1, lumi = 0.012,#/pb
              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_16_52_06/"))
 
@@ -38,33 +42,32 @@ a.addSample( sampleName = "JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn", nMaxF
 a.addSample( sampleName = "JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn", nMaxFiles = -1, nEvents = -1, lumi = 0.1235,#/pb
              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_15_40_06/"))
 
-a.loop( nCores = 6 )
-#a.plot()
+#a.loop( nCores = 6 )
 
 #########################################################
 
+targetName = "JetMETTau.Run2010A"
+a.mergeAllHistogramsExceptSome( target=targetName,
+                                dontMergeList=[],
+                                keepSourceHistograms = False)
+organizedHists = a.organizeHistograms( multipleDisjointDataSamples = True)
+histograms = dict([(spec["plotName"],spec['histoDict'][targetName]) for spec in organizedHists])
+
 import ROOT as r
 import re
-outFiles = a.listOfOutputPlotFileNames
-
-fileName = "triggerTurnOn_plots.root"
-os.system("rm %s >& /dev/null" % fileName)
-os.system('hadd %s %s | grep "Target file:"' % (fileName, ' '.join(outFiles)))
 
 hists = 3*[None]
 vars = ["ak5JetLeadingPtPat", "ak5JetJPTLeadingPtPat","ak5JetPFLeadingPtPat"]
 labels = ["Calo","JetPlusTracks","Particle Flow"]
 colors = [r.kRed, r.kGreen, r.kBlue]
 
-file = r.TFile.Open(fileName)
-for var,tag,probe in filter( lambda i: len(i)==3, \
-                             [ tuple(re.split(r"(\w*)_given_(\w*)_and_(\w*)",name)[1:-1])
-                               for name in [ key.GetName() for key in file.GetListOfKeys()] ] ) :
-    num = file.Get("%s_given_%s_and_%s" % (var,tag,probe) )
-    denom = file.Get("%s_given_%s" % (var,tag))
+for var,tag,probe in filter( lambda Tuple: len(Tuple)==3, \
+                             [ tuple(re.split(r"(\w*)_given_(\w*)_and_(\w*)",name)[1:-1]) for name in histograms ] ) :
+    numerator = histograms["%s_given_%s_and_%s" % (var,tag,probe)]
+    denomenator = histograms["%s_given_%s" % (var,tag)]
     name = "efficiencyBy_%s_of_%s_given_%s"%(var,probe,tag)
-    hist = num.Clone(name)
-    hist.Divide(num,denom,1,1,"B") #binomial errors
+    hist = numerator.Clone(name)
+    hist.Divide(numerator,denomenator,1,1,"B") #binomial errors
     hist.GetYaxis().SetTitle("efficiency")
     hist.SetTitle("Probability of %s given %s" % (probe,tag))
 
