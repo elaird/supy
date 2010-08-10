@@ -125,7 +125,7 @@ class variableGreaterFilter(analysisStep) :
     def __init__(self,threshold,variable):
         self.threshold = threshold
         self.variable = variable
-        self.moreName = "(%s>=%.2f)" % (variable,threshold)
+        self.moreName = "(%s>=%.3f)" % (variable,threshold)
 
     def select (self,eventVars) :
         return eventVars[self.variable]>=self.threshold
