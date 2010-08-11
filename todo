@@ -16,7 +16,9 @@ Other
 --------
 * defer srmls until jobs runs
 * named arguments everywhere
-* update example files
+* update example ntuples
+
+# loop() takes argument specifying samples to loop over
 
 * displayer cleans up
 
@@ -34,7 +36,6 @@ Other
 * fix extra tree functionality in skimmer
 
 * tdrPlotter
-* ratios
 * list the selection on the plot
 
 * non-linear cutflow / directory structured output
