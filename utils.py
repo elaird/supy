@@ -1,4 +1,4 @@
-import os,collections
+import os,collections,array,math
 import ROOT as r
 #####################################
 def goFunc(x) :
@@ -182,3 +182,76 @@ def fileListFromDisk(location,itemsToSkip=[],sizeThreshold=0) :
             
     return fileList
 #####################################        
+class rBin(object) :
+    def __init__(self,num,den,i, minRelUnc=0.5) :
+        self.lowEdge = num.GetBinLowEdge(i)
+        self.num = num.GetBinContent(i)
+        self.enum = num.GetBinError(i)
+        self.den = den.GetBinContent(i)
+        self.eden = den.GetBinError(i)
+        self.next = None
+        self.minRelUnc = minRelUnc
+        return
+        
+    def ratio(self) :
+        return self.num / self.den if self.den else 0
+    
+    def error(self) :
+        return math.sqrt(self.enum**2 + self.ratio()**2 * self.eden**2) / self.den if self.den else 0
+    
+    def eatNext(self) :
+        self.num += self.next.num
+        self.den += self.next.den
+        self.enum = math.sqrt(self.enum**2+self.next.enum**2)
+        self.eden = math.sqrt(self.eden**2+self.next.eden**2)
+        self.next = self.next.next
+        return
+        
+    def ok(self) :
+        return self.empty() or ( self.num!=0 and self.enum/self.num < self.minRelUnc and \
+                                 self.den!=0 and self.eden/self.den < self.minRelUnc)
+    
+    def empty(self) :
+        return self.num==0 and self.den==0
+    
+    def subsequentEmpty(self) :
+        return  (not self.next) or self.next.empty() and self.next.subsequentEmpty()
+    
+    def eatMe(self,lastNonZeroOK=None) :
+        if not lastNonZeroOK :
+            while self.next and not self.ok():
+                self.eatNext()
+        if self.next and self.next.eatMe( self if self.ok() and not self.empty() else lastNonZeroOK ) :
+            self.eatNext()
+        if (not self.ok()) and \
+           (not self.subsequentEmpty()) and \
+           (self.nextNonZeroOKlowEdge() - self.lowEdge < \
+            self.lowEdge - lastNonZeroOK.lowEdge ) :
+            while not self.ok() :
+                self.eatNext()
+        return not self.ok()
+    
+    def nextNonZeroOKlowEdge(self) :
+        if self.next.ok() and not self.next.empty() :
+            return self.next.lowEdge
+        return self.next.nextNonZeroOKlowEdge()
+#####################################
+def ratioHistogram(num,den) :
+    bins = [ rBin(num,den,i+1) for i in range(num.GetNbinsX()) ]
+    for i in range(len(bins)-1) : bins[i].next = bins[i+1]
+    b = bins[0]
+    b.eatMe()
+    bins = [b]
+    while(b.next) :
+        bins.append(b.next)
+        b=b.next
+        
+    lowEdges = [b.lowEdge for b in bins] + [num.GetXaxis().GetBinUpEdge(num.GetNbinsX())]
+    ratio = r.TH1D("ratio"+num.GetName()+den.GetName(),"",len(lowEdges)-1, array.array('d',lowEdges))
+    
+    for i,bin in enumerate(bins) :
+        ratio.SetBinContent(i+1,bin.ratio())
+        ratio.SetBinError(i+1,bin.error())
+        
+    return ratio
+#####################################
