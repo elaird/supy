@@ -10,7 +10,7 @@ def globalSetup(listOfSourceFiles=[]) :
         r.gROOT.LoadMacro(sourceFile+"+")
     r.gROOT.SetStyle("Plain")
     r.gStyle.SetPalette(1)
-    r.TH1.SetDefaultSumw2(True)
+    #r.TH1.SetDefaultSumw2(True)#comment until ROOT 5.24, which has a needed bug-fix
     r.gErrorIgnoreLevel=2000
     r.gROOT.SetBatch(True)
 #####################################
