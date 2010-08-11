@@ -1,5 +1,6 @@
 import ROOT as r
 import os,math
+import utils
 ##############################
 def setupStyle() :
     r.gROOT.SetStyle("Plain")
@@ -98,10 +99,13 @@ def setRanges(plotContainer,logAxes) :
             histo.SetMaximum(1.1*globalMax)
             histo.SetMinimum(0.0)
 ##############################
-def plot1D(canvasDict,histo,count,stuffToKeep) :
+def adjustPad(pad) :
     r.gPad.SetRightMargin(0.15)
     r.gPad.SetTicky()
     r.gPad.SetTickx()
+##############################
+def plot1D(canvasDict,histo,count,stuffToKeep) :
+    adjustPad(r.gPad)
     if count==0 :
         histo.Draw()
         if canvasDict["doLog"] : r.gPad.SetLogy()
@@ -177,7 +181,16 @@ def onePlotFunction(plotContainer,canvasDict,colorDict,markerStyleDict) :
     canvasDict["canvas"].cd(0)
     canvasDict["canvas"].Clear()
     if plotContainer["dimension"]==1 :
-        canvasDict["canvas"].Divide(1,1)
+        if canvasDict["plotRatios"] :
+            split = 0.2
+            canvasDict["canvas"].Divide(1,2)
+            canvasDict["canvas"].cd(1).SetPad(0.01,split+0.01,0.99,0.99)
+            canvasDict["canvas"].cd(2).SetPad(0.01,0.01,0.99,split)
+            #canvasDict["canvas"].cd(2).SetTopMargin(0.07)#default=0.05
+            #canvasDict["canvas"].cd(2).SetBottomMargin(0.45)
+            canvasDict["canvas"].cd(1)
+        else :
+            canvasDict["canvas"].Divide(1,1)
     else :
         canvasDict["canvas"].Divide(len(plotContainer["histoDict"]),1)
 
@@ -211,6 +224,41 @@ def onePlotFunction(plotContainer,canvasDict,colorDict,markerStyleDict) :
             continue
         count+=1
     if plotContainer["dimension"]==1 : legend.Draw()
+
+    #plot ratio
+    if canvasDict["plotRatios"] and plotContainer["dimension"]==1 :
+        numSampleName,denomSampleName=canvasDict["samplesForRatios"]
+        numLabel,denomLabel=canvasDict["sampleLabelsForRatios"]
+
+        numHisto = None
+        if numSampleName in plotContainer["histoDict"] :
+            numHisto = plotContainer["histoDict"][numSampleName]
+
+        denomHisto = None
+        if denomSampleName in plotContainer["histoDict"] :
+            denomHisto = plotContainer["histoDict"][denomSampleName]
+
+        if numHisto and denomHisto and numHisto.GetEntries() and denomHisto.GetEntries() :
+            ratio=utils.ratioHistogram(numHisto,denomHisto)
+            ratio.SetMinimum(0.0)
+            ratio.SetMaximum(2.0)
+            ratio.GetYaxis().SetTitle(numLabel+"/"+denomLabel)
+            canvasDict["canvas"].cd(2)
+            adjustPad(r.gPad)
+            r.gPad.SetGridy()
+            ratio.SetStats(False)
+            ratio.GetXaxis().SetLabelSize(0.0)
+            ratio.GetXaxis().SetTickLength(3.5*ratio.GetXaxis().GetTickLength())
+            ratio.GetYaxis().SetLabelSize(0.2)
+            ratio.GetYaxis().SetNdivisions(502,True)
+            ratio.GetXaxis().SetTitleOffset(0.2)
+            ratio.GetYaxis().SetTitleSize(0.2)
+            ratio.GetYaxis().SetTitleOffset(0.2)
+            ratio.SetMarkerStyle(numHisto.GetMarkerStyle())
+            ratio.Draw()
+        else :
+            canvasDict["canvas"].cd(2)
+
     canvasDict["canvas"].Print(canvasDict["psFile"],canvasDict["psOptions"])
 ##############################
 def printTimeStamp(canvasDict) :
@@ -225,6 +273,8 @@ def printTimeStamp(canvasDict) :
 def plotAll(someAnalysis,
             colorDict={},
             markerStyleDict={},
+            samplesForRatios=("",""),
+            sampleLabelsForRatios=("",""),
             doLog=True,
             drawYx=False,
             doMetFit=False,
@@ -238,6 +288,10 @@ def plotAll(someAnalysis,
     setupStyle()
 
     canvasDict={}
+    canvasDict["samplesForRatios"]=samplesForRatios
+    canvasDict["sampleLabelsForRatios"]=sampleLabelsForRatios
+    canvasDict["plotRatios"]=canvasDict["samplesForRatios"]!=("","")
+    
     canvasDict["doLog"]=doLog
     canvasDict["drawYx"]=drawYx
     canvasDict["doMetFit"]=doMetFit
