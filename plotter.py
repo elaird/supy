@@ -147,7 +147,9 @@ def plot2D(canvasDict,histo,count,sampleName,stuffToKeep) :
     
     canvasDict["canvas"].cd(count+1)
     histo.GetYaxis().SetTitleOffset(1.2)
-    histo.SetTitle(histo.GetTitle()+sampleName)
+    oldTitle=histo.GetTitle()
+    newTitle=sampleName if oldTitle=="" else sampleName+"_"+oldTitle
+    histo.SetTitle(newTitle)
     histo.SetStats(False)
     histo.GetZaxis().SetTitleOffset(1.3)
     r.gPad.SetRightMargin(0.15)
