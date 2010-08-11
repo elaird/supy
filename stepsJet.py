@@ -78,18 +78,6 @@ class cleanJetEmfFilter(analysisStep) :
                 return False
         return True
 ######################################
-class nCleanJetHistogrammer(analysisStep) :
-    """nCleanJetHistogrammer"""
-
-    def __init__(self,collection,suffix):
-        self.indicesName = "%sIndices%s" % (collection,suffix)
-        self.moreName = "(%s %s)" % (collection,suffix)
-        
-    def uponAcceptance (self,eventVars) :
-        self.book(eventVars).fill(len(eventVars[self.indicesName]["clean"]),
-                                  self.indicesName+"clean", 15,-0.5,14.5,
-                                  title=";number of jets passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin")
-######################################
 class minNCleanJetEventFilter(analysisStep) :
     """minNCleanJetEventFilter"""
 
@@ -151,6 +139,10 @@ class cleanJetPtHistogrammer(analysisStep) :
         p4s = eventVars[self.p4sName]
         cleanJetIndices = eventVars[self.indicesName]["clean"]
 
+        self.book(eventVars).fill(len(cleanJetIndices),
+                                  self.indicesName+"clean", 15,-0.5,14.5,
+                                  title=";number of jets passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin")
+
         for iJet in cleanJetIndices :
             pt = p4s.at(iJet).pt()
             self.book(eventVars).fill(pt, "%sptAll%s"%self.cs, 50, 0.0, 500.0, title=";p_{T} (GeV) of clean jets;events / bin")
@@ -174,11 +166,15 @@ class alphaHistogrammer(analysisStep) :
         deltaHt = eventVars["%sDeltaPseudoJet%s"%self.cs]
         alphaT = eventVars["%sAlphaT%s"%self.cs]
         diJetAlpha = eventVars["%sDiJetAlpha%s"%self.cs]
-        indices = eventVars["%sIndices%s"%self.cs]
-
+        indices = eventVars["%sIndices%s"%self.cs]["clean"]
+        deltaPhiStar = eventVars["%sDeltaPhiStar%s"%self.cs]
+        
         if diJetAlpha :
             book.fill( diJetAlpha, "%sdijet_alpha%s"%self.cs, bins,min,max,
                        title = ";di-jet #alpha (using p_{T});events / bin")
+
+        if not alphaT :
+            return
 
         book.fill( alphaT, "%snjet_alphaT%s"%self.cs, bins,min,max,
                    title = ";N-jet #alpha_{T} (using p_{T});events / bin")
@@ -189,10 +185,12 @@ class alphaHistogrammer(analysisStep) :
         book.fill( (mht/ht,deltaHt/ht), "%s_deltaHtOverHt_vs_mHtOverHt_%s"%self.cs, (30,30), (0.0,0.0), (1.0,0.7),
                    title = ";#slash(H_{T}) / H_{T};#Delta H_{T} of two pseudo-jets / H_{T};events / bin")
 
-        for njets in ["ge2jets","2jets" if len(indices) == 2 else "ge3jets"] :
-            book.fill( (alphaT,ht), "%s%s_alphaT_vs_Ht_%s"%(self.cs[0],self.cs[1],njets), (300,200), (0.0,0.0), (3.0,1000),
+        for njets in ["ge2jets","2jets"] if len(indices) == 2 else ["ge2jets","ge3jets"] :
+            book.fill( (alphaT,ht), "%s_Ht_vs_alphaT_%s_%s"%(self.cs[0],self.cs[1],njets), (300,200), (0.0,0.0), (3.0,1000),
                        title = "%s;#alpha_{T};H_{T};events / bin"%njets)
-
+            book.fill( (alphaT,deltaPhiStar),"%s_deltaPhiStar_vs_nJetAlphaT_%s_%s"%(self.cs[0],self.cs[1],njets),
+                       (500,50), (0.0,0.0),(1.0,r.TMath.Pi()),
+                       title="%s;N-jet #alpha_{T} (using p_{T});#Delta#phi*;events / bin"%njets)
 #####################################
 class metHistogrammer(analysisStep) :
     """metHistogrammer"""
