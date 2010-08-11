@@ -151,7 +151,7 @@ class analysisLooper :
             if calc.name() not in activeKeys : continue
             self.calculableConfigDict[calc.name()]=""
             if hasattr(calc,"moreName")  : self.calculableConfigDict[calc.name()]+=" "+str(calc.moreName)
-            if hasattr(calc,"moreName2") : self.calculableConfigDict[calc.name()]+=" "+str(calc.moreName2)
+            if hasattr(calc,"moreName2") : self.calculableConfigDict[calc.name()]+="\n"+str(calc.moreName2)
 
     def makeListOfLeavesUsed(self,activeKeys) :
         self.listOfLeavesUsed=[]
