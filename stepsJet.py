@@ -166,7 +166,7 @@ class alphaHistogrammer(analysisStep) :
         deltaHt = eventVars["%sDeltaPseudoJet%s"%self.cs]
         alphaT = eventVars["%sAlphaT%s"%self.cs]
         diJetAlpha = eventVars["%sDiJetAlpha%s"%self.cs]
-        indices = eventVars["%sIndices%s"%self.cs]["clean"]
+        indices = eventVars["%sIndices%s"%self.cs]
         deltaPhiStar = eventVars["%sDeltaPhiStar%s"%self.cs]
         
         if diJetAlpha :
