@@ -501,15 +501,15 @@ class displayer(analysisStep) :
         for jet in p4Vector :
             self.drawP4(jet,color,lineWidth,arrowSize)
             
-    def drawCleanJets (self,eventVars,color,lineWidth,arrowSize) :
+    def drawCleanJets (self,eventVars,collection,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if not hasattr(self,"cleanJetEntryInLegend") :
-            self.cleanJetEntryInLegend=True
+        if not hasattr(self,"cleanJetEntryInLegend"+collection) :
+            setattr(self,"cleanJetEntryInLegend"+collection,True)
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"clean jets ("+self.jetCollection+")","l")
+            self.legend.AddEntry(someLine,"clean jets ("+collection+")","l")
 
-        p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
-        cleanJetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]["clean"]
+        p4Vector=eventVars[collection+'CorrectedP4'+self.jetSuffix]
+        cleanJetIndices = eventVars[collection+"Indices"+self.jetSuffix]["clean"]
         for iJet in cleanJetIndices :
             self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
@@ -764,8 +764,13 @@ class displayer(analysisStep) :
         #                                        color     , width   , arrow size
 
         if self.doGen :
-            self.drawGenJets    (eventVars,r.kBlack   , defWidth, defArrowSize      )
-        self.drawCleanJets      (eventVars,r.kBlue    , defWidth, defArrowSize*2/3.0)
+            self.drawGenJets    (eventVars,         r.kBlack, defWidth, defArrowSize)
+        self.drawCleanJets      (eventVars,
+                                 self.jetCollection,r.kBlue , defWidth, defArrowSize)
+        #self.drawCleanJets      (eventVars,
+        #                         self.jetCollection+"JPT",896,defWidth, defArrowSize*3/4.0)
+        #self.drawCleanJets      (eventVars,
+        #                         self.jetCollection+"PF" , 38,defWidth, defArrowSize*1/2.0)
         self.drawLowPtJets      (eventVars,r.kCyan    , defWidth, defArrowSize*1/6.0)
         #self.drawOtherJets      (eventVars,r.kBlack  )
         self.drawHt             (eventVars,r.kBlue+3  , defWidth, defArrowSize*1/6.0)
@@ -774,13 +779,13 @@ class displayer(analysisStep) :
         self.drawMet            (eventVars,r.kGreen   , defWidth, defArrowSize*2/6.0)
         if self.doGen :
             self.drawGenMet     (eventVars,r.kMagenta , defWidth, defArrowSize*2/6.0)
-
+        
         if self.doLeptons :
             self.drawMuons      (eventVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
             self.drawElectrons  (eventVars,r.kOrange+7, defWidth, defArrowSize*2/6.0)
             self.drawPhotons    (eventVars,r.kOrange  , defWidth, defArrowSize*2/6.0)
             #self.drawTaus       (eventVars,r.kYellow , defWidth, defArrowSize*2/6.0)
-
+        
         self.drawCleanedRecHits (eventVars,r.kOrange-6, defWidth, defArrowSize*2/6.0)
 
         self.legend.Draw("same")        
