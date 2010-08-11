@@ -4,11 +4,11 @@ import math
 class jetIndices(wrappedChain.calculable) :
     def name(self) : return "%sIndices%s"% self.cs
     
-    def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None , p4Name = "CorrectedP4"):
+    def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None):
         self.cs = collection
         self.ptMin = ptMin
         self.etaMax = etaMax
-        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
+        self.p4Name = '%sCorrectedP4%s' % self.cs
         self.flagName = None if not flagName else \
                         ( "%s"+flagName+"%s" if collection[0][-2:] != "PF" else \
                           "%sPF"+flagName+"%s" ) % self.cs
@@ -65,9 +65,9 @@ class PFJetIDloose(wrappedChain.calculable) :
 class leadingJetPt(wrappedChain.calculable) :
     def name(self) : return "%sLeadingPt%s"% self.cs
 
-    def __init__(self, collection = None, p4Name = "CorrectedP4") :
+    def __init__(self, collection = None) :
         self.cs = collection
-        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
+        self.p4Name = '%sCorrectedP4%s' % self.cs
         self.indicesName = "%sIndices%s" % self.cs
 
     def update(self,ignored) :
@@ -78,9 +78,9 @@ class leadingJetPt(wrappedChain.calculable) :
 class jetSumPt(wrappedChain.calculable) :
     def name(self) : return "%sSumPt%s"% self.cs
 
-    def __init__(self, collection = None, p4Name = "CorrectedP4") :
+    def __init__(self, collection = None) :
         self.cs = collection
-        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
+        self.p4Name = '%sCorrectedP4%s' % self.cs
         self.indicesName = "%sIndices%s" % self.cs
 
     def update(self,ignored) :
@@ -91,9 +91,9 @@ class jetSumPt(wrappedChain.calculable) :
 class jetSumP4(wrappedChain.calculable) :
     def name(self) : return "%sSumP4%s" % self.cs
 
-    def __init__(self, collection = None, p4Name = "CorrectedP4") :
+    def __init__(self, collection = None) :
         self.cs = collection
-        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
+        self.p4Name = '%sCorrectedP4%s' % self.cs
         self.indicesName = "%sIndices%s" % self.cs
 
     def update(self,ignored) :
@@ -104,9 +104,9 @@ class jetSumP4(wrappedChain.calculable) :
 class deltaPseudoJet(wrappedChain.calculable) :
     def name(self) : return "%sDeltaPseudoJet%s" % self.cs
 
-    def __init__(self, collection = None, p4Name = "CorrectedP4") :
+    def __init__(self, collection = None) :
         self.cs = collection
-        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
+        self.p4Name = '%sCorrectedP4%s' % self.cs
         self.indicesName = "%sIndices%s" % self.cs
 
     def update(self,ignored) :
@@ -140,10 +140,10 @@ class alphaT(wrappedChain.calculable) :
 class diJetAlpha(wrappedChain.calculable) :
     def name(self) : return "%sDiJetAlpha%s" % self.cs
     
-    def __init__(self,collection = None, p4Name = "CorrectedP4") :
+    def __init__(self,collection = None) :
         self.cs = collection
         self.indicesName = "%sIndices%s" % self.cs
-        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
+        self.p4Name = '%sCorrectedP4%s' % self.cs
         
     def update(self,ignored) :
         cleanJetIndices = self.source[self.indicesName]["clean"]
@@ -161,10 +161,10 @@ class diJetAlpha(wrappedChain.calculable) :
 class jetDeltaX01(wrappedChain.calculable) :
     def name(self) : return "%sDeltaX01%s" % self.cs
 
-    def __init__(self,collection = None, p4Name = "CorrectedP4") :
+    def __init__(self,collection = None) :
         self.cs = collection
         self.indicesName = "%sIndices%s" % self.cs
-        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
+        self.p4Name = '%sCorrectedP4%s' % self.cs
         
     def update(self,ignored) :
         self.value={}
@@ -185,10 +185,10 @@ class jetDeltaX01(wrappedChain.calculable) :
 class deltaPhiStar(wrappedChain.calculable) :
     def name(self) : return "%sDeltaPhiStar%s" % self.cs
 
-    def __init__(self,collection = None, p4Name = "CorrectedP4") :
+    def __init__(self,collection = None) :
         self.cs = collection
         self.indicesName = "%sIndices%s" % self.cs
-        self.p4Name = '%s%s%s' % (self.cs[0],p4Name,self.cs[1])
+        self.p4Name = '%sCorrectedP4%s' % self.cs
         self.sumP4Name = "%sSumP4%s" % self.cs
         
     def update(self,ignored) :
