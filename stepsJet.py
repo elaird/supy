@@ -71,7 +71,7 @@ class cleanJetEmfFilter(analysisStep) :
         p4s = eventVars[self.p4sName]
         emf = eventVars[self.emfName]
 
-        for index in eventVars[self.indicesName]["clean"] :
+        for index in eventVars[self.indicesName] :
             if p4s.at(index).pt() <= self.jetPtThreshold : #assumes sorted
                 return True
             if emf.at(index) > self.jetEmfMax :
@@ -88,7 +88,7 @@ class minNCleanJetEventFilter(analysisStep) :
         self.moreName = "(%s %s>=%d)" % (self.cs[0], self.cs[1], minNCleanJets)
         
     def select (self,eventVars) :
-        return len(eventVars[self.indicesName]["clean"]) >= self.minNCleanJets
+        return len(eventVars[self.indicesName]) >= self.minNCleanJets
 ######################################
 class maxNOtherJetEventFilter(analysisStep) :
     """maxNOtherJetEventFilter"""
@@ -96,11 +96,11 @@ class maxNOtherJetEventFilter(analysisStep) :
     def __init__(self,cs,maxNOtherJets):
         self.maxNOtherJets = maxNOtherJets
         self.cs = cs
-        self.indicesName = "%sIndices%s" % self.cs
+        self.indicesOtherName = "%sIndicesOther%s" % self.cs
         self.moreName = "(%s %s<=%d)" % (self.cs[0], self.cs[1], maxNOtherJets)
         
     def select (self,eventVars) :
-        return len(eventVars[self.indicesName]["other"]) <= self.maxNOtherJets
+        return len(eventVars[self.indicesOtherName]) <= self.maxNOtherJets
 #####################################
 class cleanJetHtMhtHistogrammer(analysisStep) :
     """cleanJetHtMhtHistogrammer"""
@@ -137,7 +137,7 @@ class cleanJetPtHistogrammer(analysisStep) :
     def uponAcceptance (self,eventVars) :
         ptleading = 0.0
         p4s = eventVars[self.p4sName]
-        cleanJetIndices = eventVars[self.indicesName]["clean"]
+        cleanJetIndices = eventVars[self.indicesName]
 
         self.book(eventVars).fill(len(cleanJetIndices),
                                   self.indicesName+"clean", 15,-0.5,14.5,

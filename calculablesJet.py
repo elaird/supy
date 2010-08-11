@@ -13,21 +13,33 @@ class jetIndices(wrappedChain.calculable) :
                         ( "%s"+flagName+"%s" if collection[0][-2:] != "PF" else \
                           "%sPF"+flagName+"%s" ) % self.cs
         self.moreName = "(pT>=%.1f GeV; |eta|<%.1f; %s)"% (ptMin, etaMax, flagName if flagName else "")
-        self.value = {}
 
     def update(self,ignored) :
         p4s    = self.source[self.p4Name]
         jetIds = self.source[self.flagName] if self.flagName else p4s.size()*[1]
-
-        clean = self.value["clean"] = []
-        other = self.value["other"] = []
+        self.value = []
 
         for i in range(p4s.size()) :
             if p4s.at(i).pt() < self.ptMin : break #pt cut, assumes sorted
             elif jetIds[i] and abs(p4s.at(i).eta()) < self.etaMax :
-                clean.append(i)
-            else: other.append(i)
+                self.value.append(i)
 
+##############################
+class jetIndicesOther(wrappedChain.calculable) :
+    def name(self) : return "%sIndicesOther%s"% self.cs
+    
+    def __init__(self, collection = None, ptMin = None) :
+        self.cs = collection
+        self.ptMin = ptMin
+        self.p4Name = '%sCorrectedP4%s' % self.cs
+        self.indicesName = '%sIndices%s' % self.cs
+        self.moreName = "(unaccepted; pT>=%.1f GeV)"% ptMin
+
+    def update(self,ignored) :
+        p4s = self.source[self.p4Name]
+        self.value = filter( lambda i: p4s.at(i).pt() > self.ptMin,
+                             list(set(range(p4s.size()))-set(self.source[self.indicesName]) ) ) 
+        
 ############################
 class PFJetIDloose(wrappedChain.calculable) :
     def name(self) : return "%sPFJetIDloose%s"%self.cs
@@ -72,7 +84,7 @@ class leadingJetPt(wrappedChain.calculable) :
 
     def update(self,ignored) :
         p4s = self.source[self.p4Name]
-        indices = self.source[self.indicesName]["clean"]
+        indices = self.source[self.indicesName]
         self.value = p4s.at(indices[0]).pt() if len(indices) else None
 ##############################
 class jetSumPt(wrappedChain.calculable) :
@@ -85,7 +97,7 @@ class jetSumPt(wrappedChain.calculable) :
 
     def update(self,ignored) :
         p4s = self.source[self.p4Name]
-        indices = self.source[self.indicesName]["clean"]
+        indices = self.source[self.indicesName]
         self.value = reduce( lambda x,i: x+p4s.at(i).pt(), indices , 0)
 ##############################
 class jetSumP4(wrappedChain.calculable) :
@@ -98,7 +110,7 @@ class jetSumP4(wrappedChain.calculable) :
 
     def update(self,ignored) :
         p4s = self.source[self.p4Name]
-        indices = self.source[self.indicesName]["clean"]
+        indices = self.source[self.indicesName]
         self.value = reduce( lambda x,i: x+p4s.at(i), indices[1:], p4s.at(indices[0]) ) if len(indices) else None
 ##############################
 class deltaPseudoJet(wrappedChain.calculable) :
@@ -110,7 +122,7 @@ class deltaPseudoJet(wrappedChain.calculable) :
         self.indicesName = "%sIndices%s" % self.cs
 
     def update(self,ignored) :
-        indices = self.source[self.indicesName]["clean"]
+        indices = self.source[self.indicesName]
         p4s = self.source[self.p4Name]
         
         size = len(indices)
@@ -146,7 +158,7 @@ class diJetAlpha(wrappedChain.calculable) :
         self.p4Name = '%sCorrectedP4%s' % self.cs
         
     def update(self,ignored) :
-        cleanJetIndices = self.source[self.indicesName]["clean"]
+        cleanJetIndices = self.source[self.indicesName]
         #return if not dijet
         if len(cleanJetIndices)!=2 :
             self.value=None
@@ -169,15 +181,15 @@ class jetDeltaX01(wrappedChain.calculable) :
     def update(self,ignored) :
         self.value={}
         
-        cleanJetIndices = self.source[self.indicesName]["clean"]
-        if len(cleanJetIndices)<2 :
+        indices = self.source[self.indicesName]
+        if len(indices)<2 :
             self.value["phi"]=None
             self.value["eta"]=None
             self.value["R"]=None
             return
         p4s=self.source[self.p4Name]
-        jet0=p4s.at(cleanJetIndices[0])
-        jet1=p4s.at(cleanJetIndices[1])
+        jet0=p4s.at(indices[0])
+        jet1=p4s.at(indices[1])
         self.value["phi"] = r.Math.VectorUtil.DeltaPhi(jet0,jet1)
         self.value["R"  ] = r.Math.VectorUtil.DeltaR(jet0,jet1)
         self.value["eta"] = jet0.eta()-jet1.eta()
@@ -187,18 +199,17 @@ class deltaPhiStar(wrappedChain.calculable) :
 
     def __init__(self,collection = None) :
         self.cs = collection
-        self.indicesName = "%sIndices%s" % self.cs
         self.p4Name = '%sCorrectedP4%s' % self.cs
         self.sumP4Name = "%sSumP4%s" % self.cs
         
     def update(self,ignored) :
         self.value=None
 
-        jets=self.source[self.p4Name]
+        jets = self.source[self.p4Name]
         nJets=jets.size()
         if nJets==0 :
             return
 
-        sumP4=self.source[self.sumP4Name]
-        self.value=min([abs(r.Math.VectorUtil.DeltaPhi(jets.at(i),jets.at(i)-sumP4)) for i in range(nJets)])
+        sumP4 = self.source[self.sumP4Name]
+        self.value = min([abs(r.Math.VectorUtil.DeltaPhi(jets.at(i),jets.at(i)-sumP4)) for i in range(nJets)])
 ##############################
