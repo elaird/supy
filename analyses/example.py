@@ -66,4 +66,9 @@ colorDict["Example_Skimmed_900_GeV_MC"]=r.kRed
 markerStyleDict={}
 markerStyleDict["Example_Skimmed_900_GeV_Data"]=20
 
-plotter.plotAll(a,colorDict,markerStyleDict)
+plotter.plotAll(a,
+                colorDict=colorDict,
+                markerStyleDict=markerStyleDict,
+                samplesForRatios=("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
+                sampleLabelsForRatios=("data","sim"),
+                )
