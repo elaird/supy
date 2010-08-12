@@ -340,15 +340,29 @@ class analysis :
         import cProfile
         cProfile.run("analysis.runFunc(1,%s)"%onlyMerge,"resultProfile.out")
 
+    def loopUsingQueue(self,nCores) :
+        from multiprocessing import Process, JoinableQueue
+        
+        def worker(q):
+            while True:
+                item = q.get()
+                item.go()
+                q.task_done()
+
+        q = JoinableQueue()
+        for i in range(nCores):
+            p = Process(target = worker, args = (q,))
+            p.daemon = True
+            p.start()
+
+        map(q.put,self.listOfLoopers)
+        q.join()# block until all tasks are done
+        
     def loopOverSamples(self,nCores,onlyMerge) :
         #loop over events for each looper
         if not onlyMerge :
-            if nCores>1 :
-                from multiprocessing import Pool
-                pool=Pool(processes=nCores)
-                pool.map(utils.goFunc,self.listOfLoopers)
-            else :
-                map(utils.goFunc,self.listOfLoopers)
+            if nCores>1 : self.loopUsingQueue(nCores)
+            else :        map(lambda x : x.go(),self.listOfLoopers)
 
         #merge the output
         self.mergeSplitOutput(self.listOfLoopers, cleanUp = not onlyMerge)
