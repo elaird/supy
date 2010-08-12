@@ -1,9 +1,6 @@
 import os,collections,array,math
 import ROOT as r
 #####################################
-def goFunc(x) :
-    x.go()
-#####################################
 def makeCodes(iTry,nOps,nItems) :
     codes=[0]*nItems
     for iItem in range(nItems) :
