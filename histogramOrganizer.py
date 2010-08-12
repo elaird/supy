@@ -148,10 +148,12 @@ def go(plotFileNamesDict={},
     #get lumi value
     nDataSamples=len(lumiDict.values())-lumiDict.values().count(0.0)
     lumiValue=lumiToUseInAbsenceOfData
-    if nDataSamples==1 :
-        lumiValue=max(lumiDict.values())
+    if not nDataSamples :
+        lumiValue = lumiToUseInAbsenceOfData
+    elif nDataSamples==1 :
+        lumiValue = max(lumiDict.values())
     elif multipleDisjointDataSamples :
-        lumiValue=sum(lumiDict.values())
+        lumiValue = sum(lumiDict.values())
     else :
         raise Exception("at the moment, absolute normalization using multiple non-disjoint data samples is not supported")
 
