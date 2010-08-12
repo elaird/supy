@@ -7,8 +7,8 @@ class analysisLooper :
     """class to set up and loop over events"""
 
     def __init__(self,fileDirectory,treeName,otherTreesToKeepWhenSkimming,
-                 hyphens,outputDir,inputFiles,name,nEvents,outputPlotFileName,steps,calculables,xs,lumi,
-                 computeEntriesForReport,printNodesUsed):
+                 hyphens,outputDir,name,nEvents,outputPlotFileName,steps,calculables,xs,lumi,
+                 computeEntriesForReport,printNodesUsed,fileListCommand = None,inputFiles = None):
 
         self.fileDirectory=fileDirectory
         self.treeName=treeName
@@ -17,6 +17,7 @@ class analysisLooper :
         self.hyphens=hyphens
         self.name=name
         self.nEvents=nEvents
+        self.fileListCommand=fileListCommand
         self.inputFiles=inputFiles
         self.steps=copy.deepcopy(steps)
         self.calculables=copy.deepcopy(calculables)

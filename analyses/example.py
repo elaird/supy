@@ -47,10 +47,10 @@ a=analysis.analysis(name="example",
                     )
 
 a.addSample(sampleName="Example_Skimmed_900_GeV_Data", nEvents = -1, lumi = 1.0e-5, #/pb
-            listOfFileNames=["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_Data.root"] )
+            fileListCommand = '["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_Data.root"]' )
 
 a.addSample(sampleName="Example_Skimmed_900_GeV_MC", nEvents = -1, xs = 1.0e8, #pb
-            listOfFileNames=["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_MC.root"] )
+            fileListCommand = '["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_MC.root"]' )
 
 
 #loop over events and make root files containing histograms
