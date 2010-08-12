@@ -11,7 +11,7 @@ class SampleHolder(dict) :
     def __init__(self) :
         self.overlappingSamples = []
     
-    def update(other) :
+    def update(self, other) :
 
         assert type(other) is type(self), "%s is not a SampleHolder" % str(type(other))
         for key in other : assert key not in self, "%s already specified" % key
