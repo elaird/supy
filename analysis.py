@@ -19,21 +19,20 @@ globalSetup(listOfSourceFiles=["pragmas.h","helpers.C"])
 class analysis :
     """base class for an analysis"""
     
-    def __init__(self,name="name",outputDir="/tmp/",listOfSteps=[],listOfCalculables=[],
-                 mainTree=("susyTree","tree"),
-                 otherTreesToKeepWhenSkimming=[("lumiTree","tree")],
+    def __init__(self,name="name",outputDir="/tmp/",
+                 listOfSteps=[],listOfCalculables=[],listOfSamples=None,
+                 mainTree=("susyTree","tree"),otherTreesToKeepWhenSkimming=[("lumiTree","tree")],
                  printNodesUsed=False) :
-        for arg in ["name","outputDir"] :
+
+        for arg in ["name","outputDir","listOfSteps",
+                    "listOfCalculables","listOfSamples",
+                    "otherTreesToKeepWhenSkimming","printNodesUsed"] :
             exec("self."+arg+"="+arg)
 
         self.hyphens="".ljust(95,"-")
         self.fileDirectory=mainTree[0]
         self.treeName=mainTree[1]
-        self.otherTreesToKeepWhenSkimming=otherTreesToKeepWhenSkimming
-        self.printNodesUsed=printNodesUsed
         
-        self.listOfSteps=listOfSteps
-        self.listOfCalculables=listOfCalculables
         self.listOfLoopers=[]
         self.listOfOutputPlotFileNames=[]
 
@@ -42,10 +41,12 @@ class analysis :
 
         self.hasLooped=False
         
-    def loop(self, profile = False, nCores = 1, splitJobsByInputFile = None, onlyMerge = False, listOfSamples = None) :
+    def loop(self, profile = False, nCores = 1, splitJobsByInputFile = None, onlyMerge = False) :
 
-        self.pruneListOfLoopers(listOfSamples)
+        #restrict list of loopers to samples in self.listOfSamples
+        self.pruneListOfLoopers()
 
+        #execute commands to make file lists
         for looper in self.listOfLoopers :
             looper.inputFiles=eval(looper.fileListCommand)
         
@@ -63,9 +64,9 @@ class analysis :
             self.profile(nCores,onlyMerge) #profile the code while doing so
         self.hasLooped=True            
 
-    def pruneListOfLoopers(self,listOfSamples) :
-        if listOfSamples==None : return #None (default) means use all samples
-        self.listOfLoopers = filter(lambda looper: looper.name in listOfSamples, self.listOfLoopers)
+    def pruneListOfLoopers(self) :
+        if self.listOfSamples==None : return #None (default) means use all samples
+        self.listOfLoopers = filter(lambda looper: looper.name in self.listOfSamples, self.listOfLoopers)
 
     def producePlotFileNamesDict(self) :
         outDict={}
@@ -85,6 +86,10 @@ class analysis :
                            multipleDisjointDataSamples=False,                           
                            lumiToUseInAbsenceOfData=100,#/pb
                            ) :
+
+        #prune list of loopers if self.loop has not been called
+        if not self.hasLooped : self.pruneListOfLoopers()
+        
         import histogramOrganizer
         return histogramOrganizer.go(self.producePlotFileNamesDict(),
                                      scaleHistograms,
