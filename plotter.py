@@ -259,7 +259,8 @@ def onePlotFunction(plotContainer,canvasDict,colorDict,markerStyleDict) :
         else :
             canvasDict["canvas"].cd(2)
 
-    canvasDict["canvas"].Print(canvasDict["psFile"],canvasDict["psOptions"])
+    if count>0 :
+        canvasDict["canvas"].Print(canvasDict["psFile"],canvasDict["psOptions"])
 ##############################
 def printTimeStamp(canvasDict) :
     text=r.TText()
