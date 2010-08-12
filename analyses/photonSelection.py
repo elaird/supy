@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-import os,analysis,utils,steps,calculables
+import os,analysis,utils,steps,calculables,plotter
 
 jetTypes = [("ak5Jet","Pat"),("ak5JetJPT","Pat"),("ak5JetPF","Pat")]
 
 def makeSteps() :
-    jets=jetTypes[0]
+    jets = jetTypes[0]
+    xcjets = ("xc"+jets[0],jets[1])
     
     listOfSteps=[
         steps.progressPrinter(),
@@ -17,28 +18,34 @@ def makeSteps() :
         steps.vertexRequirementFilter(),
         steps.monsterEventFilter(),
         steps.hbheNoiseFilter(),
-
-        steps.photonSelectionHistogrammer( nametag = "raw", deltaRMax = 0.1, zLike = True, zLikeEnergy = 20 ),
+        
+        steps.photonSelectionHistogrammer( nametag = "raw", matchDeltaRMax = 0.1),
         steps.jetPtSelector(jets,100.0,0),
         steps.jetPtSelector(jets,40.0,1),
-        steps.minNCleanJetEventFilter(jets,2),
         steps.maxNOtherJetEventFilter(jets,0),
-        steps.photonSelectionHistogrammer( nametag = "jets", deltaRMax = 0.1, zLike = True, zLikeEnergy = 20 ),
-        #steps.variableGreaterFilter(300.0,"%sSumPt%s"%jets),
-        #steps.variableGreaterFilter(0.55,"%sAlphaT%s"%jets),
+        steps.minNCleanJetEventFilter(xcjets,2),
+        steps.photonSelectionHistogrammer( nametag = "jets", matchDeltaRMax = 0.1),
+        steps.alphaHistogrammer(xcjets),
+        steps.variableGreaterFilter(300.0,"%sSumPt%s"%xcjets),
+        steps.variableGreaterFilter(0.55,"%sAlphaT%s"%xcjets),
+        steps.displayer(xcjets,"met","Calo","Pat","ak5Jet","Calo",recHitPtThreshold=1.0,#GeV
+                        outputDir="/vols/cms02/%s/tmp/"%os.environ["USER"],scale=200.0),
         ]
     return listOfSteps
 
 def makeCalculables() :
     listOfCalculables = calculables.zeroArgs()
+    listOfCalculables += calculables.fromJetCollections(jetTypes)
+    listOfCalculables += calculables.fromJetCollections([("xc"+jt[0],jt[1]) for jt in jetTypes])
     listOfCalculables += [ calculables.jetIndices( collection = jetType, ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for jetType in jetTypes]
-    listOfCalculables += [ calculables.jetSumPt(   collection = jetType)     for jetType in jetTypes ]
-    listOfCalculables += [ calculables.jetSumP4(   collection = jetType)     for jetType in jetTypes ]
-    listOfCalculables += [ calculables.deltaPseudoJet( collection = jetType) for jetType in jetTypes ]
-    listOfCalculables += [ calculables.alphaT(         collection = jetType) for jetType in jetTypes ]
-    listOfCalculables += [ calculables.diJetAlpha(     collection = jetType) for jetType in jetTypes ]
-    listOfCalculables += [ calculables.genIndices( label = "Photon", pdgs = [22], ptMin = 30, etaMax = 5),
-                           calculables.photonIndicesPat( ptMin = 30, etaMax = 5, flagName = "photonIDLoosePat") ]
+    listOfCalculables += [ calculables.jetIndicesOther( collection = jetType, ptMin = 20.0) for jetType in jetTypes]
+
+    listOfCalculables += [ calculables.xcJetCorrectedP4(jetType, photons = ("photon","Pat"), photonDR = 0.5) for jetType in jetTypes ]
+    listOfCalculables += [ calculables.xcJetIndices(("xc"+jt[0],jt[1])) for jt in jetTypes]
+
+    listOfCalculables += [ calculables.genIndices( label = "Z",      pdgs = [23],     ptMin = 30, etaMax = 5),
+                           calculables.genIndices( label = "Photon", pdgs = [22],     ptMin = 30, etaMax = 5),
+                           calculables.photonIndicesPat( flagName="photonIDLoosePat", ptMin = 30, etaMax = 5) ]
     return listOfCalculables
 
 a = analysis.analysis( name = "photonSelection",
@@ -66,12 +73,14 @@ a = analysis.analysis( name = "photonSelection",
 # a.addSample( sampleName="gammajets_mg_pt40_100", nMaxFiles = 1, nEvents = -1, xs = 23620,#pb
 #              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb//ICF/automated/2010_07_26_15_14_40//PhotonJets_Pt40to100-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/"))
 
-a.addSample( sampleName="gammajets_mg_pt100_200", nMaxFiles = -1, nEvents = -1, xs = 3476,#pb
-             listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt100to200-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/"))
+# fileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt100to200-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")
+# a.addSample( sampleName="gammajets_mg_pt100_200", nMaxFiles = 1, nEvents = -1, xs = 3476,#pb
+#              listOfFileNames = fileNames[:4] + fileNames[6:9] )
 
-# a.addSample( sampleName="gammajets_mg_pt200", nMaxFiles = 1, nEvents = -1, xs = 485,#pb
-#              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt200toInf-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/"))
-# a.mergeHistogramsWhenPlotting(source=["gammajets_mg_pt40_100","gammajets_mg_pt100_200","gammajets_mg_pt200"],target="g_jets_mg")
+a.addSample( sampleName="gammajets_mg_pt200", nMaxFiles = 1, nEvents = -1, xs = 485,#pb
+             listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt200toInf-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/"))
+
+a.mergeHistograms(target="g_jets_mg", source=["gammajets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
 
 # a.addSample( sampleName="z_inv_mg", nMaxFiles = 6, nEvents = -1, xs=4500.0,#pb
 #              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/zph04/ICF/automated/2010_07_14_11_52_58/",
@@ -89,5 +98,8 @@ a.addSample( sampleName="gammajets_mg_pt100_200", nMaxFiles = -1, nEvents = -1, 
 # a.addSample( sampleName="lm1", nMaxFiles = 1, nEvents = -1, xs = 4.888,#pb
 #              listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bainbrid/ICF/automated/2010_07_12_17_52_54/LM1.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/") )
 
-a.loop( nCores = 8)
-#a.plot( mergeAllStandardModelMc=False )
+#a.mergeHistograms(target="qcd_py",    source=["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
+#a.mergeAllHistogramsExceptSome(target="standard_model",dontMergeList=["JetMETTau.Run2010A","lm0","lm1"],keepSourceHistograms=True)
+
+a.loop( nCores = 1)
+plotter.plotAll(a)

@@ -40,7 +40,7 @@ class jetIndicesOther(wrappedChain.calculable) :
         self.value = filter( lambda i: p4s.at(i).pt() > self.ptMin,
                              list(set(range(p4s.size()))-set(self.source[self.indicesName]) ) ) 
         
-############################
+####################################
 class PFJetIDloose(wrappedChain.calculable) :
     def name(self) : return "%sPFJetIDloose%s"%self.cs
 
