@@ -42,7 +42,13 @@ class analysis :
 
         self.hasLooped=False
         
-    def loop(self, profile = False, nCores = 1, splitJobsByInputFile = None) :
+    def loop(self, profile = False, nCores = 1, splitJobsByInputFile = None, onlyMerge = False, listOfSamples = None) :
+
+        self.pruneListOfLoopers(listOfSamples)
+
+        for looper in self.listOfLoopers :
+            looper.inputFiles=eval(looper.fileListCommand)
+        
         nCores = max(1,nCores)
         if splitJobsByInputFile!=False and (splitJobsByInputFile or nCores>1) :
             self.splitLoopers()
@@ -52,10 +58,14 @@ class analysis :
 
         #loop over samples and make TFiles containing histograms
         if not profile :
-            self.loopOverSamples(nCores)
+            self.loopOverSamples(nCores,onlyMerge)
         else :
-            self.profile(nCores) #profile the code while doing so
+            self.profile(nCores,onlyMerge) #profile the code while doing so
         self.hasLooped=True            
+
+    def pruneListOfLoopers(self,listOfSamples) :
+        if listOfSamples==None : return #None (default) means use all samples
+        self.listOfLoopers = filter(lambda looper: looper.name in listOfSamples, self.listOfLoopers)
 
     def producePlotFileNamesDict(self) :
         outDict={}
@@ -96,13 +106,13 @@ class analysis :
             self.listOfOutputPlotFileNames.append(answer)
         return answer
         
-    def addSample(self, sampleName, listOfFileNames = [], nEvents = -1, nMaxFiles = -1, xs = None, lumi = None, computeEntriesForReport = False) :
+    def addSample(self, sampleName, fileListCommand = None, nEvents = -1, nMaxFiles = -1, xs = None, lumi = None, computeEntriesForReport = False) :
         isMc = self.checkXsAndLumi(xs,lumi)
         if (not isMc) and (nEvents!=-1 or nMaxFiles!=-1) :
             print "Warning, not running over full data sample: wrong lumi?"
 
         if nMaxFiles >= 0 :
-            listOfFileNames = listOfFileNames[:nMaxFiles]
+            fileListCommand = "(%s)[:%d]"%(fileListCommand,nMaxFiles)
 
         listOfSteps = []
         if isMc : listOfSteps = steps.removeStepsForMc(self.listOfSteps)
@@ -113,7 +123,6 @@ class analysis :
                                                  self.otherTreesToKeepWhenSkimming,
                                                  self.hyphens,
                                                  self.outputDir,
-                                                 listOfFileNames,
                                                  sampleName,
                                                  nEvents,
                                                  self.makeOutputPlotFileName(sampleName),
@@ -122,7 +131,8 @@ class analysis :
                                                  xs,
                                                  lumi,
                                                  computeEntriesForReport,
-                                                 self.printNodesUsed
+                                                 self.printNodesUsed,
+                                                 fileListCommand=fileListCommand                                                 
                                                  )
                                )
         return
@@ -194,7 +204,6 @@ class analysis :
                                                        self.otherTreesToKeepWhenSkimming,                                                       
                                                        self.hyphens,
                                                        looper.outputDir,
-                                                       [looper.inputFiles[iFileName]],
                                                        sampleName,
                                                        looper.nEvents,
                                                        self.makeOutputPlotFileName(sampleName,isChild=True),
@@ -203,7 +212,8 @@ class analysis :
                                                        looper.xs,
                                                        looper.lumi,
                                                        looper.computeEntriesForReport,
-                                                       looper.printNodesUsed
+                                                       looper.printNodesUsed,
+                                                       inputFiles=[looper.inputFiles[iFileName]]
                                                        )
                                         )
                 outListOfLoopers[-1].doSplitMode(looper.name)
@@ -226,7 +236,7 @@ class analysis :
         looper.printStats()
         print self.hyphens
 
-    def mergeSplitOutput(self,listOfLoopers) :
+    def mergeSplitOutput(self,listOfLoopers,cleanUp) :
         #combine output
         for parent in self.parentDict :
             #print parent,parentDict[parent]
@@ -251,7 +261,7 @@ class analysis :
                 stepAndCalculableDataFile.close()
 
                 #clean up
-                os.remove(stepAndCalculableDataFileName)
+                if cleanUp : os.remove(stepAndCalculableDataFileName)
 
                 #add stats to those of someLooper
                 for i in range(len(someLooper.steps)) :
@@ -286,8 +296,8 @@ class analysis :
             #print cmd
             hAddOut=utils.getCommandOutput2(cmd)
             #clean up
-            for fileName in inFileList :
-                os.remove(fileName)
+            if cleanUp :
+                for fileName in inFileList : os.remove(fileName)
             
             print hAddOut[:-1].replace("Target","The output")+" has been written."
             print self.hyphens
@@ -318,18 +328,22 @@ class analysis :
             utils.psFromRoot(displayFileDict.values()[0],outputFileName,beQuiet=False)
             print self.hyphens
 
-    def profile(self,nCores) :
+    def profile(self,nCores,onlyMerge) :
         if nCores>1 : raise ValueError("to profile, nCores must equal one")
         global runFunc
         runFunc=self.loopOverSamples
         import cProfile
-        cProfile.run("analysis.runFunc(1)","resultProfile.out")
+        cProfile.run("analysis.runFunc(1,%s)"%onlyMerge,"resultProfile.out")
 
-    def loopOverSamples(self,nCores) :
-        if nCores>1 :
-            from multiprocessing import Pool
-            pool=Pool(processes=nCores)
-            pool.map(utils.goFunc,self.listOfLoopers)
-        else :
-            map(utils.goFunc,self.listOfLoopers)
-        self.mergeSplitOutput(self.listOfLoopers)
+    def loopOverSamples(self,nCores,onlyMerge) :
+        #loop over events for each looper
+        if not onlyMerge :
+            if nCores>1 :
+                from multiprocessing import Pool
+                pool=Pool(processes=nCores)
+                pool.map(utils.goFunc,self.listOfLoopers)
+            else :
+                map(utils.goFunc,self.listOfLoopers)
+
+        #merge the output
+        self.mergeSplitOutput(self.listOfLoopers, cleanUp = not onlyMerge)
