@@ -1,6 +1,6 @@
 Critical
 ---------
-* cross section in database
+(none)
 
 Processing
 -----------
@@ -14,20 +14,18 @@ Document
 
 Other
 --------
-* defer srmls until jobs runs
-* named arguments everywhere
-* update example ntuples
-
-# loop() takes argument specifying samples to loop over
-
-* displayer cleans up
+* cross section in database
 
 * fix circle
 * label HT
 
+* named arguments everywhere
+* update example ntuples
+
+* displayer cleans up
+
 * profile
 * batch queue
-* try py queue
 * logfiles
 
 * organize files in cvs
