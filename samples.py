@@ -16,7 +16,7 @@ class SampleHolder(dict) :
         assert type(other) is type(self), "%s is not a SampleHolder" % str(type(other))
         for key in other : assert key not in self, "%s already specified" % key
 
-        self.update(other)
+        dict.update(self,other)
         map(lambda t: self.adjustOverlappingSamples(*t), other.overlappingSamples)
 
     def add(self, name, filesCommand = None, xs = None, lumi = None, ptHatMin = None) :
