@@ -1,5 +1,9 @@
 import collections
 
+def specify(name = None, nFilesMax = -1, nEventsMax = -1, color = r.kBlack, markerStyle = 20 ) :
+    samplespec = collections.namedtuple("samplespec", "name nFilesMax nEventsMax color markerStyle")
+    return samplespec(name,nFilesMax,nEventsMax,color,markerStyle)
+    
 class SampleHolder(dict) :
     sample = collections.namedtuple("sample", "filesCommand xs lumi ptHatMin")
 
