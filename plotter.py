@@ -271,7 +271,9 @@ def printTimeStamp(canvasDict) :
     canvasDict["canvas"].Print(canvasDict["psFile"],canvasDict["psOptions"])
     canvasDict["canvas"].Clear()
 ##############################
-def plotAll(someAnalysis,
+def plotAll(hyphens="",
+            listOfPlotContainers=[],
+            psFileName="out.ps",
             colorDict={},
             markerStyleDict={},
             samplesForRatios=("",""),
@@ -282,9 +284,7 @@ def plotAll(someAnalysis,
             doColzFor2D=True,
             ) :
 
-    if not someAnalysis.hasLooped : print someAnalysis.hyphens
-    listOfPlotContainers=someAnalysis.organizeHistograms()
-
+    print hyphens
     if len(listOfPlotContainers)<1 : return
     setupStyle()
 
@@ -298,7 +298,7 @@ def plotAll(someAnalysis,
     canvasDict["doMetFit"]=doMetFit
     canvasDict["doColzFor2D"]=doColzFor2D
     
-    canvasDict["psFile"]=someAnalysis.outputDir+"/"+someAnalysis.name+".ps"
+    canvasDict["psFile"]=psFileName
     canvasDict["psOptions"]="Landscape"
     
     canvasDict["canvas"]=r.TCanvas()
@@ -318,6 +318,6 @@ def plotAll(someAnalysis,
     print colorDict
     print "marker styles used:"
     print markerStyleDict
-    print someAnalysis.hyphens
+    print hyphens
     #print "The output file \""+canvasDict["psFile"]+".gz\" has been written."
 ##############################
