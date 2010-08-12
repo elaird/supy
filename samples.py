@@ -1,6 +1,6 @@
 import collections
 
-def specify(name = None, nFilesMax = -1, nEventsMax = -1, color = r.kBlack, markerStyle = 20 ) :
+def specify(name = None, nFilesMax = -1, nEventsMax = -1, color = 1, markerStyle = 20 ) :
     samplespec = collections.namedtuple("samplespec", "name nFilesMax nEventsMax color markerStyle")
     return samplespec(name,nFilesMax,nEventsMax,color,markerStyle)
     
@@ -21,8 +21,8 @@ class SampleHolder(dict) :
 
     def add(self, name, filesCommand = None, xs = None, lumi = None, ptHatMin = None) :
 
-        assert lumi is None or xs is None,   "Underspecified sample: %s"%name
-        assert lumi ^ (xs or ptHatMin), "Overspecified sample: %s"%name
+        assert lumi or xs,                      "Underspecified sample: %s"%name
+        assert not (lumi and (xs or ptHatMin)), "Overspecified sample: %s"%name
 
         self[name] = self.sample(filesCommand, xs, lumi, ptHatMin)
 
@@ -35,6 +35,7 @@ class SampleHolder(dict) :
             for otherOverlappingSamples in self.overlappingSamples :
                 assert s not in otherOverlappingSamples[0], "Sample in another unbinned group: %s"%s
 
-        self.overlappingSamples.append( overlapping(listOfSamples, useRejectionMethod ) )
+        self.overlappingSamples.append( self.overlapping(listOfSamples, useRejectionMethod ) )
 
 from samplesMC import *
+from samplesJetMET import *

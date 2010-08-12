@@ -1,6 +1,6 @@
 import samples
 
-jetmet = SampleHolder()
+jetmet = samples.SampleHolder()
 srm = 'utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user'
 
 #DATA SKIM

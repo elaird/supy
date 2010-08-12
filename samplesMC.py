@@ -4,7 +4,7 @@ mc = samples.SampleHolder()
 srm = 'utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user'
 
 #PY QCD SKIMS
-mc.add("qcd_py_pt80_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/qcd_high_alphaT/pt80/")',  xs = 0.894,    ptHatMin = 80 )
+mc.add("qcd_py_pt80_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/qcd_high_alphaT/pt80/")',  xs = 0.894,    ptHatMin =  80 )
 mc.add("qcd_py_pt170_skim",'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/qcd_high_alphaT/pt170/")', xs = 0.377,    ptHatMin = 170 )
 mc.add("qcd_py_pt300_skim",'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/qcd_high_alphaT/pt300/")', xs = 0.0409,   ptHatMin = 300 )
 mc.add("qcd_py_pt470_skim",'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/qcd_high_alphaT/pt470/")', xs = 0.002362, ptHatMin = 470)
@@ -19,14 +19,14 @@ mc.add("qcd_py_pt80_skim2", 'utils.fileListFromDisk(location="/vols/cms02/elaird
 mc.adjustOverlappingSamples( ["qcd_py_pt30_skim2",
                               "qcd_py_pt80_skim2"] )
 
-###PY QCD
-mc.add("qcd_py_pt30",  '%s/gouskos//ICF/automated/2010_06_24_18_09_51/")'%srm, xs = 6.041e+07 )
-mc.add("qcd_py_pt80",  '%s/gouskos//ICF/automated/2010_07_06_00_55_17/")'%srm, xs = 9.238e+05 )
-mc.add("qcd_py_pt170", '%s/gouskos//ICF/automated/2010_07_06_01_33_23/")'%srm, xs = 2.547e+04 )
-mc.add("qcd_py_pt300", '%s/gouskos//ICF/automated/2010_07_09_19_13_09/")'%srm, xs = 1.256e+03 )
-mc.add("qcd_py_pt470", '%s/gouskos//ICF/automated/2010_07_10_04_22_06/")'%srm, xs = 8.798e+01 )
-mc.add("qcd_py_pt800", '%s/gouskos//ICF/automated/2010_07_10_04_37_56/")'%srm, xs = 2.186e+00 )
-mc.add("qcd_py_pt1400",'%s/gouskos//ICF/automated/2010_07_10_04_47_48/")'%srm, xs = 1.122e-02 )
+#PY QCD
+mc.add("qcd_py_pt30",  '%s/gouskos//ICF/automated/2010_06_24_18_09_51/")'%srm, xs = 6.041e+07, ptHatMin =  30 )
+mc.add("qcd_py_pt80",  '%s/gouskos//ICF/automated/2010_07_06_00_55_17/")'%srm, xs = 9.238e+05, ptHatMin =  80 )
+mc.add("qcd_py_pt170", '%s/gouskos//ICF/automated/2010_07_06_01_33_23/")'%srm, xs = 2.547e+04, ptHatMin = 170 )
+mc.add("qcd_py_pt300", '%s/gouskos//ICF/automated/2010_07_09_19_13_09/")'%srm, xs = 1.256e+03, ptHatMin = 300 )
+mc.add("qcd_py_pt470", '%s/gouskos//ICF/automated/2010_07_10_04_22_06/")'%srm, xs = 8.798e+01, ptHatMin = 470 )
+mc.add("qcd_py_pt800", '%s/gouskos//ICF/automated/2010_07_10_04_37_56/")'%srm, xs = 2.186e+00, ptHatMin = 800 )
+mc.add("qcd_py_pt1400",'%s/gouskos//ICF/automated/2010_07_10_04_47_48/")'%srm, xs = 1.122e-02, ptHatMin = 140 )
 mc.adjustOverlappingSamples( ["qcd_py_pt%d"%i for i in [30,80,170,300,470,800,1400] ] )
 
 #MG GAMMA + JETS
