@@ -26,6 +26,7 @@ def makeSamples() :
             specify(name = "JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn"                        ),
             specify(name = "JetMETTau.Run2010A-PromptReco-v4.RECO.Loukas"                      ),
             specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Loukas"                         ),
+            #specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Martyn"                         )
             ]
     
 a=analysis.analysis(name = "hadronicSkim",
