@@ -235,6 +235,7 @@ class analysis :
                 outListOfLoopers.append(copy.deepcopy(looper))
                 outListOfLoopers[-1].name=sampleName
                 outListOfLoopers[-1].outputPlotFileName=self.makeOutputPlotFileName(sampleName,isChild=True)
+                outListOfLoopers[-1].setPickledOutputFileName()
                 outListOfLoopers[-1].inputFiles=[looper.inputFiles[iFileName]]
                 outListOfLoopers[-1].doSplitMode(looper.name)
         self.listOfLoopers=outListOfLoopers
@@ -256,12 +257,12 @@ class analysis :
         looper.printStats()
         print self.hyphens
 
-    def mergeSplitOutput(self,listOfLoopers,cleanUp) :
+    def mergeSplitOutput(self,cleanUp) :
         #combine output
         for parent in self.parentDict :
             #print parent,parentDict[parent]
             iSomeLooper=self.parentDict[parent][0]
-            someLooper=listOfLoopers[iSomeLooper]
+            someLooper=self.listOfLoopers[iSomeLooper]
             outputPlotFileName=someLooper.outputPlotFileName.replace(someLooper.name,parent)
             inFileList=[]
             displayFileDict=collections.defaultdict(list)
@@ -272,10 +273,11 @@ class analysis :
             isFirstLooper=True
             for iLooper in self.parentDict[parent] :
                 #add the root file to hadd command
-                inFileList.append(listOfLoopers[iLooper].outputPlotFileName)
+                inFileList.append(self.listOfLoopers[iLooper].outputPlotFileName)
 
+                print iLooper,self.listOfLoopers[iLooper].outputStepAndCalculableDataFileName
                 #read in the step and calculable data
-                stepAndCalculableDataFileName=os.path.expanduser(listOfLoopers[iLooper].outputStepAndCalculableDataFileName)
+                stepAndCalculableDataFileName=os.path.expanduser(self.listOfLoopers[iLooper].outputStepAndCalculableDataFileName)
                 stepAndCalculableDataFile=open(stepAndCalculableDataFileName)
                 stepDataList,calculableConfigDict,listOfLeavesUsed=cPickle.load(stepAndCalculableDataFile)
                 stepAndCalculableDataFile.close()
@@ -380,4 +382,4 @@ class analysis :
             else :        map(lambda x : x.go(),self.listOfLoopers)
 
         #merge the output
-        self.mergeSplitOutput(self.listOfLoopers, cleanUp = not onlyMerge)
+        self.mergeSplitOutput(cleanUp = not onlyMerge)

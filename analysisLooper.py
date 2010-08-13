@@ -29,7 +29,9 @@ class analysisLooper :
         self.parentName=self.name
         self.splitMode=False
         self.quietMode=False
-
+        self.setPickledOutputFileName()
+        
+    def setPickledOutputFileName(self) :
         self.outputStepAndCalculableDataFileName=self.outputPlotFileName.replace(".root",".pickledData")
 
     def go(self) :
