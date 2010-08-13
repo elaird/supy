@@ -6,8 +6,8 @@ def getNamesAndDimensions(plotFileNameDict) :
     dimensions  = collections.defaultdict(int)  #plot dimension
     histoDicts  = collections.defaultdict(dict) #dict mapping sampleName to histo
     
-    for sampleName,plotFileName in plotFileNameDict.iteritems() :
-        f=r.TFile(plotFileName)
+    for sampleName,theDict in plotFileNameDict.iteritems() :
+        f=r.TFile(theDict["outputPlotFileName"])
         keys=f.GetListOfKeys()
         for iKey in range(len(keys)) :
             plotName=keys[iKey].GetName()
@@ -51,8 +51,8 @@ def getXsLumiNeventJobNumbers(plotFileNameDict) :
     lumiDict={}
     nEventsDict={}
     nJobsDict={}
-    for sampleName,plotFileName in plotFileNameDict.iteritems() :
-        f=r.TFile(plotFileName)
+    for sampleName,theDict in plotFileNameDict.iteritems() :
+        f=r.TFile(theDict["outputPlotFileName"])
         nJobs=f.Get("nJobsHisto").GetBinContent(1)
         xsDict      [sampleName] = f.Get("xsHisto").GetBinContent(1) / nJobs
         lumiDict    [sampleName] = f.Get("lumiHisto").GetBinContent(1) /  nJobs
@@ -85,6 +85,19 @@ def scaleHistos(listOfPlotContainers,xsDict,nEventsDict,nJobsDict,scaleByAreaRat
             if container["dimension"]==2 :
                 newTitle=histo.GetZaxis().GetTitle()+" / "+str(lumiValue)+" pb^{-1}"
                 histo.GetZaxis().SetTitle(newTitle)
+##############################
+def setColorsAndMarkerStyles(plotFileNamesDict,listOfPlotContainers,targetColorDict,targetMarkerStyleDict) :
+    for container in listOfPlotContainers :
+        for sampleName,histo in container["histoDict"].iteritems() :
+            if "color" in plotFileNamesDict[sampleName] :
+                histo.SetLineColor(plotFileNamesDict[sampleName]["color"])
+                histo.SetMarkerColor(plotFileNamesDict[sampleName]["color"])
+            if "markerStyle" in plotFileNamesDict[sampleName] :
+                histo.SetMarkerStyle(plotFileNamesDict[sampleName]["markerStyle"])
+            else :
+                histo.SetLineColor(  targetColorDict[sampleName])
+                histo.SetMarkerColor(targetColorDict[sampleName])
+                histo.SetMarkerStyle(targetMarkerStyleDict[sampleName])
 ##############################
 def mergeHistograms(listOfPlotContainers,histogramMergeRequests,histogramMergeKeepSources) :
     for container in listOfPlotContainers :
@@ -137,6 +150,8 @@ def go(plotFileNamesDict={},
        lumiToUseInAbsenceOfData=100,#/pb
        histogramMergeRequests=[],
        histogramMergeKeepSources=[],
+       targetColorDict={},
+       targetMarkerStyleDict={}
        ) :
 
     #collection information
@@ -164,4 +179,7 @@ def go(plotFileNamesDict={},
     #merge the histograms
     mergeHistograms(listOfPlotContainers,histogramMergeRequests,histogramMergeKeepSources)
 
+    #set the histograms' colors and styles
+    setColorsAndMarkerStyles(plotFileNamesDict,listOfPlotContainers,targetColorDict,targetMarkerStyleDict)
+    
     return listOfPlotContainers
