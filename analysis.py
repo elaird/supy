@@ -275,7 +275,6 @@ class analysis :
                 #add the root file to hadd command
                 inFileList.append(self.listOfLoopers[iLooper].outputPlotFileName)
 
-                print iLooper,self.listOfLoopers[iLooper].outputStepAndCalculableDataFileName
                 #read in the step and calculable data
                 stepAndCalculableDataFileName=os.path.expanduser(self.listOfLoopers[iLooper].outputStepAndCalculableDataFileName)
                 stepAndCalculableDataFile=open(stepAndCalculableDataFileName)
