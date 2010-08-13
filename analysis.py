@@ -51,7 +51,15 @@ class analysis :
         #restrict list of loopers to samples in self.listOfSamples
         self.pruneListOfLoopers()
         
-        #execute commands to make file lists
+        ##execute in parallel commands to make file lists (warning: does not yet function)
+        #def inputFilesEvalWorker(q):
+        #    while True:
+        #        item = q.get()
+        #        item.inputFiles=eval(item.fileListCommand)
+        #        q.task_done()
+        #utils.operateOnListUsingQueue(nCores,inputFilesEvalWorker,self.listOfLoopers)
+
+        #execute in series commands to make file lists        
         for looper in self.listOfLoopers :
             looper.inputFiles=eval(looper.fileListCommand)
 
@@ -354,28 +362,10 @@ class analysis :
         import cProfile
         cProfile.run("analysis.runFunc(1,%s)"%onlyMerge,"resultProfile.out")
 
-    def loopUsingQueue(self,nCores) :
-        from multiprocessing import Process, JoinableQueue
-        
-        def worker(q):
-            while True:
-                item = q.get()
-                item.go()
-                q.task_done()
-
-        q = JoinableQueue()
-        for i in range(nCores):
-            p = Process(target = worker, args = (q,))
-            p.daemon = True
-            p.start()
-
-        map(q.put,self.listOfLoopers)
-        q.join()# block until all tasks are done
-        
     def loopOverSamples(self,nCores,onlyMerge) :
         #loop over events for each looper
         if not onlyMerge :
-            if nCores>1 : self.loopUsingQueue(nCores)
+            if nCores>1 : utils.operateOnListUsingQueue(nCores,utils.goWorker,self.listOfLoopers)
             else :        map(lambda x : x.go(),self.listOfLoopers)
 
         #merge the output
