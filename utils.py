@@ -110,8 +110,7 @@ def pruneCrabDuplicates(inList,sizes) :
         else: abandoned += 1
 
     if abandoned>0 or resolved>0 :
-        print "Unresolved files duplications: %d" % abandoned
-        print "Resolved file duplications (pruned): %d" % resolved
+        print "File duplications, unresolved(%d), resolved(%d)" % (abandoned,resolved)
     return outList
 #####################################
 def fileListFromSrmLs(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
