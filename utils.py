@@ -53,6 +53,7 @@ def mergeRunLsDicts(runLsDict,outFileName,hyphens,printHyphens=False) :
         if nDuplicates!=0 :
             for ls in trimmedList :
                 lsList.remove(ls)
+            lsList.sort()
             print "In run",run,", these lumi sections appear multiple times in the lumiTree:",lsList
         trimmedList.sort()
 
