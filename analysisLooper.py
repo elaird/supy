@@ -7,37 +7,29 @@ class analysisLooper :
     """class to set up and loop over events"""
 
     def __init__(self,fileDirectory,treeName,otherTreesToKeepWhenSkimming,
-                 hyphens,outputDir,name,nEvents,outputPlotFileName,steps,calculables,xs,lumi,
-                 computeEntriesForReport,printNodesUsed,fileListCommand = None,inputFiles = None):
+                 hyphens,outputDir,outputPlotFileName,steps,calculables,
+                 sampleSpec,fileListCommand,xs,lumi,
+                 computeEntriesForReport,printNodesUsed,inputFiles = None):
 
-        self.fileDirectory=fileDirectory
-        self.treeName=treeName
-        self.otherTreesToKeepWhenSkimming=otherTreesToKeepWhenSkimming
-        
-        self.hyphens=hyphens
-        self.name=name
-        self.nEvents=nEvents
-        self.fileListCommand=fileListCommand
-        self.inputFiles=inputFiles
+        for arg in ["name","nEventsMax","color","markerStyle"] :
+            setattr(self,arg,getattr(sampleSpec,arg))
+
+        for arg in ["fileDirectory","treeName","otherTreesToKeepWhenSkimming",
+                    "hyphens","inputFiles","outputDir","fileListCommand","xs","lumi",
+                    "computeEntriesForReport","printNodesUsed","outputPlotFileName"] :
+            setattr(self,arg,eval(arg))
+
         self.steps=copy.deepcopy(steps)
         self.calculables=copy.deepcopy(calculables)
-        self.xs=xs
-        self.lumi=lumi
 
         #these are needed to fill histograms properly in the case of overlapping MC ptHat samples
         self.needToConsiderPtHatThresholds=False
         self.ptHatThresholds=[]
         
-        self.outputDir=outputDir
-
-        self.parentName=name
+        self.parentName=self.name
         self.splitMode=False
         self.quietMode=False
 
-        self.computeEntriesForReport=computeEntriesForReport
-        self.printNodesUsed=printNodesUsed
-
-        self.outputPlotFileName=outputPlotFileName
         self.outputStepAndCalculableDataFileName=self.outputPlotFileName.replace(".root",".pickledData")
 
     def go(self) :
@@ -47,7 +39,7 @@ class analysisLooper :
 
         #loop through entries
         chainWrapper=wrappedChain.wrappedChain(self.inputChain,calculables=self.calculables,useSetBranchAddress=useSetBranchAddress)
-        map( self.processEvent, chainWrapper.entries(self.nEvents) )
+        map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
 
         #set data member to number actually used
         self.nEvents=0
