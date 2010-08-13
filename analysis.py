@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os,sys,copy,cPickle,collections
 sys.argv.append("-b")#set batch mode before importing ROOT
-import utils,steps
+import utils,steps,samples
 from analysisLooper import analysisLooper
 import ROOT as r
 #####################################
@@ -20,7 +20,7 @@ class analysis :
     """base class for an analysis"""
     
     def __init__(self,name="name",outputDir="/tmp/",
-                 listOfSteps=[],listOfCalculables=[],listOfSamples=None,
+                 listOfSteps=[],listOfCalculables=[],listOfSamples=None,listOfSampleDictionaries=[],
                  mainTree=("susyTree","tree"),otherTreesToKeepWhenSkimming=[("lumiTree","tree")],
                  printNodesUsed=False) :
 
@@ -40,16 +40,21 @@ class analysis :
         self.histogramMergeKeepSources=[]
 
         self.hasLooped=False
+
+        self.targetColorDict={}
+        self.targetMarkerStyleDict={}
+
+        self.addSamples(listOfSamples,listOfSampleDictionaries)
         
     def loop(self, profile = False, nCores = 1, splitJobsByInputFile = None, onlyMerge = False) :
 
         #restrict list of loopers to samples in self.listOfSamples
         self.pruneListOfLoopers()
-
+        
         #execute commands to make file lists
         for looper in self.listOfLoopers :
             looper.inputFiles=eval(looper.fileListCommand)
-        
+
         nCores = max(1,nCores)
         if splitJobsByInputFile!=False and (splitJobsByInputFile or nCores>1) :
             self.splitLoopers()
@@ -66,18 +71,22 @@ class analysis :
 
     def pruneListOfLoopers(self) :
         if self.listOfSamples==None : return #None (default) means use all samples
-        self.listOfLoopers = filter(lambda looper: looper.name in self.listOfSamples, self.listOfLoopers)
+        self.listOfLoopers = filter(lambda looper: looper.name in [x.name for x in self.listOfSamples], self.listOfLoopers)
 
     def producePlotFileNamesDict(self) :
-        outDict={}
+        outDict=collections.defaultdict(dict)
         if (not hasattr(self,"parentDict")) or len(self.parentDict)==0 :
             for looper in self.listOfLoopers :
-                outDict[looper.name]=looper.outputPlotFileName
+                outDict[looper.name]["outputPlotFileName"]=looper.outputPlotFileName
+                outDict[looper.name]["color"]=looper.color
+                outDict[looper.name]["markerStyle"]=looper.markerStyle
         else :
             for parent in self.parentDict :
                 iSomeLooper=self.parentDict[parent][0]
                 someLooper=self.listOfLoopers[iSomeLooper]
-                outDict[parent]=someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName)
+                outDict[parent]["outputPlotFileName"]=someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName)
+                outDict[parent]["color"]=someLooper.color
+                outDict[parent]["markerStyle"]=someLooper.markerStyle
         return outDict
 
     def organizeHistograms(self,
@@ -98,64 +107,84 @@ class analysis :
                                      lumiToUseInAbsenceOfData,
                                      self.histogramMergeRequests,
                                      self.histogramMergeKeepSources,
+                                     self.targetColorDict,
+                                     self.targetMarkerStyleDict
                                      )
-
-    def checkXsAndLumi(self,xs,lumi) :
-        if (xs==None and lumi==None) or (xs!=None and lumi!=None) :
-            raise Exception("sample must have either a xs or a lumi specified")
-        return lumi==None
 
     def makeOutputPlotFileName(self,sampleName,isChild=False) :
         answer=self.outputDir+"/"+self.name+"_"+sampleName+"_plots.root"
         if not isChild :
             self.listOfOutputPlotFileNames.append(answer)
         return answer
-        
-    def addSample(self, sampleName, fileListCommand = None, nEvents = -1, nMaxFiles = -1, xs = None, lumi = None, computeEntriesForReport = False) :
-        isMc = self.checkXsAndLumi(xs,lumi)
-        if (not isMc) and (nEvents!=-1 or nMaxFiles!=-1) :
-            print "Warning, not running over full data sample: wrong lumi?"
 
-        if nMaxFiles >= 0 :
-            fileListCommand = "(%s)[:%d]"%(fileListCommand,nMaxFiles)
+    def addSamples(self, listOfSamples, listOfSampleDictionaries, computeEntriesForReport = False) :
+        mergedDict = samples.SampleHolder()
+        map(mergedDict.update,listOfSampleDictionaries)
 
-        listOfSteps = []
-        if isMc : listOfSteps = steps.removeStepsForMc(self.listOfSteps)
-        else :    listOfSteps = steps.removeStepsForData(self.listOfSteps)
+        #print mergedDict
+        ptHatMinDict={}
+        for sampleSpec in listOfSamples :
+            sampleName = sampleSpec.name
+            sampleTuple = mergedDict[sampleName]
+            isMc = sampleTuple.lumi==None
+            fileListCommand=sampleTuple.filesCommand
+            nFilesMax=sampleSpec.nFilesMax
+            nEventsMax=sampleSpec.nEventsMax
 
-        self.listOfLoopers.append(analysisLooper(self.fileDirectory,
-                                                 self.treeName,
-                                                 self.otherTreesToKeepWhenSkimming,
-                                                 self.hyphens,
-                                                 self.outputDir,
-                                                 sampleName,
-                                                 nEvents,
-                                                 self.makeOutputPlotFileName(sampleName),
-                                                 listOfSteps,
-                                                 self.listOfCalculables,
-                                                 xs,
-                                                 lumi,
-                                                 computeEntriesForReport,
-                                                 self.printNodesUsed,
-                                                 fileListCommand=fileListCommand                                                 
-                                                 )
-                               )
+            if (not isMc) and (nEventsMax!=-1 or nFilesMax!=-1) :
+                print "Warning, not running over full data sample: wrong lumi?"
+            if nFilesMax >= 0 :
+                fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
+                
+            listOfSteps = []
+            if isMc : listOfSteps = steps.removeStepsForMc(self.listOfSteps)
+            else :    listOfSteps = steps.removeStepsForData(self.listOfSteps)
+
+            if sampleTuple.ptHatMin :
+                ptHatMinDict[sampleName]=sampleTuple.ptHatMin
+
+            self.listOfLoopers.append(analysisLooper(self.fileDirectory,
+                                                     self.treeName,
+                                                     self.otherTreesToKeepWhenSkimming,
+                                                     self.hyphens,
+                                                     self.outputDir,
+                                                     self.makeOutputPlotFileName(sampleName),
+                                                     listOfSteps,
+                                                     self.listOfCalculables,
+                                                     sampleSpec,
+                                                     fileListCommand,
+                                                     sampleTuple.xs,
+                                                     sampleTuple.lumi,
+                                                     computeEntriesForReport,
+                                                     self.printNodesUsed,
+                                                     )
+                                      )
+        for thing in mergedDict.overlappingSamples :
+            minPtHatsAndNames=[]
+            for sampleName in thing.samples :
+                if sampleName not in ptHatMinDict : continue
+                minPtHatsAndNames.append( (ptHatMinDict[sampleName],sampleName) )
+            self.manageNonBinnedSamples(minPtHatsAndNames,thing.useRejectionMethod)
         return
 
-    def mergeHistograms(self,source=[],target="", keepSourceHistograms=False) :
+    def mergeHistograms(self,source = [], target = "", targetColor = 1, targetMarkerStyle = 1, keepSourceHistograms = False) :
         outDict={}
         for item in source :
             outDict[item]=target
         self.histogramMergeRequests.append(outDict)
         self.histogramMergeKeepSources.append(keepSourceHistograms)
+        self.targetColorDict[target]=targetColor
+        self.targetMarkerStyleDict[target]=targetMarkerStyle
 
-    def mergeAllHistogramsExceptSome(self,dontMergeList=[],target="",keepSourceHistograms=True) :
+    def mergeAllHistogramsExceptSome(self, dontMergeList = [], target = "", targetColor = 1, targetMarkerStyle = 1, keepSourceHistograms = True) :
         fileNameDict=self.producePlotFileNamesDict()
         sources=[]
         for sampleName in fileNameDict.keys() :
             if sampleName in dontMergeList : continue
             sources.append(sampleName)
         self.mergeHistograms(sources,target,keepSourceHistograms)
+        self.targetColorDict[target]=targetColor
+        self.targetMarkerStyleDict[target]=targetMarkerStyle
         
     def manageNonBinnedSamples(self,ptHatLowerThresholdsAndSampleNames=[],useRejectionMethod=True) :
         if not useRejectionMethod :
@@ -201,26 +230,12 @@ class analysis :
     def splitLoopers(self) :
         outListOfLoopers=[]
         for looper in self.listOfLoopers :
-            fileIndex=0
             for iFileName in range(len(looper.inputFiles)) :
                 sampleName=looper.name+"_"+str(iFileName)
-                outListOfLoopers.append(analysisLooper(self.fileDirectory,
-                                                       self.treeName,
-                                                       self.otherTreesToKeepWhenSkimming,                                                       
-                                                       self.hyphens,
-                                                       looper.outputDir,
-                                                       sampleName,
-                                                       looper.nEvents,
-                                                       self.makeOutputPlotFileName(sampleName,isChild=True),
-                                                       copy.deepcopy(looper.steps),
-                                                       self.listOfCalculables,
-                                                       looper.xs,
-                                                       looper.lumi,
-                                                       looper.computeEntriesForReport,
-                                                       looper.printNodesUsed,
-                                                       inputFiles=[looper.inputFiles[iFileName]]
-                                                       )
-                                        )
+                outListOfLoopers.append(copy.deepcopy(looper))
+                outListOfLoopers[-1].name=sampleName
+                outListOfLoopers[-1].outputPlotFileName=self.makeOutputPlotFileName(sampleName,isChild=True)
+                outListOfLoopers[-1].inputFiles=[looper.inputFiles[iFileName]]
                 outListOfLoopers[-1].doSplitMode(looper.name)
         self.listOfLoopers=outListOfLoopers
 
