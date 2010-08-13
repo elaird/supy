@@ -1,6 +1,8 @@
 import os,collections,array,math
 import ROOT as r
 #####################################
+hyphens="".ljust(95,"-")
+#####################################
 def makeCodes(iTry,nOps,nItems) :
     codes=[0]*nItems
     for iItem in range(nItems) :
@@ -34,7 +36,7 @@ def psFromRoot(listOfInFileNames,outFileName,beQuiet) :
     os.system("gzip -f "+outFileName)
     if not beQuiet : print "The display file \""+pdfFileName+"\" has been written."    
 #####################################
-def mergeRunLsDicts(runLsDict,outFileName,hyphens,printHyphens=False) :
+def mergeRunLsDicts(runLsDict,outFileName,printHyphens=False) :
     if len(runLsDict)==0 : return
 
     #merge results into one dictionary

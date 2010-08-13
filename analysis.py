@@ -29,7 +29,6 @@ class analysis :
                     "otherTreesToKeepWhenSkimming","printNodesUsed"] :
             exec("self."+arg+"="+arg)
 
-        self.hyphens="".ljust(95,"-")
         self.fileDirectory=mainTree[0]
         self.treeName=mainTree[1]
         
@@ -47,6 +46,7 @@ class analysis :
         self.addSamples(listOfSamples,listOfSampleDictionaries)
         
     def loop(self, profile = False, nCores = 1, splitJobsByInputFile = None, onlyMerge = False) :
+        nCores = max(1,nCores)
 
         #restrict list of loopers to samples in self.listOfSamples
         self.pruneListOfLoopers()
@@ -55,7 +55,6 @@ class analysis :
         for looper in self.listOfLoopers :
             looper.inputFiles=eval(looper.fileListCommand)
 
-        nCores = max(1,nCores)
         if splitJobsByInputFile!=False and (splitJobsByInputFile or nCores>1) :
             self.splitLoopers()
 
@@ -146,7 +145,6 @@ class analysis :
             self.listOfLoopers.append(analysisLooper(self.fileDirectory,
                                                      self.treeName,
                                                      self.otherTreesToKeepWhenSkimming,
-                                                     self.hyphens,
                                                      self.outputDir,
                                                      self.makeOutputPlotFileName(sampleName),
                                                      listOfSteps,
@@ -251,11 +249,11 @@ class analysis :
                     self.parentDict[looper.parentName]=[iLooper]
 
     def looperPrint(self,parent,looper) :
-        print self.hyphens
+        print utils.hyphens
         print parent
         looper.quietMode=False
         looper.printStats()
-        print self.hyphens
+        print utils.hyphens
 
     def mergeSplitOutput(self,cleanUp) :
         #combine output
@@ -321,13 +319,13 @@ class analysis :
                 for fileName in inFileList : os.remove(fileName)
             
             print hAddOut[:-1].replace("Target","The output")+" has been written."
-            print self.hyphens
+            print utils.hyphens
 
             self.mergeDisplays(displayFileDict,someLooper)
             self.reportEffectiveXs(skimmerFileDict,someLooper)
 
             if len(jsonFileDict.values())>0 and len(jsonFileDict.values()[0])>0 :
-                utils.mergeRunLsDicts(runLsDict,jsonFileDict.values()[0][0],self.hyphens,printHyphens=True)
+                utils.mergeRunLsDicts(runLsDict,jsonFileDict.values()[0][0],printHyphens=True)
             
     def reportEffectiveXs(self,skimmerFileDict,someLooper) :
         if len(skimmerFileDict)>0 :
@@ -341,13 +339,13 @@ class analysis :
                     if nEvents>0 : effXs=(someLooper.xs+0.0)*nPass/nEvents
                     print "The",len(skimFileNames),"skim files have effective XS =",someLooper.xs,"*",nPass,"/",nEvents,"=",effXs
                 print "( e.g.",skimFileNames[0],")"
-                print self.hyphens
+                print utils.hyphens
 
     def mergeDisplays(self,displayFileDict,someLooper) :
         if len(displayFileDict)>0 :
             outputFileName=displayFileDict.values()[0][0].replace(someLooper.name,someLooper.parentName).replace(".root",".ps")
             utils.psFromRoot(displayFileDict.values()[0],outputFileName,beQuiet=False)
-            print self.hyphens
+            print utils.hyphens
 
     def profile(self,nCores,onlyMerge) :
         if nCores>1 : raise ValueError("to profile, nCores must equal one")

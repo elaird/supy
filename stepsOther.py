@@ -88,8 +88,8 @@ class skimmer(analysisStep) :
         for key in self.arrayDictionary :
             self.arrayDictionary[key][0]=eventVars["crock"][key]
         
-    def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
-        if not self.quietMode : print hyphens
+    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+        if not self.quietMode : print utils.hyphens
 
         self.outputFile.cd(self.fileDir)                          #cd to file
         if self.outputTree :         self.outputTree.Write()      #write main tree
@@ -438,12 +438,12 @@ class displayer(analysisStep) :
         self.mhtLlHisto.SetDirectory(0)
         self.metLlHisto.SetDirectory(0)
         
-    def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
+    def endFunc(self,chain,otherChainDict,nEvents,xs) :
         self.outputFile.Write()
         self.outputFile.Close()
         #if not self.quietMode : print "The display file \""+self.outputFileName+"\" has been written."
         if not self.splitMode :
-            if not self.quietMode : print hyphens
+            if not self.quietMode : print utils.hyphens
             psFileName=self.outputFileName.replace(".root",".ps")
             utils.psFromRoot([self.outputFileName],psFileName,self.quietMode)
         del self.canvas
@@ -828,8 +828,8 @@ class pickEventSpecMaker(analysisStep) :
         line+="   "+self.dataSetName+"\n"
         self.outputFile.write(line) #slow: faster to buffer output, write less frequently
 
-    def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
-        print hyphens
+    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+        print utils.hyphens
         self.outputFile.close()
         print "The pick events spec. file \""+self.outputFileName+"\" has been written."
 #####################################
@@ -857,10 +857,10 @@ class jsonMaker(analysisStep) :
     def uponAcceptance(self,eventVars) :
         self.runLsDict[eventVars["run"]].append(eventVars["lumiSection"])
     
-    def endFunc(self,chain,otherChainDict,hyphens,nEvents,xs) :
+    def endFunc(self,chain,otherChainDict,nEvents,xs) :
         if self.splitMode : return
-        if not self.quietMode : print hyphens
+        if not self.quietMode : print utils.hyphens
         sillyDict={}
         sillyDict[1]=[self.runLsDict]
-        utils.mergeRunLsDicts(sillyDict,self.outputFileName,hyphens)
+        utils.mergeRunLsDicts(sillyDict,self.outputFileName)
 #####################################

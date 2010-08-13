@@ -1,5 +1,5 @@
 import copy,array,os
-import wrappedChain
+import wrappedChain,utils
 from autoBook import autoBook
 import ROOT as r
 #####################################
@@ -7,7 +7,7 @@ class analysisLooper :
     """class to set up and loop over events"""
 
     def __init__(self,fileDirectory,treeName,otherTreesToKeepWhenSkimming,
-                 hyphens,outputDir,outputPlotFileName,steps,calculables,
+                 outputDir,outputPlotFileName,steps,calculables,
                  sampleSpec,fileListCommand,xs,lumi,
                  computeEntriesForReport,printNodesUsed,inputFiles = None):
 
@@ -15,7 +15,7 @@ class analysisLooper :
             setattr(self,arg,getattr(sampleSpec,arg))
 
         for arg in ["fileDirectory","treeName","otherTreesToKeepWhenSkimming",
-                    "hyphens","inputFiles","outputDir","fileListCommand","xs","lumi",
+                    "inputFiles","outputDir","fileListCommand","xs","lumi",
                     "computeEntriesForReport","printNodesUsed","outputPlotFileName"] :
             setattr(self,arg,eval(arg))
 
@@ -54,7 +54,7 @@ class analysisLooper :
         self.endSteps()
         self.writeHistos()
         if self.splitMode : self.pickleStepAndCalculableData()
-        if not self.quietMode : print self.hyphens
+        if not self.quietMode : print utils.hyphens
         
         #free up memory (http://wlav.web.cern.ch/wlav/pyroot/memory.html)
         self.inputChain.IsA().Destructor( self.inputChain )
@@ -69,7 +69,7 @@ class analysisLooper :
         nFiles=len(inputFiles)
         alreadyPrintedEllipsis=False
 
-        if not self.quietMode : print self.hyphens
+        if not self.quietMode : print utils.hyphens
         outString="The "+str(nFiles)+" \""+self.name+"\" input file"
         if (nFiles>1) : outString+="s"
         if not self.quietMode : print outString+":"
@@ -108,7 +108,7 @@ class analysisLooper :
         if self.lumi!=None : outString+=" (lumi input =%6.4g"%self.lumi+" / pb)"
             
         if not self.quietMode : print outString
-        if not self.quietMode : print self.hyphens
+        if not self.quietMode : print utils.hyphens
         r.gROOT.cd()
 
     def setupBooks(self) :
@@ -161,14 +161,14 @@ class analysisLooper :
             calcs.sort()
             self.listOfLeavesUsed.sort()
             if self.printNodesUsed :
-            	print self.hyphens
+            	print utils.hyphens
             	print "Leaves accessed:"
             	print str(self.listOfLeavesUsed).replace("'","")
-            	print self.hyphens
+            	print utils.hyphens
                 print "Calculables accessed:"
                 print str(calcs).replace("'","")
 
-            print self.hyphens
+            print utils.hyphens
             print "Calculables' configuration:"
             for calc in calcs :
                 if self.calculableConfigDict[calc]!="" :
@@ -176,9 +176,9 @@ class analysisLooper :
                 
             #print step statistics
             if not len(self.steps) : return
-            print self.hyphens
+            print utils.hyphens
             width = self.steps[0].integerWidth
-            print "Steps:%s" % ("nPass ".rjust(width) + "(nFail)".rjust(width+2)).rjust(len(self.hyphens)-len("Steps:"))
+            print "Steps:%s" % ("nPass ".rjust(width) + "(nFail)".rjust(width+2)).rjust(len(utils.hyphens)-len("Steps:"))
             for step in self.steps :
                 step.printStatistics()
 
@@ -212,7 +212,7 @@ class analysisLooper :
         nJobsHisto.Write()
 
     def writeHistos(self) :
-        if not self.quietMode : print self.hyphens
+        if not self.quietMode : print utils.hyphens
         #r.gDirectory.ls()
         objectList=r.gDirectory.GetList()
         os.system("mkdir -p "+self.outputDir)
@@ -233,7 +233,7 @@ class analysisLooper :
     def endSteps(self) :
         for step in self.steps :
             if hasattr(step,"endFunc") :
-                step.endFunc(self.inputChain,self.otherChainDict,self.hyphens,self.nEvents,self.xs)
+                step.endFunc(self.inputChain,self.otherChainDict,self.nEvents,self.xs)
 
     def pickleStepAndCalculableData(self) :
         keepList=["nTotal","nPass","nFail"]                 #used by all steps

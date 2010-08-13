@@ -245,8 +245,7 @@ def printTimeStamp(canvasDict) :
     canvasDict["canvas"].Print(canvasDict["psFile"],canvasDict["psOptions"])
     canvasDict["canvas"].Clear()
 ##############################
-def plotAll(hyphens="",
-            listOfPlotContainers=[],
+def plotAll(listOfPlotContainers=[],
             psFileName="out.ps",
             samplesForRatios=("",""),
             sampleLabelsForRatios=("",""),
@@ -256,7 +255,7 @@ def plotAll(hyphens="",
             doColzFor2D=True,
             ) :
 
-    print hyphens
+    print utils.hyphens
     if len(listOfPlotContainers)<1 : return
     setupStyle()
 
@@ -286,6 +285,6 @@ def plotAll(hyphens="",
     os.system("ps2pdf "+canvasDict["psFile"]+" "+pdfFile)
     os.system("gzip -f "+canvasDict["psFile"])
     print "The output file \""+pdfFile+"\" has been written."
-    print hyphens
+    print utils.hyphens
     #print "The output file \""+canvasDict["psFile"]+".gz\" has been written."
 ##############################
