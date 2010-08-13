@@ -200,16 +200,36 @@ class deltaPhiStar(wrappedChain.calculable) :
     def __init__(self,collection = None) :
         self.cs = collection
         self.p4Name = '%sCorrectedP4%s' % self.cs
+        self.indicesName = '%sIndices%s' % self.cs
         self.sumP4Name = "%sSumP4%s" % self.cs
         
     def update(self,ignored) :
         self.value=None
 
+        indices = self.source[self.indicesName]
+        if not len(indices) : return
         jets = self.source[self.p4Name]
-        nJets=jets.size()
-        if nJets==0 :
-            return
-
         sumP4 = self.source[self.sumP4Name]
-        self.value = min([abs(r.Math.VectorUtil.DeltaPhi(jets.at(i),jets.at(i)-sumP4)) for i in range(nJets)])
+
+        self.value = min([abs(r.Math.VectorUtil.DeltaPhi(jets.at(i),jets.at(i)-sumP4)) for i in indices])
+##############################
+class maxProjMHT(wrappedChain.calculable) :
+    def name(self) : return "%sMaxProjMHT%s"%self.cs
+
+    def __init__(self,collection = None) :
+        self.cs = collection
+        self.p4Name = '%sCorrectedP4%s' % self.cs
+        self.indicesName = '%sIndices%s' % self.cs
+        self.sumP4Name = "%sSumP4%s" % self.cs
+
+    def update(self,ignored) :
+        self.value = None
+
+        indices = self.source[self.indicesName]
+        if not len(indices) : return
+        jets = self.source[self.p4Name]
+        sumP4 = self.source[self.sumP4Name]
+
+        self.value = -min( [ sumP4.pt() / math.sqrt(jets.at(i).pt()) * \
+                             math.cos(r.Math.VectorUtil.DeltaPhi(jets.at(i),sumP4)) for i in indices])
 ##############################
