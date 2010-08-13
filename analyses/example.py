@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-import analysis,utils,calculables,steps,plotter
+import analysis,utils,calculables,steps,samples,plotter
 import ROOT as r
 
 def makeSteps() :
@@ -40,35 +40,32 @@ def makeCalculables() :
                                                      fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]
     return listOfCalculables
 
+def makeSampleDict() :
+    exampleDict = samples.SampleHolder()
+    exampleDict.add("Example_Skimmed_900_GeV_Data", '["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_Data.root"]', lumi = 1.0e-5 ) #/pb
+    exampleDict.add("Example_Skimmed_900_GeV_MC", '["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_MC.root"]', xs = 1.0e8 ) #pb
+    return exampleDict
+
+def makeSamples() :    
+    return [samples.specify(name = "Example_Skimmed_900_GeV_Data", color = r.kBlack, markerStyle = 20),
+            samples.specify(name = "Example_Skimmed_900_GeV_MC", color = r.kRed)
+            ]
+
 a=analysis.analysis(name="example",
                     outputDir = "/tmp/%s/"%os.environ["USER"],
                     listOfSteps = makeSteps(),
                     listOfCalculables = makeCalculables(),
+                    listOfSamples = makeSamples(),
+                    listOfSampleDictionaries = [makeSampleDict()]
                     )
 
-a.addSample(sampleName="Example_Skimmed_900_GeV_Data", nEvents = -1, lumi = 1.0e-5, #/pb
-            fileListCommand = '["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_Data.root"]' )
-
-a.addSample(sampleName="Example_Skimmed_900_GeV_MC", nEvents = -1, xs = 1.0e8, #pb
-            fileListCommand = '["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_MC.root"]' )
-
-
 #loop over events and make root files containing histograms
-a.loop(profile=False,   #profile the code
-       nCores=1,        #use multiple cores to process input files in parallel
-       )
+a.loop( nCores = 1 ) #use multiple cores to process input files in parallel
 
 #make a pdf file with plots from the histograms created above
-colorDict={}
-colorDict["Example_Skimmed_900_GeV_Data"]=r.kBlack
-colorDict["Example_Skimmed_900_GeV_MC"]=r.kRed
-
-markerStyleDict={}
-markerStyleDict["Example_Skimmed_900_GeV_Data"]=20
-
-plotter.plotAll(a,
-                colorDict=colorDict,
-                markerStyleDict=markerStyleDict,
-                samplesForRatios=("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
-                sampleLabelsForRatios=("data","sim"),
+plotter.plotAll(listOfPlotContainers = a.organizeHistograms(),
+                psFileName = a.outputDir+"/"+a.name+".ps",
+                samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
+                sampleLabelsForRatios = ("data","sim"),
                 )
+
