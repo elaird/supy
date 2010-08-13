@@ -102,7 +102,7 @@ a=analysis.analysis(name = "hadronicLook",
 
 a.loop( nCores = 6 )
 
-##plotting
+#plotting
 a.mergeHistograms(target = "g_jets_mg", targetColor = r.kGreen, source = ["gammajets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
 a.mergeHistograms(target = "qcd_py",    targetColor = r.kBlue, source = ["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
 a.mergeAllHistogramsExceptSome(target = "standard_model", targetColor = r.kGreen+3, dontMergeList=["JetMETTau.Run2010A","lm0","lm1"],keepSourceHistograms=True)
