@@ -73,7 +73,7 @@ def makeCalculables() :
 
 def makeSamples() :
     from samples import specify
-    return [specify(name = "JetMETTau.Run2010A",     color = r.kBlack   , markerStyle = 20),
+    return [specify(name = "JetMET.Run2010A",        color = r.kBlack   , markerStyle = 20),
             specify(name = "qcd_py_pt30",            color = r.kBlue    ),
             specify(name = "qcd_py_pt80",            color = r.kBlue    ),
             specify(name = "qcd_py_pt170",           color = r.kBlue    ),
@@ -100,17 +100,16 @@ a=analysis.analysis(name = "hadronicLook",
                     listOfSampleDictionaries = [samples.mc, samples.jetmet]
                     )
 
-a.loop( nCores = 6 )
+a.loop( nCores = 8 )
 
 #plotting
 a.mergeHistograms(target = "g_jets_mg", targetColor = r.kGreen, source = ["gammajets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
 a.mergeHistograms(target = "qcd_py",    targetColor = r.kBlue, source = ["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
-a.mergeAllHistogramsExceptSome(target = "standard_model", targetColor = r.kGreen+3, dontMergeList=["JetMETTau.Run2010A","lm0","lm1"],keepSourceHistograms=True)
-    
-plotter.plotAll(hyphens=a.hyphens,
-                listOfPlotContainers=a.organizeHistograms(),
+a.mergeAllHistogramsExceptSome(target = "standard_model", targetColor = r.kGreen+3, dontMergeList=["JetMET.Run2010A","lm0","lm1"],keepSourceHistograms=True)
+
+plotter.plotAll(listOfPlotContainers=a.organizeHistograms(),
                 psFileName=a.outputDir+"/"+a.name+".ps",
-                samplesForRatios=("JetMETTau.Run2010A","qcd_py"),
+                samplesForRatios=("JetMET.Run2010A","standard_model"),
                 sampleLabelsForRatios=("data","sim"),
                 )
 
