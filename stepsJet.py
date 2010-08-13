@@ -117,7 +117,7 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
         book = self.book(eventVars)
         book.fill(   sumP4.pt(), "%smht%s"%self.cs, 50, 0.0, self.histoMax, title = "; #slash{H}_{T} (GeV) from clean jets;events / bin")
         book.fill(           ht,  "%sht%s"%self.cs, 50, 0.0, self.histoMax, title = "; H_{T} (GeV) from clean jet p_{T}'s;events / bin")
-        book.fill( sumP4.mass(),   "%sm%s"%self.cs, 50, 0.0, self.histoMax, title = "; mass (GeV) of system of clean jets;events / bin")
+        book.fill( sumP4.mass(),   "%sm%s"%self.cs, 50, 0.0, 7.0e3, title = "; mass (GeV) of system of clean jets;events / bin")
         book.fill( (ht,sumP4.pt()), "%smht_vs_ht%s"%self.cs, (50,50), (0.0,0.0), (self.histoMax,self.histoMax),
                    title = "; H_{T} (GeV) from clean jets; #slash{H}_{T} (GeV) from clean jet p_{T}'s;events / bin")
 
@@ -149,6 +149,8 @@ class cleanJetPtHistogrammer(analysisStep) :
 
             if iJet==0 :#assumes sorted
                 self.book(eventVars).fill(pt, "%sptLeading%s"%self.cs, 50, 0.0, 500.0, title=";p_{T} (GeV) of leading clean jet;events / bin")
+            if iJet==1 :#assumes sorted
+                self.book(eventVars).fill(pt, "%sptSubLeading%s"%self.cs, 50, 0.0, 500.0, title=";p_{T} (GeV) of sub-leading clean jet;events / bin")
 #####################################
 class alphaHistogrammer(analysisStep) :
     """alphaHistogrammer"""
