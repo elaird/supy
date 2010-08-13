@@ -1,6 +1,6 @@
 import collections
 
-def specify(name = None, nFilesMax = -1, nEventsMax = -1, color = 1, markerStyle = 20 ) :
+def specify(name = None, nFilesMax = -1, nEventsMax = -1, color = 1, markerStyle = 1 ) :
     samplespec = collections.namedtuple("samplespec", "name nFilesMax nEventsMax color markerStyle")
     return samplespec(name,nFilesMax,nEventsMax,color,markerStyle)
     
