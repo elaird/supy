@@ -2,7 +2,6 @@
 from stepsOther import *
 from stepsJet import *
 from stepsTrigger import *
-from stepsJetAlgoComparison import *
 from stepsPhoton import *
 from stepsPrint import *
 from stepsGen import *
