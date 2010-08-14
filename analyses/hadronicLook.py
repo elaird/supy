@@ -49,7 +49,7 @@ def makeSteps() :
         steps.variableGreaterFilter(0.55,jets[0]+"AlphaT"+jets[1]),
         steps.objectPtVetoer("muon","P4","Pat",20.0,0),
 
-        #steps.deltaPhiStarHistogrammer(jets),
+        #steps.histogrammer("%sDeltaPhiStar%s"%jets, 50, 0, r.TMath.Pi(), title = ";%s #Delta#phi* %s;events / bin"%jets)
         #steps.skimmer("/vols/cms02/%s/"%os.environ["USER"]),
         #steps.displayer(jets,metCollection,metSuffix,leptonSuffix,genJetCollection,recHitType,recHitPtThreshold=1.0,#GeV
         #                outputDir="/vols/cms02/%s/tmp/"%os.environ["USER"],scale=200.0),

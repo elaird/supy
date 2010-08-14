@@ -132,7 +132,6 @@ class cleanJetPtHistogrammer(analysisStep) :
         self.moreName="(%s %s)" % self.cs
         self.indicesName = "%sIndices%s" % self.cs
         self.p4sName = "%sCorrectedP4%s" % self.cs
-        self.cFactorName = "%sCorrFactor%s" % self.cs
 
     def uponAcceptance (self,eventVars) :
         ptleading = 0.0
@@ -246,16 +245,4 @@ class deltaPhiHistogrammer(analysisStep) :
         book.fill( eventVars[self.var]["phi"], self.var, 50, -4.0, 4.0, title = ";"+self.var+";events / bin")
         book.fill( eventVars[self.var]["R"]  , self.var, 20, 0.0, 10.0, title = ";"+self.var+";events / bin")
         book.fill( eventVars[self.var]["eta"], self.var, 50, -10, 10.0, title = ";"+self.var+";events / bin")
-#####################################
-class deltaPhiStarHistogrammer(analysisStep) :
-    """deltaPhiStarHistogrammer"""
-
-    def __init__(self,cs) :
-        self.cs = cs
-        self.var = "%sDeltaPhiStar%s"%self.cs
-        self.moreName = "(%s %s)"%self.cs
-        self.title=";%s #Delta#phi* %s;events / bin"%self.cs
-        
-    def uponAcceptance (self,eventVars) :
-        self.book(eventVars).fill( eventVars[self.var], self.var, 50, 0.0, r.TMath.Pi(), title = self.title)
 #####################################
