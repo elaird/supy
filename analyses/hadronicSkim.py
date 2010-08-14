@@ -20,13 +20,16 @@ def makeCalculables() :
 
 def makeSamples() :
     from samples import specify
-    return [specify(name = "MinimumBias.Commissioning10-SD_JetMETTau-Jun14thSkim_v1.RECO.Bryn" ),
-            specify(name = "JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn"                     ),
-            specify(name = "JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn"                     ),
-            specify(name = "JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn"                        ),
-            specify(name = "JetMETTau.Run2010A-PromptReco-v4.RECO.Loukas"                      ),
-            specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Loukas"                         ),
-            #specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Martyn"                         )
+    return [#specify(name = "MinimumBias.Commissioning10-SD_JetMETTau-Jun14thSkim_v1.RECO.Bryn" ),
+            #specify(name = "JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn"                     ),
+            #specify(name = "JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn"                     ),
+            #specify(name = "JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn"                        ),
+            #specify(name = "JetMETTau.Run2010A-PromptReco-v4.RECO.Loukas"                      ),
+            #specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Loukas"                         ),
+            specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Martyn"                         ),
+            #specify(name = "z_inv_mg"    ),
+            #specify(name = "z_jets_mg"   ),
+            #specify(name = "w_jets_mg"   ),
             ]
     
 a=analysis.analysis(name = "hadronicSkim",
