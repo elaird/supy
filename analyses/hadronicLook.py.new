@@ -25,7 +25,7 @@ def makeSteps() :
     listOfSteps=[
         steps.progressPrinter(),
         
-        steps.ptHatHistogrammer(),
+        steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}}; events / bin"),
         steps.jetPtSelector(jets,100.0,0),
         #steps.jetPtSelector(jets,40.0,1),
         steps.leadingUnCorrJetPtSelector( [jets],100.0 ),

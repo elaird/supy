@@ -19,12 +19,6 @@ class ptHatFilter(analysisStep) :
     def select (self,eventVars) :
         return eventVars["genpthat"]<self.maxPtHat
 #####################################
-class ptHatHistogrammer(analysisStep) :
-    """ptHatHistogrammer"""
-
-    def uponAcceptance (self,eventVars) :
-        self.book(eventVars).fill(eventVars["genpthat"], "ptHat", 200,0.0,1000.0, title=";#hat{p_{T}};events / bin")
-#####################################
 class susyScanPointPrinter(analysisStep) :
     """susyScanPointPrinter"""
 
