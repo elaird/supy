@@ -1,5 +1,5 @@
 from multiprocessing import Process,JoinableQueue
-import os,collections,array,math,time
+import os,collections,array,math
 import ROOT as r
 #####################################
 hyphens="-"*95
