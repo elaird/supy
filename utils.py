@@ -5,19 +5,27 @@ import ROOT as r
 hyphens="".ljust(95,"-")
 #####################################
 def operateOnListUsingQueue(nCores,workerFunc,inList) :
-    q = JoinableQueue()
+    inQ = JoinableQueue()
+    outQ = JoinableQueue()
     for i in range(nCores):
-        p = Process(target = workerFunc, args = (q,))
+        p = Process(target = workerFunc, args = (inQ,outQ))
         p.daemon = True
         p.start()
-    map(q.put,inList)
-    q.join()# block until all tasks are done
+    map(inQ.put,inList)
+    inQ.join()# block until all tasks are done
+
+    outList=[]
+    try:
+        while True:
+            outList.append( outQ.get_no_wait() )
+    except:
+        return outList
 #####################################
-def goWorker(q):
+def goWorker(inQ,outQ):
     while True:
-        item = q.get()
+        item = inQ.get()
         item.go()
-        q.task_done()
+        inQ.task_done()
 #####################################
 def makeCodes(iTry,nOps,nItems) :
     codes=[0]*nItems

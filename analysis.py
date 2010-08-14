@@ -52,12 +52,15 @@ class analysis :
         self.pruneListOfLoopers()
         
         ##execute in parallel commands to make file lists (warning: does not yet function)
-        #def inputFilesEvalWorker(q):
+        #def inputFilesEvalWorker(inQ,outQ):
         #    while True:
-        #        item = q.get()
+        #        item = inQ.get()
         #        item.inputFiles=eval(item.fileListCommand)
-        #        q.task_done()
-        #utils.operateOnListUsingQueue(nCores,inputFilesEvalWorker,self.listOfLoopers)
+        #        inQ.task_done()
+        #        outQ.put_nowait(item)
+        #outList=utils.operateOnListUsingQueue(nCores,inputFilesEvalWorker,self.listOfLoopers)
+        #print "outList =",outList
+        #self.listOfLoopers=outList
 
         #execute in series commands to make file lists        
         for looper in self.listOfLoopers :
