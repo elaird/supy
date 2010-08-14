@@ -113,8 +113,8 @@ plotter.plotAll(listOfPlotContainers=listOfPlotContainers,
                 psFileName=a.outputDir+"/"+a.name+".ps",
                 #samplesForRatios=("JetMET.Run2010A","qcd_py"),
                 #sampleLabelsForRatios=("data","qcd"),
-                #samplesForRatios=("JetMET.Run2010A","standard_model"),
-                #sampleLabelsForRatios=("data","sim"),
+                samplesForRatios=("JetMET.Run2010A","standard_model"),
+                sampleLabelsForRatios=("data","sm"),
                 )
 
 #import statMan
