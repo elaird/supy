@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os,analysis,utils,steps,calculables
+import os,analysis,utils,steps,calculables,samples
 
 jetTypes = [ (col,"Pat") for col in ["ak5Jet","ak5JetJPT","ak5JetPF"]]
 
@@ -19,37 +19,25 @@ def makeCalculables() :
     calcs =  calculables.zeroArgs()
     calcs += calculables.fromJetCollections(jetTypes)
     calcs += [ calculables.jetIndices( collection = col, ptMin = 20., etaMax = 3.0, flagName = "JetIDloose") for col in jetTypes ]
+    calcs += [ calculables.jetIndicesOther( collection = col, ptMin = 20.) for col in jetTypes ]
     calcs += [ calculables.PFJetIDloose( collection = jetTypes[2],
                                          fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]
     return calcs
 
-a=analysis.analysis( name = "triggerTurnOn",
-                     outputDir = "/vols/cms02/%s/tmp/"%os.environ["USER"],
-                     listOfSteps = makeSteps(),
-                     listOfCalculables = makeCalculables()
-                    )
+a = analysis.analysis( name = "triggerTurnOn",
+                       outputDir = "/vols/cms02/%s/tmp/"%os.environ["USER"],
+                       listOfSteps = makeSteps(),
+                       listOfCalculables = makeCalculables(),
+                       listOfSamples = [samples.specify(name = "JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn", nFilesMax=10) ],
+                       listOfSampleDictionaries = [samples.jetmet]
+                       )
 
-def dummy(location,itemsToSkip=[],sizeThreshold=0,pruneList=True,nMaxFiles=-1) :
-    return []
-utils.fileListFromSrmLs=dummy
-
-a.addSample( sampleName = "JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn", nMaxFiles = -1, nEvents = -1, lumi = 0.012,#/pb
-             listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_16_52_06/"))
-
-a.addSample( sampleName = "JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn", nMaxFiles = -1, nEvents = -1, lumi = 0.120,#/pb
-             listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_17_20_35/"))
-
-a.addSample( sampleName = "JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn", nMaxFiles = -1, nEvents = -1, lumi = 0.1235,#/pb
-             listOfFileNames = utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/bm409//ICF/automated/2010_07_20_15_40_06/"))
-
-#a.loop( nCores = 6 )
+a.loop( nCores = 10 )
 
 #########################################################
 
 targetName = "JetMETTau.Run2010A"
-a.mergeAllHistogramsExceptSome( target=targetName,
-                                dontMergeList=[],
-                                keepSourceHistograms = False)
+a.mergeAllHistogramsExceptSome( target=targetName, dontMergeList=[], keepSourceHistograms = False)
 organizedHists = a.organizeHistograms( multipleDisjointDataSamples = True)
 histograms = dict([(spec["plotName"],spec['histoDict'][targetName]) for spec in organizedHists])
 
