@@ -44,6 +44,9 @@ class analysis :
         self.targetMarkerStyleDict={}
 
         self.addSamples(listOfSamples,listOfSampleDictionaries)
+
+        #make sure that output directory exists
+        os.system("mkdir -p "+self.outputDir)
         
     def loop(self, profile = False, nCores = 1, splitJobsByInputFile = None, onlyMerge = False) :
         nCores = max(1,nCores)

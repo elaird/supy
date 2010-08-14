@@ -30,7 +30,7 @@ class analysisLooper :
         self.splitMode=False
         self.quietMode=False
         self.setOutputFileNames()
-        
+
     def setOutputFileNames(self) :
         self.outputStepAndCalculableDataFileName = self.outputPlotFileName.replace(".root",".pickledData")
         self.inputFileListFileName               = self.outputPlotFileName.replace(".root",".inputFileList")
@@ -216,7 +216,6 @@ class analysisLooper :
         if not self.quietMode : print utils.hyphens
         #r.gDirectory.ls()
         objectList=r.gDirectory.GetList()
-        os.system("mkdir -p "+self.outputDir)
         outputFile=r.TFile(self.outputPlotFileName,"RECREATE")
         zombie=outputFile.IsZombie()
 
