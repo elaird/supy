@@ -213,23 +213,26 @@ def onePlotFunction(plotContainer,canvasDict) :
             denomHisto = plotContainer["histoDict"][denomSampleName]
 
         if numHisto and denomHisto and numHisto.GetEntries() and denomHisto.GetEntries() :
-            ratio=utils.ratioHistogram(numHisto,denomHisto)
-            ratio.SetMinimum(0.0)
-            ratio.SetMaximum(2.0)
-            ratio.GetYaxis().SetTitle(numLabel+"/"+denomLabel)
-            canvasDict["canvas"].cd(2)
-            adjustPad(r.gPad)
-            r.gPad.SetGridy()
-            ratio.SetStats(False)
-            ratio.GetXaxis().SetLabelSize(0.0)
-            ratio.GetXaxis().SetTickLength(3.5*ratio.GetXaxis().GetTickLength())
-            ratio.GetYaxis().SetLabelSize(0.2)
-            ratio.GetYaxis().SetNdivisions(502,True)
-            ratio.GetXaxis().SetTitleOffset(0.2)
-            ratio.GetYaxis().SetTitleSize(0.2)
-            ratio.GetYaxis().SetTitleOffset(0.2)
-            ratio.SetMarkerStyle(numHisto.GetMarkerStyle())
-            ratio.Draw()
+            try:
+                ratio=utils.ratioHistogram(numHisto,denomHisto)
+                ratio.SetMinimum(0.0)
+                ratio.SetMaximum(2.0)
+                ratio.GetYaxis().SetTitle(numLabel+"/"+denomLabel)
+                canvasDict["canvas"].cd(2)
+                adjustPad(r.gPad)
+                r.gPad.SetGridy()
+                ratio.SetStats(False)
+                ratio.GetXaxis().SetLabelSize(0.0)
+                ratio.GetXaxis().SetTickLength(3.5*ratio.GetXaxis().GetTickLength())
+                ratio.GetYaxis().SetLabelSize(0.2)
+                ratio.GetYaxis().SetNdivisions(502,True)
+                ratio.GetXaxis().SetTitleOffset(0.2)
+                ratio.GetYaxis().SetTitleSize(0.2)
+                ratio.GetYaxis().SetTitleOffset(0.2)
+                ratio.SetMarkerStyle(numHisto.GetMarkerStyle())
+                ratio.Draw()
+            except:
+                print "failed to make ratio for plot",plotContainer["plotName"]
         else :
             canvasDict["canvas"].cd(2)
 
