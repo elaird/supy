@@ -185,15 +185,15 @@ class analysis :
         self.targetColorDict[target]=targetColor
         self.targetMarkerStyleDict[target]=targetMarkerStyle
 
-    def mergeAllHistogramsExceptSome(self, dontMergeList = [], target = "", targetColor = 1, targetMarkerStyle = 1, keepSourceHistograms = True) :
-        fileNameDict=self.producePlotFileNamesDict()
-        sources=[]
-        for sampleName in fileNameDict.keys() :
-            if sampleName in dontMergeList : continue
-            sources.append(sampleName)
-        self.mergeHistograms(sources,target,keepSourceHistograms)
-        self.targetColorDict[target]=targetColor
-        self.targetMarkerStyleDict[target]=targetMarkerStyle
+    #def mergeAllHistogramsExceptSome(self, dontMergeList = [], target = "", targetColor = 1, targetMarkerStyle = 1, keepSourceHistograms = True) :
+    #    fileNameDict=self.producePlotFileNamesDict()
+    #    sources=[]
+    #    for sampleName in fileNameDict.keys() :
+    #        if sampleName in dontMergeList : continue
+    #        sources.append(sampleName)
+    #    self.mergeHistograms(sources,target,keepSourceHistograms)
+    #    self.targetColorDict[target]=targetColor
+    #    self.targetMarkerStyleDict[target]=targetMarkerStyle
         
     def manageNonBinnedSamples(self,ptHatLowerThresholdsAndSampleNames=[],useRejectionMethod=True) :
         if not useRejectionMethod :
