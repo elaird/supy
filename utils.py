@@ -6,12 +6,17 @@ hyphens="-"*95
 #####################################
 def operateOnListUsingQueue(nCores,workerFunc,inList) :
     q = JoinableQueue()
+    listOfProcesses=[]
     for i in range(nCores):
         p = Process(target = workerFunc, args = (q,))
         p.daemon = True
         p.start()
+        listOfProcesses.append(p)
     map(q.put,inList)
     q.join()# block until all tasks are done
+    #clean up
+    for process in listOfProcesses :
+        process.terminate()
 #####################################
 def goWorker(q):
     while True:
