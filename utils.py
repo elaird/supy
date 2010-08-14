@@ -1,31 +1,23 @@
 from multiprocessing import Process,JoinableQueue
-import os,collections,array,math
+import os,collections,array,math,time
 import ROOT as r
 #####################################
-hyphens="".ljust(95,"-")
+hyphens="-"*95
 #####################################
 def operateOnListUsingQueue(nCores,workerFunc,inList) :
-    inQ = JoinableQueue()
-    outQ = JoinableQueue()
+    q = JoinableQueue()
     for i in range(nCores):
-        p = Process(target = workerFunc, args = (inQ,outQ))
+        p = Process(target = workerFunc, args = (q,))
         p.daemon = True
         p.start()
-    map(inQ.put,inList)
-    inQ.join()# block until all tasks are done
-
-    outList=[]
-    try:
-        while True:
-            outList.append( outQ.get_no_wait() )
-    except:
-        return outList
+    map(q.put,inList)
+    q.join()# block until all tasks are done
 #####################################
-def goWorker(inQ,outQ):
+def goWorker(q):
     while True:
-        item = inQ.get()
+        item = q.get()
         item.go()
-        inQ.task_done()
+        q.task_done()
 #####################################
 def makeCodes(iTry,nOps,nItems) :
     codes=[0]*nItems

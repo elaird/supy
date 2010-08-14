@@ -27,7 +27,7 @@ class analysis :
         for arg in ["name","outputDir","listOfSteps",
                     "listOfCalculables","listOfSamples",
                     "otherTreesToKeepWhenSkimming","printNodesUsed"] :
-            exec("self."+arg+"="+arg)
+            setattr(self,arg,eval(arg))
 
         self.fileDirectory=mainTree[0]
         self.treeName=mainTree[1]
@@ -51,20 +51,27 @@ class analysis :
         #restrict list of loopers to samples in self.listOfSamples
         self.pruneListOfLoopers()
         
-        ##execute in parallel commands to make file lists (warning: does not yet function)
-        #def inputFilesEvalWorker(inQ,outQ):
-        #    while True:
-        #        item = inQ.get()
-        #        item.inputFiles=eval(item.fileListCommand)
-        #        inQ.task_done()
-        #        outQ.put_nowait(item)
-        #outList=utils.operateOnListUsingQueue(nCores,inputFilesEvalWorker,self.listOfLoopers)
-        #print "outList =",outList
-        #self.listOfLoopers=outList
+        #execute in parallel commands to make file lists
+        def inputFilesEvalWorker(q):
+            while True:
+                item = q.get()
+                #write file list to disk
+                outFile=open(os.path.expanduser(item.inputFileListFileName),"w")
+                cPickle.dump(eval(item.fileListCommand),outFile)
+                outFile.close()
+                #notify queue
+                q.task_done()
+        utils.operateOnListUsingQueue(nCores,inputFilesEvalWorker,self.listOfLoopers)
 
-        #execute in series commands to make file lists        
+        #associate file list to each looper
         for looper in self.listOfLoopers :
-            looper.inputFiles=eval(looper.fileListCommand)
+            someFile=open(looper.inputFileListFileName)
+            looper.inputFiles=cPickle.load(someFile)
+            someFile.close()
+
+        ##execute in series commands to make file lists        
+        #for looper in self.listOfLoopers :
+        #    looper.inputFiles=eval(looper.fileListCommand)
 
         if splitJobsByInputFile!=False and (splitJobsByInputFile or nCores>1) :
             self.splitLoopers()
@@ -244,7 +251,7 @@ class analysis :
                 outListOfLoopers.append(copy.deepcopy(looper))
                 outListOfLoopers[-1].name=sampleName
                 outListOfLoopers[-1].outputPlotFileName=self.makeOutputPlotFileName(sampleName,isChild=True)
-                outListOfLoopers[-1].setPickledOutputFileName()
+                outListOfLoopers[-1].setOutputFileNames()
                 outListOfLoopers[-1].inputFiles=[looper.inputFiles[iFileName]]
                 outListOfLoopers[-1].doSplitMode(looper.name)
         self.listOfLoopers=outListOfLoopers

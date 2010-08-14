@@ -29,10 +29,11 @@ class analysisLooper :
         self.parentName=self.name
         self.splitMode=False
         self.quietMode=False
-        self.setPickledOutputFileName()
+        self.setOutputFileNames()
         
-    def setPickledOutputFileName(self) :
-        self.outputStepAndCalculableDataFileName=self.outputPlotFileName.replace(".root",".pickledData")
+    def setOutputFileNames(self) :
+        self.outputStepAndCalculableDataFileName = self.outputPlotFileName.replace(".root",".pickledData")
+        self.inputFileListFileName               = self.outputPlotFileName.replace(".root",".inputFileList")
 
     def go(self) :
         self.setupChains(self.inputFiles)
