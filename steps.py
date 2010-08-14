@@ -28,11 +28,10 @@ def removeStepsForMc(inSteps) :
     return outSteps
 #####################################
 def removeStepsForData(inSteps) :
-    dummyPtHatHistogrammer=ptHatHistogrammer()
     outSteps=[]
     for step in inSteps :
         #remove inapplicable steps
-        if step.__doc__==dummyPtHatHistogrammer.__doc__ : continue
+        if type(step) == histogrammer and "genpthat" in step.var : continue
         outSteps.append(copy.deepcopy(step))
     return outSteps
 #####################################
