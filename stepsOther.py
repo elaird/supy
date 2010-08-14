@@ -864,3 +864,15 @@ class jsonMaker(analysisStep) :
         sillyDict[1]=[self.runLsDict]
         utils.mergeRunLsDicts(sillyDict,self.outputFileName)
 #####################################
+class duplicateEventCheck(analysisStep) :
+    """duplicateEventCheck"""
+
+    def __init__(self) :
+        self.events = collections.defaultdict(set)
+
+    def uponAcceptance(self,ev) :
+        runLs = self.events[(ev["run"],ev["lumiSection"])]
+        event = ev["event"]
+        assert event not in runLs, "You have a duplicate event: run %d, lumiSection %d, event %d"%(ev["run"],ev["lumiSection"],event)
+        runLs.add(event)
+#####################################
