@@ -68,6 +68,7 @@ class analysis :
             someFile=open(looper.inputFileListFileName)
             looper.inputFiles=cPickle.load(someFile)
             someFile.close()
+            os.remove(looper.inputFileListFileName)
 
         ##execute in series commands to make file lists        
         #for looper in self.listOfLoopers :
