@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-import os,copy
-import analysis,steps,calculables,samples,plotter
+import os,analysis,steps,calculables,samples,plotter
 import ROOT as r
 
 def makeSteps() :
@@ -31,6 +30,7 @@ def makeSteps() :
         steps.leadingUnCorrJetPtSelector( [jets],100.0 ),
 
         steps.hltFilter("HLT_Jet50U"),
+        steps.vertexRequirementFilter(5.0,15.0),
         steps.hltPrescaleHistogrammer(["HLT_ZeroBias","HLT_Jet50U","HLT_MET45"]),
 
         steps.minNCleanJetEventFilter(jets,2),
@@ -76,20 +76,23 @@ def makeCalculables() :
 def makeSamples() :
     from samples import specify
     return [specify(name = "JetMET.Run2010A",        color = r.kBlack   , markerStyle = 20),
-            specify(name = "qcd_py_pt30",            color = r.kBlue    ),
+            ##specify(name = "qcd_py_pt30",            color = r.kBlue    ),
             specify(name = "qcd_py_pt80",            color = r.kBlue    ),
             specify(name = "qcd_py_pt170",           color = r.kBlue    ),
             specify(name = "qcd_py_pt300",           color = r.kBlue    ),
             specify(name = "qcd_py_pt470",           color = r.kBlue    ),
             specify(name = "qcd_py_pt800",           color = r.kBlue    ),
-            specify(name = "qcd_py_pt1400",          color = r.kBlue    ),
+            ##specify(name = "qcd_py_pt1400",          color = r.kBlue    ),
             specify(name = "gammajets_mg_pt40_100",  color = r.kGreen   ),
             specify(name = "gammajets_mg_pt100_200", color = r.kGreen   ),
             specify(name = "gammajets_mg_pt200",     color = r.kGreen   ),
             specify(name = "tt_tauola_mg",           color = r.kOrange  ),
-            specify(name = "z_inv_mg",               color = r.kMagenta ),
-            specify(name = "z_jets_mg",              color = r.kYellow-3),
-            specify(name = "w_jets_mg",              color = 28         ),
+            ##specify(name = "z_inv_mg",               color = r.kMagenta ),
+            ##specify(name = "z_jets_mg",              color = r.kYellow-3),
+            ##specify(name = "w_jets_mg",              color = 28         ),
+            specify(name = "z_inv_mg_skim",          color = r.kMagenta ),
+            specify(name = "z_jets_mg_skim",         color = r.kYellow-3),
+            specify(name = "w_jets_mg_skim",         color = 28         ),
             specify(name = "lm0",                    color = r.kRed     ),
             specify(name = "lm1",                    color = r.kRed+1   ),
             ]
@@ -110,14 +113,18 @@ a.mergeHistograms(target = "g_jets_mg",      targetColor = r.kGreen,   source = 
 a.mergeHistograms(target = "qcd_py",         targetColor = r.kBlue,    source = ["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
 a.mergeHistograms(target = "standard_model", targetColor = r.kGreen+3, source = ["g_jets_mg","qcd_py","tt_tauola_mg",
                                                                                  "z_inv_mg","z_jets_mg","w_jets_mg"], keepSourceHistograms = True)
+
 listOfPlotContainers=a.organizeHistograms()
+
+#import deltaPhiLook
+#listofPlotContainers=deltaPhiLook.go(listOfPlotContainers)
 
 plotter.plotAll(listOfPlotContainers=listOfPlotContainers,
                 psFileName=a.outputDir+"/"+a.name+".ps",
                 #samplesForRatios=("JetMET.Run2010A","qcd_py"),
                 #sampleLabelsForRatios=("data","qcd"),
                 samplesForRatios=("JetMET.Run2010A","standard_model"),
-                sampleLabelsForRatios=("data","sm"),
+                sampleLabelsForRatios=("data","s.m."),
                 )
 
 #import statMan
