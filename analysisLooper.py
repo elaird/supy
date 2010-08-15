@@ -45,8 +45,10 @@ class analysisLooper :
         map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
 
         #set data member to number actually used
-        self.nEvents=0
-        if hasattr(chainWrapper,"entry") : self.nEvents = 1+chainWrapper.entry
+        for step in self.steps :
+            if step.ignoreInAccounting : continue
+            self.nEvents=step.nTotal
+            break
 
         activeKeys = chainWrapper.activeKeys()
         self.makeDictOfCalculableConfigs(activeKeys)

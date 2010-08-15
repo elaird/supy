@@ -55,7 +55,7 @@ class analysisStep(object) :
         self.disabled=True
         
     def ignore(self) :
-        self.ignore=True
+        self.ignoreInAccounting=True
         
     def makeQuiet(self) :
         self.quietMode=True
