@@ -128,9 +128,8 @@ class analysisLooper :
         current = r.gDirectory
         books = self.setupBooks(current)
         for step in self.steps :
-            if hasattr(step,"select") :
+            if hasattr(step,"select") and not step.ignore :
                 current = current.mkdir(step.__doc__)
-                #current.cd()
                 books = self.setupBooks(current)
             step.books = books
             if self.quietMode : step.makeQuiet()
