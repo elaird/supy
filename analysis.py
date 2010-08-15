@@ -45,7 +45,7 @@ class analysis :
 
         self.addSamples(listOfSamples,listOfSampleDictionaries)
 
-        #make sure that output directory exists
+        #make output directory
         os.system("mkdir -p "+self.outputDir)
         
     def loop(self, profile = False, nCores = 1, splitJobsByInputFile = None, onlyMerge = False) :
