@@ -10,8 +10,7 @@ class wrappedChain(dict) :
         self.__activeNodeList = []
         self.__chain = chain
 
-        if (not chain) or chain.GetEntries()==0 : return
-        chain.GetEntry(0)
+        if (not chain) or chain.GetEntry(0)==0 : return
         for branch in chain.GetListOfBranches() :
             nameB = branch.GetName()
             nameL = (lambda nL: nameB if nL=="_" else nL )(branch.GetListOfLeaves().At(0).GetName())
