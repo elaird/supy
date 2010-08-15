@@ -1,6 +1,8 @@
 Critical
 ---------
 histogram organizer
+bail on two identical samples names
+bail on two identical selections
 l vetos
 flow table
 
