@@ -1,6 +1,8 @@
 Critical
 ---------
-(none)
+histogram organizer
+l vetos
+flow table
 
 Processing
 -----------
@@ -14,31 +16,31 @@ Document
 
 Other
 --------
+* bug in ratio producer?
+
 * cross section in database
 
-* fix circle
-* label HT
-
+* organize files in cvs
 * named arguments everywhere
 * update example ntuples
 
-* duplicate event checker
+* non-linear cutflow
+* histo sculpting
+
+* multimode duplicate event checker
 
 * displayer cleans up
+* modes for displayer
+* fix circle
+* label HT
 
 * profile
 * batch queue
 * logfiles
 
-* organize files in cvs
-
-* skimmer prefix and suffix
 * fix extra tree functionality in skimmer
 
 * tdrPlotter
 * list the selection on the plot
-
-* non-linear cutflow / directory structured output
-* histo sculpting
 
 * handle subdirectories of input file directories
