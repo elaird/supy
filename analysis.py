@@ -370,10 +370,10 @@ class analysis :
             print utils.hyphens
 
     def profile(self,nCores,onlyMerge) :
-        if nCores>1 : raise ValueError("to profile, nCores must equal one")
         global runFunc
         runFunc=self.loopOverSamples
         import cProfile
+        if nCores>1 : print "setting nCores=1 to profile"        
         cProfile.run("analysis.runFunc(1,%s)"%onlyMerge,"resultProfile.out")
 
     def loopOverSamples(self,nCores,onlyMerge) :
