@@ -39,10 +39,17 @@ class analysisLooper :
         self.setupChains(self.inputFiles)
         useSetBranchAddress = self.setupSteps()
 
+        #check for illegally placed ignored steps
+        for iStep,step in enumerate(self.steps) :
+            assert (not iStep) or (not step.ignoreInAccounting),"An Ignored step may only be the first step"
+
         #loop through entries
         chainWrapper = wrappedChain.wrappedChain(self.inputChain, calculables = self.calculables, useSetBranchAddress = useSetBranchAddress)
         map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
         for step in self.steps :
+            if step.ignoreInAccounting :
+                step.nTotal = step.nPass+step.nFail
+                continue
             step.nPass = 0
             step.nFail = 0
             step.nTotal = 0
@@ -56,7 +63,11 @@ class analysisLooper :
         #set data member to number actually used
         self.nEvents = chainWrapper.entry if hasattr(chainWrapper,"entry") else 0
         for step in self.steps :
-            if step.ignoreInAccounting or not step.isSelector : continue
+            if step.ignoreInAccounting :
+                self.nEventsOriginal = step.nTotal
+                continue
+            if not step.isSelector :
+                continue
             self.nEvents = step.nTotal
             break
 
@@ -235,10 +246,15 @@ class analysisLooper :
         if self.lumi!=None : lumiHisto.SetBinContent(1,self.lumi)
         lumiHisto.Write()
         
-        nEventsHisto=r.TH1D("nEventsHisto",";dummy axis;N_{events} read in",1,-0.5,0.5)
+        nEventsHisto=r.TH1D("nEventsHisto",";dummy axis;N_{events} processed",1,-0.5,0.5)
         nEventsHisto.SetBinContent(1,self.nEvents)
+        if hasattr(self,"nEventsOriginal") :
+            nEventsOriginalHisto=r.TH1D("nEventsOriginalHisto",";dummy axis;N_{events} in original files",1,-0.5,0.5)
+            nEventsOriginalHisto.SetBinContent(1,self.nEventsOriginal)
+            nEventsOriginalHisto.Write()
+            nEventsHisto.SetTitle(self.steps[0].moreName+self.steps[0].moreName2+nEventsHisto.GetTitle())
         nEventsHisto.Write()
-        
+
         nJobsHisto=r.TH1D("nJobsHisto",";dummy axis;N_{jobs}",1,-0.5,0.5)
         nJobsHisto.SetBinContent(1,1)
         nJobsHisto.Write()

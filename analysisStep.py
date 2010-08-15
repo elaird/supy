@@ -27,7 +27,11 @@ class analysisStep(object) :
             return True
 
         passed = bool(self.select(eventVars))
-        self.book(eventVars).fill(passed,"counts",2,0,2)
+        if not self.ignoreInAccounting :
+            self.book(eventVars).fill(passed,"counts",2,0,2)
+        else :
+            self.nPass+=passed
+            self.nFail+=not passed
         return passed
     
     def name(self) :
@@ -40,7 +44,9 @@ class analysisStep(object) :
         self.disabled=True
         
     def ignore(self) :
-        self.ignoreInAccounting=True
+        self.nPass = 0
+        self.nFail = 0
+        self.ignoreInAccounting = True
         
     def makeQuiet(self) :
         self.quietMode=True

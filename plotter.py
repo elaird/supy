@@ -256,6 +256,7 @@ def plotAll(listOfPlotContainers=[],
             drawYx=False,
             doMetFit=False,
             doColzFor2D=True,
+            blackList=["counts","lumiWarn","nEventsOriginalHisto"]
             ) :
 
     print utils.hyphens
@@ -281,6 +282,7 @@ def plotAll(listOfPlotContainers=[],
     printTimeStamp(canvasDict)
 
     for plotContainer in listOfPlotContainers :
+        if plotContainer["plotName"] in blackList : continue
         onePlotFunction(plotContainer,canvasDict)
 
     canvasDict["canvas"].Print(canvasDict["psFile"]+"]",canvasDict["psOptions"])
