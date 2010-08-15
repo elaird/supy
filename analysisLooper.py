@@ -19,16 +19,17 @@ class analysisLooper :
                     "computeEntriesForReport","printNodesUsed","outputPlotFileName"] :
             setattr(self,arg,eval(arg))
 
-        self.steps=copy.deepcopy(steps)
-        self.calculables=copy.deepcopy(calculables)
+        self.steps = copy.deepcopy(steps)
+        self.calculables = copy.deepcopy(calculables)
+        self.listOfBookDicts = []
 
         #these are needed to fill histograms properly in the case of overlapping MC ptHat samples
-        self.needToConsiderPtHatThresholds=False
+        self.needToConsiderPtHatThresholds = False
         self.ptHatThresholds=[]
         
-        self.parentName=self.name
-        self.splitMode=False
-        self.quietMode=False
+        self.parentName = self.name
+        self.splitMode = False
+        self.quietMode = False
         self.setOutputFileNames()
 
     def setOutputFileNames(self) :
@@ -37,18 +38,17 @@ class analysisLooper :
 
     def go(self) :
         self.setupChains(self.inputFiles)
-        self.setupBooks()
-        useSetBranchAddress=self.setupSteps()
+        useSetBranchAddress = self.setupSteps()
 
         #loop through entries
-        chainWrapper=wrappedChain.wrappedChain(self.inputChain,calculables=self.calculables,useSetBranchAddress=useSetBranchAddress)
+        chainWrapper = wrappedChain.wrappedChain(self.inputChain, calculables = self.calculables, useSetBranchAddress = useSetBranchAddress)
         map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
 
         #set data member to number actually used
         self.nEvents=0
-        if hasattr(chainWrapper,"entry") : self.nEvents=1+chainWrapper.entry
+        if hasattr(chainWrapper,"entry") : self.nEvents = 1+chainWrapper.entry
 
-        activeKeys=chainWrapper.activeKeys()
+        activeKeys = chainWrapper.activeKeys()
         self.makeDictOfCalculableConfigs(activeKeys)
         self.makeListOfLeavesUsed(activeKeys)
         self.printStats()
@@ -112,28 +112,39 @@ class analysisLooper :
         if not self.quietMode : print utils.hyphens
         r.gROOT.cd()
 
-    def setupBooks(self) :
+    def setupBooks(self,directory) :
         #set up books
-        self.books = {}
-        self.books[None] = autoBook()
+        books = {}
+        books[None] = autoBook(directory)
         #make books for ptHat bins (keyed by lower threshold)
         for iThreshold in range(len(self.ptHatThresholds)) :
-            self.books[iThreshold+1]=autoBook()
+            books[iThreshold+1] = autoBook(directory)
+        self.listOfBookDicts.append(books)
+        return books
 
     def setupSteps(self) :
         returnValue=True
+        r.gROOT.cd()
+        current = r.gDirectory
+        books = self.setupBooks(current)
         for step in self.steps :
-            step.books = self.books
+            if hasattr(step,"select") :
+                current = current.mkdir(step.__doc__)
+                #current.cd()
+                books = self.setupBooks(current)
+            step.books = books
             if self.quietMode : step.makeQuiet()
             if self.splitMode : step.setSplitMode()
-            step.selectNotImplemented=not hasattr(step,"select")
-            step.uponAcceptanceImplemented=hasattr(step,"uponAcceptance")
-            step.uponRejectionImplemented=hasattr(step,"uponRejection")
+            
+            step.selectNotImplemented = not hasattr(step,"select")            
+            step.uponAcceptanceImplemented = hasattr(step,"uponAcceptance")
+            step.uponRejectionImplemented = hasattr(step,"uponRejection")
             if step.__doc__==step.skimmerStepName : returnValue=False
             if hasattr(step,"setup") : step.setup(self.inputChain,self.fileDirectory,self.name)
 
-            step.needToConsiderPtHatThresholds=self.needToConsiderPtHatThresholds
-            step.ptHatThresholds=self.ptHatThresholds
+            step.needToConsiderPtHatThresholds = self.needToConsiderPtHatThresholds
+            step.ptHatThresholds = self.ptHatThresholds
+        r.gROOT.cd()
         return returnValue
 
     def doSplitMode(self,parentName) :
@@ -189,12 +200,18 @@ class analysisLooper :
             object.Delete()
 
     def writeHistosFromBooks(self) :
-        for book in self.books.values() :
-            for item in book.fillOrder :
-                object=book[item]
-                object.Write()
-                object.Delete()
-
+        filedir = r.gDirectory.GetName()
+        for books in self.listOfBookDicts :
+            name = books[None]._autoBook__directory.GetName()
+            if '/' not in name : r.gDirectory.mkdir(name).cd()
+            for book in books.values() :
+                for item in book.fillOrder :
+                    object = book[item]
+                    object.Write()
+                    object.Delete()
+        while "/" not in r.gDirectory.GetName() :
+            r.gDirectory.GetMotherDir().cd()
+                    
     def writeSpecialHistos(self) :
         xsHisto=r.TH1D("xsHisto",";dummy axis;#sigma (pb)",1,-0.5,0.5)
         if self.xs!=None : xsHisto.SetBinContent(1,self.xs)
@@ -215,9 +232,9 @@ class analysisLooper :
     def writeHistos(self) :
         if not self.quietMode : print utils.hyphens
         #r.gDirectory.ls()
-        objectList=r.gDirectory.GetList()
-        outputFile=r.TFile(self.outputPlotFileName,"RECREATE")
-        zombie=outputFile.IsZombie()
+        objectList = r.gDirectory.GetList()
+        outputFile = r.TFile(self.outputPlotFileName,"RECREATE")
+        zombie = outputFile.IsZombie()
 
         #self.writeAllObjects()
         self.writeHistosFromBooks()
