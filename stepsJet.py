@@ -193,15 +193,6 @@ class alphaHistogrammer(analysisStep) :
                        (500,50), (0.0,0.0),(1.0,r.TMath.Pi()),
                        title="%s;N-jet #alpha_{T} (using p_{T});#Delta#phi*;events / bin"%njets)
 #####################################
-class metHistogrammer(analysisStep) :
-    """metHistogrammer"""
-
-    def __init__(self,collection,tag) :
-        self.ct = (collection,tag)
-                
-    def uponAcceptance (self,eventVars) :
-        self.book(eventVars).fill( eventVars[self.metCollection].pt(), "%s_%s" % self.ct, 80, 0.0, 80.0, title = "; p_{T} (GeV);events / bin")
-#####################################
 class deltaPhiSelector(analysisStep) :
     """deltaPhiSelector"""
 
