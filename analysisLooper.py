@@ -243,7 +243,7 @@ class analysisLooper :
         nJobsHisto.Write()
 
         if self.lumiWarn :
-            lumiWarn=r.TNamed("lumiWarn","")
+            lumiWarn=utils.addableTNamed(name="lumiWarn",title="WARNING: lumi value is probably wrong!")
             lumiWarn.Write()
 
     def writeHistos(self) :
