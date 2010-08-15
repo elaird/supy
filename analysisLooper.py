@@ -54,8 +54,7 @@ class analysisLooper :
                 step.nTotal += int(counts.Integral())
 
         #set data member to number actually used
-        self.nEvents = 0
-        if hasattr(chainWrapper,"entry") : self.nEvents = chainWrapper.entry
+        self.nEvents = chainWrapper.entry if hasattr(chainWrapper,"entry") else 0
         for step in self.steps :
             if step.ignoreInAccounting or not step.isSelector : continue
             self.nEvents = step.nTotal
@@ -214,8 +213,10 @@ class analysisLooper :
             if (iStep and not step.isSelector) or step.ignoreInAccounting: continue
             name = step.books[None]._autoBook__directory.GetName()
             if '/' in name :
-                r.TNamed("moreName",self.name).Write()
-            else: r.gDirectory.mkdir(name).cd()
+                utils.addableTNamed("moreName",self.name).Write()
+            else:
+                r.gDirectory.mkdir(name).cd()
+                utils.addableTNamed("moreName",step.moreName+step.moreName2).Write()
                 
             for book in step.books.values() :
                 for item in book.fillOrder :
