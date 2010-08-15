@@ -158,8 +158,8 @@ class analysis :
                 fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
                 
             listOfSteps = []
-            if isMc : listOfSteps = steps.removeStepsForMc(self.listOfSteps)
-            else :    listOfSteps = steps.removeStepsForData(self.listOfSteps)
+            if isMc : listOfSteps = steps.adjustStepsForMc(self.listOfSteps)
+            else :    listOfSteps = steps.adjustStepsForData(self.listOfSteps)
 
             if sampleTuple.ptHatMin :
                 ptHatMinDict[sampleName]=sampleTuple.ptHatMin

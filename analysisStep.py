@@ -14,7 +14,9 @@ class analysisStep(object) :
     skimmerStepName="skimmer"
     displayerStepName="displayer"
     jsonMakerStepName="jsonMaker"
-    
+
+    ignoreInAccounting=False
+    disabled=False
     quietMode=False
     splitMode=False
     needToConsiderPtHatThresholds=False
@@ -22,6 +24,10 @@ class analysisStep(object) :
     def go(self,eventVars) :
         self.nTotal+=1
 
+        if self.disabled :
+            self.nPass+=1
+            return True
+        
         if self.selectNotImplemented :
             self.nPass+=1
             if self.uponAcceptanceImplemented :
@@ -45,6 +51,12 @@ class analysisStep(object) :
     def name2(self) :
         return "" if self.moreName2=="" else "\n"+"".ljust(self.docWidth)+self.moreName2.ljust(self.moreWidth)
 
+    def disable(self) :
+        self.disabled=True
+        
+    def ignore(self) :
+        self.ignore=True
+        
     def makeQuiet(self) :
         self.quietMode=True
         
@@ -52,8 +64,11 @@ class analysisStep(object) :
         self.splitMode=True
         
     def printStatistics(self) :
+        passString="-" if self.disabled else str(self.nPass)
+        failString="-" if self.disabled else str(self.nFail)
+
         statString = "" if not hasattr(self,"select") else \
-                     "  %s %s" % ( str(self.nPass) .rjust(self.integerWidth), ("("+str(self.nFail)+")").rjust(self.integerWidth+2) )
+                     "  %s %s" % ( passString.rjust(self.integerWidth), ("("+failString+")").rjust(self.integerWidth+2) )
         print "%s%s%s" % (self.name(),self.name2(),statString)
 
     def book(self,eventVars) :
