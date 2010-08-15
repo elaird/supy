@@ -333,7 +333,7 @@ class analysis :
 
             self.looperPrint(parent,someLooper)
             inFiles=" ".join(inFileList)
-            cmd="hadd -f "+outputPlotFileName+" "+inFiles+" | grep -v 'Source file' | grep -v 'Target path'"
+            cmd="hadd -f "+outputPlotFileName+" "+inFiles+" | grep -v 'Source file' | grep -v 'Target path' | grep -v 'Found subdirectory'"
             #print cmd
             hAddOut=utils.getCommandOutput2(cmd)
             #clean up
