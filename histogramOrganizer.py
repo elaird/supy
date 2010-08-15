@@ -1,6 +1,22 @@
 import ROOT as r
 import collections
 ##############################
+def keyLister(sampleName,subDir,ranks,dimensions,histoDicts) :
+    keys=subDir.GetListOfKeys()
+    for iKey in range(len(keys)) :
+        plotName=keys[iKey].GetName()
+        obj=subDir.Get(plotName)
+        className=obj.ClassName()
+
+        if className[0:2]=="TH" :
+            item=subDir.Get(plotName).Clone(plotName+"_"+sampleName)
+            item.SetDirectory(0)
+            ranks[plotName].append(iKey)
+            dimensions[plotName]=int(className[2])
+            histoDicts[plotName][sampleName]=item
+        elif className=="TDirectoryFile" :
+            keyLister(sampleName,obj,ranks,dimensions,histoDicts)
+##############################
 def getNamesAndDimensions(plotFileNameDict) :
     ranks       = collections.defaultdict(list) #list of ranks in the files
     dimensions  = collections.defaultdict(int)  #plot dimension
@@ -8,17 +24,7 @@ def getNamesAndDimensions(plotFileNameDict) :
     
     for sampleName,theDict in plotFileNameDict.iteritems() :
         f=r.TFile(theDict["outputPlotFileName"])
-        keys=f.GetListOfKeys()
-        for iKey in range(len(keys)) :
-            plotName=keys[iKey].GetName()
-            histo=f.Get(plotName).Clone(plotName+"_"+sampleName)
-            histo.SetDirectory(0)
-            className=histo.ClassName()
-            dimension=0
-            if className[0:2]=="TH" : dimension=int(className[2])
-            ranks[plotName].append(iKey)
-            dimensions[plotName]=dimension
-            histoDicts[plotName][sampleName]=histo
+        keyLister(sampleName,f,ranks,dimensions,histoDicts)
             
     listOfPlotTuples=[]
     for plotName in ranks.keys() :
