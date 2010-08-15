@@ -3,9 +3,6 @@ from bisect import bisect
 class analysisStep(object) :
     """generic analysis step"""
 
-    nPass=0
-    nFail=0
-    nTotal=0
     integerWidth=10
     docWidth=30
     moreWidth=40
@@ -22,29 +19,17 @@ class analysisStep(object) :
     needToConsiderPtHatThresholds=False
     
     def go(self,eventVars) :
-        self.nTotal+=1
-
         if self.disabled :
-            self.nPass+=1
             return True
         
-        if self.selectNotImplemented :
-            self.nPass+=1
-            if self.uponAcceptanceImplemented :
-                self.uponAcceptance(eventVars)
+        if not self.isSelector :
+            self.uponAcceptance(eventVars)
             return True
 
-        if self.select(eventVars) :
-            self.nPass+=1
-            if self.uponAcceptanceImplemented :
-                self.uponAcceptance(eventVars)
-            return True
-        else :
-            self.nFail+=1
-            if self.uponRejectionImplemented :
-                self.uponRejection(eventVars)
-            return False
-
+        passed = bool(self.select(eventVars))
+        self.book(eventVars).fill(passed,"counts",2,0,2)
+        return passed
+    
     def name(self) :
         return self.__doc__.ljust(self.docWidth)+self.moreName.ljust(self.moreWidth)
 

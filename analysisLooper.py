@@ -43,6 +43,16 @@ class analysisLooper :
         #loop through entries
         chainWrapper = wrappedChain.wrappedChain(self.inputChain, calculables = self.calculables, useSetBranchAddress = useSetBranchAddress)
         map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
+        for step in self.steps :
+            step.nPass = 0
+            step.nFail = 0
+            step.nTotal = 0
+            for book in step.books.values() :
+                if "counts" not in book : continue
+                counts = book["counts"]
+                step.nPass += int(counts.GetBinContent(2))
+                step.nFail += int(counts.GetBinContent(1))
+                step.nTotal += int(counts.Integral())
 
         #set data member to number actually used
         for step in self.steps :
@@ -136,10 +146,8 @@ class analysisLooper :
             step.books = books
             if self.quietMode : step.makeQuiet()
             if self.splitMode : step.setSplitMode()
-            
-            step.selectNotImplemented = not hasattr(step,"select")            
-            step.uponAcceptanceImplemented = hasattr(step,"uponAcceptance")
-            step.uponRejectionImplemented = hasattr(step,"uponRejection")
+            step.isSelector = hasattr(step,"select")            
+            assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.__doc__            
             if step.__doc__==step.skimmerStepName : returnValue=False
             if hasattr(step,"setup") : step.setup(self.inputChain,self.fileDirectory,self.name)
 
