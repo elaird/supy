@@ -8,14 +8,14 @@ class analysisLooper :
 
     def __init__(self,fileDirectory,treeName,otherTreesToKeepWhenSkimming,
                  outputDir,outputPlotFileName,steps,calculables,
-                 sampleSpec,fileListCommand,xs,lumi,
+                 sampleSpec,fileListCommand,xs,lumi,lumiWarn,
                  computeEntriesForReport,printNodesUsed,inputFiles = None):
 
         for arg in ["name","nEventsMax","color","markerStyle"] :
             setattr(self,arg,getattr(sampleSpec,arg))
 
         for arg in ["fileDirectory","treeName","otherTreesToKeepWhenSkimming",
-                    "inputFiles","outputDir","fileListCommand","xs","lumi",
+                    "inputFiles","outputDir","fileListCommand","xs","lumi","lumiWarn",
                     "computeEntriesForReport","printNodesUsed","outputPlotFileName"] :
             setattr(self,arg,eval(arg))
 
@@ -54,9 +54,11 @@ class analysisLooper :
                 step.nTotal += int(counts.Integral())
 
         #set data member to number actually used
+        self.nEvents = 0
+        if hasattr(chainWrapper,"entry") : self.nEvents = chainWrapper.entry
         for step in self.steps :
-            if step.ignoreInAccounting : continue
-            self.nEvents=step.nTotal
+            if step.ignoreInAccounting or not step.isSelector : continue
+            self.nEvents = step.nTotal
             break
 
         activeKeys = chainWrapper.activeKeys()
@@ -239,6 +241,10 @@ class analysisLooper :
         nJobsHisto=r.TH1D("nJobsHisto",";dummy axis;N_{jobs}",1,-0.5,0.5)
         nJobsHisto.SetBinContent(1,1)
         nJobsHisto.Write()
+
+        if self.lumiWarn :
+            lumiWarn=r.TNamed("lumiWarn","")
+            lumiWarn.Write()
 
     def writeHistos(self) :
         if not self.quietMode : print utils.hyphens

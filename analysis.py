@@ -152,8 +152,11 @@ class analysis :
             nFilesMax=sampleSpec.nFilesMax
             nEventsMax=sampleSpec.nEventsMax
 
+            lumiWarn = False
             if (not isMc) and (nEventsMax!=-1 or nFilesMax!=-1) :
                 print "Warning, not running over full data sample: wrong lumi?"
+                lumiWarn = True
+                
             if nFilesMax >= 0 :
                 fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
                 
@@ -175,6 +178,7 @@ class analysis :
                                                      fileListCommand,
                                                      sampleTuple.xs,
                                                      sampleTuple.lumi,
+                                                     lumiWarn,
                                                      computeEntriesForReport,
                                                      self.printNodesUsed,
                                                      )
