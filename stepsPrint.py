@@ -6,6 +6,7 @@ class progressPrinter(analysisStep) :
     """progressPrinter"""
 
     def __init__(self,suppressionFactor=2,suppressionOffset=300):
+        self.nTotal=0
         self.num=1
         self.suppressionFactor=suppressionFactor
         self.suppressionOffset=suppressionOffset
@@ -14,6 +15,7 @@ class progressPrinter(analysisStep) :
         self.moreName+=str(self.suppressionOffset)+")"
 
     def uponAcceptance (self,eventVars) :
+        self.nTotal+=1
         if self.nTotal!=self.num : return
         self.num=self.suppressionFactor*self.num
         toPrint="event "+str(self.nTotal).rjust(self.integerWidth," ")
