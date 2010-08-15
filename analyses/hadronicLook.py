@@ -25,7 +25,7 @@ def makeSteps() :
     listOfSteps=[
         steps.progressPrinter(),
         
-        steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}}; events / bin"),
+        steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}};events / bin"),
         steps.jetPtSelector(jets,100.0,0),
         #steps.jetPtSelector(jets,40.0,1),
         steps.leadingUnCorrJetPtSelector( [jets],100.0 ),
@@ -37,16 +37,18 @@ def makeSteps() :
         steps.maxNOtherJetEventFilter(jets,0),
         steps.hbheNoiseFilter(),
         
-        steps.variableGreaterFilter(300.0,jets[0]+"SumPt"+jets[1]),
+        steps.variableGreaterFilter(300.0,"%sSumPt%s"%jets),
         steps.cleanJetPtHistogrammer(jets),
         steps.cleanJetHtMhtHistogrammer(jets),
         steps.alphaHistogrammer(jets),
+        #steps.histogrammer("%sSumP4%s"%jets,50,0,1000, title = ";#slash{H}_{T} (GeV) from clean jets;events / bin",
+        #                   funcString = "lambda x: x.pt()"),
 
         #steps.eventPrinter(),
         #steps.htMhtPrinter(jets),       
         #steps.genParticlePrinter(minPt=10.0,minStatus=3),
         
-        steps.variableGreaterFilter(0.55,jets[0]+"AlphaT"+jets[1]),
+        steps.variableGreaterFilter(0.55,"%sAlphaT%s"%jets),
         steps.objectPtVetoer("muon","P4","Pat",20.0,0),
 
         #steps.histogrammer("%sDeltaPhiStar%s"%jets, 50, 0, r.TMath.Pi(), title = ";%s #Delta#phi* %s;events / bin"%jets)
@@ -101,6 +103,7 @@ a=analysis.analysis(name = "hadronicLook",
                     )
 
 a.loop( nCores = 8 )
+#exit()
 
 #plotting
 a.mergeHistograms(target = "g_jets_mg",      targetColor = r.kGreen,   source = ["gammajets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])

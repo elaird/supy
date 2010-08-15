@@ -5,17 +5,23 @@ import utils
 #####################################
 class histogrammer(analysisStep) :
     """histogrammer"""
-    def __init__(self,var,N,low,up,title="") :
-        for item in ["var","N","low","up","title"] : setattr(self,item,eval(item))
+    def __init__(self,var,N,low,up,title="", funcString = "lambda x:x" ) :
+        for item in ["var","N","low","up","title","funcString"] : setattr(self,item,eval(item))
         self.oneD = type(var) != tuple
         self.hName = var if self.oneD else "_vs_".join(var)
         self.moreName = "(%s)"%self.hName
+        self.funcEvaluated = False
 
     def uponAcceptance(self,eventVars) :
+        if not self.funcEvaluated :
+            self.func = eval(self.funcString)
+            self.funcEvaluated = True
+            
         value = eventVars[self.var] if self.oneD else \
                 tuple(map(eventVars.__getitem__,self.var))
         if value is None or (not self.oneD and None in value) : return
-        self.book(eventVars).fill(value,self.hName,self.N,self.low,self.up,title=self.title)
+
+        self.book(eventVars).fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
 #####################################
 class crockVarCalcDiff(analysisStep) :
     """crockVarCalcDiff"""
