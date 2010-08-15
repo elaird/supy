@@ -8,7 +8,9 @@ class histogrammer(analysisStep) :
     def __init__(self,var,N,low,up,title="", funcString = "lambda x:x" ) :
         for item in ["var","N","low","up","title","funcString"] : setattr(self,item,eval(item))
         self.oneD = type(var) != tuple
-        self.hName = var if self.oneD else "_vs_".join(var)
+        varList=list(var)
+        varList.reverse()
+        self.hName = var if self.oneD else "_vs_".join(varList)
         self.moreName = "(%s)"%self.hName
         self.funcEvaluated = False
 
