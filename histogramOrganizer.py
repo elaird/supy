@@ -17,55 +17,6 @@ def keyLister(sampleName,subDir,ranks,dimensions,histoDicts) :
         elif className=="TDirectoryFile" :
             keyLister(sampleName,obj,ranks,dimensions,histoDicts)
 ##############################
-def getNamesAndDimensions(plotFileNameDict) :
-    ranks       = collections.defaultdict(list) #list of ranks in the files
-    dimensions  = collections.defaultdict(int)  #plot dimension
-    histoDicts  = collections.defaultdict(dict) #dict mapping sampleName to histo
-    
-    for sampleName,theDict in plotFileNameDict.iteritems() :
-        f=r.TFile(theDict["outputPlotFileName"])
-        keyLister(sampleName,f,ranks,dimensions,histoDicts)
-            
-    listOfPlotTuples=[]
-    for plotName in ranks.keys() :
-        #compute the average rank
-        avgRank=0.0
-        nFiles=len(ranks[plotName])
-        for rank in ranks[plotName] :
-            avgRank+=rank
-        if nFiles>0 : avgRank/=nFiles
-        #add to the list
-        listOfPlotTuples.append( (nFiles,-avgRank,dimensions[plotName],plotName) )
-
-    #sort by display order
-    listOfPlotTuples.sort()
-    listOfPlotTuples.reverse()
-
-    listOfPlotContainers=[]
-    for plotTuple in listOfPlotTuples :
-        container={}
-        container["histoDict"]={}
-        container["plotName"]=plotTuple[3]
-        container["dimension"]=plotTuple[2]
-        for sampleName,histo in histoDicts[container["plotName"]].iteritems() :
-            container["histoDict"][sampleName]=histo
-        listOfPlotContainers.append(container)
-    return listOfPlotContainers
-##############################
-def getXsLumiNeventJobNumbers(plotFileNameDict) :
-    xsDict={}
-    lumiDict={}
-    nEventsDict={}
-    nJobsDict={}
-    for sampleName,theDict in plotFileNameDict.iteritems() :
-        f=r.TFile(theDict["outputPlotFileName"])
-        nJobs=f.Get("nJobsHisto").GetBinContent(1)
-        xsDict      [sampleName] = f.Get("xsHisto").GetBinContent(1) / nJobs
-        lumiDict    [sampleName] = f.Get("lumiHisto").GetBinContent(1) /  nJobs
-        nEventsDict [sampleName] = f.Get("nEventsHisto").GetBinContent(1)
-        nJobsDict   [sampleName] = nJobs
-    return [xsDict,lumiDict,nEventsDict,nJobsDict]
-##############################
 def scaleHistos(listOfPlotContainers,xsDict,nEventsDict,nJobsDict,scaleByAreaRatherThanByXs,lumiValue) :
     if scaleByAreaRatherThanByXs :
         raise Exception("scaling by area is not yet supported")
@@ -91,19 +42,6 @@ def scaleHistos(listOfPlotContainers,xsDict,nEventsDict,nJobsDict,scaleByAreaRat
             if container["dimension"]==2 :
                 newTitle=histo.GetZaxis().GetTitle()+" / "+str(lumiValue)+" pb^{-1}"
                 histo.GetZaxis().SetTitle(newTitle)
-##############################
-def setColorsAndMarkerStyles(plotFileNamesDict,listOfPlotContainers,targetColorDict,targetMarkerStyleDict) :
-    for container in listOfPlotContainers :
-        for sampleName,histo in container["histoDict"].iteritems() :
-            if "color" in plotFileNamesDict[sampleName] :
-                histo.SetLineColor(plotFileNamesDict[sampleName]["color"])
-                histo.SetMarkerColor(plotFileNamesDict[sampleName]["color"])
-            if "markerStyle" in plotFileNamesDict[sampleName] :
-                histo.SetMarkerStyle(plotFileNamesDict[sampleName]["markerStyle"])
-            else :
-                histo.SetLineColor(  targetColorDict[sampleName])
-                histo.SetMarkerColor(targetColorDict[sampleName])
-                histo.SetMarkerStyle(targetMarkerStyleDict[sampleName])
 ##############################
 def mergeHistograms(listOfPlotContainers,histogramMergeRequests,histogramMergeKeepSources) :
     for container in listOfPlotContainers :
@@ -148,44 +86,127 @@ def mergeHistograms(listOfPlotContainers,histogramMergeRequests,histogramMergeKe
         #remove sources if requested (after all mergeRequests)
         for source in set(listOfSourcesToBeRemoved) :
             del container["histoDict"][source]
-##############################                
-def go(plotFileNamesDict={},
-       scaleHistograms=True,
-       scaleByAreaRatherThanByXs=False,
-       multipleDisjointDataSamples=False,
-       lumiToUseInAbsenceOfData=100,#/pb
-       histogramMergeRequests=[],
-       histogramMergeKeepSources=[],
-       targetColorDict={},
-       targetMarkerStyleDict={}
-       ) :
+##############################
+class histogramOrganizer(object) :
+    def __init__(self,
+                 sampleSpecs = {},
+                 scaleHistograms = False,
+                 scaleByAreaRatherThanByXs = False,
+                 multipleDisjointDataSamples = False,
+                 lumiToUseInAbsenceOfData=100,#/pb
+                 ) :
 
-    #collection information
-    listOfPlotContainers=getNamesAndDimensions(plotFileNamesDict)
+        for arg in ["sampleSpecs","scaleHistograms","scaleByAreaRatherThanByXs",
+                    "multipleDisjointDataSamples","lumiToUseInAbsenceOfData" ] :
+            setattr(self,arg,eval(arg))
 
-    #the keys for these dictionaries are sample names
-    xsDict,lumiDict,nEventsDict,nJobsDict=getXsLumiNeventJobNumbers(plotFileNamesDict)
+        self.listOfMergeRequests=[]
+        self.listOfMergeKeepSources=[]
 
-    #get lumi value
-    nDataSamples=len(lumiDict.values())-lumiDict.values().count(0.0)
-    lumiValue=lumiToUseInAbsenceOfData
-    if not nDataSamples :
-        lumiValue = lumiToUseInAbsenceOfData
-    elif nDataSamples==1 :
-        lumiValue = max(lumiDict.values())
-    elif multipleDisjointDataSamples :
-        lumiValue = sum(lumiDict.values())
-    else :
-        raise Exception("at the moment, absolute normalization using multiple non-disjoint data samples is not supported")
+        self.buildColorAndStyleDicts()
 
-    #scale the histograms
-    if scaleHistograms :
-        scaleHistos(listOfPlotContainers,xsDict,nEventsDict,nJobsDict,scaleByAreaRatherThanByXs,lumiValue)
+    def collectNamesAndDimensions(self) :
+        ranks       = collections.defaultdict(list) #list of ranks in the files
+        dimensions  = collections.defaultdict(int)  #plot dimension
+        histoDicts  = collections.defaultdict(dict) #dict mapping sampleName to histo
 
-    #merge the histograms
-    mergeHistograms(listOfPlotContainers,histogramMergeRequests,histogramMergeKeepSources)
+        for theDict in self.sampleSpecs :
+            f=r.TFile(theDict["outputPlotFileName"])
+            keyLister(theDict["sampleName"],f,ranks,dimensions,histoDicts)
+            
+        listOfPlotTuples=[]
+        for plotName in ranks.keys() :
+            #compute the average rank
+            avgRank=0.0
+            nFiles=len(ranks[plotName])
+            for rank in ranks[plotName] :
+                avgRank+=rank
+            if nFiles>0 : avgRank/=nFiles
+            #add to the list
+            listOfPlotTuples.append( (nFiles,-avgRank,dimensions[plotName],plotName) )
 
-    #set the histograms' colors and styles
-    setColorsAndMarkerStyles(plotFileNamesDict,listOfPlotContainers,targetColorDict,targetMarkerStyleDict)
-    
-    return listOfPlotContainers
+        #sort by display order
+        listOfPlotTuples.sort()
+        listOfPlotTuples.reverse()
+
+        self.listOfPlotContainers=[]
+        for plotTuple in listOfPlotTuples :
+            container={}
+            container["histoDict"]={}
+            container["plotName"]=plotTuple[3]
+            container["dimension"]=plotTuple[2]
+            for sampleName,histo in histoDicts[container["plotName"]].iteritems() :
+                container["histoDict"][sampleName]=histo
+            self.listOfPlotContainers.append(container)
+
+    def collectXsLumiEtc(self) :
+        self.xsDict={}
+        self.lumiDict={}
+        self.nEventsDict={}
+        self.nJobsDict={}
+        for theDict in self.sampleSpecs :
+            f=r.TFile(theDict["outputPlotFileName"])
+            nJobs=f.Get("nJobsHisto").GetBinContent(1)
+            self.xsDict      [theDict["sampleName"]] = f.Get("xsHisto").GetBinContent(1) / nJobs
+            self.lumiDict    [theDict["sampleName"]] = f.Get("lumiHisto").GetBinContent(1) /  nJobs
+            self.nEventsDict [theDict["sampleName"]] = f.Get("nEventsHisto").GetBinContent(1)
+            self.nJobsDict   [theDict["sampleName"]] = nJobs
+
+    def determineLumiValue(self) :
+        nDataSamples=len(self.lumiDict.values())-self.lumiDict.values().count(0.0)
+        self.lumiValue=self.lumiToUseInAbsenceOfData
+        if not nDataSamples :
+            self.lumiValue = self.lumiToUseInAbsenceOfData
+        elif nDataSamples==1 :
+            self.lumiValue = max(self.lumiDict.values())
+        elif multipleDisjointDataSamples :
+            self.lumiValue = sum(self.lumiDict.values())
+        else :
+            raise Exception("at the moment, absolute normalization using multiple non-disjoint data samples is not supported")
+
+    def buildColorAndStyleDicts(self) :
+        self.colorDict={}
+        self.markerStyleDict={}
+        for someDict in self.sampleSpecs :
+            self.colorDict      [someDict["sampleName"]] = someDict["color"]
+            self.markerStyleDict[someDict["sampleName"]] = someDict["markerStyle"]
+
+    def setColorsAndMarkerStyles(self) :
+        for container in self.listOfPlotContainers :
+            for sampleName,histo in container["histoDict"].iteritems() :
+                histo.SetLineColor(  self.colorDict[sampleName])
+                histo.SetMarkerColor(self.colorDict[sampleName])
+                histo.SetMarkerStyle(self.markerStyleDict[sampleName])
+
+    def mergeSamples(self,source = [], target = "", targetColor = 1, targetMarkerStyle = 1, keepSourceSamples = False) :
+        outDict={}
+        for item in source :
+            outDict[item]=target
+        self.listOfMergeRequests.append(outDict)
+        self.listOfMergeKeepSources.append(keepSourceSamples)
+        self.colorDict[target]=targetColor
+        self.markerStyleDict[target]=targetMarkerStyle
+
+    def organize(self) :
+        #collection information
+        self.collectNamesAndDimensions()
+
+        #the keys for these dictionaries are sample names
+        self.collectXsLumiEtc()
+
+        #determine lumi value
+        self.determineLumiValue()
+
+        #scale the histograms
+        if self.scaleHistograms :
+            scaleHistos(self.listOfPlotContainers,self.xsDict,self.nEventsDict,self.nJobsDict,self.scaleByAreaRatherThanByXs,self.lumiValue)
+
+        #merge the histograms
+        mergeHistograms(self.listOfPlotContainers,self.listOfMergeRequests,self.listOfMergeKeepSources)
+
+        #set the histograms' colors and styles
+        self.setColorsAndMarkerStyles()
+
+    def blob(self) :
+        self.organize()
+        return self.listOfPlotContainers
