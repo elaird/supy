@@ -213,7 +213,7 @@ class analysisLooper :
             if (iStep and not step.isSelector) or step.ignoreInAccounting: continue
             name = step.books[None]._autoBook__directory.GetName()
             if '/' in name :
-                utils.addableTNamed("moreName",self.name).Write()
+                utils.addableTNamed("moreName",self.parentName).Write()
             else:
                 r.gDirectory.mkdir(name).cd()
                 utils.addableTNamed("moreName",step.moreName+step.moreName2).Write()
