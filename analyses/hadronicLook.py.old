@@ -102,20 +102,25 @@ a=analysis.analysis(name = "hadronicLook",
                     listOfSampleDictionaries = [samples.mc, samples.jetmet]
                     )
 
-a.loop( nCores = 8 )
+#loop
+#a.loop( nCores = 8 )
 #exit()
 
-#plotting
-a.mergeHistograms(target = "g_jets_mg",      targetColor = r.kGreen,   source = ["gammajets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
-a.mergeHistograms(target = "qcd_py",         targetColor = r.kBlue,    source = ["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
-a.mergeHistograms(target = "standard_model", targetColor = r.kGreen+3, source = ["g_jets_mg","qcd_py","tt_tauola_mg",
-                                                                                 "z_inv_mg","z_jets_mg","w_jets_mg"], keepSourceHistograms = True)
+#organize
+from histogramOrganizer import histogramOrganizer
+o=histogramOrganizer(sampleSpecs=a.sampleSpecs())
 
-listOfPlotContainers=a.organizeHistograms()
+o.mergeSamples(target = "g_jets_mg",      targetColor = r.kGreen,   source = ["gammajets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
+o.mergeSamples(target = "qcd_py",         targetColor = r.kBlue,    source = ["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
+o.mergeSamples(target = "standard_model", targetColor = r.kGreen+3, source = ["g_jets_mg","qcd_py","tt_tauola_mg",
+                                                                                 "z_inv_mg","z_jets_mg","w_jets_mg"], keepSourceSamples = True)
+
+listOfPlotContainers=o.blob()
 
 #import deltaPhiLook
 #listofPlotContainers=deltaPhiLook.go(listOfPlotContainers)
 
+#plot
 plotter.plotAll(listOfPlotContainers=listOfPlotContainers,
                 psFileName=a.outputDir+"/"+a.name+".ps",
                 #samplesForRatios=("JetMET.Run2010A","qcd_py"),
