@@ -35,13 +35,7 @@ class analysis :
         self.listOfLoopers=[]
         self.listOfOutputPlotFileNames=[]
 
-        self.histogramMergeRequests=[]
-        self.histogramMergeKeepSources=[]
-
         self.hasLooped=False
-
-        self.targetColorDict={}
-        self.targetMarkerStyleDict={}
 
         self.addSamples(listOfSamples,listOfSampleDictionaries)
 
@@ -94,43 +88,30 @@ class analysis :
         if self.listOfSamples==None : return #None (default) means use all samples
         self.listOfLoopers = filter(lambda looper: looper.name in [x.name for x in self.listOfSamples], self.listOfLoopers)
 
-    def producePlotFileNamesDict(self) :
-        outDict=collections.defaultdict(dict)
+    def sampleSpecs(self) :
+        #prune list of loopers if self.loop has not been called
+        if not self.hasLooped : self.pruneListOfLoopers()
+        
+        outList=[]
         if (not hasattr(self,"parentDict")) or len(self.parentDict)==0 :
             for looper in self.listOfLoopers :
-                outDict[looper.name]["outputPlotFileName"]=looper.outputPlotFileName
-                outDict[looper.name]["color"]=looper.color
-                outDict[looper.name]["markerStyle"]=looper.markerStyle
+                someDict={}
+                someDict["sampleName"]         = looper.name
+                someDict["outputPlotFileName"] = looper.outputPlotFileName
+                someDict["color"]              = looper.color
+                someDict["markerStyle"]        = looper.markerStyle
+                outList.append(someDict)
         else :
             for parent in self.parentDict :
                 iSomeLooper=self.parentDict[parent][0]
                 someLooper=self.listOfLoopers[iSomeLooper]
-                outDict[parent]["outputPlotFileName"]=someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName)
-                outDict[parent]["color"]=someLooper.color
-                outDict[parent]["markerStyle"]=someLooper.markerStyle
-        return outDict
-
-    def organizeHistograms(self,
-                           scaleHistograms=True,
-                           scaleByAreaRatherThanByXs=False,
-                           multipleDisjointDataSamples=False,                           
-                           lumiToUseInAbsenceOfData=100,#/pb
-                           ) :
-
-        #prune list of loopers if self.loop has not been called
-        if not self.hasLooped : self.pruneListOfLoopers()
-        
-        import histogramOrganizer
-        return histogramOrganizer.go(self.producePlotFileNamesDict(),
-                                     scaleHistograms,
-                                     scaleByAreaRatherThanByXs,
-                                     multipleDisjointDataSamples,
-                                     lumiToUseInAbsenceOfData,
-                                     self.histogramMergeRequests,
-                                     self.histogramMergeKeepSources,
-                                     self.targetColorDict,
-                                     self.targetMarkerStyleDict
-                                     )
+                someDict={}
+                someDict["sampleName"] = parent
+                someDict["outputPlotFileName"]=someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName)
+                someDict["color"]=someLooper.color
+                someDict["markerStyle"]=someLooper.markerStyle
+                outList.append(someDict)
+        return outList
 
     def makeOutputPlotFileName(self,sampleName,isChild=False) :
         answer=self.outputDir+"/"+self.name+"_"+sampleName+"_plots.root"
@@ -191,25 +172,6 @@ class analysis :
             self.manageNonBinnedSamples(minPtHatsAndNames,thing.useRejectionMethod)
         return
 
-    def mergeHistograms(self,source = [], target = "", targetColor = 1, targetMarkerStyle = 1, keepSourceHistograms = False) :
-        outDict={}
-        for item in source :
-            outDict[item]=target
-        self.histogramMergeRequests.append(outDict)
-        self.histogramMergeKeepSources.append(keepSourceHistograms)
-        self.targetColorDict[target]=targetColor
-        self.targetMarkerStyleDict[target]=targetMarkerStyle
-
-    #def mergeAllHistogramsExceptSome(self, dontMergeList = [], target = "", targetColor = 1, targetMarkerStyle = 1, keepSourceHistograms = True) :
-    #    fileNameDict=self.producePlotFileNamesDict()
-    #    sources=[]
-    #    for sampleName in fileNameDict.keys() :
-    #        if sampleName in dontMergeList : continue
-    #        sources.append(sampleName)
-    #    self.mergeHistograms(sources,target,keepSourceHistograms)
-    #    self.targetColorDict[target]=targetColor
-    #    self.targetMarkerStyleDict[target]=targetMarkerStyle
-        
     def manageNonBinnedSamples(self,ptHatLowerThresholdsAndSampleNames=[],useRejectionMethod=True) :
         if not useRejectionMethod :
             raise Exception("the other method of combining non-binned samples is not yet implemented")
