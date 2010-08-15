@@ -21,7 +21,6 @@ class analysisLooper :
 
         self.steps = copy.deepcopy(steps)
         self.calculables = copy.deepcopy(calculables)
-        self.listOfBookDicts = []
 
         #these are needed to fill histograms properly in the case of overlapping MC ptHat samples
         self.needToConsiderPtHatThresholds = False
@@ -131,7 +130,6 @@ class analysisLooper :
         #make books for ptHat bins (keyed by lower threshold)
         for iThreshold in range(len(self.ptHatThresholds)) :
             books[iThreshold+1] = autoBook(directory)
-        self.listOfBookDicts.append(books)
         return books
 
     def setupSteps(self) :
@@ -210,10 +208,14 @@ class analysisLooper :
 
     def writeHistosFromBooks(self) :
         filedir = r.gDirectory.GetName()
-        for books in self.listOfBookDicts :
-            name = books[None]._autoBook__directory.GetName()
-            if '/' not in name : r.gDirectory.mkdir(name).cd()
-            for book in books.values() :
+        for iStep,step in enumerate(self.steps) :
+            if (iStep and not step.isSelector) or step.ignoreInAccounting: continue
+            name = step.books[None]._autoBook__directory.GetName()
+            if '/' in name :
+                r.TNamed("moreName",self.name).Write()
+            else: r.gDirectory.mkdir(name).cd()
+                
+            for book in step.books.values() :
                 for item in book.fillOrder :
                     object = book[item]
                     object.Write()
