@@ -75,23 +75,23 @@ def makeCalculables() :
 
 def makeSamples() :
     from samples import specify
-    return [  specify(name = "JetMET.Run2010A",        nFilesMax = 1, nEventsMax = 1000, color = r.kBlack   , markerStyle = 20),
-            ##specify(name = "qcd_py_pt30",            nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-              specify(name = "qcd_py_pt80",            nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-              specify(name = "qcd_py_pt170",           nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-              specify(name = "qcd_py_pt300",           nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-              specify(name = "qcd_py_pt470",           nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-              specify(name = "qcd_py_pt800",           nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-            ##specify(name = "qcd_py_pt1400",          nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-              specify(name = "gammajets_mg_pt40_100",  nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
-              specify(name = "gammajets_mg_pt100_200", nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
-              specify(name = "gammajets_mg_pt200",     nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
-              specify(name = "tt_tauola_mg",           nFilesMax = 1, nEventsMax = 1000, color = r.kOrange  ),
-              specify(name = "z_inv_mg_skim",          nFilesMax = 1, nEventsMax = 1000, color = r.kMagenta ),
-              specify(name = "z_jets_mg_skim",         nFilesMax = 1, nEventsMax = 1000, color = r.kYellow-3),
-              specify(name = "w_jets_mg_skim",         nFilesMax = 1, nEventsMax = 1000, color = 28         ),
-              specify(name = "lm0",                    nFilesMax = 1, nEventsMax = 1000, color = r.kRed     ),
-              specify(name = "lm1",                    nFilesMax = 1, nEventsMax = 1000, color = r.kRed+1   ),
+    return [  specify(name = "JetMET.Run2010A",        color = r.kBlack   , markerStyle = 20),
+            ##specify(name = "qcd_py_pt30",            color = r.kBlue    ),
+              specify(name = "qcd_py_pt80",            color = r.kBlue    ),
+              specify(name = "qcd_py_pt170",           color = r.kBlue    ),
+              specify(name = "qcd_py_pt300",           color = r.kBlue    ),
+              specify(name = "qcd_py_pt470",           color = r.kBlue    ),
+              specify(name = "qcd_py_pt800",           color = r.kBlue    ),
+            ##specify(name = "qcd_py_pt1400",          color = r.kBlue    ),
+              specify(name = "gammajets_mg_pt40_100",  color = r.kGreen   ),
+              specify(name = "gammajets_mg_pt100_200", color = r.kGreen   ),
+              specify(name = "gammajets_mg_pt200",     color = r.kGreen   ),
+              specify(name = "tt_tauola_mg",           color = r.kOrange  ),
+              specify(name = "z_inv_mg_skim",          color = r.kMagenta ),
+              specify(name = "z_jets_mg_skim",         color = r.kYellow-3),
+              specify(name = "w_jets_mg_skim",         color = 28         ),
+              specify(name = "lm0",                    color = r.kRed     ),
+              specify(name = "lm1",                    color = r.kRed+1   ),
               ]
     
 a=analysis.analysis(name = "hadronicLook",
@@ -103,31 +103,30 @@ a=analysis.analysis(name = "hadronicLook",
                     )
 
 #loop
-#a.loop( nCores = 8 )
-#exit()
+a.loop( nCores = 8 )
 
-#organize
-from histogramOrganizer import histogramOrganizer
-o=histogramOrganizer(sampleSpecs=a.sampleSpecs())
+from organizer import organizer
+org=organizer( a.sampleSpecs() )
 
-o.mergeSamples(target = "g_jets_mg",      targetColor = r.kGreen,   source = ["gammajets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
-o.mergeSamples(target = "qcd_py",         targetColor = r.kBlue,    source = ["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
-o.mergeSamples(target = "standard_model", targetColor = r.kGreen+3, source = ["g_jets_mg","qcd_py","tt_tauola_mg",
-                                                                                 "z_inv_mg","z_jets_mg","w_jets_mg"], keepSourceSamples = True)
+org.mergeSamples(targetSpec = {"name":"g_jets_mg",     "color":r.kGreen},   sources = ["gammajets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
+org.mergeSamples(targetSpec = {"name":"qcd_py"   ,     "color":r.kBlue},    sources = ["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
+org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3},
+                 sources = ["g_jets_mg","qcd_py","tt_tauola_mg","z_inv_mg","z_jets_mg","w_jets_mg"], keepSources = True
+                 )
+org.scale()
 
-listOfPlotContainers=o.blob()
-
-#import deltaPhiLook
-#listofPlotContainers=deltaPhiLook.go(listOfPlotContainers)
 
 #plot
-plotter.plotAll(listOfPlotContainers=listOfPlotContainers,
+plotter.plotAll(org,
                 psFileName=a.outputDir+"/"+a.name+".ps",
                 #samplesForRatios=("JetMET.Run2010A","qcd_py"),
                 #sampleLabelsForRatios=("data","qcd"),
                 samplesForRatios=("JetMET.Run2010A","standard_model"),
                 sampleLabelsForRatios=("data","s.m."),
                 )
+
+#import deltaPhiLook
+#listofPlotContainers=deltaPhiLook.go(listOfPlotContainers)
 
 #import statMan
 #statMan.go(a.organizeHistograms(),
