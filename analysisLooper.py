@@ -61,15 +61,10 @@ class analysisLooper :
                 step.nTotal += int(counts.Integral())
 
         #set data member to number actually used
-        self.nEvents = chainWrapper.entry if hasattr(chainWrapper,"entry") else 0
-        for step in self.steps :
-            if step.ignoreInAccounting :
-                self.nEventsOriginal = step.nTotal
-                continue
-            if not step.isSelector :
-                continue
-            self.nEvents = step.nTotal
-            break
+        self.nEvents = 1+chainWrapper.entry if hasattr(chainWrapper,"entry") else 0
+        if len(self.steps)>0 and self.steps[0].ignoreInAccounting :
+            self.nEventsOriginal = self.steps[0].nTotal
+            self.nEvents = self.steps[0].nPass
 
         activeKeys = chainWrapper.activeKeys()
         self.makeDictOfCalculableConfigs(activeKeys)
