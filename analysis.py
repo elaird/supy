@@ -96,7 +96,7 @@ class analysis :
         if (not hasattr(self,"parentDict")) or len(self.parentDict)==0 :
             for looper in self.listOfLoopers :
                 someDict={}
-                someDict["sampleName"]         = looper.name
+                someDict["name"]               = looper.name
                 someDict["outputPlotFileName"] = looper.outputPlotFileName
                 someDict["color"]              = looper.color
                 someDict["markerStyle"]        = looper.markerStyle
@@ -106,7 +106,7 @@ class analysis :
                 iSomeLooper=self.parentDict[parent][0]
                 someLooper=self.listOfLoopers[iSomeLooper]
                 someDict={}
-                someDict["sampleName"] = parent
+                someDict["name"] = parent
                 someDict["outputPlotFileName"]=someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName)
                 someDict["color"]=someLooper.color
                 someDict["markerStyle"]=someLooper.markerStyle
