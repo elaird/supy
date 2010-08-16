@@ -103,7 +103,7 @@ a=analysis.analysis(name = "hadronicLook",
                     )
 
 #loop
-a.loop( nCores = 8 )
+#a.loop( nCores = 8 )
 
 from organizer import organizer
 org=organizer( a.sampleSpecs() )
@@ -111,7 +111,7 @@ org=organizer( a.sampleSpecs() )
 org.mergeSamples(targetSpec = {"name":"g_jets_mg",     "color":r.kGreen},   sources = ["gammajets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
 org.mergeSamples(targetSpec = {"name":"qcd_py"   ,     "color":r.kBlue},    sources = ["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
 org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3},
-                 sources = ["g_jets_mg","qcd_py","tt_tauola_mg","z_inv_mg","z_jets_mg","w_jets_mg"], keepSources = True
+                 sources = ["g_jets_mg","qcd_py","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"], keepSources = True
                  )
 org.scale()
 
