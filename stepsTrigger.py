@@ -115,7 +115,7 @@ class hltTurnOnHistogrammer(analysisStep) :
         self.moreName = "(%s given; %s; and %s )" % (var, ", ".join(tagString.split('-')), probeString)
 
     def uponAcceptance(self,eventVars) :
-        tag = reduce(lambda x,y: x or y, [eventVars["triggered"][t] for t in self.tagTriggers], False)
+        tag = any([eventVars["triggered"][t] for t in self.tagTriggers])
         probe = eventVars["triggered"][self.probeTrigger]
         types = [] if not tag else \
                 [self.tagTitle] if not probe else \
