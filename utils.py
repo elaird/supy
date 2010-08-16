@@ -223,6 +223,7 @@ class rBin(object) :
         return math.sqrt(self.enum**2 + self.ratio()**2 * self.eden**2) / self.den if self.den else 0
     
     def eatNext(self) :
+        if not self.next: return 
         self.num += self.next.num
         self.den += self.next.den
         self.enum = math.sqrt(self.enum**2+self.next.enum**2)
