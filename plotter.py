@@ -186,7 +186,12 @@ def onePlotFunction(selectionsSoFar,printTable,samples,histos,plotName,canvasDic
         else :
             canvasDict["canvas"].Divide(1,1)
     else :
-        canvasDict["canvas"].Divide(len(histos),1)
+        mx=1
+        my=1
+        while mx*my<len(histos) :
+            if mx==my : mx+=1
+            else :      my+=1
+        canvasDict["canvas"].Divide(mx,my)
 
     ##set ranges
     setRanges(histos,dimension,canvasDict["doLog"])
