@@ -116,6 +116,6 @@ class organizer(object) :
                     if not h: continue
                     h.Scale(lumi)
                     dim = int(h.ClassName()[2])
-                    axis = h.GetXaxis() if dim==1 else h.GetYaxis() if dim==2 else h.GetZaxis()
-                    axis.SetTitle("%s / %s pb^{-1}"%(axis.GetTitle(),str(lumi)))
+                    axis = h.GetYaxis() if dim==1 else h.GetZaxis() if dim==2 else None
+                    if axis: axis.SetTitle("%s / %s pb^{-1}"%(axis.GetTitle(),str(lumi)))
         self.scaled = True
