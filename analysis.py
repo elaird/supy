@@ -231,114 +231,31 @@ class analysis :
         self.listOfLoopers=outListOfLoopers
 
     def makeParentDict(self,listOfLoopers) :
-        self.parentDict={}
+        self.parentDict=collections.defaultdict(list)
         for iLooper in range(len(listOfLoopers)) :
             looper=listOfLoopers[iLooper]
             if looper.splitMode :
-                if looper.parentName in self.parentDict :
-                    self.parentDict[looper.parentName].append(iLooper)
-                else :
-                    self.parentDict[looper.parentName]=[iLooper]
+                self.parentDict[looper.parentName].append(iLooper)
 
-    def looperPrint(self,parent,looper) :
-        print utils.hyphens
-        print parent
-        looper.quietMode=False
-        looper.printStats()
-        print utils.hyphens
+    def mergeSplitOutput(self,nCores,cleanUp) :
+        #self.mergeSplitOutputSerial(cleanUp)
+        self.mergeSplitOutputParallel(nCores,cleanUp)
 
-    def mergeSplitOutput(self,cleanUp) :
-        #combine output
-        for parent in self.parentDict :
-            #print parent,parentDict[parent]
-            iSomeLooper=self.parentDict[parent][0]
-            someLooper=self.listOfLoopers[iSomeLooper]
-            outputPlotFileName=someLooper.outputPlotFileName.replace(someLooper.name,parent)
-            inFileList=[]
-            displayFileDict=collections.defaultdict(list)
-            skimmerFileDict=collections.defaultdict(list)
-            runLsDict=collections.defaultdict(list)
-            jsonFileDict=collections.defaultdict(list)
+    def mergeSplitOutputSerial(self,cleanUp) :
+        for parent,listOfChildIndices in self.parentDict.iteritems() :
+            mergeFunc( *(parent,listOfChildIndices,self.listOfLoopers,cleanUp) )
+
+    def mergeSplitOutputParallel(self,nCores,cleanUp) :
+        def mergeWorker(q):
+            while True:
+                mergeFunc(*q.get())
+                q.task_done()
+        
+        workList=[]
+        for parentName,listOfChildIndices in self.parentDict.iteritems() :
+            workList.append( (parentName,listOfChildIndices,self.listOfLoopers,cleanUp) )
+        utils.operateOnListUsingQueue(nCores,mergeWorker,workList)
             
-            isFirstLooper=True
-            for iLooper in self.parentDict[parent] :
-                #add the root file to hadd command
-                inFileList.append(self.listOfLoopers[iLooper].outputPlotFileName)
-
-                #read in the step and calculable data
-                stepAndCalculableDataFileName=os.path.expanduser(self.listOfLoopers[iLooper].outputStepAndCalculableDataFileName)
-                stepAndCalculableDataFile=open(stepAndCalculableDataFileName)
-                stepDataList,calculableConfigDict,listOfLeavesUsed=cPickle.load(stepAndCalculableDataFile)
-                stepAndCalculableDataFile.close()
-
-                #clean up
-                if cleanUp : os.remove(stepAndCalculableDataFileName)
-
-                #add stats to those of someLooper
-                for i in range(len(someLooper.steps)) :
-                    #need to zero in case sample is split but not run in multi mode
-                    if isFirstLooper :
-                        someLooper.steps[i].nTotal=0
-                        someLooper.steps[i].nPass =0
-                        someLooper.steps[i].nFail =0
-                    someLooper.steps[i].nTotal+=stepDataList[i]["nTotal"]
-                    someLooper.steps[i].nPass +=stepDataList[i]["nPass" ]
-                    someLooper.steps[i].nFail +=stepDataList[i]["nFail" ]
-
-                    if someLooper.steps[i].__doc__==someLooper.steps[i].displayerStepName :
-                        displayFileDict[i].append(stepDataList[i]["outputFileName"])
-                    if someLooper.steps[i].__doc__==someLooper.steps[i].skimmerStepName :
-                        skimmerFileDict[i].append(stepDataList[i]["outputFileName"])
-                    if someLooper.steps[i].__doc__==someLooper.steps[i].jsonMakerStepName :
-                        runLsDict[i].append(stepDataList[i]["runLsDict"])
-                        jsonFileDict[i].append(stepDataList[i]["outputFileName"])
-
-                if isFirstLooper :
-                    someLooper.calculableConfigDict={}
-                    someLooper.listOfLeavesUsed=[]
-                for item in calculableConfigDict :
-                    someLooper.calculableConfigDict[item]=calculableConfigDict[item]
-                someLooper.listOfLeavesUsed.extend(listOfLeavesUsed)
-                isFirstLooper=False
-
-            self.looperPrint(parent,someLooper)
-            inFiles=" ".join(inFileList)
-            cmd="hadd -f "+outputPlotFileName+" "+inFiles+" | grep -v 'Source file' | grep -v 'Target path' | grep -v 'Found subdirectory'"
-            #print cmd
-            hAddOut=utils.getCommandOutput2(cmd)
-            #clean up
-            if cleanUp :
-                for fileName in inFileList : os.remove(fileName)
-            
-            print hAddOut[:-1].replace("Target","The output")+" has been written."
-            print utils.hyphens
-
-            self.mergeDisplays(displayFileDict,someLooper)
-            self.reportEffectiveXs(skimmerFileDict,someLooper)
-
-            if len(jsonFileDict.values())>0 and len(jsonFileDict.values()[0])>0 :
-                utils.mergeRunLsDicts(runLsDict,jsonFileDict.values()[0][0],printHyphens=True)
-            
-    def reportEffectiveXs(self,skimmerFileDict,someLooper) :
-        if len(skimmerFileDict)>0 :
-            for skimmerIndex,skimFileNames in skimmerFileDict.iteritems() :
-                if someLooper.xs==None :
-                    print "The",len(skimFileNames),"skim files have been written."
-                else :
-                    effXs=0.0
-                    nEvents=someLooper.steps[0].nTotal
-                    nPass=someLooper.steps[skimmerIndex].nPass
-                    if nEvents>0 : effXs=(someLooper.xs+0.0)*nPass/nEvents
-                    print "The",len(skimFileNames),"skim files have effective XS =",someLooper.xs,"*",nPass,"/",nEvents,"=",effXs
-                print "( e.g.",skimFileNames[0],")"
-                print utils.hyphens
-
-    def mergeDisplays(self,displayFileDict,someLooper) :
-        if len(displayFileDict)>0 :
-            outputFileName=displayFileDict.values()[0][0].replace(someLooper.name,someLooper.parentName).replace(".root",".ps")
-            utils.psFromRoot(displayFileDict.values()[0],outputFileName,beQuiet=False)
-            print utils.hyphens
-
     def profile(self,nCores,onlyMerge) :
         global runFunc
         runFunc=self.loopOverSamples
@@ -353,4 +270,104 @@ class analysis :
             else :        map(lambda x : x.go(),self.listOfLoopers)
 
         #merge the output
-        self.mergeSplitOutput(cleanUp = not onlyMerge)
+        self.mergeSplitOutput(nCores, cleanUp = not onlyMerge)
+
+#############################################
+def looperPrint(parent,looper) :
+    print utils.hyphens
+    print parent
+    looper.quietMode=False
+    looper.printStats()
+    print utils.hyphens
+#############################################
+def reportEffectiveXs(skimmerFileDict,someLooper) :
+    if len(skimmerFileDict)>0 :
+        for skimmerIndex,skimFileNames in skimmerFileDict.iteritems() :
+            if someLooper.xs==None :
+                print "The",len(skimFileNames),"skim files have been written."
+            else :
+                effXs=0.0
+                nEvents=someLooper.steps[0].nTotal
+                nPass=someLooper.steps[skimmerIndex].nPass
+                if nEvents>0 : effXs=(someLooper.xs+0.0)*nPass/nEvents
+                print "The",len(skimFileNames),"skim files have effective XS =",someLooper.xs,"*",nPass,"/",nEvents,"=",effXs
+            print "( e.g.",skimFileNames[0],")"
+            print utils.hyphens
+#############################################
+def mergeDisplays(displayFileDict,someLooper) :
+    if len(displayFileDict)>0 :
+        outputFileName=displayFileDict.values()[0][0].replace(someLooper.name,someLooper.parentName).replace(".root",".ps")
+        utils.psFromRoot(displayFileDict.values()[0],outputFileName,beQuiet=False)
+        print utils.hyphens
+#############################################
+def mergeFunc(parent,listOfChildIndices,listOfAllLoopers,cleanUp) :
+    iSomeLooper=listOfChildIndices[0]
+    someLooper=listOfAllLoopers[iSomeLooper]
+    outputPlotFileName=someLooper.outputPlotFileName.replace(someLooper.name,parent)
+    inFileList=[]
+    displayFileDict=collections.defaultdict(list)
+    skimmerFileDict=collections.defaultdict(list)
+    runLsDict=collections.defaultdict(list)
+    jsonFileDict=collections.defaultdict(list)
+    
+    isFirstLooper=True
+    for iLooper in listOfChildIndices :
+        #add the root file to hadd command
+        inFileList.append(listOfAllLoopers[iLooper].outputPlotFileName)
+
+        #read in the step and calculable data
+        stepAndCalculableDataFileName=os.path.expanduser(listOfAllLoopers[iLooper].outputStepAndCalculableDataFileName)
+        stepAndCalculableDataFile=open(stepAndCalculableDataFileName)
+        stepDataList,calculableConfigDict,listOfLeavesUsed=cPickle.load(stepAndCalculableDataFile)
+        stepAndCalculableDataFile.close()
+
+        #clean up
+        if cleanUp : os.remove(stepAndCalculableDataFileName)
+
+        #add stats to those of someLooper
+        for i in range(len(someLooper.steps)) :
+            #need to zero in case sample is split but not run in multi mode
+            if isFirstLooper :
+                someLooper.steps[i].nTotal=0
+                someLooper.steps[i].nPass =0
+                someLooper.steps[i].nFail =0
+            someLooper.steps[i].nTotal+=stepDataList[i]["nTotal"]
+            someLooper.steps[i].nPass +=stepDataList[i]["nPass" ]
+            someLooper.steps[i].nFail +=stepDataList[i]["nFail" ]
+
+            if someLooper.steps[i].__doc__==someLooper.steps[i].displayerStepName :
+                displayFileDict[i].append(stepDataList[i]["outputFileName"])
+            if someLooper.steps[i].__doc__==someLooper.steps[i].skimmerStepName :
+                skimmerFileDict[i].append(stepDataList[i]["outputFileName"])
+            if someLooper.steps[i].__doc__==someLooper.steps[i].jsonMakerStepName :
+                runLsDict[i].append(stepDataList[i]["runLsDict"])
+                jsonFileDict[i].append(stepDataList[i]["outputFileName"])
+
+        if isFirstLooper :
+            someLooper.calculableConfigDict={}
+            someLooper.listOfLeavesUsed=[]
+        for item in calculableConfigDict :
+            someLooper.calculableConfigDict[item]=calculableConfigDict[item]
+        someLooper.listOfLeavesUsed.extend(listOfLeavesUsed)
+        isFirstLooper=False
+
+    looperPrint(parent,someLooper)
+    inFiles=" ".join(inFileList)
+    cmd="hadd -f "+outputPlotFileName+" "+inFiles+" | grep -v 'Source file' | grep -v 'Target path' | grep -v 'Found subdirectory'"
+    #print cmd
+    hAddOut=utils.getCommandOutput2(cmd)
+    #clean up
+    if cleanUp :
+        for fileName in inFileList : os.remove(fileName)
+            
+    print hAddOut[:-1].replace("Target","The output")+" has been written."
+    print utils.hyphens
+
+    mergeDisplays(displayFileDict,someLooper)
+    reportEffectiveXs(skimmerFileDict,someLooper)
+
+    if len(jsonFileDict.values())>0 and len(jsonFileDict.values()[0])>0 :
+        utils.mergeRunLsDicts(runLsDict,jsonFileDict.values()[0][0],printHyphens=True)
+
+
+
