@@ -32,7 +32,7 @@ class organizer(object) :
             lumiNjobs,xsNjobs,s['nEvents'],s['nJobs'] = map(extract, ["lumiHisto","xsHisto","nEventsHisto","nJobsHisto"])
             if lumiNjobs: s["lumi"] = lumiNjobs/s['nJobs']
             if xsNjobs: s["xs"] = xsNjobs/s['nJobs']
-            assert ("xs" in s)^("lumi" in s), "Sample should have one and only one of {xs,lumi}."
+            assert ("xs" in s)^("lumi" in s), "Sample %s hould have one and only one of {xs,lumi}."%s["name"]
             
         dirs = [ s['dir'] for s in self.samples]
         while dirs[0] :
