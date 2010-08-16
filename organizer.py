@@ -64,7 +64,7 @@ class organizer(object) :
     def mergeSamples(self,sources = [], targetSpec = {}, keepSources = False) :
         assert not self.scaled, "Merge must be called before calling scale."
         for src in sources:
-            assert src in map(lambda s: s["name"], self.samples), "You have requested to merge unknown sample %s"%src
+            if not src in map(lambda s: s["name"], self.samples): print "You have requested to merge unknown sample %s"%src
         target = copy.deepcopy(targetSpec)
         sourceIndices = filter(lambda i: self.samples[i]["name"] in sources, range(len(self.samples)))
         iTarget = sourceIndices[0]
