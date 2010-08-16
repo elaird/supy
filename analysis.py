@@ -29,6 +29,9 @@ class analysis :
                     "otherTreesToKeepWhenSkimming","printNodesUsed"] :
             setattr(self,arg,eval(arg))
 
+        assert len(listOfSamples) == len(set(map(lambda s: s.name, listOfSamples))), "Duplicate sample names are not allowed."
+        assert len(listOfSteps) == len(set(map(lambda s: (s.__doc__,s.moreName,s.moreName2), listOfSteps))), "Duplicate steps are not allowed."
+
         self.fileDirectory=mainTree[0]
         self.treeName=mainTree[1]
         

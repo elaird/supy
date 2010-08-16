@@ -1,8 +1,5 @@
 Critical
 ---------
-histogram organizer
-bail on two identical samples names
-bail on two identical selections
 l vetos
 flow table
 
@@ -18,8 +15,6 @@ Document
 
 Other
 --------
-* bug in ratio producer?
-
 * cross section in database
 
 * organize files in cvs
