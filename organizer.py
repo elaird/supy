@@ -106,7 +106,7 @@ class organizer(object) :
         dataIndices = filter(lambda i: "lumi" in self.samples[i], range(len(self.samples)))
         assert len(dataIndices)<2, "What should I do with more than one data sample?"
         iData = dataIndices[0] if len(dataIndices) else None
-        lumi = self.samples[iData]["lumi"] if iData else lumiToUseInAbsenceOfData
+        lumi = self.samples[iData]["lumi"] if iData!=None else lumiToUseInAbsenceOfData
         assert lumi, "You need to have a data sample or specify the lumi to use."
 
         for sel in self.selections :
