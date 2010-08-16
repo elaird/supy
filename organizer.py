@@ -71,7 +71,7 @@ class organizer(object) :
         sourceIndices.sort()
         sourceIndices.reverse()
 
-        if all(["xs" in self.samples[i] for i in sourceIndices] :
+        if all(["xs" in self.samples[i] for i in sourceIndices]) :
             #target["xs"] = sum([self.samples[i]["xs"] for i in sourceIndices ])
             target["xs"] = None
         elif all(["lumi" in self.samples[i] for i in sourceIndices]):
