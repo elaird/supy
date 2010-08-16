@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os
-import analysis,utils,calculables,steps,samples,plotter
+import analysis,utils,calculables,steps,samples,organizer,plotter
 import ROOT as r
 
 def makeSteps() :
@@ -63,7 +63,7 @@ a=analysis.analysis(name="example",
 a.loop( nCores = 1 ) #use multiple cores to process input files in parallel
 
 #make a pdf file with plots from the histograms created above
-plotter.plotAll(listOfPlotContainers = a.organizeHistograms(),
+plotter.plotAll(organizer.organizer(a.sampleSpecs()),
                 psFileName = a.outputDir+"/"+a.name+".ps",
                 samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
                 sampleLabelsForRatios = ("data","sim"),
