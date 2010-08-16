@@ -65,6 +65,8 @@ class organizer(object) :
         assert not self.scaled, "Merge must be called before calling scale."
         target = copy.deepcopy(targetSpec)
         sourceIndices = filter(lambda i: self.samples[i]["name"] in sources, range(len(self.samples)))
+        sourceIndices.sort()
+        sourceIndices.reverse()
         iTarget = sourceIndices[0]
 
         if reduce(lambda x,y: x & y, ["xs" in self.samples[i] for i in sourceIndices], True) :
