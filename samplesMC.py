@@ -14,7 +14,12 @@ mc.add("qcd_py_pt1400",'%s/gouskos//ICF/automated/2010_07_10_04_47_48/")'%srm, x
 mc.adjustOverlappingSamples( ["qcd_py_pt%d"%i for i in [30,80,170,300,470,800,1400] ] )
 
 #MG QCD
-mc.add("qcd_mg_ht_250_500",'%s/as1604//ICF/automated/2010_07_27_14_33_00//QCD_Pt250to500-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 171e+03 )
+mc.add("qcd_mg_ht_50_100",  '%s/as1604//ICF/automated/2010_08_15_23_34_33//QCD_Pt-50To100_7TeV-madgraph.Spring10-START3X_V26-v1.GEN-SIM-RECO/")'%srm, xs = None)
+mc.add("qcd_mg_ht_100_250", '%s/as1604//ICF/automated/2010_08_15_23_34_33//QCD_Pt100to250-madgraph.Spring10-START3X_V26_S09-v2.GEN-SIM-RECO/ ")'%srm, xs = None)
+mc.add("qcd_mg_ht_250_500", '%s/as1604//ICF/automated/2010_08_15_23_34_33//QCD_Pt250to500-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/ ")'%srm, xs = None)
+mc.add("qcd_mg_ht_500_1000",'%s/as1604//ICF/automated/2010_08_15_23_34_33//QCD_Pt500to1000-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = None)
+mc.add("qcd_mg_ht_1000_inf",'%s/as1604//ICF/automated/2010_08_15_23_34_33//QCD_Pt1000toInf-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = None)
+mc.add("qcd_mg_ht_250_500_old",'%s/as1604//ICF/automated/2010_07_27_14_33_00//QCD_Pt250to500-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 171e+03 )
 
 #MG GAMMA + JETS
 mc.add("gammajets_mg_pt40_100", '%s/arlogb//ICF/automated/2010_07_26_15_14_40//PhotonJets_Pt40to100-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 23620 )
