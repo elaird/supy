@@ -219,16 +219,11 @@ class analysisLooper :
             object.Delete()
 
     def writeHistosFromBooks(self) :
-        filedir = r.gDirectory.GetName()
         for iStep,step in enumerate(self.steps) :
             if (iStep and not step.isSelector) or step.ignoreInAccounting: continue
             name = step.books[None]._autoBook__directory.GetName()
-            if '/' in name :
-                utils.addableTNamed("moreName",self.parentName).Write()
-            else:
-                r.gDirectory.mkdir(name).cd()
-                utils.addableTNamed("moreName",step.moreName+step.moreName2).Write()
-                
+            if '/' not in name : r.gDirectory.mkdir(name,step.moreName+step.moreName2).cd()
+            
             for book in step.books.values() :
                 for item in book.fillOrder :
                     object = book[item]
