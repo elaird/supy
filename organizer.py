@@ -71,10 +71,10 @@ class organizer(object) :
         sourceIndices.sort()
         sourceIndices.reverse()
 
-        if reduce(lambda x,y: x & y, ["xs" in self.samples[i] for i in sourceIndices], True) :
+        if all(["xs" in self.samples[i] for i in sourceIndices] :
             #target["xs"] = sum([self.samples[i]["xs"] for i in sourceIndices ])
             target["xs"] = None
-        elif reduce(lambda x,y: x & y, ["lumi" in self.samples[i] for i in sourceIndices], True) :
+        elif all(["lumi" in self.samples[i] for i in sourceIndices]):
             target["lumi"] = sum([self.samples[i]["lumi"] for i in sourceIndices ])
         else: raise Exception("Cannot merge data with sim")
         
