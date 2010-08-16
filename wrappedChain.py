@@ -42,7 +42,7 @@ class wrappedChain(dict) :
 
             for iTreeEntry in range( nTreeEntries )  :
                 self.entry = iTreeFirstEntry + iTreeEntry
-                if nEntries <= self.entry : return
+                if nEntries <= self.entry : self.entry-=1; return
                 self.__localEntry = iTreeEntry
                 for node in self.__activeNodeList : node.updated = False
                 yield self
