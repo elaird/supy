@@ -47,28 +47,30 @@ def makeAlphaTFunc(alphaTValue) :
     alphaTFunc.SetNpx(300)
     return alphaTFunc
 ##############################
-def setRanges(plotContainer,logAxes) :
+def setRanges(histos,dimension,logAxes) :
     globalMax = -1.0
     globalMin = 1.0e9
     
-    for histo in plotContainer["histoDict"].values() :
+    for histo in histos :
+        if not histo : continue
         max=histo.GetMaximum()
         if max>globalMax : globalMax=max
 
-        if plotContainer["dimension"]==1 :
+        if dimension==1 :
             for iBinX in range(histo.GetNbinsX()+2) :
                 value=histo.GetBinContent(iBinX)
                 if value>0.0 :
                     if value<globalMin : globalMin=value
                     
-        if plotContainer["dimension"]==2 :
+        if dimension==2 :
             for iBinX in range(histo.GetNbinsX()+2) :
                 for iBinY in range(histo.GetNbinsY()+2) :
                     value=histo.GetBinContent(iBinX,iBinY)
                     if value>0.0 :
                         if value<globalMin : globalMin=value
                     
-    for histo in plotContainer["histoDict"].values() :
+    for histo in histos :
+        if not histo : continue        
         if logAxes :
             histo.SetMaximum(2.0*globalMax)
             histo.SetMinimum(0.5*globalMin)
@@ -153,11 +155,26 @@ def plot2D(canvasDict,histo,count,sampleName,stuffToKeep) :
         yx.Draw("same")
         stuffToKeep.append(yx)
 ##############################
-def onePlotFunction(plotContainer,canvasDict) :
+def onePlotFunction(selectionsSoFar,printTable,samples,histos,canvasDict) :
+    #print a yield table
+    if printTable and set(selectionsSoFar)!=set([' ']) :
+        printSelections(selectionsSoFar,canvasDict)
+
+    dimensions=[]
+    for histo in histos :
+        if not histo : continue
+        className=histo.ClassName()
+        if len(className)<3 or className[0:2]!="TH" : continue
+        dimensions.append(className[2])
+
+    dimensions=set(dimensions)
+    assert len(dimensions)==1,"histograms have different dimensions"
+    dimension=int(list(dimensions)[0])
+            
     #prepare canvas
     canvasDict["canvas"].cd(0)
     canvasDict["canvas"].Clear()
-    if plotContainer["dimension"]==1 :
+    if dimension==1 :
         if canvasDict["plotRatios"] :
             split = 0.2
             canvasDict["canvas"].Divide(1,2)
@@ -169,10 +186,10 @@ def onePlotFunction(plotContainer,canvasDict) :
         else :
             canvasDict["canvas"].Divide(1,1)
     else :
-        canvasDict["canvas"].Divide(len(plotContainer["histoDict"]),1)
+        canvasDict["canvas"].Divide(len(histos),1)
 
-    #set ranges
-    setRanges(plotContainer,canvasDict["doLog"])
+    ##set ranges
+    setRanges(histos,dimension,canvasDict["doLog"])
 
     #loop over available histos and plot them
     stuffToKeep=[]
@@ -183,34 +200,40 @@ def onePlotFunction(plotContainer,canvasDict) :
     legend=r.TLegend(x1,y1,x2,y2)
     count=0
 
-    sampleNames=plotContainer["histoDict"].keys()
-    sampleNames.sort()
-    
-    for sampleName in sampleNames :
-        histo=plotContainer["histoDict"][sampleName]
+    for sample,histo in zip(samples,histos) :
+        if not histo : continue
         if not histo.GetEntries() : continue
+
+        sampleName=sample["name"]
+        if "color" in sample :
+            histo.SetLineColor(sample["color"])
+            histo.SetMarkerColor(sample["color"])
+        if "markerStyle" in sample :
+            histo.SetMarkerStyle(sample["markerStyle"])
+            
         legend.AddEntry(histo,sampleName,"l")
 
-        if plotContainer["dimension"]==1   : plot1D(canvasDict,histo,count,stuffToKeep)
-        elif plotContainer["dimension"]==2 : plot2D(canvasDict,histo,count,sampleName,stuffToKeep)
+        if dimension==1   : plot1D(canvasDict,histo,count,stuffToKeep)
+        elif dimension==2 : plot2D(canvasDict,histo,count,sampleName,stuffToKeep)
         else :
-            print "Skipping histo",histo.GetName(),"with dimension",plotContainer["dimension"]
+            print "Skipping histo",histo.GetName(),"with dimension",dimension
             continue
         count+=1
-    if plotContainer["dimension"]==1 : legend.Draw()
-
+    if dimension==1 : legend.Draw()
+    
     #plot ratio
-    if canvasDict["plotRatios"] and plotContainer["dimension"]==1 :
+    if canvasDict["plotRatios"] and dimension==1 :
         numSampleName,denomSampleName=canvasDict["samplesForRatios"]
         numLabel,denomLabel=canvasDict["sampleLabelsForRatios"]
-
+    
         numHisto = None
-        if numSampleName in plotContainer["histoDict"] :
-            numHisto = plotContainer["histoDict"][numSampleName]
-
         denomHisto = None
-        if denomSampleName in plotContainer["histoDict"] :
-            denomHisto = plotContainer["histoDict"][denomSampleName]
+        for iSample in range(len(samples)) :
+            sample = samples[iSample]
+            if sample["name"]==numSampleName :
+                numHisto = histos[iSample]
+            if sample["name"]==denomSampleName :
+                denomHisto = histos[iSample]
 
         if numHisto and denomHisto and numHisto.GetEntries() and denomHisto.GetEntries() :
             try:
@@ -236,8 +259,26 @@ def onePlotFunction(plotContainer,canvasDict) :
         else :
             canvasDict["canvas"].cd(2)
 
+    canvasDict["canvas"].cd(0)
+
     if count>0 :
         canvasDict["canvas"].Print(canvasDict["psFile"],canvasDict["psOptions"])
+##############################
+def printSelections(selectionsSoFar,canvasDict) :
+    canvasDict["canvas"].cd(0)
+    canvasDict["canvas"].Clear()    
+
+    text = r.TText()
+    text.SetNDC()
+    text.SetTextSize(0.5*text.GetTextSize())
+    nSelections = len(selectionsSoFar)
+    for i in  range(nSelections):
+        x=0.1
+        y=0.98 - 0.6*(i+0.5)/nSelections
+        text.DrawTextNDC(x, y, selectionsSoFar[i])
+
+    canvasDict["canvas"].Print(canvasDict["psFile"],canvasDict["psOptions"])
+    canvasDict["canvas"].Clear()
 ##############################
 def printTimeStamp(canvasDict) :
     text=r.TText()
@@ -248,7 +289,7 @@ def printTimeStamp(canvasDict) :
     canvasDict["canvas"].Print(canvasDict["psFile"],canvasDict["psOptions"])
     canvasDict["canvas"].Clear()
 ##############################
-def plotAll(listOfPlotContainers=[],
+def plotAll(someOrganizer,
             psFileName="out.ps",
             samplesForRatios=("",""),
             sampleLabelsForRatios=("",""),
@@ -260,7 +301,6 @@ def plotAll(listOfPlotContainers=[],
             ) :
 
     print utils.hyphens
-    if len(listOfPlotContainers)<1 : return
     setupStyle()
 
     canvasDict={}
@@ -280,10 +320,16 @@ def plotAll(listOfPlotContainers=[],
     canvasDict["canvas"].Print(canvasDict["psFile"]+"[",canvasDict["psOptions"])
     #canvasDict["canvas"].SetRightMargin(0.4)
     printTimeStamp(canvasDict)
-
-    for plotContainer in listOfPlotContainers :
-        if plotContainer["plotName"] in blackList : continue
-        onePlotFunction(plotContainer,canvasDict)
+    
+    selectionsSoFar=[]
+    for selection in someOrganizer.selections :
+        selectionsSoFar.append(selection.name+" "+selection.title)
+        printTable = True if len(selectionsSoFar)>0 else False
+        for plotName in selection :
+            if plotName in blackList : continue
+            onePlotFunction(selectionsSoFar,printTable,someOrganizer.samples,selection[plotName],canvasDict)
+            printTable = False
+        #if printTable : printSelections(selectionsSoFar,canvasDict)
 
     canvasDict["canvas"].Print(canvasDict["psFile"]+"]",canvasDict["psOptions"])
     pdfFile=canvasDict["psFile"].replace(".ps",".pdf")
