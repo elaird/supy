@@ -155,7 +155,7 @@ def plot2D(canvasDict,histo,count,sampleName,stuffToKeep) :
         yx.Draw("same")
         stuffToKeep.append(yx)
 ##############################
-def onePlotFunction(selectionsSoFar,printTable,samples,histos,canvasDict) :
+def onePlotFunction(selectionsSoFar,printTable,samples,histos,plotName,canvasDict) :
     #print a yield table
     if printTable and set(selectionsSoFar)!=set([' ']) :
         printSelections(selectionsSoFar,canvasDict)
@@ -255,7 +255,7 @@ def onePlotFunction(selectionsSoFar,printTable,samples,histos,canvasDict) :
                 ratio.SetMarkerStyle(numHisto.GetMarkerStyle())
                 ratio.Draw()
             except:
-                print "failed to make ratio for plot",plotContainer["plotName"]
+                print "failed to make ratio for plot",plotName
         else :
             canvasDict["canvas"].cd(2)
 
@@ -327,7 +327,7 @@ def plotAll(someOrganizer,
         printTable = True if len(selectionsSoFar)>0 else False
         for plotName in selection :
             if plotName in blackList : continue
-            onePlotFunction(selectionsSoFar,printTable,someOrganizer.samples,selection[plotName],canvasDict)
+            onePlotFunction(selectionsSoFar,printTable,someOrganizer.samples,selection[plotName],plotName,canvasDict)
             printTable = False
         #if printTable : printSelections(selectionsSoFar,canvasDict)
 
