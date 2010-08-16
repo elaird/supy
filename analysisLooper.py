@@ -219,10 +219,15 @@ class analysisLooper :
             object.Delete()
 
     def writeHistosFromBooks(self) :
+        wroteSlash = False
         for iStep,step in enumerate(self.steps) :
-            if (iStep and not step.isSelector) or step.ignoreInAccounting: continue
             name = step.books[None]._autoBook__directory.GetName()
-            if '/' not in name : r.gDirectory.mkdir(name,step.moreName+step.moreName2).cd()
+            if '/' in name and not step.ignoreInAccounting :
+                if wroteSlash: continue
+                wroteSlash = True
+            elif step.ignoreInAccounting: continue
+            elif not step.isSelector: continue
+            else: r.gDirectory.mkdir(name,step.moreName+step.moreName2).cd()
             
             for book in step.books.values() :
                 for item in book.fillOrder :
