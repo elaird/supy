@@ -83,10 +83,10 @@ def makeSamples() :
               specify(name = "qcd_py_pt470",           color = r.kBlue    ),
               specify(name = "qcd_py_pt800",           color = r.kBlue    ),
             ##specify(name = "qcd_py_pt1400",          color = r.kBlue    ),
-              specify(name = "gammajets_mg_pt40_100",  color = r.kGreen   ),
-              specify(name = "gammajets_mg_pt100_200", color = r.kGreen   ),
-              specify(name = "gammajets_mg_pt200",     color = r.kGreen   ),
               specify(name = "tt_tauola_mg",           color = r.kOrange  ),
+              specify(name = "g_jets_mg_pt40_100",     color = r.kGreen   ),
+              specify(name = "g_jets_mg_pt100_200",    color = r.kGreen   ),
+              specify(name = "g_jets_mg_pt200",        color = r.kGreen   ),
               specify(name = "z_inv_mg_skim",          color = r.kMagenta ),
               specify(name = "z_jets_mg_skim",         color = r.kYellow-3),
               specify(name = "w_jets_mg_skim",         color = 28         ),
@@ -108,7 +108,7 @@ a=analysis.analysis(name = "hadronicLook",
 from organizer import organizer
 org=organizer( a.sampleSpecs() )
 
-org.mergeSamples(targetSpec = {"name":"g_jets_mg",     "color":r.kGreen},   sources = ["gammajets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
+org.mergeSamples(targetSpec = {"name":"g_jets_mg",     "color":r.kGreen},   sources = ["g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
 org.mergeSamples(targetSpec = {"name":"qcd_py"   ,     "color":r.kBlue},    sources = ["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
 org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3},
                  sources = ["g_jets_mg","qcd_py","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"], keepSources = True
