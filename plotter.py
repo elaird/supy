@@ -96,8 +96,7 @@ class plotter(object) :
             printTable = True if len(self.selectionsSoFar)>0 else False
             for plotName in selection :
                 if plotName in self.blackList : continue
-                #print a yield table
-                if printTable and set(self.selectionsSoFar)!=set([' ']) : self.printSelections()
+                if printTable : self.printSelections()
                 self.onePlotFunction(selection[plotName],plotName)
                 printTable = False
             #if printTable : printSelections(selectionsSoFar,canvasDict)
@@ -123,8 +122,10 @@ class plotter(object) :
         os.system("ps2pdf "+self.psFileName+" "+pdfFile)
         os.system("gzip -f "+self.psFileName)
         print "The output file \""+pdfFile+"\" has been written."
-        
+
     def printSelections(self) :
+        if set(self.selectionsSoFar)==set([' ']) :
+            return
         self.canvas.cd(0)
         self.canvas.Clear()    
 
@@ -139,6 +140,30 @@ class plotter(object) :
             y=0.98 - 0.3*(i+0.5)/nSelections
             text.DrawTextNDC(x, y, string.ascii_letters[i]+": "+self.selectionsSoFar[i])
 
+        #nPass={}
+        #nPassErr={}
+        #for iSelection,selection in enumerate(self.someOrganizer.selections) :
+        #    for sample,countHisto in zip(self.someOrganizer.samples,selection["counts"]) :
+        #        if not countHisto : continue
+        #        nPass   [ (sample["name"],iSelection) ]=countHisto.GetBinContent(1)
+        #        nPassErr[ (sample["name"],iSelection) ]=countHisto.GetBinError(1)
+        #
+        #for iSelection in  range(nSelections):
+        #    x=0.02            
+        #    y=0.5 - 0.3*(iSelection+0.5)/nSelections
+        #    nSamples = len(self.someOrganizer.samples)
+        #
+        #    toPrint=string.ascii_letters[i]+": "
+        #    for iSample in range(nSamples) :
+        #        sample = self.someOrganizer.samples[iSample]
+        #        key = (sample["name"],iSelection)
+        #        if key in nPass :
+        #            toPrint+=str( nPass[key] )
+        #        else :
+        #            toPrint+="-"
+        #
+        #    text.DrawTextNDC(x, y, toPrint)
+        
         self.printCanvas()
         self.canvas.Clear()
 
