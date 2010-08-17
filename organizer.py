@@ -127,3 +127,6 @@ class organizer(object) :
                     if axis: axis.SetTitle("%s / %s pb^{-1}"%(axis.GetTitle(),str(lumi)))
         self.scaled = True
 
+    def indicesOfSelectionsWithKey(self,key) :
+        return filter( lambda i: key in self.selections[i], range(len(self.selections)))
+            
