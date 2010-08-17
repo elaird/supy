@@ -63,9 +63,10 @@ a=analysis.analysis(name="example",
 a.loop( nCores = 1 ) #use multiple cores to process input files in parallel
 
 #make a pdf file with plots from the histograms created above
-plotter.plotAll(organizer.organizer(a.sampleSpecs()),
-                psFileName = a.outputDir+"/"+a.name+".ps",
-                samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
-                sampleLabelsForRatios = ("data","sim"),
-                )
-
+org = organizer.organizer( a.sampleSpecs() )
+org.scale()
+plotter.plotter( org,
+                 psFileName = a.outputDir+"/"+a.name+".ps",
+                 samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
+                 sampleLabelsForRatios = ("data","sim"),
+                 ).plotAll()
