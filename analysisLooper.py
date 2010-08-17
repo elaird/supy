@@ -47,9 +47,6 @@ class analysisLooper :
         chainWrapper = wrappedChain.wrappedChain(self.inputChain, calculables = self.calculables, useSetBranchAddress = useSetBranchAddress)
         map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
         for step in self.steps :
-            if step.ignoreInAccounting :
-                step.nTotal = step.nPass+step.nFail
-                continue
             step.nPass = 0
             step.nFail = 0
             step.nTotal = 0
@@ -237,7 +234,8 @@ class analysisLooper :
         if self.xs!=None : xsHisto.SetBinContent(1,self.xs)
         xsHisto.Write()
         
-        lumiHisto=r.TH1D("lumiHisto",";dummy axis;integrated luminosity (pb^{-1})",1,-0.5,0.5)
+        lumiHisto = r.TH1D("lumiHisto","%s;dummy axis;integrated luminosity (pb^{-1})"%\
+                           "WARNING: lumi value is probably wrong!" if self.lumiWarn else "",1,-0.5,0.5)
         if self.lumi!=None : lumiHisto.SetBinContent(1,self.lumi)
         lumiHisto.Write()
         
@@ -253,10 +251,6 @@ class analysisLooper :
         nJobsHisto=r.TH1D("nJobsHisto",";dummy axis;N_{jobs}",1,-0.5,0.5)
         nJobsHisto.SetBinContent(1,1)
         nJobsHisto.Write()
-
-        if self.lumiWarn :
-            lumiWarn=utils.addableTNamed(name="lumiWarn",title="WARNING: lumi value is probably wrong!")
-            lumiWarn.Write()
 
     def writeHistos(self) :
         if not self.quietMode : print utils.hyphens

@@ -27,11 +27,7 @@ class analysisStep(object) :
             return True
 
         passed = bool(self.select(eventVars))
-        if not self.ignoreInAccounting :
-            self.book(eventVars).fill(passed,"counts",2,0,2)
-        else :
-            self.nPass+=passed
-            self.nFail+=not passed
+        self.book(eventVars).fill(passed,"counts",2,0,2)
         return passed
     
     def name(self) :
