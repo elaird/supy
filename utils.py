@@ -4,9 +4,6 @@ import ROOT as r
 #####################################
 hyphens="-"*95
 #####################################
-def addableTNamed(name,title) :
-    return r.TH1C(name,title,1,-0.5,0.5)
-#####################################
 def operateOnListUsingQueue(nCores,workerFunc,inList) :
     q = JoinableQueue()
     listOfProcesses=[]
