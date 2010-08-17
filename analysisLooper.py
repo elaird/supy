@@ -238,16 +238,12 @@ class analysisLooper :
                            "WARNING: lumi value is probably wrong!" if self.lumiWarn else "",1,-0.5,0.5)
         if self.lumi!=None : lumiHisto.SetBinContent(1,self.lumi)
         lumiHisto.Write()
-        
-        nEventsHisto=r.TH1D("nEventsHisto",";dummy axis;N_{events} processed",1,-0.5,0.5)
-        nEventsHisto.SetBinContent(1,self.nEvents)
-        if hasattr(self,"nEventsOriginal") :
-            nEventsOriginalHisto=r.TH1D("nEventsOriginalHisto",";dummy axis;N_{events} in original files",1,-0.5,0.5)
-            nEventsOriginalHisto.SetBinContent(1,self.nEventsOriginal)
-            nEventsOriginalHisto.Write()
-            nEventsHisto.SetTitle(self.steps[0].moreName+self.steps[0].moreName2+nEventsHisto.GetTitle())
-        nEventsHisto.Write()
 
+        if len(self.steps) and not self.steps[0].ignoreInAccounting:
+            counts = r.TH1D("counts","",2,0,2)
+            counts.SetBinContent(2,self.nEvents)
+            counts.Write()
+        
         nJobsHisto=r.TH1D("nJobsHisto",";dummy axis;N_{jobs}",1,-0.5,0.5)
         nJobsHisto.SetBinContent(1,1)
         nJobsHisto.Write()
