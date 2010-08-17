@@ -1,5 +1,5 @@
 import ROOT as r
-import os,math
+import os,math,string
 import utils
 ##############################
 def setupStyle() :
@@ -29,6 +29,18 @@ def shiftUnderAndOverflows(histo) :
 
     histo.SetEntries(entries)
 ##############################
+def dimensionOfHisto(histos) :
+    dimensions=[]
+    for histo in histos :
+        if not histo : continue
+        className=histo.ClassName()
+        if len(className)<3 or className[0:2]!="TH" : continue
+        dimensions.append(className[2])
+
+    dimensions=set(dimensions)
+    assert len(dimensions)==1,"histograms have different dimensions"
+    return int(list(dimensions)[0])
+##############################        
 def metFit(histo) :
     funcName="func"
     func=r.TF1(funcName,"[0]*x*exp( -(x-[1])**2 / (2.0*[2])**2 )/[2]",0.5,30.0)
@@ -47,206 +59,196 @@ def makeAlphaTFunc(alphaTValue) :
     alphaTFunc.SetNpx(300)
     return alphaTFunc
 ##############################
-def setRanges(histos,dimension,logAxes) :
-    globalMax = -1.0
-    globalMin = 1.0e9
-    
-    for histo in histos :
-        if not histo : continue
-        max=histo.GetMaximum()
-        if max>globalMax : globalMax=max
-
-        if dimension==1 :
-            for iBinX in range(histo.GetNbinsX()+2) :
-                value=histo.GetBinContent(iBinX)
-                if value>0.0 :
-                    if value<globalMin : globalMin=value
-                    
-        if dimension==2 :
-            for iBinX in range(histo.GetNbinsX()+2) :
-                for iBinY in range(histo.GetNbinsY()+2) :
-                    value=histo.GetBinContent(iBinX,iBinY)
-                    if value>0.0 :
-                        if value<globalMin : globalMin=value
-                    
-    for histo in histos :
-        if not histo : continue        
-        if logAxes :
-            histo.SetMaximum(2.0*globalMax)
-            histo.SetMinimum(0.5*globalMin)
-        else :
-            histo.SetMaximum(1.1*globalMax)
-            histo.SetMinimum(0.0)
-##############################
 def adjustPad(pad) :
     r.gPad.SetRightMargin(0.15)
     r.gPad.SetTicky()
     r.gPad.SetTickx()
 ##############################
-def plot1D(canvasDict,histo,count,stuffToKeep) :
-    adjustPad(r.gPad)
-    if count==0 :
-        histo.Draw()
-        if canvasDict["doLog"] : r.gPad.SetLogy()
-    else :
-        histo.Draw("same")
-        r.gStyle.SetOptFit(0)
-        if canvasDict["doMetFit"] and "met" in histo.GetName() :
-            r.gStyle.SetOptFit(1111)
-            func=metFit(histo)
-            stuffToKeep.append(func)
+class plotter(object) :
+    def __init__(self,
+                 someOrganizer,
+                 psFileName="out.ps",
+                 samplesForRatios=("",""),
+                 sampleLabelsForRatios=("",""),
+                 doLog=True,
+                 drawYx=False,
+                 doMetFit=False,
+                 doColzFor2D=True,
+                 blackList=["counts","lumiWarn","nEventsOriginalHisto"]
+                 ) :
+        for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios",
+                     "doLog","drawYx","doMetFit","doColzFor2D","blackList" ] :
+            setattr(self,item,eval(item))
+        self.plotRatios = self.samplesForRatios!=("","")        
+        self.psOptions="Landscape"
+        self.canvas=r.TCanvas()
+
+    def plotAll(self) :
+        print utils.hyphens
+        setupStyle()
+
+        self.printCanvas("[")
+        self.printTimeStamp()
+    
+        self.selectionsSoFar=[]
+        for selection in self.someOrganizer.selections :
+            self.selectionsSoFar.append(selection.name+" "+selection.title)
+            printTable = True if len(self.selectionsSoFar)>0 else False
+            for plotName in selection :
+                if plotName in self.blackList : continue
+                #print a yield table
+                if printTable and set(self.selectionsSoFar)!=set([' ']) : self.printSelections()
+                self.onePlotFunction(selection[plotName],plotName)
+                printTable = False
+            #if printTable : printSelections(selectionsSoFar,canvasDict)
+
+        self.printCanvas("]")
+        self.makePdf()
+        print utils.hyphens
+
+    def printTimeStamp(self) :
+        text=r.TText()
+        text.SetNDC()
+        dateString="file created at ";
+        tdt=r.TDatime()
+        text.DrawText(0.1,0.3,dateString+tdt.AsString())
+        self.printCanvas()
+        self.canvas.Clear()
+
+    def printCanvas(self,extra="") :
+        self.canvas.Print(self.psFileName+extra,self.psOptions)
+
+    def makePdf(self) :
+        pdfFile=self.psFileName.replace(".ps",".pdf")
+        os.system("ps2pdf "+self.psFileName+" "+pdfFile)
+        os.system("gzip -f "+self.psFileName)
+        print "The output file \""+pdfFile+"\" has been written."
+        
+    def printSelections(self) :
+        self.canvas.cd(0)
+        self.canvas.Clear()    
+
+        text = r.TText()
+        text.SetNDC()
+        text.SetTextFont(102)
+        text.SetTextSize(0.5*text.GetTextSize())
+
+        nSelections = len(self.selectionsSoFar)
+        for i in  range(nSelections):
+            x=0.02
+            y=0.98 - 0.3*(i+0.5)/nSelections
+            text.DrawTextNDC(x, y, string.ascii_letters[i]+": "+self.selectionsSoFar[i])
+
+        self.printCanvas()
+        self.canvas.Clear()
+
+    def getExtremes(self,histos,dimension) :
+        globalMax = -1.0
+        globalMin = 1.0e9
+        for histo in histos :
+            if not histo : continue
+            max=histo.GetMaximum()
+            if max>globalMax : globalMax=max
+
+            if dimension==1 :
+                for iBinX in range(histo.GetNbinsX()+2) :
+                    value=histo.GetBinContent(iBinX)
+                    if value>0.0 :
+                        if value<globalMin : globalMin=value
+            if dimension==2 :
+                for iBinX in range(histo.GetNbinsX()+2) :
+                    for iBinY in range(histo.GetNbinsY()+2) :
+                        value=histo.GetBinContent(iBinX,iBinY)
+                        if value>0.0 :
+                            if value<globalMin : globalMin=value
+        return globalMax,globalMin
+
+    def setRanges(self,histos,dimension) :
+        globalMax,globalMin = self.getExtremes(histos,dimension)
                     
-            r.gPad.Update()
-            tps=histo.FindObject("stats")
-            stuffToKeep.append(tps)
-            tps.SetLineColor(histo.GetLineColor())
-            tps.SetTextColor(histo.GetLineColor())
-            if iHisto==0 :
-                tps.SetX1NDC(0.75)
-                tps.SetX2NDC(0.95)
-                tps.SetY1NDC(0.75)
-                tps.SetY2NDC(0.95)
+        for histo in histos :
+            if not histo : continue        
+            if self.doLog :
+                histo.SetMaximum(2.0*globalMax)
+                histo.SetMinimum(0.5*globalMin)
             else :
-                tps.SetX1NDC(0.75)
-                tps.SetX2NDC(0.95)
-                tps.SetY1NDC(0.50)
-                tps.SetY2NDC(0.70)
+                histo.SetMaximum(1.1*globalMax)
+                histo.SetMinimum(0.0)
 
-    if "countsHisto" in histo.GetName() :
-        outString=histo.GetName().ljust(20)
-        outString+=sampleName.ljust(12)
-        outString+=": "
-        outString+="%#8.2f"%histo.GetBinContent(1)
-        outString+=" +/-"
-        outString+="%#8.2f"%histo.GetBinError(1)
-        #if not plotSpec["scaleByAreaRatherThanByXs"] : print outString
-        #else : print "for counts, set scaleByAreaRatherThanByXs=False"
-##############################
-def plot2D(canvasDict,histo,count,sampleName,stuffToKeep) :
-    yx=r.TF1("yx","x",histo.GetXaxis().GetXmin(),histo.GetXaxis().GetXmax())
-    yx.SetLineColor(r.kBlue)
-    yx.SetLineWidth(1)
-    yx.SetNpx(300)
-    
-    canvasDict["canvas"].cd(count+1)
-    histo.GetYaxis().SetTitleOffset(1.2)
-    oldTitle=histo.GetTitle()
-    newTitle=sampleName if oldTitle=="" else sampleName+"_"+oldTitle
-    histo.SetTitle(newTitle)
-    histo.SetStats(False)
-    histo.GetZaxis().SetTitleOffset(1.3)
-    r.gPad.SetRightMargin(0.15)
-    r.gPad.SetTicky()
-    if canvasDict["doLog"] : r.gPad.SetLogz()
-
-    if canvasDict["doColzFor2D"] : histo.Draw("colz")
-    else :           histo.Draw()
-
-    if "deltaHtOverHt_vs_mHtOverHt" in histo.GetName() :
-        histo.GetYaxis().SetRangeUser(0.0,0.7)
-        funcs=[
-            makeAlphaTFunc(0.55),
-            makeAlphaTFunc(0.50),
-            makeAlphaTFunc(0.45)
-            ]
-        for func in funcs : func.Draw("same")
-        stuffToKeep.extend(funcs)
-    elif canvasDict["drawYx"] :
-        yx.Draw("same")
-        stuffToKeep.append(yx)
-##############################
-def onePlotFunction(selectionsSoFar,printTable,samples,histos,plotName,canvasDict) :
-    #print a yield table
-    if printTable and set(selectionsSoFar)!=set([' ']) :
-        printSelections(selectionsSoFar,canvasDict)
-
-    dimensions=[]
-    for histo in histos :
-        if not histo : continue
-        className=histo.ClassName()
-        if len(className)<3 or className[0:2]!="TH" : continue
-        dimensions.append(className[2])
-
-    dimensions=set(dimensions)
-    assert len(dimensions)==1,"histograms have different dimensions"
-    dimension=int(list(dimensions)[0])
-            
-    #prepare canvas
-    canvasDict["canvas"].cd(0)
-    canvasDict["canvas"].Clear()
-    if dimension==1 :
-        if canvasDict["plotRatios"] :
-            split = 0.2
-            canvasDict["canvas"].Divide(1,2)
-            canvasDict["canvas"].cd(1).SetPad(0.01,split+0.01,0.99,0.99)
-            canvasDict["canvas"].cd(2).SetPad(0.01,0.01,0.99,split)
-            #canvasDict["canvas"].cd(2).SetTopMargin(0.07)#default=0.05
-            #canvasDict["canvas"].cd(2).SetBottomMargin(0.45)
-            canvasDict["canvas"].cd(1)
+    def prepareCanvas(self,histos,dimension) :
+        self.canvas.cd(0)
+        self.canvas.Clear()
+        if dimension==1 :
+            if self.plotRatios :
+                split = 0.2
+                self.canvas.Divide(1,2)
+                self.canvas.cd(1).SetPad(0.01,split+0.01,0.99,0.99)
+                self.canvas.cd(2).SetPad(0.01,0.01,0.99,split)
+                #self.canvas.cd(2).SetTopMargin(0.07)#default=0.05
+                #self.canvas.cd(2).SetBottomMargin(0.45)
+                self.canvas.cd(1)
+            else :
+                self.canvas.Divide(1,1)
         else :
-            canvasDict["canvas"].Divide(1,1)
-    else :
-        mx=1
-        my=1
-        while mx*my<len(histos) :
-            if mx==my : mx+=1
-            else :      my+=1
-        canvasDict["canvas"].Divide(mx,my)
+            mx=1
+            my=1
+            while mx*my<len(histos) :
+                if mx==my : mx+=1
+                else :      my+=1
+            self.canvas.Divide(mx,my)
 
-    ##set ranges
-    setRanges(histos,dimension,canvasDict["doLog"])
+    def plotEachHisto(self,histos,dimension) :
+        stuffToKeep=[]
+        x1=0.86
+        x2=1.00
+        y1=0.60
+        y2=0.10
+        legend=r.TLegend(x1,y1,x2,y2)
 
-    #loop over available histos and plot them
-    stuffToKeep=[]
-    x1=0.86
-    x2=1.00
-    y1=0.60
-    y2=0.10
-    legend=r.TLegend(x1,y1,x2,y2)
-    count=0
+        count = 0
+        for sample,histo in zip(self.someOrganizer.samples,histos) :
+            if not histo : continue
+            if not histo.GetEntries() : continue
 
-    for sample,histo in zip(samples,histos) :
-        if not histo : continue
-        if not histo.GetEntries() : continue
-
-        sampleName=sample["name"]
-        if "color" in sample :
-            histo.SetLineColor(sample["color"])
-            histo.SetMarkerColor(sample["color"])
-        if "markerStyle" in sample :
-            histo.SetMarkerStyle(sample["markerStyle"])
+            sampleName=sample["name"]
+            if "color" in sample :
+                histo.SetLineColor(sample["color"])
+                histo.SetMarkerColor(sample["color"])
+            if "markerStyle" in sample :
+                histo.SetMarkerStyle(sample["markerStyle"])
             
-        legend.AddEntry(histo,sampleName,"l")
+            legend.AddEntry(histo,sampleName,"l")
 
-        if dimension==1   : plot1D(canvasDict,histo,count,stuffToKeep)
-        elif dimension==2 : plot2D(canvasDict,histo,count,sampleName,stuffToKeep)
-        else :
-            print "Skipping histo",histo.GetName(),"with dimension",dimension
-            continue
-        count+=1
-    if dimension==1 : legend.Draw()
-    
-    #plot ratio
-    if canvasDict["plotRatios"] and dimension==1 :
-        numSampleName,denomSampleName=canvasDict["samplesForRatios"]
-        numLabel,denomLabel=canvasDict["sampleLabelsForRatios"]
+            if dimension==1   : self.plot1D(histo,count,stuffToKeep)
+            elif dimension==2 : self.plot2D(histo,count,sampleName,stuffToKeep)
+            else :
+                print "Skipping histo",histo.GetName(),"with dimension",dimension
+                continue
+            count+=1
+        if dimension==1 : legend.Draw()
+        return count,stuffToKeep
+
+
+    def plotRatio(self,histos,dimension) :
+        numSampleName,denomSampleName=self.samplesForRatios
+        numLabel,denomLabel=self.sampleLabelsForRatios
     
         numHisto = None
         denomHisto = None
-        for iSample in range(len(samples)) :
-            sample = samples[iSample]
+        for sample,histo in zip(self.someOrganizer.samples,histos) :
             if sample["name"]==numSampleName :
-                numHisto = histos[iSample]
+                numHisto = histo
             if sample["name"]==denomSampleName :
-                denomHisto = histos[iSample]
+                denomHisto = histo
 
+        ratio = None
         if numHisto and denomHisto and numHisto.GetEntries() and denomHisto.GetEntries() :
             try:
                 ratio=utils.ratioHistogram(numHisto,denomHisto)
                 ratio.SetMinimum(0.0)
                 ratio.SetMaximum(2.0)
                 ratio.GetYaxis().SetTitle(numLabel+"/"+denomLabel)
-                canvasDict["canvas"].cd(2)
+                self.canvas.cd(2)
                 adjustPad(r.gPad)
                 r.gPad.SetGridy()
                 ratio.SetStats(False)
@@ -262,85 +264,80 @@ def onePlotFunction(selectionsSoFar,printTable,samples,histos,plotName,canvasDic
             except:
                 print "failed to make ratio for plot",plotName
         else :
-            canvasDict["canvas"].cd(2)
+            self.canvas.cd(2)
+        return ratio
 
-    canvasDict["canvas"].cd(0)
+    def onePlotFunction(self,histos,plotName) :
+        dimension = dimensionOfHisto(histos)
+        self.prepareCanvas(histos,dimension)
+        self.setRanges(histos,dimension)
 
-    if count>0 :
-        canvasDict["canvas"].Print(canvasDict["psFile"],canvasDict["psOptions"])
-##############################
-def printSelections(selectionsSoFar,canvasDict) :
-    canvasDict["canvas"].cd(0)
-    canvasDict["canvas"].Clear()    
+        count,stufftoKeep = self.plotEachHisto(histos,dimension)
+        if self.plotRatios and dimension==1 :
+            ratio = self.plotRatio(histos,dimension)
+        self.canvas.cd(0)
+        if count>0 :
+            self.printCanvas()
 
-    text = r.TText()
-    text.SetNDC()
-    text.SetTextSize(0.5*text.GetTextSize())
-    nSelections = len(selectionsSoFar)
-    for i in  range(nSelections):
-        x=0.1
-        y=0.98 - 0.6*(i+0.5)/nSelections
-        text.DrawTextNDC(x, y, selectionsSoFar[i])
+    def plot1D(self,histo,count,stuffToKeep) :
+        adjustPad(r.gPad)
+        if count==0 :
+            histo.Draw()
+            if self.doLog : r.gPad.SetLogy()
+        else :
+            histo.Draw("same")
+            r.gStyle.SetOptFit(0)
+            if self.doMetFit and "met" in histo.GetName() :
+                r.gStyle.SetOptFit(1111)
+                func=metFit(histo)
+                stuffToKeep.append(func)
+                    
+                r.gPad.Update()
+                tps=histo.FindObject("stats")
+                stuffToKeep.append(tps)
+                tps.SetLineColor(histo.GetLineColor())
+                tps.SetTextColor(histo.GetLineColor())
+                if iHisto==0 :
+                    tps.SetX1NDC(0.75)
+                    tps.SetX2NDC(0.95)
+                    tps.SetY1NDC(0.75)
+                    tps.SetY2NDC(0.95)
+                else :
+                    tps.SetX1NDC(0.75)
+                    tps.SetX2NDC(0.95)
+                    tps.SetY1NDC(0.50)
+                    tps.SetY2NDC(0.70)
 
-    canvasDict["canvas"].Print(canvasDict["psFile"],canvasDict["psOptions"])
-    canvasDict["canvas"].Clear()
-##############################
-def printTimeStamp(canvasDict) :
-    text=r.TText()
-    text.SetNDC()
-    dateString="file created at ";
-    tdt=r.TDatime()
-    text.DrawText(0.1,0.3,dateString+tdt.AsString())
-    canvasDict["canvas"].Print(canvasDict["psFile"],canvasDict["psOptions"])
-    canvasDict["canvas"].Clear()
-##############################
-def plotAll(someOrganizer,
-            psFileName="out.ps",
-            samplesForRatios=("",""),
-            sampleLabelsForRatios=("",""),
-            doLog=True,
-            drawYx=False,
-            doMetFit=False,
-            doColzFor2D=True,
-            blackList=["counts","lumiWarn","nEventsOriginalHisto"]
-            ) :
+    def plot2D(self,histo,count,sampleName,stuffToKeep) :
+    	yx=r.TF1("yx","x",histo.GetXaxis().GetXmin(),histo.GetXaxis().GetXmax())
+    	yx.SetLineColor(r.kBlue)
+    	yx.SetLineWidth(1)
+    	yx.SetNpx(300)
+    	
+    	self.canvas.cd(count+1)
+    	histo.GetYaxis().SetTitleOffset(1.2)
+    	oldTitle=histo.GetTitle()
+    	newTitle=sampleName if oldTitle=="" else sampleName+"_"+oldTitle
+    	histo.SetTitle(newTitle)
+    	histo.SetStats(False)
+    	histo.GetZaxis().SetTitleOffset(1.3)
+    	r.gPad.SetRightMargin(0.15)
+    	r.gPad.SetTicky()
+        if self.doLog : r.gPad.SetLogz()
 
-    print utils.hyphens
-    setupStyle()
+        if self.doColzFor2D : histo.Draw("colz")
+        else :           histo.Draw()
 
-    canvasDict={}
-    canvasDict["samplesForRatios"]=samplesForRatios
-    canvasDict["sampleLabelsForRatios"]=sampleLabelsForRatios
-    canvasDict["plotRatios"]=canvasDict["samplesForRatios"]!=("","")
-    
-    canvasDict["doLog"]=doLog
-    canvasDict["drawYx"]=drawYx
-    canvasDict["doMetFit"]=doMetFit
-    canvasDict["doColzFor2D"]=doColzFor2D
-    
-    canvasDict["psFile"]=psFileName
-    canvasDict["psOptions"]="Landscape"
-    
-    canvasDict["canvas"]=r.TCanvas()
-    canvasDict["canvas"].Print(canvasDict["psFile"]+"[",canvasDict["psOptions"])
-    #canvasDict["canvas"].SetRightMargin(0.4)
-    printTimeStamp(canvasDict)
-    
-    selectionsSoFar=[]
-    for selection in someOrganizer.selections :
-        selectionsSoFar.append(selection.name+" "+selection.title)
-        printTable = True if len(selectionsSoFar)>0 else False
-        for plotName in selection :
-            if plotName in blackList : continue
-            onePlotFunction(selectionsSoFar,printTable,someOrganizer.samples,selection[plotName],plotName,canvasDict)
-            printTable = False
-        #if printTable : printSelections(selectionsSoFar,canvasDict)
-
-    canvasDict["canvas"].Print(canvasDict["psFile"]+"]",canvasDict["psOptions"])
-    pdfFile=canvasDict["psFile"].replace(".ps",".pdf")
-    os.system("ps2pdf "+canvasDict["psFile"]+" "+pdfFile)
-    os.system("gzip -f "+canvasDict["psFile"])
-    print "The output file \""+pdfFile+"\" has been written."
-    print utils.hyphens
-    #print "The output file \""+canvasDict["psFile"]+".gz\" has been written."
+        if "deltaHtOverHt_vs_mHtOverHt" in histo.GetName() :
+            histo.GetYaxis().SetRangeUser(0.0,0.7)
+            funcs=[
+                makeAlphaTFunc(0.55),
+                makeAlphaTFunc(0.50),
+                makeAlphaTFunc(0.45)
+                ]
+            for func in funcs : func.Draw("same")
+            stuffToKeep.extend(funcs)
+        elif self.drawYx :
+            yx.Draw("same")
+            stuffToKeep.append(yx)
 ##############################

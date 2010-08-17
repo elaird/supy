@@ -105,7 +105,7 @@ a=analysis.analysis(name = "hadronicLook",
 
 if __name__ == '__main__':
     #loop
-    a.loop( nCores = 8 )
+    #a.loop( nCores = 8 )
 
     #organize
     org=organizer.organizer( a.sampleSpecs() )
@@ -118,13 +118,14 @@ if __name__ == '__main__':
 
 
     #plot
-    plotter.plotAll(org,
-                    psFileName=a.outputDir+"/"+a.name+".ps",
-                    #samplesForRatios=("JetMET.Run2010A","qcd_mg_ht_250_500_old"),
-                    #sampleLabelsForRatios=("data","qcd"),
-                    samplesForRatios=("JetMET.Run2010A","standard_model"),
-                    sampleLabelsForRatios=("data","s.m."),
-                    )
+    pl = plotter.plotter(org,
+                         psFileName=a.outputDir+"/"+a.name+".ps",
+                         #samplesForRatios=("JetMET.Run2010A","qcd_mg_ht_250_500_old"),
+                         #sampleLabelsForRatios=("data","qcd"),
+                         samplesForRatios=("JetMET.Run2010A","standard_model"),
+                         sampleLabelsForRatios=("data","s.m."),
+                         )
+    pl.plotAll()
 
     #other
     #import deltaPhiLook
