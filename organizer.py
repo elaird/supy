@@ -25,17 +25,17 @@ class organizer(object) :
         fileNameString = "outputPlotFileName"
         selections = []
 
-        for s in self.samples :
-            s['dir'] = r.TFile(s[fileNameString])
+        for sample in self.samples :
+            sample['dir'] = r.TFile(sample[fileNameString])
             def extract(histName,bin=1) :
-                hist = s['dir'].Get(histName)
+                hist = sample['dir'].Get(histName)
                 return hist.GetBinContent(bin) if hist and hist.GetEntries() else None
-            lumiNjobs,xsNjobs,s['nJobs'] = map(extract, ["lumiHisto","xsHisto","nJobsHisto"])
-            s['nEvents'] = extract('counts',bin=2)
+            lumiNjobs,xsNjobs,sample['nJobs'] = map(extract, ["lumiHisto","xsHisto","nJobsHisto"])
+            sample['nEvents'] = extract('counts',bin=2)
 
-            if lumiNjobs: s["lumi"] = lumiNjobs/s['nJobs']
-            if xsNjobs: s["xs"] = xsNjobs/s['nJobs']
-            assert ("xs" in s)^("lumi" in s), "Sample %s hould have one and only one of {xs,lumi}."%s["name"]
+            if lumiNjobs: sample["lumi"] = lumiNjobs/sample'nJobs']
+            if xsNjobs: sample"xs"] = xsNjobs/sample'nJobs']
+            assert ("xs" in s)^("lumi" in s), "Sample %s hould have one and only one of {xs,lumi}."% sample"name"]
             
         dirs = [ s['dir'] for s in self.samples]
         while dirs[0] :
@@ -71,6 +71,7 @@ class organizer(object) :
             if not src in map(lambda s: s["name"], self.samples): print "You have requested to merge unknown sample %s"%src
         target = copy.deepcopy(targetSpec)
         sourceIndices = filter(lambda i: self.samples[i]["name"] in sources, range(len(self.samples)))
+        if not len(sourceInices) : print "None of the samples you want merged are specified, no action taken." ;return
         iTarget = sourceIndices[0]
         sourceIndices.sort()
         sourceIndices.reverse()
@@ -125,3 +126,4 @@ class organizer(object) :
                     axis = h.GetYaxis() if dim==1 else h.GetZaxis() if dim==2 else None
                     if axis: axis.SetTitle("%s / %s pb^{-1}"%(axis.GetTitle(),str(lumi)))
         self.scaled = True
+
