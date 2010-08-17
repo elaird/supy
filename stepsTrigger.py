@@ -139,3 +139,39 @@ class hltTurnOnHistogrammer(analysisStep) :
 #             book[efficiency].Divide(book[tag])
 #             book[efficiency].SetBit(r.TH1.kIsAverage)
 #####################################
+class jetMetTriggerHistogrammer(analysisStep) :
+    """jetMetTriggerHistogrammer"""
+
+    def __init__(self,triggerJets,triggerMet,offlineJets,offlineMht) :
+        self.triggerJets = triggerJets
+        self.triggerMet = triggerMet
+        self.offlineJets = offlineJets
+        self.offlineMht = offlineMht
+        self.moreName  = "(trigger: %s,%s)"%(self.triggerJets,self.triggerMet)
+        self.moreName2 = "(offline: %s,%s)"%(self.offlineJets,self.offlineMht)
+        self.triggerJetsP4String = "%sCorrectedP4%s"%self.triggerJets
+        self.triggerJetsCorrFactorString = "%sCorrFactor%s"%self.triggerJets
+        self.triggerMetString = "%sP4%s"%self.triggerMet
+
+        self.offlineJetsP4String = "%sCorrectedP4%s"%self.offlineJets
+        self.offlineSumP4String = "%sSumP4%s"%self.offlineJets
+        
+    def uponAcceptance(self,eventVars) :
+        nTriggerJets = eventVars[self.triggerJetsP4String].size()
+        if not nTriggerJets : return
+        triggerJetPt = max( [eventVars[self.triggerJetsP4String].at(i).pt()/eventVars[self.triggerJetsCorrFactorString].at(i) for i in range(nTriggerJets)] )
+        triggerMet = eventVars[self.triggerMetString].pt()
+
+        nOfflineJets = eventVars[self.offlineJetsP4String].size()
+        offlineJetPt = eventVars[self.offlineJetsP4String].at(0).pt() if nOfflineJets else 0.0
+        offlineMht   = eventVars[self.offlineSumP4String].pt() if eventVars[self.offlineSumP4String] else 0.0
+        
+        self.book(eventVars).fill( (triggerJetPt,triggerMet), "TriggerMet_vs_TriggerJetPt", (100,100), (0.0,0.0), (200.0,100.0),
+                                   title=";leading un-corr. %s p_{T} (GeV);%s p_{T} (GeV);events / bin"%(self.triggerJets,self.triggerMet))
+        
+        self.book(eventVars).fill( (offlineMht,triggerMet),   "TriggerMet_vs_OfflineMht",   (100,100), (0.0,0.0), (400.0,100.0),
+                                   title=";%s MHT (GeV);%s (GeV);events / bin"%(self.offlineMht,self.triggerMet))
+
+        self.book(eventVars).fill( (triggerJetPt,offlineJetPt), "OfflineJetPt_vs_TriggerJetPt", (100,100), (0.0,0.0), (200.0,200.0),
+                                   title=";leading un-corr. %s p_{T} (GeV);%s p_{T} (GeV);events / bin"%(self.triggerJets,self.offlineJets))
+#####################################
