@@ -26,10 +26,12 @@ class organizer(object) :
 
         for s in self.samples :
             s['dir'] = r.TFile(s[fileNameString])
-            def extract(histName) :
+            def extract(histName,bin=1) :
                 hist = s['dir'].Get(histName)
-                return hist.GetBinContent(1) if hist and hist.GetEntries() else None
-            lumiNjobs,xsNjobs,s['nEvents'],s['nJobs'] = map(extract, ["lumiHisto","xsHisto","nEventsHisto","nJobsHisto"])
+                return hist.GetBinContent(bin) if hist and hist.GetEntries() else None
+            lumiNjobs,xsNjobs,s['nJobs'] = map(extract, ["lumiHisto","xsHisto","nJobsHisto"])
+            s['nEvents'] = extract('counts',bin=2)
+
             if lumiNjobs: s["lumi"] = lumiNjobs/s['nJobs']
             if xsNjobs: s["xs"] = xsNjobs/s['nJobs']
             assert ("xs" in s)^("lumi" in s), "Sample %s hould have one and only one of {xs,lumi}."%s["name"]
