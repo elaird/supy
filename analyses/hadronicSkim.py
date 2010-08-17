@@ -9,7 +9,7 @@ def makeSteps() :
                steps.leadingUnCorrJetPtSelector(jetAlgoList,100.0),
                steps.techBitFilter([0],True),
                steps.physicsDeclared(),
-               steps.vertexRequirementFilter(5.0,15.0),
+               steps.vertexRequirementFilter(5.0,24.0),
                steps.monsterEventFilter(10,0.25),
                steps.skimmer("/vols/cms02/%s/"%os.environ["USER"]),
                ]
