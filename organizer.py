@@ -71,7 +71,7 @@ class organizer(object) :
             if not src in map(lambda s: s["name"], self.samples): print "You have requested to merge unknown sample %s"%src
         target = copy.deepcopy(targetSpec)
         sourceIndices = filter(lambda i: self.samples[i]["name"] in sources, range(len(self.samples)))
-        if not len(sourceInices) : print "None of the samples you want merged are specified, no action taken." ;return
+        if not len(sourceIndices) : print "None of the samples you want merged are specified, no action taken." ;return
         iTarget = sourceIndices[0]
         sourceIndices.sort()
         sourceIndices.reverse()
