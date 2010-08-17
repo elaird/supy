@@ -35,15 +35,15 @@ class organizer(object) :
 
             if lumiNjobs: sample["lumi"] = lumiNjobs/sample['nJobs']
             if xsNjobs: sample["xs"] = xsNjobs/sample['nJobs']
-            assert ("xs" in s)^("lumi" in s), "Sample %s hould have one and only one of {xs,lumi}."% sample["name"]
+            assert ("xs" in sample)^("lumi" in sample), "Sample %s hould have one and only one of {xs,lumi}."% sample["name"]
             
         dirs = [ s['dir'] for s in self.samples]
         while dirs[0] :
             keysets = [set([key.GetName() for key in dir.GetListOfKeys()]) for dir in dirs]
             keys = reduce( lambda x,y: x|y ,keysets,set()) - set(self.itemsToIgnore)
 
-            subdirNames = map(lambda d,keys: filter(lambda k: (type(d.Get(k)) is r.TDirectoryFile and \
-                                                               k not in self.itemsToIgnore)    , keys),  dirs,keysets)
+            subdirNames = map(lambda d,keys:  filter(lambda k: ( type(d.Get(k)) is r.TDirectoryFile and \
+                                                                 k not in self.itemsToIgnore)    , keys),  dirs,keysets)
             subdirLens = map(len,subdirNames)
             if sum(subdirLens) :
                 assert subdirLens == [1]*len(dirs), "Organizer can only interpret a single subdirectory in any given directory.\n%s"%str(subdirNames)
