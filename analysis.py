@@ -318,7 +318,7 @@ def mergeFunc(parent,listOfChildIndices,listOfAllLoopers,cleanUp) :
         #read in the step and calculable data
         stepAndCalculableDataFileName=os.path.expanduser(listOfAllLoopers[iLooper].outputStepAndCalculableDataFileName)
         stepAndCalculableDataFile=open(stepAndCalculableDataFileName)
-        stepDataList,calculableConfigDict,listOfLeavesUsed=cPickle.load(stepAndCalculableDataFile)
+        stepDataList,listOfCalculablesUsed,listOfLeavesUsed=cPickle.load(stepAndCalculableDataFile)
         stepAndCalculableDataFile.close()
 
         #clean up
@@ -344,10 +344,9 @@ def mergeFunc(parent,listOfChildIndices,listOfAllLoopers,cleanUp) :
                 jsonFileDict[i].append(stepDataList[i]["outputFileName"])
 
         if isFirstLooper :
-            someLooper.calculableConfigDict={}
-            someLooper.listOfLeavesUsed=[]
-        for item in calculableConfigDict :
-            someLooper.calculableConfigDict[item]=calculableConfigDict[item]
+            someLooper.listOfCalculablesUsed = []
+            someLooper.listOfLeavesUsed = []
+        someLooper.listOfCalculablesUsed.extend(listOfCalculablesUsed)
         someLooper.listOfLeavesUsed.extend(listOfLeavesUsed)
         isFirstLooper=False
 

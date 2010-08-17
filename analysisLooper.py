@@ -67,7 +67,6 @@ class analysisLooper :
         activeKeys = chainWrapper.activeKeys()
         activeKeyTypes = chainWrapper.activeKeyTypes()
 
-        self.makeDictOfCalculableConfigs(activeKeys)
         self.makeListOfCalculablesUsed(activeKeys)
         self.makeListOfLeavesUsed( zip(activeKeys,activeKeyTypes) )
 
@@ -167,14 +166,6 @@ class analysisLooper :
         self.splitMode=True
         self.quietMode=True
         self.parentName=parentName
-
-    def makeDictOfCalculableConfigs(self,activeKeys) :
-        self.calculableConfigDict={}
-        for calc in self.calculables :
-            if calc.name() not in activeKeys : continue
-            self.calculableConfigDict[calc.name()]=""
-            if hasattr(calc,"moreName")  : self.calculableConfigDict[calc.name()]+=" "+str(calc.moreName)
-            if hasattr(calc,"moreName2") : self.calculableConfigDict[calc.name()]+="\n"+str(calc.moreName2)
 
     def makeListOfCalculablesUsed(self,activeKeys) :
         self.listOfCalculablesUsed = []
@@ -305,6 +296,6 @@ class analysisLooper :
         import os,cPickle
         outFileName=os.path.expanduser(self.outputStepAndCalculableDataFileName)
         outFile=open(outFileName,"w")
-        cPickle.dump([outListSteps,self.calculableConfigDict,self.listOfLeavesUsed],outFile)
+        cPickle.dump([outListSteps,self.listOfCalculablesUsed,self.listOfLeavesUsed],outFile)
         outFile.close()
 #####################################
