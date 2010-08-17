@@ -347,7 +347,9 @@ def mergeFunc(parent,listOfChildIndices,listOfAllLoopers,cleanUp) :
             someLooper.listOfCalculablesUsed = []
             someLooper.listOfLeavesUsed = []
         someLooper.listOfCalculablesUsed.extend(listOfCalculablesUsed)
+        someLooper.listOfCalculablesUsed = list(set(someLooper.listOfCalculablesUsed))
         someLooper.listOfLeavesUsed.extend(listOfLeavesUsed)
+        someLooper.listOfLeavesUsed = list(set(someLooper.listOfLeavesUsed))
         isFirstLooper=False
 
     looperPrint(parent,someLooper)
