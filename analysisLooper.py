@@ -63,9 +63,14 @@ class analysisLooper :
             self.nEventsOriginal = self.steps[0].nTotal
             self.nEvents = self.steps[0].nPass
 
+        
         activeKeys = chainWrapper.activeKeys()
+        activeKeyTypes = chainWrapper.activeKeyTypes()
+
         self.makeDictOfCalculableConfigs(activeKeys)
-        self.makeListOfLeavesUsed(activeKeys)
+        self.makeListOfCalculablesUsed(activeKeys)
+        self.makeListOfLeavesUsed( zip(activeKeys,activeKeyTypes) )
+
         self.printStats()
         self.endSteps()
         self.writeHistos()
@@ -171,31 +176,37 @@ class analysisLooper :
             if hasattr(calc,"moreName")  : self.calculableConfigDict[calc.name()]+=" "+str(calc.moreName)
             if hasattr(calc,"moreName2") : self.calculableConfigDict[calc.name()]+="\n"+str(calc.moreName2)
 
-    def makeListOfLeavesUsed(self,activeKeys) :
-        self.listOfLeavesUsed=[]
-        listOfCalcNames=[calc.name() for calc in self.calculables]
-        for key in activeKeys :
-            if key in listOfCalcNames : continue
+    def makeListOfCalculablesUsed(self,activeKeys) :
+        self.listOfCalculablesUsed = []
+        for calc in self.calculables :
+            if calc.name() not in activeKeys : continue
+            self.listOfCalculablesUsed.append( (calc.name(), "%s%s" % \
+                                                (calc.moreName if hasattr(calc,"moreName") else "",\
+                                                 calc.moreName2 if hasattr(calc,"moreName2") else "") ) )
+        self.listOfCalculablesUsed.sort()
+
+    def makeListOfLeavesUsed(self,activeKeysTypes) :
+        self.listOfLeavesUsed = []
+        listOfCalcNames = [calc.name() for calc in self.calculables]
+        for key in activeKeysTypes :
+            if key[0] in listOfCalcNames : continue
             self.listOfLeavesUsed.append(key)
+        self.listOfLeavesUsed.sort()
                                    
     def printStats(self) :
         if not self.quietMode :
-            calcs = self.calculableConfigDict.keys()
-            calcs.sort()
-            self.listOfLeavesUsed.sort()
             if self.printNodesUsed :
             	print utils.hyphens
             	print "Leaves accessed:"
-            	print str(self.listOfLeavesUsed).replace("'","")
+            	print str([x[0] for x in self.listOfLeavesUsed]).replace("'","")
             	print utils.hyphens
                 print "Calculables accessed:"
-                print str(calcs).replace("'","")
+                print str([x[0] for x in self.listOfCalculablesUsed]).replace("'","")
 
             print utils.hyphens
             print "Calculables' configuration:"
-            for calc in calcs :
-                if self.calculableConfigDict[calc]!="" :
-                    print calc,self.calculableConfigDict[calc]
+            for calc in filter( lambda x: x[1]!="", self.listOfCalculablesUsed) :
+                print "%s\t\t%s"%calc
                 
             #print step statistics
             if not len(self.steps) : return
@@ -211,6 +222,7 @@ class analysisLooper :
             object.Delete()
 
     def writeHistosFromBooks(self) :
+        while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
         wroteSlash = False
         for iStep,step in enumerate(self.steps) :
             name = step.books[None]._autoBook__directory.GetName()
@@ -226,8 +238,7 @@ class analysisLooper :
                     object = book[item]
                     object.Write()
                     object.Delete()
-        while "/" not in r.gDirectory.GetName() :
-            r.gDirectory.GetMotherDir().cd()
+        while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
                     
     def writeSpecialHistos(self) :
         xsHisto=r.TH1D("xsHisto",";dummy axis;#sigma (pb)",1,-0.5,0.5)
@@ -248,6 +259,15 @@ class analysisLooper :
         nJobsHisto.SetBinContent(1,1)
         nJobsHisto.Write()
 
+    def writeNodesUsed(self) :
+        while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
+        r.gDirectory.mkdir("Leaves",".").cd()
+        for leaf in self.listOfLeavesUsed: r.gDirectory.mkdir(*leaf)
+        r.gDirectory.GetMother().cd()
+        r.gDirectory.mkdir("Calculables",".").cd()
+        for calc in self.listOfCalculablesUsed : r.gDirectory.mkdir(*calc)
+        r.gDirectory.GetMother().cd()
+
     def writeHistos(self) :
         if not self.quietMode : print utils.hyphens
         #r.gDirectory.ls()
@@ -256,6 +276,7 @@ class analysisLooper :
         zombie = outputFile.IsZombie()
 
         #self.writeAllObjects()
+        self.writeNodesUsed()
         self.writeHistosFromBooks()
         self.writeSpecialHistos()
         

@@ -15,6 +15,7 @@ class organizer(object) :
             self.title = title
 
     def __init__(self, sampleSpecs = [] ) :
+        self.itemsToIgnore = ["Leaves","Calculables"]
         self.samples = tuple([copy.deepcopy(spec) for spec in sampleSpecs]) # columns
         self.selections = tuple(self.__inititialSelectionsList())  # rows
         self.scaled = False
@@ -39,12 +40,13 @@ class organizer(object) :
         dirs = [ s['dir'] for s in self.samples]
         while dirs[0] :
             keysets = [set([key.GetName() for key in dir.GetListOfKeys()]) for dir in dirs]
-            keys = reduce( lambda x,y: x|y ,keysets,set())
+            keys = reduce( lambda x,y: x|y ,keysets,set()) - set(self.itemsToIgnore)
 
-            subdirNames = map(lambda d,keys: filter(lambda k: type(d.Get(k)) is r.TDirectoryFile, keys), dirs,keysets)
+            subdirNames = map(lambda d,keys: filter(lambda k: (type(d.Get(k)) is r.TDirectoryFile and \
+                                                               k not in self.itemsToIgnore)    , keys),  dirs,keysets)
             subdirLens = map(len,subdirNames)
             if sum(subdirLens) :
-                assert subdirLens == [1]*len(dirs), "Organizer can only interpret a single subdirectory in any given directory."
+                assert subdirLens == [1]*len(dirs), "Organizer can only interpret a single subdirectory in any given directory.\n%s"%str(subdirNames)
                 subdirs = map(lambda d,names: d.Get(names[0]), dirs,subdirNames)
                 nameTitles = map(lambda sd: (sd.GetName(),sd.GetTitle()), subdirs)
                 for nT in nameTitles: assert nT == nameTitles[0], "Subdirectory names,titles must be identical."
