@@ -1,0 +1,74 @@
+#!/usr/bin/env python
+import sys,inspect
+############################################
+def opts() :
+    from optparse import OptionParser
+    parser = OptionParser("usage: %prog analysis-file [options]")
+    parser.add_option("--loop",          dest = "loop",           default = 0,     metavar = "N",         help = "loop over events using N cores")
+    parser.add_option("--profile",       dest = "profile",        default = False, action = "store_true", help = "profile the code")
+    parser.add_option("--onlymerge",     dest = "onlymerge",      default = False, action = "store_true", help = "skip the loop and simply merge the output files")
+    parser.add_option("--batch",         dest = "batch",          default = False, action = "store_true", help = "split analysis and submit to batch queue")
+    parser.add_option("--singlesampleid",dest = "singlesampleid", default = None,  metavar = "id",        help = "[for internal use only]")
+    options,args = parser.parse_args()
+
+    if len(args)!=1 :
+        parser.print_help()
+        exit()
+    return options,args[0]
+############################################
+def globalSetup(listOfSourceFiles=[]) :
+    import sys
+    sys.argv.append("-b")
+    
+    import ROOT as r
+    for sourceFile in listOfSourceFiles :
+        r.gROOT.LoadMacro(sourceFile+"+")
+    r.gROOT.SetStyle("Plain")
+    r.gStyle.SetPalette(1)
+    #r.TH1.SetDefaultSumw2(True)#comment until ROOT 5.24, which has a needed bug-fix
+    r.gErrorIgnoreLevel=2000
+    r.gROOT.SetBatch(True)
+
+    sys.argv.pop()
+############################################
+def importedClass() :
+    import analysis
+    count = 0
+    theClass = None
+    for itemName in dir(eval(module)) :
+        item=eval(module+"."+itemName)
+        if not inspect.isclass(item) : continue        
+        if issubclass(item, analysis.analysis) :
+            count+=1
+            theClass = item
+    assert count==1,arg+" needs exactly 1 class which inherits from analysis; it has "+str(count)
+    return theClass
+############################################
+options,arg = opts()
+module = arg.replace("analyses/","").replace(".py","")
+globalSetup(listOfSourceFiles=["pragmas.h","helpers.C"])
+
+exec("import "+module)
+someClass = importedClass()
+someInstance = someClass()
+
+#loop over events
+if options.singlesampleid!=None :
+    #restrict to the sample with the specified index
+    someInstance.listOfLoopers = [ someInstance.listOfLoopers[int(options.singlesampleid)] ]
+
+if options.batch :
+    args = sys.argv[1:]
+    args.remove("--batch")
+    for iLooper in range(len(someInstance.listOfLoopers)) :
+        cmd="./supy "+" ".join(args)+" --singlesampleid "+str(iLooper)
+        print cmd
+        import os
+        os.system(cmd)
+
+else :
+    if options.loop :
+        someInstance.loop(int(options.loop), bool(options.profile), bool(options.onlymerge))
+    if not options.singlesampleid :
+        someInstance.conclude()
+
