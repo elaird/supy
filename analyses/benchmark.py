@@ -1,27 +1,31 @@
 #!/usr/bin/env python
 
-import os,analysis,utils,steps,calculables
+import os,analysis,utils,steps,calculables,samples
 
-touch = [
-    #"triggered",
-    #"prescaled",
-    #"L1triggered",
-    #"L1prescaled"
-    "ak5JetCorrectedP4Pat",
-    "ak5JetJPTCorrectedP4Pat",
-    "ak5JetPFCorrectedP4Pat",
-    "muonP4Pat",
-    "electronP4Pat",
-    ]
+class triggerSpeedTest(analysis.analysis) :
+    def outputDirectory(self) :
+        return "./"
 
-a=analysis.analysis(name = "triggerSpeedTest",
-                    outputDir = "./",
-                    listOfCalculables = [],
-                    listOfSteps = [ steps.touchstuff(touch) ]
-                    )
+    def listOfCalculables(self) :
+        return []
 
-a.addSample( sampleName="JetMETTau.Run2010A.Jul16thReReco", nMaxFiles = -1, nEvents = -1, lumi = 0.120, #/pb
-             listOfFileNames = utils.fileListFromDisk("/vols/cms02/elaird1/05_skims/JetMETTau.Run2010A-Jul6thReReco_v1.RECO/") )
+    
+    def listOfSteps(self) :
+        touch = [
+            #"triggered",
+            #"prescaled",
+            #"L1triggered",
+            #"L1prescaled"
+            "ak5JetCorrectedP4Pat",
+            "ak5JetJPTCorrectedP4Pat",
+            "ak5JetPFCorrectedP4Pat",
+            "muonP4Pat",
+            "electronP4Pat",
+            ]
+        return [ steps.touchstuff(touch) ]
 
-a.loop( nCores = 1 )
+    def listOfSampleDictionaries(self) :
+        return [samples.jetmet]
 
+    def listOfSamples(self) :
+        return [samples.specify(name = "JetMET.Run2010A")]

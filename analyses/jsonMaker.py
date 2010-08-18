@@ -2,17 +2,26 @@
 
 import os,analysis,utils,calculables,steps,samples
 
-a=analysis.analysis(name = "jsonMaker",
-                    outputDir = "/vols/cms02/%s/tmp/"%os.environ["USER"],
-                    listOfSteps = [ steps.progressPrinter(2,300),
-                                    steps.jsonMaker("/vols/cms02/%s/tmp/"%os.environ["USER"]),
-                                    ],
-                    listOfCalculables = calculables.zeroArgs(),
-                    listOfSamples = [samples.specify(name = "JetMET.Run2010A")],
-                    listOfSampleDictionaries = [samples.jetmet],
+class jsonMaker(analysis.analysis) :
+    def outputDirectory(self) :
+        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
 
-                    mainTree=("lumiTree","tree"),
-                    otherTreesToKeepWhenSkimming=[],
-                    )
+    def listOfSteps(self) :
+        return [ steps.progressPrinter(2,300),
+                 steps.jsonMaker("/vols/cms02/%s/tmp/"%os.environ["USER"]),
+                 ]
 
-a.loop( nCores = 6 )
+    def listOfCalculables(self) :
+        return calculables.zeroArgs()
+
+    def listOfSamples(self) :
+        return [samples.specify(name = "JetMET.Run2010A")]
+
+    def listOfSampleDictionaries(self) :
+        return [samples.jetmet]
+
+    def mainTree(self) :
+        return ("lumiTree","tree")
+
+    def otherTreesToKeepWhenSkimming(self) :
+        return []
