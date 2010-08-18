@@ -7,18 +7,18 @@ GPLv3 (http://www.gnu.org/licenses/gpl.html)
 | Instructions |
 ----------------
 0) Set up pyROOT:
-- use a CMSSW area:  cd /somewhere/CMSSW_3_7_0_patch4/src && cmsenv
+- use a CMSSW area:  cd /somewhere/CMSSW_3_8_1_patch2/src && cmsenv
 - or see note (A)
 
 1) Check out the code:
-cvs co -d supy -r V8-5 UserCode/elaird/supy
-
-2) modify $PYTHONPATH so that supy modules can be imported:
+- cvs co -d supy -r V9-0 UserCode/elaird/supy
 - cd supy
-- source supyenv.sh
+
+2) (required only if running from dcache at IC) Use better dcap libraries:
+- source fixdcap.sh
 
 3) Run it!
-- python analyses/example.py
+- ./supy analyses/example.py --loop 1
 
 ---------
 | Notes |
@@ -28,6 +28,8 @@ http://root.cern.ch/drupal/content/how-use-use-python-pyroot-interpreter
 http://wlav.web.cern.ch/wlav/pyroot/
 
 (B) A std::vector<bool> stored in a TTree is not yet supported.
+
+(C) TTrees with multiple leaves per branch are not yet supported.
 
 --------
 | Bugs |
