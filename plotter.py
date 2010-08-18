@@ -88,12 +88,14 @@ class plotter(object) :
         setupStyle()
 
         self.printCanvas("[")
-        self.printTimeStamp()
+        self.printCalculablesAndTimeStamp()
     
-        self.selectionsSoFar=[]
+        self.selNamesSoFar=[]
+        self.selTitlesSoFar=[]
         for selection in self.someOrganizer.selections :
-            self.selectionsSoFar.append(selection.name+" "+selection.title)
-            printTable = True if len(self.selectionsSoFar)>0 else False
+            self.selNamesSoFar.append(selection.name)
+            self.selTitlesSoFar.append(selection.title)
+            printTable = True if len(self.selNamesSoFar)>0 else False
             for plotName in selection :
                 if plotName in self.blackList : continue
                 if printTable : self.printSelections()
@@ -105,15 +107,35 @@ class plotter(object) :
         self.makePdf()
         print utils.hyphens
 
+    def printCalculablesAndTimeStamp(self) :
+        text = r.TText()
+        text.SetNDC()
+        text.SetTextFont(102)
+        text.SetTextSize(0.5*text.GetTextSize())
+
+        calcs = filter(lambda x:x[1]!="",list(self.someOrganizer.calculables()) )
+        length = max([len(calc[0]) for calc in calcs])
+        calcs.sort()
+        nCalcs = len(calcs)
+        for i in  range(nCalcs):
+            x = 0.02
+            y = 0.98 - 0.3*(i+0.5)/nCalcs
+            name,title = calcs[i]
+            name = name.rjust(length+2)
+            text.DrawTextNDC(x, y, "%s   %s"%(name,title) )
+            
+        text = self.printTimeStamp()
+        self.printCanvas()
+        self.canvas.Clear()
+        
     def printTimeStamp(self) :
         text=r.TText()
         text.SetNDC()
         dateString="file created at ";
         tdt=r.TDatime()
         text.DrawText(0.1,0.3,dateString+tdt.AsString())
-        self.printCanvas()
-        self.canvas.Clear()
-
+        return text
+    
     def printCanvas(self,extra="") :
         self.canvas.Print(self.psFileName+extra,self.psOptions)
 
@@ -124,7 +146,7 @@ class plotter(object) :
         print "The output file \""+pdfFile+"\" has been written."
 
     def printSelections(self) :
-        if set(self.selectionsSoFar)==set([' ']) :
+        if set(self.selNamesSoFar)==set(['']) :
             return
         self.canvas.cd(0)
         self.canvas.Clear()    
@@ -134,11 +156,15 @@ class plotter(object) :
         text.SetTextFont(102)
         text.SetTextSize(0.5*text.GetTextSize())
 
-        nSelections = len(self.selectionsSoFar)
+        nSelections = len(self.selNamesSoFar)
+        length = max([len(name) for name in self.selNamesSoFar])
         for i in  range(nSelections):
-            x=0.02
-            y=0.98 - 0.3*(i+0.5)/nSelections
-            text.DrawTextNDC(x, y, string.ascii_letters[i]+": "+self.selectionsSoFar[i])
+            x = 0.02
+            y = 0.98 - 0.3*(i+0.5)/nSelections
+            toDraw = string.ascii_letters[i]+":   "
+            toDraw+= self.selNamesSoFar[i].ljust(length+2)
+            toDraw+= "   "+self.selTitlesSoFar[i]
+            text.DrawTextNDC(x, y, toDraw)
 
         #nPass={}
         #nPassErr={}
