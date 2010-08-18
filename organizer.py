@@ -130,8 +130,8 @@ class organizer(object) :
     def indicesOfSelectionsWithKey(self,key) :
         return filter( lambda i: key in self.selections[i], range(len(self.selections)))
             
-    def calculables() : return self.__nameTitlesIn("Calculables")
-    def leaves() :      return self.__nameTitlesIn("Leaves")
+    def calculables(self) : return self.__nameTitlesIn("Calculables")
+    def leaves(self) :      return self.__nameTitlesIn("Leaves")
 
     def __nameTitlesIn(self,directory) :
         return reduce( lambda x,y: x|y ,
