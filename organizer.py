@@ -130,3 +130,13 @@ class organizer(object) :
     def indicesOfSelectionsWithKey(self,key) :
         return filter( lambda i: key in self.selections[i], range(len(self.selections)))
             
+    def calculables() : return self.__nameTitlesIn("Calculables")
+    def leaves() :      return self.__nameTitlesIn("Leaves")
+
+    def __nameTitlesIn(self,directory) :
+        return reduce( lambda x,y: x|y ,
+                       [set([ (key.GetName(),key.GetTitle() if key.GetTitle()!=key.GetName() else "")
+                              for key in dir.GetListOfKeys()])
+                        for dir in [ s['dir'].Get(directory) for s in self.samples]],
+                       set())
+
