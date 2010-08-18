@@ -16,11 +16,9 @@ class muonIDtightPat(wrappedChain.calculable) :
     def __init__(self) :
         self.moreName = "(implemented by hand, CMS AN-2010/211)"
 
-    def tight(self,isTrk, isGlb, chi2ndf, nGlbHits, nStationsMatch, nTrkPxHits, nPxHits, dxy) :
+    def tight(self,isTrk, idGlbTight, nStationsMatch, nTrkPxHits, nPxHits, dxy) :
         return isTrk               and \
-               isGlb               and \
-               chi2ndf        < 10 and \
-               nGlbHits       >  0 and \
+               idGlbTight          and \
                nStationsMatch >  1 and \
                nTrkPxHits     > 10 and \
                nPxHits        >  0 and \
@@ -29,9 +27,7 @@ class muonIDtightPat(wrappedChain.calculable) :
     def update(self,ignored) :
         self.value = map(self.tight,
                          self.source["muonIsTrackerMuonPat"],
-                         self.source["muonIsGlobalMuonPat"],
-                         self.source["muonGlobalTracknormalizedChi2Pat"],
-                         self.source["muonGlobalTracknumberOfValidHitsPat"],
+                         self.source["muonIDGlobalMuonPromptTightPat"],
                          self.source["muonNumberStationsWithMatchingChamberPat"],
                          self.source["muonInnerTrackNumberOfValidHitsPat"],
                          self.source["muonPixelNumberOfValidHitsPat"],
