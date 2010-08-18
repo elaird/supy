@@ -19,6 +19,8 @@ Other
 * cross section in database
 * 2D ratios
 
+* make conclude fail more gracefully
+
 * organize files in cvs
 * named arguments everywhere
 * update example ntuples
