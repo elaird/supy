@@ -22,8 +22,8 @@ class example(analysis.analysis) :
             steps.jetPtSelector(jets,minJetPt,0),#leading corrected jet
             steps.jetPtSelector(jets,minJetPt,1),#next corrected jet
             #steps.jetPtVetoer( jets,minJetPt,2),#next corrected jet
-            steps.minNCleanJetEventFilter(jets,2),
-            steps.maxNOtherJetEventFilter(jets,0),
+            steps.multiplicityFilter("%sIndices%s"%jets, nMin = 2),
+            steps.multiplicityFilter("%sIndicesOther%s"%jets, nMax = 0),
             
             steps.cleanJetPtHistogrammer(jets),
             steps.cleanJetHtMhtHistogrammer(jets),
