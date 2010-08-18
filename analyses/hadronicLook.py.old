@@ -25,10 +25,8 @@ def makeSteps() :
         steps.progressPrinter(),
 
         steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}};events / bin"),
-        steps.histogrammer("muonIndicesPat",10,0,10,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
         steps.jetPtSelector(jets,100.0,0),
         steps.leadingUnCorrJetPtSelector( [jets],100.0 ),
-        
         steps.hltFilter("HLT_Jet50U"),
         steps.vertexRequirementFilter(5.0,24.0),
         #steps.hltPrescaleHistogrammer(["HLT_Jet50U","HLT_HT100U","HLT_MET45"]),       
@@ -41,8 +39,8 @@ def makeSteps() :
         
         steps.variableGreaterFilter(350.0,"%sSumPt%s"%jets),
         steps.cleanJetPtHistogrammer(jets),
-        #steps.cleanJetHtMhtHistogrammer(jets),
-        #steps.alphaHistogrammer(jets),
+        steps.cleanJetHtMhtHistogrammer(jets),
+        steps.alphaHistogrammer(jets),
         #steps.histogrammer("%sSumP4%s"%jets,50,0,1000, title = ";#slash{H}_{T} (GeV) from clean jets;events / bin",
         #                   funcString = "lambda x: x.pt()"),
         
@@ -72,7 +70,7 @@ def makeCalculables() :
     listOfCalculables += [ calculables.jetIndicesOther( collection = jetType, ptMin = 20.0) for jetType in jetTypes]
     listOfCalculables += [ calculables.PFJetIDloose( collection = jetTypes[2],
                                                      fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]
-    listOfCalculables += [ calculables.muonIndicesPat(ptMin = 5, combinedRelIsoMax = 1) ]
+    listOfCalculables += [ calculables.muonIndicesPat(ptMin = 20, combinedRelIsoMax = 0.15) ]
     return listOfCalculables
 
 def makeSamples() :
