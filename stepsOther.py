@@ -8,22 +8,44 @@ class histogrammer(analysisStep) :
     def __init__(self,var,N,low,up,title="", funcString = "lambda x:x" ) :
         for item in ["var","N","low","up","title","funcString"] : setattr(self,item,eval(item))
         self.oneD = type(var) != tuple
-        varList=list(var)
-        varList.reverse()
-        self.hName = var if self.oneD else "_vs_".join(varList)
-        self.moreName = "(%s)"%self.hName
-        self.funcEvaluated = False
+        self.hName = var if self.oneD else "_vs_".join(reversed(var))
+        self.moreName = "%s(%s)"% ("(%s)"%funcString if funcString!="lambda x:x" else "", str(self.hName))
+        self.funcStringEvaluated = False
 
     def uponAcceptance(self,eventVars) :
-        if not self.funcEvaluated :
+        if not self.funcStringEvaluated :
             self.func = eval(self.funcString)
-            self.funcEvaluated = True
+            self.funcStringEvaluated = True
             
         value = eventVars[self.var] if self.oneD else \
                 tuple(map(eventVars.__getitem__,self.var))
         if value is None or (not self.oneD and None in value) : return
 
         self.book(eventVars).fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
+#####################################
+class iterHistogrammer(histogrammer) :
+    """iterHistogrammer"""
+
+    def uponAcceptance(self,eventVars) :
+        if not self.funcStringEvaluated :
+            self.func = eval(self.funcString)
+            self.funcStringEvaluated = True
+            
+        values = eventVars[self.var] if self.oneD else \
+                 tuple(map(eventVars.__getitem__,self.var))
+        for value in values:
+            if value is None or (not self.oneD and None in value) : continue
+            self.book(eventVars).fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
+#####################################
+class multiplicityFilter(analysisStep) :
+    """multiplicityFilter"""
+    def __init__(self,var, nMin = 0, nMax = None ) :
+        self.moreName = "%d <= %s"%(nMin,var) + " <= %d" % nMax if nMax!=None else ""
+        self.var = var
+        self.nMin = nMin
+        self.nMax = nMax if nMax!=None else 1e6
+    def select(self,eventVars) :
+        return self.nMin <= len(eventVars[self.var]) <= self.nMax
 #####################################
 class crockVarCalcDiff(analysisStep) :
     """crockVarCalcDiff"""
