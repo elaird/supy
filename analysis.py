@@ -1,56 +1,46 @@
 #!/usr/bin/env python
 import os,sys,copy,cPickle,collections
-import prep,utils,steps,samples
+import utils,steps,samples
 from analysisLooper import analysisLooper
 import ROOT as r
 #####################################
 class analysis(object) :
     """base class for an analysis"""
-    
-    def __init__(self,name="name",outputDir="/tmp/",
-                 listOfSteps=[],listOfCalculables=[],listOfSamples=None,listOfSampleDictionaries=[],
-                 mainTree=("susyTree","tree"),otherTreesToKeepWhenSkimming=[("lumiTree","tree")],
-                 printNodesUsed=False) :
 
-        for arg in ["name","outputDir","listOfSteps",
-                    "listOfCalculables","listOfSamples",
-                    "otherTreesToKeepWhenSkimming","printNodesUsed"] :
-            setattr(self,arg,eval(arg))
+    def __init__(self) :
+        self.name = self.__class__.__name__
+        for item in ["outputDirectory","listOfSteps","listOfCalculables","listOfSampleDictionaries",
+                     "mainTree","otherTreesToKeepWhenSkimming","printNodesUsed"] :
+            setattr(self, "_"+item, getattr(self,item)() )
 
-        assert len(listOfSamples) == len(set(map(lambda s: s.name, listOfSamples))), "Duplicate sample names are not allowed."
-        selectors = filter(lambda s: hasattr(s,"select"), listOfSteps)
+        selectors = filter(lambda s: hasattr(s,"select"), self._listOfSteps)
         assert len(selectors) == len(set(map(lambda s: (s.__doc__,s.moreName,s.moreName2), selectors))), "Duplicate selectors are not allowed."
 
-        self.fileDirectory=mainTree[0]
-        self.treeName=mainTree[1]
+        listOfSamples = self.listOfSamples()
+        assert len(listOfSamples) == len(set(map(lambda s: s.name,listOfSamples))), "Duplicate sample names are not allowed."
+
+        self.fileDirectory=self._mainTree[0]
+        self.treeName=self._mainTree[1]
         
         self.listOfLoopers=[]
         self.listOfOutputPlotFileNames=[]
+        self.addSamples(listOfSamples)
 
-        self.hasLooped=False
+    def outputDirectory(self) :          raise Exception("NotImplemented","Implement a member function outputDirectory()")
+    def listOfSteps(self) :              raise Exception("NotImplemented","Implement a member function listOfSteps()")
+    def listOfCalculables(self) :        raise Exception("NotImplemented","Implement a member function listOfCalculables()")
+    def listOfSampleDictionaries(self) : raise Exception("NotImplemented","Implement a member function sampleDict()")
+    def listOfSamples(self) :            raise Exception("NotImplemented","Implement a member function listOfSamples()")
+    def printNodesUsed(self) : return False
+    def mainTree(self) : return ("susyTree","tree")
+    def otherTreesToKeepWhenSkimming(self) : return [("lumiTree","tree")]
 
-        self.addSamples(listOfSamples,listOfSampleDictionaries)
-
-        #loop over events
-        options = globals()["prep"].options
-        if options.singlesampleid :
-            #restrict to the sample with the specified index
-            self.listOfSamples = [ self.listOfSamples[int(options.singlesampleid)] ]
-        if options.loop :
-            self.__loop(int(options.loop), bool(options.profile), bool(options.onlymerge))
-        if options.singlesampleid :
-            exit()
-            
-    def __loop(self, nCores, profile, onlyMerge) :
-        
+    def loop(self, nCores, profile, onlyMerge) :
         #make output directory
-        os.system("mkdir -p "+self.outputDir)
+        os.system("mkdir -p "+self._outputDirectory)
         
         nCores = max(1,nCores)
 
-        #restrict list of loopers to samples in self.listOfSamples
-        self.pruneListOfLoopers()
-        
         #execute in parallel commands to make file lists
         def inputFilesEvalWorker(q):
             while True:
@@ -70,10 +60,6 @@ class analysis(object) :
             someFile.close()
             os.remove(looper.inputFileListFileName)
 
-        ##execute in series commands to make file lists        
-        #for looper in self.listOfLoopers :
-        #    looper.inputFiles=eval(looper.fileListCommand)
-
         if nCores>1 :
             self.splitLoopers()
 
@@ -85,16 +71,8 @@ class analysis(object) :
             self.loopOverSamples(nCores,onlyMerge)
         else :
             self.profile(nCores,onlyMerge) #profile the code while doing so
-        self.hasLooped=True            
-
-    def pruneListOfLoopers(self) :
-        if self.listOfSamples==None : return #None (default) means use all samples
-        self.listOfLoopers = filter(lambda looper: looper.name in [x.name for x in self.listOfSamples], self.listOfLoopers)
-
-    def sampleSpecs(self) :
-        #prune list of loopers if self.loop has not been called
-        if not self.hasLooped : self.pruneListOfLoopers()
         
+    def sampleSpecs(self) :
         outList=[]
         if (not hasattr(self,"parentDict")) or len(self.parentDict)==0 :
             for looper in self.listOfLoopers :
@@ -117,14 +95,14 @@ class analysis(object) :
         return outList
 
     def makeOutputPlotFileName(self,sampleName,isChild=False) :
-        answer=self.outputDir+"/"+self.name+"_"+sampleName+"_plots.root"
+        answer=self._outputDirectory+"/"+self.name+"_"+sampleName+"_plots.root"
         if not isChild :
             self.listOfOutputPlotFileNames.append(answer)
         return answer
 
-    def addSamples(self, listOfSamples, listOfSampleDictionaries, computeEntriesForReport = False) :
+    def addSamples(self, listOfSamples, computeEntriesForReport = False) :
         mergedDict = samples.SampleHolder()
-        map(mergedDict.update,listOfSampleDictionaries)
+        map(mergedDict.update,self._listOfSampleDictionaries)
 
         #print mergedDict
         ptHatMinDict={}
@@ -145,26 +123,26 @@ class analysis(object) :
                 fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
                 
             listOfSteps = []
-            if isMc : listOfSteps = steps.adjustStepsForMc(self.listOfSteps)
-            else :    listOfSteps = steps.adjustStepsForData(self.listOfSteps)
+            if isMc : listOfSteps = steps.adjustStepsForMc(self._listOfSteps)
+            else :    listOfSteps = steps.adjustStepsForData(self._listOfSteps)
 
             if sampleTuple.ptHatMin :
                 ptHatMinDict[sampleName]=sampleTuple.ptHatMin
 
             self.listOfLoopers.append(analysisLooper(self.fileDirectory,
                                                      self.treeName,
-                                                     self.otherTreesToKeepWhenSkimming,
-                                                     self.outputDir,
+                                                     self._otherTreesToKeepWhenSkimming,
+                                                     self._outputDirectory,
                                                      self.makeOutputPlotFileName(sampleName),
                                                      listOfSteps,
-                                                     self.listOfCalculables,
+                                                     self._listOfCalculables,
                                                      sampleSpec,
                                                      fileListCommand,
                                                      sampleTuple.xs,
                                                      sampleTuple.lumi,
                                                      lumiWarn,
                                                      computeEntriesForReport,
-                                                     self.printNodesUsed,
+                                                     self.printNodesUsed(),
                                                      )
                                       )
         for thing in mergedDict.overlappingSamples :
