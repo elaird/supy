@@ -59,9 +59,6 @@ a=analysis.analysis(name="example",
                     listOfSampleDictionaries = [makeSampleDict()]
                     )
 
-#loop over events and make root files containing histograms
-a.loop( nCores = 1 ) #use multiple cores to process input files in parallel
-
 #make a pdf file with plots from the histograms created above
 org = organizer.organizer( a.sampleSpecs() )
 org.scale()
