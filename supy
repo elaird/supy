@@ -7,7 +7,7 @@ def opts() :
     parser.add_option("--loop",          dest = "loop",           default = 0,     metavar = "N",         help = "loop over events using N cores")
     parser.add_option("--profile",       dest = "profile",        default = False, action = "store_true", help = "profile the code")
     parser.add_option("--onlymerge",     dest = "onlymerge",      default = False, action = "store_true", help = "skip the loop and simply merge the output files")
-    parser.add_option("--batch",         dest = "batch",          default = False, action = "store_true", help = "split analysis and submit to batch queue")
+    parser.add_option("--batch",         dest = "batch",          default = False, action = "store_true", help = "[not yet implemented]")
     parser.add_option("--singlesampleid",dest = "singlesampleid", default = None,  metavar = "id",        help = "[for internal use only]")
     options,args = parser.parse_args()
 
