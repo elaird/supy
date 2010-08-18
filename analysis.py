@@ -37,11 +37,11 @@ class analysis :
             #restrict to the sample with the specified index
             self.listOfSamples = [ self.listOfSamples[int(options.singlesampleid)] ]
         if options.loop :
-            self.loop(int(options.loop), bool(options.profile), bool(options.onlymerge))
+            self.__loop(int(options.loop), bool(options.profile), bool(options.onlymerge))
         if options.singlesampleid :
             exit()
             
-    def loop(self, nCores, profile, onlyMerge) :
+    def __loop(self, nCores, profile, onlyMerge) :
         
         #make output directory
         os.system("mkdir -p "+self.outputDir)
