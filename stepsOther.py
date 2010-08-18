@@ -9,7 +9,8 @@ class histogrammer(analysisStep) :
         for item in ["var","N","low","up","title","funcString"] : setattr(self,item,eval(item))
         self.oneD = type(var) != tuple
         self.hName = var if self.oneD else "_vs_".join(reversed(var))
-        self.moreName = "%s(%s)"% ("(%s)"%funcString if funcString!="lambda x:x" else "", str(self.hName))
+        self.moreName = title.split(';')[1] if len(title.split(';'))>1 else \
+                        "%s(%s)"% ("(%s)"%funcString if funcString!="lambda x:x" else "", str(self.hName))
         self.funcStringEvaluated = False
 
     def uponAcceptance(self,eventVars) :
@@ -40,7 +41,7 @@ class iterHistogrammer(histogrammer) :
 class multiplicityFilter(analysisStep) :
     """multiplicityFilter"""
     def __init__(self,var, nMin = 0, nMax = None ) :
-        self.moreName = "%d <= %s"%(nMin,var) + " <= %d" % nMax if nMax!=None else ""
+        self.moreName = "%d <= %s"%(nMin,var) + (" <= %d" % nMax if nMax!=None else "")
         self.var = var
         self.nMin = nMin
         self.nMax = nMax if nMax!=None else 1e6
