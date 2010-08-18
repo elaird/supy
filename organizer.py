@@ -10,9 +10,19 @@ class organizer(object) :
     """
     class selection(dict) : 
         """Keys are histogram names, values are tuples of histograms, parallel to samples."""
-        def __init__(self,name,title) :
-            self.name = name
-            self.title = title
+        def __init__(self,samples,dirs,keys) :
+            for key in keys: self[key] = tuple( map(lambda d: d.Get(key), dirs) )
+            self.name  = "" if "/" in dirs[0].GetName() else dirs[0].GetName()
+            self.title = "" if "/" in dirs[0].GetName() else dirs[0].GetTitle()
+            self.rawFailPass = tuple(map(lambda h: (h.GetBinContent(1),h.GetBinContent(2)) if h else None, self["counts"]))
+
+            for key in self :
+                if key in ["lumiHisto","xsHisto"]:
+                    map(  lambda hs: hs[0].Scale(  1.0  /hs[1]['nJobs']),   filter(lambda hs: hs[0],               zip(self[key],samples)) )
+                else: map(lambda hs: hs[0].Scale(hs[1]["xs"]/hs[1]['nEvents']), filter(lambda hs: hs[0] and "xs" in hs[1], zip(self[key],samples)) )
+
+        def yields(self) : return tuple(map(lambda h: (h.GetBinContent(2),h.GetBinError(2)) if h else None, self["counts"]))
+
 
     def __init__(self, sampleSpecs = [] ) :
         self.itemsToIgnore = ["Leaves","Calculables"]
@@ -35,7 +45,7 @@ class organizer(object) :
 
             if lumiNjobs: sample["lumi"] = lumiNjobs/sample['nJobs']
             if xsNjobs: sample["xs"] = xsNjobs/sample['nJobs']
-            assert ("xs" in sample)^("lumi" in sample), "Sample %s hould have one and only one of {xs,lumi}."% sample["name"]
+            assert ("xs" in sample)^("lumi" in sample), "Sample %s should have one and only one of {xs,lumi}."% sample["name"]
             
         dirs = [ s['dir'] for s in self.samples]
         while dirs[0] :
@@ -52,15 +62,8 @@ class organizer(object) :
                 for nT in nameTitles: assert nT == nameTitles[0], "Subdirectory names,titles must be identical."
                 keys.remove(subdirNames[0][0])
             else: subdirs = [None]*len(dirs)
-
-            nameTitle = ("","") if "/" in dirs[0].GetName() else (dirs[0].GetName(),dirs[0].GetTitle())
-            selections.append( self.selection(*nameTitle) )
-            for key in keys:
-                selections[-1][key] = val = tuple( map(lambda d: d.Get(key), dirs) )
-                if key in ["nEventsHisto","nJobsHisto"] : continue
-                for s,h in zip(self.samples,val) :
-                    if key in ["lumiHisto","xsHisto"] and h: h.Scale(1.0/s['nJobs'])
-                    elif "xs" in s and h: h.Scale(s["xs"]/s["nEvents"])
+            
+            selections.append( self.selection(self.samples,dirs,keys) )
             dirs = subdirs
 
         return selections
@@ -72,9 +75,12 @@ class organizer(object) :
         target = copy.deepcopy(targetSpec)
         sourceIndices = filter(lambda i: self.samples[i]["name"] in sources, range(len(self.samples)))
         if not len(sourceIndices) : print "None of the samples you want merged are specified, no action taken." ;return
-        iTarget = sourceIndices[0]
-        sourceIndices.sort()
-        sourceIndices.reverse()
+
+        def tuplePopInsert(orig, item) :
+            val = list(orig)
+            if not keepSources : [val.pop(i) for i in reversed(sourceIndices) ]
+            val.insert(sourceIndices[0],item)
+            return tuple(val)
 
         if all(["xs" in self.samples[i] for i in sourceIndices]) :
             #target["xs"] = sum([self.samples[i]["xs"] for i in sourceIndices ])
@@ -85,28 +91,16 @@ class organizer(object) :
         
         r.gROOT.cd()
         dir = target["dir"] = r.gDirectory.mkdir(target["name"])
-        for sel in self.selections :
-            if sel.name is not "":
-                dir = dir.mkdir(sel.name,sel.title)
-            for key,val in sel.iteritems():
-                sources = filter(lambda x:x, map(lambda i:val[i],sourceIndices))
-                if len(sources) :
-                    hist = sources[0].Clone(key)
-                    hist.SetDirectory(dir)
-                    for s in sources[1:] : hist.Add(s)
-                else: hist = None
-
-                newVal = list(val)
-                if not keepSources:
-                    for i in sourceIndices: newVal.pop(i)
-                newVal.insert(iTarget,hist)
-                sel[key] = tuple( newVal )
-
-        samples = list(self.samples)
-        if not keepSources:
-            for i in sourceIndices: samples.pop(i)
-        samples.insert(iTarget,target)
-        self.samples = tuple( samples )
+        for selection in self.selections :
+            if selection.name is not "": dir = dir.mkdir(selection.name,selection.title)
+            dir.cd()
+            for key,val in selection.iteritems():
+                sources = filter(None, map(val.__getitem__,sourceIndices))
+                hist = sources[0].Clone(key) if len(sources) else None
+                for h in sources[1:]: hist.Add(h)
+                selection[key] = tuplePopInsert( val, hist )
+            selection.rawFailPass = tuplePopInsert( selection.rawFailPass, None )
+        self.samples = tuplePopInsert( self.samples, target )
 
 
     def scale(self, lumiToUseInAbsenceOfData = None) :
