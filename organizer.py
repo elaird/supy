@@ -134,6 +134,7 @@ class organizer(object) :
     def leaves(self) :      return self.__nameTitlesIn("Leaves")
 
     def __nameTitlesIn(self,directory) :
+        for s in self.samples : print s['dir']
         return reduce( lambda x,y: x|y ,
                        [set([ (key.GetName(),key.GetTitle() if key.GetTitle()!=key.GetName() else "")
                               for key in dir.GetListOfKeys()])
