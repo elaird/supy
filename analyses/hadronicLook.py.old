@@ -23,18 +23,21 @@ def makeSteps() :
     
     listOfSteps=[
         steps.progressPrinter(),
-        
+
         steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}};events / bin"),
+        steps.histogrammer("muonIndicesPat",10,0,10,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
         steps.jetPtSelector(jets,100.0,0),
         steps.leadingUnCorrJetPtSelector( [jets],100.0 ),
-
+        
         steps.hltFilter("HLT_Jet50U"),
         steps.vertexRequirementFilter(5.0,24.0),
-        steps.hltPrescaleHistogrammer(["HLT_Jet50U","HLT_HT100U","HLT_MET45"]),
-
-        steps.minNCleanJetEventFilter(jets,2),
-        steps.maxNOtherJetEventFilter(jets,0),
+        #steps.hltPrescaleHistogrammer(["HLT_Jet50U","HLT_HT100U","HLT_MET45"]),       
         steps.hbheNoiseFilter(),
+        steps.multiplicityFilter("%sIndices%s"%jets, nMin = 2),
+        steps.multiplicityFilter("%sIndicesOther%s"%jets, nMax = 0),
+        
+        steps.histogrammer("muonIndicesPat",10,0,10,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
+        steps.multiplicityFilter("muonIndicesPat", nMax = 0),
         
         steps.variableGreaterFilter(350.0,"%sSumPt%s"%jets),
         steps.cleanJetPtHistogrammer(jets),
@@ -48,7 +51,6 @@ def makeSteps() :
         #steps.genParticlePrinter(minPt=10.0,minStatus=3),
         
         steps.variableGreaterFilter(0.55,"%sAlphaT%s"%jets),
-        steps.objectPtVetoer("muon","P4","Pat",20.0,0),
 
         #steps.histogrammer("%sDeltaPhiStar%s"%jets, 50, 0, r.TMath.Pi(), title = ";%s #Delta#phi* %s;events / bin"%jets)
         #steps.skimmer("/vols/cms02/%s/"%os.environ["USER"]),
@@ -66,32 +68,33 @@ def makeCalculables() :
     jetTypes = [("ak5Jet","Pat"),("ak5JetJPT","Pat"),("ak5JetPF","Pat")]
     listOfCalculables = calculables.zeroArgs()
     listOfCalculables += calculables.fromJetCollections(jetTypes)
-    listOfCalculables += [ calculables.jetIndices( collection = jetType, ptMin = 20.0, etaMax = 2.4, flagName = "JetIDloose") for jetType in jetTypes]
+    listOfCalculables += [ calculables.jetIndices( collection = jetType, ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for jetType in jetTypes]
     listOfCalculables += [ calculables.jetIndicesOther( collection = jetType, ptMin = 20.0) for jetType in jetTypes]
     listOfCalculables += [ calculables.PFJetIDloose( collection = jetTypes[2],
                                                      fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]
+    listOfCalculables += [ calculables.muonIndicesPat(ptMin = 5, combinedRelIsoMax = 1) ]
     return listOfCalculables
 
 def makeSamples() :
     from samples import specify
-    return [  specify(name = "JetMET.Run2010A",        nFilesMax = 1, nEventsMax = 1000, color = r.kBlack   , markerStyle = 20),
-             #specify(name = "qcd_mg_ht_250_500_old",  nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-            ##specify(name = "qcd_py_pt30",            nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-              specify(name = "qcd_py_pt80",            nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-              specify(name = "qcd_py_pt170",           nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-              specify(name = "qcd_py_pt300",           nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-              specify(name = "qcd_py_pt470",           nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-              specify(name = "qcd_py_pt800",           nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-            ##specify(name = "qcd_py_pt1400",          nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-              specify(name = "tt_tauola_mg",           nFilesMax = 1, nEventsMax = 1000, color = r.kOrange  ),
-              specify(name = "g_jets_mg_pt40_100",     nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
-              specify(name = "g_jets_mg_pt100_200",    nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
-              specify(name = "g_jets_mg_pt200",        nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
-              specify(name = "z_inv_mg_skim",          nFilesMax = 1, nEventsMax = 1000, color = r.kMagenta ),
-              specify(name = "z_jets_mg_skim",         nFilesMax = 1, nEventsMax = 1000, color = r.kYellow-3),
-              specify(name = "w_jets_mg_skim",         nFilesMax = 1, nEventsMax = 1000, color = 28         ),
-              specify(name = "lm0",                    nFilesMax = 1, nEventsMax = 1000, color = r.kRed     ),
-              specify(name = "lm1",                    nFilesMax = 1, nEventsMax = 1000, color = r.kRed+1   ),
+    return [  specify(name = "JetMET.Run2010A",         color = r.kBlack   , markerStyle = 20),
+            ##specify(name = "qcd_mg_ht_250_500_old",   color = r.kBlue    ),
+            ##specify(name = "qcd_py_pt30",             color = r.kBlue    ),
+              specify(name = "qcd_py_pt80",             color = r.kBlue    ),
+              specify(name = "qcd_py_pt170",            color = r.kBlue    ),
+              specify(name = "qcd_py_pt300",            color = r.kBlue    ),
+              specify(name = "qcd_py_pt470",            color = r.kBlue    ),
+              specify(name = "qcd_py_pt800",            color = r.kBlue    ),
+            ##specify(name = "qcd_py_pt1400",           color = r.kBlue    ),
+              specify(name = "tt_tauola_mg",            color = r.kOrange  ),
+              specify(name = "g_jets_mg_pt40_100",      color = r.kGreen   ),
+              specify(name = "g_jets_mg_pt100_200",     color = r.kGreen   ),
+              specify(name = "g_jets_mg_pt200",         color = r.kGreen   ),
+              specify(name = "z_inv_mg_skim",           color = r.kMagenta ),
+              specify(name = "z_jets_mg_skim",          color = r.kYellow-3),
+              specify(name = "w_jets_mg_skim",          color = 28         ),
+              specify(name = "lm0",                     color = r.kRed     ),
+              specify(name = "lm1",                     color = r.kRed+1   ),
               ]
     
 a=analysis.analysis(name = "hadronicLook",
@@ -105,7 +108,7 @@ a=analysis.analysis(name = "hadronicLook",
 
 if __name__ == '__main__':
     #loop
-    #a.loop( nCores = 8 )
+    a.loop( nCores = 8 )
 
     #organize
     org=organizer.organizer( a.sampleSpecs() )
