@@ -1,20 +1,8 @@
 #!/usr/bin/env python
 import os,sys,copy,cPickle,collections
-sys.argv.append("-b")#set batch mode before importing ROOT
-import utils,steps,samples
+import prep,utils,steps,samples
 from analysisLooper import analysisLooper
 import ROOT as r
-#####################################
-def globalSetup(listOfSourceFiles=[]) :
-    for sourceFile in listOfSourceFiles :
-        r.gROOT.LoadMacro(sourceFile+"+")
-    r.gROOT.SetStyle("Plain")
-    r.gStyle.SetPalette(1)
-    #r.TH1.SetDefaultSumw2(True)#comment until ROOT 5.24, which has a needed bug-fix
-    r.gErrorIgnoreLevel=2000
-    r.gROOT.SetBatch(True)
-#####################################
-globalSetup(listOfSourceFiles=["pragmas.h","helpers.C"])
 #####################################
 class analysis :
     """base class for an analysis"""
@@ -43,10 +31,21 @@ class analysis :
 
         self.addSamples(listOfSamples,listOfSampleDictionaries)
 
+        #loop over events
+        options = globals()["prep"].options
+        if options.singlesampleid :
+            #restrict to the sample with the specified index
+            self.listOfSamples = [ self.listOfSamples[int(options.singlesampleid)] ]
+        if options.loop :
+            self.loop(int(options.loop), bool(options.profile), bool(options.onlymerge))
+        if options.singlesampleid :
+            exit()
+            
+    def loop(self, nCores, profile, onlyMerge) :
+        
         #make output directory
         os.system("mkdir -p "+self.outputDir)
         
-    def loop(self, profile = False, nCores = 1, splitJobsByInputFile = None, onlyMerge = False) :
         nCores = max(1,nCores)
 
         #restrict list of loopers to samples in self.listOfSamples
@@ -75,7 +74,7 @@ class analysis :
         #for looper in self.listOfLoopers :
         #    looper.inputFiles=eval(looper.fileListCommand)
 
-        if splitJobsByInputFile!=False and (splitJobsByInputFile or nCores>1) :
+        if nCores>1 :
             self.splitLoopers()
 
         #prepare loopers
@@ -260,7 +259,7 @@ class analysis :
         global runFunc
         runFunc=self.loopOverSamples
         import cProfile
-        if nCores>1 : print "setting nCores=1 to profile"        
+        assert nCores==1,"to profile, nCores must equal 1"
         cProfile.run("analysis.runFunc(1,%s)"%onlyMerge,"resultProfile.out")
 
     def loopOverSamples(self,nCores,onlyMerge) :
