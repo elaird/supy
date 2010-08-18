@@ -4,7 +4,7 @@ import prep,utils,steps,samples
 from analysisLooper import analysisLooper
 import ROOT as r
 #####################################
-class analysis :
+class analysis(object) :
     """base class for an analysis"""
     
     def __init__(self,name="name",outputDir="/tmp/",
