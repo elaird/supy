@@ -229,6 +229,7 @@ class plotter(object) :
         y1=0.60
         y2=0.10
         legend=r.TLegend(x1,y1,x2,y2)
+        stuffToKeep.append(legend)
 
         count = 0
         for sample,histo in zip(self.someOrganizer.samples,histos) :
@@ -297,7 +298,7 @@ class plotter(object) :
         self.prepareCanvas(histos,dimension)
         self.setRanges(histos,dimension)
 
-        count,stufftoKeep = self.plotEachHisto(histos,dimension)
+        count,stuffToKeep = self.plotEachHisto(histos,dimension)
         if self.plotRatios and dimension==1 :
             ratio = self.plotRatio(histos,dimension)
         self.canvas.cd(0)
