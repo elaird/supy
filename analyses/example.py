@@ -59,11 +59,12 @@ a=analysis.analysis(name="example",
                     listOfSampleDictionaries = [makeSampleDict()]
                     )
 
-#make a pdf file with plots from the histograms created above
-org = organizer.organizer( a.sampleSpecs() )
-org.scale()
-plotter.plotter( org,
-                 psFileName = a.outputDir+"/"+a.name+".ps",
-                 samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
-                 sampleLabelsForRatios = ("data","sim"),
-                 ).plotAll()
+if __name__ == '__main__':
+    #make a pdf file with plots from the histograms created above
+    org = organizer.organizer( a.sampleSpecs() )
+    org.scale()
+    plotter.plotter( org,
+                     psFileName = a.outputDir+"/"+a.name+".ps",
+                     samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
+                     sampleLabelsForRatios = ("data","sim"),
+                     ).plotAll()

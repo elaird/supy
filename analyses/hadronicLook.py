@@ -104,33 +104,34 @@ a=analysis.analysis(name = "hadronicLook",
                     listOfSampleDictionaries = [samples.mc, samples.jetmet]
                     )
 
-#organize
-org=organizer.organizer( a.sampleSpecs() )
-org.mergeSamples(targetSpec = {"name":"g_jets_mg",     "color":r.kGreen},   sources = ["g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
-org.mergeSamples(targetSpec = {"name":"qcd_py"   ,     "color":r.kBlue},    sources = ["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
-org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3},
-                 sources = ["g_jets_mg","qcd_py","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"], keepSources = True
-                 )
-org.scale()
-
-
-#plot
-pl = plotter.plotter(org,
-                     psFileName=a.outputDir+"/"+a.name+".ps",
-                     #samplesForRatios=("JetMET.Run2010A","qcd_mg_ht_250_500_old"),
-                     #sampleLabelsForRatios=("data","qcd"),
-                     samplesForRatios=("JetMET.Run2010A","standard_model"),
-                     sampleLabelsForRatios=("data","s.m."),
+if __name__ == '__main__':
+    #organize
+    org=organizer.organizer( a.sampleSpecs() )
+    org.mergeSamples(targetSpec = {"name":"g_jets_mg",     "color":r.kGreen},   sources = ["g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
+    org.mergeSamples(targetSpec = {"name":"qcd_py"   ,     "color":r.kBlue},    sources = ["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
+    org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3},
+                     sources = ["g_jets_mg","qcd_py","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"], keepSources = True
                      )
-pl.plotAll()
+    org.scale()
+    
+    
+    #plot
+    pl = plotter.plotter(org,
+                         psFileName=a.outputDir+"/"+a.name+".ps",
+                         #samplesForRatios=("JetMET.Run2010A","qcd_mg_ht_250_500_old"),
+                         #sampleLabelsForRatios=("data","qcd"),
+                         samplesForRatios=("JetMET.Run2010A","standard_model"),
+                         sampleLabelsForRatios=("data","s.m."),
+                         )
+    pl.plotAll()
 
-#other
-#import deltaPhiLook
-#listofPlotContainers=deltaPhiLook.go(listOfPlotContainers)
-
-#import statMan
-#statMan.go(a.organizeHistograms(),
-#           dataSampleName="JetMETTau.Run2010A",
-#           mcSampleName="standard_model",
-#           moneyPlotName="ak5JetPat_alphaT_vs_Ht_ge2jets",
-#           xCut=0.51,yCut=330.0)
+    #other
+    #import deltaPhiLook
+    #listofPlotContainers=deltaPhiLook.go(listOfPlotContainers)
+    #
+    #import statMan
+    #statMan.go(a.organizeHistograms(),
+    #           dataSampleName="JetMETTau.Run2010A",
+    #           mcSampleName="standard_model",
+    #           moneyPlotName="ak5JetPat_alphaT_vs_Ht_ge2jets",
+    #           xCut=0.51,yCut=330.0)
