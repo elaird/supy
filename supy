@@ -70,5 +70,6 @@ else :
     if options.loop :
         someInstance.loop(int(options.loop), bool(options.profile), bool(options.onlymerge))
     if not options.singlesampleid :
-        someInstance.conclude()
+        if hasattr(someInstance,"conclude") :
+            someInstance.conclude()
 
