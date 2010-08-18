@@ -66,7 +66,6 @@ if options.batch :
         print cmd
         import os
         os.system(cmd)
-
 else :
     if options.loop :
         someInstance.loop(int(options.loop), bool(options.profile), bool(options.onlymerge))
