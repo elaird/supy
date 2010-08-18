@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-import os,analysis,steps,calculables,samples,organizer,plotter
+import analysis
+import os,steps,calculables,samples,organizer,plotter
 import ROOT as r
 
 def makeSteps() :
-    #jets=("ak5Jet","Pat")
+    jets=("ak5Jet","Pat")
     #jets=("ak5JetJPT","Pat")
-    jets=("ak5JetPF","Pat")
+    #jets=("ak5JetPF","Pat")
     
     metCollection="met"
     metSuffix="Calo"
@@ -24,6 +25,7 @@ def makeSteps() :
     listOfSteps=[
         steps.progressPrinter(),
 
+        #steps.jetMetTriggerHistogrammer( triggerJets = ("ic5Jet","Pat"), triggerMet = ("met","Calo"), offlineJets = jets, offlineMht = jets ),
         steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}};events / bin"),
         steps.jetPtSelector(jets,100.0,0),
         steps.leadingUnCorrJetPtSelector( [jets],100.0 ),
@@ -33,11 +35,10 @@ def makeSteps() :
         steps.hbheNoiseFilter(),
         steps.multiplicityFilter("%sIndices%s"%jets, nMin = 2),
         steps.multiplicityFilter("%sIndicesOther%s"%jets, nMax = 0),
-        
-        steps.histogrammer("muonIndicesPat",10,0,10,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
-        steps.multiplicityFilter("muonIndicesPat", nMax = 0),
-        
+
         steps.variableGreaterFilter(350.0,"%sSumPt%s"%jets),
+        steps.histogrammer("muonIndicesPat",10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
+        steps.multiplicityFilter("muonIndicesPat", nMax = 0),
         steps.cleanJetPtHistogrammer(jets),
         steps.cleanJetHtMhtHistogrammer(jets),
         steps.alphaHistogrammer(jets),
@@ -49,7 +50,7 @@ def makeSteps() :
         #steps.genParticlePrinter(minPt=10.0,minStatus=3),
         
         steps.variableGreaterFilter(0.55,"%sAlphaT%s"%jets),
-
+        
         #steps.histogrammer("%sDeltaPhiStar%s"%jets, 50, 0, r.TMath.Pi(), title = ";%s #Delta#phi* %s;events / bin"%jets)
         #steps.skimmer("/vols/cms02/%s/"%os.environ["USER"]),
         #steps.displayer(jets,metCollection,metSuffix,leptonSuffix,genJetCollection,recHitType,recHitPtThreshold=1.0,#GeV
@@ -75,24 +76,24 @@ def makeCalculables() :
 
 def makeSamples() :
     from samples import specify
-    return [  specify(name = "JetMET.Run2010A",         color = r.kBlack   , markerStyle = 20),
-            ##specify(name = "qcd_mg_ht_250_500_old",   color = r.kBlue    ),
-            ##specify(name = "qcd_py_pt30",             color = r.kBlue    ),
-              specify(name = "qcd_py_pt80",             color = r.kBlue    ),
-              specify(name = "qcd_py_pt170",            color = r.kBlue    ),
-              specify(name = "qcd_py_pt300",            color = r.kBlue    ),
-              specify(name = "qcd_py_pt470",            color = r.kBlue    ),
-              specify(name = "qcd_py_pt800",            color = r.kBlue    ),
-            ##specify(name = "qcd_py_pt1400",           color = r.kBlue    ),
-              specify(name = "tt_tauola_mg",            color = r.kOrange  ),
-              specify(name = "g_jets_mg_pt40_100",      color = r.kGreen   ),
-              specify(name = "g_jets_mg_pt100_200",     color = r.kGreen   ),
-              specify(name = "g_jets_mg_pt200",         color = r.kGreen   ),
-              specify(name = "z_inv_mg_skim",           color = r.kMagenta ),
-              specify(name = "z_jets_mg_skim",          color = r.kYellow-3),
-              specify(name = "w_jets_mg_skim",          color = 28         ),
-              specify(name = "lm0",                     color = r.kRed     ),
-              specify(name = "lm1",                     color = r.kRed+1   ),
+    return [  specify(name = "JetMET.Run2010A",         nFilesMax = 1, nEventsMax = 1000, color = r.kBlack   , markerStyle = 20),
+            ##specify(name = "qcd_mg_ht_250_500_old",   nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+            ##specify(name = "qcd_py_pt30",             nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+              specify(name = "qcd_py_pt80",             nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+              specify(name = "qcd_py_pt170",            nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+              specify(name = "qcd_py_pt300",            nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+              specify(name = "qcd_py_pt470",            nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+              specify(name = "qcd_py_pt800",            nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+            ##specify(name = "qcd_py_pt1400",           nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+              specify(name = "tt_tauola_mg",            nFilesMax = 1, nEventsMax = 1000, color = r.kOrange  ),
+              specify(name = "g_jets_mg_pt40_100",      nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
+              specify(name = "g_jets_mg_pt100_200",     nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
+              specify(name = "g_jets_mg_pt200",         nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
+              specify(name = "z_inv_mg_skim",           nFilesMax = 1, nEventsMax = 1000, color = r.kMagenta ),
+              specify(name = "z_jets_mg_skim",          nFilesMax = 1, nEventsMax = 1000, color = r.kYellow-3),
+              specify(name = "w_jets_mg_skim",          nFilesMax = 1, nEventsMax = 1000, color = 28         ),
+              specify(name = "lm0",                     nFilesMax = 1, nEventsMax = 1000, color = r.kRed     ),
+              specify(name = "lm1",                     nFilesMax = 1, nEventsMax = 1000, color = r.kRed+1   ),
               ]
     
 a=analysis.analysis(name = "hadronicLook",
@@ -103,39 +104,33 @@ a=analysis.analysis(name = "hadronicLook",
                     listOfSampleDictionaries = [samples.mc, samples.jetmet]
                     )
 
+#organize
+org=organizer.organizer( a.sampleSpecs() )
+org.mergeSamples(targetSpec = {"name":"g_jets_mg",     "color":r.kGreen},   sources = ["g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
+org.mergeSamples(targetSpec = {"name":"qcd_py"   ,     "color":r.kBlue},    sources = ["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
+org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3},
+                 sources = ["g_jets_mg","qcd_py","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"], keepSources = True
+                 )
+org.scale()
 
-if __name__ == '__main__':
-    #loop
-    a.loop( nCores = 8 )
 
-    #organize
-    org=organizer.organizer( a.sampleSpecs() )
-    org.mergeSamples(targetSpec = {"name":"g_jets_mg",     "color":r.kGreen},   sources = ["g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
-    org.mergeSamples(targetSpec = {"name":"qcd_py"   ,     "color":r.kBlue},    sources = ["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
-    org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3},
-                     sources = ["g_jets_mg","qcd_py","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"], keepSources = True
+#plot
+pl = plotter.plotter(org,
+                     psFileName=a.outputDir+"/"+a.name+".ps",
+                     #samplesForRatios=("JetMET.Run2010A","qcd_mg_ht_250_500_old"),
+                     #sampleLabelsForRatios=("data","qcd"),
+                     samplesForRatios=("JetMET.Run2010A","standard_model"),
+                     sampleLabelsForRatios=("data","s.m."),
                      )
-    org.scale()
+pl.plotAll()
 
+#other
+#import deltaPhiLook
+#listofPlotContainers=deltaPhiLook.go(listOfPlotContainers)
 
-    #plot
-    pl = plotter.plotter(org,
-                         psFileName=a.outputDir+"/"+a.name+".ps",
-                         #samplesForRatios=("JetMET.Run2010A","qcd_mg_ht_250_500_old"),
-                         #sampleLabelsForRatios=("data","qcd"),
-                         samplesForRatios=("JetMET.Run2010A","standard_model"),
-                         sampleLabelsForRatios=("data","s.m."),
-                         )
-    pl.plotAll()
-
-    #other
-    #import deltaPhiLook
-    #listofPlotContainers=deltaPhiLook.go(listOfPlotContainers)
-
-    #import statMan
-    #statMan.go(a.organizeHistograms(),
-    #           dataSampleName="JetMETTau.Run2010A",
-    #           mcSampleName="standard_model",
-    #           moneyPlotName="ak5JetPat_alphaT_vs_Ht_ge2jets",
-    #           xCut=0.51,yCut=330.0)
-
+#import statMan
+#statMan.go(a.organizeHistograms(),
+#           dataSampleName="JetMETTau.Run2010A",
+#           mcSampleName="standard_model",
+#           moneyPlotName="ak5JetPat_alphaT_vs_Ht_ge2jets",
+#           xCut=0.51,yCut=330.0)
