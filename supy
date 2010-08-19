@@ -102,5 +102,9 @@ else :
     if options.loop :
         someInstance.loop(int(options.loop), bool(options.profile), bool(options.onlymerge))
     if not options.singlesampleid :
-        if hasattr(someInstance,"conclude") :
+        try:
             someInstance.conclude()
+        except AssertionError as foo:
+            print foo
+            print "Have you looped?"
+
