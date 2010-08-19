@@ -75,12 +75,15 @@ class organizer(object) :
 
         return selections
 
-    def mergeSamples(self,sources = [], targetSpec = {}, keepSources = False) :
+    def mergeSamples(self,sourceNames = [], targetSpec = {}, keepSources = False) :
+        for org in self.alternateConfigurations :
+            org.mergeSamples(sourceNames,targetSpec,keepSources)
+
         assert not self.scaled, "Merge must be called before calling scale."
-        for src in sources:
+        for src in sourceNames:
             if not src in map(lambda s: s["name"], self.samples): print "You have requested to merge unspecified sample %s"%src
         target = copy.deepcopy(targetSpec)
-        sourceIndices = filter(lambda i: self.samples[i]["name"] in sources, range(len(self.samples)))
+        sourceIndices = filter(lambda i: self.samples[i]["name"] in sourceNames, range(len(self.samples)))
         if not len(sourceIndices) : print "None of the samples you want merged are specified, no action taken." ;return
 
         if all(["xs" in self.samples[i] for i in sourceIndices]) :
@@ -110,10 +113,11 @@ class organizer(object) :
             selection.rawFailPass = tuplePopInsert( selection.rawFailPass, None )
         self.samples = tuplePopInsert( self.samples, target )
 
-        for org in self.alternateConfigurations :
-            org.mergeSamples(sources,targetSpec,keepSources)
 
     def scale(self, lumiToUseInAbsenceOfData = None) :
+        for org in self.alternateConfigurations :
+            org.scale(lumiToUseInAbsenceOfData)
+
         dataIndices = filter(lambda i: "lumi" in self.samples[i], range(len(self.samples)))
         assert len(dataIndices)<2, "What should I do with more than one data sample?"
         iData = dataIndices[0] if len(dataIndices) else None
@@ -131,8 +135,6 @@ class organizer(object) :
                     if axis: axis.SetTitle("%s / %s pb^{-1}"%(axis.GetTitle(),str(self.lumi)))
         self.scaled = True
 
-        for org in self.alternateConfigurations :
-            org.scale(lumiToUseInAbsenceOfData)
 
     def indicesOfSelectionsWithKey(self,key) :
         return filter( lambda i: key in self.selections[i], range(len(self.selections)))
