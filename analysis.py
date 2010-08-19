@@ -4,14 +4,51 @@ import utils,steps,samples
 from analysisLooper import analysisLooper
 import ROOT as r
 #####################################
+def listOfConfigurations(paramsIn) :
+    def maxLength(d) :
+        lengths = []
+        for key,value in d.iteritems() :
+            if type(value) is list : lengths.append(len(value))
+            else : lengths.append(1)
+        return max(lengths) if len(lengths) else 0
+
+    def listOfCodes(nOps,nItems) :
+        return [ utils.makeCodes(i,nOps,nItems) for i in range(nOps**nItems) ]
+
+    configurationCodes = listOfCodes(maxLength(paramsIn),len(paramsIn))
+
+    configsOut = []
+    keys = paramsIn.keys()
+    for codeList in configurationCodes :
+        config = {}
+        insert = True
+        for iKey,key in enumerate(keys) :
+            variations = paramsIn[key]
+            if not (type(variations) is list) : variations = [variations]
+
+            code = codeList[iKey]
+            if code>=len(variations) :
+                insert = False
+                continue
+            config[key] = variations[code]
+        if insert : configsOut.append(config)
+    return configsOut
+#####################################                
 class analysis(object) :
     """base class for an analysis"""
 
-    def __init__(self) :
+    def __init__(self,configurationId = 0) :
         self.name = self.__class__.__name__
-        for item in ["outputDirectory","listOfSteps","listOfCalculables","listOfSampleDictionaries",
+
+        for item in ["baseOutputDirectory","listOfSampleDictionaries",
                      "mainTree","otherTreesToKeepWhenSkimming","printNodesUsed"] :
             setattr(self, "_"+item, getattr(self,item)() )
+
+        self._configurationId = configurationId
+        self._configurations = listOfConfigurations(self.parameters())
+    
+        for item in ["listOfSteps","listOfCalculables"] :
+            setattr(self, "_"+item, getattr(self,item)(self._configurations[self._configurationId]) )
 
         selectors = filter(lambda s: hasattr(s,"select"), self._listOfSteps)
         assert len(selectors) == len(set(map(lambda s: (s.__doc__,s.moreName,s.moreName2), selectors))), "Duplicate selectors are not allowed."
@@ -23,21 +60,29 @@ class analysis(object) :
         self.treeName=self._mainTree[1]
         
         self.listOfLoopers=[]
-        self.listOfOutputPlotFileNames=[]
         self.addSamples(listOfSamples)
 
-    def outputDirectory(self) :          raise Exception("NotImplemented","Implement a member function outputDirectory()")
-    def listOfSteps(self) :              raise Exception("NotImplemented","Implement a member function listOfSteps()")
-    def listOfCalculables(self) :        raise Exception("NotImplemented","Implement a member function listOfCalculables()")
-    def listOfSampleDictionaries(self) : raise Exception("NotImplemented","Implement a member function sampleDict()")
-    def listOfSamples(self) :            raise Exception("NotImplemented","Implement a member function listOfSamples()")
-    def printNodesUsed(self) : return False
-    def mainTree(self) : return ("susyTree","tree")
+    def configurations(self) :
+        return self._configurations
+    
+    def outputDirectory(self,configurationId) :
+        return self._baseOutputDirectory+"/config"+str(configurationId)+"/"
+
+    def baseOutputDirectory(self) :          raise Exception("NotImplemented","Implement a member function baseOutputDirectory()")
+    def parameters(self) :                   raise Exception("NotImplemented","Implement a member function parameters()")
+    def listOfSteps(self,params) :           raise Exception("NotImplemented","Implement a member function listOfSteps(self,params)")
+    def listOfCalculables(self,params) :     raise Exception("NotImplemented","Implement a member function listOfCalculables(self,params)")
+                                             
+    def listOfSampleDictionaries(self) :     raise Exception("NotImplemented","Implement a member function sampleDict()")
+    def listOfSamples(self) :                raise Exception("NotImplemented","Implement a member function listOfSamples()")
+
+    def printNodesUsed(self) :               return False
+    def mainTree(self) :                     return ("susyTree","tree")
     def otherTreesToKeepWhenSkimming(self) : return [("lumiTree","tree")]
 
     def loop(self, nCores, profile, onlyMerge) :
         #make output directory
-        os.system("mkdir -p "+self._outputDirectory)
+        os.system("mkdir -p "+self.outputDirectory(self._configurationId))
         
         nCores = max(1,nCores)
 
@@ -77,10 +122,17 @@ class analysis(object) :
         if (not hasattr(self,"parentDict")) or len(self.parentDict)==0 :
             for looper in self.listOfLoopers :
                 someDict={}
-                someDict["name"]               = looper.name
-                someDict["outputPlotFileName"] = looper.outputPlotFileName
-                someDict["color"]              = looper.color
-                someDict["markerStyle"]        = looper.markerStyle
+                someDict["name"]                = looper.name
+                someDict["color"]               = looper.color
+                someDict["markerStyle"]         = looper.markerStyle
+
+                someDict["outputFileNames"] = []
+                someDict["configurations"]  = []
+                for iConfig,config in enumerate(self.configurations()) :
+                    outputFileName = self.makeOutputPlotFileName(iConfig,looper.name)
+                    someDict["outputFileNames"].append(outputFileName)
+                    someDict["configurations"] .append(config)
+
                 outList.append(someDict)
         else :
             for parent in self.parentDict :
@@ -88,17 +140,21 @@ class analysis(object) :
                 someLooper=self.listOfLoopers[iSomeLooper]
                 someDict={}
                 someDict["name"] = parent
-                someDict["outputPlotFileName"]=someLooper.outputPlotFileName.replace(someLooper.name,someLooper.parentName)
                 someDict["color"]=someLooper.color
                 someDict["markerStyle"]=someLooper.markerStyle
+
+                someDict["outputFileNames"] = []
+                someDict["configurations"]  = []
+                for iConfig,config in enumerate(self.configurations()) :
+                    outputFileName = self.makeOutputPlotFileName(iConfig,someLooper.parentName)
+                    someDict["outputFileNames"] .append(outputFileName)
+                    someDict["configurations"]  .append(config)
+                
                 outList.append(someDict)
         return outList
 
-    def makeOutputPlotFileName(self,sampleName,isChild=False) :
-        answer=self._outputDirectory+"/"+self.name+"_"+sampleName+"_plots.root"
-        if not isChild :
-            self.listOfOutputPlotFileNames.append(answer)
-        return answer
+    def makeOutputPlotFileName(self,configurationId,sampleName) :
+        return self.outputDirectory(configurationId)+"/"+self.name+"_"+sampleName+"_plots.root"
 
     def addSamples(self, listOfSamples, computeEntriesForReport = False) :
         mergedDict = samples.SampleHolder()
@@ -132,8 +188,8 @@ class analysis(object) :
             self.listOfLoopers.append(analysisLooper(self.fileDirectory,
                                                      self.treeName,
                                                      self._otherTreesToKeepWhenSkimming,
-                                                     self._outputDirectory,
-                                                     self.makeOutputPlotFileName(sampleName),
+                                                     self.outputDirectory(self._configurationId),
+                                                     self.makeOutputPlotFileName(self._configurationId,sampleName),
                                                      listOfSteps,
                                                      self._listOfCalculables,
                                                      sampleSpec,
@@ -201,7 +257,7 @@ class analysis(object) :
                 sampleName=looper.name+"_"+str(iFileName)
                 outListOfLoopers.append(copy.deepcopy(looper))
                 outListOfLoopers[-1].name=sampleName
-                outListOfLoopers[-1].outputPlotFileName=self.makeOutputPlotFileName(sampleName,isChild=True)
+                outListOfLoopers[-1].outputPlotFileName=self.makeOutputPlotFileName(self._configurationId,sampleName)
                 outListOfLoopers[-1].setOutputFileNames()
                 outListOfLoopers[-1].inputFiles=[looper.inputFiles[iFileName]]
                 outListOfLoopers[-1].doSplitMode(looper.name)
