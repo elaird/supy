@@ -37,7 +37,7 @@ def listOfConfigurations(paramsIn) :
 class analysis(object) :
     """base class for an analysis"""
 
-    def __init__(self,configurationId = 0) :
+    def __init__(self,configurationId = 0, isBatch = False) :
         self.name = self.__class__.__name__
 
         for item in ["baseOutputDirectory","listOfSampleDictionaries",
@@ -46,7 +46,8 @@ class analysis(object) :
 
         self._configurationId = configurationId
         self._configurations = listOfConfigurations(self.parameters())
-    
+        assert isBatch or len(self._configurations)==1, "Multiple configurations can be run only in batch mode."
+        
         for item in ["listOfSteps","listOfCalculables"] :
             setattr(self, "_"+item, getattr(self,item)(self._configurations[self._configurationId]) )
 
