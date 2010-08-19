@@ -10,9 +10,7 @@ class progressPrinter(analysisStep) :
         self.num=1
         self.suppressionFactor=suppressionFactor
         self.suppressionOffset=suppressionOffset
-        self.moreName="(factor="
-        self.moreName+=str(self.suppressionFactor)+", offset="
-        self.moreName+=str(self.suppressionOffset)+")"
+        self.moreName = "factor=%d, offset=%d"%(self.suppressionFactor,self.suppressionOffset)
 
     def uponAcceptance (self,eventVars) :
         self.nTotal+=1
@@ -53,20 +51,15 @@ class jetPrinter(analysisStep) :
     """jetPrinter"""
 
     def __init__(self,cs) :
-        self.jetCollection=cs[0]
-        self.jetSuffix=cs[1]
-        self.moreName="("
-        self.moreName+=self.jetCollection
-        self.moreName+="; "
-        self.moreName+=self.jetSuffix
-        self.moreName+=")"
+        self.cs = cs
+        self.moreName="%s %s"%cs
 
     def uponAcceptance (self,eventVars) :
-        p4Vector        =eventVars[self.jetCollection+'CorrectedP4'     +self.jetSuffix]
-        corrFactorVector=eventVars[self.jetCollection+'CorrFactor'      +self.jetSuffix]
-        jetEmfVector    =eventVars[self.jetCollection+'EmEnergyFraction'+self.jetSuffix]
-        jetFHpdVector   =eventVars[self.jetCollection+'JetIDFHPD'       +self.jetSuffix]
-        jetN90Vector    =eventVars[self.jetCollection+'JetIDN90Hits'    +self.jetSuffix]
+        p4Vector        =eventVars['%sCorrectedP4%s'     %self.cs]
+        corrFactorVector=eventVars['%sCorrFactor%s'      %self.cs]
+        jetEmfVector    =eventVars['%sEmEnergyFraction%s'%self.cs]
+        jetFHpdVector   =eventVars['%sJetIDFHPD%s'       %self.cs]
+        jetN90Vector    =eventVars['%sJetIDN90Hits%s'    %self.cs]
 
         jetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]
 
@@ -131,11 +124,7 @@ class particleP4Printer(analysisStep) :
     def __init__(self,collection,suffix) :
         self.collection=collection
         self.suffix=suffix
-        self.moreName="("
-        self.moreName+=self.collection
-        self.moreName+="; "
-        self.moreName+=self.suffix
-        self.moreName+=")"
+        self.moreName="%s %s" % (collection,suffix)
         self.nHyphens=56
 
     def select (self,eventVars) :
@@ -162,9 +151,7 @@ class metPrinter(analysisStep) :
 
     def __init__(self,collections) :
         self.collections=collections
-        self.moreName="("
-        self.moreName+=str(self.collections)
-        self.moreName+=")"
+        self.moreName = str(self.collections)
         self.nHyphens=56
 
     def select (self,eventVars) :

@@ -51,7 +51,7 @@ class triggerNameDump(analysisStep) :
 
     def __init__(self,triggerLevel):
         self.varName = triggerLevel + "triggered"
-        self.moreName = "("+self.varName+")"
+        self.moreName = self.varName
 
     def select (self,eventVars) :
         for pair in eventVars[self.varName] :
@@ -63,7 +63,7 @@ class hltFilter(analysisStep) :
 
     def __init__(self,hltPathName):
         self.hltPathName = hltPathName
-        self.moreName="("+self.hltPathName+")"
+        self.moreName = self.hltPathName
 
     def select (self,eventVars) :
         return eventVars["triggered"][self.hltPathName]
@@ -73,12 +73,7 @@ class hltPrescaleHistogrammer(analysisStep) :
 
     def __init__(self,listOfHltPaths) :
         self.listOfHltPaths = listOfHltPaths
-        self.moreName = "("
-        self.moreName+=str(self.listOfHltPaths)
-        self.moreName+=")"
-        for item in ["HLT_","[","]","'"] :
-            self.moreName=self.moreName.replace(item,"")
-        self.moreName=self.moreName.replace(", ",",")
+        self.moreName = ','.join(self.listOfHltPaths).replace("HLT_","")
         self.nBinsX = len(self.listOfHltPaths)
 
     def uponAcceptance(self,eventVars) :
@@ -112,7 +107,7 @@ class hltTurnOnHistogrammer(analysisStep) :
         self.tagTitle = ( "%s_given_%s"% (var, tagString),
                           "pass %s;%s; events / bin" % (tagString,var))
 
-        self.moreName = "(%s given; %s; and %s )" % (var, ", ".join(tagString.split('-')), probeString)
+        self.moreName = "%s given; %s; and %s" % (var, ", ".join(tagString.split('-')), probeString)
 
     def uponAcceptance(self,eventVars) :
         tag = any([eventVars["triggered"][t] for t in self.tagTriggers])
@@ -147,8 +142,8 @@ class jetMetTriggerHistogrammer(analysisStep) :
         self.triggerMet = triggerMet
         self.offlineJets = offlineJets
         self.offlineMht = offlineMht
-        self.moreName  = "(trigger: %s,%s)"%(self.triggerJets,self.triggerMet)
-        self.moreName2 = "(offline: %s,%s)"%(self.offlineJets,self.offlineMht)
+        self.moreName  = "trigger: %s,%s"%(self.triggerJets,self.triggerMet)
+        self.moreName2 = " offline: %s,%s"%(self.offlineJets,self.offlineMht)
         self.triggerJetsP4String = "%sCorrectedP4%s"%self.triggerJets
         self.triggerJetsCorrFactorString = "%sCorrFactor%s"%self.triggerJets
         self.triggerMetString = "%sP4%s"%self.triggerMet
