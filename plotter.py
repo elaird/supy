@@ -90,18 +90,14 @@ class plotter(object) :
         self.printCanvas("[")
         self.printCalculablesAndTimeStamp()
     
-        self.selNamesSoFar=[]
-        self.selTitlesSoFar=[]
+        self.selectionsSoFar=[]
         for selection in self.someOrganizer.selections :
-            self.selNamesSoFar.append(selection.name)
-            self.selTitlesSoFar.append(selection.title)
-            printTable = True if len(self.selNamesSoFar)>0 else False
+            if selection.name != "" :
+                self.selectionsSoFar.append(selection)
+                self.printSelections(self.selectionsSoFar)
             for plotName in selection :
                 if plotName in self.blackList : continue
-                if printTable : self.printSelections()
                 self.onePlotFunction(selection[plotName],plotName)
-                printTable = False
-            #if printTable : printSelections(selectionsSoFar,canvasDict)
 
         self.printCanvas("]")
         self.makePdf()
@@ -145,51 +141,24 @@ class plotter(object) :
         os.system("gzip -f "+self.psFileName)
         print "The output file \""+pdfFile+"\" has been written."
 
-    def printSelections(self) :
-        if set(self.selNamesSoFar)==set(['']) :
-            return
+    def printSelections(self,selections) :
         self.canvas.cd(0)
-        self.canvas.Clear()    
-
+        self.canvas.Clear()
+        
         text = r.TText()
         text.SetNDC()
         text.SetTextFont(102)
         text.SetTextSize(0.5*text.GetTextSize())
 
-        nSelections = len(self.selNamesSoFar)
-        length = max([len(name) for name in self.selNamesSoFar])
-        for i in  range(nSelections):
-            x = 0.02
-            y = 0.98 - 0.3*(i+0.5)/nSelections
-            toDraw = string.ascii_letters[i]+":   "
-            toDraw+= self.selNamesSoFar[i].ljust(length+2)
-            toDraw+= "   "+self.selTitlesSoFar[i]
-            text.DrawTextNDC(x, y, toDraw)
-
-        #nPass={}
-        #nPassErr={}
-        #for iSelection,selection in enumerate(self.someOrganizer.selections) :
-        #    for sample,countHisto in zip(self.someOrganizer.samples,selection["counts"]) :
-        #        if not countHisto : continue
-        #        nPass   [ (sample["name"],iSelection) ]=countHisto.GetBinContent(1)
-        #        nPassErr[ (sample["name"],iSelection) ]=countHisto.GetBinError(1)
-        #
-        #for iSelection in  range(nSelections):
-        #    x=0.02            
-        #    y=0.5 - 0.3*(iSelection+0.5)/nSelections
-        #    nSamples = len(self.someOrganizer.samples)
-        #
-        #    toPrint=string.ascii_letters[i]+": "
-        #    for iSample in range(nSamples) :
-        #        sample = self.someOrganizer.samples[iSample]
-        #        key = (sample["name"],iSelection)
-        #        if key in nPass :
-        #            toPrint+=str( nPass[key] )
-        #        else :
-        #            toPrint+="-"
-        #
-        #    text.DrawTextNDC(x, y, toPrint)
-        
+        nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in self.someOrganizer.selections]))
+        for i,selection in enumerate(selections):
+            x = 0.01
+            y = 0.98 - 0.3*(i+0.5)/len(self.someOrganizer.selections)
+            text.DrawTextNDC(x, y, nametitle.format(string.ascii_letters[i], selection.name, selection.title ))
+            text.DrawTextNDC(x, y-0.5, "%s: %s"%(string.ascii_letters[i],
+                                                  "".join([(utils.roundString(*k,width=8) if k else "-    ").rjust(11) for k in selection.yields()])))
+        text.DrawTextNDC(x, 0.5, "   "+"".join([s["name"][:8].rjust(11) for s in self.someOrganizer.samples]))
+        text.DrawTextNDC( 0.8,0.01,"events / %.3f pb^{-1}"% self.someOrganizer.lumi )
         self.printCanvas()
         self.canvas.Clear()
 

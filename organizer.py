@@ -12,8 +12,8 @@ class organizer(object) :
         """Keys are histogram names, values are tuples of histograms, parallel to samples."""
         def __init__(self,samples,dirs,keys) :
             for key in keys: self[key] = tuple( map(lambda d: d.Get(key), dirs) )
-            self.name  = "" if "/" in dirs[0].GetName() else dirs[0].GetName()
-            self.title = "" if "/" in dirs[0].GetName() else dirs[0].GetTitle()
+            self.nameTitle  = ("","") if "/" in dirs[0].GetName() else (dirs[0].GetName(),dirs[0].GetTitle())
+            self.name,self.title = self.nameTitle
             self.rawFailPass = tuple(map(lambda h: (h.GetBinContent(1),h.GetBinContent(2)) if h else None, self["counts"]))
 
             for key in self :
@@ -29,6 +29,7 @@ class organizer(object) :
         self.samples = tuple([copy.deepcopy(spec) for spec in sampleSpecs]) # columns
         self.selections = tuple(self.__inititialSelectionsList())  # rows
         self.scaled = False
+        self.lumi = 1.0
 
     def __inititialSelectionsList(self) :
         """Scan samples in parallel to ensure consistency and build list of selection dicts"""
@@ -92,7 +93,7 @@ class organizer(object) :
         r.gROOT.cd()
         dir = target["dir"] = r.gDirectory.mkdir(target["name"])
         for selection in self.selections :
-            if selection.name is not "": dir = dir.mkdir(selection.name,selection.title)
+            if selection.name is not "": dir = dir.mkdir(*selection.nameTitle)
             dir.cd()
             for key,val in selection.iteritems():
                 sources = filter(None, map(val.__getitem__,sourceIndices))
@@ -107,18 +108,18 @@ class organizer(object) :
         dataIndices = filter(lambda i: "lumi" in self.samples[i], range(len(self.samples)))
         assert len(dataIndices)<2, "What should I do with more than one data sample?"
         iData = dataIndices[0] if len(dataIndices) else None
-        lumi = self.samples[iData]["lumi"] if iData!=None else lumiToUseInAbsenceOfData
-        assert lumi, "You need to have a data sample or specify the lumi to use."
+        self.lumi = self.samples[iData]["lumi"] if iData!=None else lumiToUseInAbsenceOfData
+        assert self.lumi, "You need to have a data sample or specify the lumi to use."
 
         for sel in self.selections :
             for key,hists in sel.iteritems() :
                 if key in ["lumiHisto","xsHisto","nJobsHisto","nEventsHisto"] : continue
                 for h in hists:
                     if not h: continue
-                    h.Scale(lumi)
+                    h.Scale(self.lumi)
                     dim = int(h.ClassName()[2])
                     axis = h.GetYaxis() if dim==1 else h.GetZaxis() if dim==2 else None
-                    if axis: axis.SetTitle("%s / %s pb^{-1}"%(axis.GetTitle(),str(lumi)))
+                    if axis: axis.SetTitle("%s / %s pb^{-1}"%(axis.GetTitle(),str(self.lumi)))
         self.scaled = True
 
     def indicesOfSelectionsWithKey(self,key) :
