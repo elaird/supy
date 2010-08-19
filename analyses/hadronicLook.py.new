@@ -8,12 +8,12 @@ class hadronicLook(analysis.analysis) :
         return "/vols/cms02/%s/tmp/"%os.environ["USER"]
 
     def parameters(self) :
-        fields =                   ["jet",              "met",             "muon",        "electron",        "photon",      "genjet","rechit"]
-        caloAK5 = dict(zip(fields, [("ak5Jet","Pat"),   "metAK5TypeIIPat",("muon","Pat"),("electron","Pat"),("photon","Pat") , (),    ()]))
-        jptAK5  = dict(zip(fields, [("ak5JetJPT","Pat"),"met",            ("muon","Pat"),("electron","Pat"),("photon","Pat") , (),    ()]))
-        pfAK5   = dict(zip(fields, [("ak5JetPF","Pat"), "met",            ("muon","Pat"), ("electron","PF"), ("photon","Pat") , (),    ()]))
+        fields =                   ["jet",              "met",             "muon",        "electron",        "photon",         "genjet","rechit"]
+        caloAK5 = dict(zip(fields, [("ak5Jet","Pat"),   "metAK5TypeIIPat",("muon","Pat"),("electron","Pat"),("photon","Pat") , "ak5Jet", "Calo" ]))
+        jptAK5  = dict(zip(fields, [("ak5JetJPT","Pat"),"met",            ("muon","Pat"),("electron","Pat"),("photon","Pat") , "ak5Jet", "Calo" ]))
+        pfAK5   = dict(zip(fields, [("ak5JetPF","Pat"), "met",            ("muon","Pat"),("electron","PF"), ("photon","Pat") , "ak5Jet",  "PF"  ]))
                 
-        return { "objects": [caloAK5, pfAK5, jptAK5]    [1],
+        return { "objects": [caloAK5, pfAK5, jptAK5]    [:],
                  "jesAbs":  [1.0,1.1,0.9]               [0],
                  "jesEta":  0,
                  "jetId" :  ["JetIDloose","JetIDtight"] [0]
