@@ -45,7 +45,7 @@ def importedClass() :
     assert count==1,arg+" needs exactly 1 class which inherits from analysis; it has "+str(count)
     return theClass
 ############################################
-def submitBatchJob(jobCmd,iLooper) :
+def submitBatchJob(jobCmd,iLooper,iConfig) :
     dirName = os.environ["PWD"]+"/batch_jobs"
     os.system("mkdir -p "+dirName)
     hostname=os.environ["HOSTNAME"]
@@ -58,8 +58,8 @@ def submitBatchJob(jobCmd,iLooper) :
     assert subScript and jobScript,"hostname"+str(hostname)+"not recognized"
     os.system("chmod +x "+subScript)
 
-    jobScriptFileName = dirName+"/job%d.sh"%iLooper
-    jobOutFileName = "$USERTMP/job%d.out"%iLooper
+    jobScriptFileName = dirName+"/job%d_%d.sh"%(iLooper,iConfig)
+    jobOutFileName = "$USERTMP/job%d_%d.out"%(iLooper,iConfig)
     os.system("cp -p "+jobScript+" "+jobScriptFileName)
     outJobScript = open(jobScriptFileName,"a")
     outJobScript.write("cd "+os.environ["PWD"]+"\n")
@@ -67,7 +67,6 @@ def submitBatchJob(jobCmd,iLooper) :
     outJobScript.close()
 
     subCmd = "./"+subScript+" "+jobScriptFileName
-    print subCmd
     os.system(subCmd)
 ############################################
 options,arg = opts()
@@ -79,9 +78,9 @@ exec("import "+module)
 someClass = importedClass()
 
 if options.singleconfigid!=None :
-    someInstance = someClass(configurationId = options.singleconfigid, isBatch = options.batch)
+    someInstance = someClass(configurationId = int(options.singleconfigid), isBatch = bool(options.batch))
 else :
-    someInstance = someClass(isBatch = options.batch)
+    someInstance = someClass(isBatch = bool(options.batch))
     
 #loop over events
 if options.singlesampleid!=None :
@@ -95,11 +94,10 @@ if options.batch :
     for iLooper in range(len(someInstance.listOfLoopers)) :
         for iConfig in range(len(someInstance.configurations())) :
             cmd = baseCmd + " --singlesampleid "+str(iLooper) + " --singleconfigid "+str(iConfig)
-            submitBatchJob(cmd,iLooper)
+            submitBatchJob(cmd,iLooper,iConfig)
 else :
     if options.loop :
         someInstance.loop(int(options.loop), bool(options.profile), bool(options.onlymerge))
     if not options.singlesampleid :
         if hasattr(someInstance,"conclude") :
             someInstance.conclude()
-
