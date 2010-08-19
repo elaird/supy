@@ -6,7 +6,7 @@ class photonIndicesPat(wrappedChain.calculable) :
         self.ptMin = ptMin
         self.etaMax = etaMax
         self.flagName = flagName
-        self.moreName = "(pT>=%.1f GeV; |eta|<%.1f; %s)"% (ptMin, etaMax, flagName if flagName else "")
+        self.moreName = "pT>=%.1f GeV; |eta|<%.1f; %s"% (ptMin, etaMax, flagName if flagName else "")
 
     def update(self,ignored) :
         p4s = self.source["photonP4Pat"]

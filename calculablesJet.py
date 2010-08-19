@@ -12,7 +12,7 @@ class jetIndices(wrappedChain.calculable) :
         self.flagName = None if not flagName else \
                         ( "%s"+flagName+"%s" if collection[0][-2:] != "PF" else \
                           "%sPF"+flagName+"%s" ) % self.cs
-        self.moreName = "(pT>=%.1f GeV; |eta|<%.1f; %s)"% (ptMin, etaMax, flagName if flagName else "")
+        self.moreName = "pT>=%.1f GeV; |eta|<%.1f; %s"% (ptMin, etaMax, flagName if flagName else "")
 
     def update(self,ignored) :
         p4s    = self.source[self.p4Name]
@@ -33,7 +33,7 @@ class jetIndicesOther(wrappedChain.calculable) :
         self.ptMin = ptMin
         self.p4Name = '%sCorrectedP4%s' % self.cs
         self.indicesName = '%sIndices%s' % self.cs
-        self.moreName = "(unaccepted; pT>=%.1f GeV)"% ptMin
+        self.moreName = "unaccepted; pT>=%.1f GeV"% ptMin
 
     def update(self,ignored) :
         p4s = self.source[self.p4Name]
@@ -53,7 +53,7 @@ class PFJetIDloose(wrappedChain.calculable) :
         self.fChargedHadMin = fChargedHadMin  ;  self.fChargedHadName = "%sFchargedHad%s" % self.cs  
         self.nChargedMin    = nChargedMin     ;  self.nChargedName    = "%sNcharged%s" % self.cs     
 
-        self.moreName = "(fN_em<%.1f; fC_em<%.1f; fN_had<%.1f; |eta|>2.4 or {fC_had>%.1f; nC>%d})" % \
+        self.moreName = "fN_em<%.1f; fC_em<%.1f; fN_had<%.1f; |eta|>2.4 or {fC_had>%.1f; nC>%d}" % \
                         ( fNeutralEmMax,fChargedEmMax,fNeutralHadMax, fChargedHadMin, nChargedMin)
             
     def update(self,ignored) :

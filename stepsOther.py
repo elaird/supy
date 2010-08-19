@@ -9,8 +9,7 @@ class histogrammer(analysisStep) :
         for item in ["var","N","low","up","title","funcString"] : setattr(self,item,eval(item))
         self.oneD = type(var) != tuple
         self.hName = var if self.oneD else "_vs_".join(reversed(var))
-        self.moreName = title.split(';')[1] if len(title.split(';'))>1 else \
-                        "%s(%s)"% ("(%s)"%funcString if funcString!="lambda x:x" else "", str(self.hName))
+        self.moreName = "%s(%s)"% ("(%s)"%funcString if funcString!="lambda x:x" else "", str(self.hName))
         self.funcStringEvaluated = False
 
     def uponAcceptance(self,eventVars) :
@@ -53,7 +52,7 @@ class crockVarCalcDiff(analysisStep) :
     def __init__(self,exV,calc) :
         self.exV = exV
         self.calc = calc
-        moreName = "(Checking that crockVars == calculable, %s,%s)",(exV,calc)
+        moreName = "Checking that crockVars == calculable, %s,%s",(exV,calc)
     def uponAcceptance(self,eventVars) :
         print  eventVars["crock"][self.exV], eventVars[self.calc]
 #####################################
@@ -170,7 +169,7 @@ class variableGreaterFilter(analysisStep) :
     def __init__(self,threshold,variable):
         self.threshold = threshold
         self.variable = variable
-        self.moreName = "(%s>=%.3f)" % (variable,threshold)
+        self.moreName = "%s>=%.3f" % (variable,threshold)
 
     def select (self,eventVars) :
         return eventVars[self.variable]>=self.threshold
@@ -181,7 +180,7 @@ class variablePtGreaterFilter(analysisStep) :
     def __init__(self,threshold,variable):
         self.threshold = threshold
         self.variable = variable
-        self.moreName = "(%s>=%.1f)" % (variable,threshold)
+        self.moreName = "%s>=%.1f" % (variable,threshold)
 
     def select (self,eventVars) :
         return eventVars[self.variable].pt()>=self.threshold
@@ -193,7 +192,7 @@ class objectPtVetoer(analysisStep) :
         self.index = index
         self.ptThreshold = ptThreshold
         self.varName = collection + p4String + suffix
-        self.moreName = "(%s; %s; pT[%d]< %.1f GeV)" % (collection, suffix, index, ptThreshold )
+        self.moreName = "%s; %s; pT[%d]< %.1f GeV" % (collection, suffix, index, ptThreshold )
 
     def select (self,eventVars) :
         p4s = eventVars[self.varName]
@@ -210,7 +209,7 @@ class soloObjectPtSelector(analysisStep) :
     def __init__(self, collection, p4String, suffix, ptThreshold):
         self.ptThreshold = ptThreshold
         self.varName = collection + p4String + suffix        
-        self.moreName = "(%s; %s; pT> %.1f GeV)" % (collection, suffix, ptThreshold )
+        self.moreName = "%s; %s; pT> %.1f GeV" % (collection, suffix, ptThreshold )
 
     def select (self,eventVars) :
         return self.ptThreshold <= eventVars[self.varName].pt()
@@ -223,7 +222,7 @@ class vertexRequirementFilterOld(analysisStep) :
         self.maxVertexChi2Ndf = maxVertexChi2Ndf
         self.maxVertexZ = maxVertexZ
 
-        self.moreName = "(>=%d ve.tr.; chi2/ndf<%.1f; abs(z)<%.1f)" % (minVertexNtracks, maxVertexChi2Ndf, maxVertexZ )
+        self.moreName = ">=%d ve.tr.; chi2/ndf<%.1f; |z|<%.1f" % (minVertexNtracks, maxVertexChi2Ndf, maxVertexZ )
 
     def select(self,eventVars) :
         pos = eventVars["vertexPosition"]
@@ -241,7 +240,7 @@ class vertexRequirementFilter(analysisStep) :
     def __init__(self,minVertexNdof=5.0,maxVertexZ=15.0) :
         self.minVertexNdof = minVertexNdof
         self.maxVertexZ = maxVertexZ
-        self.moreName = "(any v: !fake; ndf>=%.1f;abs(z)<%.1f)" % (minVertexNdof,maxVertexZ)
+        self.moreName = "any v: !fake; ndf>=%.1f;abs(z)<%.1f" % (minVertexNdof,maxVertexZ)
 
     def select(self,eventVars) :
         fake,ndof,pos = eventVars["vertexIsFake"], eventVars["vertexNdof"], eventVars["vertexPosition"]
@@ -260,7 +259,7 @@ class monsterEventFilter(analysisStep) :
         self.maxNumTracks=maxNumTracks
         self.minGoodTrackFraction=minGoodTrackFraction
 
-        self.moreName = "(<=%d tracks or >%.1f good fraction)" % (maxNumTracks, minGoodTrackFraction)
+        self.moreName = "<=%d tracks or >%.1f good fraction" % (maxNumTracks, minGoodTrackFraction)
 
     def select (self,eventVars) :
         nTracks    = eventVars["tracksNEtaLT0p9AllTracks"] + eventVars["tracksNEta0p9to1p5AllTracks"] + eventVars["tracksNEtaGT1p5AllTracks"]
@@ -294,7 +293,7 @@ class goodRunsOnly2009(analysisStep) :
     """goodRunsOnly2009"""
 
     def __init__(self,energyString,version) :
-        self.moreName = "(%s %s)" % (energyString,version)
+        self.moreName = "%s %s" % (energyString,version)
         self.runList=[]
         self.runLsList=[]
 
@@ -388,7 +387,7 @@ class metGroupNoiseEventFilter(analysisStep) :
 
     def __init__(self,version) :
         self.version=version
-        self.moreName="("+self.version+")"
+        self.moreName=self.version
         self.setupStuff()
 
     def setupStuff(self) :
@@ -893,7 +892,7 @@ class jsonMaker(analysisStep) :
     def __init__(self,outputDir) :
         self.runLsDict=collections.defaultdict(list)
         self.outputDir=outputDir
-        self.moreName="(see below)"
+        self.moreName="see below"
 
     def setup(self,chain,fileDir,name) :
         self.outputFileName=self.outputDir+"/"+name+".json"

@@ -14,7 +14,7 @@ class muonPixelNumberOfValidHitsPat(wrappedChain.calculable) :
 ##############################
 class muonIDtightPat(wrappedChain.calculable) :
     def __init__(self) :
-        self.moreName = "(implemented by hand, CMS AN-2010/211)"
+        self.moreName = "implemented by hand, CMS AN-2010/211"
 
     def tight(self,isTrk, idGlbTight, nStationsMatch, nTrkPxHits, nPxHits, dxy) :
         return isTrk               and \
@@ -52,7 +52,7 @@ class muonIndicesPat(wrappedChain.calculable) :
     def __init__(self, ptMin = None, combinedRelIsoMax = None ) :
         self.ptMin = ptMin
         self.relIsoMax = combinedRelIsoMax
-        self.moreName = "(tight; pt>%.1f; cmbRelIso<%.2f)"%( ptMin, combinedRelIsoMax )
+        self.moreName = "tight; pt>%.1f; cmbRelIso<%.2f"%( ptMin, combinedRelIsoMax )
 
     def update(self,ignored) :
         self.value = []

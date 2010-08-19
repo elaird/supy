@@ -19,7 +19,7 @@ class genIndices(wrappedChain.calculable) :
         self.PDGs = frozenset(pdgs)
         self.ptMin = ptMin
         self.etaMax = etaMax
-        self.moreName = "(pdgId in %s; pt>%.1f; |eta|<%.1f)" % (str(list(self.PDGs)), ptMin, etaMax)
+        self.moreName = "pdgId in %s; pt>%.1f; |eta|<%.1f" % (str(list(self.PDGs)), ptMin, etaMax)
 
     def update(self,ignored) :
         p4s = self.source["genP4"]
