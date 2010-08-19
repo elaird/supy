@@ -28,13 +28,14 @@ class organizer(object) :
     def __init__(self, sampleSpecs = [] , configurationId = 0 ) :
         self.itemsToIgnore = ["Leaves","Calculables"]
         self.configurationId = configurationId
+        r.gDirectory.mkdir("config%d"%self.configurationId)->SetDirectory(0)
         self.samples = tuple([copy.deepcopy(spec) for spec in sampleSpecs]) # columns
         self.selections = tuple(self.__inititialSelectionsList())  # rows
         self.scaled = False
         self.lumi = 1.0
         self.alternateConfigurations = [] if configurationId else \
                                        [organizer(sampleSpecs,i) for i in range(1,len(sampleSpecs[0]["outputFileNames"]))]
-
+            
     def __inititialSelectionsList(self) :
         """Scan samples in parallel to ensure consistency and build list of selection dicts"""
         selections = []
@@ -94,8 +95,7 @@ class organizer(object) :
             return tuple(val)
 
         r.gROOT.cd()
-        if not r.gDirectory.cd("config%d"%self.configurationId) :
-            r.gDirectory.mkdir("config%d"%self.configurationId).cd()
+        r.gDirectory.cd("config%d"%self.configurationId)
         dir = target["dir"] = r.gDirectory.mkdir(target["name"])
         for selection in self.selections :
             if selection.name is not "": dir = dir.mkdir(*selection.nameTitle)
