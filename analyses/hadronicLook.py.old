@@ -14,14 +14,14 @@ class hadronicLook(analysis.analysis) :
         pfAK5   = dict(zip(fields, [("ak5JetPF","Pat"), "met",            ("muon","PF"), ("electron","PF"), ("photon","Pat") , (),    ()]))
                 
         return { "objects": [caloAK5, pfAK5, jptAK5]    [0],
-                 "jesAbs": g [1.0,1.1,0.9]              [:],
+                 "jesAbs":  [1.0,1.1,0.9]               [0],
                  "jesEta":  0,
                  "jetId" :  ["JetIDloose","JetIDtight"] [0]
                  }
 
     def listOfCalculables(self,params) :
-        _jet = params[collections]["jet"]
-        _muon = params[collections]["muon"]
+        _jet =  params["objects"]["jet"]
+        _muon = params["objects"]["muon"]
 
         return calculables.zeroArgs() +\
                calculables.fromJetCollections([_jet]) +\
@@ -50,8 +50,8 @@ class hadronicLook(analysis.analysis) :
             steps.multiplicityFilter("%sIndicesOther%s"%_jet, nMax = 0),
             
             steps.variableGreaterFilter(350.0,"%sSumPt%s"%_jet),
-            steps.histogrammer("%Indices%"%muon,10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
-            steps.multiplicityFilter("%Indices%"%muon, nMax = 0),
+            steps.histogrammer("%sIndices%s"%_muon,10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
+            steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
             steps.cleanJetPtHistogrammer(_jet),
             steps.cleanJetHtMhtHistogrammer(_jet),
             steps.alphaHistogrammer(_jet),
@@ -81,24 +81,24 @@ class hadronicLook(analysis.analysis) :
 
     def listOfSamples(self) :
         from samples import specify
-        return [  specify(name = "JetMET.Run2010A",         color = r.kBlack   , markerStyle = 20),
-                ##specify(name = "qcd_mg_ht_250_500_old",   color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt30",             color = r.kBlue    ),
-                  specify(name = "qcd_py_pt80",             color = r.kBlue    ),
-                  specify(name = "qcd_py_pt170",            color = r.kBlue    ),
-                  specify(name = "qcd_py_pt300",            color = r.kBlue    ),
-                  specify(name = "qcd_py_pt470",            color = r.kBlue    ),
-                  specify(name = "qcd_py_pt800",            color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt1400",           color = r.kBlue    ),
-                  specify(name = "tt_tauola_mg",            color = r.kOrange  ),
-                  specify(name = "g_jets_mg_pt40_100",      color = r.kGreen   ),
-                  specify(name = "g_jets_mg_pt100_200",     color = r.kGreen   ),
-                  specify(name = "g_jets_mg_pt200",         color = r.kGreen   ),
-                  specify(name = "z_inv_mg_skim",           color = r.kMagenta ),
-                  specify(name = "z_jets_mg_skim",          color = r.kYellow-3),
-                  specify(name = "w_jets_mg_skim",          color = 28         ),
-                  specify(name = "lm0",                     color = r.kRed     ),
-                  specify(name = "lm1",                     color = r.kRed+1   ),
+        return [  specify(name = "JetMET.Run2010A",         nFilesMax = 1, nEventsMax = 1000, color = r.kBlack   , markerStyle = 20),
+                ##specify(name = "qcd_mg_ht_250_500_old",   nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                ##specify(name = "qcd_py_pt30",             nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                  specify(name = "qcd_py_pt80",             nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                  specify(name = "qcd_py_pt170",            nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                  specify(name = "qcd_py_pt300",            nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                  specify(name = "qcd_py_pt470",            nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                  specify(name = "qcd_py_pt800",            nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                ##specify(name = "qcd_py_pt1400",           nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                  specify(name = "tt_tauola_mg",            nFilesMax = 1, nEventsMax = 1000, color = r.kOrange  ),
+                  specify(name = "g_jets_mg_pt40_100",      nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
+                  specify(name = "g_jets_mg_pt100_200",     nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
+                  specify(name = "g_jets_mg_pt200",         nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
+                  specify(name = "z_inv_mg_skim",           nFilesMax = 1, nEventsMax = 1000, color = r.kMagenta ),
+                  specify(name = "z_jets_mg_skim",          nFilesMax = 1, nEventsMax = 1000, color = r.kYellow-3),
+                  specify(name = "w_jets_mg_skim",          nFilesMax = 1, nEventsMax = 1000, color = 28         ),
+                  specify(name = "lm0",                     nFilesMax = 1, nEventsMax = 1000, color = r.kRed     ),
+                  specify(name = "lm1",                     nFilesMax = 1, nEventsMax = 1000, color = r.kRed+1   ),
                   ]
 
     def conclude(self) :
@@ -113,7 +113,7 @@ class hadronicLook(analysis.analysis) :
         
         #plot
         pl = plotter.plotter(org,
-                             psFileName=self._outputDirectory+"/"+self.name+".ps",
+                             psFileName=self.baseOutputDirectory()+"/"+self.name+".ps",
                              #samplesForRatios=("JetMET.Run2010A","qcd_mg_ht_250_500_old"),
                              #sampleLabelsForRatios=("data","qcd"),
                              samplesForRatios=("JetMET.Run2010A","standard_model"),
