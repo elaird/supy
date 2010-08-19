@@ -28,7 +28,8 @@ class organizer(object) :
     def __init__(self, sampleSpecs = [] , configurationId = 0 ) :
         self.itemsToIgnore = ["Leaves","Calculables"]
         self.configurationId = configurationId
-        r.gDirectory.mkdir("config%d"%self.configurationId).SetDirectory(0)
+        r.gROOT.cd()
+        r.gDirectory.mkdir("config%d"%self.configurationId)
         self.samples = tuple([copy.deepcopy(spec) for spec in sampleSpecs]) # columns
         self.selections = tuple(self.__inititialSelectionsList())  # rows
         self.scaled = False
