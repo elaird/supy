@@ -47,18 +47,20 @@ class muonCombinedRelativeIsoPat(wrappedChain.calculable) :
                          self.source["muonHcalIsoPat"],
                          self.source["muonP4Pat"])
 ##############################
-class muonIndicesPat(wrappedChain.calculable) :
+class muonIndices(wrappedChain.calculable) :
+    def name(self) : return "%sIndices%s"%self.muons
     
-    def __init__(self, ptMin = None, combinedRelIsoMax = None ) :
+    def __init__(self, muons = None, ptMin = None, combinedRelIsoMax = None ) :
         self.ptMin = ptMin
         self.relIsoMax = combinedRelIsoMax
+        self.muons = muons
         self.moreName = "tight; pt>%.1f; cmbRelIso<%.2f"%( ptMin, combinedRelIsoMax )
 
     def update(self,ignored) :
         self.value = []
-        p4s = self.source["muonP4Pat"]
-        tight = self.source["muonIDtightPat"]
-        relIso = self.source["muonCombinedRelativeIsoPat"]
+        p4s = self.source["%sP4%s"%self.muons]
+        tight = self.source["%sIDtight%s"%self.muons]
+        relIso = self.source["%sCombinedRelativeIso%s"%self.muons]
         for i in range(p4s.size()) :
             if p4s.at(i).pt() < self.ptMin : break
             if tight[i] and relIso[i] < self.relIsoMax : self.value.append(i)
