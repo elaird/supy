@@ -36,3 +36,7 @@ def fromJetCollections(collections) :
                 for col in collections : jetCalcs.append(calc(col))
         except: pass
     return jetCalcs
+
+def fromMuonCollections(collections) :
+    """dummy"""
+    return []
