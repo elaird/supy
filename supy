@@ -9,6 +9,7 @@ def opts() :
     parser.add_option("--onlymerge",     dest = "onlymerge",      default = False, action = "store_true", help = "skip the loop and simply merge the output files")
     parser.add_option("--batch",         dest = "batch",          default = False, action = "store_true", help = "split analysis and submit to batch queue")
     parser.add_option("--singlesampleid",dest = "singlesampleid", default = None,  metavar = "id",        help = "[for internal use only]")
+    parser.add_option("--singleconfigid",dest = "singleconfigid", default = None,  metavar = "id",        help = "[for internal use only]")
     options,args = parser.parse_args()
 
     if len(args)!=1 :
@@ -76,8 +77,12 @@ globalSetup(listOfSourceFiles=["pragmas.h","helpers.C"])
 sys.path.extend([os.environ["PWD"],os.environ["PWD"]+"/analyses"])
 exec("import "+module)
 someClass = importedClass()
-someInstance = someClass()
 
+if options.singleconfigid!=None :
+    someInstance = someClass(configurationId = options.singleconfigid, isBatch = options.batch)
+else :
+    someInstance = someClass(isBatch = options.batch)
+    
 #loop over events
 if options.singlesampleid!=None :
     #restrict to the sample with the specified index
@@ -86,9 +91,11 @@ if options.singlesampleid!=None :
 if options.batch :
     args = sys.argv[1:]
     args.remove("--batch")
+    baseCmd="./supy "+" ".join(args)
     for iLooper in range(len(someInstance.listOfLoopers)) :
-        cmd="./supy "+" ".join(args)+" --singlesampleid "+str(iLooper)
-        submitBatchJob(cmd,iLooper)
+        for iConfig in range(len(someInstance.configurations())) :
+            cmd = baseCmd + " --singlesampleid "+str(iLooper) + " --singleconfigid "+str(iConfig)
+            submitBatchJob(cmd,iLooper)
 else :
     if options.loop :
         someInstance.loop(int(options.loop), bool(options.profile), bool(options.onlymerge))
