@@ -136,11 +136,11 @@ class analysis(object) :
                 someDict["markerStyle"]         = looper.markerStyle
 
                 someDict["outputFileNames"] = []
-                someDict["configurations"]  = []
+                #someDict["configurations"]  = []
                 for iConfig,config in enumerate(self.configurations()) :
                     outputFileName = self.makeOutputPlotFileName(iConfig,looper.name)
                     someDict["outputFileNames"].append(outputFileName)
-                    someDict["configurations"] .append(config)
+                    #someDict["configurations"] .append(config)
 
                 outList.append(someDict)
         else :
@@ -153,11 +153,11 @@ class analysis(object) :
                 someDict["markerStyle"]=someLooper.markerStyle
 
                 someDict["outputFileNames"] = []
-                someDict["configurations"]  = []
+                #someDict["configurations"]  = []
                 for iConfig,config in enumerate(self.configurations()) :
                     outputFileName = self.makeOutputPlotFileName(iConfig,someLooper.parentName)
                     someDict["outputFileNames"] .append(outputFileName)
-                    someDict["configurations"]  .append(config)
+                    #someDict["configurations"]  .append(config)
                 
                 outList.append(someDict)
         return outList
