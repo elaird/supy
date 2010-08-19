@@ -18,7 +18,6 @@ Other
 * cross section in database
 * 2D ratios
 
-* make conclude fail more gracefully
 * check for expired grid cert / empty srmls
 
 * organize files in cvs
