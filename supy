@@ -7,7 +7,7 @@ def opts() :
     parser.add_option("--loop",          dest = "loop",           default = 0,     metavar = "N",         help = "loop over events using N cores")
     parser.add_option("--profile",       dest = "profile",        default = False, action = "store_true", help = "profile the code")
     parser.add_option("--onlymerge",     dest = "onlymerge",      default = False, action = "store_true", help = "skip the loop and simply merge the output files")
-    parser.add_option("--batch",         dest = "batch",          default = False, action = "store_true", help = "[not yet implemented]")
+    parser.add_option("--batch",         dest = "batch",          default = False, action = "store_true", help = "split analysis and submit to batch queue")
     parser.add_option("--singlesampleid",dest = "singlesampleid", default = None,  metavar = "id",        help = "[for internal use only]")
     options,args = parser.parse_args()
 
@@ -44,6 +44,30 @@ def importedClass() :
     assert count==1,arg+" needs exactly 1 class which inherits from analysis; it has "+str(count)
     return theClass
 ############################################
+def submitBatchJob(jobCmd,iLooper) :
+    dirName = os.environ["PWD"]+"/batch_jobs"
+    os.system("mkdir -p "+dirName)
+    hostname=os.environ["HOSTNAME"]
+
+    subScript = None
+    jobScript = None
+    if hostname=="lx05.hep.ph.ic.ac.uk" or hostname=="lx06.hep.ph.ic.ac.uk" :
+        subScript="icSub.sh"
+        jobScript="icJob.sh"
+    assert subScript and jobScript,"hostname"+str(hostname)+"not recognized"
+    os.system("chmod +x "+subScript)
+
+    jobScriptFileName = dirName+"/job%d.sh"%iLooper
+    jobOutFileName = jobScriptFileName.replace(".sh",".out")
+    os.system("cp -p "+jobScript+" "+jobScriptFileName)
+    outJobScript = open(jobScriptFileName,"a")
+    outJobScript.write(jobCmd+" >& "+jobOutFileName)
+    outJobScript.close()
+
+    subCmd = "./"+subScript+" "+jobScriptFileName
+    print subCmd
+    os.system(subCmd)
+############################################
 options,arg = opts()
 module = arg.replace("analyses/","").replace(".py","")
 globalSetup(listOfSourceFiles=["pragmas.h","helpers.C"])
@@ -63,9 +87,7 @@ if options.batch :
     args.remove("--batch")
     for iLooper in range(len(someInstance.listOfLoopers)) :
         cmd="./supy "+" ".join(args)+" --singlesampleid "+str(iLooper)
-        print cmd
-        import os
-        os.system(cmd)
+        submitBatchJob(cmd,iLooper)
 else :
     if options.loop :
         someInstance.loop(int(options.loop), bool(options.profile), bool(options.onlymerge))
