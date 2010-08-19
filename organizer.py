@@ -27,12 +27,12 @@ class organizer(object) :
 
     def __init__(self, sampleSpecs = [] , configurationId = 0 ) :
         self.itemsToIgnore = ["Leaves","Calculables"]
+        self.configurationId = configurationId
         self.samples = tuple([copy.deepcopy(spec) for spec in sampleSpecs]) # columns
         self.selections = tuple(self.__inititialSelectionsList())  # rows
-        self.configurationId = configurationId
         self.scaled = False
         self.lumi = 1.0
-        self.alternateConfigurations = None if configurationId else \
+        self.alternateConfigurations = [] if configurationId else \
                                        [organizer(sampleSpecs,i) for i in range(1,len(sampleSpecs[0]["outputFileNames"]))]
 
     def __inititialSelectionsList(self) :
@@ -80,12 +80,6 @@ class organizer(object) :
         sourceIndices = filter(lambda i: self.samples[i]["name"] in sources, range(len(self.samples)))
         if not len(sourceIndices) : print "None of the samples you want merged are specified, no action taken." ;return
 
-        def tuplePopInsert(orig, item) :
-            val = list(orig)
-            if not keepSources : [val.pop(i) for i in reversed(sourceIndices) ]
-            val.insert(sourceIndices[0],item)
-            return tuple(val)
-
         if all(["xs" in self.samples[i] for i in sourceIndices]) :
             #target["xs"] = sum([self.samples[i]["xs"] for i in sourceIndices ])
             target["xs"] = None
@@ -93,9 +87,15 @@ class organizer(object) :
             target["lumi"] = sum([self.samples[i]["lumi"] for i in sourceIndices ])
         else: raise Exception("Cannot merge data with sim")
         
+        def tuplePopInsert(orig, item) :
+            val = list(orig)
+            if not keepSources : [val.pop(i) for i in reversed(sourceIndices) ]
+            val.insert(sourceIndices[0],item)
+            return tuple(val)
+
         r.gROOT.cd()
-        if self.configurationId and not r.gDirectory.cd("config%d"%self.configurationId) :
-            r.gDirectory.mkdir("config%d"%self.configurationId)
+        if not r.gDirectory.cd("config%d"%self.configurationId) :
+            r.gDirectory.mkdir("config%d"%self.configurationId).cd()
         dir = target["dir"] = r.gDirectory.mkdir(target["name"])
         for selection in self.selections :
             if selection.name is not "": dir = dir.mkdir(*selection.nameTitle)
