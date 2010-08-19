@@ -58,8 +58,8 @@ def submitBatchJob(jobCmd,iLooper,iConfig) :
     assert subScript and jobScript,"hostname"+str(hostname)+"not recognized"
     os.system("chmod +x "+subScript)
 
-    jobScriptFileName = dirName+"/job%d_%d.sh"%(iLooper,iConfig)
-    jobOutFileName = "$USERTMP/job%d_%d.out"%(iLooper,iConfig)
+    jobScriptFileName = dirName+"/job_%d_%d.sh"%(iLooper,iConfig)
+    jobOutFileName = "$USERTMP/job_%d_%d.out"%(iLooper,iConfig)
     os.system("cp -p "+jobScript+" "+jobScriptFileName)
     outJobScript = open(jobScriptFileName,"a")
     outJobScript.write("cd "+os.environ["PWD"]+"\n")
