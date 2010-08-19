@@ -19,26 +19,28 @@ class organizer(object) :
             for key in self :
                 if key in ["nJobsHisto"] : continue
                 elif key in ["lumiHisto","xsHisto"] :
-                    map(  lambda hs: hs[0].Scale(  1.0  /hs[1]['nJobs']),       filter(lambda hs: hs[0],               zip(self[key],samples)) )
+                    map(  lambda hs: hs[0].Scale(  1.0  /hs[1]['nJobs']),       filter(lambda hs: hs[0],                   zip(self[key],samples)) )
                 else: map(lambda hs: hs[0].Scale(hs[1]["xs"]/hs[1]['nEvents']), filter(lambda hs: hs[0] and "xs" in hs[1], zip(self[key],samples)) )
 
         def yields(self) : return tuple(map(lambda h: (h.GetBinContent(2),h.GetBinError(2)) if h else None, self["counts"]))
 
 
-    def __init__(self, sampleSpecs = [] ) :
+    def __init__(self, sampleSpecs = [] , configurationId = 0 ) :
         self.itemsToIgnore = ["Leaves","Calculables"]
         self.samples = tuple([copy.deepcopy(spec) for spec in sampleSpecs]) # columns
         self.selections = tuple(self.__inititialSelectionsList())  # rows
+        self.configurationId = configurationId
         self.scaled = False
         self.lumi = 1.0
+        self.alternateConfigurations = None if configurationId else \
+                                       [organizer(sampleSpecs,i) for i in range(1,len(sampleSpecs[0]["outputFileNames"]))]
 
     def __inititialSelectionsList(self) :
         """Scan samples in parallel to ensure consistency and build list of selection dicts"""
-        fileNameString = "outputPlotFileName"
         selections = []
 
         for sample in self.samples :
-            sample['dir'] = r.TFile(sample[fileNameString])
+            sample['dir'] = r.TFile(sample["outputFileNames"][self.configurationId])
             def extract(histName,bin=1) :
                 hist = sample['dir'].Get(histName)
                 return hist.GetBinContent(bin) if hist and hist.GetEntries() else None
@@ -92,6 +94,8 @@ class organizer(object) :
         else: raise Exception("Cannot merge data with sim")
         
         r.gROOT.cd()
+        if self.configurationId and not r.gDirectory.cd("config%d"%self.configurationId) :
+            r.gDirectory.mkdir("config%d"%self.configurationId)
         dir = target["dir"] = r.gDirectory.mkdir(target["name"])
         for selection in self.selections :
             if selection.name is not "": dir = dir.mkdir(*selection.nameTitle)
@@ -104,6 +108,8 @@ class organizer(object) :
             selection.rawFailPass = tuplePopInsert( selection.rawFailPass, None )
         self.samples = tuplePopInsert( self.samples, target )
 
+        for org in self.alternateConfigurations :
+            org.mergeSamples(sources,targetSpec,keepSources)
 
     def scale(self, lumiToUseInAbsenceOfData = None) :
         dataIndices = filter(lambda i: "lumi" in self.samples[i], range(len(self.samples)))
@@ -122,6 +128,9 @@ class organizer(object) :
                     axis = h.GetYaxis() if dim==1 else h.GetZaxis() if dim==2 else None
                     if axis: axis.SetTitle("%s / %s pb^{-1}"%(axis.GetTitle(),str(self.lumi)))
         self.scaled = True
+
+        for org in self.alternateConfigurations :
+            org.scale(lumiToUseInAbsenceOfData)
 
     def indicesOfSelectionsWithKey(self,key) :
         return filter( lambda i: key in self.selections[i], range(len(self.selections)))

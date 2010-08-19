@@ -4,78 +4,77 @@ import os,analysis,steps,calculables,samples,organizer,plotter
 import ROOT as r
 
 class hadronicLook(analysis.analysis) :
-    def outputDirectory(self) :
+    def baseOutputDirectory(self) :
         return "/vols/cms02/%s/tmp/"%os.environ["USER"]
 
-    def listOfSteps(self) :
-        jets=("ak5Jet","Pat")
-        #jets=("ak5JetJPT","Pat")
-        #jets=("ak5JetPF","Pat")
-    
-        metCollection="met"
-        metSuffix="Calo"
-        metSuffix=jets[0][:3].upper()
-        metSuffix+="TypeII"
-        #metSuffix="PF"
-    
-        leptonSuffix="Pat"
-        #leptonSuffix="PF"
+    def parameters(self) :
+        fields =                   ["jet",              "met",             "muon",        "electron",        "photon",      "genjet","rechit"]
+        caloAK5 = dict(zip(fields, [("ak5Jet","Pat"),   "metAK5TypeIIPat",("muon","Pat"),("electron","Pat"),("photon","Pat") , (),    ()]))
+        jptAK5  = dict(zip(fields, [("ak5JetJPT","Pat"),"met",            ("muon","Pat"),("electron","Pat"),("photon","Pat") , (),    ()]))
+        pfAK5   = dict(zip(fields, [("ak5JetPF","Pat"), "met",            ("muon","PF"), ("electron","PF"), ("photon","Pat") , (),    ()]))
+                
+        return { "objects": [caloAK5, pfAK5, jptAK5]    [0],
+                 "jesAbs": g [1.0,1.1,0.9]              [:],
+                 "jesEta":  0,
+                 "jetId" :  ["JetIDloose","JetIDtight"] [0]
+                 }
 
-        #for displayer only
-        recHitType="Calo"
-        genJetCollection="ak5Jet"
+    def listOfCalculables(self,params) :
+        _jet = params[collections]["jet"]
+        _muon = params[collections]["muon"]
+
+        return calculables.zeroArgs() +\
+               calculables.fromJetCollections([_jet]) +\
+               calculables.fromMuonCollections([_muon]) +\
+               [ calculables.jetIndices(      _jet, ptMin = 20.0, etaMax = 3.0, flagName = params["jetId"]),
+                 calculables.jetIndicesOther( _jet, ptMin = 20.0),
+                 calculables.PFJetIDloose( _jet, fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0),
+                 calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15) ]
+
+    def listOfSteps(self,params) :
+        _jet = params["objects"]["jet"]
+        _muon = params["objects"]["muon"]
         
         outList=[
             steps.progressPrinter(),
             
-            #steps.jetMetTriggerHistogrammer( triggerJets = ("ic5Jet","Pat"), triggerMet = ("met","Calo"), offlineJets = jets, offlineMht = jets ),
+            #steps.jetMetTriggerHistogrammer( triggerJets = ("ic5Jet","Pat"), triggerMet = ("met","Calo"), offlineJets = _jet, offlineMht = _jet ),
             steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}};events / bin"),
-            steps.jetPtSelector(jets,100.0,0),
-            steps.leadingUnCorrJetPtSelector( [jets],100.0 ),
+            steps.jetPtSelector(_jet,100.0,0),
+            steps.leadingUnCorrJetPtSelector( [_jet],100.0 ),
             steps.hltFilter("HLT_Jet50U"),
             steps.vertexRequirementFilter(5.0,24.0),
             #steps.hltPrescaleHistogrammer(["HLT_Jet50U","HLT_HT100U","HLT_MET45"]),       
             steps.hbheNoiseFilter(),
-            steps.multiplicityFilter("%sIndices%s"%jets, nMin = 2),
-            steps.multiplicityFilter("%sIndicesOther%s"%jets, nMax = 0),
+            steps.multiplicityFilter("%sIndices%s"%_jet, nMin = 2),
+            steps.multiplicityFilter("%sIndicesOther%s"%_jet, nMax = 0),
             
-            steps.variableGreaterFilter(350.0,"%sSumPt%s"%jets),
-            steps.histogrammer("muonIndicesPat",10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
-            steps.multiplicityFilter("muonIndicesPat", nMax = 0),
-            steps.cleanJetPtHistogrammer(jets),
-            steps.cleanJetHtMhtHistogrammer(jets),
-            steps.alphaHistogrammer(jets),
-            #steps.histogrammer("%sSumP4%s"%jets,50,0,1000, title = ";#slash{H}_{T} (GeV) from clean jets;events / bin",
+            steps.variableGreaterFilter(350.0,"%sSumPt%s"%_jet),
+            steps.histogrammer("%Indices%"%muon,10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
+            steps.multiplicityFilter("%Indices%"%muon, nMax = 0),
+            steps.cleanJetPtHistogrammer(_jet),
+            steps.cleanJetHtMhtHistogrammer(_jet),
+            steps.alphaHistogrammer(_jet),
+            #steps.histogrammer("%sSumP4%s"%_jet,50,0,1000, title = ";#slash{H}_{T} (GeV) from clean jets;events / bin",
             #                   funcString = "lambda x: x.pt()"),
             
             #steps.eventPrinter(),
-            #steps.htMhtPrinter(jets),       
+            #steps.htMhtPrinter(_jet),       
             #steps.genParticlePrinter(minPt=10.0,minStatus=3),
             
-            steps.variableGreaterFilter(0.55,"%sAlphaT%s"%jets),
+            steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
             
-            #steps.histogrammer("%sDeltaPhiStar%s"%jets, 50, 0, r.TMath.Pi(), title = ";%s #Delta#phi* %s;events / bin"%jets)
+            #steps.histogrammer("%sDeltaPhiStar%s"%_jet, 50, 0, r.TMath.Pi(), title = ";%s #Delta#phi* %s;events / bin"%_jet)
             #steps.skimmer("/vols/cms02/%s/"%os.environ["USER"]),
-            #steps.displayer(jets,metCollection,metSuffix,leptonSuffix,genJetCollection,recHitType,recHitPtThreshold=1.0,#GeV
+            #steps.displayer(_jet,metCollection,metSuffix,leptonSuffix,genJetCollection,recHitType,recHitPtThreshold=1.0,#GeV
             #                outputDir="/vols/cms02/%s/tmp/"%os.environ["USER"],scale=200.0),
             
             #steps.eventPrinter(),
-            #steps.jetPrinter(jets),
-            #steps.htMhtPrinter(jets),
-            #steps.nJetAlphaTPrinter(jets)
+            #steps.jetPrinter(_jet),
+            #steps.htMhtPrinter(_jet),
+            #steps.nJetAlphaTPrinter(_jet)
             ]
         return outList
-
-    def listOfCalculables(self) :
-        jetTypes = [("ak5Jet","Pat"),("ak5JetJPT","Pat"),("ak5JetPF","Pat")]
-        calcs = calculables.zeroArgs()
-        calcs += calculables.fromJetCollections(jetTypes)
-        calcs += [ calculables.jetIndices( collection = jetType, ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for jetType in jetTypes]
-        calcs += [ calculables.jetIndicesOther( collection = jetType, ptMin = 20.0) for jetType in jetTypes]
-        calcs += [ calculables.PFJetIDloose( collection = jetTypes[2],
-                                                         fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]
-        calcs += [ calculables.muonIndicesPat(ptMin = 20, combinedRelIsoMax = 0.15) ]
-        return calcs
 
     def listOfSampleDictionaries(self) :
         return [samples.mc, samples.jetmet]
