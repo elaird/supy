@@ -5,10 +5,13 @@ import analysis,utils,calculables,steps,samples,organizer,plotter
 import ROOT as r
 
 class example(analysis.analysis) :
-    def outputDirectory(self) :
+    def baseOutputDirectory(self) :
         return "/tmp/%s/"%os.environ["USER"]
 
-    def listOfSteps(self) :
+    def parameters(self) :
+        return {}
+
+    def listOfSteps(self,params) :
         jets=("ak5JetPF","Pat")
         minJetPt=10.0
     
@@ -34,7 +37,7 @@ class example(analysis.analysis) :
             ]
         return outList
     
-    def listOfCalculables(self) :
+    def listOfCalculables(self,params) :
         jetTypes = [("ak5Jet","Pat"),("ak5JetJPT","Pat"),("ak5JetPF","Pat")]
         listOfCalculables = calculables.zeroArgs()
         listOfCalculables += calculables.fromJetCollections(jetTypes)
@@ -60,7 +63,7 @@ class example(analysis.analysis) :
         org = organizer.organizer( self.sampleSpecs() )
         org.scale()
         plotter.plotter( org,
-                         psFileName = self._outputDirectory+"/"+self.name+".ps",
+                         psFileName = self.baseOutputDirectory()+"/"+self.name+".ps",
                          samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
                          sampleLabelsForRatios = ("data","sim"),
                          ).plotAll()
