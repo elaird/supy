@@ -2,6 +2,7 @@ Critical
 ---------
 e vetos
 vertex requirements update
+move skim cuts into look
 
 Processing
 -----------
@@ -40,6 +41,5 @@ Other
 * fix extra tree functionality in skimmer
 
 * tdrPlotter
-* list the selection on the plot
 
 * handle subdirectories of input file directories
