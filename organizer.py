@@ -62,11 +62,12 @@ class organizer(object) :
                                                                  k not in self.itemsToIgnore)    , keys),  dirs,keysets)
             subdirLens = map(len,subdirNames)
             if sum(subdirLens) :
-                assert subdirLens == [1]*len(dirs), "Organizer can only interpret a single subdirectory in any given directory.\n%s"%str(subdirNames)
-                subdirs = map(lambda d,names: d.Get(names[0]), dirs,subdirNames)
-                nameTitles = map(lambda sd: (sd.GetName(),sd.GetTitle()), subdirs)
-                assert len(set(nameTitles))==1, "Subdirectory names,titles must be identical. %s"%str(set(nameTitles))
                 keys.remove(subdirNames[0][0])
+                subdirs = map(lambda d,names: d.Get(names[0]), dirs,subdirNames)
+                assert subdirLens == [1]*len(dirs), \
+                       "Organizer can only interpret a single subdirectory in any given directory.\n%s"%str(subdirNames)
+                assert len(set(map(lambda sd: (sd.GetName(),sd.GetTitle()), subdirs)))==1, \
+                       "Subdirectory names,titles must be identical. %s"%str(set(nameTitles))
             else: subdirs = [None]*len(dirs)
             
             selections.append( self.selection(self.samples,dirs,keys) )
@@ -77,7 +78,7 @@ class organizer(object) :
     def mergeSamples(self,sources = [], targetSpec = {}, keepSources = False) :
         assert not self.scaled, "Merge must be called before calling scale."
         for src in sources:
-            if not src in map(lambda s: s["name"], self.samples): print "You have requested to merge unknown sample %s"%src
+            if not src in map(lambda s: s["name"], self.samples): print "You have requested to merge unspecified sample %s"%src
         target = copy.deepcopy(targetSpec)
         sourceIndices = filter(lambda i: self.samples[i]["name"] in sources, range(len(self.samples)))
         if not len(sourceIndices) : print "None of the samples you want merged are specified, no action taken." ;return
