@@ -58,9 +58,10 @@ def submitBatchJob(jobCmd,iLooper) :
     os.system("chmod +x "+subScript)
 
     jobScriptFileName = dirName+"/job%d.sh"%iLooper
-    jobOutFileName = jobScriptFileName.replace(".sh",".out")
+    jobOutFileName = "$USERTMP/job%d.out"%iLooper
     os.system("cp -p "+jobScript+" "+jobScriptFileName)
     outJobScript = open(jobScriptFileName,"a")
+    outJobScript.write("cd "+os.environ["PWD"]+"\n")
     outJobScript.write(jobCmd+" >& "+jobOutFileName)
     outJobScript.close()
 
