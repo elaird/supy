@@ -85,6 +85,8 @@ class analysis(object) :
     def mainTree(self) :                     return ("susyTree","tree")
     def otherTreesToKeepWhenSkimming(self) : return [("lumiTree","tree")]
 
+    def conclude(self) : return
+
     def loop(self, nCores, profile, onlyMerge) :
         assert self.loopCheck , "Multiple configurations can be run only in batch mode."
 
