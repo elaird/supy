@@ -78,9 +78,9 @@ exec("import "+module)
 someClass = importedClass()
 
 if options.singleconfigid!=None :
-    someInstance = someClass(configurationId = int(options.singleconfigid), isBatch = bool(options.batch))
+    someInstance = someClass(configurationId = int(options.singleconfigid))
 else :
-    someInstance = someClass(isBatch = bool(options.batch))
+    someInstance = someClass()
     
 #loop over events
 if options.singlesampleid!=None :

@@ -37,7 +37,7 @@ def listOfConfigurations(paramsIn) :
 class analysis(object) :
     """base class for an analysis"""
 
-    def __init__(self,configurationId = 0, isBatch = False) :
+    def __init__(self, configurationId = None) :
         self.name = self.__class__.__name__
 
         for item in ["baseOutputDirectory","listOfSampleDictionaries",
@@ -46,7 +46,11 @@ class analysis(object) :
 
         self._configurationId = configurationId
         self._configurations = listOfConfigurations(self.parameters())
-        assert isBatch or len(self._configurations)==1, "Multiple configurations can be run only in batch mode."
+
+        self.loopCheck = self._configurationId!=None or len(self._configurations)==1
+
+        if self._configurationId==None :
+            self._configurationId = 0 
         
         for item in ["listOfSteps","listOfCalculables"] :
             setattr(self, "_"+item, getattr(self,item)(self._configurations[self._configurationId]) )
@@ -82,6 +86,8 @@ class analysis(object) :
     def otherTreesToKeepWhenSkimming(self) : return [("lumiTree","tree")]
 
     def loop(self, nCores, profile, onlyMerge) :
+        assert self.loopCheck , "Multiple configurations can be run only in batch mode."
+
         #make output directory
         os.system("mkdir -p "+self.outputDirectory(self._configurationId))
         
