@@ -11,7 +11,7 @@ GPLv3 (http://www.gnu.org/licenses/gpl.html)
 - or see note (A)
 
 1) Check out the code:
-- cvs co -d supy -r V9-0 UserCode/elaird/supy
+- cvs co -d supy -r V9-1 UserCode/elaird/supy
 - cd supy
 
 2) (required only if running from dcache at IC) Use better dcap libraries:
