@@ -233,3 +233,14 @@ class maxProjMHT(wrappedChain.calculable) :
         self.value = -min( [ sumP4.pt() / math.sqrt(jets.at(i).pt()) * \
                              math.cos(r.Math.VectorUtil.DeltaPhi(jets.at(i),sumP4)) for i in indices])
 ##############################
+class jesAdjustedP4s(wrappedChain.calculable) :
+    def name(self) : return "jes_%sCorrectedP4%s"%self.cs
+
+    def __init__(self,collection = None, jesAbs = 1.0, jesRel = 0.0 ) :
+        self.cs = tuple([i.strip("jes_") for i in collection])
+        self.moreName = "%.3f (1- %.3f |eta|) p4;  %s%s" % (jesAbs,jesRel)+self.cs
+        def jes(p4) : jesAbs*(1+jesRel*abs(p4.eta()))*p4
+        self.jes = jes
+        
+    def update(self,ignored) :
+        self.value = map(self.jes, self.source["%sCorrectedP4s%s"%self.cs])
