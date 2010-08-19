@@ -17,8 +17,9 @@ class organizer(object) :
             self.rawFailPass = tuple(map(lambda h: (h.GetBinContent(1),h.GetBinContent(2)) if h else None, self["counts"]))
 
             for key in self :
-                if key in ["lumiHisto","xsHisto"]:
-                    map(  lambda hs: hs[0].Scale(  1.0  /hs[1]['nJobs']),   filter(lambda hs: hs[0],               zip(self[key],samples)) )
+                if key in ["nJobsHisto"] : continue
+                elif key in ["lumiHisto","xsHisto"] :
+                    map(  lambda hs: hs[0].Scale(  1.0  /hs[1]['nJobs']),       filter(lambda hs: hs[0],               zip(self[key],samples)) )
                 else: map(lambda hs: hs[0].Scale(hs[1]["xs"]/hs[1]['nEvents']), filter(lambda hs: hs[0] and "xs" in hs[1], zip(self[key],samples)) )
 
         def yields(self) : return tuple(map(lambda h: (h.GetBinContent(2),h.GetBinError(2)) if h else None, self["counts"]))
