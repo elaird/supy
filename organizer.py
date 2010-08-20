@@ -133,8 +133,8 @@ class organizer(object) :
         for sel in self.selections :
             for key,hists in sel.iteritems() :
                 if key in ["lumiHisto","xsHisto","nJobsHisto","nEventsHisto"] : continue
-                for h in hists:
-                    if not h: continue
+                for i,h in enumerate(hists):
+                    if not h or i==iData: continue
                     h.Scale(self.lumi)
                     dim = int(h.ClassName()[2])
                     axis = h.GetYaxis() if dim==1 else h.GetZaxis() if dim==2 else None
