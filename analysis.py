@@ -100,7 +100,6 @@ class analysis(object) :
         return self._baseOutputDirectory+"/"+self.name+"/"+tag+"/config"+str(code)+"/"
 
     def baseOutputDirectory(self) :          raise Exception("NotImplemented","Implement a member function baseOutputDirectory()")
-    def parameters(self) :                   raise Exception("NotImplemented","Implement a member function parameters()")
     def listOfSteps(self,params) :           raise Exception("NotImplemented","Implement a member function listOfSteps(self,params)")
     def listOfCalculables(self,params) :     raise Exception("NotImplemented","Implement a member function listOfCalculables(self,params)")
                                              
@@ -111,7 +110,8 @@ class analysis(object) :
     def mainTree(self) :                     return ("susyTree","tree")
     def otherTreesToKeepWhenSkimming(self) : return [("lumiTree","tree")]
 
-    def conclude(self) : return
+    def parameters(self) :                   return {}
+    def conclude(self) :                     return
 
     def loop(self, nCores, profile, onlyMerge) :
         assert self.loopCheck , "Multiple configurations can be run only in batch mode."
@@ -155,7 +155,8 @@ class analysis(object) :
     def sampleSpecs(self, tag = None) :
         condition = tag!=None or (len(self.sideBySideAnalysisTags())==1 and self.sideBySideAnalysisTags()[0]=="")
         assert condition,"There are side-by-side analyses specified, but sampleSpecs() was not passed a tag."
-        
+        if tag==None : tag = ""
+
         outList=[]
         if (not hasattr(self,"parentDict")) or len(self.parentDict)==0 :
             for looper in self.listOfLoopers :
