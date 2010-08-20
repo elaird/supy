@@ -8,7 +8,7 @@ def listOfConfigurationsAndTags(paramsIn) :
     def maxLength(d) :
         lengths = []
         for key,value in d.iteritems() :
-            if   (type(value) is dict) or type(value) is dict : lengths.append(len(value))
+            if   (type(value) is list) or (type(value) is dict) : lengths.append(len(value))
             else : lengths.append(1)
         return max(lengths) if len(lengths) else 0
 
@@ -70,7 +70,7 @@ class analysis(object) :
         self._configurationId = configurationId
         self._configurations,self._tags,self._codeStrings = listOfConfigurationsAndTags(self.parameters())
         self._sideBySideAnalysisTags = sorted(list(set(self._tags)))
-        
+
         self.loopCheck = self._configurationId!=None or len(self._configurations)==1
 
         if self._configurationId==None :
