@@ -1,5 +1,8 @@
 from wrappedChain import *
 import math
+
+def jesStrip(collection) :
+    return tuple([i.strip("jes_") for i in collection])
 ##############################
 class jetIndices(wrappedChain.calculable) :
     def name(self) : return "%sIndices%s"% self.cs
@@ -10,8 +13,8 @@ class jetIndices(wrappedChain.calculable) :
         self.etaMax = etaMax
         self.p4Name = '%sCorrectedP4%s' % self.cs
         self.flagName = None if not flagName else \
-                        ( "%s"+flagName+"%s" if collection[0][-2:] != "PF" else \
-                          "%sPF"+flagName+"%s" ) % self.cs
+                        ( "%s"+flagName+"%s" if jesStrip(self.cs)[0][-2:] != "PF" else \
+                          "%sPF"+flagName+"%s" ) % jesStrip(self.cs)
         self.moreName = "pT>=%.1f GeV; |eta|<%.1f; %s"% (ptMin, etaMax, flagName if flagName else "")
 
     def update(self,ignored) :
@@ -47,11 +50,11 @@ class PFJetIDloose(wrappedChain.calculable) :
     def __init__(self, collection = None, fNeutralEmMax = None, fChargedEmMax = None, fNeutralHadMax = None, fChargedHadMin = None, nChargedMin = None ) :
         self.cs = collection
         self.p4Name = "%sCorrectedP4%s"%self.cs
-        self.fNeutralEmMax  = fNeutralEmMax   ;  self.fNeutralEmName  = "%sFneutralEm%s" % self.cs   
-        self.fChargedEmMax  = fChargedEmMax   ;  self.fChargedEmName  = "%sFchargedEm%s" % self.cs   
-        self.fNeutralHadMax = fNeutralHadMax  ;  self.fNeutralHadName = "%sFneutralHad%s" % self.cs  
-        self.fChargedHadMin = fChargedHadMin  ;  self.fChargedHadName = "%sFchargedHad%s" % self.cs  
-        self.nChargedMin    = nChargedMin     ;  self.nChargedName    = "%sNcharged%s" % self.cs     
+        self.fNeutralEmMax  = fNeutralEmMax   ;  self.fNeutralEmName  = "%sFneutralEm%s" % jesStrip(self.cs)
+        self.fChargedEmMax  = fChargedEmMax   ;  self.fChargedEmName  = "%sFchargedEm%s" % jesStrip(self.cs)
+        self.fNeutralHadMax = fNeutralHadMax  ;  self.fNeutralHadName = "%sFneutralHad%s" % jesStrip(self.cs)
+        self.fChargedHadMin = fChargedHadMin  ;  self.fChargedHadName = "%sFchargedHad%s" % jesStrip(self.cs)
+        self.nChargedMin    = nChargedMin     ;  self.nChargedName    = "%sNcharged%s" % jesStrip(self.cs)
 
         self.moreName = "fN_em<%.1f; fC_em<%.1f; fN_had<%.1f; |eta|>2.4 or {fC_had>%.1f; nC>%d}" % \
                         ( fNeutralEmMax,fChargedEmMax,fNeutralHadMax, fChargedHadMin, nChargedMin)
@@ -237,10 +240,15 @@ class jesAdjustedP4s(wrappedChain.calculable) :
     def name(self) : return "jes_%sCorrectedP4%s"%self.cs
 
     def __init__(self,collection = None, jesAbs = 1.0, jesRel = 0.0 ) :
-        self.cs = tuple([i.strip("jes_") for i in collection])
-        self.moreName = "%.3f (1- %.3f |eta|) p4;  %s%s" % (jesAbs,jesRel)+self.cs
-        def jes(p4) : jesAbs*(1+jesRel*abs(p4.eta()))*p4
-        self.jes = jes
+        self.cs = jesStrip(collection)
+        self.moreName = "%.3f * (1 + %.3f*|eta|) * p4;  %s%s" % ((jesAbs,jesRel)+self.cs)
+        self.jesAbs = jesAbs
+        self.jesRel = jesRel
+        self.p4name = "%sCorrectedP4%s"%self.cs
+        self.value = r.vector(r.Math.LorentzVector(r.Math.PxPyPzE4D('double')))()
+
+    def jes(self,p4) : self.value.push_back( p4 * (self.jesAbs*(1+self.jesRel*abs(p4.eta()))))
         
     def update(self,ignored) :
-        self.value = map(self.jes, self.source["%sCorrectedP4s%s"%self.cs])
+        self.value.clear()
+        map(self.jes, self.source[self.p4name])
