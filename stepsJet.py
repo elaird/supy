@@ -9,7 +9,7 @@ class jetPtSelector(analysisStep) :
         self.jetPtThreshold = jetPtThreshold
         self.cs = cs
         self.p4sName = "%sCorrectedP4%s" % self.cs
-        self.moreName = "%s %s; pT[%d]>=%.1f GeV" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
+        self.moreName = "%s%s; pT[%d]>=%.1f GeV" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
 
     def select (self,eventVars) :
         p4s = eventVars[self.p4sName]
@@ -24,7 +24,7 @@ class jetPtVetoer(analysisStep) :
         self.jetIndex = jetIndex
         self.cs = cs
         self.jetP4s = "%sCorrectedP4%s" % self.cs
-        self.moreName = "%s %s; pT[%d]<%.1f GeV" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
+        self.moreName = "%s%s; pT[%d]<%.1f GeV" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
 
     def select (self,eventVars) :
         p4s = eventVars[self.jetP4s]
@@ -38,7 +38,7 @@ class leadingUnCorrJetPtSelector(analysisStep) :
         self.jetCollectionsAndSuffixes = jetCollectionsAndSuffixes
         self.jetPtThreshold = jetPtThreshold
         self.moreName = ''.join(["%s%s;" % cS for cS in self.jetCollectionsAndSuffixes])
-        self.moreName2 = "   corr pT[leading uncorr jet]>=%.1f GeV" % self.jetPtThreshold 
+        self.moreName2 = " corr pT[leading uncorr jet]>=%.1f GeV" % self.jetPtThreshold 
 
     def select (self,eventVars) :
         # Corrected pt of leading jet (by uncorrected pt) >= threshold
@@ -63,7 +63,7 @@ class cleanJetEmfFilter(analysisStep) :
         self.ptMin = ptMin
         self.emfMax = emfMax
         
-        self.moreName = "%s %s" % (collection,suffix)
+        self.moreName = "%s%s" % (collection,suffix)
         self.moreName += "; pT>=%.1f GeV; EMF<=%.1f" % (ptMin,emfMax)
 
     def select (self,eventVars) :
@@ -82,18 +82,17 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
 
     def __init__(self,cs):
         self.cs = cs
-        self.histoMax = 1.0e3
-        self.moreName="%s %s" % self.cs
+        self.moreName="%s%s" % self.cs
 
     def uponAcceptance (self,eventVars) :
         sumP4 = eventVars["%sSumP4%s"%self.cs]
         ht = eventVars["%sSumPt%s"%self.cs]
         
         book = self.book(eventVars)
-        book.fill(   sumP4.pt(), "%smht%s"%self.cs, 50, 0.0, self.histoMax, title = "; #slash{H}_{T} (GeV) from clean jets;events / bin")
-        book.fill(           ht,  "%sht%s"%self.cs, 50, 0.0, self.histoMax, title = "; H_{T} (GeV) from clean jet p_{T}'s;events / bin")
+        book.fill(           ht,  "%sHt%s"%self.cs, 50, 0.0, 1500.0, title = "; H_{T} (GeV) from %s%s p_{T}'s;events / bin"%self.cs)
+        book.fill(   sumP4.pt(), "%sMht%s"%self.cs, 50, 0.0,  700.0, title = "; #slash{H}_{T} (GeV) from %s%s;events / bin"%self.cs)
         book.fill( sumP4.mass(),   "%sm%s"%self.cs, 50, 0.0, 7.0e3, title = "; mass (GeV) of system of clean jets;events / bin")
-        book.fill( (ht,sumP4.pt()), "%smht_vs_ht%s"%self.cs, (50,50), (0.0,0.0), (self.histoMax,self.histoMax),
+        book.fill( (ht,sumP4.pt()), "%smht_vs_ht%s"%self.cs, (50,50), (0.0,0.0), (1500.0,1500.0),
                    title = "; H_{T} (GeV) from clean jets; #slash{H}_{T} (GeV) from clean jet p_{T}'s;events / bin")
 
         value = sumP4.pt() / ht  if ht>0.0 else -1.0
@@ -104,7 +103,7 @@ class cleanJetPtHistogrammer(analysisStep) :
 
     def __init__(self,cs) :
         self.cs = cs
-        self.moreName="%s %s" % self.cs
+        self.moreName="%s%s" % self.cs
         self.indicesName = "%sIndices%s" % self.cs
         self.p4sName = "%sCorrectedP4%s" % self.cs
 
@@ -113,25 +112,23 @@ class cleanJetPtHistogrammer(analysisStep) :
         p4s = eventVars[self.p4sName]
         cleanJetIndices = eventVars[self.indicesName]
 
-        self.book(eventVars).fill(len(cleanJetIndices),
-                                  self.indicesName+"clean", 15,-0.5,14.5,
-                                  title=";number of jets passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin")
-
         for iJet in cleanJetIndices :
             jet = p4s.at(iJet)
             pt = jet.pt()
-            self.book(eventVars).fill(pt, "%sptAll%s"%self.cs, 50, 0.0, 500.0, title=";p_{T} (GeV) of clean jets;events / bin")
+            eta = jet.eta()
+            self.book(eventVars).fill(pt,  "%s%sPtAll" %self.cs, 50, 0.0, 500.0, title=";p_{T} (GeV) of clean jets;events / bin")
+            self.book(eventVars).fill(eta, "%s%setaAll"%self.cs, 50, -5.0, 5.0, title=";#eta of clean jets;events / bin")
 
             if iJet>2 : continue
-            self.book(eventVars).fill(pt,        "%s%s%dPt" %(self.cs+(iJet+1,)), 50, 0.0, 500.0, title=";jet%d p_{T} (GeV);events / bin"%(iJet+1))
-            self.book(eventVars).fill(jet.eta(), "%s%s%deta"%(self.cs+(iJet+1,)), 50, 0.0, 500.0, title=";jet%d #eta;events / bin"%(iJet+1))
+            self.book(eventVars).fill(pt,  "%s%s%dPt" %(self.cs+(iJet+1,)), 50,  0.0, 500.0, title=";jet%d p_{T} (GeV);events / bin"%(iJet+1))
+            self.book(eventVars).fill(eta, "%s%s%deta"%(self.cs+(iJet+1,)), 50, -5.0,   5.0, title=";jet%d #eta;events / bin"%(iJet+1))
 #####################################
 class alphaHistogrammer(analysisStep) :
     """alphaHistogrammer"""
 
     def __init__(self,cs) :
         self.cs = cs
-        self.moreName = "%s %s"%self.cs
+        self.moreName = "%s%s"%self.cs
         
     def uponAcceptance (self,eventVars) :
         book = self.book(eventVars)
@@ -149,10 +146,10 @@ class alphaHistogrammer(analysisStep) :
         if not alphaT :
             return
 
-        book.fill( alphaT, "%snjet_alphaT%s"%self.cs, 80,0.0,2.0,
+        book.fill( alphaT, "%sAlphaT%s"%self.cs, 80,0.0,2.0,
                    title = ";#alpha_{T} (using p_{T});events / bin")
 
-        book.fill( deltaHt, "%snjet_deltaHt%s"%self.cs, 50,0.0,500,
+        book.fill( deltaHt, "%sDeltaHt%s"%self.cs, 50,0.0,500,
                    title = ";#Delta H_{T} (GeV);events / bin")
 
         book.fill( (mht/ht,deltaHt/ht), "%s_deltaHtOverHt_vs_mHtOverHt_%s"%self.cs, (30,30), (0.0,0.0), (1.0,0.7),
@@ -186,7 +183,7 @@ class mHtOverHtSelector(analysisStep) :
         self.cs = cs
         self.min = min
         self.max = max
-        self.moreName = "%s %s; min=%.1f; max=%.1f" % self.cs+(min,max)
+        self.moreName = "%s%s; min=%.1f; max=%.1f" % self.cs+(min,max)
     
     def select(self,eventVars) :
         mht = eventVars["%sSumP4%s"%self.cs].pt()
