@@ -37,6 +37,11 @@ class iterHistogrammer(histogrammer) :
             if value is None or (not self.oneD and None in value) : continue
             self.book(eventVars).fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
 #####################################
+class passFilter(analysisStep) :
+    """passFilter"""
+    def __init__(self,title) : self.moreName = title
+    def select(self,eventVars) : return True
+#####################################
 class multiplicityFilter(analysisStep) :
     """multiplicityFilter"""
     def __init__(self,var, nMin = 0, nMax = None ) :
