@@ -11,13 +11,13 @@ class hadronicLook(analysis.analysis) :
         objects = {}
         fields =                               ["jet",              "met",             "muon",        "electron",        "photon",         "genjet","rechit"]
         objects["caloAK5"] = dict(zip(fields, [("ak5Jet","Pat"),   "metAK5TypeIIPat",("muon","Pat"),("electron","Pat"),("photon","Pat") , "ak5Jet", "Calo" ]))
-        #objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"met",            ("muon","Pat"),("electron","Pat"),("photon","Pat") , "ak5Jet", "Calo" ]))
-        #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "met",            ("muon","Pat"),("electron","PF"), ("photon","Pat") , "ak5Jet",  "PF"  ]))
+        objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"met",            ("muon","Pat"),("electron","Pat"),("photon","Pat") , "ak5Jet", "Calo" ]))
+        objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "met",            ("muon","Pat"),("electron","PF"), ("photon","Pat") , "ak5Jet",  "PF"  ]))
 
         return { "objects": objects,
-                 "jetId" :  ["JetIDloose","JetIDtight"] [0]
-                 "jesAbs":  [1.0,1.1,0.9]               [0],
-                 "jesEta":  0,
+                 "jetId" :  ["JetIDloose","JetIDtight"] [0],
+                 "jesAbs":  [1.0,1.1,0.9]               [:],
+                 #"jesEta":  0,
                  }
 
     def listOfCalculables(self,params) :
@@ -103,9 +103,9 @@ class hadronicLook(analysis.analysis) :
                   ]
 
     def conclude(self) :
-        for analysisKey in self.sideBySideAnalyses() :
+        for tag in self.sideBySideAnalysisTags() :
             #organize
-            org=organizer.organizer( self.sampleSpecs(analysisKey) )
+            org=organizer.organizer( self.sampleSpecs(tag) )
             org.mergeSamples(targetSpec = {"name":"g_jets_mg",     "color":r.kGreen},   sources = ["g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
             org.mergeSamples(targetSpec = {"name":"qcd_py"   ,     "color":r.kBlue},    sources = ["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
             org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3},
@@ -115,7 +115,7 @@ class hadronicLook(analysis.analysis) :
             
             #plot
             pl = plotter.plotter(org,
-                                 psFileName=self.baseOutputDirectory()+"/"+analysisKey+"/"+self.name+".ps",
+                                 psFileName=self.baseOutputDirectory()+"/"+self.name+"/"+self.name+"_"+tag+".ps",
                                  #samplesForRatios=("JetMET.Run2010A","qcd_mg_ht_250_500_old"),
                                  #sampleLabelsForRatios=("data","qcd"),
                                  samplesForRatios=("JetMET.Run2010A","standard_model"),
