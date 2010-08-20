@@ -236,8 +236,8 @@ class analysisLooper :
         if self.xs!=None : xsHisto.SetBinContent(1,self.xs)
         xsHisto.Write()
         
-        lumiHisto = r.TH1D("lumiHisto","%s;dummy axis;integrated luminosity (pb^{-1})"%\
-                           "WARNING: lumi value is probably wrong!" if self.lumiWarn else "",1,-0.5,0.5)
+        lumiHisto = r.TH1D("lumiHisto",";dummy axis;integrated luminosity (pb^{-1})",1,-0.5,0.5)
+        if self.lumiWarn   : lumiHisto.SetTitle("WARNING: lumi value is probably wrong!"+lumiHisto.GetTitle())
         if self.lumi!=None : lumiHisto.SetBinContent(1,self.lumi)
         lumiHisto.Write()
 
