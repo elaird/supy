@@ -89,7 +89,7 @@ class organizer(object) :
         sourceIndices = filter(lambda i: self.samples[i]["name"] in sources, range(len(self.samples)))
         if not len(sourceIndices) : print "None of the samples you want merged are specified, no action taken." ;return
         target = copy.deepcopy(targetSpec)
-        target['sources'] = sources
+        target['sources'] = map(lambda i: self.samples[i]["name"], sourceIndices)
         target['nEvents'] = map(lambda i: self.samples[i]['nEvents'], sourceIndices)
         if all(["xs" in self.samples[i] for i in sourceIndices]) : target["xs"] = None
             #target["xs"] = sum([self.samples[i]["xs"] for i in sourceIndices ])
