@@ -82,13 +82,13 @@ class organizer(object) :
         assert not self.scaled, "Merge must be called before calling scale."
         for src in sources:
             if not src in map(lambda s: s["name"], self.samples): print "You have requested to merge unspecified sample %s"%src
-        target = copy.deepcopy(targetSpec)
         sourceIndices = filter(lambda i: self.samples[i]["name"] in sources, range(len(self.samples)))
         if not len(sourceIndices) : print "None of the samples you want merged are specified, no action taken." ;return
-
-        if all(["xs" in self.samples[i] for i in sourceIndices]) :
+        target = copy.deepcopy(targetSpec)
+        target['sources'] = sources
+        target['nEvents'] = map(self.samples[i]['nEvents'], sourceIndices)
+        if all(["xs" in self.samples[i] for i in sourceIndices]) : target["xs"] = None
             #target["xs"] = sum([self.samples[i]["xs"] for i in sourceIndices ])
-            target["xs"] = None
         elif all(["lumi" in self.samples[i] for i in sourceIndices]):
             target["lumi"] = sum([self.samples[i]["lumi"] for i in sourceIndices ])
         else: raise Exception("Cannot merge data with sim")
