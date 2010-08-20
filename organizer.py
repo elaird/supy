@@ -42,6 +42,8 @@ class organizer(object) :
         selections = []
 
         for sample in self.samples :
+            assert len(sample["outputFileNames"]) > self.configurationId, \
+                   "You cannot request a configurationId >= than the number of outputFileNames in the sample."
             sample['dir'] = r.TFile(sample["outputFileNames"][self.configurationId])
             def extract(histName,bin=1) :
                 hist = sample['dir'].Get(histName)
@@ -51,7 +53,8 @@ class organizer(object) :
 
             if lumiNjobs: sample["lumi"] = lumiNjobs/sample['nJobs']
             if xsNjobs: sample["xs"] = xsNjobs/sample['nJobs']
-            assert ("xs" in sample)^("lumi" in sample), "Sample %s should have one and only one of {xs,lumi}."% sample["name"]
+            assert ("xs" in sample)^("lumi" in sample), \
+                   "Sample %s should have one and only one of {xs,lumi}."% sample["name"]
             
         dirs = [ s['dir'] for s in self.samples]
         while dirs[0] :
@@ -79,7 +82,8 @@ class organizer(object) :
         for org in self.alternateConfigurations :
             org.mergeSamples(sources,targetSpec,keepSources)
 
-        assert not self.scaled, "Merge must be called before calling scale."
+        assert not self.scaled, \
+               "Merge must be called before calling scale."
         for src in sources:
             if not src in map(lambda s: s["name"], self.samples): print "You have requested to merge unspecified sample %s"%src
         sourceIndices = filter(lambda i: self.samples[i]["name"] in sources, range(len(self.samples)))
@@ -119,10 +123,12 @@ class organizer(object) :
             org.scale(lumiToUseInAbsenceOfData)
 
         dataIndices = filter(lambda i: "lumi" in self.samples[i], range(len(self.samples)))
-        assert len(dataIndices)<2, "What should I do with more than one data sample?"
+        assert len(dataIndices)<2, \
+               "What should I do with more than one data sample?"
         iData = dataIndices[0] if len(dataIndices) else None
         self.lumi = self.samples[iData]["lumi"] if iData!=None else lumiToUseInAbsenceOfData
-        assert self.lumi, "You need to have a data sample or specify the lumi to use."
+        assert self.lumi, \
+               "You need to have a data sample or specify the lumi to use."
 
         for sel in self.selections :
             for key,hists in sel.iteritems() :
