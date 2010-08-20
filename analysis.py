@@ -4,11 +4,11 @@ import utils,steps,samples
 from analysisLooper import analysisLooper
 import ROOT as r
 #####################################
-def listOfConfigurations(paramsIn) :
+def listOfConfigurationsAndTags(paramsIn) :
     def maxLength(d) :
         lengths = []
         for key,value in d.iteritems() :
-            if type(value) is list : lengths.append(len(value))
+            if   (type(value) is dict) or type(value) is dict : lengths.append(len(value))
             else : lengths.append(1)
         return max(lengths) if len(lengths) else 0
 
@@ -17,22 +17,45 @@ def listOfConfigurations(paramsIn) :
 
     configurationCodes = listOfCodes(maxLength(paramsIn),len(paramsIn))
 
-    configsOut = []
-    keys = paramsIn.keys()
+    configsOut     = []
+    tagsOut        = []
+    codeStringsOut = []
+    paramKeys = paramsIn.keys()
+    paramKeys.sort()
     for codeList in configurationCodes :
         config = {}
+        tag = ""
+        codeString = ""
         insert = True
-        for iKey,key in enumerate(keys) :
-            variations = paramsIn[key]
-            if not (type(variations) is list) : variations = [variations]
+        for iParamKey,paramKey in enumerate(paramKeys) :
+            variations = paramsIn[paramKey]
+            #make list from singletons
+            if (not (type(variations) is list)) and (not (type(variations) is dict)) : variations = [variations]
+            code = codeList[iParamKey]
 
-            code = codeList[iKey]
+            #skip this code list if it is not valid
             if code>=len(variations) :
                 insert = False
                 continue
-            config[key] = variations[code]
-        if insert : configsOut.append(config)
-    return configsOut
+
+            #add to this config
+            if type(variations) is list :
+                config[paramKey] = variations[code]
+                codeString+=str(code)
+            if type(variations) is dict :
+                variationKey = variations.keys()[code]
+                variation = variations[variationKey]
+                config[paramKey] = variation
+                #add to this tag
+                if tag!="" : tag+="_"
+                tag+=variationKey
+
+        #append to the lists
+        if insert :
+            configsOut.append(config)
+            tagsOut.append(tag)
+            codeStringsOut.append(codeString)
+    return configsOut,tagsOut,codeStringsOut
 #####################################                
 class analysis(object) :
     """base class for an analysis"""
@@ -45,8 +68,9 @@ class analysis(object) :
             setattr(self, "_"+item, getattr(self,item)() )
 
         self._configurationId = configurationId
-        self._configurations = listOfConfigurations(self.parameters())
-
+        self._configurations,self._tags,self._codeStrings = listOfConfigurationsAndTags(self.parameters())
+        self._sideBySideAnalysisTags = sorted(list(set(self._tags)))
+        
         self.loopCheck = self._configurationId!=None or len(self._configurations)==1
 
         if self._configurationId==None :
@@ -67,11 +91,13 @@ class analysis(object) :
         self.listOfLoopers=[]
         self.addSamples(listOfSamples)
 
-    def configurations(self) :
-        return self._configurations
+    def sideBySideAnalysisTags(self) : return self._sideBySideAnalysisTags
+    def configurations(self) :         return self._configurations
     
     def outputDirectory(self,configurationId) :
-        return self._baseOutputDirectory+"/config"+str(configurationId)+"/"
+        tag  = self._tags[configurationId]
+        code = self._codeStrings[configurationId]
+        return self._baseOutputDirectory+"/"+self.name+"/"+tag+"/config"+str(code)+"/"
 
     def baseOutputDirectory(self) :          raise Exception("NotImplemented","Implement a member function baseOutputDirectory()")
     def parameters(self) :                   raise Exception("NotImplemented","Implement a member function parameters()")
@@ -126,7 +152,10 @@ class analysis(object) :
         else :
             self.profile(nCores,onlyMerge) #profile the code while doing so
         
-    def sampleSpecs(self) :
+    def sampleSpecs(self, tag = None) :
+        condition = tag!=None or (len(self.sideBySideAnalysisTags())==1 and self.sideBySideAnalysisTags()[0]=="")
+        assert condition,"There are side-by-side analyses specified, but sampleSpecs() was not passed a tag."
+        
         outList=[]
         if (not hasattr(self,"parentDict")) or len(self.parentDict)==0 :
             for looper in self.listOfLoopers :
@@ -136,12 +165,10 @@ class analysis(object) :
                 someDict["markerStyle"]         = looper.markerStyle
 
                 someDict["outputFileNames"] = []
-                #someDict["configurations"]  = []
                 for iConfig,config in enumerate(self.configurations()) :
                     outputFileName = self.makeOutputPlotFileName(iConfig,looper.name)
-                    someDict["outputFileNames"].append(outputFileName)
-                    #someDict["configurations"] .append(config)
-
+                    if self._tags[iConfig]==tag :
+                        someDict["outputFileNames"].append(outputFileName)
                 outList.append(someDict)
         else :
             for parent in self.parentDict :
@@ -153,17 +180,16 @@ class analysis(object) :
                 someDict["markerStyle"]=someLooper.markerStyle
 
                 someDict["outputFileNames"] = []
-                #someDict["configurations"]  = []
                 for iConfig,config in enumerate(self.configurations()) :
                     outputFileName = self.makeOutputPlotFileName(iConfig,someLooper.parentName)
-                    someDict["outputFileNames"] .append(outputFileName)
-                    #someDict["configurations"]  .append(config)
-                
+                    if self._tags[iConfig]==tag :
+                        someDict["outputFileNames"].append(outputFileName)
                 outList.append(someDict)
+
         return outList
 
     def makeOutputPlotFileName(self,configurationId,sampleName) :
-        return self.outputDirectory(configurationId)+"/"+self.name+"_"+sampleName+"_plots.root"
+        return self.outputDirectory(configurationId)+"/"+sampleName+"_plots.root"
 
     def addSamples(self, listOfSamples, computeEntriesForReport = False) :
         mergedDict = samples.SampleHolder()
