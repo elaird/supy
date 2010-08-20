@@ -60,7 +60,7 @@ class example(analysis.analysis) :
         org = organizer.organizer( self.sampleSpecs() )
         org.scale()
         plotter.plotter( org,
-                         psFileName = self.baseOutputDirectory()+"/"+self.name+".ps",
+                         psFileName = self.psFileName(),
                          samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
                          sampleLabelsForRatios = ("data","sim"),
                          ).plotAll()

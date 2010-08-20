@@ -116,7 +116,7 @@ class hadronicLook(analysis.analysis) :
             
             #plot
             pl = plotter.plotter(org,
-                                 psFileName=self.baseOutputDirectory()+"/"+self.name+"/"+self.name+"_"+tag+".ps",
+                                 psFileName = self.psFileName(tag),
                                  #samplesForRatios=("JetMET.Run2010A","qcd_mg_ht_250_500_old"),
                                  #sampleLabelsForRatios=("data","qcd"),
                                  samplesForRatios=("JetMET.Run2010A","standard_model"),

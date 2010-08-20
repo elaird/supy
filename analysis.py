@@ -99,6 +99,11 @@ class analysis(object) :
         code = self._codeStrings[configurationId]
         return self._baseOutputDirectory+"/"+self.name+"/"+tag+"/config"+str(code)+"/"
 
+    def psFileName(self,tag="") :
+        base = self.baseOutputDirectory()+"/"+self.name+"/"+self.name
+        if tag!="" : base+="_"+tag
+        return base+".ps"
+    
     def baseOutputDirectory(self) :          raise Exception("NotImplemented","Implement a member function baseOutputDirectory()")
     def listOfSteps(self,params) :           raise Exception("NotImplemented","Implement a member function listOfSteps(self,params)")
     def listOfCalculables(self,params) :     raise Exception("NotImplemented","Implement a member function listOfCalculables(self,params)")
