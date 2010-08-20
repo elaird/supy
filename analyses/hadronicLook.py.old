@@ -11,11 +11,11 @@ class hadronicLook(analysis.analysis) :
         objects = {}
         fields =                               ["jet",                 "met",             "muon",        "electron",        "photon",         "genjet","rechit"]
         objects["caloAK5"] = dict(zip(fields, [("ak5Jet","Pat"),   "metAK5TypeIIPat",("muon","Pat"),("electron","Pat"),("photon","Pat") , "ak5Jet", "Calo" ]))
-        #objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"met",            ("muon","Pat"),("electron","Pat"),("photon","Pat") , "ak5Jet", "Calo" ]))
-        #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "met",            ("muon","Pat"),("electron","PF"), ("photon","Pat") , "ak5Jet",  "PF"  ]))
+        objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"met",            ("muon","Pat"),("electron","Pat"),("photon","Pat") , "ak5Jet", "Calo" ]))
+        objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "met",            ("muon","Pat"),("electron","PF"), ("photon","Pat") , "ak5Jet",  "PF"  ]))
 
         return { "objects": objects,
-                 "nJetsMinMax" : dict([  ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None))  ] [0:1] ),
+                 "nJetsMinMax" : dict([  ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None))  ] [:] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  #"jesAbs":  [1.0,1.1,0.9]               [:],
                  #"jesRel":  0,
@@ -89,24 +89,24 @@ class hadronicLook(analysis.analysis) :
 
     def listOfSamples(self) :
         from samples import specify
-        return [  specify(name = "JetMET_skim",           nFilesMax = 1, nEventsMax = 1000, color = r.kBlack   , markerStyle = 20),
-                ##specify(name = "qcd_mg_ht_250_500_old", nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt30",           nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                  specify(name = "qcd_py_pt80",           nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                  specify(name = "qcd_py_pt170",          nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                  specify(name = "qcd_py_pt300",          nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt470",          nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt800",          nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt1400",         nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                  specify(name = "tt_tauola_mg",          nFilesMax = 1, nEventsMax = 1000, color = r.kOrange  ),
-                  specify(name = "g_jets_mg_pt40_100",    nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
-                  specify(name = "g_jets_mg_pt100_200",   nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
-                  specify(name = "g_jets_mg_pt200",       nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
-                  specify(name = "z_inv_mg_skim",         nFilesMax = 1, nEventsMax = 1000, color = r.kMagenta ),
-                  specify(name = "z_jets_mg_skim",        nFilesMax = 1, nEventsMax = 1000, color = r.kYellow-3),
-                  specify(name = "w_jets_mg_skim",        nFilesMax = 1, nEventsMax = 1000, color = 28         ),
-                  specify(name = "lm0",                   nFilesMax = 1, nEventsMax = 1000, color = r.kRed     ),
-                  specify(name = "lm1",                   nFilesMax = 1, nEventsMax = 1000, color = r.kRed+1   ),
+        return [  specify(name = "JetMET_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+                ##specify(name = "qcd_mg_ht_250_500_old", nFilesMax = -1, color = r.kBlue    ),
+                ##specify(name = "qcd_py_pt30",           nFilesMax = -1, color = r.kBlue    ),
+                  specify(name = "qcd_py_pt80",           nFilesMax = -1, color = r.kBlue    ),
+                  specify(name = "qcd_py_pt170",          nFilesMax = -1, color = r.kBlue    ),
+                  specify(name = "qcd_py_pt300",          nFilesMax = -1, color = r.kBlue    ),
+                ##specify(name = "qcd_py_pt470",          nFilesMax = -1, color = r.kBlue    ),
+                ##specify(name = "qcd_py_pt800",          nFilesMax = -1, color = r.kBlue    ),
+                ##specify(name = "qcd_py_pt1400",         nFilesMax = -1, color = r.kBlue    ),
+                  specify(name = "tt_tauola_mg",          nFilesMax =  3, color = r.kOrange  ),
+                  specify(name = "g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
+                  specify(name = "g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
+                  specify(name = "g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
+                  specify(name = "z_inv_mg_skim",         nFilesMax = -1, color = r.kMagenta ),
+                  specify(name = "z_jets_mg_skim",        nFilesMax = -1, color = r.kYellow-3),
+                  specify(name = "w_jets_mg_skim",        nFilesMax = -1, color = 28         ),
+                  specify(name = "lm0",                   nFilesMax = -1, color = r.kRed     ),
+                  specify(name = "lm1",                   nFilesMax = -1, color = r.kRed+1   ),
                   ]
 
     def conclude(self) :
