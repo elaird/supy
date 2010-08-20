@@ -47,6 +47,22 @@ class multiplicityFilter(analysisStep) :
     def select(self,eventVars) :
         return self.nMin <= len(eventVars[self.var]) <= self.nMax
 #####################################
+class orFilter(analysisStep) :
+    """orFilter"""
+
+    def __init__(self, varGreaterCutList = [], varLessCutList = []) :
+        self.varGreaterCutList = varGreaterCutList
+        self.varLessCutList = varLessCutList
+        self.moreName = '|'.join(["%s>%.2f"%i for i in varGreaterCutList]+\
+                                 ["%s<%.2f"%i for i in varLessCutList])
+        
+    def select(self,eventVars) :
+        for var,cut in self.varGreaterCutList:
+            if eventVars[var] > cut: return True
+        for var,cut in self.varLessCutList:
+            if eventVar[var] < cut: return True
+        return False
+#####################################
 class crockVarCalcDiff(analysisStep) :
     """crockVarCalcDiff"""
     def __init__(self,exV,calc) :
