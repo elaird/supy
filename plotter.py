@@ -88,7 +88,12 @@ class plotter(object) :
         setupStyle()
 
         self.printCanvas("[")
-        self.printCalculablesAndTimeStamp()
+
+        text1 = self.printCalculables()
+        text2 = self.printTimeStamp()
+        text3 = self.printNEventsIn()
+        self.printCanvas()
+        self.canvas.Clear()
     
         self.selectionsSoFar=[]
         for selection in self.someOrganizer.selections :
@@ -103,7 +108,7 @@ class plotter(object) :
         self.makePdf()
         print utils.hyphens
 
-    def printCalculablesAndTimeStamp(self) :
+    def printCalculables(self) :
         text = r.TText()
         text.SetNDC()
         text.SetTextFont(102)
@@ -119,17 +124,56 @@ class plotter(object) :
             name,title = calcs[i]
             name = name.rjust(length+2)
             text.DrawTextNDC(x, y, "%s   %s"%(name,title) )
-            
-        text = self.printTimeStamp()
-        self.printCanvas()
-        self.canvas.Clear()
+        return text
         
     def printTimeStamp(self) :
         text=r.TText()
         text.SetNDC()
         dateString="file created at ";
         tdt=r.TDatime()
-        text.DrawText(0.1,0.3,dateString+tdt.AsString())
+        text.DrawText(0.1,0.5,dateString+tdt.AsString())
+        return text
+
+    def printNEventsIn(self) :
+        text = r.TText()
+        text.SetNDC()
+        text.SetTextFont(102)
+        text.SetTextSize(0.5*text.GetTextSize())
+
+        def loopOneType(x = 0.02, mergedSamples = False) :
+            sampleNames  = ["sample"]
+            nEventsIn    = ["nEventsIn"]
+            for sample in self.someOrganizer.samples :
+                if "sources" not in sample :
+                    if mergedSamples : continue
+                    sampleNames.append(sample["name"])
+                    nEventsIn.append(str(int(sample["nEvents"])))
+                else :
+                    if not mergedSamples : continue
+                    localSampleNames = []
+                    localNEventsIn = []
+                    useThese = True
+                    for name,N in zip(sample["sources"],sample["nEvents"]) :
+                        if type(N) is list :
+                            useThese = False
+                            break
+                        localSampleNames.append(name)
+                        localNEventsIn.append(str(int(N)))                        
+                    if useThese :
+                        sampleNames.extend(localSampleNames)
+                        nEventsIn.extend(localNEventsIn)
+                        
+            sLength = max([len(item) for item in sampleNames])
+            nLength = max([len(item) for item in nEventsIn]  )
+            nSamples = len(sampleNames)
+            if nSamples == 1 : return
+            for i in range(nSamples) :
+                y = 0.45 - 0.3*(i+0.5)/nSamples
+                out = sampleNames[i].ljust(sLength)+nEventsIn[i].rjust(nLength+3)
+                text.DrawTextNDC(x, y, out)
+
+        loopOneType(0.02,False)
+        loopOneType(0.52,True)
         return text
     
     def printCanvas(self,extra="") :
