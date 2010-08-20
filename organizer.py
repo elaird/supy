@@ -91,8 +91,8 @@ class organizer(object) :
         target = copy.deepcopy(targetSpec)
         target['sources'] = map(lambda i: self.samples[i]["name"], sourceIndices)
         target['nEvents'] = map(lambda i: self.samples[i]['nEvents'], sourceIndices)
-        if all(["xs" in self.samples[i] for i in sourceIndices]) : target["xs"] = None
-            #target["xs"] = sum([self.samples[i]["xs"] for i in sourceIndices ])
+        if all(["xs" in self.samples[i] for i in sourceIndices]) : 
+            target["xs"] = [self.samples[i]["xs"] for i in sourceIndices ]
         elif all(["lumi" in self.samples[i] for i in sourceIndices]):
             target["lumi"] = sum([self.samples[i]["lumi"] for i in sourceIndices ])
         else: raise Exception("Cannot merge data with sim")
