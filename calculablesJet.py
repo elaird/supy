@@ -48,16 +48,17 @@ class PFJetIDtight(wrappedChain.calculable) :
     def name(self) : return "%sPFJetIDtight%s"%self.cs
 
     def __init__(self, collection = None) :
-        self.cs = collection
+        self.cs = jesStrip(collection)
         self.moreName = "WARNING: currently just a copy of Loose"
     def update(self,ignored) :
         self.value = self.source["%sPFJetIDloose%s"%self.cs]
 
+####################################
 class PFJetIDloose(wrappedChain.calculable) :
     def name(self) : return "%sPFJetIDloose%s"%self.cs
 
     def __init__(self, collection = None, fNeutralEmMax = None, fChargedEmMax = None, fNeutralHadMax = None, fChargedHadMin = None, nChargedMin = None ) :
-        self.cs = collection
+        self.cs = jesStrip(collection)
         self.p4Name = "%sCorrectedP4%s"%self.cs
         self.fNeutralEmMax  = fNeutralEmMax   ;  self.fNeutralEmName  = "%sFneutralEm%s" % jesStrip(self.cs)
         self.fChargedEmMax  = fChargedEmMax   ;  self.fChargedEmName  = "%sFchargedEm%s" % jesStrip(self.cs)
