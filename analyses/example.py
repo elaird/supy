@@ -8,9 +8,6 @@ class example(analysis.analysis) :
     def baseOutputDirectory(self) :
         return "/tmp/%s/"%os.environ["USER"]
 
-    def parameters(self) :
-        return {}
-
     def listOfSteps(self,params) :
         jets=("ak5JetPF","Pat")
         minJetPt=10.0
