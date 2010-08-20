@@ -140,38 +140,62 @@ class plotter(object) :
         text.SetTextFont(102)
         text.SetTextSize(0.5*text.GetTextSize())
 
+        def getLumi(sample = None, iSource = None) :
+            value = 0.0
+            if sample!=None :
+                if "lumi" in sample :
+                    if iSource!=None :
+                        value = sample["lumi"][iSource]
+                    else :
+                        value = sample["lumi"]                        
+                elif "xs" in sample :
+                    if iSource!=None :
+                        value = sample["nEvents"][iSource]/sample["xs"][iSource]
+                    else :
+                        value = sample["nEvents"]/sample["xs"]
+            return "%.1f"%value
+            
         def loopOneType(mergedSamples = False) :
             sampleNames  = ["sample"]
             nEventsIn    = ["nEventsIn"]
+            lumis        = ["  lumi (/pb)"]
             for sample in self.someOrganizer.samples :
                 if "sources" not in sample :
                     if mergedSamples : continue
                     sampleNames.append(sample["name"])
                     nEventsIn.append(str(int(sample["nEvents"])))
+                    lumis.append(getLumi(sample = sample))
                 else :
                     if not mergedSamples : continue
                     localSampleNames = []
                     localNEventsIn = []
+                    localLumis = []
                     useThese = True
-                    for name,N in zip(sample["sources"],sample["nEvents"]) :
+
+                    for iSource in range(len(sample["sources"])) :
+                        name = sample["sources"][iSource]
+                        N    = sample["nEvents"][iSource]
                         if type(N) is list :
                             useThese = False
                             break
                         localSampleNames.append(name)
-                        localNEventsIn.append(str(int(N)))                        
+                        localNEventsIn.append(str(int(N)))
+                        localLumis.append(getLumi(sample,iSource))
                     if useThese :
                         sampleNames.extend(localSampleNames)
                         nEventsIn.extend(localNEventsIn)
-            return sampleNames,nEventsIn
+                        lumis.extend(localLumis)
+            return sampleNames,nEventsIn,lumis
 
-        def printOneType(x, sampleNames,nEventsIn) :
+        def printOneType(x, sampleNames, nEventsIn, lumis) :
             sLength = max([len(item) for item in sampleNames])
             nLength = max([len(item) for item in nEventsIn]  )
+            lLength = max([len(item) for item in lumis]      )
             nSamples = len(sampleNames)
             if nSamples == 1 : return
             for i in range(nSamples) :
                 y = 0.45 - 0.3*(i+0.5)/nSamples
-                out = sampleNames[i].ljust(sLength)+nEventsIn[i].rjust(nLength+3)
+                out = sampleNames[i].ljust(sLength)+nEventsIn[i].rjust(nLength+3)+lumis[i].rjust(lLength+3)
                 text.DrawTextNDC(x, y, out)
 
         printOneType( 0.02, *loopOneType(False) )
