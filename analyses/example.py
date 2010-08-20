@@ -47,7 +47,7 @@ class example(analysis.analysis) :
     def listOfSampleDictionaries(self) :
         exampleDict = samples.SampleHolder()
         exampleDict.add("Example_Skimmed_900_GeV_Data", '["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_Data.root"]', lumi = 1.0e-5 ) #/pb
-        exampleDict.add("Example_Skimmed_900_GeV_MC", '["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_MC.root"]', xs = 1.0e8 ) #pb
+        exampleDict.add("Example_Skimmed_900_GeV_MC", '["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_MC.root"]',       xs = 1.0e3 ) #pb
         return [exampleDict]
 
     def listOfSamples(self) :
