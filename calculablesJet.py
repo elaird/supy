@@ -44,6 +44,15 @@ class jetIndicesOther(wrappedChain.calculable) :
                              list(set(range(p4s.size()))-set(self.source[self.indicesName]) ) ) 
         
 ####################################
+class PFJetIDtight(wrappedChain.calculable) :
+    def name(self) : return "%sPFJetIDtight%s"%self.cs
+
+    def __init__(self, collection = None) :
+        self.cs = collection
+        self.moreName = "WARNING: currently just a copy of Loose"
+    def update(self,ignored) :
+        self.value = self.source["%sPFJetIDloose%s"%self.cs]
+
 class PFJetIDloose(wrappedChain.calculable) :
     def name(self) : return "%sPFJetIDloose%s"%self.cs
 
