@@ -100,7 +100,7 @@ class plotter(object) :
             if selection.name != "" :
                 self.selectionsSoFar.append(selection)
                 self.printSelections(self.selectionsSoFar)
-            for plotName in selection :
+            for plotName in sorted(selection.keys()) :
                 if plotName in self.blackList : continue
                 self.onePlotFunction(selection[plotName],plotName)
 
