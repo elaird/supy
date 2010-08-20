@@ -10,14 +10,14 @@ class hadronicLook(analysis.analysis) :
     def parameters(self) :
         objects = {}
         fields =                               ["jet",              "met",             "muon",        "electron",        "photon",         "genjet","rechit"]
-        objects["caloAK5"] = dict(zip(fields, [("ak5Jet","Pat"),   "metAK5TypeIIPat",("muon","Pat"),("electron","Pat"),("photon","Pat") , "ak5Jet", "Calo" ]))
-        objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"met",            ("muon","Pat"),("electron","Pat"),("photon","Pat") , "ak5Jet", "Calo" ]))
-        objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "met",            ("muon","Pat"),("electron","PF"), ("photon","Pat") , "ak5Jet",  "PF"  ]))
+        objects["caloAK5"] = dict(zip(fields, [("jes_ak5Jet","Pat"),   "metAK5TypeIIPat",("muon","Pat"),("electron","Pat"),("photon","Pat") , "ak5Jet", "Calo" ]))
+        objects["jptAK5"]  = dict(zip(fields, [("jes_ak5JetJPT","Pat"),"met",            ("muon","Pat"),("electron","Pat"),("photon","Pat") , "ak5Jet", "Calo" ]))
+        objects["pfAK5"]   = dict(zip(fields, [("jes_ak5JetPF","Pat"), "met",            ("muon","Pat"),("electron","PF"), ("photon","Pat") , "ak5Jet",  "PF"  ]))
 
         return { "objects": objects,
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  "jesAbs":  [1.0,1.1,0.9]               [:],
-                 #"jesEta":  0,
+                 "jesRel":  0,
                  }
 
     def listOfCalculables(self,params) :
@@ -27,7 +27,8 @@ class hadronicLook(analysis.analysis) :
         return calculables.zeroArgs() +\
                calculables.fromJetCollections([_jet]) +\
                calculables.fromMuonCollections([_muon]) +\
-               [ calculables.jetIndices(      _jet, ptMin = 20.0, etaMax = 3.0, flagName = params["jetId"]),
+               [ calculables.jesAdjustedP4s(  _jet, params["jesAbs"], params["jesRel"]),
+                 calculables.jetIndices(      _jet, ptMin = 20.0, etaMax = 3.0, flagName = params["jetId"]),
                  calculables.jetIndicesOther( _jet, ptMin = 20.0),
                  calculables.PFJetIDloose( _jet, fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0),
                  calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15) ]
