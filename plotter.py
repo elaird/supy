@@ -82,7 +82,7 @@ class plotter(object) :
         self.plotRatios = self.samplesForRatios!=("","")        
         self.psOptions="Landscape"
         self.canvas=r.TCanvas()
-        self.maxLines = 20
+        self.nLinesMax = 20
 
     def plotAll(self) :
         print utils.hyphens
@@ -90,9 +90,12 @@ class plotter(object) :
 
         self.printCanvas("[")
 
-        text1 = self.printCalculables()
         text2 = self.printTimeStamp()
         text3 = self.printNEventsIn()
+        self.printCanvas()
+        self.canvas.Clear()
+
+        text1 = self.printCalculables()
         self.printCanvas()
         self.canvas.Clear()
     
@@ -113,15 +116,17 @@ class plotter(object) :
         text = r.TText()
         text.SetNDC()
         text.SetTextFont(102)
-        text.SetTextSize(0.5*text.GetTextSize())
+        text.SetTextSize(0.55*text.GetTextSize())
 
         calcs = filter(lambda x:x[1]!="",list(self.someOrganizer.calculables()) )
         length = max([len(calc[0]) for calc in calcs])
         calcs.sort()
+        calcs.insert(0,("",""))
+        calcs.insert(0,("Calculables",""))
         nCalcs = len(calcs)
         for i in  range(nCalcs):
             x = 0.02
-            y = 0.98 - 0.3*(i+0.5)/nCalcs
+            y = 0.98 - 0.8*(i+0.5)/self.nLinesMax
             name,title = calcs[i]
             name = name.rjust(length+2)
             text.DrawTextNDC(x, y, "%s   %s"%(name,title) )
@@ -132,14 +137,14 @@ class plotter(object) :
         text.SetNDC()
         dateString="file created at ";
         tdt=r.TDatime()
-        text.DrawText(0.1,0.5,dateString+tdt.AsString())
+        text.DrawText(0.1,0.1,dateString+tdt.AsString())
         return text
 
     def printNEventsIn(self) :
         text = r.TText()
         text.SetNDC()
         text.SetTextFont(102)
-        text.SetTextSize(0.5*text.GetTextSize())
+        text.SetTextSize(0.55*text.GetTextSize())
 
         def getLumi(sample = None, iSource = None) :
             value = 0.0
@@ -157,9 +162,9 @@ class plotter(object) :
             return "%.1f"%value
             
         def loopOneType(mergedSamples = False) :
-            sampleNames  = ["sample"]
-            nEventsIn    = ["nEventsIn"]
-            lumis        = ["  lumi (/pb)"]
+            sampleNames  = ["sample",""]
+            nEventsIn    = ["nEventsIn",""]
+            lumis        = ["  lumi (/pb)",""]
             for sample in self.someOrganizer.samples :
                 if "sources" not in sample :
                     if mergedSamples : continue
@@ -195,7 +200,7 @@ class plotter(object) :
             nSamples = len(sampleNames)
             if nSamples == 1 : return
             for i in range(nSamples) :
-                y = 0.45 - 0.3*(i+0.5)/nSamples
+                y = 0.9 - 0.7*(i+0.5)/self.nLinesMax
                 out = sampleNames[i].ljust(sLength)+nEventsIn[i].rjust(nLength+3)+lumis[i].rjust(lLength+3)
                 text.DrawTextNDC(x, y, out)
 
@@ -224,7 +229,7 @@ class plotter(object) :
         nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in self.someOrganizer.selections]))
         for i,selection in enumerate(selections):
             x = 0.01
-            y = 0.98 - 0.5*(i+0.5)/self.maxLines
+            y = 0.98 - 0.5*(i+0.5)/self.nLinesMax
             text.DrawTextNDC(x, y, nametitle.format(string.ascii_letters[i], selection.name, selection.title ))
             text.DrawTextNDC(x, y-0.5, "%s: %s"%(string.ascii_letters[i],
                                                   "".join([(utils.roundString(*k,width=8) if k else "-    ").rjust(11) for k in selection.yields()])))
