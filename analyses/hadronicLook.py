@@ -52,12 +52,13 @@ class hadronicLook(analysis.analysis) :
             steps.hbheNoiseFilter(),
             steps.hltPrescaleHistogrammer(["HLT_Jet50U","HLT_HT100U","HLT_MET45"]),       
 
-            steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";N %s%s clean;events / bin"%_jet, funcString="lambda x:len(x)"),
+            steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
+                               funcString="lambda x:len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_jet, nMin = params["nJetsMinMax"][0], nMax = params["nJetsMinMax"][1]),
-            steps.histogrammer("%sIndicesOther%s"%_jet,10,-0.5,9.5, title=";N %s%s other;events / bin"%_jet, funcString="lambda x:len(x)"),
+            steps.histogrammer("%sIndicesOther%s"%_jet,10,-0.5,9.5, title=";number of %s%s above p_{T}#semicolon failing ID or #eta;events / bin"%_jet, funcString="lambda x:len(x)"),
             steps.multiplicityFilter("%sIndicesOther%s"%_jet, nMax = 0),
 
-            steps.histogrammer("%sSumPt%s"%_jet,50,0,1000, title = ";H_{T} (GeV) from %s%s;events / bin"%_jet),
+            steps.histogrammer("%sSumPt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s p_{T}s;events / bin"%_jet),
             steps.variableGreaterFilter(350.0,"%sSumPt%s"%_jet),
             steps.histogrammer("%sIndices%s"%_muon,10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
