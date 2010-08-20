@@ -82,6 +82,7 @@ class plotter(object) :
         self.plotRatios = self.samplesForRatios!=("","")        
         self.psOptions="Landscape"
         self.canvas=r.TCanvas()
+        self.maxLines = 20
 
     def plotAll(self) :
         print utils.hyphens
@@ -223,7 +224,7 @@ class plotter(object) :
         nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in self.someOrganizer.selections]))
         for i,selection in enumerate(selections):
             x = 0.01
-            y = 0.98 - 0.3*(i+0.5)/len(self.someOrganizer.selections)
+            y = 0.98 - 0.5*(i+0.5)/self.maxLines
             text.DrawTextNDC(x, y, nametitle.format(string.ascii_letters[i], selection.name, selection.title ))
             text.DrawTextNDC(x, y-0.5, "%s: %s"%(string.ascii_letters[i],
                                                   "".join([(utils.roundString(*k,width=8) if k else "-    ").rjust(11) for k in selection.yields()])))
