@@ -97,7 +97,7 @@ if options.batch :
             submitBatchJob(cmd,iLooper,iConfig)
     print
     print "You may do this to monitor your jobs (exit with CTRL-C):"
-    print "watch 'qstat; ls %s/config* | grep -c %s'"%(someInstance.baseOutputDirectory(),someInstance.name)
+    print "watch 'qstat; find %s/%s | grep -c root'"%(someInstance.baseOutputDirectory(),someInstance.name)
 else :
     if options.loop :
         someInstance.loop(int(options.loop), bool(options.profile), bool(options.onlymerge))
