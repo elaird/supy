@@ -118,13 +118,13 @@ class cleanJetPtHistogrammer(analysisStep) :
                                   title=";number of jets passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin")
 
         for iJet in cleanJetIndices :
-            pt = p4s.at(iJet).pt()
+            jet = p4s.at(iJet)
+            pt = jet.pt()
             self.book(eventVars).fill(pt, "%sptAll%s"%self.cs, 50, 0.0, 500.0, title=";p_{T} (GeV) of clean jets;events / bin")
 
-            if iJet==0 :#assumes sorted
-                self.book(eventVars).fill(pt, "%sptLeading%s"%self.cs, 50, 0.0, 500.0, title=";p_{T} (GeV) of leading clean jet;events / bin")
-            if iJet==1 :#assumes sorted
-                self.book(eventVars).fill(pt, "%sptSubLeading%s"%self.cs, 50, 0.0, 500.0, title=";p_{T} (GeV) of sub-leading clean jet;events / bin")
+            if iJet>2 : continue
+            self.book(eventVars).fill(pt,        "%s%s%dPt" %(self.cs+(iJet+1,)), 50, 0.0, 500.0, title=";jet%d p_{T} (GeV);events / bin"%(iJet+1))
+            self.book(eventVars).fill(jet.eta(), "%s%s%deta"%(self.cs+(iJet+1,)), 50, 0.0, 500.0, title=";jet%d #eta;events / bin"%(iJet+1))
 #####################################
 class alphaHistogrammer(analysisStep) :
     """alphaHistogrammer"""
@@ -135,38 +135,35 @@ class alphaHistogrammer(analysisStep) :
         
     def uponAcceptance (self,eventVars) :
         book = self.book(eventVars)
-        bins,min,max = (80,0.0,2.0)
 
         mht = eventVars["%sSumP4%s"%self.cs].pt() 
         ht = eventVars["%sSumPt%s"%self.cs]
         deltaHt = eventVars["%sDeltaPseudoJet%s"%self.cs]
         alphaT = eventVars["%sAlphaT%s"%self.cs]
-        diJetAlpha = eventVars["%sDiJetAlpha%s"%self.cs]
-        indices = eventVars["%sIndices%s"%self.cs]
         deltaPhiStar = eventVars["%sDeltaPhiStar%s"%self.cs]
-        
-        if diJetAlpha :
-            book.fill( diJetAlpha, "%sdijet_alpha%s"%self.cs, bins,min,max,
-                       title = ";di-jet #alpha (using p_{T});events / bin")
+
+        #if diJetAlpha :
+        #    book.fill( eventVars["%sDiJetAlpha%s"%self.cs], "%sdijet_alpha%s"%self.cs, 80,0.0,2.0,
+        #               title = ";di-jet #alpha (using p_{T});events / bin")
 
         if not alphaT :
             return
 
-        book.fill( alphaT, "%snjet_alphaT%s"%self.cs, bins,min,max,
-                   title = ";N-jet #alpha_{T} (using p_{T});events / bin")
+        book.fill( alphaT, "%snjet_alphaT%s"%self.cs, 80,0.0,2.0,
+                   title = ";#alpha_{T} (using p_{T});events / bin")
 
         book.fill( deltaHt, "%snjet_deltaHt%s"%self.cs, 50,0.0,500,
-                   title = ";N-jet #Delta H_{T} (GeV);events / bin")
+                   title = ";#Delta H_{T} (GeV);events / bin")
 
         book.fill( (mht/ht,deltaHt/ht), "%s_deltaHtOverHt_vs_mHtOverHt_%s"%self.cs, (30,30), (0.0,0.0), (1.0,0.7),
                    title = ";#slash(H_{T}) / H_{T};#Delta H_{T} of two pseudo-jets / H_{T};events / bin")
 
-        for njets in ["ge2jets","2jets"] if len(indices) == 2 else ["ge2jets","ge3jets"] :
-            book.fill( (alphaT,ht), "%s_Ht_vs_alphaT_%s_%s"%(self.cs[0],self.cs[1],njets), (300,200), (0.0,0.0), (3.0,1000),
-                       title = "%s;#alpha_{T};H_{T};events / bin"%njets)
-            book.fill( (alphaT,deltaPhiStar),"%s_deltaPhiStar_vs_nJetAlphaT_%s_%s"%(self.cs[0],self.cs[1],njets),
-                       (500,50), (0.0,0.0),(1.0,r.TMath.Pi()),
-                       title="%s;N-jet #alpha_{T} (using p_{T});#Delta#phi*;events / bin"%njets)
+        book.fill( (alphaT,ht), "%s_Ht_vs_alphaT_%s"%self.cs, (300,200), (0.0,0.0), (3.0,1000),
+                   title = ";#alpha_{T};H_{T};events / bin")
+        
+        book.fill( (alphaT,deltaPhiStar),"%s_deltaPhiStar_vs_nJetAlphaT_%s"%self.cs,
+                   (500,50), (0.0,0.0),(1.0,r.TMath.Pi()),
+                   title=";#alpha_{T} (using p_{T});#Delta#phi*;events / bin")
 #####################################
 class deltaPhiSelector(analysisStep) :
     """deltaPhiSelector"""
