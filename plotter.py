@@ -140,7 +140,7 @@ class plotter(object) :
         text.SetTextFont(102)
         text.SetTextSize(0.5*text.GetTextSize())
 
-        def loopOneType(x = 0.02, mergedSamples = False) :
+        def loopOneType(mergedSamples = False) :
             sampleNames  = ["sample"]
             nEventsIn    = ["nEventsIn"]
             for sample in self.someOrganizer.samples :
@@ -162,7 +162,9 @@ class plotter(object) :
                     if useThese :
                         sampleNames.extend(localSampleNames)
                         nEventsIn.extend(localNEventsIn)
-                        
+            return sampleNames,nEventsIn
+
+        def printOneType(x, sampleNames,nEventsIn) :
             sLength = max([len(item) for item in sampleNames])
             nLength = max([len(item) for item in nEventsIn]  )
             nSamples = len(sampleNames)
@@ -172,8 +174,8 @@ class plotter(object) :
                 out = sampleNames[i].ljust(sLength)+nEventsIn[i].rjust(nLength+3)
                 text.DrawTextNDC(x, y, out)
 
-        loopOneType(0.02,False)
-        loopOneType(0.52,True)
+        printOneType( 0.02, *loopOneType(False) )
+        printOneType( 0.52, *loopOneType(True)  )
         return text
     
     def printCanvas(self,extra="") :
