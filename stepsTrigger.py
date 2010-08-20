@@ -75,20 +75,20 @@ class hltPrescaleHistogrammer(analysisStep) :
         self.listOfHltPaths = listOfHltPaths
         self.moreName = ','.join(self.listOfHltPaths).replace("HLT_","")
         self.nBinsX = len(self.listOfHltPaths)
+        self.key = "HltPrescaleHisto"
 
     def uponAcceptance(self,eventVars) :
         for iPath in range(len(self.listOfHltPaths)) :
             value = eventVars["prescaled"][self.listOfHltPaths[iPath]]
             if value<=0.0 : continue
-            self.book(eventVars).fill( (iPath,math.log10(value)), "hltPrescaleHisto", (self.nBinsX,100), (-0.5,-0.5), (self.nBinsX-0.5,4,5),
+            self.book(eventVars).fill( (iPath,math.log10(value)), self.key, (self.nBinsX,100), (-0.5,-0.5), (self.nBinsX-0.5,4,5),
                                        title="hltPrescaleHisto;;log_{10}(prescale value);events / bin")
 
     def endFunc(self,chain,otherChainDict,nEvents,xs) :
-        key="hltPrescaleHisto"
         for book in self.books.values() :
-            if key in book :
+            if self.key in book :
                 for iPath in range(self.nBinsX) :
-                    book[key].GetXaxis().SetBinLabel(iPath+1,self.listOfHltPaths[iPath])
+                    book[self.key].GetXaxis().SetBinLabel(iPath+1,self.listOfHltPaths[iPath])
 #####################################
 class hltTurnOnHistogrammer(analysisStep) :
     """hltTurnOnHistogrammer"""
