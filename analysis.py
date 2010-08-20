@@ -177,7 +177,7 @@ class analysis(object) :
                         someDict["outputFileNames"].append(outputFileName)
                 outList.append(someDict)
         else :
-            for parent in self.parentDict :
+            for parent in self.parentDictKeyOrder :
                 iSomeLooper=self.parentDict[parent][0]
                 someLooper=self.listOfLoopers[iSomeLooper]
                 someDict={}
@@ -191,7 +191,6 @@ class analysis(object) :
                     if self._tags[iConfig]==tag :
                         someDict["outputFileNames"].append(outputFileName)
                 outList.append(someDict)
-
         return outList
 
     def makeOutputPlotFileName(self,configurationId,sampleName) :
@@ -305,12 +304,14 @@ class analysis(object) :
         self.listOfLoopers=outListOfLoopers
 
     def makeParentDict(self,listOfLoopers) :
+        self.parentDictKeyOrder=[]
         self.parentDict=collections.defaultdict(list)
         for iLooper in range(len(listOfLoopers)) :
             looper=listOfLoopers[iLooper]
             if looper.splitMode :
+                if looper.parentName not in self.parentDict : self.parentDictKeyOrder.append(looper.parentName)
                 self.parentDict[looper.parentName].append(iLooper)
-
+                
     def mergeSplitOutput(self,nCores,cleanUp) :
         #self.mergeSplitOutputSerial(cleanUp)
         self.mergeSplitOutputParallel(nCores,cleanUp)
