@@ -94,7 +94,7 @@ class organizer(object) :
         if all(["xs" in self.samples[i] for i in sourceIndices]) : 
             target["xs"] = [self.samples[i]["xs"] for i in sourceIndices ]
         elif all(["lumi" in self.samples[i] for i in sourceIndices]):
-            target["lumi"] = sum([self.samples[i]["lumi"] for i in sourceIndices ])
+            target["lumi"] = [self.samples[i]["lumi"] for i in sourceIndices ]
         else: raise Exception("Cannot merge data with sim")
         
         def tuplePopInsert(orig, item) :
@@ -129,6 +129,7 @@ class organizer(object) :
         self.lumi = self.samples[iData]["lumi"] if iData!=None else lumiToUseInAbsenceOfData
         assert self.lumi, \
                "You need to have a data sample or specify the lumi to use."
+        if type(self.lumi) is list : self.lumi = sum(self.lumi)
 
         for sel in self.selections :
             for key,hists in sel.iteritems() :
