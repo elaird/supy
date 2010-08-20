@@ -214,33 +214,13 @@ class soloObjectPtSelector(analysisStep) :
     def select (self,eventVars) :
         return self.ptThreshold <= eventVars[self.varName].pt()
 #####################################
-class vertexRequirementFilterOld(analysisStep) :
-    """vertexRequirementFilterOld"""
-    
-    def __init__(self, minVertexNtracks, maxVertexChi2Ndf, maxVertexZ) :
-        self.minVertexNtracks = minVertexNtracks
-        self.maxVertexChi2Ndf = maxVertexChi2Ndf
-        self.maxVertexZ = maxVertexZ
-
-        self.moreName = ">=%d ve.tr.; chi2/ndf<%.1f; |z|<%.1f" % (minVertexNtracks, maxVertexChi2Ndf, maxVertexZ )
-
-    def select(self,eventVars) :
-        pos = eventVars["vertexPosition"]
-        for i in range(pos.size()) :
-            if eventVars["vertexNtrks"].at(i) >= self.minVertexNtracks and \
-               eventVars["vertexNdof"].at(i) > 0.0 and \
-               eventVars["vertexChi2"].at(i) / eventVars["vertexNdof"].at(i) < self.maxVertexChi2Ndf and \
-               abs(pos.at(i).Z()) < self.maxVertexZ :
-                return True
-        return False
-#####################################
 class vertexRequirementFilter(analysisStep) :
     """vertexRequirementFilter"""
     
     def __init__(self,minVertexNdof=5.0,maxVertexZ=15.0) :
         self.minVertexNdof = minVertexNdof
         self.maxVertexZ = maxVertexZ
-        self.moreName = "any v: !fake; ndf>=%.1f;abs(z)<%.1f" % (minVertexNdof,maxVertexZ)
+        self.moreName = "any v: !fake; ndf>=%.1f;|z|<%.1f" % (minVertexNdof,maxVertexZ)
 
     def select(self,eventVars) :
         fake,ndof,pos = eventVars["vertexIsFake"], eventVars["vertexNdof"], eventVars["vertexPosition"]
