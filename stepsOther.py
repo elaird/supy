@@ -80,18 +80,17 @@ class crockVarCalcDiff(analysisStep) :
 class skimmer(analysisStep) :
     #special __doc__ assignment below
     
-    def __init__(self,outputDir,alsoWriteExtraTree=False) :
+    def __init__(self) :
         self.__doc__=self.skimmerStepName
-        self.outputDir=outputDir
         self.outputTree=0
         self.moreName="(see below)"
-        self.alsoWriteExtraTree=alsoWriteExtraTree
+        self.alsoWriteExtraTree=False #hard-code until this functionality is fixed
         self.outputTreeExtraIsSetup=False
 
-    def setup(self,chain,fileDir,name) :
-        self.fileDir=fileDir
-        self.outputFileName=self.outputDir+"/"+name+"_skim.root"
-        os.system("mkdir -p "+self.outputDir)
+    def setup(self,chain,fileDir,name,outputDir) :
+        self.fileDir = fileDir
+        self.outputFileName=outputDir+"/"+name+"_skim.root"
+        os.system("mkdir -p "+outputDir)
         self.outputFile=r.TFile(self.outputFileName,"RECREATE")
         self.outputFile.mkdir(self.fileDir)
         self.outputFile.cd(self.fileDir)
@@ -419,41 +418,29 @@ class bxFilter(analysisStep) :
 class displayer(analysisStep) :
     #special __doc__ assignment below
     
-    def __init__(self,jets=("",""),metCollection="",metSuffix="",leptonSuffix="",genJetCollection="",
-                 recHitType="",recHitPtThreshold=-1.0,outputDir="",scale=200.0) :
-        self.__doc__=self.displayerStepName
-        self.outputDir=outputDir
-        self.moreName="(see below)"
-        self.scale=scale #GeV
-        self.jetCollection=jets[0]
-        self.jetSuffix=jets[1]
-        self.metCollection=metCollection
-        self.metSuffix=metSuffix
-        self.leptonSuffix=leptonSuffix
-        self.genJetCollection=genJetCollection
-        self.recHitType=recHitType
-        self.recHitPtThreshold=recHitPtThreshold
+    def __init__(self,jets=("",""),met="",muons="",electrons="",photons="",
+                 recHits="",recHitPtThreshold=-1.0,scale=200.0) :
+
+        self.__doc__ = self.displayerStepName
+        self.moreName = "(see below)"
+
+        for item in ["scale","jets","met","muons","electrons","photons","recHits","recHitPtThreshold"] :
+            setattr(self,item,eval(item))
+
+        self.genJets = self.jets
+        self.genMet  = self.met.replace("P4","GenMetP4")
         
         self.doGen=False
         self.doLeptons=True
-
-        if self.doLeptons :
-            listOfTuples=[("muon",self.leptonSuffix),("electron",self.leptonSuffix),("photon","Pat"),("tau","Pat")]
-            for tuple in listOfTuples :
-                particle=tuple[0]
-                suffix=tuple[1]
-                setattr(self,particle+"Collection",particle)
-                setattr(self,particle+"Suffix",suffix)
-
         self.helper=r.displayHelper()
 
     def switchGenOn(self) :
         self.doGen=True
 
-    def setup(self,chain,fileDir,name) :
+    def setup(self,chain,fileDir,name,outputDir) :
         someDir=r.gDirectory
-        self.outputFileName=self.outputDir+"/"+name+"_displays.root"
-        os.system("mkdir -p "+self.outputDir)
+        self.outputFileName=outputDir+"/"+name+"_displays.root"
+        os.system("mkdir -p "+outputDir)
         self.outputFile=r.TFile(self.outputFileName,"RECREATE")
         someDir.cd()
         
@@ -540,21 +527,22 @@ class displayer(analysisStep) :
         if (not hasattr(self,"genJetEntryInLegend")) :
             self.genJetEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"GEN jets ("+self.genJetCollection+")","l")
+            self.legend.AddEntry(someLine,"GEN jets (%s%s)"%self.genJets,"l")
 
-        p4Vector=eventVars[self.genJetCollection+'GenJetP4'+self.jetSuffix]
+        p4Vector=eventVars["%sGenJetP4%s"%self.genJets]
         for jet in p4Vector :
             self.drawP4(jet,color,lineWidth,arrowSize)
             
-    def drawCleanJets (self,eventVars,collection,color,lineWidth,arrowSize) :
+    def drawCleanJets (self,eventVars,jets,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if not hasattr(self,"cleanJetEntryInLegend"+collection) :
-            setattr(self,"cleanJetEntryInLegend"+collection,True)
+        legString = "%scleanJetEntryInLegend%s"%jets
+        if not hasattr(self,legString) :
+            setattr(self,legString,True)
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"clean jets ("+collection+")","l")
+            self.legend.AddEntry(someLine,"clean jets (%s%s)"%jets,"l")
 
-        p4Vector=eventVars[collection+'CorrectedP4'+self.jetSuffix]
-        cleanJetIndices = eventVars[collection+"Indices"+self.jetSuffix]["clean"]
+        p4Vector=eventVars['%sCorrectedP4%s'%self.jets]
+        cleanJetIndices = eventVars["%sIndices%s"%self.jets]
         for iJet in cleanJetIndices :
             self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
@@ -566,7 +554,7 @@ class displayer(analysisStep) :
             self.legend.AddEntry(someLine,"\"other\" jets","l")
 
         p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
-        otherJetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]["other"]
+        otherJetIndices = eventVars[self.jetCollection+"IndicesOther"+self.jetSuffix]
         for index in otherJetIndices :
             self.drawP4(p4Vector[index],color,lineWidth,arrowSize)
             
@@ -575,11 +563,11 @@ class displayer(analysisStep) :
         if (not hasattr(self,"lowPtJetEntryInLegend")) :
             self.lowPtJetEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"low p_{T} jets ("+self.jetCollection+")","l")
+            self.legend.AddEntry(someLine,"low p_{T} jets (%s%s)"%self.jets,"l")
 
-        p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
-        cleanJetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]["clean"]
-        otherJetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]["other"]
+        p4Vector=eventVars["%sCorrectedP4%s"%self.jets]
+        cleanJetIndices = eventVars["%sIndices%s"%self.jets]
+        otherJetIndices = eventVars["%sIndicesOther%s"%self.jets]
         for iJet in range(len(p4Vector)) :
             if (iJet in cleanJetIndices) : continue
             if (iJet in otherJetIndices) : continue
@@ -590,19 +578,19 @@ class displayer(analysisStep) :
         if not hasattr(self,"mhtEntryInLegend") :
             self.mhtEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"#slashH_{T} ("+self.jetCollection+")","l")
+            self.legend.AddEntry(someLine,"#slashH_{T} (%s%s)"%self.jets,"l")
 
-        mh = -eventVars["%sSumP4%s"%(self.jetCollection,self.jetSuffix)]
+        mh = -eventVars["%sSumP4%s"%self.jets]
         self.drawP4(mh,color,lineWidth,arrowSize)
             
     def drawHt (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if (not hasattr(self,"htEntryInLegend")) :
+        if not hasattr(self,"htEntryInLegend") :
             self.htEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"H_{T} ("+self.jetCollection+")","l")
+            self.legend.AddEntry(someLine,"H_{T} (%s%s)"%self.jets,"l")
 
-        ht = eventVars[self.jetCollection+"SumPt"+self.jetSuffix]
+        ht = eventVars["%sSumPt%s"%self.jets]
             
         y=self.y0-self.radius-0.05
         l=ht*self.radius/self.scale
@@ -611,74 +599,68 @@ class displayer(analysisStep) :
         
     def drawNJetDeltaHt (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if (not hasattr(self,"deltaHtEntryInLegend")) :
+        if not hasattr(self,"deltaHtEntryInLegend") :
             self.deltaHtEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"#DeltaH_{T} ("+self.jetCollection+")","l")
+            self.legend.AddEntry(someLine,"#DeltaH_{T} (%s%s)"%self.jets,"l")
 
-        deltaHt=eventVars[self.jetCollection+"DeltaPseudoJet"+self.jetSuffix]
+        deltaHt=eventVars["%sDeltaPseudoJet%s"%self.jets]
         y=self.y0-self.radius-0.03
         l=deltaHt*self.radius/self.scale
         self.line.SetLineColor(color)
         self.line.DrawLine(self.x0-l/2.0,y,self.x0+l/2.0,y)
-
 
     def drawMet (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if (not hasattr(self,"metEntryInLegend")) :
             self.metEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"#slashE_{T} ("+self.metSuffix+")","l")
+            self.legend.AddEntry(someLine,"#slashE_{T} (%s)"%self.met,"l")
 
-        met=eventVars[self.metCollection+"P4"+self.metSuffix]
-        self.drawP4(met,color,lineWidth,arrowSize)
+        self.drawP4(eventVars[self.met],color,lineWidth,arrowSize)
             
     def drawGenMet (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if (not hasattr(self,"genMetEntryInLegend")) :
+        if not hasattr(self,"genMetEntryInLegend") :
             self.genMetEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"GEN #slashE_{T} ("+self.metSuffix+")","l")
+            self.legend.AddEntry(someLine,"GEN #slashE_{T} (%s)"%self.genMet,"l")
 
-        genMet=eventVars[self.metCollection+"GenMetP4"+self.metSuffix]
-        self.drawP4(genMet,color,lineWidth,arrowSize)
+        self.drawP4(eventVars[self.genMet],color,lineWidth,arrowSize)
             
     def drawMuons (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if (not hasattr(self,"muonEntryInLegend")) :
+        if not hasattr(self,"muonEntryInLegend") :
             self.muonEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"muons ("+self.muonSuffix+")","l")
-        p4Vector=eventVars[self.muonCollection+'P4'+self.muonSuffix]
+            self.legend.AddEntry(someLine,"muons (%s%s)"%self.muons,"l")
+        p4Vector=eventVars["%sP4%s"%self.muons]
         for iJet in range(len(p4Vector)) :
-            self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
+            self.drawP4(p4Vector.at(iJet),color,lineWidth,arrowSize)
             
     def drawElectrons (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if (not hasattr(self,"electronEntryInLegend")) :
+        if not hasattr(self,"electronEntryInLegend") :
             self.electronEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"electrons ("+self.electronSuffix+")","l")
-        p4Vector=eventVars[self.electronCollection+'P4'+self.electronSuffix]
-        for iJet in range(len(p4Vector)) :
-            self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
+            self.legend.AddEntry(someLine,"electrons (%s%s)"%self.electrons,"l")
+        p4Vector=eventVars["%sP4%s"%self.electrons]
+        for i in range(len(p4Vector)) :
+            self.drawP4(p4Vector.at(i),color,lineWidth,arrowSize)
             
     def drawPhotons (self,eventVars,color,lineWidth,arrowSize) :
-        #temporary hack
-        if self.leptonSuffix=="PF" : return
-
         self.line.SetLineColor(color)
-        if (not hasattr(self,"photonEntryInLegend")) :
+        if not hasattr(self,"photonEntryInLegend") :
             self.photonEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"photons ("+self.photonSuffix+")","l")
-        p4Vector=eventVars[self.photonCollection+'P4'+self.photonSuffix]
+            self.legend.AddEntry(someLine,"photons (%s%s)"%self.photons,"l")
+        p4Vector=eventVars["%sP4%s"%self.photons]
         for iJet in range(len(p4Vector)) :
             self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
             
     def drawTaus (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if (not hasattr(self,"tauEntryInLegend")) :
+        if not hasattr(self,"tauEntryInLegend") :
             self.tauEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"taus ("+self.tauSuffix+")","l")
@@ -688,19 +670,19 @@ class displayer(analysisStep) :
             
     def drawCleanedRecHits (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if (not hasattr(self,"cleanedRecHitEntryInLegend")) :
+        if not hasattr(self,"cleanedRecHitEntryInLegend") :
             self.cleanedRecHitEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"cleaned RecHits ("+self.recHitType+")","l")
+            self.legend.AddEntry(someLine,"cleaned RecHits (%s)"%self.recHits,"l")
 
         subDetectors=[]
-        if self.recHitType=="Calo" :
+        if self.recHits=="Calo" :
             subDetectors=["Eb","Ee","Hbhe","Hf"]
-        if self.recHitType=="PF" :
+        if self.recHits=="PF" :
             subDetectors=["Ecal","Hcal","Hfem","Hfhad","Ps"]
 
         for detector in subDetectors :
-            flaggedP4s=eventVars["rechit"+self.recHitType+"P4"+detector]
+            flaggedP4s=eventVars["rechit"+self.recHits+"P4"+detector]
             for hit in flaggedP4s :
                 if hit.pt()<self.recHitPtThreshold : continue
                 self.drawP4(hit,color,lineWidth,arrowSize)
@@ -722,10 +704,10 @@ class displayer(analysisStep) :
         title=";#slashH_{T}/H_{T};#DeltaH_{T}/H_{T}"
         alphaHisto=r.TH2D("alphaHisto",title,100,0.0,1.0,100,0.0,0.7)
 
-        mht=eventVars[self.jetCollection+"SumP4"+self.jetSuffix].pt()
-        ht = eventVars[self.jetCollection+"SumPt"+self.jetSuffix]
-        deltaHt=eventVars[self.jetCollection+"DeltaPseudoJet"+self.jetSuffix]
-        alphaT =eventVars[self.jetCollection+"AlphaT"+self.jetSuffix]
+        mht=eventVars["%sSumP4%s"%self.jets].pt()
+        ht = eventVars["%sSumPt%s"%self.jets]
+        deltaHt=eventVars["%sDeltaPseudoJet%s"%self.jets]
+        alphaT =eventVars["%sAlphaT%s"%self.jets]
         
         alphaHisto.Fill(mht/ht,deltaHt/ht)
         alphaHisto.SetStats(False)
@@ -806,16 +788,16 @@ class displayer(analysisStep) :
 
         defArrowSize=0.5*self.arrow.GetDefaultArrowSize()
         defWidth=1
-        #                                        color     , width   , arrow size
-
+        #                                  color      , width   , arrow size
         if self.doGen :
-            self.drawGenJets    (eventVars,         r.kBlack, defWidth, defArrowSize)
+            self.drawGenJets    (eventVars,r.kBlack   , defWidth, defArrowSize)
+
         self.drawCleanJets      (eventVars,
-                                 self.jetCollection,r.kBlue , defWidth, defArrowSize)
+                                 self.jets,r.kBlue    , defWidth, defArrowSize)
         #self.drawCleanJets      (eventVars,
-        #                         self.jetCollection+"JPT",896,defWidth, defArrowSize*3/4.0)
+        #                         (self.jets[0]+"JPT","Pat"),896,defWidth, defArrowSize*3/4.0)
         #self.drawCleanJets      (eventVars,
-        #                         self.jetCollection+"PF" , 38,defWidth, defArrowSize*1/2.0)
+        #                         (self.jets[0]+"PF","Pat"), 38,defWidth, defArrowSize*1/2.0)
         self.drawLowPtJets      (eventVars,r.kCyan    , defWidth, defArrowSize*1/6.0)
         #self.drawOtherJets      (eventVars,r.kBlack  )
         self.drawHt             (eventVars,r.kBlue+3  , defWidth, defArrowSize*1/6.0)
@@ -829,7 +811,7 @@ class displayer(analysisStep) :
             self.drawMuons      (eventVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
             self.drawElectrons  (eventVars,r.kOrange+7, defWidth, defArrowSize*2/6.0)
             self.drawPhotons    (eventVars,r.kOrange  , defWidth, defArrowSize*2/6.0)
-            #self.drawTaus       (eventVars,r.kYellow , defWidth, defArrowSize*2/6.0)
+           #self.drawTaus       (eventVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
         
         self.drawCleanedRecHits (eventVars,r.kOrange-6, defWidth, defArrowSize*2/6.0)
 
@@ -858,11 +840,11 @@ class counter(analysisStep) :
 class pickEventSpecMaker(analysisStep) :
     """pickEventSpecMaker"""
     #https://twiki.cern.ch/twiki/bin/view/CMS/PickEvents
-    def __init__(self,outputFileName,dataSetName) :
-        self.outputFileName = outputFileName
+    def __init__(self,dataSetName) :
         self.dataSetName = dataSetName
 
-    def setup(self,chain,fileDir,name) :
+    def setup(self,chain,fileDir,name,outputDir) :
+        self.outputFileName = outputDir+"pickEvents.txt"
         self.outputFile = open(self.outputFileName,"w")
         
     def uponAcceptance(self,eventVars) :
@@ -890,14 +872,13 @@ class bxHistogrammer(analysisStep) :
 class jsonMaker(analysisStep) :
     """jsonMaker"""
 
-    def __init__(self,outputDir) :
+    def __init__(self) :
         self.runLsDict=collections.defaultdict(list)
-        self.outputDir=outputDir
         self.moreName="see below"
 
-    def setup(self,chain,fileDir,name) :
-        self.outputFileName=self.outputDir+"/"+name+".json"
-        os.system("mkdir -p "+self.outputDir)
+    def setup(self,chain,fileDir,name,outputDir) :
+        self.outputFileName=outputDir+"/"+name+".json"
+        os.system("mkdir -p "+outputDir)
         
     def uponAcceptance(self,eventVars) :
         self.runLsDict[eventVars["run"]].append(eventVars["lumiSection"])
