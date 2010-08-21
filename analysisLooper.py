@@ -155,7 +155,7 @@ class analysisLooper :
             step.isSelector = hasattr(step,"select")            
             assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.__doc__            
             if step.__doc__==step.skimmerStepName : returnValue=False
-            if hasattr(step,"setup") : step.setup(self.inputChain,self.fileDirectory,self.name)
+            if hasattr(step,"setup") : step.setup(self.inputChain,self.fileDirectory,self.name,self.outputDir)
 
             step.needToConsiderPtHatThresholds = self.needToConsiderPtHatThresholds
             step.ptHatThresholds = self.ptHatThresholds
