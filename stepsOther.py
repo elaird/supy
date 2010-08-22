@@ -524,7 +524,7 @@ class displayer(analysisStep) :
         
     def drawGenJets (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if (not hasattr(self,"genJetEntryInLegend")) :
+        if not hasattr(self,"genJetEntryInLegend") :
             self.genJetEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"GEN jets (%s%s)"%self.genJets,"l")
@@ -544,19 +544,19 @@ class displayer(analysisStep) :
         p4Vector=eventVars['%sCorrectedP4%s'%self.jets]
         cleanJetIndices = eventVars["%sIndices%s"%self.jets]
         for iJet in cleanJetIndices :
-            self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
+            self.drawP4(p4Vector.at(iJet),color,lineWidth,arrowSize)
             
     def drawOtherJets (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if (not hasattr(self,"otherJetEntryInLegend")) :
+        if not hasattr(self,"otherJetEntryInLegend") :
             self.otherJetEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"\"other\" jets","l")
 
-        p4Vector=eventVars[self.jetCollection+'CorrectedP4'+self.jetSuffix]
-        otherJetIndices = eventVars[self.jetCollection+"IndicesOther"+self.jetSuffix]
+        p4Vector=eventVars["%sCorrectedP4%s"%self.jets]
+        otherJetIndices = eventVars["%sIndicesOther%s"%self.jets]
         for index in otherJetIndices :
-            self.drawP4(p4Vector[index],color,lineWidth,arrowSize)
+            self.drawP4(p4Vector.at(index),color,lineWidth,arrowSize)
             
     def drawLowPtJets (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
@@ -571,7 +571,7 @@ class displayer(analysisStep) :
         for iJet in range(len(p4Vector)) :
             if (iJet in cleanJetIndices) : continue
             if (iJet in otherJetIndices) : continue
-            self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
+            self.drawP4(p4Vector.at(iJet),color,lineWidth,arrowSize)
             
     def drawMht (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
@@ -635,8 +635,8 @@ class displayer(analysisStep) :
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"muons (%s%s)"%self.muons,"l")
         p4Vector=eventVars["%sP4%s"%self.muons]
-        for iJet in range(len(p4Vector)) :
-            self.drawP4(p4Vector.at(iJet),color,lineWidth,arrowSize)
+        for i in range(len(p4Vector)) :
+            self.drawP4(p4Vector.at(i),color,lineWidth,arrowSize)
             
     def drawElectrons (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
@@ -655,8 +655,8 @@ class displayer(analysisStep) :
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"photons (%s%s)"%self.photons,"l")
         p4Vector=eventVars["%sP4%s"%self.photons]
-        for iJet in range(len(p4Vector)) :
-            self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
+        for i in range(len(p4Vector)) :
+            self.drawP4(p4Vector.at(i),color,lineWidth,arrowSize)
             
     def drawTaus (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
@@ -665,8 +665,8 @@ class displayer(analysisStep) :
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"taus ("+self.tauSuffix+")","l")
         p4Vector=eventVars[self.tauCollection+'P4'+self.tauSuffix]
-        for iJet in range(len(p4Vector)) :
-            self.drawP4(p4Vector[iJet],color,lineWidth,arrowSize)
+        for i in range(len(p4Vector)) :
+            self.drawP4(p4Vector.at(i),color,lineWidth,arrowSize)
             
     def drawCleanedRecHits (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
@@ -844,7 +844,7 @@ class pickEventSpecMaker(analysisStep) :
         self.dataSetName = dataSetName
 
     def setup(self,chain,fileDir,name,outputDir) :
-        self.outputFileName = outputDir+"pickEvents.txt"
+        self.outputFileName = outputDir+"/"+name+"_pickEvents.txt"
         self.outputFile = open(self.outputFileName,"w")
         
     def uponAcceptance(self,eventVars) :
