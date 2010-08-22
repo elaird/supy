@@ -10,12 +10,12 @@ class hadronicLook(analysis.analysis) :
     def parameters(self) :
         objects = {}
         fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit"]
-        objects["caloAK5"] = dict(zip(fields, [("ak5Jet","Pat"),   "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
-        objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"metP4TC",       ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
-        objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",       ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"   ]))
+        objects["caloAK5"] = dict(zip(fields, [("xcak5Jet","Pat"),   "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
+        #objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"metP4TC",       ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
+        #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",       ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"   ]))
 
         return { "objects": objects,
-                 "nJetsMinMax" : dict([  ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None))  ] [:] ),
+                 "nJetsMinMax" : dict([  ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None))  ] [0:1] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  #"jesAbs":  [1.0,1.1,0.9]               [:],
                  #"jesRel":  0,
@@ -24,18 +24,21 @@ class hadronicLook(analysis.analysis) :
     def listOfCalculables(self,params) :
         _jet =  params["objects"]["jet"]
         _muon = params["objects"]["muon"]
+        _photon = params["objects"]["photon"]
 
         return calculables.zeroArgs() +\
                calculables.fromCollections("calculablesJet",[_jet]) +\
                calculables.fromCollections("calculablesLepton",[_muon]) +\
-               [ #calculables.jesAdjustedP4s(  _jet, params["jesAbs"], params["jesRel"]),
-                 calculables.jetIndices(      _jet, ptMin = 20.0, etaMax = 3.0, flagName = params["jetId"]),
+               [ calculables.xcJet( _jet,  gamma = _photon, gammaDR = 0.5, muon = _muon, muonDR = 0.5),
+                 calculables.jetIndices( _jet, ptMin = 20.0, etaMax = 3.0, flagName = params["jetId"]),
                  calculables.PFJetIDloose( _jet, fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0),
-                 calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15) ]
+                 calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15),
+                 calculables.photonIndicesPat(  ptMin = 20, flagName="photonIDLoosePat")]
 
     def listOfSteps(self,params) :
         _jet  = params["objects"]["jet"]
         _muon = params["objects"]["muon"]
+        _photon = params["objects"]["photon"]
         _met  = params["objects"]["met"]
         
         outList=[
@@ -61,8 +64,6 @@ class hadronicLook(analysis.analysis) :
 
             steps.histogrammer("%sSumPt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s p_{T}s;events / bin"%_jet),
             steps.variableGreaterFilter(350.0,"%sSumPt%s"%_jet),
-            steps.histogrammer("%sIndices%s"%_muon,10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
-            steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
 
             steps.passFilter("singleJetPlots"),
             steps.cleanJetPtHistogrammer(_jet),
@@ -72,6 +73,12 @@ class hadronicLook(analysis.analysis) :
             steps.alphaHistogrammer(_jet),
             
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
+
+            steps.histogrammer("%sIndices%s"%_muon,10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
+            steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
+
+            steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
+            steps.multiplicityFilter("%sIndices%s"%_photon, nMax = 0),
             
             #steps.skimmer(),
             #steps.eventPrinter(),
