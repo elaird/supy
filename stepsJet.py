@@ -206,3 +206,23 @@ class deltaPhiHistogrammer(analysisStep) :
         book.fill( eventVars[self.var]["R"]  , self.var, 20, 0.0, 10.0, title = ";"+self.var+";events / bin")
         book.fill( eventVars[self.var]["eta"], self.var, 50, -10, 10.0, title = ";"+self.var+";events / bin")
 #####################################
+class alphaTetaDependence(analysisStep) :
+    """alphaTetaDependence"""
+
+    def __init__(self,collection) :
+        self.cs = collection
+        self.alphaT = "%sAlphaT%s"%self.cs
+    
+    def uponAcceptance (self,eventVars) :
+        book = self.book(eventVars)
+        nJet= len(eventVars["%sIndices%s"%self.cs])
+        iGamma = eventVars["photonIndicesPat"]
+        nGamma = len(iGamma)
+        alphaT = eventVars[self.alphaT]
+        genEta = abs(eventVars["genP4"].at(eventVars["genIndicesGammaZ"][0]).eta())
+        etaBin = "fwd" if genEta>3 else \
+                 "mid" if genEta>1.5 else \
+                 "ctr" 
+
+        book.fill( alphaT, "alphaT%d%d%s"%(nJet,nGamma,etaBin), 200, 0.0, 2.0, title = "(%d jet,%d gamma, %s) #alpha_{T};events / bin"%(nJet,nGamma,etaBin))
+#####################################
