@@ -14,6 +14,7 @@ class organizer(object) :
             for key in keys: self[key] = tuple( map(lambda d: d.Get(key), dirs) )
             self.nameTitle  = ("","") if "/" in dirs[0].GetName() else (dirs[0].GetName(),dirs[0].GetTitle())
             self.name,self.title = self.nameTitle
+            if "counts" not in self: self["counts"] = tuple([None]*len(dirs))
             self.rawFailPass = tuple(map(lambda h: (h.GetBinContent(1),h.GetBinContent(2)) if h else None, self["counts"]))
 
             for key in self :
