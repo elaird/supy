@@ -57,11 +57,11 @@ class wrappedChain(dict) :
             self.__activeNodes[key] = node
             self.__activeNodeList.append(node)
             node.setAddress()
-            node.update(self.__localEntry)
             node.updated = True
+            node.update(self.__localEntry)
         elif not node.updated :
-            node.update(self.__localEntry)
             node.updated = True
+            node.update(self.__localEntry)
         return node.value
 
     def __setitem__(self,key,value) :

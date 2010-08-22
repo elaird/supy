@@ -22,8 +22,8 @@ class example(analysis.analysis) :
             steps.jetPtSelector(jets,minJetPt,0),#leading corrected jet
             steps.jetPtSelector(jets,minJetPt,1),#next corrected jet
             #steps.jetPtVetoer( jets,minJetPt,2),#next corrected jet
-            steps.multiplicityFilter("%sIndices%s"%jets, nMin = 2),
             steps.multiplicityFilter("%sIndicesOther%s"%jets, nMax = 0),
+            steps.multiplicityFilter("%sIndices%s"%jets, nMin = 2),
             
             steps.cleanJetPtHistogrammer(jets),
             steps.cleanJetHtMhtHistogrammer(jets),
@@ -39,7 +39,6 @@ class example(analysis.analysis) :
         listOfCalculables = calculables.zeroArgs()
         listOfCalculables += calculables.fromJetCollections(jetTypes)
         listOfCalculables += [ calculables.jetIndices( collection = jetType, ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for jetType in jetTypes]
-        listOfCalculables += [ calculables.jetIndicesOther( collection = jetType, ptMin = 20.0 ) for jetType in jetTypes]
         listOfCalculables += [ calculables.PFJetIDloose( collection = jetTypes[2],
                                                          fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]
         return listOfCalculables

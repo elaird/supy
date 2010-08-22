@@ -1,54 +1,68 @@
 from wrappedChain import *
 import math
 
-def jesStrip(collection) :
+def xcStrip(collection) :
     return tuple([i.strip("jes_") for i in collection])
 ##############################
+class jetIndicesKilled(wrappedChain.calculable) :
+    def name(self) : return "%sIndicesKilled%s"%self.cs
+    
+    def __init__(self, collection = None) :
+        self.cs = collection
+        self.moreName = "removed from consideration; gamma,e match or jetkill study"
+
+    def update(self,ignored) : self.value = set()
+##############################
+class jetIndicesOther(wrappedChain.calculable) :
+    def name(self) : return self.indicesOther
+    
+    def __init__(self, collection = None) :
+        self.indices      = "%sIndices%s"%collection
+        self.indicesOther = "%sIndicesOther%s"%collection
+        self.moreName = "pass ptMin; fail jetID or etaMax"
+
+    def update(self,ignored) :
+        self.value = []
+        if not dict.__getitem__(self.source,self.indices).updated :
+            self.source[self.indices]
+##############################
 class jetIndices(wrappedChain.calculable) :
-    def name(self) : return "%sIndices%s"% self.cs
+    def name(self) : return self.indices
     
     def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None):
-        self.cs = collection
-        self.ptMin = ptMin
+        self.indices = "%sIndices%s" % collection
+        self.other = "%sIndicesOther%s" % collection
+        self.killed = "%sIndicesKilled%s" % collection
+        self.p4s = '%sCorrectedP4%s' % collection
+        self.pt2Min = ptMin*ptMin
         self.etaMax = etaMax
-        self.p4Name = '%sCorrectedP4%s' % self.cs
-        self.flagName = None if not flagName else \
-                        ( "%s"+flagName+"%s" if jesStrip(self.cs)[0][-2:] != "PF" else \
-                          "%sPF"+flagName+"%s" ) % jesStrip(self.cs)
+        self.flag = None if not flagName else \
+                    ( "%s"+flagName+"%s" if xcStrip(collection)[0][-2:] != "PF" else \
+                      "%sPF"+flagName+"%s" ) % xcStrip(collection)
         self.moreName = "pT>=%.1f GeV; |eta|<%.1f; %s"% (ptMin, etaMax, flagName if flagName else "")
 
     def update(self,ignored) :
-        p4s    = self.source[self.p4Name]
-        jetIds = self.source[self.flagName] if self.flagName else p4s.size()*[1]
         self.value = []
+        other  = self.source[self.other]
+        killed = self.source[self.killed]
+        jetIds = self.source[self.flag] if self.flag else p4s.size()*[1]
+        p4s    = self.source[self.p4s]
+        pt2s    = []
 
         for i in range(p4s.size()) :
-            if p4s.at(i).pt() < self.ptMin : break #pt cut, assumes sorted
+            pt2 = p4s.at(i).Perp2()
+            pt2s.append(pt2)
+            if pt2 < self.pt2Min or i in killed: continue
             elif jetIds[i] and abs(p4s.at(i).eta()) < self.etaMax :
                 self.value.append(i)
-
-##############################
-class jetIndicesOther(wrappedChain.calculable) :
-    def name(self) : return "%sIndicesOther%s"% self.cs
-    
-    def __init__(self, collection = None, ptMin = None) :
-        self.cs = collection
-        self.ptMin = ptMin
-        self.p4Name = '%sCorrectedP4%s' % self.cs
-        self.indicesName = '%sIndices%s' % self.cs
-        self.moreName = "unaccepted; pT>=%.1f GeV"% ptMin
-
-    def update(self,ignored) :
-        p4s = self.source[self.p4Name]
-        self.value = filter( lambda i: p4s.at(i).pt() > self.ptMin,
-                             list(set(range(p4s.size()))-set(self.source[self.indicesName]) ) ) 
-        
+            else: other.append(i)
+        self.value.sort( key = pt2s.__getitem__)
 ####################################
 class PFJetIDtight(wrappedChain.calculable) :
     def name(self) : return "%sPFJetIDtight%s"%self.cs
 
     def __init__(self, collection = None) :
-        self.cs = jesStrip(collection)
+        self.cs = xcStrip(collection)
         self.moreName = "WARNING: currently just a copy of Loose"
     def update(self,ignored) :
         self.value = self.source["%sPFJetIDloose%s"%self.cs]
@@ -58,13 +72,13 @@ class PFJetIDloose(wrappedChain.calculable) :
     def name(self) : return "%sPFJetIDloose%s"%self.cs
 
     def __init__(self, collection = None, fNeutralEmMax = None, fChargedEmMax = None, fNeutralHadMax = None, fChargedHadMin = None, nChargedMin = None ) :
-        self.cs = jesStrip(collection)
+        self.cs = xcStrip(collection)
         self.p4Name = "%sCorrectedP4%s"%self.cs
-        self.fNeutralEmMax  = fNeutralEmMax   ;  self.fNeutralEmName  = "%sFneutralEm%s" % jesStrip(self.cs)
-        self.fChargedEmMax  = fChargedEmMax   ;  self.fChargedEmName  = "%sFchargedEm%s" % jesStrip(self.cs)
-        self.fNeutralHadMax = fNeutralHadMax  ;  self.fNeutralHadName = "%sFneutralHad%s" % jesStrip(self.cs)
-        self.fChargedHadMin = fChargedHadMin  ;  self.fChargedHadName = "%sFchargedHad%s" % jesStrip(self.cs)
-        self.nChargedMin    = nChargedMin     ;  self.nChargedName    = "%sNcharged%s" % jesStrip(self.cs)
+        self.fNeutralEmMax  = fNeutralEmMax   ;  self.fNeutralEmName  = "%sFneutralEm%s" % xcStrip(self.cs)
+        self.fChargedEmMax  = fChargedEmMax   ;  self.fChargedEmName  = "%sFchargedEm%s" % xcStrip(self.cs)
+        self.fNeutralHadMax = fNeutralHadMax  ;  self.fNeutralHadName = "%sFneutralHad%s" % xcStrip(self.cs)
+        self.fChargedHadMin = fChargedHadMin  ;  self.fChargedHadName = "%sFchargedHad%s" % xcStrip(self.cs)
+        self.nChargedMin    = nChargedMin     ;  self.nChargedName    = "%sNcharged%s" % xcStrip(self.cs)
 
         self.moreName = "fN_em<%.1f; fC_em<%.1f; fN_had<%.1f; |eta|>2.4 or {fC_had>%.1f; nC>%d}" % \
                         ( fNeutralEmMax,fChargedEmMax,fNeutralHadMax, fChargedHadMin, nChargedMin)
@@ -245,20 +259,3 @@ class maxProjMHT(wrappedChain.calculable) :
 
         self.value = -min( [ sumP4.pt() / math.sqrt(jets.at(i).pt()) * \
                              math.cos(r.Math.VectorUtil.DeltaPhi(jets.at(i),sumP4)) for i in indices])
-##############################
-class jesAdjustedP4s(wrappedChain.calculable) :
-    def name(self) : return "jes_%sCorrectedP4%s"%self.cs
-
-    def __init__(self,collection = None, jesAbs = 1.0, jesRel = 0.0 ) :
-        self.cs = jesStrip(collection)
-        self.moreName = "%.3f * (1 + %.3f*|eta|) * p4;  %s%s" % ((jesAbs,jesRel)+self.cs)
-        self.jesAbs = jesAbs
-        self.jesRel = jesRel
-        self.p4name = "%sCorrectedP4%s"%self.cs
-        self.value = r.vector(r.Math.LorentzVector(r.Math.PxPyPzE4D('double')))()
-
-    def jes(self,p4) : self.value.push_back( p4 * (self.jesAbs*(1+self.jesRel*abs(p4.eta()))))
-        
-    def update(self,ignored) :
-        self.value.clear()
-        map(self.jes, self.source[self.p4name])
