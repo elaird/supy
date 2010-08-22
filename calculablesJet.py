@@ -1,8 +1,8 @@
 from wrappedChain import *
-import math
+import math,calculables
 
 def xcStrip(collection) :
-    return tuple([i.strip("jes_") for i in collection])
+    return (collection[0].lstrip("xc"),collection[1])
 ##############################
 class jetIndicesKilled(wrappedChain.calculable) :
     def name(self) : return "%sIndicesKilled%s"%self.cs
@@ -13,18 +13,10 @@ class jetIndicesKilled(wrappedChain.calculable) :
 
     def update(self,ignored) : self.value = set()
 ##############################
-class jetIndicesOther(wrappedChain.calculable) :
-    def name(self) : return self.indicesOther
-    
+class jetIndicesOther(calculables.indicesOther) :
     def __init__(self, collection = None) :
-        self.indices      = "%sIndices%s"%collection
-        self.indicesOther = "%sIndicesOther%s"%collection
+        super(jetIndicesOther, self).__init__(collection)
         self.moreName = "pass ptMin; fail jetID or etaMax"
-
-    def update(self,ignored) :
-        self.value = []
-        if not dict.__getitem__(self.source,self.indices).updated :
-            self.source[self.indices]
 ##############################
 class jetIndices(wrappedChain.calculable) :
     def name(self) : return self.indices

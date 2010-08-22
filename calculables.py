@@ -1,12 +1,19 @@
 from wrappedChain import *
 from inspect import isclass,ismodule,getargspec
 
-from calculablesGen import *
-from calculablesJet import *
-from calculablesLepton import *
-from calculablesPhoton import *
-from calculablesOther import *
-from calculablesXClean import *
+##############################
+class indicesOther(wrappedChain.calculable) :
+    def name(self) : return self.indicesOther
+    
+    def __init__(self, collection = None) :
+        self.indices      = "%sIndices%s"%collection
+        self.indicesOther = "%sIndicesOther%s"%collection
+
+    def update(self,ignored) :
+        self.value = []
+        if not dict.__getitem__(self.source,self.indices).updated :
+            self.source[self.indices]
+##############################
 
 def zeroArgs() :
     """Returns a list of instances of all zero argument calculables."""
@@ -36,3 +43,10 @@ def fromCollections(moduleName,collections) :
                 for col in collections : calcs.append(calc(col))
         except: pass
     return calcs
+
+from calculablesGen import *
+from calculablesJet import *
+from calculablesLepton import *
+from calculablesPhoton import *
+from calculablesOther import *
+from calculablesXClean import *
