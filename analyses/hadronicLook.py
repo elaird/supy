@@ -9,10 +9,10 @@ class hadronicLook(analysis.analysis) :
 
     def parameters(self) :
         objects = {}
-        fields =                               ["jet",                 "met",             "muon",        "electron",        "photon",         "genjet","rechit"]
-        objects["caloAK5"] = dict(zip(fields, [("ak5Jet","Pat"),   "metAK5TypeIIPat",("muon","Pat"),("electron","Pat"),("photon","Pat") , "ak5Jet", "Calo" ]))
-        objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"met",            ("muon","Pat"),("electron","Pat"),("photon","Pat") , "ak5Jet", "Calo" ]))
-        objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "met",            ("muon","Pat"),("electron","PF"), ("photon","Pat") , "ak5Jet",  "PF"  ]))
+        fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit"]
+        objects["caloAK5"] = dict(zip(fields, [("ak5Jet","Pat"),   "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
+        objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"metP4TC",       ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
+        objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",       ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"   ]))
 
         return { "objects": objects,
                  "nJetsMinMax" : dict([  ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None))  ] [:] ),
@@ -26,21 +26,21 @@ class hadronicLook(analysis.analysis) :
         _muon = params["objects"]["muon"]
 
         return calculables.zeroArgs() +\
-               calculables.fromJetCollections([_jet]) +\
-               calculables.fromMuonCollections([_muon]) +\
+               calculables.fromCollections("calculablesJet",[_jet]) +\
+               calculables.fromCollections("calculablesLepton",[_muon]) +\
                [ #calculables.jesAdjustedP4s(  _jet, params["jesAbs"], params["jesRel"]),
                  calculables.jetIndices(      _jet, ptMin = 20.0, etaMax = 3.0, flagName = params["jetId"]),
-                 calculables.jetIndicesOther( _jet, ptMin = 20.0),
                  calculables.PFJetIDloose( _jet, fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0),
                  calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15) ]
 
     def listOfSteps(self,params) :
-        _jet = params["objects"]["jet"]
+        _jet  = params["objects"]["jet"]
         _muon = params["objects"]["muon"]
+        _met  = params["objects"]["met"]
         
         outList=[
             steps.progressPrinter(),
-            steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}};events / bin"),
+            steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
 
             steps.jetPtSelector(_jet,100.0,0),
             steps.leadingUnCorrJetPtSelector( [_jet],100.0 ),
@@ -73,14 +73,20 @@ class hadronicLook(analysis.analysis) :
             
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
             
-            #steps.skimmer("/vols/cms02/%s/"%os.environ["USER"]),
+            #steps.skimmer(),
             #steps.eventPrinter(),
             #steps.jetPrinter(_jet),
             #steps.htMhtPrinter(_jet),
             #steps.nJetAlphaTPrinter(_jet)
             #steps.genParticlePrinter(minPt=10.0,minStatus=3),
-            #steps.displayer(_jet,metCollection,metSuffix,leptonSuffix,genJetCollection,recHitType,recHitPtThreshold=1.0,#GeV
-            #                outputDir="/vols/cms02/%s/tmp/"%os.environ["USER"],scale=200.0),
+
+            #steps.displayer(jets = _jet,
+            #                muons = _muon,
+            #                met       = params["objects"]["met"],
+            #                electrons = params["objects"]["electron"],
+            #                photons   = params["objects"]["photon"],                            
+            #                recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
+            #                scale = 200.0),#GeV
             
             ]
         return outList
@@ -115,10 +121,9 @@ class hadronicLook(analysis.analysis) :
             #organize
             org=organizer.organizer( self.sampleSpecs(tag) )
             org.mergeSamples(targetSpec = {"name":"g_jets_mg",     "color":r.kGreen},   sources = ["g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
-            org.mergeSamples(targetSpec = {"name":"qcd_py"   ,     "color":r.kBlue},    sources = ["qcd_py_pt%d"%i         for i in [30,80,170,300,470,800,1400] ])
+            org.mergeSamples(targetSpec = {"name":"qcd_py"   ,     "color":r.kBlue},    sources = ["qcd_py_pt%d"%i      for i in [80,170,300] ])
             org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3},
-                             sources = ["g_jets_mg","qcd_py","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"], keepSources = True
-                             )
+                             sources = ["g_jets_mg","qcd_py","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"], keepSources = True )
             org.scale()
 
             #plot
