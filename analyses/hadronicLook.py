@@ -45,10 +45,10 @@ class hadronicLook(analysis.analysis) :
             steps.jetPtSelector(_jet,100.0,0),
             steps.leadingUnCorrJetPtSelector( [_jet],100.0 ),
             steps.hltFilter("HLT_Jet50U"),
-            steps.vertexRequirementFilter(5.0,24.0),
+            steps.vertexRequirementFilter(),
             steps.techBitFilter([0],True),
             steps.physicsDeclared(),
-            steps.monsterEventFilter(10,0.25),
+            steps.monsterEventFilter(),
             steps.hbheNoiseFilter(),
             steps.hltPrescaleHistogrammer(["HLT_Jet50U","HLT_HT100U","HLT_MET45"]),       
 

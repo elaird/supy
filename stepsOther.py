@@ -237,18 +237,20 @@ class soloObjectPtSelector(analysisStep) :
 class vertexRequirementFilter(analysisStep) :
     """vertexRequirementFilter"""
     
-    def __init__(self,minVertexNdof=5.0,maxVertexZ=15.0) :
+    def __init__(self,minVertexNdof=4.0,maxVertexZ=24.0,maxVertexRho=2.0) :
         self.minVertexNdof = minVertexNdof
         self.maxVertexZ = maxVertexZ
-        self.moreName = "any v: !fake; ndf>=%.1f;|z|<%.1f" % (minVertexNdof,maxVertexZ)
+        self.maxVertexRho = maxVertexRho
+        self.moreName = "any v: !fake; ndf>%.1f; |z|<%.1f; rho<%.1f" % (minVertexNdof,maxVertexZ,maxVertexRho)
 
     def select(self,eventVars) :
         fake,ndof,pos = eventVars["vertexIsFake"], eventVars["vertexNdof"], eventVars["vertexPosition"]
         
         for i in range(pos.size()) :
             if fake.at(i) : continue
-            if ndof.at(i) < self.minVertexNdof : continue
+            if ndof.at(i) <= self.minVertexNdof : continue
             if abs(pos.at(i).Z()) >= self.maxVertexZ : continue
+            if abs(pos.at(i).Rho()) >= self.maxVertexRho : continue
             return True
         return False
 #####################################
