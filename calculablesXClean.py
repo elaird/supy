@@ -2,63 +2,62 @@ from wrappedChain import *
 import copy
 import ROOT as r
 
-class xcJetIndices(wrappedChain.calculable) :
-    def name(self) : return self.namestr
+##############################
+class xcJet(wrappedChain.calculable) :
+    def name(self) : return "%sCorrectedP4%s"%self.xcjets
 
-    def __init__(self, collection) :
-        self.namestr = "%sIndices%s" % collection
-        self.p4sName = "%sCorrectedP4%s"% collection
-
-    def update(self,ignored) :
-        self.value = range(self.source[self.p4sName].size())
-######################################
-class xcJetCorrectedP4(wrappedChain.calculable) :
-    def name(self) : return "xc%sCorrectedP4%s"%self.jets
-
-    def __init__(self, collection,
-                 photons   = None, photonDR   = 0,
-                 electrons = None, electronDR = 0,
-                 muons     = None, muonDR     = 0 ) :
-        self.jets = collection
-        self.other = {"photons":(photons,photonDR), "electrons":(electrons,electronDR),"muons":(muons,muonDR)}
+    def __init__(self,jetSource = None,
+                 isoGamma    = None, isoGammaDR    = 0,
+                 isoElectron = None, isoElectronDR = 0,
+                 nonIsoMuon  = None, nonIsoMuonDR  = 0,
+                 jesAbs = 1.0,
+                 jesRel = 0.0 ) :
         self.value = r.std.vector('LorentzV')()
-        self.moreName = "jets,phot,elec,muon = %s,%s,%s,%s" \
-                        % ("%s%s"%collection, str(photons), str(electrons), str(muons))
-        self.moreName2 = "dR (phot,elec,muon) = (%.1f,%.1f,%.1f)" % (photonDR,electronDR,muonDR)
+        self.jetP4Source = "CorrectedP4"%jetSource
+        self.xcjets = ("xc"+jetSource[0],jetSource[1])
+        self.other = dict( [ (eval(i),eval(i+"DR")) for i in ["isoGamma","isoElectron","nonIsoMuon"]] )
+
+        self.moreName = ";".join(["%sDR<%.2f"%(v[0]+(v[1],)) for v in filter(lambda v: v[0], self.other.values())])
+        if jesAbs!=1.0 or jesRel!=0.0:
+            self.moreName2 += "jes corr: %.2f*(1+%.2f|eta|)"%(jesAbs,jesRel)
+    
+    def jes(self,p4) : return p4 * (self.jesAbs*(1+self.jesRel*abs(p4.eta())))
 
     def update(self,ignored) :
-        jetIndices = set(self.source["%sIndices%s"%self.jets])
-        jetP4s = self.source["%sCorrectedP4%s"%self.jets]
+        jetP4s = self.source[self.jetP4Source]
+        killed = self.source["%sIndicesKilled%s"%self.xcjets]
+        matchedMuons = []
 
-        for iJet in list(jetIndices) :
-            jetP4 = jetP4s.at(iJet)
-            if self.matchIn("photons",jetP4) \
-            or self.matchIn("electrons",jetP4) :
-                jetIndices.remove(iJet)
-        
-        finalJets = [copy.deepcopy(jetP4s.at(i)) for i in jetIndices]
-
-        muonsName,muonDR = self.other["muons"]
-        if muonsName :
-            print "Woah there, maybe you should check this implementation (jet corrections from muons)"
-            muons = self.source["%sP4%s"%muonsName]
-            for jet in finalJets :
-                for i in self.source["%sIndices%s"%muonsName] :
-                    if muonDR > r.Math.Vectorutil.DeltaR(jet,muons.at(i)) :
-                        jet += muons.at(i)
-
-        finalJets.sort( reverse = True, key = lambda p4: p4.pt())
         self.value.clear()
-        for p4 in finalJets:
-            self.value.push_back(p4)
+        for iJet,jet in enumerate(jetP4s) :
+            xcJet = jes(jet)
+            self.value.push_back(xcJet)
 
-    def matchIn(self,label,p4) :
+            if self.matchesIn("isoGamma",xcJet) \
+            or self.matchesIn("isoElectron",xcJet) :
+                killed.add(iJet)
+                continue
+
+            for p4 in self.matchesIn("nonIsoMuon",xcJet, exitEarly=False) :
+                matchedMuons.add(p4)
+                xcJet += p4
+
+        if self.other["nonIsoMuon"][0] :
+            muset = set(matchedMuons)
+            nonisomu = self.source["%sIndices%s"%self.other["muons"][0]]
+
+            self.source["crock"]["%s%sUnmatchedNonisolatedMuons"%self.xcjets] = len(muset) == len(nonisomu)
+            self.source["crock"]["%s%sNonUniqueMuonMatch"%self.xcjets] = len(matchedMuons) == len(muset)
+
+    def matchIn(self,label,p4, exitEarly = True) :
         collection,dR = self.other[label]
         if not collection : return False
         indices = self.source["%sIndices%s"%collection]
         objects = self.source["%sP4%s"%collection]
+        matches = []
         for i in indices :
-            if dR > r.Math.VectorUtil.DeltaR(objects.at(i),p4) :
-                return True
-        return False
-        
+            objP4 = objects.at(i)
+            if dR > r.Math.VectorUtil.DeltaR(objP4,p4) :
+                if exitEarly: return True
+                else: matches.append(objP4)
+        return matches
