@@ -70,7 +70,7 @@ class muonIndicesNonIso(calculables.indicesOther) :
     def __init__(self, collection = None) :
         super(muonIndicesNonIso, self).__init__(collection)
         self.indicesOther = "%sIndicesNonIso%s"%collection
-        self.moreName = "pass ptMin & id; fail iso;"
+        self.moreName = "pass ptMin & id; fail iso"
 ##############################
 class muonIndices(wrappedChain.calculable) :
     def name(self) : return "%sIndices%s"%self.muons
