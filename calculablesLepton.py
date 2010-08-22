@@ -1,3 +1,4 @@
+import calculables
 from wrappedChain import *
 ##############################
 class numberStationsWithMatchingChamber(wrappedChain.calculable) :
@@ -60,6 +61,17 @@ class combinedRelativeIso(wrappedChain.calculable) :
                          self.source["%sHcalIso%s"%self.muons],
                          self.source["%sP4%s"%self.muons])
 ##############################
+class muonIndicesOther(calculables.indicesOther) :
+    def __init__(self, collection = None) :
+        super(muonIndicesOther, self).__init__(collection)
+        self.moreName = "pass ptMin; fail id"
+##############################
+class muonIndicesNonIso(calculables.indicesOther) :
+    def __init__(self, collection = None) :
+        super(muonIndicesNonIso, self).__init__(collection)
+        self.indicesOther = "%sIndicesNonIso%s"%collection
+        self.moreName = "pass ptMin & id; fail iso;"
+##############################
 class muonIndices(wrappedChain.calculable) :
     def name(self) : return "%sIndices%s"%self.muons
     
@@ -71,10 +83,16 @@ class muonIndices(wrappedChain.calculable) :
 
     def update(self,ignored) :
         self.value = []
+        nonIso = self.source["%sIndicesNonIso%s"%self.muons]
+        other = self.source["%sIndicesOther%s"%self.muons]
         p4s = self.source["%sP4%s"%self.muons]
         tight = self.source["%sIDtight%s"%self.muons]
         relIso = self.source["%sCombinedRelativeIso%s"%self.muons]
         for i in range(p4s.size()) :
             if p4s.at(i).pt() < self.ptMin : break
-            if tight[i] and relIso[i] < self.relIsoMax : self.value.append(i)
+            if tight[i] :
+                if relIso[i] < self.relIsoMax :
+                    self.value.append(i)
+                else: nonIso.append(i)
+            else: other.append(i)
 ##############################
