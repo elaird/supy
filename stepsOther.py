@@ -68,15 +68,6 @@ class orFilter(analysisStep) :
             if eventVar[var] < cut: return True
         return False
 #####################################
-class crockVarCalcDiff(analysisStep) :
-    """crockVarCalcDiff"""
-    def __init__(self,exV,calc) :
-        self.exV = exV
-        self.calc = calc
-        moreName = "Checking that crockVars == calculable, %s,%s",(exV,calc)
-    def uponAcceptance(self,eventVars) :
-        print  eventVars["crock"][self.exV], eventVars[self.calc]
-#####################################
 class skimmer(analysisStep) :
     #special __doc__ assignment below
     
