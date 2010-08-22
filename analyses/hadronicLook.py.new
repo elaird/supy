@@ -76,8 +76,7 @@ class hadronicLook(analysis.analysis) :
 
             steps.histogrammer("%sIndices%s"%_muon,10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
-
-            steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
+            steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_photon, nMax = 0),
             
             #steps.skimmer(),
