@@ -22,21 +22,17 @@ def zeroArgs() :
         except: zeroArg.append(calc())
     return zeroArg
 
-def fromJetCollections(collections) :
-    """Returns a list of instances of all jet calculables taking only the collection as arg."""
+def fromCollections(moduleName,collections) :
+    """Returns a list of instances of all calculables in moduleName taking only the collection as arg."""
 
-    jetCalcs = []
+    calcs = []
     for name,calc in globals().iteritems() :
         if not isclass(calc) : continue
         if not issubclass(calc, wrappedChain.calculable) : continue
-        if not "calculablesJet." in str(calc) : continue
+        if not moduleName+"." in str(calc) : continue
         try:
             args = getargspec(eval("%s.__init__.im_func"%name))[0]
             if "collection" in args and len(args) is 2:
-                for col in collections : jetCalcs.append(calc(col))
+                for col in collections : calcs.append(calc(col))
         except: pass
-    return jetCalcs
-
-def fromMuonCollections(collections) :
-    """dummy"""
-    return []
+    return calcs

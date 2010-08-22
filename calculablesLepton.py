@@ -1,20 +1,31 @@
 from wrappedChain import *
 ##############################
-class muonNumberStationsWithMatchingChamberPat(wrappedChain.calculable) :
-    def __init__(self) :
+class numberStationsWithMatchingChamber(wrappedChain.calculable) :
+    def name(self) : return "%sNumberStationsWithMatchingChamber%s"%self.muons
+    
+    def __init__(self, collection = None) :
         self.moreName = "WARNING: dummy value always = 2"
+        self.muons = collection
+        
     def update(self,ignored) :
-        self.value = [2] * self.source["muonIsTrackerMuonPat"].size()
+        self.value = [2] * self.source["%sIsTrackerMuon%s"%self.muons].size()
 ##############################
-class muonPixelNumberOfValidHitsPat(wrappedChain.calculable) :
-    def __init__(self) :
+class pixelNumberOfValidHits(wrappedChain.calculable) :
+    def name(self) : return "%sPixelNumberOfValidHits%s"%self.muons
+    
+    def __init__(self, collection = None) :
         self.moreName = "WARNING: dummy value always = 1"
+        self.muons = collection
+        
     def update(self,ignored) :
-        self.value = [1]*self.source["muonIsTrackerMuonPat"].size()
+        self.value = [1]*self.source["%sIsTrackerMuon%s"%self.muons].size()
 ##############################
-class muonIDtightPat(wrappedChain.calculable) :
-    def __init__(self) :
+class IDtight(wrappedChain.calculable) :
+    def name(self): return "%sIDtight%s"%self.muons
+    
+    def __init__(self, collection = None) :
         self.moreName = "implemented by hand, CMS AN-2010/211"
+        self.muons = collection
 
     def tight(self,isTrk, idGlbTight, nStationsMatch, nTrkPxHits, nPxHits, dxy) :
         return isTrk               and \
@@ -26,15 +37,17 @@ class muonIDtightPat(wrappedChain.calculable) :
 
     def update(self,ignored) :
         self.value = map(self.tight,
-                         self.source["muonIsTrackerMuonPat"],
-                         self.source["muonIDGlobalMuonPromptTightPat"],
-                         self.source["muonNumberStationsWithMatchingChamberPat"],
-                         self.source["muonInnerTrackNumberOfValidHitsPat"],
-                         self.source["muonPixelNumberOfValidHitsPat"],
-                         self.source["muonGlobalTrackDxyPat"])    
+                         self.source["%sIsTrackerMuon%s"%self.muons],
+                         self.source["%sIDGlobalMuonPromptTight%s"%self.muons],
+                         self.source["%sNumberStationsWithMatchingChamber%s"%self.muons],
+                         self.source["%sInnerTrackNumberOfValidHits%s"%self.muons],
+                         self.source["%sPixelNumberOfValidHits%s"%self.muons],
+                         self.source["%sGlobalTrackDxy%s"%self.muons])    
 ##############################
-class muonCombinedRelativeIsoPat(wrappedChain.calculable) :
-    def __init__(self) :
+class combinedRelativeIso(wrappedChain.calculable) :
+    def name(self): return "%sCombinedRelativeIso%s"%self.muons
+    def __init__(self, collection = None) :
+        self.muons = collection
         self.moreName = "(trackIso + ecalIso + hcalIso) / pt_mu"
 
     def combinedRelativeIso(self,isoTrk,isoEcal,isoHcal,p4) :
@@ -42,18 +55,18 @@ class muonCombinedRelativeIsoPat(wrappedChain.calculable) :
 
     def update(self,ignored) :
         self.value = map(self.combinedRelativeIso,
-                         self.source["muonTrackIsoPat"],
-                         self.source["muonEcalIsoPat"],
-                         self.source["muonHcalIsoPat"],
-                         self.source["muonP4Pat"])
+                         self.source["%sTrackIso%s"%self.muons],
+                         self.source["%sEcalIso%s"%self.muons],
+                         self.source["%sHcalIso%s"%self.muons],
+                         self.source["%sP4%s"%self.muons])
 ##############################
 class muonIndices(wrappedChain.calculable) :
     def name(self) : return "%sIndices%s"%self.muons
     
-    def __init__(self, muons = None, ptMin = None, combinedRelIsoMax = None ) :
+    def __init__(self, collection = None, ptMin = None, combinedRelIsoMax = None ) :
         self.ptMin = ptMin
         self.relIsoMax = combinedRelIsoMax
-        self.muons = muons
+        self.muons = collection
         self.moreName = "tight; pt>%.1f; cmbRelIso<%.2f"%( ptMin, combinedRelIsoMax )
 
     def update(self,ignored) :
