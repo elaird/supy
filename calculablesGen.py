@@ -21,7 +21,7 @@ class genIndices(wrappedChain.calculable) :
 
     def update(self,ignored) :
         pdg = self.source["genPdgId"]
-        self.value = filter( lambda i: pdg.at(i) in self.PDGs, range(p4s.size()) )
+        self.value = filter( lambda i: pdg.at(i) in self.PDGs, range(pdg.size()) )
 
 ##############################
 class genParticleCounter(wrappedChain.calculable) :
