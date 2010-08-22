@@ -44,7 +44,7 @@ class leadingUnCorrJetPtSelector(analysisStep) :
         # Corrected pt of leading jet (by uncorrected pt) >= threshold
         for cs in self.jetCollectionsAndSuffixes :
             p4s = eventVars["%sCorrectedP4%s" % cs]
-            corr = eventVars["%sCorrFactor%s" % (cs[0].strip("jes_"),cs[1])]
+            corr = eventVars["%sCorrFactor%s" % (cs[0].lstrip("xc"),cs[1])]
             size = p4s.size()
             if not size : continue
             maxUncorrPt,index = max( [ (p4s.at(i).pt()/corr.at(i),i) for i in range(size) ] )
