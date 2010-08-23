@@ -216,13 +216,17 @@ class alphaTetaDependence(analysisStep) :
     def uponAcceptance (self,eventVars) :
         book = self.book(eventVars)
         nJet= len(eventVars["%sIndices%s"%self.cs])
-        iGamma = eventVars["photonIndicesPat"]
-        nGamma = len(iGamma)
+        nJet = "2jet" if nJet==2 else "ge3jet"
         alphaT = eventVars[self.alphaT]
-        genEta = abs(eventVars["genP4"].at(eventVars["genIndicesGammaZ"][0]).eta())
-        etaBin = "fwd" if genEta>3 else \
-                 "mid" if genEta>1.5 else \
-                 "ctr" 
 
-        book.fill( alphaT, "alphaT%d%d%s"%(nJet,nGamma,etaBin), 200, 0.0, 2.0, title = "(%d jet,%d gamma, %s) #alpha_{T};events / bin"%(nJet,nGamma,etaBin))
+        iGamma = eventVars["photonIndicesPat"]
+        iZ = eventVars["genIndicesZ"]
+
+        if len(iGamma) == 1 and eventVars["photonP4Pat"].at(iGamma[0]).pt() > 100 :
+            absEta = abs(eventVars["photonP4Pat"].at(iGamma[0]).eta())
+            book.fill( (alphaT,absEta), "gammaAlphaT_%s"%nJet, (100,10), (0,0), (2,5), title = ";%s #alpha_{T};|#eta|;events / bin"%nJet)
+        elif len(iZ) :
+            absEta = abs(eventVars["genP4"].at(iZ[0]).eta())
+            book.fill( (alphaT,absEta), "zAlphaT_%s"%nJet, (100,5), (0,0), (2,5), title = ";%s #alpha_{T};|#eta|;events / bin"%nJet)
+        
 #####################################
