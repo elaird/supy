@@ -12,3 +12,8 @@ class photonIndicesPat(wrappedChain.calculable) :
         ids = self.source[self.flagName] if self.flagName else p4s.size()*[1]
         
         self.value = filter(lambda i: ids[i] and p4s.at(i).pt() > self.ptMin, range(p4s.size()))
+
+class photonLeadingPtPat(wrappedChain.calculable) :
+    def update(self,ignored) :
+        indices = self.source["photonIndicesPat"]
+        self.value = self.source["photonP4Pat"].at(indices[0]).pt() if len(indices) else None
