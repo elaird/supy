@@ -203,7 +203,7 @@ def fileListFromDisk(location,itemsToSkip=[],sizeThreshold=0) :
     return fileList
 #####################################        
 class rBin(object) :
-    def __init__(self,num,den,i, minRelUnc=0.5) :
+    def __init__(self,num,den,i, minRelUnc=0.25) :
         self.lowEdge = num.GetBinLowEdge(i)
         self.num = num.GetBinContent(i)
         self.enum = num.GetBinError(i)
