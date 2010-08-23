@@ -16,4 +16,4 @@ jetmet.add("JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn",    '%s/bm409//ICF/autom
 jetmet.add("JetMETTau.Run2010A-PromptReco-v4.RECO.Loukas",  '%s/gouskos//ICF/automated/2010_08_05_01_38_58/")'%srm, lumi = 999999.9 )
 jetmet.add("JetMET.Run2010A-PromptReco-v4.RECO.Loukas",     '%s/gouskos//ICF/automated/2010_08_05_01_56_12/")'%srm, lumi = 999999.9 )
 jetmet.add("JetMET.Run2010A-PromptReco-v4.RECO.Martyn",     '%s/mjarvis//ICF/automated/2010_08_13_15_36_08/")'%srm, lumi = 999999.9 )
-
+jetmet.add("JetMET.Run2010A-PromptReco-v4.RECO.Bryn",       '%s/bm409//ICF/automated/2010_08_21_18_15_19/")'%srm,   lumi = 999999.9 )

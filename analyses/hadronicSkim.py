@@ -30,7 +30,9 @@ class hadronicSkim(analysis.analysis) :
                 #specify(name = "JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn"                        ),
                 #specify(name = "JetMETTau.Run2010A-PromptReco-v4.RECO.Loukas"                      ),
                 #specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Loukas"                         ),
-                specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Martyn"                         ),
+                #specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Martyn"                         ),
+                specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Bryn"                           ),
+
                 #specify(name = "z_inv_mg"    ),
                 #specify(name = "z_jets_mg"   ),
                 #specify(name = "w_jets_mg"   ),
