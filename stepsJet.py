@@ -1,4 +1,5 @@
 import ROOT as r
+import math
 from analysisStep import analysisStep
 #####################################
 class jetPtSelector(analysisStep) :
@@ -206,8 +207,8 @@ class deltaPhiHistogrammer(analysisStep) :
         book.fill( eventVars[self.var]["R"]  , self.var, 20, 0.0, 10.0, title = ";"+self.var+";events / bin")
         book.fill( eventVars[self.var]["eta"], self.var, 50, -10, 10.0, title = ";"+self.var+";events / bin")
 #####################################
-class alphaTetaDependence(analysisStep) :
-    """alphaTetaDependence"""
+class alphatEtaDependence(analysisStep) :
+    """alphafEtaDependence"""
 
     def __init__(self,collection) :
         self.cs = collection
@@ -222,11 +223,17 @@ class alphaTetaDependence(analysisStep) :
         iGamma = eventVars["photonIndicesPat"]
         iZ = eventVars["genIndicesZ"]
 
-        if len(iGamma) == 1 and eventVars["photonP4Pat"].at(iGamma[0]).pt() > 100 :
-            absEta = abs(eventVars["photonP4Pat"].at(iGamma[0]).eta())
-            book.fill( (alphaT,absEta), "gammaAlphaT_%s"%nJet, (100,10), (0,0), (2,5), title = ";%s #alpha_{T};|#eta|;events / bin"%nJet)
-        elif len(iZ) :
-            absEta = abs(eventVars["genP4"].at(iZ[0]).eta())
-            book.fill( (alphaT,absEta), "zAlphaT_%s"%nJet, (100,5), (0,0), (2,5), title = ";%s #alpha_{T};|#eta|;events / bin"%nJet)
-        
+        p4 = None
+        if len(iZ) :
+            p4 = eventVars["genP4"].at(iZ[0])
+            label = "z"
+        elif len(iGamma) == 1 :
+            p4 = eventVars["photonP4Pat"].at(iGamma[0])
+            label = "gamma"
+
+        if p4 :
+            absEta = abs(p4.eta())
+            iPt = math.floor(p4.pt()/20)
+            book.fill( (alphaT,absEta), "%sAlphaT_%s_pt%02d"%(label,nJet,iPt), (100,10), (0,0), (2,5),
+                       title = ";%s_%02d_%s #alpha_{T};|#eta|;events / bin"%(label,iPt,nJet))
 #####################################
