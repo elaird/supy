@@ -252,7 +252,7 @@ class monsterEventFilter(analysisStep) :
         self.maxNumTracks=maxNumTracks
         self.minGoodTrackFraction=minGoodTrackFraction
 
-        self.moreName = "<=%d tracks or >%.1f good fraction" % (maxNumTracks, minGoodTrackFraction)
+        self.moreName = "<=%d tracks or >%.2f good fraction" % (maxNumTracks, minGoodTrackFraction)
 
     def select (self,eventVars) :
         nTracks    = eventVars["tracksNEtaLT0p9AllTracks"] + eventVars["tracksNEta0p9to1p5AllTracks"] + eventVars["tracksNEtaGT1p5AllTracks"]
