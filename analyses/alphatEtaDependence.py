@@ -56,8 +56,10 @@ class alphatEtaDependence(analysis.analysis) :
             steps.variableGreaterFilter(250.0,"%sSumPt%s"%_jet),
             #steps.multiplicityFilter("%sIndices%s"%_photon, nMax = 0),
             steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
-
-            steps.alphatEtaDependence(_jet)
+            steps.alphatEtaDependence(_jet),
+            steps.variableGreaterFilter(140.0,"photonLeadingPtPat"),
+            steps.variableGreaterFilter(350.0,"%sSumPt%s"%_jet),
+            steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet)
             ]
         return stepList
         
@@ -67,10 +69,10 @@ class alphatEtaDependence(analysis.analysis) :
 
     def listOfSamples(self) :
         from samples import specify
-        return [  specify(name = "g_jets_mg_pt40_100",    nFilesMax = 6, color = r.kGreen   ),
+        return [  specify(name = "g_jets_mg_pt40_100",    nFilesMax =  8, color = r.kGreen   ),
                   specify(name = "g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
                   specify(name = "g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
-                  specify(name = "z_inv_mg_skim",         nFilesMax = -1,  color = r.kMagenta ),
+                  specify(name = "z_inv_mg_skim",         nFilesMax = -1, color = r.kMagenta ),
                   ]
 
     def conclude(self) :
@@ -78,7 +80,7 @@ class alphatEtaDependence(analysis.analysis) :
             org=organizer.organizer( self.sampleSpecs(tag) )
             org.mergeSamples(targetSpec = {"name":"g_jets_mg", "color":r.kGreen},
                              sources = ["g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
-            org.scale(100)
+            org.scale(10)
 
             pl = plotter.plotter(org, psFileName = self.psFileName(tag))
             pl.plotAll()
@@ -102,9 +104,10 @@ class alphatEtaDependence(analysis.analysis) :
             c = r.TCanvas("c","",800,1000)
             outDir = self.outputDirectory(configId)+"/"
             for s in org.samples : c.Print(outDir+s["name"]+".ps[")
-            for key in sorted(org.selections[-1]):
+            iSelection = -4
+            for key in sorted(org.selections[iSelection]):
                 if key == "counts" : continue
-                for hist,sample in zip(org.selections[-1][key],org.samples) :
+                for hist,sample in zip(org.selections[iSelection][key],org.samples) :
                     if not hist : continue
                     ctr = hist.ProjectionX(hist.GetName()+"_ctr",0,2)
                     fwd = hist.ProjectionX(hist.GetName()+"_fwd",3)
@@ -119,10 +122,6 @@ class alphatEtaDependence(analysis.analysis) :
                     fwd.SetMaximum(m)
                     ctr.SetMaximum(m)
                     ratio.SetMinimum(0); ratio.SetMaximum(2)
-
-                    boson,jets,pt = key.split("_"); boson = boson[:-6]; pt = 20*int(pt[2:])
-                    fwd.SetTitle("%s, pt %d-%d GeV;%s #alpha_{T}"%(boson,pt,pt+20,jets))
-                    ctr.SetTitle("%s, pt %d-%d GeV;%s #alpha_{T}"%(boson,pt,pt+20,jets))
                     ratio.SetTitle("fwd/ctr")
 
                     c.Clear(); c.Divide(1,2); 

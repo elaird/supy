@@ -208,12 +208,14 @@ class deltaPhiHistogrammer(analysisStep) :
         book.fill( eventVars[self.var]["eta"], self.var, 50, -10, 10.0, title = ";"+self.var+";events / bin")
 #####################################
 class alphatEtaDependence(analysisStep) :
-    """alphafEtaDependence"""
+    """alphatEtaDependence"""
 
     def __init__(self,collection) :
         self.cs = collection
         self.alphaT = "%sAlphaT%s"%self.cs
-    
+        self.ptBin = 20
+        self.iMax = 10
+
     def uponAcceptance (self,eventVars) :
         book = self.book(eventVars)
         nJet= len(eventVars["%sIndices%s"%self.cs])
@@ -226,14 +228,17 @@ class alphatEtaDependence(analysisStep) :
         p4 = None
         if len(iZ) :
             p4 = eventVars["genP4"].at(iZ[0])
-            label = "z"
+            label = "Z"
         elif len(iGamma) == 1 :
             p4 = eventVars["photonP4Pat"].at(iGamma[0])
             label = "gamma"
 
         if p4 :
             absEta = abs(p4.eta())
-            iPt = math.floor(p4.pt()/20)
-            book.fill( (alphaT,absEta), "%sAlphaT_%s_pt%02d"%(label,nJet,iPt), (100,10), (0,0), (2,5),
-                       title = ";%s_%02d_%s #alpha_{T};|#eta|;events / bin"%(label,iPt,nJet))
+            iPt = math.floor(p4.pt()/self.ptBin)
+            book.fill( (alphaT,absEta), "%sAlphaT_%s_pt%02d"%(label,nJet,min(iPt,self.iMax)), (100,10), (0,0), (2,5),
+                       title = "%s %s;%s #alpha_{T};|#eta|;events / bin"%(label,self.ptLabel(iPt),nJet))
+
+    def ptLabel(self,ipt) :
+        return "pt %d-%d"%(self.ptBin*ipt,self.ptBin*(ipt+1)) if ipt<self.iMax else "pt>%d"%(self.iMax*self.ptBin)
 #####################################
