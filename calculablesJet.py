@@ -122,15 +122,20 @@ class jetSumPt(wrappedChain.calculable) :
 class jetSumP4(wrappedChain.calculable) :
     def name(self) : return "%sSumP4%s" % self.cs
 
-    def __init__(self, collection = None) :
+    def __init__(self, collection = None, scaleFactor = 1.0) :
         self.cs = collection
         self.p4Name = '%sCorrectedP4%s' % self.cs
         self.indicesName = "%sIndices%s" % self.cs
+        self.scaleFactor = scaleFactor
 
     def update(self,ignored) :
         p4s = self.source[self.p4Name]
         indices = self.source[self.indicesName]
         self.value = reduce( lambda x,i: x+p4s.at(i), indices[1:], p4s.at(indices[0]) ) if len(indices) else None
+        self.value *= self.scaleFactor
+        ht = self.source["%sSumPt%s"%self.cs]
+        if self.value.pt()>ht :
+            self.value *= 0.99*ht / self.value.pt()
 ##############################
 class deltaPseudoJet(wrappedChain.calculable) :
     def name(self) : return "%sDeltaPseudoJet%s" % self.cs
@@ -214,13 +219,15 @@ class jetDeltaX01(wrappedChain.calculable) :
         self.value["eta"] = jet0.eta()-jet1.eta()
 ##############################
 class deltaPhiStar(wrappedChain.calculable) :
-    def name(self) : return "%sDeltaPhiStar%s" % self.cs
+    def name(self) : return "%sDeltaPhiStar%s"%self.cs
 
-    def __init__(self,collection = None) :
+    def __init__(self, collection = None, ptMin = None) :
         self.cs = collection
+        self.ptMin = ptMin
         self.p4Name = '%sCorrectedP4%s' % self.cs
         self.indicesName = '%sIndices%s' % self.cs
         self.sumP4Name = "%sSumP4%s" % self.cs
+        self.moreName = "pT>%.1f GeV"%self.ptMin
         
     def update(self,ignored) :
         self.value=None
@@ -230,7 +237,11 @@ class deltaPhiStar(wrappedChain.calculable) :
         jets = self.source[self.p4Name]
         sumP4 = self.source[self.sumP4Name]
 
-        self.value = min([abs(r.Math.VectorUtil.DeltaPhi(jets.at(i),jets.at(i)-sumP4)) for i in indices])
+        dPhi = []
+        for i in indices :
+            if jets.at(i).pt()<self.ptMin : continue
+            dPhi.append( abs(r.Math.VectorUtil.DeltaPhi(jets.at(i),jets.at(i)-sumP4)) )
+        if len(dPhi) : self.value = min(dPhi)
 ##############################
 class maxProjMHT(wrappedChain.calculable) :
     def name(self) : return "%sMaxProjMHT%s"%self.cs
