@@ -76,20 +76,18 @@ class analysis(object) :
         if self._configurationId==None :
             self._configurationId = 0 
         
-        for item in ["listOfSteps","listOfCalculables"] :
+        for item in ["listOfSteps","listOfCalculables","listOfSamples"] :
             setattr(self, "_"+item, getattr(self,item)(self._configurations[self._configurationId]) )
 
         selectors = filter(lambda s: hasattr(s,"select"), self._listOfSteps)
         assert len(selectors) == len(set(map(lambda s: (s.__doc__,s.moreName,s.moreName2), selectors))), "Duplicate selectors are not allowed."
-
-        listOfSamples = self.listOfSamples()
-        assert len(listOfSamples) == len(set(map(lambda s: s.name,listOfSamples))), "Duplicate sample names are not allowed."
+        assert len(self._listOfSamples) == len(set(map(lambda s: s.name,self._listOfSamples))), "Duplicate sample names are not allowed."
 
         self.fileDirectory=self._mainTree[0]
         self.treeName=self._mainTree[1]
         
         self.listOfLoopers=[]
-        self.addSamples(listOfSamples)
+        self.addSamples()
 
     def sideBySideAnalysisTags(self) : return self._sideBySideAnalysisTags
     def configurations(self) :         return self._configurations
@@ -109,7 +107,7 @@ class analysis(object) :
     def listOfCalculables(self,params) :     raise Exception("NotImplemented","Implement a member function listOfCalculables(self,params)")
                                              
     def listOfSampleDictionaries(self) :     raise Exception("NotImplemented","Implement a member function sampleDict()")
-    def listOfSamples(self) :                raise Exception("NotImplemented","Implement a member function listOfSamples()")
+    def listOfSamples(self,params) :         raise Exception("NotImplemented","Implement a member function listOfSamples()")
 
     def printNodesUsed(self) :               return False
     def mainTree(self) :                     return ("susyTree","tree")
@@ -196,13 +194,13 @@ class analysis(object) :
     def makeOutputPlotFileName(self,configurationId,sampleName) :
         return self.outputDirectory(configurationId)+"/"+sampleName+"_plots.root"
 
-    def addSamples(self, listOfSamples, computeEntriesForReport = False) :
+    def addSamples(self, computeEntriesForReport = False) :
         mergedDict = samples.SampleHolder()
         map(mergedDict.update,self._listOfSampleDictionaries)
 
         #print mergedDict
         ptHatMinDict={}
-        for sampleSpec in listOfSamples :
+        for sampleSpec in self._listOfSamples :
             sampleName = sampleSpec.name
             sampleTuple = mergedDict[sampleName]
             isMc = sampleTuple.lumi==None
