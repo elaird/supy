@@ -122,17 +122,20 @@ class jetSumPt(wrappedChain.calculable) :
 class jetSumP4(wrappedChain.calculable) :
     def name(self) : return "%sSumP4%s" % self.cs
 
-    def __init__(self, collection = None, scaleFactor = 1.0) :
+    def __init__(self, collection = None, mcScaleFactor = None) :
         self.cs = collection
         self.p4Name = '%sCorrectedP4%s' % self.cs
         self.indicesName = "%sIndices%s" % self.cs
-        self.scaleFactor = scaleFactor
+        self.mcScaleFactor = mcScaleFactor
 
     def update(self,ignored) :
         p4s = self.source[self.p4Name]
         indices = self.source[self.indicesName]
         self.value = reduce( lambda x,i: x+p4s.at(i), indices[1:], p4s.at(indices[0]) ) if len(indices) else None
-        self.value *= self.scaleFactor
+
+        if "genpthat" not in self.source : return
+        #for MC only
+        self.value *= self.mcScaleFactor
         ht = self.source["%sSumPt%s"%self.cs]
         if self.value.pt()>ht :
             self.value *= 0.99*ht / self.value.pt()
