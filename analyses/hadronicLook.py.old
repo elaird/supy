@@ -15,7 +15,9 @@ class hadronicLook(analysis.analysis) :
        #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",       ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"   ]))
 
         return { "objects": objects,
-                 "nJetsMinMax" : dict([  ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None))  ] [0:1] ),
+                 "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None))  ] [0:1] ),
+                 "mcSoup" :           dict([ ("pythia","pythia"), ("madgraph","madgraph")       ] [1:2] ),
+                 "mcMhtScaleFactor" : dict([ ("defaultMht",1.0), ("scaledMht",1.1)              ] [0:1] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  #"jesAbs":  [1.0,1.1,0.9]               [:],
                  #"jesRel":  0,
@@ -28,14 +30,14 @@ class hadronicLook(analysis.analysis) :
 
         return calculables.zeroArgs() +\
                calculables.fromCollections("calculablesJet",[_jet]) +\
-               calculables.fromCollections("calculablesLepton",[_muon]) +\
+               calculables.fromCollections("calculablesMuon",[_muon]) +\
                [ #calculables.xcJet( _jet,  gamma = _photon, gammaDR = 0.5, muon = _muon, muonDR = 0.5),
                  calculables.jetIndices( _jet, ptMin = 20.0, etaMax = 3.0, flagName = params["jetId"]),
                  calculables.PFJetIDloose( _jet, fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0),
-                 calculables.jetSumP4( _jet, scaleFactor = 1.0),
+                 calculables.jetSumP4( _jet, mcScaleFactor = params["mcMhtScaleFactor"]),
                  calculables.deltaPhiStar( _jet, ptMin = 50.0),
                  calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15),
-                 calculables.photonIndicesPat(  ptMin = 20, flagName="photonIDLoosePat")]
+                 calculables.photonIndicesPat(  ptMin = 20, flagName = "photonIDLoosePat")]
 
     def listOfSteps(self,params) :
         _jet  = params["objects"]["jet"]
@@ -67,20 +69,34 @@ class hadronicLook(analysis.analysis) :
             steps.histogrammer("%sSumPt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s p_{T}s;events / bin"%_jet),
             steps.variableGreaterFilter(350.0,"%sSumPt%s"%_jet),
 
-            steps.passFilter("singleJetPlots"),
-            steps.cleanJetPtHistogrammer(_jet),
-            steps.passFilter("jetSumPlots"), 
-            steps.cleanJetHtMhtHistogrammer(_jet),
-            steps.passFilter("kinematicPlots"), 
-            steps.alphaHistogrammer(_jet),
-            
-            steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
-
+            #muon, photon vetoes
             steps.histogrammer("%sIndices%s"%_muon,10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
             steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_photon, nMax = 0),
-            
+
+            #many plots
+            steps.passFilter("singleJetPlots1"),
+            steps.cleanJetPtHistogrammer(_jet),
+            steps.passFilter("jetSumPlots1"), 
+            steps.cleanJetHtMhtHistogrammer(_jet),
+            steps.passFilter("kinematicPlots1"), 
+            steps.alphaHistogrammer(_jet),
+
+            #extrapolation region
+            steps.variableGreaterFilter(0.50,"%sAlphaT%s"%_jet),
+
+            #many plots (again)
+            steps.passFilter("singleJetPlots2"),
+            steps.cleanJetPtHistogrammer(_jet),
+            steps.passFilter("jetSumPlots2"), 
+            steps.cleanJetHtMhtHistogrammer(_jet),
+            #steps.passFilter("kinematicPlots2"), 
+            #steps.alphaHistogrammer(_jet),
+
+            #signal selection
+            steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
+
             #steps.skimmer(),
             #steps.eventPrinter(),
             #steps.jetPrinter(_jet),
@@ -102,52 +118,75 @@ class hadronicLook(analysis.analysis) :
     def listOfSampleDictionaries(self) :
         return [samples.mc, samples.jetmet]
 
-    def listOfSamples(self) :
+    def listOfSamples(self,params) :
         from samples import specify
-        return [  specify(name = "JetMET_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-                ##specify(name = "qcd_mg_ht_250_500_old", nFilesMax = -1, color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt30",           nFilesMax = -1, color = r.kBlue    ),
-                  specify(name = "qcd_py_pt80",           nFilesMax = -1, color = r.kBlue    ),
-                  specify(name = "qcd_py_pt170",          nFilesMax = -1, color = r.kBlue    ),
-                  specify(name = "qcd_py_pt300",          nFilesMax = -1, color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt470",          nFilesMax = -1, color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt800",          nFilesMax = -1, color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt1400",         nFilesMax = -1, color = r.kBlue    ),
 
-                  #specify(name = "qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
-                  #specify(name = "qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
-                  #specify(name = "qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
-                  #specify(name = "qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
-                  #specify(name = "qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
-                  
-                  specify(name = "tt_tauola_mg",          nFilesMax =  3, color = r.kOrange  ),
-                  specify(name = "g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
-                  specify(name = "g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
-                  specify(name = "g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
-                  specify(name = "z_inv_mg_skim",         nFilesMax = -1, color = r.kMagenta ),
-                  specify(name = "z_jets_mg_skim",        nFilesMax = -1, color = r.kYellow-3),
-                  specify(name = "w_jets_mg_skim",        nFilesMax = -1, color = 28         ),
-                  specify(name = "lm0",                   nFilesMax = -1, color = r.kRed     ),
-                  specify(name = "lm1",                   nFilesMax = -1, color = r.kRed+1   ),
-                  ]
+        outList = [specify(name = "JetMET_skim",        nFilesMax = 1, nEventsMax = 1000, color = r.kBlack   , markerStyle = 20)]
+                                                                      #nEventsMax = 1000, 
+        if params["mcSoup"]=="pythia" :                               #nEventsMax = 1000, 
+            outList += [                                              #nEventsMax = 1000, 
+                ##specify(name = "qcd_py_pt30",         nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                  specify(name = "qcd_py_pt80",         nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                  specify(name = "qcd_py_pt170",        nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                  specify(name = "qcd_py_pt300",        nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                ##specify(name = "qcd_py_pt470",        nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                ##specify(name = "qcd_py_pt800",        nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                ##specify(name = "qcd_py_pt1400",       nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                  ]                                                   #nEventsMax = 1000, 
+        if params["mcSoup"]=="madgraph" :                             #nEventsMax = 1000, 
+            outList += [                                              #nEventsMax = 1000, 
+                specify(name = "qcd_mg_ht_50_100",      nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                specify(name = "qcd_mg_ht_100_250",     nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                specify(name = "qcd_mg_ht_250_500",     nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                specify(name = "qcd_mg_ht_500_1000",    nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                specify(name = "qcd_mg_ht_1000_inf",    nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
+                ]                                                     #nEventsMax = 1000, 
+                                                                      #nEventsMax = 1000, 
+        outList += [                                                  #nEventsMax = 1000, 
+            specify(name = "tt_tauola_mg",              nFilesMax = 1, nEventsMax = 1000, color = r.kOrange  ),
+            specify(name = "g_jets_mg_pt40_100",        nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
+            specify(name = "g_jets_mg_pt100_200",       nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
+            specify(name = "g_jets_mg_pt200",           nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
+            specify(name = "z_inv_mg_skim",             nFilesMax = 1, nEventsMax = 1000, color = r.kMagenta ),
+            specify(name = "z_jets_mg_skim",            nFilesMax = 1, nEventsMax = 1000, color = r.kYellow-3),
+            specify(name = "w_jets_mg_skim",            nFilesMax = 1, nEventsMax = 1000, color = 28         ),
+            specify(name = "lm0",                       nFilesMax = 1, nEventsMax = 1000, color = r.kRed     ),
+            specify(name = "lm1",                       nFilesMax = 1, nEventsMax = 1000, color = r.kRed+1   ),
+            ]
+        return outList
 
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
             #organize
             org=organizer.organizer( self.sampleSpecs(tag) )
             org.mergeSamples(targetSpec = {"name":"g_jets_mg",     "color":r.kGreen},   sources = ["g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
-            org.mergeSamples(targetSpec = {"name":"qcd_py"   ,     "color":r.kBlue},    sources = ["qcd_py_pt%d"%i      for i in [80,170,300] ])
-            #org.mergeSamples(targetSpec = {"name":"qcd_mg", "color":r.kBlue},sources = ["qcd_mg_ht_%s"%bin for bin in ["50_100","100_250","250_500","500_1000","1000_inf"] ])
-            org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3},
-                             sources = ["g_jets_mg","qcd_py","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"], keepSources = True )
-                             #sources = ["g_jets_mg","qcd_mg","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"], keepSources = True )
+
+            smSources = ["g_jets_mg","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"]
+            if "pythia" in tag :
+                org.mergeSamples(targetSpec = {"name":"qcd_py",    "color":r.kBlue},    sources = ["qcd_py_pt%d"%i      for i in [80,170,300] ])
+                smSources.append("qcd_py")
+            if "madgraph" in tag :
+                org.mergeSamples(targetSpec = {"name":"qcd_mg",    "color":r.kBlue},
+                                 sources = ["qcd_mg_ht_%s"%bin for bin in ["50_100","100_250","250_500","500_1000","1000_inf"] ])
+                smSources.append("qcd_mg")
+
+            org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3}, sources = smSources, keepSources = True)
             org.scale()
 
-            #other
-            import deltaPhiLook
-            d = deltaPhiLook.deltaPhiLooker(org,tag)
-            d.go()
+
+            ##other
+            #import deltaPhiLook
+            #numers = ["JetMET_skim","standard_model"]
+            #if "pythia" in tag :
+            #    denoms = ["qcd_py"]*len(numers)
+            #if "madgraph" in tag :
+            #    denoms = ["qcd_mg"]*len(numers)
+            #
+            #for numer,denom in zip(numers,denoms) :
+            #    d = deltaPhiLook.deltaPhiLooker(org,tag,(numer,denom))
+            #    d.go()
             
+
             #plot
             pl = plotter.plotter(org,
                                  psFileName = self.psFileName(tag),
