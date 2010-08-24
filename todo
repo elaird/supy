@@ -17,6 +17,9 @@ Other
 * cross section in database
 * 2D ratios
 
+* improve genpthat hack
+* investigate underflows
+
 * check for expired grid cert / empty srmls
 
 * organize files in cvs
