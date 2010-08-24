@@ -49,7 +49,7 @@ class example(analysis.analysis) :
         exampleDict.add("Example_Skimmed_900_GeV_MC", '["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_MC.root"]',       xs = 1.0e3 ) #pb
         return [exampleDict]
 
-    def listOfSamples(self) :
+    def listOfSamples(self,params) :
         return [samples.specify(name = "Example_Skimmed_900_GeV_Data", color = r.kBlack, markerStyle = 20),
                 samples.specify(name = "Example_Skimmed_900_GeV_MC", color = r.kRed)
                 ]
