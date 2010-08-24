@@ -1,6 +1,7 @@
 Critical
 ---------
 e vetos
+support nSamples depending upon config
 
 Processing
 -----------
@@ -16,6 +17,7 @@ Other
 --------
 * cross section in database
 * 2D ratios
+* scrolling
 
 * improve genpthat hack
 * investigate underflows
