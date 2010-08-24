@@ -46,7 +46,8 @@ def fromCollections(moduleName,collections) :
 
 from calculablesGen import *
 from calculablesJet import *
-from calculablesLepton import *
+from calculablesMuon import *
+from calculablesElectron import *
 from calculablesPhoton import *
 from calculablesOther import *
 from calculablesXClean import *
