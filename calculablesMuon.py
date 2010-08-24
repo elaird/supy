@@ -79,7 +79,7 @@ class muonIndices(wrappedChain.calculable) :
         self.ptMin = ptMin
         self.relIsoMax = combinedRelIsoMax
         self.muons = collection
-        self.moreName = "tight; pt>%.1f; cmbRelIso<%.2f"%( ptMin, combinedRelIsoMax )
+        self.moreName = "tight; pt>%.1f GeV; cmbRelIso<%.2f"%( ptMin, combinedRelIsoMax )
 
     def update(self,ignored) :
         self.value = []
