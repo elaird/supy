@@ -10,9 +10,9 @@ class hadronicLook(analysis.analysis) :
     def parameters(self) :
         objects = {}
         fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit"]
-        objects["caloAK5"] = dict(zip(fields, [("xcak5Jet","Pat"),   "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
-        #objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"metP4TC",       ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
-        #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",       ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"   ]))
+        objects["caloAK5"] = dict(zip(fields, [("ak5Jet","Pat"),   "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
+       #objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"metP4TC",       ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
+       #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",       ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"   ]))
 
         return { "objects": objects,
                  "nJetsMinMax" : dict([  ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None))  ] [0:1] ),
@@ -29,9 +29,11 @@ class hadronicLook(analysis.analysis) :
         return calculables.zeroArgs() +\
                calculables.fromCollections("calculablesJet",[_jet]) +\
                calculables.fromCollections("calculablesLepton",[_muon]) +\
-               [ calculables.xcJet( _jet,  gamma = _photon, gammaDR = 0.5, muon = _muon, muonDR = 0.5),
+               [ #calculables.xcJet( _jet,  gamma = _photon, gammaDR = 0.5, muon = _muon, muonDR = 0.5),
                  calculables.jetIndices( _jet, ptMin = 20.0, etaMax = 3.0, flagName = params["jetId"]),
                  calculables.PFJetIDloose( _jet, fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0),
+                 calculables.jetSumP4( _jet, scaleFactor = 1.0),
+                 calculables.deltaPhiStar( _jet, ptMin = 50.0),
                  calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15),
                  calculables.photonIndicesPat(  ptMin = 20, flagName="photonIDLoosePat")]
 
@@ -111,6 +113,13 @@ class hadronicLook(analysis.analysis) :
                 ##specify(name = "qcd_py_pt470",          nFilesMax = -1, color = r.kBlue    ),
                 ##specify(name = "qcd_py_pt800",          nFilesMax = -1, color = r.kBlue    ),
                 ##specify(name = "qcd_py_pt1400",         nFilesMax = -1, color = r.kBlue    ),
+
+                  #specify(name = "qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
+                  #specify(name = "qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
+                  #specify(name = "qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
+                  #specify(name = "qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
+                  #specify(name = "qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
+                  
                   specify(name = "tt_tauola_mg",          nFilesMax =  3, color = r.kOrange  ),
                   specify(name = "g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
                   specify(name = "g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
@@ -128,10 +137,17 @@ class hadronicLook(analysis.analysis) :
             org=organizer.organizer( self.sampleSpecs(tag) )
             org.mergeSamples(targetSpec = {"name":"g_jets_mg",     "color":r.kGreen},   sources = ["g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
             org.mergeSamples(targetSpec = {"name":"qcd_py"   ,     "color":r.kBlue},    sources = ["qcd_py_pt%d"%i      for i in [80,170,300] ])
+            #org.mergeSamples(targetSpec = {"name":"qcd_mg", "color":r.kBlue},sources = ["qcd_mg_ht_%s"%bin for bin in ["50_100","100_250","250_500","500_1000","1000_inf"] ])
             org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3},
                              sources = ["g_jets_mg","qcd_py","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"], keepSources = True )
+                             #sources = ["g_jets_mg","qcd_mg","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"], keepSources = True )
             org.scale()
 
+            #other
+            import deltaPhiLook
+            d = deltaPhiLook.deltaPhiLooker(org,tag)
+            d.go()
+            
             #plot
             pl = plotter.plotter(org,
                                  psFileName = self.psFileName(tag),
@@ -140,10 +156,6 @@ class hadronicLook(analysis.analysis) :
                                  )
             pl.plotAll()
 
-            ##other
-            #import deltaPhiLook
-            #deltaPhiLook.go(org)
-            
             #import statMan
             #statMan.go(a.organizeHistograms(),
             #           dataSampleName="JetMETTau.Run2010A",
