@@ -3,19 +3,20 @@
 import os,analysis,utils,calculables,steps,samples
 
 class jsonMaker(analysis.analysis) :
-    def outputDirectory(self) :
+    def baseOutputDirectory(self) :
         return "/vols/cms02/%s/tmp/"%os.environ["USER"]
 
-    def listOfSteps(self) :
+    def listOfSteps(self,params) :
         return [ steps.progressPrinter(2,300),
-                 steps.jsonMaker("/vols/cms02/%s/tmp/"%os.environ["USER"]),
+                 steps.jsonMaker(),
                  ]
 
-    def listOfCalculables(self) :
+    def listOfCalculables(self,params) :
         return calculables.zeroArgs()
 
-    def listOfSamples(self) :
-        return [samples.specify(name = "JetMET.Run2010A")]
+    def listOfSamples(self,params) :
+        return [samples.specify(name = "JetMET_skim")]
+                
 
     def listOfSampleDictionaries(self) :
         return [samples.jetmet]
