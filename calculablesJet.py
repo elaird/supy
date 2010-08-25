@@ -50,48 +50,58 @@ class jetIndices(wrappedChain.calculable) :
             else: other.append(i)
         self.value.sort( key = pt2s.__getitem__)
 ####################################
-class PFJetIDtight(wrappedChain.calculable) :
-    def name(self) : return "%sPFJetIDtight%s"%self.cs
-
-    def __init__(self, collection = None) :
+class PFJetID(wrappedChain.calculable) :
+    def name(self) : return self.idName
+    
+    # following http://indico.cern.ch/getFile.py/access?contribId=0&resId=0&materialId=slides&confId=97994
+    def __init__(self, collection = None, level = None) :
         self.cs = xcStrip(collection)
-        self.moreName = "WARNING: currently just a copy of Loose"
-    def update(self,ignored) :
-        self.value = self.source["%sPFJetIDloose%s"%self.cs]
+        self.idName = "%sPFJetID%s%s" % (self.cs[0],level,self.cs[1])
+        self.p4Name = "%sCorrectedP4%s" % self.cs
+        for var in ["FneutralHad","FneutralEm","FchargedHad","FchargedEm","Ncharged","Nneutral"] :
+            setattr(self,var, ("%s"+var+"%s")%xcStrip(self.cs))
 
-####################################
-class PFJetIDloose(wrappedChain.calculable) :
-    def name(self) : return "%sPFJetIDloose%s"%self.cs
+        i = ["loose","medium","tight"].index(level)
+        self.fNhMax   = [0.99, 0.95, 0.90][i]
+        self.fNeMax   = [0.99, 0.95, 0.90][i]
+        self.nMin     = [2,    2,    2   ][i]
+        self.etaDiv       = 2.4
+        self.fChMin   = [0.0,  0.0,  0.0 ][i]
+        self.fCeMax   = [0.99, 0.99, 0.99][i] 
+        self.nCMin    = [1,    1,    1   ][i]     
 
-    def __init__(self, collection = None, fNeutralEmMax = None, fChargedEmMax = None, fNeutralHadMax = None, fChargedHadMin = None, nChargedMin = None ) :
-        self.cs = xcStrip(collection)
-        self.p4Name = "%sCorrectedP4%s"%self.cs
-        self.fNeutralEmMax  = fNeutralEmMax   ;  self.fNeutralEmName  = "%sFneutralEm%s" % xcStrip(self.cs)
-        self.fChargedEmMax  = fChargedEmMax   ;  self.fChargedEmName  = "%sFchargedEm%s" % xcStrip(self.cs)
-        self.fNeutralHadMax = fNeutralHadMax  ;  self.fNeutralHadName = "%sFneutralHad%s" % xcStrip(self.cs)
-        self.fChargedHadMin = fChargedHadMin  ;  self.fChargedHadName = "%sFchargedHad%s" % xcStrip(self.cs)
-        self.nChargedMin    = nChargedMin     ;  self.nChargedName    = "%sNcharged%s" % xcStrip(self.cs)
+        self.moreName = "fN_had<%.2f; fN_em<%.2f; nC+nN>=%d;"% \
+                        ( self.fNhMax, self.fNeMax, self.nMin) 
+        self.moreName2 = "|eta|>2.4 or {fC_had>%.2f; fC_em <%.2f; nC>%d}" % \
+                         (self.fChMin, self.fCeMax, self.nCMin )
 
-        self.moreName = "fN_em<%.1f; fC_em<%.1f; fN_had<%.1f; |eta|>2.4 or {fC_had>%.1f; nC>%d}" % \
-                        ( fNeutralEmMax,fChargedEmMax,fNeutralHadMax, fChargedHadMin, nChargedMin)
-            
     def update(self,ignored) :
         self.value = map(self.passId, 
                          self.source[self.p4Name],
-                         self.source[self.fNeutralEmName ],
-                         self.source[self.fChargedEmName ],
-                         self.source[self.fNeutralHadName],
-                         self.source[self.fChargedHadName],
-                         self.source[self.nChargedName   ] )
+                         self.source[self.FneutralHad],
+                         self.source[self.FneutralEm],
+                         self.source[self.FchargedHad],
+                         self.source[self.FchargedEm],
+                         self.source[self.Nneutral],
+                         self.source[self.Ncharged] )
 
-    def passId(self, p4, fNem, fCem, fNhad, fChad, nC ) :
-        return fNem < self.fNeutralEmMax and \
-               fCem < self.fChargedEmMax and \
-               fNhad < self.fNeutralHadMax and \
-               ( abs(p4.eta()) > 2.4 or \
-                 fChad > self.fChargedHadMin and \
-                 nC > self.nChargedMin )
-
+    def passId(self, p4, fNh, fNe, fCh, fCe, nN, nC ) :
+        return fNh    < self.fNhMax and \
+               fNe    < self.fNeMax and \
+               nN+nC >= self.nMin   and \
+               ( abs(p4.eta()) > self.etaDiv or \
+                 fCh > self.fChMin  and \
+                 fCe < self.fCeMax  and \
+                 nC >= self.nCMin )
+class PFJetIDloose(PFJetID) :
+    def __init__(self, collection = None) :
+        super(PFJetIDloose,self).__init__(collection,"loose")
+class PFJetIDmedium(PFJetID) :
+    def __init__(self, collection = None) :
+        super(PFJetIDmedium,self).__init__(collection,"medium")
+class PFJetIDtight(PFJetID) :
+    def __init__(self, collection = None) :
+        super(PFJetIDtight,self).__init__(collection,"tight")
 #############################
 class leadingJetPt(wrappedChain.calculable) :
     def name(self) : return "%sLeadingPt%s"% self.cs
