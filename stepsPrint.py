@@ -61,15 +61,16 @@ class jetPrinter(analysisStep) :
         jetFHpdVector   =eventVars['%sJetIDFHPD%s'       %self.cs]
         jetN90Vector    =eventVars['%sJetIDN90Hits%s'    %self.cs]
 
-        jetIndices = eventVars[self.jetCollection+"Indices"+self.jetSuffix]
+        jetIndices = eventVars["%sIndices%s"%self.cs]
+        jetIndicesOther = eventVars["%sIndicesOther%s"%self.cs]
 
         print " jet   u. pT (GeV)   c. pT (GeV)    eta   phi"
         print "---------------------------------------------"
         for iJet in range(len(p4Vector)) :
             jet=p4Vector[iJet]
 
-            outString = "-" if iJet in jetIndices["other"] else \
-                        "*" if iJet in jetIndices["clean"] else \
+            outString = "-" if iJet in jetIndicesOther else \
+                        "*" if iJet in jetIndices else \
                         " "
             outString+=" %2d"   %iJet
             outString+="        %#6.1f"%(jet.pt()/corrFactorVector[iJet])
