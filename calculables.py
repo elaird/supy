@@ -37,11 +37,9 @@ def fromCollections(moduleName,collections) :
         if not isclass(calc) : continue
         if not issubclass(calc, wrappedChain.calculable) : continue
         if not moduleName+"." in str(calc) : continue
-        try:
-            args = getargspec(eval("%s.__init__.im_func"%name))[0]
-            if "collection" in args and len(args) is 2:
-                for col in collections : calcs.append(calc(col))
-        except: pass
+        args = getargspec(eval("%s.__init__.im_func"%name))[0]
+        if "collection" in args and len(args) is 2:
+            for col in collections : calcs.append(calc(col))
     return calcs
 
 from calculablesGen import *
