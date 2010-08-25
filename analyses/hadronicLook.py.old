@@ -16,7 +16,7 @@ class hadronicLook(analysis.analysis) :
 
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None))  ] [0:1] ),
-                 "mcSoup" :           dict([ ("pythia","pythia"), ("madgraph","madgraph")       ] [1:2] ),
+                 "mcSoup" :           dict([ ("pythia","pythia"), ("madgraph","madgraph")       ] [0:1] ),
                  "mcMhtScaleFactor" : dict([ ("defaultMht",1.0), ("scaledMht",1.1)              ] [0:1] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  #"jesAbs":  [1.0,1.1,0.9]               [:],
@@ -57,24 +57,25 @@ class hadronicLook(analysis.analysis) :
             steps.physicsDeclared(),
             steps.monsterEventFilter(),
             steps.hbheNoiseFilter(),
-            steps.hltPrescaleHistogrammer(["HLT_Jet50U","HLT_HT100U","HLT_MET45"]),       
 
+            steps.hltPrescaleHistogrammer(["HLT_Jet50U","HLT_HT100U","HLT_MET45"]),       
+            
             steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
                                funcString="lambda x:len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_jet, nMin = params["nJetsMinMax"][0], nMax = params["nJetsMinMax"][1]),
             steps.histogrammer("%sIndicesOther%s"%_jet,10,-0.5,9.5, title=";number of %s%s above p_{T}#semicolon failing ID or #eta;events / bin"%_jet,
                                funcString="lambda x:len(x)"),
             steps.multiplicityFilter("%sIndicesOther%s"%_jet, nMax = 0),
-
+            
             steps.histogrammer("%sSumPt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s p_{T}s;events / bin"%_jet),
             steps.variableGreaterFilter(350.0,"%sSumPt%s"%_jet),
-
+            
             #muon, photon vetoes
             steps.histogrammer("%sIndices%s"%_muon,10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
             steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_photon, nMax = 0),
-
+            
             #many plots
             steps.passFilter("singleJetPlots1"),
             steps.cleanJetPtHistogrammer(_jet),
@@ -83,16 +84,16 @@ class hadronicLook(analysis.analysis) :
             steps.passFilter("kinematicPlots1"), 
             steps.alphaHistogrammer(_jet),
 
-            #extrapolation region
-            steps.variableGreaterFilter(0.50,"%sAlphaT%s"%_jet),
-
-            #many plots (again)
-            steps.passFilter("singleJetPlots2"),
-            steps.cleanJetPtHistogrammer(_jet),
-            steps.passFilter("jetSumPlots2"), 
-            steps.cleanJetHtMhtHistogrammer(_jet),
-            #steps.passFilter("kinematicPlots2"), 
-            #steps.alphaHistogrammer(_jet),
+            ###extrapolation region
+            ##steps.variableGreaterFilter(0.50,"%sAlphaT%s"%_jet),
+            ##
+            ###many plots (again)
+            ##steps.passFilter("singleJetPlots2"),
+            ##steps.cleanJetPtHistogrammer(_jet),
+            ##steps.passFilter("jetSumPlots2"), 
+            ##steps.cleanJetHtMhtHistogrammer(_jet),
+            ###steps.passFilter("kinematicPlots2"), 
+            ###steps.alphaHistogrammer(_jet),
 
             #signal selection
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
@@ -121,37 +122,37 @@ class hadronicLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
 
-        outList = [specify(name = "JetMET_skim",        nFilesMax = 1, nEventsMax = 1000, color = r.kBlack   , markerStyle = 20)]
-                                                                      #nEventsMax = 1000, 
-        if params["mcSoup"]=="pythia" :                               #nEventsMax = 1000, 
-            outList += [                                              #nEventsMax = 1000, 
-                ##specify(name = "qcd_py_pt30",         nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                  specify(name = "qcd_py_pt80",         nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                  specify(name = "qcd_py_pt170",        nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                  specify(name = "qcd_py_pt300",        nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt470",        nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt800",        nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt1400",       nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                  ]                                                   #nEventsMax = 1000, 
-        if params["mcSoup"]=="madgraph" :                             #nEventsMax = 1000, 
-            outList += [                                              #nEventsMax = 1000, 
-                specify(name = "qcd_mg_ht_50_100",      nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                specify(name = "qcd_mg_ht_100_250",     nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                specify(name = "qcd_mg_ht_250_500",     nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                specify(name = "qcd_mg_ht_500_1000",    nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                specify(name = "qcd_mg_ht_1000_inf",    nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
-                ]                                                     #nEventsMax = 1000, 
-                                                                      #nEventsMax = 1000, 
-        outList += [                                                  #nEventsMax = 1000, 
-            specify(name = "tt_tauola_mg",              nFilesMax = 1, nEventsMax = 1000, color = r.kOrange  ),
-            specify(name = "g_jets_mg_pt40_100",        nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
-            specify(name = "g_jets_mg_pt100_200",       nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
-            specify(name = "g_jets_mg_pt200",           nFilesMax = 1, nEventsMax = 1000, color = r.kGreen   ),
-            specify(name = "z_inv_mg_skim",             nFilesMax = 1, nEventsMax = 1000, color = r.kMagenta ),
-            specify(name = "z_jets_mg_skim",            nFilesMax = 1, nEventsMax = 1000, color = r.kYellow-3),
-            specify(name = "w_jets_mg_skim",            nFilesMax = 1, nEventsMax = 1000, color = 28         ),
-            specify(name = "lm0",                       nFilesMax = 1, nEventsMax = 1000, color = r.kRed     ),
-            specify(name = "lm1",                       nFilesMax = 1, nEventsMax = 1000, color = r.kRed+1   ),
+        outList = [specify(name = "JetMET_skim",        nFilesMax = -1, color = r.kBlack   , markerStyle = 20)]
+                                                                   
+        if params["mcSoup"]=="pythia" :                            
+            outList += [                                           
+                ##specify(name = "qcd_py_pt30",         nFilesMax = -1, color = r.kBlue    ),
+                  specify(name = "qcd_py_pt80",         nFilesMax = -1, color = r.kBlue    ),
+                  specify(name = "qcd_py_pt170",        nFilesMax = -1, color = r.kBlue    ),
+                  specify(name = "qcd_py_pt300",        nFilesMax = -1, color = r.kBlue    ),
+                ##specify(name = "qcd_py_pt470",        nFilesMax = -1, color = r.kBlue    ),
+                ##specify(name = "qcd_py_pt800",        nFilesMax = -1, color = r.kBlue    ),
+                ##specify(name = "qcd_py_pt1400",       nFilesMax = -1, color = r.kBlue    ),
+                  ]                                                 
+        if params["mcSoup"]=="madgraph" :                           
+            outList += [                                            
+                specify(name = "qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
+                specify(name = "qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
+                specify(name = "qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
+                specify(name = "qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
+                specify(name = "qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
+                ]                                                   
+                                                                    
+        outList += [                                                
+            specify(name = "tt_tauola_mg",              nFilesMax =  3, color = r.kOrange  ),
+            specify(name = "g_jets_mg_pt40_100",        nFilesMax = -1, color = r.kGreen   ),
+            specify(name = "g_jets_mg_pt100_200",       nFilesMax = -1, color = r.kGreen   ),
+            specify(name = "g_jets_mg_pt200",           nFilesMax = -1, color = r.kGreen   ),
+            specify(name = "z_inv_mg_skim",             nFilesMax = -1, color = r.kMagenta ),
+            specify(name = "z_jets_mg_skim",            nFilesMax = -1, color = r.kYellow-3),
+            specify(name = "w_jets_mg_skim",            nFilesMax = -1, color = 28         ),
+            specify(name = "lm0",                       nFilesMax = -1, color = r.kRed     ),
+            specify(name = "lm1",                       nFilesMax = -1, color = r.kRed+1   ),
             ]
         return outList
 
@@ -177,15 +178,14 @@ class hadronicLook(analysis.analysis) :
             ##other
             #import deltaPhiLook
             #numers = ["JetMET_skim","standard_model"]
-            #if "pythia" in tag :
-            #    denoms = ["qcd_py"]*len(numers)
-            #if "madgraph" in tag :
-            #    denoms = ["qcd_mg"]*len(numers)
+            #if "pythia" in tag :   qcdLabel = "qcd_py"
+            #if "madgraph" in tag : qcdLabel = "qcd_mg"
             #
-            #for numer,denom in zip(numers,denoms) :
+            #for numer,denom in zip(numers,[qcdLabel]*len(numers)) :
             #    d = deltaPhiLook.deltaPhiLooker(org,tag,(numer,denom))
-            #    d.go()
-            
+            #    d.makeSlicePlots()
+            #    if numer==numers[0] :
+            #        d.makeSliceComparisonPlots(qcdLabel)
 
             #plot
             pl = plotter.plotter(org,
