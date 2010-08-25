@@ -39,8 +39,8 @@ class example(analysis.analysis) :
         listOfCalculables = calculables.zeroArgs()
         listOfCalculables += calculables.fromCollections("calculablesJet",jetTypes)
         listOfCalculables += [ calculables.jetIndices( collection = jetType, ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for jetType in jetTypes]
-        listOfCalculables += [ calculables.PFJetIDloose( collection = jetTypes[2],
-                                                         fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]
+        listOfCalculables += [ calculables.jetSumP4( collection = jetType, mcScaleFactor = 1.0) for jetType in jetTypes]
+        listOfCalculables += [ calculables.deltaPhiStar( collection = jetType, ptMin = 0.0) for jetType in jetTypes]
         return listOfCalculables
 
     def listOfSampleDictionaries(self) :
