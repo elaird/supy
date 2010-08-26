@@ -10,14 +10,14 @@ class hadronicLook(analysis.analysis) :
     def parameters(self) :
         objects = {}
         fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit"]
-        objects["caloAK5"] = dict(zip(fields, [("xcak5Jet","Pat"),   "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
-       #objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"metP4TC",       ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
-       #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",       ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"   ]))
+        objects["caloAK5"] = dict(zip(fields, [("xcak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
+        #objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"metP4TC",       ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
+        #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",       ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"   ]))
 
         return { "objects": objects,
-                 "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None))  ] [0:1] ),
-                 "mcSoup" :           dict([ ("pythia","pythia"), ("madgraph","madgraph")       ] [0:1] ),
-                 "mcMhtScaleFactor" : dict([ ("defaultMht",1.0), ("scaledMht",1.1)              ] [0:1] ),
+                 "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
+                 "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ] [0:1] ),
+                 "mcMhtScaleFactor" : dict([ ("defaultMht",1.0), ("scaledMht",1.1) ]                   [0:1] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  #"jesAbs":  [1.0,1.1,0.9]               [:],
                  #"jesRel":  0,
@@ -107,7 +107,7 @@ class hadronicLook(analysis.analysis) :
             #steps.eventPrinter(),
             #steps.jetPrinter(_jet),
             #steps.htMhtPrinter(_jet),
-            #steps.nJetAlphaTPrinter(_jet)
+            #steps.nJetAlphaTPrinter(_jet),
             #steps.genParticlePrinter(minPt=10.0,minStatus=3),
 
             #steps.displayer(jets = _jet,
@@ -127,38 +127,63 @@ class hadronicLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
 
-        outList = [specify(name = "JetMET_skim",        nFilesMax = -1, color = r.kBlack   , markerStyle = 20)]
-                                                                   
-        if params["mcSoup"]=="pythia" :                            
-            outList += [                                           
-                ##specify(name = "qcd_py_pt30",         nFilesMax = -1, color = r.kBlue    ),
-                  specify(name = "qcd_py_pt80",         nFilesMax = -1, color = r.kBlue    ),
-                  specify(name = "qcd_py_pt170",        nFilesMax = -1, color = r.kBlue    ),
-                  specify(name = "qcd_py_pt300",        nFilesMax = -1, color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt470",        nFilesMax = -1, color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt800",        nFilesMax = -1, color = r.kBlue    ),
-                ##specify(name = "qcd_py_pt1400",       nFilesMax = -1, color = r.kBlue    ),
-                  ]                                                     
-        if params["mcSoup"]=="madgraph" :                               
-            outList += [                                                
-                specify(name = "qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
-                specify(name = "qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
-                specify(name = "qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
-                specify(name = "qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
-                specify(name = "qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
-                ]
-
-        outList += [                                                    
-            specify(name = "tt_tauola_mg",              nFilesMax =  3, color = r.kOrange  ),
-            specify(name = "g_jets_mg_pt40_100",        nFilesMax = -1, color = r.kGreen   ),
-            specify(name = "g_jets_mg_pt100_200",       nFilesMax = -1, color = r.kGreen   ),
-            specify(name = "g_jets_mg_pt200",           nFilesMax = -1, color = r.kGreen   ),
-            specify(name = "z_inv_mg_skim",             nFilesMax = -1, color = r.kMagenta ),
-            specify(name = "z_jets_mg_skim",            nFilesMax = -1, color = r.kYellow-3),
-            specify(name = "w_jets_mg_skim",            nFilesMax = -1, color = 28         ),
-            specify(name = "lm0",                       nFilesMax = -1, color = r.kRed     ),
-            specify(name = "lm1",                       nFilesMax = -1, color = r.kRed+1   ),
+        outList =[
+            specify(name = "JetMET_skim",           color = r.kBlack   , markerStyle = 20)
             ]
+        py6_list = [
+          ##specify(name = "qcd_py6_pt30",          color = r.kBlue    ),
+            specify(name = "qcd_py6_pt80",          color = r.kBlue    ),
+            specify(name = "qcd_py6_pt170",         color = r.kBlue    ),
+            specify(name = "qcd_py6_pt300",         color = r.kBlue    ),
+          ##specify(name = "qcd_py6_pt470",         color = r.kBlue    ),
+          ##specify(name = "qcd_py6_pt800",         color = r.kBlue    ),
+          ##specify(name = "qcd_py6_pt1400",        color = r.kBlue    ),
+            ]                                       
+        py8_list = [
+          ##specify(name = "qcd_py8_pt0to15",       color = r.kBlue    ),
+          ##specify(name = "qcd_py8_pt15to20",      color = r.kBlue    ),
+          ##specify(name = "qcd_py8_pt20to30",      color = r.kBlue    ),
+          ##specify(name = "qcd_py8_pt30to50",      color = r.kBlue    ),
+            specify(name = "qcd_py8_pt50to80",      color = r.kBlue    ),
+            specify(name = "qcd_py8_pt80to120",     color = r.kBlue    ),
+            specify(name = "qcd_py8_pt120to170",    color = r.kBlue    ),
+            specify(name = "qcd_py8_pt170to230",    color = r.kBlue    ),
+            specify(name = "qcd_py8_pt230to300",    color = r.kBlue    ),
+            specify(name = "qcd_py8_pt300to380",    color = r.kBlue    ),
+            specify(name = "qcd_py8_pt380to470",    color = r.kBlue    ),
+            specify(name = "qcd_py8_pt470to600",    color = r.kBlue    ),
+            specify(name = "qcd_py8_pt600to800",    color = r.kBlue    ),
+            specify(name = "qcd_py8_pt800to1000",   color = r.kBlue    ),
+            specify(name = "qcd_py8_pt1000to1400",  color = r.kBlue    ),
+            specify(name = "qcd_py8_pt1400to1800",  color = r.kBlue    ),
+            specify(name = "qcd_py8_pt1800to2200",  color = r.kBlue    ),
+            specify(name = "qcd_py8_pt2200to2600",  color = r.kBlue    ),
+            specify(name = "qcd_py8_pt2600to3000",  color = r.kBlue    ),
+            specify(name = "qcd_py8_pt3000to3500",  color = r.kBlue    ),
+            ]                                       
+        mg_list = [                                 
+            specify(name = "qcd_mg_ht_50_100",      color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_100_250",     color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_250_500",     color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_500_1000",    color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_1000_inf",    color = r.kBlue    ),
+            ]                                       
+        default_list = [                            
+            specify(name = "tt_tauola_mg",          color = r.kOrange  ),
+            specify(name = "g_jets_mg_pt40_100",    color = r.kGreen   ),
+            specify(name = "g_jets_mg_pt100_200",   color = r.kGreen   ),
+            specify(name = "g_jets_mg_pt200",       color = r.kGreen   ),
+            specify(name = "z_inv_mg_skim",         color = r.kMagenta ),
+            specify(name = "z_jets_mg_skim",        color = r.kYellow-3),
+            specify(name = "w_jets_mg_skim",        color = 28         ),
+            specify(name = "lm0",                   color = r.kRed     ),
+            specify(name = "lm1",                   color = r.kRed+1   ),
+            ]
+        
+        if params["mcSoup"]=="py6" : outList+=py6_list
+        if params["mcSoup"]=="py8" : outList+=py8_list
+        if params["mcSoup"]=="mg"  : outList+=mg_list                              
+        outList+=default_list
         return outList
 
     def conclude(self) :
@@ -166,16 +191,23 @@ class hadronicLook(analysis.analysis) :
             #organize
             org=organizer.organizer( self.sampleSpecs(tag) )
             org.mergeSamples(targetSpec = {"name":"g_jets_mg",     "color":r.kGreen},   sources = ["g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
-
+            
             smSources = ["g_jets_mg","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"]
-            if "pythia" in tag :
-                org.mergeSamples(targetSpec = {"name":"qcd_py",    "color":r.kBlue},    sources = ["qcd_py_pt%d"%i      for i in [80,170,300] ])
-                smSources.append("qcd_py")
+            if "pythia6" in tag :
+                org.mergeSamples(targetSpec = {"name":"qcd_py6",    "color":r.kBlue},    sources = ["qcd_py6_pt%d"%i      for i in [80,170,300] ])
+                smSources.append("qcd_py6")
+            if "pythia8" in tag :
+                lowerPtList = [0,15,20,30,50,80,
+                               120,170,230,300,380,470,600,800,
+                               1000,1400,1800,2200,2600,3000,3500]
+                org.mergeSamples(targetSpec = {"name":"qcd_py8","color":r.kBlue},
+                                 sources = ["qcd_py8_pt%dto%d"%(lowerPtList[i],lowerPtList[i+1]) for i in range(len(lowerPtList)-1)] )
+                smSources.append("qcd_py8")
             if "madgraph" in tag :
                 org.mergeSamples(targetSpec = {"name":"qcd_mg",    "color":r.kBlue},
                                  sources = ["qcd_mg_ht_%s"%bin for bin in ["50_100","100_250","250_500","500_1000","1000_inf"] ])
                 smSources.append("qcd_mg")
-
+            
             org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3}, sources = smSources, keepSources = True)
             org.scale()
 
