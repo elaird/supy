@@ -22,7 +22,7 @@ class hadronicSkim(analysis.analysis) :
     def listOfCalculables(self,params) :
         return calculables.zeroArgs()
 
-    def listOfSamples(self) :
+    def listOfSamples(self,params) :
         from samples import specify
         return [#specify(name = "MinimumBias.Commissioning10-SD_JetMETTau-Jun14thSkim_v1.RECO.Bryn" ),
                 #specify(name = "JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn"                     ),
@@ -31,7 +31,8 @@ class hadronicSkim(analysis.analysis) :
                 #specify(name = "JetMETTau.Run2010A-PromptReco-v4.RECO.Loukas"                      ),
                 #specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Loukas"                         ),
                 #specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Martyn"                         ),
-                specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Bryn"                           ),
+                #specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Bryn"                           ),
+                specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Bryn2"                           ),
 
                 #specify(name = "z_inv_mg"    ),
                 #specify(name = "z_jets_mg"   ),
