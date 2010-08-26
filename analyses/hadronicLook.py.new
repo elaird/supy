@@ -10,7 +10,7 @@ class hadronicLook(analysis.analysis) :
     def parameters(self) :
         objects = {}
         fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit"]
-        objects["caloAK5"] = dict(zip(fields, [("ak5Jet","Pat"),   "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
+        objects["caloAK5"] = dict(zip(fields, [("xcak5Jet","Pat"),   "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
        #objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"metP4TC",       ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
        #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",       ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"   ]))
 
@@ -26,21 +26,24 @@ class hadronicLook(analysis.analysis) :
     def listOfCalculables(self,params) :
         _jet =  params["objects"]["jet"]
         _muon = params["objects"]["muon"]
+        _electron = params["objects"]["electron"]
         _photon = params["objects"]["photon"]
 
         return calculables.zeroArgs() +\
                calculables.fromCollections("calculablesJet",[_jet]) +\
                calculables.fromCollections("calculablesMuon",[_muon]) +\
-               [ #calculables.xcJet( _jet,  gamma = _photon, gammaDR = 0.5, muon = _muon, muonDR = 0.5),
+               calculables.fromCollections("calculablesElectron",[_electron]) +\
+               [ calculables.xcJet( _jet,  gamma = _photon, gammaDR = 0.5, muon = _muon, muonDR = 0.5, electron = _electron, electronDR = 0.5),
                  calculables.jetIndices( _jet, ptMin = 20.0, etaMax = 3.0, flagName = params["jetId"]),
-                 calculables.PFJetIDloose( _jet, fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0),
-                 calculables.jetSumP4( _jet, mcScaleFactor = params["mcMhtScaleFactor"]),
-                 calculables.deltaPhiStar( _jet, ptMin = 50.0),
                  calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15),
-                 calculables.photonIndicesPat(  ptMin = 20, flagName = "photonIDLoosePat")]
+                 calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
+                 calculables.photonIndicesPat(  ptMin = 20, flagName = "photonIDLoosePat")] \
+                 + [ calculables.jetSumP4( _jet, mcScaleFactor = params["mcMhtScaleFactor"]),
+                     calculables.deltaPhiStar( _jet, ptMin = 50.0)]
 
     def listOfSteps(self,params) :
         _jet  = params["objects"]["jet"]
+        _electron = params["objects"]["electron"]
         _muon = params["objects"]["muon"]
         _photon = params["objects"]["photon"]
         _met  = params["objects"]["met"]
@@ -70,7 +73,9 @@ class hadronicLook(analysis.analysis) :
             steps.histogrammer("%sSumPt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s p_{T}s;events / bin"%_jet),
             steps.variableGreaterFilter(350.0,"%sSumPt%s"%_jet),
             
-            #muon, photon vetoes
+            #electron, muon, photon vetoes
+            steps.histogrammer("%sIndices%s"%_electron,10,-0.5,9.5,title="; N electrons ;events / bin", funcString = "lambda x: len(x)"),
+            steps.multiplicityFilter("%sIndices%s"%_electron, nMax = 0),
             steps.histogrammer("%sIndices%s"%_muon,10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
             steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
@@ -133,17 +138,17 @@ class hadronicLook(analysis.analysis) :
                 ##specify(name = "qcd_py_pt470",        nFilesMax = -1, color = r.kBlue    ),
                 ##specify(name = "qcd_py_pt800",        nFilesMax = -1, color = r.kBlue    ),
                 ##specify(name = "qcd_py_pt1400",       nFilesMax = -1, color = r.kBlue    ),
-                  ]                                                 
-        if params["mcSoup"]=="madgraph" :                           
-            outList += [                                            
+                  ]                                                     
+        if params["mcSoup"]=="madgraph" :                               
+            outList += [                                                
                 specify(name = "qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
                 specify(name = "qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
                 specify(name = "qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
                 specify(name = "qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
                 specify(name = "qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
-                ]                                                   
-                                                                    
-        outList += [                                                
+                ]
+
+        outList += [                                                    
             specify(name = "tt_tauola_mg",              nFilesMax =  3, color = r.kOrange  ),
             specify(name = "g_jets_mg_pt40_100",        nFilesMax = -1, color = r.kGreen   ),
             specify(name = "g_jets_mg_pt100_200",       nFilesMax = -1, color = r.kGreen   ),
