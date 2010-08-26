@@ -55,11 +55,15 @@ class jetPrinter(analysisStep) :
         self.moreName="%s %s"%cs
 
     def uponAcceptance (self,eventVars) :
+
+        isPf = "PF" in self.cs[0]
         p4Vector        =eventVars['%sCorrectedP4%s'     %self.cs]
         corrFactorVector=eventVars['%sCorrFactor%s'      %self.cs]
-        jetEmfVector    =eventVars['%sEmEnergyFraction%s'%self.cs]
-        jetFHpdVector   =eventVars['%sJetIDFHPD%s'       %self.cs]
-        jetN90Vector    =eventVars['%sJetIDN90Hits%s'    %self.cs]
+
+        if not isPf :
+            jetEmfVector    =eventVars['%sEmEnergyFraction%s'%self.cs]
+            jetFHpdVector   =eventVars['%sJetIDFHPD%s'       %self.cs]
+            jetN90Vector    =eventVars['%sJetIDN90Hits%s'    %self.cs]
 
         jetIndices = eventVars["%sIndices%s"%self.cs]
         jetIndicesOther = eventVars["%sIndicesOther%s"%self.cs]
@@ -78,9 +82,11 @@ class jetPrinter(analysisStep) :
             outString+="   %#4.1f"%jet.eta()
             outString+="  %#4.1f"%jet.phi()
             outString+="; corr factor %#5.1f" %corrFactorVector[iJet]
-            outString+="; EMF %#6.3f"         %jetEmfVector[iJet]
-            outString+="; fHPD %#6.3f"        %jetFHpdVector[iJet]
-            outString+="; N90 %#2d"           %jetN90Vector[iJet]
+
+            if not isPf :
+                outString+="; EMF %#6.3f"         %jetEmfVector[iJet]
+                outString+="; fHPD %#6.3f"        %jetFHpdVector[iJet]
+                outString+="; N90 %#2d"           %jetN90Vector[iJet]
             print outString
         print
 #####################################
