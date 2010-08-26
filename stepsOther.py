@@ -802,8 +802,8 @@ class displayer(analysisStep) :
         
         if self.doLeptons :
             self.drawMuons      (eventVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
-            self.drawElectrons  (eventVars,r.kOrange+7, defWidth, defArrowSize*2/6.0)
-            self.drawPhotons    (eventVars,r.kOrange  , defWidth, defArrowSize*2/6.0)
+            self.drawElectrons  (eventVars,r.kOrange+7, defWidth, defArrowSize*2.5/6.0)
+            self.drawPhotons    (eventVars,r.kOrange  , defWidth, defArrowSize*1.8/6.0)
            #self.drawTaus       (eventVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
         
         self.drawCleanedRecHits (eventVars,r.kOrange-6, defWidth, defArrowSize*2/6.0)
