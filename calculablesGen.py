@@ -14,14 +14,17 @@ class genMotherPdgId(wrappedChain.calculable) :
 class genIndices(wrappedChain.calculable) :
     def name(self) : return "genIndices" + self.label
 
-    def __init__(self, pdgs = None, label = None ) :
+    def __init__(self, pdgs = None, label = None, status = None ) :
         self.label = label
         self.PDGs = frozenset(pdgs)
-        self.moreName = "pdgId in %s;" % (str(list(self.PDGs)))
+        self.status = frozenset(status)
+        self.moreName = "pdgId in %s; status in $s" % (str(list(self.PDGs)), str(list(self.status)))
 
     def update(self,ignored) :
         pdg = self.source["genPdgId"]
-        self.value = filter( lambda i: pdg.at(i) in self.PDGs, range(pdg.size()) )
+        status = self.source["genStatus"]
+        self.value = filter( lambda i: pdg.at(i) in self.PDGs and \
+                             status.at(i) in self.status, range(pdg.size()) )
 
 ##############################
 class genParticleCounter(wrappedChain.calculable) :
