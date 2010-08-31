@@ -104,9 +104,10 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
 class singleJetHistogrammer(analysisStep) :
     """singleJetHistogrammer"""
 
-    def __init__(self,cs, maxIndex = 1) :
+    def __init__(self,cs, maxIndex = 2) :
         self.cs = cs
-        self.moreName="%s%s" % self.cs
+        self.maxIndex = maxIndex
+        self.moreName="%s%s through index %d" % (self.cs+(maxIndex,))
         self.indicesName = "%sIndices%s" % self.cs
         self.p4sName = "%sCorrectedP4%s" % self.cs
 
@@ -126,7 +127,7 @@ class singleJetHistogrammer(analysisStep) :
             book.fill(pt,  "%s%sPtAll" %self.cs, 50, 0.0, 500.0, title=";p_{T} (GeV) of clean jets;events / bin")
             book.fill(eta, "%s%setaAll"%self.cs, 50, -5.0, 5.0, title=";#eta of clean jets;events / bin")
 
-            if iJet>2 : continue
+            if iJet > self.maxIndex : continue
             book.fill(pt,  "%s%s%dPt" %(self.cs+(iJet+1,)), 50,  0.0, 500.0, title=";jet%d p_{T} (GeV);events / bin"%(iJet+1))
             self.book(eventVars).fill(eta, "%s%s%deta"%(self.cs+(iJet+1,)), 50, -5.0,   5.0, title=";jet%d #eta;events / bin"%(iJet+1))
 #####################################
