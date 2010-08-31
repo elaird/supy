@@ -1,7 +1,6 @@
 from wrappedChain import *
 import copy
 import ROOT as r
-
 ##############################
 class xcJet(wrappedChain.calculable) :
     def name(self) : return "%sCorrectedP4%s"%self.xcjets
@@ -10,12 +9,14 @@ class xcJet(wrappedChain.calculable) :
                  gamma    = None, gammaDR    = 0,
                  electron = None, electronDR = 0,
                  muon     = None, muonDR     = 0,
+                 correctForMuons = True,
                  jesAbs = 1,
                  jesRel = 0 ) :
         self.value = r.std.vector('LorentzV')()
         self.jetP4Source = ("%sCorrectedP4%s"%xcjets)[2:]
         self.xcjets = xcjets
         self.other = dict( [ (i,(eval(i),eval(i+"DR"))) for i in ["gamma","electron","muon"]] )
+        self.correctForMuons = correctForMuons
         self.jesAbs = jesAbs
         self.jesRel = jesRel
         
@@ -42,14 +43,14 @@ class xcJet(wrappedChain.calculable) :
 
             for p4 in self.matchesIn("muon",xcJet, exitEarly=False, indicesStr="%sIndicesNonIso%s") :
                 matchedMuons.append(p4)
-                xcJet += p4
+                if self.correctForMuons: xcJet += p4
 
         if self.other["muon"][0] :
             muset = set(matchedMuons)
             nonisomu = self.source["%sIndicesNonIso%s"%self.other["muon"][0]]
 
-            self.source["crock"]["%s%sNonIsoMuonsUnmatched"%self.xcjets] = len(muset) == len(nonisomu)
-            self.source["crock"]["%s%sNonUniqueMuonMatch"%self.xcjets] = len(matchedMuons) == len(muset)
+            self.source["crock"]["%s%sNonIsoMuonsUnmatched"%self.xcjets] = ( len(muset) == len(nonisomu) )
+            self.source["crock"]["%s%sNonUniqueMuonMatch"%self.xcjets] = ( len(matchedMuons) == len(muset) )
 
     def matchesIn(self,label,p4, exitEarly = True, indicesStr = "%sIndices%s") :
         collection,dR = self.other[label]
@@ -63,3 +64,21 @@ class xcJet(wrappedChain.calculable) :
                 if exitEarly: return True
                 else: matches.append(objP4)
         return matches
+##############################
+class indicesUnmatched(wrappedChain.calculable) :
+    def name(self) : return "%sIndicesUnmatched%s" % self.collection
+
+    def __init__(self, collection = None, xcjets=None, DR = 0) :
+        self.moreName = "high pt failed %s%s with no match in %s%s"%(collection+xcjets)
+        for item in ["collection","xcjets","DR"]: setattr(self,item,eval(item))
+
+    def hasJetMatch(self, i) :
+        p4 = self.source["%sP4%s"%self.collection].at(i)
+        for jet in self.source[("%sCorrectedP4%s"%self.xcjets)[2:]] :
+            if self.DR > r.Math.VectorUtil.DeltaR(p4,jet) :
+                return True
+        return False
+        
+    def update(self,ignored) :
+        self.value = filter(self.hasJetMatch, self.source["%sIndicesOther%s"%self.collection])
+##############################

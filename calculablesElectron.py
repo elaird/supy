@@ -4,6 +4,11 @@ from wrappedChain import *
 barrelEtaMax = 1.4442
 endcapEtaMin = 1.560
 ##############################
+class electronIndicesOther(calculables.indicesOther) :
+    def __init__(self,collection = None) :
+        super(electronIndicesOther, self).__init__(collection)
+        self.moreName = "pass ptMin; fail id/iso"
+##############################
 class electronIndices(wrappedChain.calculable) :
     def name(self) : return "%sIndices%s" % self.ele
 
@@ -17,13 +22,15 @@ class electronIndices(wrappedChain.calculable) :
 
     def update(self,ignored) :
         self.value = []
+        other = self.source["%sIndicesOther%s"%self.ele]
         p4s = self.source["%sP4%s"%self.ele]
         eID = self.source[self.eID]
         eIso = self.source[self.eIso]
         for i in range(p4s.size()) :
             if p4s.at(i).pt() < self.ptMin : break
-            if eID[i] and eIso[i]:
+            elif eID[i] and eIso[i]:
                 self.value.append(i)
+            else: other.append(i)
 ##############################
 class eleID(wrappedChain.calculable) :
     def name(self) : return self.idName
