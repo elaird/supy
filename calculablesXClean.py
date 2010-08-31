@@ -69,12 +69,13 @@ class indicesUnmatched(wrappedChain.calculable) :
     def name(self) : return "%sIndicesUnmatched%s" % self.collection
 
     def __init__(self, collection = None, xcjets=None, DR = 0) :
-        self.moreName = "high pt failed %s%s with no match in %s%s"%(collection+xcjets)
+        self.compareJets = ("%sCorrectedP4%s"%self.xcjets)[2:]
+        self.moreName = "high pt failed %s%s with no match in %s"%(collection+(self.compareJets,))
         for item in ["collection","xcjets","DR"]: setattr(self,item,eval(item))
 
     def hasJetMatch(self, i) :
         p4 = self.source["%sP4%s"%self.collection].at(i)
-        for jet in self.source[("%sCorrectedP4%s"%self.xcjets)[2:]] :
+        for jet in self.source[self.compareJets]:
             if self.DR > r.Math.VectorUtil.DeltaR(p4,jet) :
                 return True
         return False
