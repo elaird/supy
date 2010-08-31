@@ -83,7 +83,7 @@ class hadronicLook(analysis.analysis) :
             
             #many plots
             steps.passFilter("singleJetPlots1"),
-            steps.cleanJetPtHistogrammer(_jet),
+            steps.singleJetHistogrammer(_jet),
             steps.passFilter("jetSumPlots1"), 
             steps.cleanJetHtMhtHistogrammer(_jet),
             steps.passFilter("kinematicPlots1"), 

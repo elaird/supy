@@ -101,29 +101,33 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
         value = mht / ht  if ht>0.0 else -1.0
         book.fill(value, "%smHtOverHt%s"%self.cs, 50, 0.0, 1.1, title = "; MHT / H_{T} (GeV) from clean jet p_{T}'s;events / bin" )
 #####################################
-class cleanJetPtHistogrammer(analysisStep) :
-    """cleanJetPtHistogrammer"""
+class singleJetHistogrammer(analysisStep) :
+    """singleJetHistogrammer"""
 
-    def __init__(self,cs) :
+    def __init__(self,cs, maxIndex = 1) :
         self.cs = cs
         self.moreName="%s%s" % self.cs
         self.indicesName = "%sIndices%s" % self.cs
         self.p4sName = "%sCorrectedP4%s" % self.cs
 
     def uponAcceptance (self,eventVars) :
+        book = self.book(eventVars)
         ptleading = 0.0
         p4s = eventVars[self.p4sName]
         cleanJetIndices = eventVars[self.indicesName]
 
+        book.fill(len(cleanJetIndices), "jetMultiplicity", 10, -0.5, 9.5,
+                  title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%self.cs)
+        
         for iJet in cleanJetIndices :
             jet = p4s.at(iJet)
             pt = jet.pt()
             eta = jet.eta()
-            self.book(eventVars).fill(pt,  "%s%sPtAll" %self.cs, 50, 0.0, 500.0, title=";p_{T} (GeV) of clean jets;events / bin")
-            self.book(eventVars).fill(eta, "%s%setaAll"%self.cs, 50, -5.0, 5.0, title=";#eta of clean jets;events / bin")
+            book.fill(pt,  "%s%sPtAll" %self.cs, 50, 0.0, 500.0, title=";p_{T} (GeV) of clean jets;events / bin")
+            book.fill(eta, "%s%setaAll"%self.cs, 50, -5.0, 5.0, title=";#eta of clean jets;events / bin")
 
             if iJet>2 : continue
-            self.book(eventVars).fill(pt,  "%s%s%dPt" %(self.cs+(iJet+1,)), 50,  0.0, 500.0, title=";jet%d p_{T} (GeV);events / bin"%(iJet+1))
+            book.fill(pt,  "%s%s%dPt" %(self.cs+(iJet+1,)), 50,  0.0, 500.0, title=";jet%d p_{T} (GeV);events / bin"%(iJet+1))
             self.book(eventVars).fill(eta, "%s%s%deta"%(self.cs+(iJet+1,)), 50, -5.0,   5.0, title=";jet%d #eta;events / bin"%(iJet+1))
 #####################################
 class alphaHistogrammer(analysisStep) :

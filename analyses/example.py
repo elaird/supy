@@ -25,7 +25,7 @@ class example(analysis.analysis) :
             steps.multiplicityFilter("%sIndicesOther%s"%jets, nMax = 0),
             steps.multiplicityFilter("%sIndices%s"%jets, nMin = 2),
             
-            steps.cleanJetPtHistogrammer(jets),
+            steps.singleJetHistogrammer(jets),
             steps.cleanJetHtMhtHistogrammer(jets),
             #steps.variableGreaterFilter(25.0,jets[0]+"SumPt"+jets[1]),
             
