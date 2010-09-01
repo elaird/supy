@@ -113,8 +113,8 @@ class diJetAlphaPrinter(analysisStep) :
         outString="di-jet alpha  %#6.3f"%eventVars[self.jetCollection+"DiJetAlpha"+self.jetSuffix]
         print outString
 #####################################
-class nJetAlphaTPrinter(analysisStep) :
-    """nJetAlphaTPrinter"""
+class alphaTPrinter(analysisStep) :
+    """alphaTPrinter"""
 
     def __init__(self,jets,etRatherThanPt) :
         self.cs = jets
