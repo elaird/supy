@@ -52,7 +52,7 @@ class hadronicLook(analysis.analysis) :
             steps.progressPrinter(),
             steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
 
-            steps.jetPtSelector(_jet,100.0,0),
+            steps.preIdJetPtSelector(_jet,100.0,0),
             steps.leadingUnCorrJetPtSelector( [_jet],100.0 ),
             steps.hltFilter("HLT_Jet50U"),
             steps.vertexRequirementFilter(),
