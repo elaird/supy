@@ -9,40 +9,46 @@ class hadronicLook(analysis.analysis) :
 
     def parameters(self) :
         objects = {}
-        fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets"]
-        objects["caloAK5"] = dict(zip(fields, [("xcak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" , False]))
-        #objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"metP4TC",       ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo", True ]))
-        #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",       ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  , True ]))
+        fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets", "jetPtMin"] 
+        objects["caloAK5"] = dict(zip(fields, [("ak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        30.0]))
+        objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"metP4TC",     ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo",     True ,        30.0]))
+        objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,        30.0]))
 
         return { "objects": objects,
-                 "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
+                 "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [:] ),
                  "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ] [0:1] ),
                  "mcMhtScaleFactor" : dict([ ("defaultMht",1.0), ("scaledMht",1.1) ]                   [0:1] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
+                 "etRatherThanPt" : [True,False]        [0],
                  #"jesAbs":  [1.0,1.1,0.9]               [:],
                  #"jesRel":  0,
                  }
 
     def listOfCalculables(self,params) :
-        _jet =  params["objects"]["jet"]
+        _jet = params["objects"]["jet"]
         _muon = params["objects"]["muon"]
         _electron = params["objects"]["electron"]
         _photon = params["objects"]["photon"]
-
+        _jetPtMin = params["objects"]["jetPtMin"]
+        _etRatherThanPt = params["etRatherThanPt"]
+        
         return calculables.zeroArgs() +\
                calculables.fromCollections("calculablesJet",[_jet]) +\
                calculables.fromCollections("calculablesMuon",[_muon]) +\
                calculables.fromCollections("calculablesElectron",[_electron]) +\
                calculables.fromCollections("calculablesPhoton",[_photon]) +\
-               [ calculables.xcJet( _jet,  gamma = _photon, gammaDR = 0.5, muon = _muon, muonDR = 0.5, electron = _electron, electronDR = 0.5),
-                 calculables.jetIndices( _jet, ptMin = 20.0, etaMax = 3.0, flagName = params["jetId"]),
+               [ #calculables.xcJet( _jet,  gamma = _photon, gammaDR = 0.5, muon = _muon, muonDR = 0.5, electron = _electron, electronDR = 0.5),
+                 calculables.jetIndices( _jet, _jetPtMin, etaMax = 3.0, flagName = params["jetId"]),
                  calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15),
                  calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
                  calculables.photonIndicesPat(  ptMin = 20, flagName = "photonIDLoosePat"),
-                 calculables.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
-                 calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)] \
-                 + [ calculables.jetSumP4( _jet, mcScaleFactor = params["mcMhtScaleFactor"]),
-                     calculables.deltaPhiStar( _jet, ptMin = 50.0)]
+                 #calculables.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
+                 #calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
+                 ] \
+                 + [ calculables.jetSumP4(_jet, mcScaleFactor = params["mcMhtScaleFactor"]),
+                     calculables.deltaPhiStar(_jet, ptMin = 50.0),
+                     calculables.deltaPseudoJet(_jet, _etRatherThanPt),
+                     calculables.alphaT(_jet, _etRatherThanPt) ]
 
     def listOfSteps(self,params) :
         _jet  = params["objects"]["jet"]
@@ -50,12 +56,15 @@ class hadronicLook(analysis.analysis) :
         _muon = params["objects"]["muon"]
         _photon = params["objects"]["photon"]
         _met  = params["objects"]["met"]
+        _etRatherThanPt = params["etRatherThanPt"]
         
         outList=[
             steps.progressPrinter(),
             steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
 
             steps.preIdJetPtSelector(_jet,100.0,0),
+            steps.preIdJetPtSelector(_jet, 80.0,1),
+            
             steps.leadingUnCorrJetPtSelector( [_jet],100.0 ),
             steps.hltFilter("HLT_Jet50U"),
             steps.vertexRequirementFilter(),
@@ -73,9 +82,6 @@ class hadronicLook(analysis.analysis) :
                                funcString="lambda x:len(x)"),
             steps.multiplicityFilter("%sIndicesOther%s"%_jet, nMax = 0),
             
-            steps.histogrammer("%sSumPt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s p_{T}s;events / bin"%_jet),
-            steps.variableGreaterFilter(350.0,"%sSumPt%s"%_jet),
-            
             #electron, muon, photon vetoes
             steps.histogrammer("%sIndices%s"%_electron,10,-0.5,9.5,title="; N electrons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_electron, nMax = 0),
@@ -83,19 +89,23 @@ class hadronicLook(analysis.analysis) :
             steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
             steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_photon, nMax = 0),
-            steps.histogrammer("%sIndicesUnmatched%s"%_electron,10,-0.5,9.5,title="; N electrons unmatched;events / bin", funcString = "lambda x: len(x)"),
-            steps.multiplicityFilter("%sIndicesUnmatched%s"%_electron, nMax = 0),
-            steps.histogrammer("%sIndicesUnmatched%s"%_photon,10,-0.5,9.5,title="; N photons unmatched;events / bin", funcString = "lambda x: len(x)"),
-            steps.multiplicityFilter("%sIndicesUnmatched%s"%_photon, nMax = 0),
-            steps.uniquelyMatchedNonisoMuons(_jet),
+            #steps.histogrammer("%sIndicesUnmatched%s"%_electron,10,-0.5,9.5,title="; N electrons unmatched;events / bin", funcString = "lambda x: len(x)"),
+            #steps.multiplicityFilter("%sIndicesUnmatched%s"%_electron, nMax = 0),
+            #steps.histogrammer("%sIndicesUnmatched%s"%_photon,10,-0.5,9.5,title="; N photons unmatched;events / bin", funcString = "lambda x: len(x)"),
+            #steps.multiplicityFilter("%sIndicesUnmatched%s"%_photon, nMax = 0),
+            #steps.uniquelyMatchedNonisoMuons(_jet),
+
+            steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
+            steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
             
             #many plots
             steps.passFilter("singleJetPlots1"),
             steps.singleJetHistogrammer(_jet),
             steps.passFilter("jetSumPlots1"), 
-            steps.cleanJetHtMhtHistogrammer(_jet),
+            steps.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
+            steps.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
             steps.passFilter("kinematicPlots1"), 
-            steps.alphaHistogrammer(_jet),
+            steps.alphaHistogrammer(_jet, _etRatherThanPt),
 
             ###extrapolation region
             ##steps.variableGreaterFilter(0.50,"%sAlphaT%s"%_jet),
@@ -109,13 +119,14 @@ class hadronicLook(analysis.analysis) :
             ###steps.alphaHistogrammer(_jet),
 
             #signal selection
+            steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
 
             #steps.skimmer(),
             #steps.eventPrinter(),
             #steps.jetPrinter(_jet),
             #steps.htMhtPrinter(_jet),
-            #steps.nJetAlphaTPrinter(_jet),
+            #steps.alphaTPrinter(_jet,_etRatherThanPt),
             #steps.genParticlePrinter(minPt=10.0,minStatus=3),
 
             #steps.displayer(jets = _jet,
@@ -136,56 +147,56 @@ class hadronicLook(analysis.analysis) :
         from samples import specify
 
         outList =[
-            specify(name = "JetMET_skim",           color = r.kBlack   , markerStyle = 20)
-            ]
-        py6_list = [
-          ##specify(name = "qcd_py6_pt30",          color = r.kBlue    ),
-            specify(name = "qcd_py6_pt80",          color = r.kBlue    ),
-            specify(name = "qcd_py6_pt170",         color = r.kBlue    ),
-            specify(name = "qcd_py6_pt300",         color = r.kBlue    ),
-          ##specify(name = "qcd_py6_pt470",         color = r.kBlue    ),
-          ##specify(name = "qcd_py6_pt800",         color = r.kBlue    ),
-          ##specify(name = "qcd_py6_pt1400",        color = r.kBlue    ),
-            ]                                       
-        py8_list = [
-          ##specify(name = "qcd_py8_pt0to15",       color = r.kBlue    ),
-          ##specify(name = "qcd_py8_pt15to20",      color = r.kBlue    ),
-          ##specify(name = "qcd_py8_pt20to30",      color = r.kBlue    ),
-          ##specify(name = "qcd_py8_pt30to50",      color = r.kBlue    ),
-            specify(name = "qcd_py8_pt50to80",      color = r.kBlue    ),
-            specify(name = "qcd_py8_pt80to120",     color = r.kBlue    ),
-            specify(name = "qcd_py8_pt120to170",    color = r.kBlue    ),
-            specify(name = "qcd_py8_pt170to230",    color = r.kBlue    ),
-            specify(name = "qcd_py8_pt230to300",    color = r.kBlue    ),
-            specify(name = "qcd_py8_pt300to380",    color = r.kBlue    ),
-            specify(name = "qcd_py8_pt380to470",    color = r.kBlue    ),
-            specify(name = "qcd_py8_pt470to600",    color = r.kBlue    ),
-            specify(name = "qcd_py8_pt600to800",    color = r.kBlue    ),
-            specify(name = "qcd_py8_pt800to1000",   color = r.kBlue    ),
-            specify(name = "qcd_py8_pt1000to1400",  color = r.kBlue    ),
-            specify(name = "qcd_py8_pt1400to1800",  color = r.kBlue    ),
-            specify(name = "qcd_py8_pt1800to2200",  color = r.kBlue    ),
-            specify(name = "qcd_py8_pt2200to2600",  color = r.kBlue    ),
-            specify(name = "qcd_py8_pt2600to3000",  color = r.kBlue    ),
-            specify(name = "qcd_py8_pt3000to3500",  color = r.kBlue    ),
-            ]                                       
-        mg_list = [                                 
-            specify(name = "qcd_mg_ht_50_100",      color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_100_250",     color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_250_500",     color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_500_1000",    color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_1000_inf",    color = r.kBlue    ),
-            ]                                       
-        default_list = [                            
-            specify(name = "tt_tauola_mg",          color = r.kOrange  ),
-            specify(name = "g_jets_mg_pt40_100",    color = r.kGreen   ),
-            specify(name = "g_jets_mg_pt100_200",   color = r.kGreen   ),
-            specify(name = "g_jets_mg_pt200",       color = r.kGreen   ),
-            specify(name = "z_inv_mg_skim",         color = r.kMagenta ),
-            specify(name = "z_jets_mg_skim",        color = r.kYellow-3),
-            specify(name = "w_jets_mg_skim",        color = 28         ),
-            specify(name = "lm0",                   color = r.kRed     ),
-            specify(name = "lm1",                   color = r.kRed+1   ),
+            specify(name = "JetMET_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20)
+            ]                                                   
+        py6_list = [                                            
+          ##specify(name = "qcd_py6_pt30",          nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py6_pt80",          nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py6_pt170",         nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py6_pt300",         nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py6_pt470",         nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py6_pt800",         nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py6_pt1400",        nFilesMax = -1, color = r.kBlue    ),
+            ]                                                   
+        py8_list = [                                            
+          ##specify(name = "qcd_py8_pt0to15",       nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py8_pt15to20",      nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py8_pt20to30",      nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py8_pt30to50",      nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt50to80",      nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt80to120",     nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt120to170",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt170to230",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt230to300",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt300to380",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt380to470",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt470to600",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt600to800",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt800to1000",   nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt1000to1400",  nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt1400to1800",  nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt1800to2200",  nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt2200to2600",  nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt2600to3000",  nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt3000to3500",  nFilesMax = -1, color = r.kBlue    ),
+            ]                                                   
+        mg_list = [                                             
+            specify(name = "qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
+            ]                                                   
+        default_list = [                                        
+            specify(name = "tt_tauola_mg",          nFilesMax =  3, color = r.kOrange  ),
+            specify(name = "g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
+            specify(name = "g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
+            specify(name = "g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
+            specify(name = "z_inv_mg_skim",         nFilesMax = -1, color = r.kMagenta ),
+            specify(name = "z_jets_mg_skim",        nFilesMax = -1, color = r.kYellow-3),
+            specify(name = "w_jets_mg_skim",        nFilesMax = -1, color = 28         ),
+            specify(name = "lm0",                   nFilesMax = -1, color = r.kRed     ),
+            specify(name = "lm1",                   nFilesMax = -1, color = r.kRed+1   ),
             ]
         
         if params["mcSoup"]=="py6" : outList+=py6_list
