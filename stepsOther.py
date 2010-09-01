@@ -191,7 +191,7 @@ class variablePtGreaterFilter(analysisStep) :
     def __init__(self, threshold, variable, suffix = ""):
         self.threshold = threshold
         self.variable = variable
-        self.moreName = "%s>=%.1f %s" % (variable,threshold,suffix)
+        self.moreName = "%s.pt()>=%.1f %s" % (variable,threshold,suffix)
 
     def select (self,eventVars) :
         return eventVars[self.variable].pt()>=self.threshold
@@ -224,6 +224,30 @@ class soloObjectPtSelector(analysisStep) :
 
     def select (self,eventVars) :
         return self.ptThreshold <= eventVars[self.varName].pt()
+#####################################
+class ptRatioLessThanSelector(analysisStep) :
+    """ptRatioLessThanSelector"""
+
+    def __init__(self,numVar = None, denVar = None, threshold = None):
+        for item in ["numVar","denVar","threshold"] :
+            setattr(self,item,eval(item))
+        self.moreName = "%s.pt() / %s.pt() < %.3f" % (numVar,denVar,threshold)
+
+    def select (self,ev) :
+        value = ev[self.numVar].pt() / ev[self.denVar].pt()
+        return value<self.threshold
+#####################################
+class ptRatioHistogrammer(analysisStep) :
+    """ptRatioHistogrammer"""
+
+    def __init__(self,numVar = None, denVar = None):
+        for item in ["numVar","denVar"] :
+            setattr(self,item,eval(item))
+        self.moreName = "%s.pt() / %s.pt()" % (self.numVar,self.denVar)
+
+    def uponAcceptance (self,ev) :
+        value = ev[self.numVar].pt() / ev[self.denVar].pt()
+        book = self.book(ev).fill(value,"ptRatio", 50, 0.0, 2.0, title = ";%s / %s;events / bin"%(self.numVar,self.denVar) )
 #####################################
 class vertexRequirementFilter(analysisStep) :
     """vertexRequirementFilter"""
