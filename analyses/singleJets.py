@@ -57,13 +57,14 @@ class singleJets(analysis.analysis) :
             steps.progressPrinter(),
             steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
 
-            steps.jetPtSelector(_jet,100.0,0),
+            steps.preIdJetPtSelector(_jet,100.0,0),
             steps.hltFilter("HLT_Jet50U"),
             steps.vertexRequirementFilter(),
             steps.techBitFilter([0],True),
             steps.physicsDeclared(),
             steps.monsterEventFilter(),
             steps.hbheNoiseFilter(),
+            steps.jetPtSelector(_jet,100.0,0),
             steps.singleJetHistogrammer(_jet),
 
             steps.multiplicityFilter("%sIndices%s"%_jet, nMin = params["nJetsMinMax"][0], nMax = params["nJetsMinMax"][1]),
@@ -96,16 +97,16 @@ class singleJets(analysis.analysis) :
         from samples import specify
         outList = []
         outList +=[
-            specify(name = "JetMET_skim",           color = r.kBlack   , markerStyle = 20)
+            specify(name = "JetMET_skim",            color = r.kBlack   , markerStyle = 20)
             ]
         py6_list = [
           ##specify(name = "qcd_py6_pt30",          nFilesMax = 1, nEventsMax = 5000, color = r.kBlue    ),
-            specify(name = "qcd_py6_pt80",          color = r.kBlue    ),
-            specify(name = "qcd_py6_pt170",         nFilesMax = 6, color = r.kBlue    ),
-            specify(name = "qcd_py6_pt300",         nFilesMax = 3, color = r.kBlue    ),
-          ##specify(name = "qcd_py6_pt470",         nFilesMax = 1, nEventsMax = 5000, color = r.kBlue    ),
-          ##specify(name = "qcd_py6_pt800",         nFilesMax = 1, nEventsMax = 5000, color = r.kBlue    ),
-          ##specify(name = "qcd_py6_pt1400",        nFilesMax = 1, nEventsMax = 5000, color = r.kBlue    ),
+            specify(name = "qcd_py6_pt80",           color = r.kBlue    ),
+            specify(name = "qcd_py6_pt170",          color = r.kBlue    ),
+            specify(name = "qcd_py6_pt300",          color = r.kBlue    ),
+          ##specify(name = "qcd_py6_pt470",          color = r.kBlue    ),
+          ##specify(name = "qcd_py6_pt800",          color = r.kBlue    ),
+          ##specify(name = "qcd_py6_pt1400",         color = r.kBlue    ),
             ]
         py8_list = [
           ##specify(name = "qcd_py8_pt0to15",        color = r.kBlue    ),
@@ -137,15 +138,15 @@ class singleJets(analysis.analysis) :
             specify(name = "qcd_mg_ht_1000_inf",     color = r.kBlue    ),
             ]                                       
         default_list = [                            
-            specify(name = "tt_tauola_mg",          nFilesMax = 4, color = r.kOrange  ),
-            specify(name = "g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
-            specify(name = "g_jets_mg_pt100_200",   nFilesMax = 6, color = r.kGreen   ),
-            specify(name = "g_jets_mg_pt200",       nFilesMax = 3, color = r.kGreen   ),
-            specify(name = "z_inv_mg_skim",         nFilesMax = -1, color = r.kMagenta ),
-            specify(name = "z_jets_mg_skim",        nFilesMax = -1, color = r.kYellow-3),
-            specify(name = "w_jets_mg_skim",        nFilesMax = -1, color = 28         ),
-            specify(name = "lm0",                   nFilesMax = -1, color = r.kRed     ),
-            specify(name = "lm1",                   nFilesMax = -1, color = r.kRed+1   ),
+            specify(name = "tt_tauola_mg",           color = r.kOrange  ),
+            specify(name = "g_jets_mg_pt40_100",     color = r.kGreen   ),
+            specify(name = "g_jets_mg_pt100_200",    color = r.kGreen   ),
+            specify(name = "g_jets_mg_pt200",        color = r.kGreen   ),
+            specify(name = "z_inv_mg_skim",          color = r.kMagenta ),
+            specify(name = "z_jets_mg_skim",         color = r.kYellow-3),
+            specify(name = "w_jets_mg_skim",         color = 28         ),
+            specify(name = "lm0",                    color = r.kRed     ),
+            specify(name = "lm1",                    color = r.kRed+1   ),
             ]
         
         if params["mcSoup"]=="py6" : outList+=py6_list
