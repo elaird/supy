@@ -228,9 +228,10 @@ class plotter(object) :
 
         nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in self.someOrganizer.selections]))
         for i,selection in enumerate(selections[-self.nLinesMax:]) :
-            letter = string.ascii_letters[i + (0 if len(selections) <= self.nLinesMax else len(selections)-self.nLinesMax)]
+            absI = i + (0 if len(selections) <= self.nLinesMax else len(selections)-self.nLinesMax)
+            letter = string.ascii_letters[absI]
             x = 0.01
-            y = 0.98 - 0.35*(i+0.5)/self.nLinesMax
+            y = 0.98 - 0.35*(i+0.5+absI/5)/self.nLinesMax
             text.DrawTextNDC(x, y, nametitle.format(letter, selection.name, selection.title ))
             text.DrawTextNDC(x, y-0.5, "%s: %s"%(letter,
                                                   "".join([(utils.roundString(*k,width=8) if k else "-    ").rjust(11) for k in selection.yields()])))
