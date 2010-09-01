@@ -99,25 +99,28 @@ class cleanJetEmfFilter(analysisStep) :
 class cleanJetHtMhtHistogrammer(analysisStep) :
     """cleanJetHtMhtHistogrammer"""
 
-    def __init__(self,cs):
+    def __init__(self,cs,etRatherThanPt):
         self.cs = cs
+        self.etRatherThanPt = etRatherThanPt
+        self.letter = "P" if not self.etRatherThanPt else "E"
+        self.htName = "%sSum%st%s"%(self.cs[0],self.letter,self.cs[1])
         self.moreName="%s%s" % self.cs
 
     def uponAcceptance (self,eventVars) :
         sumP4 = eventVars["%sSumP4%s"%self.cs]
-        ht = eventVars["%sSumPt%s"%self.cs]
+        ht =  eventVars[self.htName]
         mht = sumP4.pt()
         
         book = self.book(eventVars)
-        book.fill(           ht,"%sHt%s"       %self.cs, 50, 0.0, 1500.0, title = ";H_{T} (GeV) from %s%s p_{T}'s;events / bin"%self.cs)
+        book.fill(           ht,"%sHt%s"       %self.cs, 50, 0.0, 1500.0, title = ";H_{T} (GeV) from %s%s %s_{T}'s;events / bin"%(self.cs[0],self.cs[1],self.letter))
         book.fill(          mht,"%sMht%s"      %self.cs, 50, 0.0,  700.0, title = ";#slash{H}_{T} (GeV) from %s%s;events / bin"%self.cs)
-        book.fill(       mht+ht,"%sHtPlusMht%s"%self.cs, 50, 0.0, 1500.0, title = ";H_{T} + #slash{H}_{T} (GeV) from %s%s p_{T}'s;events / bin"%self.cs)        
+        book.fill(       mht+ht,"%sHtPlusMht%s"%self.cs, 50, 0.0, 1500.0, title = ";H_{T} + #slash{H}_{T} (GeV) from %s%s %s_{T}'s;events / bin"%(self.cs[0],self.cs[1],self.letter))
         book.fill( sumP4.mass(),"%sm%s"        %self.cs, 50, 0.0,  7.0e3, title = ";mass (GeV) of system of clean jets;events / bin")
         book.fill( (ht,mht), "%smht_vs_ht%s"%self.cs, (50,50), (0.0,0.0), (1500.0,1500.0),
-                   title = "; H_{T} (GeV) from clean jets; #slash{H}_{T} (GeV) from clean jet p_{T}'s;events / bin")
+                   title = "; H_{T} (GeV) from clean jets; #slash{H}_{T} (GeV) from clean jet %s_{T}'s;events / bin"%self.letter)
 
         value = mht / ht  if ht>0.0 else -1.0
-        book.fill(value, "%smHtOverHt%s"%self.cs, 50, 0.0, 1.1, title = "; MHT / H_{T} (GeV) from clean jet p_{T}'s;events / bin" )
+        book.fill(value, "%smHtOverHt%s"%self.cs, 50, 0.0, 1.1, title = "; MHT / H_{T} (GeV) from clean jet %s_{T}'s;events / bin"%self.letter )
 #####################################
 class singleJetHistogrammer(analysisStep) :
     """singleJetHistogrammer"""
