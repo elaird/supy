@@ -170,10 +170,12 @@ class jetSumP4Low(wrappedChain.calculable) :
         self.cs = collection
         self.p4Name = '%sCorrectedP4%s' % self.cs
         self.ptMin = ptMin
+        self.moreName = "jets with pT>%.1f GeV"%self.ptMin
         
     def update(self,ignored) :
         p4s = self.source[self.p4Name]
-        self.value = reduce( lambda x,i: x+p4s.at(i) if p4s.at(i).pt() > self.ptMin else x, indices[1:], p4s.at(indices[0]) ) if len(indices) else None
+        size = p4s.size()
+        self.value = reduce( lambda x,i: x+p4s.at(i) if p4s.at(i).pt() > self.ptMin else x, range(1,size), p4s.at(0) ) if size>0 else None
 ##############################
 class deltaPseudoJet(wrappedChain.calculable) :
     def name(self) : return self.nameString
