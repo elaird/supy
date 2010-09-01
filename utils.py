@@ -288,14 +288,15 @@ def roundString(val,err,width=None) :
     display_err = str(int(round(err/pow(10,err_digit))))
 
     while True:
+        print display_val,display_err
         display_sci = ("e%+d"%dsp_digit) if sci else ""
         returnVal = "%.*f(%s)%s"%(precision,display_val,display_err,display_sci)
         if (not width) or len(returnVal) <= width or precision < 1: break
         else:
             display_err = "-"
-            precision-=1
             if not precision :
                 display_val*=10
                 dsp_digit-=1
+            precision-=1
     return returnVal
 ########################
