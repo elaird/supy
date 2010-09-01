@@ -520,7 +520,9 @@ class displayer(analysisStep) :
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"GEN jets (%s%s)"%self.genJets,"l")
 
-        p4Vector=eventVars["%sGenJetP4%s"%self.genJets]
+        genJets = "%sGenJetP4%s"%self.genJets
+        if genJets[:2] == "xc": genJets = genJets[2:]
+        p4Vector = eventVars[genJets]
         for jet in p4Vector :
             self.drawP4(jet,color,lineWidth,arrowSize)
             
