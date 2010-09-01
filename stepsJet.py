@@ -2,8 +2,8 @@ import ROOT as r
 import math
 from analysisStep import analysisStep
 #####################################
-class jetPtSelector(analysisStep) :
-    """jetPtSelector"""
+class preIdJetPtSelector(analysisStep) :
+    """preIdJetPtSelector"""
 
     def __init__(self,cs,jetPtThreshold,jetIndex):
         self.jetIndex = jetIndex
@@ -16,6 +16,23 @@ class jetPtSelector(analysisStep) :
         p4s = eventVars[self.p4sName]
         if p4s.size() <= self.jetIndex : return False
         return self.jetPtThreshold <= p4s.at(self.jetIndex).pt()
+#####################################
+class jetPtSelector(analysisStep) :
+    """jetPtSelector"""
+
+    def __init__(self,cs,jetPtThreshold,jetIndex):
+        self.jetIndex = jetIndex
+        self.jetPtThreshold = jetPtThreshold
+        self.cs = cs
+        self.indicesName = "%sIndices%s" % self.cs
+        self.p4sName = "%sCorrectedP4%s" % self.cs
+        self.moreName = "%s%s; pT[%d]>=%.1f GeV" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
+
+    def select (self,eventVars) :
+        indices = eventVars[self.indicesName]
+        if len(indices) <= self.jetIndex : return False
+        p4s = eventVars[self.p4sName]
+        return self.jetPtThreshold <= p4s.at(indices[self.jetIndex]).pt()
 #####################################
 class jetPtVetoer(analysisStep) :
     """jetPtVetoer"""
@@ -120,16 +137,19 @@ class singleJetHistogrammer(analysisStep) :
         book.fill(len(cleanJetIndices), "jetMultiplicity", 10, -0.5, 9.5,
                   title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%self.cs)
         
-        for iJet in cleanJetIndices :
+        for i,iJet in enumerate(cleanJetIndices) :
             jet = p4s.at(iJet)
             pt = jet.pt()
             eta = jet.eta()
             book.fill(pt,  "%s%sPtAll" %self.cs, 50, 0.0, 500.0, title=";p_{T} (GeV) of clean jets;events / bin")
             book.fill(eta, "%s%setaAll"%self.cs, 50, -5.0, 5.0, title=";#eta of clean jets;events / bin")
 
-            if iJet > self.maxIndex : continue
-            book.fill(pt,  "%s%s%dPt" %(self.cs+(iJet+1,)), 50,  0.0, 500.0, title=";jet%d p_{T} (GeV);events / bin"%(iJet+1))
-            self.book(eventVars).fill(eta, "%s%s%deta"%(self.cs+(iJet+1,)), 50, -5.0,   5.0, title=";jet%d #eta;events / bin"%(iJet+1))
+            if i > self.maxIndex : continue
+            book.fill(pt,  "%s%s%dPt" %(self.cs+(i+1,)), 50,  0.0, 500.0, title=";jet%d p_{T} (GeV);events / bin"%(i+1))
+            book.fill(eta, "%s%s%deta"%(self.cs+(i+1,)), 50, -5.0,   5.0, title=";jet%d #eta;events / bin"%(i+1))
+            for j,jJet in list(enumerate(cleanJetIndices))[i+1:self.maxIndex+1] :
+                book.fill(abs(r.Math.VectorUtil.DeltaPhi(jet,p4s.at(jJet))), "%s%sdphi%d%d"%(self.cs+(i+1,j+1)), 50,0, r.TMath.Pi(),
+                          title = "#Delta#phi_{jet%d,jet%d};events / bin"%(i+1,j+1))
 #####################################
 class alphaHistogrammer(analysisStep) :
     """alphaHistogrammer"""
@@ -249,3 +269,12 @@ class alphatEtaDependence(analysisStep) :
     def ptLabel(self,ipt) :
         return "pt %d-%d"%(self.ptBin*ipt,self.ptBin*(ipt+1)) if ipt<self.iMax else "pt>%d"%(self.iMax*self.ptBin)
 #####################################
+class uniquelyMatchedNonisoMuons(analysisStep) :
+    """uniquelyMatchedNonisoMuons"""
+    def __init__(self,collection) :
+        self.cs = collection
+        self.moreName = "%s%s"%self.cs
+    def select(self,eventVars) :
+        return eventVars["crock"]["%s%sNonIsoMuonsUniquelyMatched"%self.cs]
+
+    
