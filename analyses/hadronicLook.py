@@ -9,10 +9,10 @@ class hadronicLook(analysis.analysis) :
 
     def parameters(self) :
         objects = {}
-        fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit"]
-        objects["caloAK5"] = dict(zip(fields, [("xcak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
-        #objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"metP4TC",       ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ]))
-        #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",       ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"   ]))
+        fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets"]
+        objects["caloAK5"] = dict(zip(fields, [("xcak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" , False]))
+        #objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"metP4TC",       ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo", True ]))
+        #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",       ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  , True ]))
 
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
@@ -33,11 +33,14 @@ class hadronicLook(analysis.analysis) :
                calculables.fromCollections("calculablesJet",[_jet]) +\
                calculables.fromCollections("calculablesMuon",[_muon]) +\
                calculables.fromCollections("calculablesElectron",[_electron]) +\
+               calculables.fromCollections("calculablesPhoton",[_photon]) +\
                [ calculables.xcJet( _jet,  gamma = _photon, gammaDR = 0.5, muon = _muon, muonDR = 0.5, electron = _electron, electronDR = 0.5),
                  calculables.jetIndices( _jet, ptMin = 20.0, etaMax = 3.0, flagName = params["jetId"]),
                  calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15),
                  calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
-                 calculables.photonIndicesPat(  ptMin = 20, flagName = "photonIDLoosePat")] \
+                 calculables.photonIndicesPat(  ptMin = 20, flagName = "photonIDLoosePat"),
+                 calculables.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
+                 calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)] \
                  + [ calculables.jetSumP4( _jet, mcScaleFactor = params["mcMhtScaleFactor"]),
                      calculables.deltaPhiStar( _jet, ptMin = 50.0)]
 
@@ -80,6 +83,11 @@ class hadronicLook(analysis.analysis) :
             steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
             steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_photon, nMax = 0),
+            steps.histogrammer("%sIndicesUnmatched%s"%_electron,10,-0.5,9.5,title="; N electrons unmatched;events / bin", funcString = "lambda x: len(x)"),
+            steps.multiplicityFilter("%sIndicesUnmatched%s"%_electron, nMax = 0),
+            steps.histogrammer("%sIndicesUnmatched%s"%_photon,10,-0.5,9.5,title="; N photons unmatched;events / bin", funcString = "lambda x: len(x)"),
+            steps.multiplicityFilter("%sIndicesUnmatched%s"%_photon, nMax = 0),
+            steps.uniquelyMatchedNonisoMuons(_jet),
             
             #many plots
             steps.passFilter("singleJetPlots1"),
