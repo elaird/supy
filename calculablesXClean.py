@@ -49,8 +49,8 @@ class xcJet(wrappedChain.calculable) :
             muset = set(matchedMuons)
             nonisomu = self.source["%sIndicesNonIso%s"%self.other["muon"][0]]
 
-            self.source["crock"]["%s%sNonIsoMuonsUnmatched"%self.xcjets] = ( len(muset) == len(nonisomu) )
-            self.source["crock"]["%s%sNonUniqueMuonMatch"%self.xcjets] = ( len(matchedMuons) == len(muset) )
+            self.source["crock"]["%s%sNonIsoMuonsUniquelyMatched"%self.xcjets] = ( len(muset) == len(nonisomu) ) and \
+                                                                                 ( len(matchedMuons) == len(muset) )
 
     def matchesIn(self,label,p4, exitEarly = True, indicesStr = "%sIndices%s") :
         collection,dR = self.other[label]
@@ -70,16 +70,16 @@ class indicesUnmatched(wrappedChain.calculable) :
 
     def __init__(self, collection = None, xcjets=None, DR = 0) :
         self.compareJets = ("%sCorrectedP4%s"%xcjets)[2:]
-        self.moreName = "high pt failed %s%s with no match in %s"%(collection+(self.compareJets,))
+        self.moreName = "%sIndicesOther%s; no dR<%.1f match in %s"%(collection+(DR,self.compareJets))
         for item in ["collection","DR"]: setattr(self,item,eval(item))
 
-    def hasJetMatch(self, i) :
+    def noJetMatch(self, i) :
         p4 = self.source["%sP4%s"%self.collection].at(i)
         for jet in self.source[self.compareJets]:
             if self.DR > r.Math.VectorUtil.DeltaR(p4,jet) :
-                return True
-        return False
+                return False
+        return True
         
     def update(self,ignored) :
-        self.value = filter(self.hasJetMatch, self.source["%sIndicesOther%s"%self.collection])
+        self.value = filter(self.noJetMatch, self.source["%sIndicesOther%s"%self.collection])
 ##############################
