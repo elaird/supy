@@ -48,7 +48,7 @@ class jetIndices(wrappedChain.calculable) :
             elif jetIds[i] and abs(p4s.at(i).eta()) < self.etaMax :
                 self.value.append(i)
             else: other.append(i)
-        self.value.sort( key = pt2s.__getitem__)
+        self.value.sort( key = pt2s.__getitem__, reverse = True)
 ####################################
 class PFJetID(wrappedChain.calculable) :
     def name(self) : return self.idName
