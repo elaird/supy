@@ -155,8 +155,10 @@ class singleJetHistogrammer(analysisStep) :
 class alphaHistogrammer(analysisStep) :
     """alphaHistogrammer"""
 
-    def __init__(self,cs) :
+    def __init__(self,cs,etRatherThanPt) :
         self.cs = cs
+        self.etRatherThanPt = etRatherThanPt
+        self.deltaPseudoName = "%sDeltaPseudoJetPt%s" % self.cs if not self.etRatherThanPt else "%sDeltaPseudoJetEt%s" % self.cs        
         self.moreName = "%s%s"%self.cs
         
     def uponAcceptance (self,eventVars) :
@@ -164,7 +166,7 @@ class alphaHistogrammer(analysisStep) :
 
         mht = eventVars["%sSumP4%s"%self.cs].pt() 
         ht = eventVars["%sSumPt%s"%self.cs]
-        deltaHt = eventVars["%sDeltaPseudoJet%s"%self.cs]
+        deltaHt = eventVars[self.deltaPseudoName]
         alphaT = eventVars["%sAlphaT%s"%self.cs]
         deltaPhiStar = eventVars["%sDeltaPhiStar%s"%self.cs]
 

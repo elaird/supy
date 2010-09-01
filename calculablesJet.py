@@ -129,6 +129,19 @@ class jetSumPt(wrappedChain.calculable) :
         indices = self.source[self.indicesName]
         self.value = reduce( lambda x,i: x+p4s.at(i).pt(), indices , 0)
 ##############################
+class jetSumEt(wrappedChain.calculable) :
+    def name(self) : return "%sSumEt%s"% self.cs
+
+    def __init__(self, collection = None) :
+        self.cs = collection
+        self.p4Name = '%sCorrectedP4%s' % self.cs
+        self.indicesName = "%sIndices%s" % self.cs
+
+    def update(self,ignored) :
+        p4s = self.source[self.p4Name]
+        indices = self.source[self.indicesName]
+        self.value = reduce( lambda x,i: x+p4s.at(i).Et(), indices , 0)
+##############################
 class jetSumP4(wrappedChain.calculable) :
     def name(self) : return "%sSumP4%s" % self.cs
 
@@ -150,14 +163,28 @@ class jetSumP4(wrappedChain.calculable) :
         if self.value.pt()>ht :
             self.value *= 0.99*ht / self.value.pt()
 ##############################
-class deltaPseudoJet(wrappedChain.calculable) :
-    def name(self) : return "%sDeltaPseudoJet%s" % self.cs
+class jetSumP4Low(wrappedChain.calculable) :
+    def name(self) : return "%sSumP4Low%s" % self.cs
 
-    def __init__(self, collection = None) :
+    def __init__(self, collection = None, ptMin = None) :
+        self.cs = collection
+        self.p4Name = '%sCorrectedP4%s' % self.cs
+        self.ptMin = ptMin
+        
+    def update(self,ignored) :
+        p4s = self.source[self.p4Name]
+        self.value = reduce( lambda x,i: x+p4s.at(i) if p4s.at(i).pt() > self.ptMin else x, indices[1:], p4s.at(indices[0]) ) if len(indices) else None
+##############################
+class deltaPseudoJet(wrappedChain.calculable) :
+    def name(self) : return self.nameString
+
+    def __init__(self, collection = None, etRatherThanPt = None) :
+        self.etRatherThanPt = etRatherThanPt
         self.cs = collection
         self.p4Name = '%sCorrectedP4%s' % self.cs
         self.indicesName = "%sIndices%s" % self.cs
-
+        self.nameString = "%sDeltaPseudoJetPt%s" % self.cs if not self.etRatherThanPt else "%sDeltaPseudoJetEt%s" % self.cs
+        
     def update(self,ignored) :
         indices = self.source[self.indicesName]
         p4s = self.source[self.p4Name]
@@ -165,7 +192,7 @@ class deltaPseudoJet(wrappedChain.calculable) :
         size = len(indices)
         diff = [0.] * (1<<size)
         for j in range( size ) :
-            pt = p4s.at(j).pt()
+            pt = p4s.at(j).pt() if not self.etRatherThanPt else p4s.at(j).Et()
             for i in range( len(diff) ) :
                 diff[i] += pt * (1|-(1&(i>>j)))
         
@@ -174,17 +201,19 @@ class deltaPseudoJet(wrappedChain.calculable) :
 class alphaT(wrappedChain.calculable) :
     def name(self) : return "%sAlphaT%s" % self.cs
 
-    def __init__(self, collection = None) :
+    def __init__(self, collection = None, etRatherThanPt = None) :
         self.cs = collection
+        self.etRatherThanPt = etRatherThanPt
         self.sumP4Name = "%sSumP4%s" % self.cs
         self.sumPtName = "%sSumPt%s" % self.cs
-        self.deltaPseudoName = "%sDeltaPseudoJet%s" % self.cs
+        self.sumEtName = "%sSumEt%s" % self.cs
+        self.deltaPseudoName = "%sDeltaPseudoJetPt%s" % self.cs if not self.etRatherThanPt else "%sDeltaPseudoJetEt%s" % self.cs
 
     def update(self,ignored) :
-        sumP4 = self.source[self.sumP4Name]
-        sumPt = self.source[self.sumPtName]
+        sumP4   = self.source[self.sumP4Name]
         dPseudo = self.source[self.deltaPseudoName]
-        self.value = 0.5 * ( sumPt - dPseudo ) / math.sqrt( sumPt*sumPt - sumP4.Perp2() ) 
+        ht = self.source[self.sumPtName] if not self.etRatherThanPt else self.source[self.sumEtName]
+        self.value = 0.5 * ( ht - dPseudo ) / math.sqrt( ht*ht - sumP4.Perp2() ) 
 ##############################
 class diJetAlpha(wrappedChain.calculable) :
     def name(self) : return "%sDiJetAlpha%s" % self.cs

@@ -98,8 +98,8 @@ class htMhtPrinter(analysisStep) :
         self.jetSuffix=cs[1]
         
     def uponAcceptance(self,eventVars) :
-        outString ="HT %#6.1f GeV"   %eventVars[self.jetCollection+"SumPt"+self.jetSuffix]
-        outString+="; MHT %#6.1f GeV"%eventVars[self.jetCollection+"SumP4"+self.jetSuffix].pt()
+        outString ="HT %#6.3f GeV"   %eventVars[self.jetCollection+"SumPt"+self.jetSuffix]
+        outString+="; MHT %#6.3f GeV"%eventVars[self.jetCollection+"SumP4"+self.jetSuffix].pt()
         print outString
 #####################################
 class diJetAlphaPrinter(analysisStep) :
@@ -116,13 +116,15 @@ class diJetAlphaPrinter(analysisStep) :
 class nJetAlphaTPrinter(analysisStep) :
     """nJetAlphaTPrinter"""
 
-    def __init__(self,jets) :
-        self.jetCollection=jets[0]
-        self.jetSuffix=jets[1]
+    def __init__(self,jets,etRatherThanPt) :
+        self.cs = jets
+        self.etRatherThanPt = etRatherThanPt
+        self.alphaTString = "%sAlphaT%s"%self.cs
+        self.deltaString  = "%sDeltaPseudoJetPt%s"%self.cs if not self.etRatherThanPt else "%sDeltaPseudoJetEt%s"%self.cs
         
     def uponAcceptance(self,eventVars) :
-        outString ="n-jet deltaHT %#6.3f"  %eventVars[self.jetCollection+"DeltaPseudoJet"+self.jetSuffix]
-        outString+=";  n-jet alphaT %#6.3f"%eventVars[self.jetCollection+"AlphaT"+self.jetSuffix]
+        outString ="n-jet deltaHT %#6.3f"  %eventVars[self.deltaString]
+        outString+=";  n-jet alphaT %#6.3f"%eventVars[self.alphaTString]
         print outString
 #####################################
 class particleP4Printer(analysisStep) :
