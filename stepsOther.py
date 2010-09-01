@@ -177,10 +177,10 @@ class hbheNoiseFilter(analysisStep) :
 class variableGreaterFilter(analysisStep) :
     """variableGreaterFilter"""
 
-    def __init__(self,threshold,variable):
+    def __init__(self, threshold, variable, suffix = ""):
         self.threshold = threshold
         self.variable = variable
-        self.moreName = "%s>=%.3f" % (variable,threshold)
+        self.moreName = "%s>=%.3f %s" % (variable,threshold,suffix)
 
     def select (self,eventVars) :
         return eventVars[self.variable]>=self.threshold
@@ -188,10 +188,10 @@ class variableGreaterFilter(analysisStep) :
 class variablePtGreaterFilter(analysisStep) :
     """variablePtGreaterFilter"""
 
-    def __init__(self,threshold,variable):
+    def __init__(self, threshold, variable, suffix = ""):
         self.threshold = threshold
         self.variable = variable
-        self.moreName = "%s>=%.1f" % (variable,threshold)
+        self.moreName = "%s>=%.1f %s" % (variable,threshold,suffix)
 
     def select (self,eventVars) :
         return eventVars[self.variable].pt()>=self.threshold
@@ -230,7 +230,7 @@ class vertexRequirementFilter(analysisStep) :
     #https://twiki.cern.ch/twiki/bin/viewauth/CMS/Collisions2010Recipes#Good_Vertex_selection
     def __init__(self, minNdof = 5.0, maxAbsZ = 24.0, maxD0 = 2.0) :
         for item in ["minNdof","maxAbsZ","maxD0"]: setattr(self,item,eval(item))
-        self.moreName = "any v: !fake; ndf>=%.1f; |z|<=%.1f; d0<=%.1f" % (minNdof,maxAbsZ,maxD0)
+        self.moreName = "any v: !fake; ndf>=%.1f; |z|<=%.1f cm; d0<=%.1f cm" % (minNdof,maxAbsZ,maxD0)
 
     def select(self,eventVars) :
         fake,ndof,pos = eventVars["vertexIsFake"], eventVars["vertexNdof"], eventVars["vertexPosition"]
