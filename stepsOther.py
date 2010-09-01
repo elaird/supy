@@ -227,7 +227,7 @@ class soloObjectPtSelector(analysisStep) :
 #####################################
 class vertexRequirementFilter(analysisStep) :
     """vertexRequirementFilter"""
-    
+    #https://twiki.cern.ch/twiki/bin/viewauth/CMS/Collisions2010Recipes#Good_Vertex_selection
     def __init__(self, minNdof = 5.0, maxAbsZ = 24.0, maxD0 = 2.0) :
         for item in ["minNdof","maxAbsZ","maxD0"]: setattr(self,item,eval(item))
         self.moreName = "any v: !fake; ndf>=%.1f; |z|<=%.1f; d0<=%.1f" % (minNdof,maxAbsZ,maxD0)
