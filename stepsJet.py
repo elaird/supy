@@ -10,6 +10,7 @@ class preIdJetPtSelector(analysisStep) :
         self.jetPtThreshold = jetPtThreshold
         self.cs = cs
         self.p4sName = "%sCorrectedP4%s" % self.cs
+        if self.p4sName[:2] == "xc" : self.p4sName = self.p4sName[2:]
         self.moreName = "%s%s; pT[%d]>=%.1f GeV" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
 
     def select (self,eventVars) :
@@ -26,7 +27,7 @@ class jetPtSelector(analysisStep) :
         self.cs = cs
         self.indicesName = "%sIndices%s" % self.cs
         self.p4sName = "%sCorrectedP4%s" % self.cs
-        self.moreName = "%s%s; pT[%d]>=%.1f GeV" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
+        self.moreName = "%s%s; pT[index[%d]]>=%.1f GeV" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
 
     def select (self,eventVars) :
         indices = eventVars[self.indicesName]
@@ -149,7 +150,7 @@ class singleJetHistogrammer(analysisStep) :
             book.fill(eta, "%s%s%deta"%(self.cs+(i+1,)), 50, -5.0,   5.0, title=";jet%d #eta;events / bin"%(i+1))
             for j,jJet in list(enumerate(cleanJetIndices))[i+1:self.maxIndex+1] :
                 book.fill(abs(r.Math.VectorUtil.DeltaPhi(jet,p4s.at(jJet))), "%s%sdphi%d%d"%(self.cs+(i+1,j+1)), 50,0, r.TMath.Pi(),
-                          title = "#Delta#phi_{jet%d,jet%d};events / bin"%(i+1,j+1))
+                          title = ";#Delta#phi_{jet%d,jet%d};events / bin"%(i+1,j+1))
 #####################################
 class alphaHistogrammer(analysisStep) :
     """alphaHistogrammer"""
