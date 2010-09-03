@@ -248,7 +248,7 @@ class rBin(object) :
            (not self.subsequentEmpty()) and \
            (self.nextNonZeroOKlowEdge() - self.lowEdge < \
             self.lowEdge - lastNonZeroOK.lowEdge ) :
-            while not self.ok() :
+            while self.next and not self.ok() :
                 self.eatNext()
         return not self.ok()
     
@@ -273,7 +273,7 @@ def ratioHistogram(num,den) :
     for i,bin in enumerate(bins) :
         ratio.SetBinContent(i+1,bin.ratio())
         ratio.SetBinError(i+1,bin.error())
-        
+
     return ratio
 #####################################
 def roundString(val,err,width=None) :
