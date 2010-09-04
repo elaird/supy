@@ -8,10 +8,16 @@ class example(analysis.analysis) :
     def baseOutputDirectory(self) :
         return "/tmp/%s/"%os.environ["USER"]
 
-    def listOfSteps(self,params) :
-        jets=("ak5JetPF","Pat")
-        minJetPt=10.0
-    
+    def parameters(self) :
+        return {"etRatherThanPt" : [False],
+                "jets" : ("ak5JetPF","Pat"),
+                "minJetPt" : 10.0,
+                }
+
+    def listOfSteps(self,config) :
+        jets = config["jets"]
+        minJetPt = config["minJetPt"]
+        
         outList=[
             steps.progressPrinter(),
             steps.techBitFilter([0],True),
@@ -26,21 +32,26 @@ class example(analysis.analysis) :
             steps.multiplicityFilter("%sIndices%s"%jets, nMin = 2),
             
             steps.singleJetHistogrammer(jets,1), 
-            steps.cleanJetHtMhtHistogrammer(jets),
+            steps.cleanJetHtMhtHistogrammer(jets, config["etRatherThanPt"]),
             #steps.variableGreaterFilter(25.0,jets[0]+"SumPt"+jets[1]),
             
-            steps.alphaHistogrammer(jets),
+            steps.alphaHistogrammer(jets, config["etRatherThanPt"]),
             #steps.skimmer("/tmp/%s/"%os.environ["USER"]),
             ]
         return outList
     
-    def listOfCalculables(self,params) :
-        jetTypes = [("ak5Jet","Pat"),("ak5JetJPT","Pat"),("ak5JetPF","Pat")]
+    def listOfCalculables(self,config) :
+        jets = config["jets"]
+        minJetPt = config["minJetPt"]
         listOfCalculables = calculables.zeroArgs()
-        listOfCalculables += calculables.fromCollections("calculablesJet",jetTypes)
-        listOfCalculables += [ calculables.jetIndices( collection = jetType, ptMin = 20.0, etaMax = 3.0, flagName = "JetIDloose") for jetType in jetTypes]
-        listOfCalculables += [ calculables.jetSumP4( collection = jetType, mcScaleFactor = 1.0) for jetType in jetTypes]
-        listOfCalculables += [ calculables.deltaPhiStar( collection = jetType, ptMin = 0.0) for jetType in jetTypes]
+        listOfCalculables += calculables.fromCollections("calculablesJet",[jets])
+        listOfCalculables += [
+            calculables.jetIndices( jets, ptMin = minJetPt, etaMax = 3.0, flagName = "JetIDloose"),
+            calculables.jetSumP4( jets, mcScaleFactor = 1.0),
+            calculables.deltaPhiStar( jets, ptMin = 0.0),
+            calculables.alphaT        ( jets, config["etRatherThanPt"]),
+            calculables.deltaPseudoJet( jets, config["etRatherThanPt"]),
+            ]
         return listOfCalculables
 
     def listOfSampleDictionaries(self) :
@@ -49,7 +60,7 @@ class example(analysis.analysis) :
         exampleDict.add("Example_Skimmed_900_GeV_MC", '["/afs/cern.ch/user/e/elaird/public/susypvt/framework_take3/skimmed_900_GeV_MC.root"]',       xs = 1.0e3 ) #pb
         return [exampleDict]
 
-    def listOfSamples(self,params) :
+    def listOfSamples(self,config) :
         return [samples.specify(name = "Example_Skimmed_900_GeV_Data", color = r.kBlack, markerStyle = 20),
                 samples.specify(name = "Example_Skimmed_900_GeV_MC", color = r.kRed)
                 ]
