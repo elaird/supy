@@ -201,7 +201,7 @@ class hadronicLook(analysis.analysis) :
         
         if params["mcSoup"]=="py6" : outList+=py6_list
         if params["mcSoup"]=="py8" : outList+=py8_list
-        if params["mcSoup"]=="mg"  : outList+=mg_list                              
+        if params["mcSoup"]=="mg"  : outList+=mg_list
         outList+=default_list
         return outList
 
