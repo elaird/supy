@@ -97,7 +97,7 @@ if options.batch : #make one script per job and submit them to the queue
         submitBatchJob(baseCmd+" --jobid "+str(iJob), iJob, listOfIndices, scriptDir = someInstance.namedOutputDirectory())
     print
     print "You may do this to monitor your jobs (exit with CTRL-C):"
-    print "watch 'qstat | head -40; find %s/%s | grep -c root'"%(someInstance.baseOutputDirectory(),someInstance.name)
+    print "watch 'qstat | head -40; find %s | grep -c root'"%someInstance.nameOutputDirectory()
 elif options.loop!=None : #loop over the events
     someInstance.loop()
 
