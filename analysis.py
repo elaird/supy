@@ -56,58 +56,84 @@ def listOfConfigurationsAndTags(paramsIn) :
             tagsOut.append(tag)
             codeStringsOut.append(codeString)
     return configsOut,tagsOut,codeStringsOut
-#####################################                
+#####################################
+def childName(looperName,iSlice) : return looperName+"_%d"%iSlice
+#####################################
 class analysis(object) :
     """base class for an analysis"""
 
-    def __init__(self, configurationId = None) :
+    def __init__(self, options) :
         self.name = self.__class__.__name__
 
         for item in ["baseOutputDirectory","listOfSampleDictionaries",
                      "mainTree","otherTreesToKeepWhenSkimming","printNodesUsed"] :
             setattr(self, "_"+item, getattr(self,item)() )
 
-        self._configurationId = configurationId
+        self.fileDirectory=self._mainTree[0]
+        self.treeName=self._mainTree[1]
+
         self._configurations,self._tags,self._codeStrings = listOfConfigurationsAndTags(self.parameters())
         self._sideBySideAnalysisTags = sorted(list(set(self._tags)))
 
-        self.loopCheck = self._configurationId!=None or len(self._configurations)==1
+        self._batch   = options.batch
+        self._loop    = int(options.loop)   if options.loop!=None else None
+        self._nSlices = int(options.slices) if options.slices!=None else 1
+        self._profile = options.profile
+        self._jobId   = options.jobId
 
-        if self._configurationId==None :
-            self._configurationId = 0 
-        
-        for item in ["listOfSteps","listOfCalculables","listOfSamples"] :
-            setattr(self, "_"+item, getattr(self,item)(self._configurations[self._configurationId]) )
+        self._listsOfLoopers = []
+        self._jobs = []
+        for iConfiguration,configuration in enumerate(self._configurations) :
+            listOfSteps = self.listOfSteps(configuration)
+            listOfSamples = self.listOfSamples(configuration)
+            selectors = filter(lambda s: hasattr(s,"select"), listOfSteps)
+            assert len(selectors) == len(set(map(lambda s: (s.__doc__,s.moreName,s.moreName2), selectors))), "Duplicate selectors are not allowed."
+            assert len(listOfSamples) == len(set(map(lambda s: s.name,listOfSamples))), "Duplicate sample names are not allowed."
 
-        selectors = filter(lambda s: hasattr(s,"select"), self._listOfSteps)
-        assert len(selectors) == len(set(map(lambda s: (s.__doc__,s.moreName,s.moreName2), selectors))), "Duplicate selectors are not allowed."
-        assert len(self._listOfSamples) == len(set(map(lambda s: s.name,self._listOfSamples))), "Duplicate sample names are not allowed."
+            listOfCalculables = self.listOfCalculables(configuration)
+            listOfLoopers = self.listOfLoopers(listOfSamples, listOfSteps, listOfCalculables, iConfiguration)
+            #add to list of loopers
+            self._listsOfLoopers.append( listOfLoopers )
 
-        self.fileDirectory=self._mainTree[0]
-        self.treeName=self._mainTree[1]
-        
-        self.listOfLoopers=[]
-        self.addSamples()
+            #add to list of jobs
+            for iLooper in range(len(listOfLoopers)) :
+                for iSlice in range(self._nSlices) :
+                    d = {}
+                    d["iConfig"]=iConfiguration
+                    d["iSample"]=iLooper
+                    d["iSlice" ]=iSlice
+                    self._jobs.append(d)
 
+        #make lists of input files
+        if self._jobId==None and self._loop!=None :
+            self.makeInputFileLists()
+            self.pickleJobs()
+            
     def sideBySideAnalysisTags(self) : return self._sideBySideAnalysisTags
     def configurations(self) :         return self._configurations
-    
-    def outputDirectory(self,configurationId) :
-        tag  = self._tags[configurationId]
-        code = self._codeStrings[configurationId]
-        return self._baseOutputDirectory+"/"+self.name+"/"+tag+"/config"+str(code)+"/"
+    def jobs(self) :                   return self._jobs
+    def jobsFile(self) :               return self.namedOutputDirectory()+"/"+self.name+".jobs"
+    def namedOutputDirectory(self) :   return os.path.expanduser(self.baseOutputDirectory())+"/"+self.name
+
+    def outputDirectory(self, iConfig) :
+        tag  = self._tags[iConfig]
+        code = self._codeStrings[iConfig]
+        return self.namedOutputDirectory()+"/"+tag+"/config"+str(code)+"/"
+
+    def makeOutputPlotFileName(self,configurationId,sampleName) :
+        return self.outputDirectory(configurationId)+"/"+sampleName+"_plots.root"
 
     def psFileName(self,tag="") :
-        base = self.baseOutputDirectory()+"/"+self.name+"/"+self.name
+        base = self.namedOutputDirectory()+"/"+self.name
         if tag!="" : base+="_"+tag
         return base+".ps"
     
     def baseOutputDirectory(self) :          raise Exception("NotImplemented","Implement a member function baseOutputDirectory()")
-    def listOfSteps(self,params) :           raise Exception("NotImplemented","Implement a member function listOfSteps(self,params)")
-    def listOfCalculables(self,params) :     raise Exception("NotImplemented","Implement a member function listOfCalculables(self,params)")
+    def listOfSteps(self,config) :           raise Exception("NotImplemented","Implement a member function listOfSteps(self,config)")
+    def listOfCalculables(self,config) :     raise Exception("NotImplemented","Implement a member function listOfCalculables(self,config)")
                                              
     def listOfSampleDictionaries(self) :     raise Exception("NotImplemented","Implement a member function sampleDict()")
-    def listOfSamples(self,params) :         raise Exception("NotImplemented","Implement a member function listOfSamples()")
+    def listOfSamples(self,config) :         raise Exception("NotImplemented","Implement a member function listOfSamples(self,config)")
 
     def printNodesUsed(self) :               return False
     def mainTree(self) :                     return ("susyTree","tree")
@@ -116,91 +142,102 @@ class analysis(object) :
     def parameters(self) :                   return {}
     def conclude(self) :                     return
 
-    def loop(self, nCores, profile, onlyMerge) :
-        assert self.loopCheck , "Multiple configurations can be run only in batch mode."
-
-        #make output directory
-        os.system("mkdir -p "+self.outputDirectory(self._configurationId))
+    def pickleJobs(self) :
+        outFile=open(self.jobsFile(),"w")
+        cPickle.dump( (self._loop,self._jobs), outFile )
+        outFile.close()
         
-        nCores = max(1,nCores)
-
-        #execute in parallel commands to make file lists
+    def makeInputFileLists(self) :
+        #define a helper function
         def inputFilesEvalWorker(q):
             while True:
-                item = q.get()
+                key,value = q.get()
                 #write file list to disk
-                outFile=open(os.path.expanduser(item.inputFileListFileName),"w")
-                cPickle.dump(eval(item.fileListCommand),outFile)
-                outFile.close()
+                fileListCommand = key[1]
+                fileList = eval(fileListCommand)
+                for fileName in value :
+                    outFile=open(os.path.expanduser(fileName),"w")
+                    cPickle.dump(fileList,outFile)
+                    outFile.close()
                 #notify queue
                 q.task_done()
-        utils.operateOnListUsingQueue(nCores,inputFilesEvalWorker,self.listOfLoopers)
 
-        #associate file list to each looper
-        for looper in self.listOfLoopers :
-            someFile=open(looper.inputFileListFileName)
-            looper.inputFiles=cPickle.load(someFile)
+        #make output directories; compile a dict of commands and file names
+        fileNames = collections.defaultdict(set)
+        for job in self._jobs :
+            os.system("mkdir -p "+self.outputDirectory(job["iConfig"]))
+            for looper in self._listsOfLoopers[job["iConfig"]] :
+                tuple = (looper.name, looper.fileListCommand)
+                fileNames[tuple].add(looper.inputFileListFileName)
+
+        #make lists from the sets
+        for key,value in fileNames.iteritems() :
+            fileNames[key]=list(value)
+
+        #execute in parallel commands to make file lists
+        utils.operateOnListUsingQueue(self._loop,inputFilesEvalWorker,fileNames.iteritems())
+
+    def loop(self) :
+        listOfLoopers = []
+        for iJob,job in enumerate(self._jobs) :
+            if self._jobId!=None and int(self._jobId)!=iJob : continue
+            #make sure output directory exists (perhaps not necessary-- to be checked)
+            os.system("mkdir -p "+self.outputDirectory(job["iConfig"]))
+            #associate the file list
+            looper = copy.deepcopy(self._listsOfLoopers[job["iConfig"]][job["iSample"]])
+            someFile = open(looper.inputFileListFileName)
+            looper.inputFiles = cPickle.load(someFile)[job["iSlice"]::self._nSlices] #choose appropriate slice
             someFile.close()
-            os.remove(looper.inputFileListFileName)
 
-        if nCores>1 :
-            self.splitLoopers()
+            oldName = looper.name
+            looper.name = childName(looper.name,job["iSlice"])
+            looper.outputPlotFileName=self.makeOutputPlotFileName(job["iConfig"],looper.name)
+            looper.setOutputFileNames()
+            looper.doSplitMode(oldName,self._loop)
+            listOfLoopers.append(looper)
 
-        #prepare loopers
-        self.makeParentDict(self.listOfLoopers)
-
-        #loop over samples and make TFiles containing histograms
-        if not profile :
-            self.loopOverSamples(nCores,onlyMerge)
+        if self._jobId!=None :
+            listOfLoopers[0].go()
         else :
-            self.profile(nCores,onlyMerge) #profile the code while doing so
-        
+            ##for looper in listOfLoopers : looper.go()
+            utils.operateOnListUsingQueue(self._loop,utils.goWorker,listOfLoopers)
+
     def sampleSpecs(self, tag = None) :
         condition = tag!=None or (len(self.sideBySideAnalysisTags())==1 and self.sideBySideAnalysisTags()[0]=="")
         assert condition,"There are side-by-side analyses specified, but sampleSpecs() was not passed a tag."
         if tag==None : tag = ""
 
-        outList=[]
-        if (not hasattr(self,"parentDict")) or len(self.parentDict)==0 :
-            for looper in self.listOfLoopers :
-                someDict={}
-                someDict["name"]                = looper.name
-                someDict["color"]               = looper.color
-                someDict["markerStyle"]         = looper.markerStyle
+        listOfSamples   = []
+        listOfFileLists = []
+        for iConfig,listOfLoopers in enumerate(self._listsOfLoopers) :
+            if self._tags[iConfig]!=tag : continue
+            for looper in listOfLoopers :
+                tuple = (looper.name, looper.color, looper.markerStyle)
+                if tuple not in listOfSamples :
+                    listOfSamples.append(tuple)
+                    listOfFileLists.append([])
+                index = listOfSamples.index(tuple)
+                listOfFileLists[index].append( self.makeOutputPlotFileName(iConfig,looper.name) )
 
-                someDict["outputFileNames"] = []
-                for iConfig,config in enumerate(self.configurations()) :
-                    outputFileName = self.makeOutputPlotFileName(iConfig,looper.name)
-                    if self._tags[iConfig]==tag :
-                        someDict["outputFileNames"].append(outputFileName)
-                outList.append(someDict)
-        else :
-            for parent in self.parentDictKeyOrder :
-                iSomeLooper=self.parentDict[parent][0]
-                someLooper=self.listOfLoopers[iSomeLooper]
-                someDict={}
-                someDict["name"] = parent
-                someDict["color"]=someLooper.color
-                someDict["markerStyle"]=someLooper.markerStyle
-
-                someDict["outputFileNames"] = []
-                for iConfig,config in enumerate(self.configurations()) :
-                    outputFileName = self.makeOutputPlotFileName(iConfig,someLooper.parentName)
-                    if self._tags[iConfig]==tag :
-                        someDict["outputFileNames"].append(outputFileName)
-                outList.append(someDict)
+        outList = []
+        for sample,fileList in zip(listOfSamples,listOfFileLists) :
+            d = {}
+            d["name"]            = sample[0]
+            d["color"]           = sample[1]
+            d["markerStyle"]     = sample[2]
+            d["outputFileNames"] = fileList
+            outList.append(d)
         return outList
 
-    def makeOutputPlotFileName(self,configurationId,sampleName) :
-        return self.outputDirectory(configurationId)+"/"+sampleName+"_plots.root"
-
-    def addSamples(self, computeEntriesForReport = False) :
+    def listOfLoopers(self, listOfSamples = [], listOfSteps = [], listOfCalculables = [], iConfiguration = None) :
+        computeEntriesForReport = False #temporarily hard-coded
         mergedDict = samples.SampleHolder()
         map(mergedDict.update,self._listOfSampleDictionaries)
 
+        outLoopers = []
         #print mergedDict
         ptHatMinDict={}
-        for sampleSpec in self._listOfSamples :
+        for sampleSpec in listOfSamples :
             sampleName = sampleSpec.name
             sampleTuple = mergedDict[sampleName]
             isMc = sampleTuple.lumi==None
@@ -216,38 +253,38 @@ class analysis(object) :
             if nFilesMax >= 0 :
                 fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
                 
-            listOfSteps = []
-            if isMc : listOfSteps = steps.adjustStepsForMc(self._listOfSteps)
-            else :    listOfSteps = steps.adjustStepsForData(self._listOfSteps)
+            adjustedListOfSteps = []
+            if isMc : adjustedListOfSteps = steps.adjustStepsForMc(listOfSteps)
+            else :    adjustedListOfSteps = steps.adjustStepsForData(listOfSteps)
 
             if sampleTuple.ptHatMin :
                 ptHatMinDict[sampleName]=sampleTuple.ptHatMin
 
-            self.listOfLoopers.append(analysisLooper(self.fileDirectory,
-                                                     self.treeName,
-                                                     self._otherTreesToKeepWhenSkimming,
-                                                     self.outputDirectory(self._configurationId),
-                                                     self.makeOutputPlotFileName(self._configurationId,sampleName),
-                                                     listOfSteps,
-                                                     self._listOfCalculables,
-                                                     sampleSpec,
-                                                     fileListCommand,
-                                                     sampleTuple.xs,
-                                                     sampleTuple.lumi,
-                                                     lumiWarn,
-                                                     computeEntriesForReport,
-                                                     self.printNodesUsed(),
-                                                     )
-                                      )
+            outLoopers.append(analysisLooper(self.fileDirectory,
+                                             self.treeName,
+                                             self._otherTreesToKeepWhenSkimming,
+                                             self.outputDirectory(iConfiguration),
+                                             self.makeOutputPlotFileName(iConfiguration,sampleName),
+                                             adjustedListOfSteps,
+                                             listOfCalculables,
+                                             sampleSpec,
+                                             fileListCommand,
+                                             sampleTuple.xs,
+                                             sampleTuple.lumi,
+                                             lumiWarn,
+                                             computeEntriesForReport,
+                                             self.printNodesUsed(),
+                                             )
+                              )
         for thing in mergedDict.overlappingSamples :
             minPtHatsAndNames=[]
             for sampleName in thing.samples :
                 if sampleName not in ptHatMinDict : continue
                 minPtHatsAndNames.append( (ptHatMinDict[sampleName],sampleName) )
-            self.manageNonBinnedSamples(minPtHatsAndNames,thing.useRejectionMethod)
-        return
+            self.manageNonBinnedSamples(minPtHatsAndNames, thing.useRejectionMethod, outLoopers)
+        return outLoopers
 
-    def manageNonBinnedSamples(self,ptHatLowerThresholdsAndSampleNames=[],useRejectionMethod=True) :
+    def manageNonBinnedSamples(self, ptHatLowerThresholdsAndSampleNames = [], useRejectionMethod = True, loopers = []) :
         if not useRejectionMethod :
             raise Exception("the other method of combining non-binned samples is not yet implemented")
         looperIndexDict={}
@@ -256,8 +293,7 @@ class analysis(object) :
             sampleName=item[1]
 
             #find the associated looper
-            for iLooper in range(len(self.listOfLoopers)) :
-                looper=self.listOfLoopers[iLooper]
+            for iLooper,looper in enumerate(loopers) :
                 if sampleName==looper.name :
                     looperIndexDict[ptHatLowerThreshold]=iLooper
                 for step in looper.steps :
@@ -275,80 +311,54 @@ class analysis(object) :
             if iItem<len(ptHatLowerThresholdsAndSampleNames)-1 :
                 nextPtHatLowerThreshold=ptHatLowerThresholdsAndSampleNames[iItem+1][0]
                 nextLooperIndex=looperIndexDict[nextPtHatLowerThreshold]
-                self.listOfLoopers[thisLooperIndex].xs-=self.listOfLoopers[nextLooperIndex].xs
+                loopers[thisLooperIndex].xs-=loopers[nextLooperIndex].xs
 
                 if useRejectionMethod :
-                    self.listOfLoopers[thisLooperIndex].needToConsiderPtHatThresholds=False
-                    steps.insertPtHatFilter(self.listOfLoopers[thisLooperIndex].steps,nextPtHatLowerThreshold)
+                    loopers[thisLooperIndex].needToConsiderPtHatThresholds=False
+                    steps.insertPtHatFilter(loopers[thisLooperIndex].steps,nextPtHatLowerThreshold)
 
             #inform relevant loopers of the ptHat thresholds
             for index in looperIndexDict.values() :
-                self.listOfLoopers[index].ptHatThresholds.append(float(thisPtHatLowerThreshold))
+                loopers[index].ptHatThresholds.append(float(thisPtHatLowerThreshold))
                 if not useRejectionMethod :
-                    self.listOfLoopers[index].needToConsiderPtHatThresholds=True
+                    loopers[index].needToConsiderPtHatThresholds=True
         return
     
-    def splitLoopers(self) :
-        outListOfLoopers=[]
-        for looper in self.listOfLoopers :
-            for iFileName in range(len(looper.inputFiles)) :
-                sampleName=looper.name+"_"+str(iFileName)
-                outListOfLoopers.append(copy.deepcopy(looper))
-                outListOfLoopers[-1].name=sampleName
-                outListOfLoopers[-1].outputPlotFileName=self.makeOutputPlotFileName(self._configurationId,sampleName)
-                outListOfLoopers[-1].setOutputFileNames()
-                outListOfLoopers[-1].inputFiles=[looper.inputFiles[iFileName]]
-                outListOfLoopers[-1].doSplitMode(looper.name)
-        self.listOfLoopers=outListOfLoopers
+    def mergeOutput(self) :
+        if not os.path.exists(self.jobsFile()) : return
 
-    def makeParentDict(self,listOfLoopers) :
-        self.parentDictKeyOrder=[]
-        self.parentDict=collections.defaultdict(list)
-        for iLooper in range(len(listOfLoopers)) :
-            looper=listOfLoopers[iLooper]
-            if looper.splitMode :
-                if looper.parentName not in self.parentDict : self.parentDictKeyOrder.append(looper.parentName)
-                self.parentDict[looper.parentName].append(iLooper)
-                
-    def mergeSplitOutput(self,nCores,cleanUp) :
-        #self.mergeSplitOutputSerial(cleanUp)
-        self.mergeSplitOutputParallel(nCores,cleanUp)
-
-    def mergeSplitOutputSerial(self,cleanUp) :
-        for parent,listOfChildIndices in self.parentDict.iteritems() :
-            mergeFunc( *(parent,listOfChildIndices,self.listOfLoopers,cleanUp) )
-
-    def mergeSplitOutputParallel(self,nCores,cleanUp) :
         def mergeWorker(q):
             while True:
                 mergeFunc(*q.get())
                 q.task_done()
         
-        workList=[]
-        for parentName,listOfChildIndices in self.parentDict.iteritems() :
-            workList.append( (parentName,listOfChildIndices,self.listOfLoopers,cleanUp) )
+        inFile=open(self.jobsFile())
+        nCores,jobs = cPickle.load(inFile)
+        inFile.close()
+
+        mergeDict = collections.defaultdict(list)
+        for job in jobs : mergeDict[(job["iConfig"],job["iSample"])].append(job["iSlice"])
+
+        workList = []
+        for key,listOfSlices in mergeDict.iteritems() :
+            iConfig = key[0]
+            iSample = key[1]
+            looper = self._listsOfLoopers[iConfig][iSample]
+            workList.append( (looper,listOfSlices) )
+
+        ##for item in workList : mergeFunc(*item)
         utils.operateOnListUsingQueue(nCores,mergeWorker,workList)
-            
-    def profile(self,nCores,onlyMerge) :
+        os.remove(self.jobsFile())
+                
+    def profile(self) :
         global runFunc
         runFunc=self.loopOverSamples
         import cProfile
-        assert nCores==1,"to profile, nCores must equal 1"
-        cProfile.run("analysis.runFunc(1,%s)"%onlyMerge,"resultProfile.out")
-
-    def loopOverSamples(self,nCores,onlyMerge) :
-        #loop over events for each looper
-        if not onlyMerge :
-            if nCores>1 : utils.operateOnListUsingQueue(nCores,utils.goWorker,self.listOfLoopers)
-            else :        map(lambda x : x.go(),self.listOfLoopers)
-
-        #merge the output
-        self.mergeSplitOutput(nCores, cleanUp = not onlyMerge)
-
+        cProfile.run("analysis.runFunc()","resultProfile.out")
 #############################################
-def looperPrint(parent,looper) :
+def looperPrint(looper) :
     print utils.hyphens
-    print parent
+    print looper.name
     looper.quietMode=False
     looper.printStats()
     print utils.hyphens
@@ -373,75 +383,73 @@ def mergeDisplays(displayFileDict,someLooper) :
         utils.psFromRoot(displayFileDict.values()[0],outputFileName,beQuiet=False)
         print utils.hyphens
 #############################################
-def mergeFunc(parent,listOfChildIndices,listOfAllLoopers,cleanUp) :
-    iSomeLooper=listOfChildIndices[0]
-    someLooper=listOfAllLoopers[iSomeLooper]
-    outputPlotFileName=someLooper.outputPlotFileName.replace(someLooper.name,parent)
-    inFileList=[]
-    displayFileDict=collections.defaultdict(list)
-    skimmerFileDict=collections.defaultdict(list)
-    runLsDict=collections.defaultdict(list)
-    jsonFileDict=collections.defaultdict(list)
+def mergeFunc(looper,listOfSlices) :
+
+    #these map step index to list of output file names
+    displayFileDict = collections.defaultdict(list)
+    skimmerFileDict = collections.defaultdict(list)
+    jsonFileDict    = collections.defaultdict(list)
+    #these map step index to list of run-ls dicts
+    runLsDict       = collections.defaultdict(list)
+
+    plotFileNameList = []
+    stepAndCalculableDataFileNameList = []
+
+    #zero counts for this looper
+    for i in range(len(looper.steps)) :
+        looper.steps[i].nTotal = 0
+        looper.steps[i].nPass  = 0
+        looper.steps[i].nFail  = 0
+    #empty lists for this looper
+    looper.listOfCalculablesUsed = []
+    looper.listOfLeavesUsed      = []
     
-    isFirstLooper=True
-    for iLooper in listOfChildIndices :
-        #add the root file to hadd command
-        inFileList.append(listOfAllLoopers[iLooper].outputPlotFileName)
+    for iSlice in listOfSlices :
+        plotFileNameList.append( looper.outputPlotFileName.replace( looper.name, childName(looper.name,iSlice) ) )
 
         #read in the step and calculable data
-        stepAndCalculableDataFileName=os.path.expanduser(listOfAllLoopers[iLooper].outputStepAndCalculableDataFileName)
+        stepAndCalculableDataFileName = looper.outputStepAndCalculableDataFileName.replace( looper.name, childName(looper.name,iSlice) )
         stepAndCalculableDataFile=open(stepAndCalculableDataFileName)
         stepDataList,listOfCalculablesUsed,listOfLeavesUsed=cPickle.load(stepAndCalculableDataFile)
         stepAndCalculableDataFile.close()
+        stepAndCalculableDataFileNameList.append(stepAndCalculableDataFileName)
 
-        #clean up
-        if cleanUp : os.remove(stepAndCalculableDataFileName)
+        for i in range(len(looper.steps)) :
+            looper.steps[i].nTotal+=stepDataList[i]["nTotal"]
+            looper.steps[i].nPass +=stepDataList[i]["nPass" ]
+            looper.steps[i].nFail +=stepDataList[i]["nFail" ]
 
-        #add stats to those of someLooper
-        for i in range(len(someLooper.steps)) :
-            #need to zero in case sample is split but not run in multi mode
-            if isFirstLooper :
-                someLooper.steps[i].nTotal=0
-                someLooper.steps[i].nPass =0
-                someLooper.steps[i].nFail =0
-            someLooper.steps[i].nTotal+=stepDataList[i]["nTotal"]
-            someLooper.steps[i].nPass +=stepDataList[i]["nPass" ]
-            someLooper.steps[i].nFail +=stepDataList[i]["nFail" ]
-
-            if someLooper.steps[i].__doc__==someLooper.steps[i].displayerStepName :
+            if looper.steps[i].__doc__==looper.steps[i].displayerStepName :
                 displayFileDict[i].append(stepDataList[i]["outputFileName"])
-            if someLooper.steps[i].__doc__==someLooper.steps[i].skimmerStepName :
+            if looper.steps[i].__doc__==looper.steps[i].skimmerStepName :
                 skimmerFileDict[i].append(stepDataList[i]["outputFileName"])
-            if someLooper.steps[i].__doc__==someLooper.steps[i].jsonMakerStepName :
+            if looper.steps[i].__doc__==looper.steps[i].jsonMakerStepName :
                 runLsDict[i].append(stepDataList[i]["runLsDict"])
                 jsonFileDict[i].append(stepDataList[i]["outputFileName"])
 
-        if isFirstLooper :
-            someLooper.listOfCalculablesUsed = []
-            someLooper.listOfLeavesUsed = []
-        someLooper.listOfCalculablesUsed.extend(listOfCalculablesUsed)
-        someLooper.listOfCalculablesUsed = list(set(someLooper.listOfCalculablesUsed))
-        someLooper.listOfLeavesUsed.extend(listOfLeavesUsed)
-        someLooper.listOfLeavesUsed = list(set(someLooper.listOfLeavesUsed))
-        isFirstLooper=False
+        looper.listOfCalculablesUsed.extend(listOfCalculablesUsed)
+        looper.listOfCalculablesUsed = list(set(looper.listOfCalculablesUsed))
+        looper.listOfLeavesUsed.extend(listOfLeavesUsed)
+        looper.listOfLeavesUsed = list(set(looper.listOfLeavesUsed))
 
-    looperPrint(parent,someLooper)
-    inFiles=" ".join(inFileList)
-    cmd="hadd -f "+outputPlotFileName+" "+inFiles+" | grep -v 'Source file' | grep -v 'Target path' | grep -v 'Found subdirectory'"
+    looperPrint(looper)
+
+    cmd = "hadd -f "+looper.outputPlotFileName+" "+" ".join(plotFileNameList)
+    cmd+= " | grep -v 'Source file' | grep -v 'Target path' | grep -v 'Found subdirectory'"
     #print cmd
-    hAddOut=utils.getCommandOutput2(cmd)
-    #clean up
-    if cleanUp :
-        for fileName in inFileList : os.remove(fileName)
+    hAddOut = utils.getCommandOutput2(cmd)
             
     print hAddOut[:-1].replace("Target","The output")+" has been written."
     print utils.hyphens
 
-    mergeDisplays(displayFileDict,someLooper)
-    reportEffectiveXs(skimmerFileDict,someLooper)
+    mergeDisplays(displayFileDict, looper)
+    reportEffectiveXs(skimmerFileDict, looper)
 
     if len(jsonFileDict.values())>0 and len(jsonFileDict.values()[0])>0 :
-        utils.mergeRunLsDicts(runLsDict,jsonFileDict.values()[0][0],printHyphens=True)
+        utils.mergeRunLsDicts(runLsDict, jsonFileDict.values()[0][0], printHyphens = True)
 
-
-
+    #clean up
+    for fileName in plotFileNameList :
+        os.remove(fileName)
+    for fileName in stepAndCalculableDataFileNameList :
+        os.remove(fileName)

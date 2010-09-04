@@ -1,15 +1,14 @@
 #!/usr/bin/env python
-import os,sys,inspect
+import os,sys,inspect,utils
 ############################################
 def opts() :
     from optparse import OptionParser
     parser = OptionParser("usage: %prog analysis-file [options]")
-    parser.add_option("--loop",          dest = "loop",           default = 0,     metavar = "N",         help = "loop over events using N cores")
-    parser.add_option("--profile",       dest = "profile",        default = False, action = "store_true", help = "profile the code")
-    parser.add_option("--onlymerge",     dest = "onlymerge",      default = False, action = "store_true", help = "skip the loop and simply merge the output files")
-    parser.add_option("--batch",         dest = "batch",          default = False, action = "store_true", help = "split analysis and submit to batch queue")
-    parser.add_option("--singlesampleid",dest = "singlesampleid", default = None,  metavar = "id",        help = "[for internal use only]")
-    parser.add_option("--singleconfigid",dest = "singleconfigid", default = None,  metavar = "id",        help = "[for internal use only]")
+    parser.add_option("--loop",    dest = "loop",    default = None,  metavar = "N",          help = "loop over events using N cores (N>0)")
+    parser.add_option("--slices",  dest = "slices",  default = None,  metavar = "S",          help = "split each sample into S slices (S>0)")
+    parser.add_option("--profile", dest = "profile", default = False, action  = "store_true", help = "profile the code")
+    parser.add_option("--batch",   dest = "batch",   default = False, action  = "store_true", help = "submit to batch queue")
+    parser.add_option("--jobid",   dest = "jobId",   default = None,  metavar = "id",         help = "[for internal use only]")
     options,args = parser.parse_args()
 
     if len(args)!=1 :
@@ -45,9 +44,8 @@ def importedClass() :
     assert count==1,arg+" needs exactly 1 class which inherits from analysis; it has "+str(count)
     return theClass
 ############################################
-def submitBatchJob(jobCmd,iLooper,iConfig) :
-    dirName = os.environ["PWD"]+"/batch_jobs"
-    os.system("mkdir -p "+dirName)
+def submitBatchJob(jobCmd,iJob,indexDict,scriptDir) :
+    os.system("mkdir -p "+scriptDir)
     hostname=os.environ["HOSTNAME"]
 
     subScript = None
@@ -58,7 +56,11 @@ def submitBatchJob(jobCmd,iLooper,iConfig) :
     assert subScript and jobScript,"hostname"+str(hostname)+"not recognized"
     os.system("chmod +x "+subScript)
 
-    jobScriptFileName = dirName+"/job_%d_%d.sh"%(iLooper,iConfig)
+    jobScriptFileName  = scriptDir+"/job"+str(iJob)+"__"
+    for key in ["iConfig","iSample","iSlice"] :
+        jobScriptFileName +="_%s"%str(indexDict[key])
+    jobScriptFileName +=".sh"
+
     os.system("cp -p "+jobScript+" "+jobScriptFileName)
     outJobScript = open(jobScriptFileName,"a")
     outJobScript.write("cd "+os.environ["PWD"]+"\n")
@@ -66,44 +68,45 @@ def submitBatchJob(jobCmd,iLooper,iConfig) :
     outJobScript.close()
 
     subCmd = "./"+subScript+" "+jobScriptFileName
+    #print subCmd
     os.system(subCmd)
 ############################################
+
+#get options and check them
 options,arg = opts()
-module = arg.replace("analyses/","").replace(".py","")
+assert (options.jobId==None or options.batch==False), "options jobid and batch cannot be used simultaneously"
+if options.batch :
+    assert (options.loop!=None and options.slices!=None), "when using --batch, use also --loop and --slices"
+
+#set up ROOT and compile cpp source files
 globalSetup(listOfSourceFiles=["pragmas.h","helpers.C"])
 
+#construct the analysis
 sys.path.extend([os.environ["PWD"],os.environ["PWD"]+"/analyses"])
+while "//" in arg : arg = arg.replace("//","/")
+module = arg.replace("analyses/","").replace(".py","")
 exec("import "+module)
 someClass = importedClass()
+someInstance = someClass(options)
 
-if options.singleconfigid!=None :
-    someInstance = someClass(configurationId = int(options.singleconfigid))
-else :
-    someInstance = someClass()
-    
-#loop over events
-if options.singlesampleid!=None :
-    #restrict to the sample with the specified index
-    someInstance.listOfLoopers = [ someInstance.listOfLoopers[int(options.singlesampleid)] ]
-
-if options.batch :
-    args = sys.argv[1:]
-    args.remove("--batch")
-    baseCmd="./supy "+" ".join(args)
-    for iLooper in range(len(someInstance.listOfLoopers)) :
-        for iConfig in range(len(someInstance.configurations())) :
-            cmd = baseCmd + " --singlesampleid "+str(iLooper) + " --singleconfigid "+str(iConfig)
-            submitBatchJob(cmd,iLooper,iConfig)
+if options.batch : #make one script per job and submit them to the queue
+    argsAndOptions = sys.argv[1:]
+    argsAndOptions.remove("--batch")
+    baseCmd = "./supy "+" ".join(argsAndOptions)
+    for iJob,listOfIndices in enumerate( someInstance.jobs() ) :
+        submitBatchJob(baseCmd+" --jobid "+str(iJob), iJob, listOfIndices, scriptDir = someInstance.namedOutputDirectory())
     print
     print "You may do this to monitor your jobs (exit with CTRL-C):"
     print "watch 'qstat | head -40; find %s/%s | grep -c root'"%(someInstance.baseOutputDirectory(),someInstance.name)
-else :
-    if options.loop :
-        someInstance.loop(int(options.loop), bool(options.profile), bool(options.onlymerge))
-    if not options.singlesampleid :
-        try:
-            someInstance.conclude()
-        except AssertionError as foo:
-            print foo
-            print "Have you looped?"
+elif options.loop!=None : #loop over the events
+    someInstance.loop()
 
+#merge output and conclude
+if options.jobId==None and not options.batch :
+    someInstance.mergeOutput()
+    try:
+        someInstance.conclude()
+    except AssertionError as foo:
+        print
+        print foo
+        #print "Have you looped?"

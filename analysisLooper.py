@@ -106,7 +106,7 @@ class analysisLooper :
         for infile in inputFiles :
             #add main tree to main chain
             self.inputChain.Add(infile+"/"+self.fileDirectory+"/"+self.treeName)
-
+            
             #add other trees to other chains
             for (dirName,treeName),chain in self.otherChainDict.iteritems() :
                 chain.Add(infile+"/"+dirName+"/"+treeName)
@@ -162,9 +162,10 @@ class analysisLooper :
         r.gROOT.cd()
         return returnValue
 
-    def doSplitMode(self,parentName) :
+    def doSplitMode(self,parentName,nWorkers) :
         self.splitMode=True
-        self.quietMode=True
+        if nWorkers!=None and nWorkers>1 :
+            self.quietMode=True
         self.parentName=parentName
 
     def makeListOfCalculablesUsed(self,activeKeys) :
@@ -208,6 +209,7 @@ class analysisLooper :
                 step.printStatistics()
 
     def writeAllObjects(self) :
+        objectList = r.gDirectory.GetList()
         for object in objectList :
             object.Write()
             object.Delete()
@@ -261,8 +263,6 @@ class analysisLooper :
 
     def writeHistos(self) :
         if not self.quietMode : print utils.hyphens
-        #r.gDirectory.ls()
-        objectList = r.gDirectory.GetList()
         outputFile = r.TFile(self.outputPlotFileName,"RECREATE")
         zombie = outputFile.IsZombie()
 
