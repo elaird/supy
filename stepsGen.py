@@ -200,6 +200,7 @@ class genParticlePrinter(analysisStep) :
             outString+="  %#8.1f"%p4.pt()
             outString+="  %#8.1f"%p4.eta()
             outString+="  %#5.1f"%p4.phi()
+            #outString+="  %#5.1f"%p4.mass()
         
             if not (iGen in mothers) :
                 outString+="   non-mo"
@@ -220,4 +221,41 @@ class genParticlePrinter(analysisStep) :
         #outString+="  %#5.1f"%self.sumP4.phi()
         #print outString
         print
+#####################################
+class genMassHistogrammer(analysisStep) :
+    """genMassHistogrammer"""
+
+    def __init__(self,pdgId = 23):
+        self.pdgId = pdgId
+        self.histoName = "mass_pdgId==%d"%self.pdgId
+        
+    def uponAcceptance (self,eventVars) :
+        size=len(eventVars["genP4"])
+        for iGen in range(size) :
+            p4=eventVars["genP4"].at(iGen)
+            if eventVars["genPdgId"].at(iGen)!=self.pdgId : continue
+            self.book(eventVars).fill(p4.mass(), self.histoName, 100, 0.0, 300.0, title = ";mass (GeV);events / bin")
+#####################################
+class genSHatHistogrammer(analysisStep) :
+    """genSHatHistogrammer"""
+
+    def uponAcceptance (self,eventVars) :
+        p4 = eventVars["genP4"]
+        size=p4.size()
+        counts = [0,0]
+        indices = [-1,-1]
+        for iGen in range(size) :
+            if not eventVars["genMotherStored"].at(iGen) : continue
+            motherIndex = eventVars["genMother"].at(iGen)
+            if motherIndex!=0 and motherIndex!=1 : continue
+            counts[motherIndex] += 1
+            indices[motherIndex] = iGen
+
+        if counts[0]!=1 or counts[1]!=1 :
+            print "bad counts",counts
+            return
+        
+        rootSHat = ( p4.at(indices[0])+p4.at(indices[1]) ).mass()
+        print indices,rootSHat
+        self.book(eventVars).fill(rootSHat, "rootSHat", 100, 0.0, 300.0, title = ";#sqrt{#hat{s}} (GeV);events / bin")
 #####################################
