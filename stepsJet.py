@@ -195,6 +195,60 @@ class alphaHistogrammer(analysisStep) :
         book.fill( (alphaT,deltaPhiStar),"%s_deltaPhiStar_vs_nJetAlphaT_%s"%self.cs,
                    (500,50), (0.0,0.0),(1.0,r.TMath.Pi()),
                    title=";#alpha_{T} (using p_{T});#Delta#phi*;events / bin")
+######################################
+class leadingCorrJetFilter(analysisStep) :
+    """leadingCorrJetFilter"""
+
+    def __init__(self, cs, ptMin, etaMax):
+        self.cs = cs
+        self.ptMin = ptMin
+        self.etaMax = etaMax
+        self.moreName="%s%s; c. pT>%.1f GeV and |eta|<%.1f"%(self.cs[0],self.cs[1],self.ptMin,self.etaMax)
+
+    def select (self,eventVars) :
+        p4s = eventVars["%sCorrectedP4%s" % self.cs]
+        size = p4s.size()
+        if not size :
+            return False
+        maxCorrPt,index = max( [ (p4s.at(i).pt(),i) for i in range(size) ] )
+        if index!=0 : print "zomg index =",index
+        eta = p4s.at(index).eta()
+
+        if maxCorrPt<self.ptMin or abs(eta)>self.etaMax :
+            return False
+
+        self.book(eventVars).fill(maxCorrPt,"%sMaxCorrJetPt%s"%self.cs, 50, 0.0,350.0, title = ";leading c. %s%s's c. p_{T} (GeV);events / bin"%self.cs)
+        self.book(eventVars).fill(eta      ,"%sMaxCorrJetEta%s"%self.cs, 50, -5.0, 5.0, title = ";leading c. %s%s's #eta;events / bin"%self.cs)
+        return True
+######################################
+class leadingUnCorrJetFilter(analysisStep) :
+    """leadingUnCorrJetFilter"""
+
+    def __init__(self, cs, ptMin, etaMax, extraHistos = False):
+        for item in ["cs","ptMin","etaMax","extraHistos"] :
+            setattr(self,item,eval(item))
+        self.moreName="%s%s; u.c. pT>%.1f GeV and |eta|<%.1f"%(self.cs[0],self.cs[1],self.ptMin,self.etaMax)
+
+    def select (self,eventVars) :
+        p4s = eventVars["%sCorrectedP4%s" % self.cs]
+        corr = eventVars["%sCorrFactor%s" % (self.cs[0].lstrip("xc"),self.cs[1])]
+        size = p4s.size()
+        if not size :
+            return False
+        maxUnCorrPt,index = max( [ (p4s.at(i).pt()/corr.at(i),i) for i in range(size) ] )
+        eta = p4s.at(index).eta()
+
+        if maxUnCorrPt<self.ptMin or abs(eta)>self.etaMax :
+            return False
+
+        if self.extraHistos :
+            self.book(eventVars).fill(maxUnCorrPt,"%sMaxUnCorrJetPt%s"%self.cs, 50, 0.0,250.0, title = ";leading u.c. %s%s's u.c. p_{T} (GeV);events / bin"%self.cs)
+            bigTuple = (self.cs[0],self.cs[1],self.cs[0],self.cs[1])
+            self.book(eventVars).fill( (eta,maxUnCorrPt), "%sMaxUnCorrJetPtVsEta%s"%self.cs, (50, 50), (-5.0, 0.0), (5.0,250.0),
+                                       title = ";leading u.c. %s%s's #eta;leading u.c. %s%s's u.c. p_{T} (GeV);events / bin"%bigTuple)
+
+        self.book(eventVars).fill(eta        ,"%sMaxUnCorrJetEta%s"%self.cs, 50, -5.0, 5.0, title = ";leading u.c. %s%s's #eta;events / bin"%self.cs)
+        return True
 #####################################
 class deltaPhiSelector(analysisStep) :
     """deltaPhiSelector"""
