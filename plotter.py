@@ -2,10 +2,11 @@ import ROOT as r
 import os,math,string
 import utils
 ##############################
-def setupStyle() :
+def setupStyle(extendedStats) :
     r.gROOT.SetStyle("Plain")
     r.gStyle.SetPalette(1)
-    #r.gStyle.SetOptStat(111111)
+    if extendedStats :
+        r.gStyle.SetOptStat(1111111)
 ##############################
 def combineBinContentAndError(histo,binToContainCombo,binToBeKilled) :
     xflows=histo.GetBinContent(binToBeKilled)
@@ -70,6 +71,7 @@ class plotter(object) :
                  psFileName="out.ps",
                  samplesForRatios=("",""),
                  sampleLabelsForRatios=("",""),
+                 extendedStats = True,
                  doLog=True,
                  drawYx=False,
                  doMetFit=False,
@@ -77,7 +79,7 @@ class plotter(object) :
                  blackList=["counts","lumiWarn","nEventsOriginalHisto"]
                  ) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios",
-                     "doLog","drawYx","doMetFit","doColzFor2D","blackList" ] :
+                     "doLog","drawYx","doMetFit","doColzFor2D","blackList","extendedStats" ] :
             setattr(self,item,eval(item))
         self.plotRatios = self.samplesForRatios!=("","")        
         self.psOptions="Landscape"
@@ -86,7 +88,7 @@ class plotter(object) :
 
     def plotAll(self) :
         print utils.hyphens
-        setupStyle()
+        setupStyle(self.extendedStats)
 
         self.printCanvas("[")
 
@@ -119,6 +121,7 @@ class plotter(object) :
         text.SetTextSize(0.55*text.GetTextSize())
 
         calcs = filter(lambda x:x[1]!="",list(self.someOrganizer.calculables()) )
+        if not len(calcs) : return text
         length = max([len(calc[0]) for calc in calcs])
         calcs.sort()
         calcs.insert(0,("",""))
