@@ -42,11 +42,9 @@ class triggerTurnOn(analysis.analysis) :
     def listOfSampleDictionaries(self) : return [samples.jetmet]
 
     def listOfDataSampleNames(self) :
-        return ["JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn"    ,
-                "JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn"    ,
-                "JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn"       ,
-                "JetMET.Run2010A-PromptReco-v4.RECO.Bryn"          ,
-                "JetMET.Run2010A-PromptReco-v4.RECO.Bryn2"         ]
+        return [ "JetMET.Run2010A-PromptReco-v4.RECO.Bryn2",
+                 "JetMET.Run2010A-PromptReco-v4.RECO.Bryn"]
+
 
     def listOfSamples(self,params) :
         from samples import specify
@@ -82,7 +80,7 @@ class triggerTurnOn(analysis.analysis) :
         c.SetGridx()
         c.SetGridy()
         for label in turnOns.keys() :
-            leg = r.TLegend(0.15,0.6,0.4,0.87)
+            leg = r.TLegend(0.6,0.15,0.87,0.4)
             
             same = ""
             colors = [r.kGreen,r.kRed, r.kBlue,r.kYellow,r.kOrange,r.kGray][:len(turnOns[label])]
