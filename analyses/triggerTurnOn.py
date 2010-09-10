@@ -11,9 +11,9 @@ class triggerTurnOn(analysis.analysis) :
     def parameters(self) :
         jettypes = ["ak5Jet","ak5JetJPT","ak5JetPF"]
         params = {"jets": dict(zip(jettypes,zip(jettypes,3*["Pat"]))),
-                  "minJets": {"ge1":1,"ge2":2},
-                  "trig1":"HLT_Jet70U",
-                  "trig2":"HLT_Jet100U"
+                  "trig1":"HLT_Jet50U",
+                  "trig2": {"100u":"HLT_Jet100U","70u":"HLT_Jet70U"},
+                  "leadingEta":{"eta3":3.0,"eta5":5.0}
                   }
         return params
 
@@ -25,8 +25,8 @@ class triggerTurnOn(analysis.analysis) :
                  steps.vertexRequirementFilter(),
                  steps.monsterEventFilter(),
                  steps.hbheNoiseFilter(),
-                 steps.multiplicityFilter("%sIndices%s"%jets, nMin = conf["minJets"]),
                  steps.multiplicityFilter("%sIndicesOther%s"%jets, nMax = 0),
+                 steps.leadingUnCorrJetEtaSelector(jets,conf["leadingEta"]),
                  steps.hltFilter(conf["trig1"]),
                  steps.histogrammer("%sLeadingPt%s"%jets,100,0,300, title=";Leading Jet p_{T};events / bin"),
                  steps.hltFilter(conf["trig2"]),
