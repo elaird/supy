@@ -1,83 +1,108 @@
 #!/usr/bin/env python
-import os,analysis,utils,steps,calculables,samples
 
-jetTypes = [ (col,"Pat") for col in ["ak5Jet","ak5JetJPT","ak5JetPF"]]
+import os
+import analysis,utils,calculables,steps,samples,organizer,plotter
+import ROOT as r
 
-def makeSteps() :
-    stepList = [ steps.progressPrinter(),
+class triggerTurnOn(analysis.analysis) :
+    def baseOutputDirectory(self) :
+        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
+
+    def parameters(self) :
+        jettypes = ["ak5Jet","ak5JetJPT","ak5JetPF"]
+        params = {"jets": dict(zip(jettypes,zip(jettypes,3*["Pat"]))),
+                  "minJets": {"ge1":1,"ge2":2},
+                  "trig1":"HLT_Jet70U",
+                  "trig2":"HLT_Jet100U"
+                  }
+        return params
+
+    def listOfSteps(self,conf) :
+        jets = conf["jets"]
+        return [ steps.progressPrinter(),
                  steps.techBitFilter([0],True),
                  steps.physicsDeclared(),
                  steps.vertexRequirementFilter(),
                  steps.monsterEventFilter(),
-                 steps.hbheNoiseFilter() ]
-    stepList+= [ steps.maxNOtherJetEventFilter(col,0) for col in jetTypes ]
-    stepList+= [ steps.hltTurnOnHistogrammer(probeTrig = "HLT_Jet50U", var = "%sLeadingPt%s"%col, tagTrigs = ["HLT_Jet30U"], binsMinMax = (240,0,120) ) \
-                 for col in jetTypes ]
-    return stepList
+                 steps.hbheNoiseFilter(),
+                 steps.multiplicityFilter("%sIndices%s"%jets, nMin = conf["minJets"]),
+                 steps.multiplicityFilter("%sIndicesOther%s"%jets, nMax = 0),
+                 steps.hltFilter(conf["trig1"]),
+                 steps.histogrammer("%sLeadingPt%s"%jets,100,0,300, title=";Leading Jet p_{T};events / bin"),
+                 steps.hltFilter(conf["trig2"]),
+                 steps.histogrammer("%sLeadingPt%s"%jets,100,0,300, title=";Leading Jet p_{T};events / bin") ]
+    
+    def listOfCalculables(self,config) :
+        jets = config["jets"]
+        calcs =  calculables.zeroArgs()
+        calcs += calculables.fromCollections("calculablesJet",[jets])
+        calcs += [ calculables.jetIndices( jets, ptMin = 20., etaMax = 3.0, flagName = "JetIDloose")]
+        return calcs
 
-def makeCalculables() :
-    calcs =  calculables.zeroArgs()
-    calcs += calculables.fromJetCollections(jetTypes)
-    calcs += [ calculables.jetIndices( collection = col, ptMin = 20., etaMax = 3.0, flagName = "JetIDloose") for col in jetTypes ]
-    calcs += [ calculables.jetIndicesOther( collection = col, ptMin = 20.) for col in jetTypes ]
-    calcs += [ calculables.PFJetIDloose( collection = jetTypes[2],
-                                         fNeutralEmMax = 1.0, fChargedEmMax = 1.0, fNeutralHadMax = 1.0, fChargedHadMin = 0.0, nChargedMin = 0) ]
-    return calcs
+    def listOfSampleDictionaries(self) : return [samples.jetmet]
 
-a = analysis.analysis( name = "triggerTurnOn",
-                       outputDir = "/vols/cms02/%s/tmp/"%os.environ["USER"],
-                       listOfSteps = makeSteps(),
-                       listOfCalculables = makeCalculables(),
-                       listOfSamples = [samples.specify(name = "JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn", nFilesMax=10) ],
-                       listOfSampleDictionaries = [samples.jetmet]
-                       )
+    def listOfDataSampleNames(self) :
+        return ["JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn"    ,
+                "JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn"    ,
+                "JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn"       ,
+                "JetMET.Run2010A-PromptReco-v4.RECO.Bryn"          ,
+                "JetMET.Run2010A-PromptReco-v4.RECO.Bryn2"         ]
 
-a.loop( nCores = 10 )
+    def listOfSamples(self,params) :
+        from samples import specify
+        return [specify(name) for name in self.listOfDataSampleNames()]
 
-#########################################################
+    def conclude(self) :
+        from collections import defaultdict
+        turnOns = defaultdict(list)
+        configs = defaultdict(list)
+        for conf in self.configurations() :
+            org = organizer.organizer( self.sampleSpecs(conf['tag']) )
+            org.mergeSamples(targetSpec = {"name":"jetmet","color":r.kBlack}, sources = self.listOfDataSampleNames() )
+            org.scale()
 
-targetName = "JetMETTau.Run2010A"
-a.mergeAllHistogramsExceptSome( target=targetName, dontMergeList=[], keepSourceHistograms = False)
-organizedHists = a.organizeHistograms( multipleDisjointDataSamples = True)
-histograms = dict([(spec["plotName"],spec['histoDict'][targetName]) for spec in organizedHists])
+            plotName = "%sLeadingPt%s"%conf["jets"]
+            sel1,sel2 = tuple(filter(lambda y: y.name=="hltFilter" and y.title in [conf["trig1"],conf["trig2"]], org.selections))
+            def binomialDivide(before,after) :
+                hist = before.Clone("turnOn_%s_%s_%s"%(conf["trig2"],conf["trig1"],plotName))
+                hist.Divide(after,before,1,1,"B") #binomial errors
+                hist.SetTitle(";Leading Jet p_{T};P( %s | %s )"%(conf["trig2"].replace("HLT_",""),
+                                                                 conf["trig1"].replace("HLT_","")))
+                return hist
+            sel2["turnOn"] = tuple(map(binomialDivide, sel1[plotName],sel2[plotName]))
+            plotter.plotter( org,psFileName = self.psFileName()[:-3]+conf['tag']+".ps").plotAll()
 
-import ROOT as r
-import re
+            label = conf['tag'].replace(conf['jets'][0],"")
+            turnOns[label].append(sel2["turnOn"])
+            configs[label].append(conf)
 
-hists = 3*[None]
-vars = ["ak5JetLeadingPtPat", "ak5JetJPTLeadingPtPat","ak5JetPFLeadingPtPat"]
-labels = ["Calo","JetPlusTracks","Particle Flow"]
-colors = [r.kRed, r.kGreen, r.kBlue]
+        #######################
+        r.gStyle.SetOptStat(0)
+        c = r.TCanvas("c","",800,600)
+        c.SetGridx()
+        c.SetGridy()
+        for label in turnOns.keys() :
+            leg = r.TLegend(0.15,0.6,0.4,0.87)
+            
+            same = ""
+            colors = [r.kGreen,r.kRed, r.kBlue,r.kYellow,r.kOrange,r.kGray][:len(turnOns[label])]
+            for i in range(len(turnOns[label])) :
+                hist = turnOns[label][i][0]
+                hist.UseCurrentStyle()
+                hist.SetLineColor(colors[i])
+                leg.AddEntry(hist,"%s%s"%configs[label][i]["jets"])
+                hist.SetMinimum(0)
+                hist.SetMaximum(1.05)
+                hist.Draw(same)
+                same = "same"
+            leg.Draw()
 
-for var,tag,probe in filter( lambda Tuple: len(Tuple)==3, \
-                             [ tuple(re.split(r"(\w*)_given_(\w*)_and_(\w*)",name)[1:-1]) for name in histograms ] ) :
-    numerator = histograms["%s_given_%s_and_%s" % (var,tag,probe)]
-    denomenator = histograms["%s_given_%s" % (var,tag)]
-    name = "efficiencyBy_%s_of_%s_given_%s"%(var,probe,tag)
-    hist = numerator.Clone(name)
-    hist.Divide(numerator,denomenator,1,1,"B") #binomial errors
-    hist.GetYaxis().SetTitle("efficiency")
-    hist.SetTitle("Probability of %s given %s" % (probe,tag))
+            outName = self.psFileName()[:-3]+label+"_allJets.eps"
+            c.Print(outName)
+            
+            outPdfName = outName.replace(".eps",".pdf")
+            os.system("epstopdf "+outName)
+            os.system("rm "+outName)
+            print "The output file \""+outPdfName+"\" has been written."
 
-    if var in vars :
-        hists[vars.index(var)] = hist
-        hist.GetXaxis().SetTitle("Leading Jet p_{T}  (GeV)")
-        hist.GetXaxis().SetLimits(20,120)
-        hist.SetMaximum(1)
 
-r.gROOT.SetStyle("Plain")
-r.gStyle.SetOptStat(0)
-leg = r.TLegend(0.15,0.6,0.4,0.87)
-c = r.TCanvas("c","",800,600)
-c.SetGridx()
-c.SetGridy()
-
-same = ""
-for i in range(3) :
-    hists[i].SetLineColor(colors[i])
-    leg.AddEntry(hists[i],labels[i])
-    hists[i].Draw(same)
-    same = "same"
-leg.Draw()
-
-c.Print("triggerTurnOn.eps")
