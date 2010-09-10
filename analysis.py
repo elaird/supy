@@ -4,58 +4,25 @@ import utils,steps,samples
 from analysisLooper import analysisLooper
 import ROOT as r
 #####################################
-def listOfConfigurationsAndTags(paramsIn) :
-    def maxLength(d) :
-        lengths = []
-        for key,value in d.iteritems() :
-            if   (type(value) is list) or (type(value) is dict) : lengths.append(len(value))
-            else : lengths.append(1)
-        return max(lengths) if len(lengths) else 0
+def listOfConfigurations(params) :
+    configs = [{"tag":"","codeString":""}]
+    
+    for key in sorted(params.keys()) :
+        variations = params[key]
+        if type(variations) not in [list, dict] : variations = [variations]
+        isDict = type(variations) is dict
 
-    def listOfCodes(nOps,nItems) :
-        return [ utils.makeCodes(i,nOps,nItems) for i in range(nOps**nItems) ]
+        baseLen = len(configs)
+        configs = sum([copy.deepcopy(configs) for i in range(len( variations.keys() if isDict else variations ))],[])
 
-    configurationCodes = listOfCodes(maxLength(paramsIn),len(paramsIn))
-
-    configsOut     = []
-    tagsOut        = []
-    codeStringsOut = []
-    paramKeys = paramsIn.keys()
-    paramKeys.sort()
-    for codeList in configurationCodes :
-        config = {}
-        tag = ""
-        codeString = ""
-        insert = True
-        for iParamKey,paramKey in enumerate(paramKeys) :
-            variations = paramsIn[paramKey]
-            #make list from singletons
-            if (not (type(variations) is list)) and (not (type(variations) is dict)) : variations = [variations]
-            code = codeList[iParamKey]
-
-            #skip this code list if it is not valid
-            if code>=len(variations) :
-                insert = False
-                continue
-
-            #add to this config
-            if type(variations) is list :
-                config[paramKey] = variations[code]
-                codeString+=str(code)
-            if type(variations) is dict :
-                variationKey = variations.keys()[code]
-                variation = variations[variationKey]
-                config[paramKey] = variation
-                #add to this tag
-                if tag!="" : tag+="_"
-                tag+=variationKey
-
-        #append to the lists
-        if insert :
-            configsOut.append(config)
-            tagsOut.append(tag)
-            codeStringsOut.append(codeString)
-    return configsOut,tagsOut,codeStringsOut
+        for iConf in range(baseLen) :
+            for iVar,kval in enumerate(sorted(variations.keys()) if isDict else variations) :
+                i = iVar*baseLen + iConf
+                conf = configs[i]
+                conf[key] = variations[kval] if isDict else kval
+                if isDict : conf["tag"] += ("%s"+kval) % ("_" if len(conf["tag"]) else "")
+                else : conf["codeString"] += str(iVar)
+    return configs
 #####################################
 def childName(looperName,iSlice) : return looperName+"_%d"%iSlice
 #####################################
@@ -69,11 +36,8 @@ class analysis(object) :
                      "mainTree","otherTreesToKeepWhenSkimming","printNodesUsed"] :
             setattr(self, "_"+item, getattr(self,item)() )
 
-        self.fileDirectory=self._mainTree[0]
-        self.treeName=self._mainTree[1]
-
-        self._configurations,self._tags,self._codeStrings = listOfConfigurationsAndTags(self.parameters())
-        self._sideBySideAnalysisTags = sorted(list(set(self._tags)))
+        self.fileDirectory,self.treeName = self._mainTree
+        self._configurations = listOfConfigurations(self.parameters())
 
         self._batch   = options.batch
         self._loop    = int(options.loop)   if options.loop!=None else None
@@ -83,64 +47,37 @@ class analysis(object) :
 
         self._listsOfLoopers = []
         self._jobs = []
-        for iConfiguration,configuration in enumerate(self._configurations) :
-            listOfSteps = self.listOfSteps(configuration)
-            listOfSamples = self.listOfSamples(configuration)
-            selectors = filter(lambda s: hasattr(s,"select"), listOfSteps)
-            assert len(selectors) == len(set(map(lambda s: (s.__doc__,s.moreName,s.moreName2), selectors))), "Duplicate selectors are not allowed."
-            assert len(listOfSamples) == len(set(map(lambda s: s.name,listOfSamples))), "Duplicate sample names are not allowed."
-
-            listOfCalculables = self.listOfCalculables(configuration)
-            listOfLoopers = self.listOfLoopers(listOfSamples, listOfSteps, listOfCalculables, iConfiguration)
-            #add to list of loopers
-            self._listsOfLoopers.append( listOfLoopers )
-
-            #add to list of jobs
-            for iLooper in range(len(listOfLoopers)) :
+        for iConf,conf in enumerate(self._configurations) :
+            self._listsOfLoopers.append( self.sampleLoopers(conf) )
+            for iSample in range(len(self._listsOfLoopers[-1])) :
                 for iSlice in range(self._nSlices) :
-                    d = {}
-                    d["iConfig"]=iConfiguration
-                    d["iSample"]=iLooper
-                    d["iSlice" ]=iSlice
-                    self._jobs.append(d)
+                    self._jobs.append({"iConfig":iConf,"iSample":iSample,"iSlice":iSlice})
 
-        #make lists of input files
         if self._jobId==None and self._loop!=None :
             self.makeInputFileLists()
             self.pickleJobs()
-            
-    def sideBySideAnalysisTags(self) : return self._sideBySideAnalysisTags
-    def configurations(self) :         return self._configurations
-    def jobs(self) :                   return self._jobs
-    def jobsFile(self) :               return self.namedOutputDirectory()+"/"+self.name+".jobs"
-    def namedOutputDirectory(self) :   return os.path.expanduser(self.baseOutputDirectory())+"/"+self.name
 
-    def outputDirectory(self, iConfig) :
-        tag  = self._tags[iConfig]
-        code = self._codeStrings[iConfig]
-        return self.namedOutputDirectory()+"/"+tag+"/config"+str(code)+"/"
+    def sideBySideAnalysisTags(self) : return sorted(list(set([conf["tag"] for conf in self._configurations])))
+    def configurations(self) : return self._configurations
+    def jobs(self) : return self._jobs
 
-    def makeOutputPlotFileName(self,configurationId,sampleName) :
-        return self.outputDirectory(configurationId)+"/"+sampleName+"_plots.root"
+    def namedOutputDirectory(self) : return os.path.expanduser(self.baseOutputDirectory())+"/"+self.name
+    def jobsFile(self) : return "%s/%s.jobs" % (self.namedOutputDirectory(),self.name)
+    def outputDirectory(self, conf) : return "%s/%s/config%s" % (self.namedOutputDirectory(), conf["tag"], conf["codeString"])
+    def outputPlotFileName(self,conf,sampleName) : return "%s/%s_plots.root" % ( self.outputDirectory(conf), sampleName )
+    def psFileName(self,tag="") : return "%s/%s%s.ps" % (self.namedOutputDirectory(), self.name, "_"+tag if len(tag) else "")
 
-    def psFileName(self,tag="") :
-        base = self.namedOutputDirectory()+"/"+self.name
-        if tag!="" : base+="_"+tag
-        return base+".ps"
-    
-    def baseOutputDirectory(self) :          raise Exception("NotImplemented","Implement a member function baseOutputDirectory()")
-    def listOfSteps(self,config) :           raise Exception("NotImplemented","Implement a member function listOfSteps(self,config)")
-    def listOfCalculables(self,config) :     raise Exception("NotImplemented","Implement a member function listOfCalculables(self,config)")
-                                             
-    def listOfSampleDictionaries(self) :     raise Exception("NotImplemented","Implement a member function sampleDict()")
-    def listOfSamples(self,config) :         raise Exception("NotImplemented","Implement a member function listOfSamples(self,config)")
+    def baseOutputDirectory(self) :            raise Exception("NotImplemented", "Implement a member function %s"%"baseOutputDirectory(self)")
+    def listOfSteps(self,config) :       raise Exception("NotImplemented", "Implement a member function %s"%"listOfSteps(self,config)")
+    def listOfCalculables(self,config) : raise Exception("NotImplemented", "Implement a member function %s"%"listOfCalculables(self,config)")
+    def listOfSampleDictionaries(self) : raise Exception("NotImplemented", "Implement a member function %s"%"sampleDict(self)")
+    def listOfSamples(self,config) :     raise Exception("NotImplemented", "Implement a member function %s"%"listOfSamples(self,config)")
 
-    def printNodesUsed(self) :               return False
-    def mainTree(self) :                     return ("susyTree","tree")
+    def printNodesUsed(self) : return False
+    def mainTree(self) : return ("susyTree","tree")
     def otherTreesToKeepWhenSkimming(self) : return [("lumiTree","tree")]
-
-    def parameters(self) :                   return {}
-    def conclude(self) :                     return
+    def parameters(self) : return {}
+    def conclude(self) : return
 
     def pickleJobs(self) :
         outFile=open(self.jobsFile(),"w")
@@ -165,7 +102,7 @@ class analysis(object) :
         #make output directories; compile a dict of commands and file names
         fileNames = collections.defaultdict(set)
         for job in self._jobs :
-            os.system("mkdir -p "+self.outputDirectory(job["iConfig"]))
+            os.system("mkdir -p "+self.outputDirectory(self._configurations[job["iConfig"]]))
             for looper in self._listsOfLoopers[job["iConfig"]] :
                 tuple = (looper.name, looper.fileListCommand)
                 fileNames[tuple].add(looper.inputFileListFileName)
@@ -182,7 +119,7 @@ class analysis(object) :
         for iJob,job in enumerate(self._jobs) :
             if self._jobId!=None and int(self._jobId)!=iJob : continue
             #make sure output directory exists (perhaps not necessary-- to be checked)
-            os.system("mkdir -p "+self.outputDirectory(job["iConfig"]))
+            os.system("mkdir -p "+self.outputDirectory(self._configurations[job["iConfig"]]))
             #associate the file list
             looper = copy.deepcopy(self._listsOfLoopers[job["iConfig"]][job["iSample"]])
             someFile = open(looper.inputFileListFileName)
@@ -191,7 +128,7 @@ class analysis(object) :
 
             oldName = looper.name
             looper.name = childName(looper.name,job["iSlice"])
-            looper.outputPlotFileName=self.makeOutputPlotFileName(job["iConfig"],looper.name)
+            looper.outputPlotFileName=self.outputPlotFileName(self._configurations[job["iConfig"]],looper.name)
             looper.setOutputFileNames()
             looper.doSplitMode(oldName,self._loop)
             listOfLoopers.append(looper)
@@ -203,40 +140,42 @@ class analysis(object) :
             utils.operateOnListUsingQueue(self._loop,utils.goWorker,listOfLoopers)
 
     def sampleSpecs(self, tag = None) :
-        condition = tag!=None or (len(self.sideBySideAnalysisTags())==1 and self.sideBySideAnalysisTags()[0]=="")
+        condition = tag or (len(self.sideBySideAnalysisTags())==1 and self.sideBySideAnalysisTags()[0]=="")
         assert condition,"There are side-by-side analyses specified, but sampleSpecs() was not passed a tag."
-        if tag==None : tag = ""
+        if not tag : tag = ""
 
         listOfSamples   = []
         listOfFileLists = []
         for iConfig,listOfLoopers in enumerate(self._listsOfLoopers) :
-            if self._tags[iConfig]!=tag : continue
+            conf = self._configurations[iConfig]
+            if conf["tag"]!=tag : continue
             for looper in listOfLoopers :
-                tuple = (looper.name, looper.color, looper.markerStyle)
-                if tuple not in listOfSamples :
-                    listOfSamples.append(tuple)
+                triplet = (looper.name, looper.color, looper.markerStyle)
+                if triplet not in listOfSamples :
+                    listOfSamples.append(triplet)
                     listOfFileLists.append([])
-                index = listOfSamples.index(tuple)
-                listOfFileLists[index].append( self.makeOutputPlotFileName(iConfig,looper.name) )
+                index = listOfSamples.index(triplet)
+                listOfFileLists[index].append( self.outputPlotFileName(conf,looper.name) )
 
-        outList = []
-        for sample,fileList in zip(listOfSamples,listOfFileLists) :
-            d = {}
-            d["name"]            = sample[0]
-            d["color"]           = sample[1]
-            d["markerStyle"]     = sample[2]
-            d["outputFileNames"] = fileList
-            outList.append(d)
-        return outList
+        return [ dict(zip(["name","color","markerStyle"],sample[:3])+[("outputFileNames",fileList)]) \
+                 for sample,fileList in zip(listOfSamples,listOfFileLists) ]
 
-    def listOfLoopers(self, listOfSamples = [], listOfSteps = [], listOfCalculables = [], iConfiguration = None) :
+
+    def sampleLoopers(self, conf) :
+        listOfCalculables = self.listOfCalculables(conf)
+        listOfSteps = self.listOfSteps(conf)
+        listOfSamples = self.listOfSamples(conf)
+
+        selectors = filter(lambda s: hasattr(s,"select"), listOfSteps)
+        assert len(selectors) == len(set(map(lambda s:(s.__doc__,s.moreName,s.moreName2), selectors))),"Duplicate selectors are not allowed."
+        assert len(listOfSamples) == len(set(map(lambda s: s.name,listOfSamples))), "Duplicate sample names are not allowed."
+
         computeEntriesForReport = False #temporarily hard-coded
         mergedDict = samples.SampleHolder()
         map(mergedDict.update,self._listOfSampleDictionaries)
 
-        outLoopers = []
-        #print mergedDict
         ptHatMinDict={}
+        sampleLoopers = []
         for sampleSpec in listOfSamples :
             sampleName = sampleSpec.name
             sampleTuple = mergedDict[sampleName]
@@ -250,41 +189,37 @@ class analysis(object) :
                 print "Warning, not running over full data sample: wrong lumi?"
                 lumiWarn = True
                 
-            if nFilesMax >= 0 :
-                fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
-                
-            adjustedListOfSteps = []
-            if isMc : adjustedListOfSteps = steps.adjustStepsForMc(listOfSteps)
-            else :    adjustedListOfSteps = steps.adjustStepsForData(listOfSteps)
+            if nFilesMax >= 0 : fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
+            if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
+            adjustedListOfSteps = steps.adjustStepsForMc(listOfSteps) if isMc else \
+                                  steps.adjustStepsForData(listOfSteps)
 
-            if sampleTuple.ptHatMin :
-                ptHatMinDict[sampleName]=sampleTuple.ptHatMin
-
-            outLoopers.append(analysisLooper(self.fileDirectory,
-                                             self.treeName,
-                                             self._otherTreesToKeepWhenSkimming,
-                                             self.outputDirectory(iConfiguration),
-                                             self.makeOutputPlotFileName(iConfiguration,sampleName),
-                                             adjustedListOfSteps,
-                                             listOfCalculables,
-                                             sampleSpec,
-                                             fileListCommand,
-                                             sampleTuple.xs,
-                                             sampleTuple.lumi,
-                                             lumiWarn,
-                                             computeEntriesForReport,
-                                             self.printNodesUsed(),
-                                             )
-                              )
+            sampleLoopers.append(analysisLooper(self.fileDirectory,
+                                                self.treeName,
+                                                self._otherTreesToKeepWhenSkimming,
+                                                self.outputDirectory(conf),
+                                                self.outputPlotFileName(conf,sampleName),
+                                                adjustedListOfSteps,
+                                                listOfCalculables,
+                                                sampleSpec,
+                                                fileListCommand,
+                                                sampleTuple.xs,
+                                                sampleTuple.lumi,
+                                                lumiWarn,
+                                                computeEntriesForReport,
+                                                self.printNodesUsed(),
+                                                )
+                                 )
+            
         for thing in mergedDict.overlappingSamples :
             minPtHatsAndNames=[]
             for sampleName in thing.samples :
                 if sampleName not in ptHatMinDict : continue
                 minPtHatsAndNames.append( (ptHatMinDict[sampleName],sampleName) )
-            self.manageNonBinnedSamples(minPtHatsAndNames, thing.useRejectionMethod, outLoopers)
-        return outLoopers
+            self.manageInclusiveSamples(minPtHatsAndNames, thing.useRejectionMethod, sampleLoopers)
+        return sampleLoopers
 
-    def manageNonBinnedSamples(self, ptHatLowerThresholdsAndSampleNames = [], useRejectionMethod = True, loopers = []) :
+    def manageInclusiveSamples(self, ptHatLowerThresholdsAndSampleNames = [], useRejectionMethod = True, loopers = []) :
         if not useRejectionMethod :
             raise Exception("the other method of combining non-binned samples is not yet implemented")
         looperIndexDict={}
