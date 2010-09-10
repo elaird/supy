@@ -291,6 +291,17 @@ class touchstuff(analysisStep) :
     def uponAcceptance(self,eventVars) :
         for s in self.stuff : eventVars[s]
 #####################################
+class runLsEventFilter(analysisStep) :
+    """runLsEventFilter"""
+
+    def __init__(self, run, lumiSection, event) :
+        for item in ["run","lumiSection","event"] :
+            setattr(self,item,eval(item))
+        self.moreName = "run %d, ls %d, event %d"%(self.run, self.lumiSection, self.event)
+        
+    def select (self,eventVars) :
+        return eventVars["run"]==self.run and eventVars["lumiSection"]==self.lumiSection and eventVars["event"]==self.event
+#####################################
 class runNumberFilter(analysisStep) :
     """runNumberFilter"""
 
@@ -302,7 +313,6 @@ class runNumberFilter(analysisStep) :
         
     def select (self,eventVars) :
         return not ((eventVars["run"] in self.runList) ^ self.accept)
-
 #####################################
 class goodRunsOnly2009(analysisStep) :
     """goodRunsOnly2009"""
@@ -433,8 +443,8 @@ class bxFilter(analysisStep) :
 class displayer(analysisStep) :
     #special __doc__ assignment below
     
-    def __init__(self,jets=("",""),met="",muons="",electrons="",photons="",
-                 recHits="",recHitPtThreshold=-1.0,scale=200.0) :
+    def __init__(self,jets = ("",""), met = "", muons = "", electrons = "", photons = "",
+                 recHits = "", recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False) :
 
         self.__doc__ = self.displayerStepName
         self.moreName = "(see below)"
@@ -444,6 +454,7 @@ class displayer(analysisStep) :
 
         self.genJets = self.jets
         self.genMet  = self.met.replace("P4","GenMetP4")
+        self.deltaHtName = "%sDeltaPseudoJetEt%s"%self.jets if etRatherThanPt else "%sDeltaPseudoJetPt%s"%self.jets
         
         self.doGen=False
         self.doLeptons=True
@@ -621,9 +632,8 @@ class displayer(analysisStep) :
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"#DeltaH_{T} (%s%s)"%self.jets,"l")
 
-        deltaHt=eventVars["%sDeltaPseudoJet%s"%self.jets]
         y=self.y0-self.radius-0.03
-        l=deltaHt*self.radius/self.scale
+        l=eventVars[self.deltaHtName]*self.radius/self.scale
         self.line.SetLineColor(color)
         self.line.DrawLine(self.x0-l/2.0,y,self.x0+l/2.0,y)
 
@@ -723,7 +733,7 @@ class displayer(analysisStep) :
 
         mht=eventVars["%sSumP4%s"%self.jets].pt()
         ht = eventVars["%sSumPt%s"%self.jets]
-        deltaHt=eventVars["%sDeltaPseudoJet%s"%self.jets]
+        deltaHt=eventVars[self.deltaHtName]
         alphaT =eventVars["%sAlphaT%s"%self.jets]
         
         alphaHisto.Fill(mht/ht,deltaHt/ht)
