@@ -37,6 +37,8 @@ class organizer(object) :
         self.lumi = 1.0
         self.alternateConfigurations = [] if configurationId else \
                                        [organizer(sampleSpecs,i) for i in range(1,len(sampleSpecs[0]["outputFileNames"]))]
+        self.calculables = self.__nameTitlesIn("Calculables")
+        self.leaves = self.__nameTitlesIn("Leaves")
             
     def __inititialSelectionsList(self) :
         """Scan samples in parallel to ensure consistency and build list of selection dicts"""
@@ -147,9 +149,6 @@ class organizer(object) :
     def indicesOfSelectionsWithKey(self,key) :
         return filter( lambda i: key in self.selections[i], range(len(self.selections)))
             
-    def calculables(self) : return self.__nameTitlesIn("Calculables")
-    def leaves(self) :      return self.__nameTitlesIn("Leaves")
-
     def __nameTitlesIn(self,directory) :
         return reduce( lambda x,y: x|y ,
                        [set([ (key.GetName(),key.GetTitle() if key.GetTitle()!=key.GetName() else "")
