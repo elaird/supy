@@ -185,13 +185,13 @@ class singleJetHistogrammer(analysisStep) :
             phi2 = phi2mom.at(iJet)
             eta2 = eta2mom.at(iJet)
             mom2Max = 0.1
-            jetLabel = str(i+1) if i <= maxIndex else "_ge%d"%(maxIndex+1)
+            jetLabel = str(i+1) if i <= self.maxIndex else "_ge%d"%(self.maxIndex+1)
 
             book.fill(eta2,  "%s%s%sEta2mom" %(self.cs+(jetLabel,)), 50,  0.0, mom2Max, title=";jet%s #sigma_{#eta}^{2};events / bin"%jetLabel)
             book.fill(phi2,  "%s%s%sPhi2mom" %(self.cs+(jetLabel,)), 50,  0.0, mom2Max, title=";jet%s #sigma_{#phi}^{2};events / bin"%jetLabel)
             book.fill(pt,  "%s%s%sPt" %(self.cs+(jetLabel,)), 50,  0.0, 500.0, title=";jet%s p_{T} (GeV);events / bin"%jetLabel)
             book.fill(eta, "%s%s%seta"%(self.cs+(jetLabel,)), 50, -5.0,   5.0, title=";jet%s #eta;events / bin"%jetLabel)
-            if i>maxIndex: continue
+            if i>self.maxIndex: continue
             for j,jJet in list(enumerate(cleanJetIndices))[i+1:self.maxIndex+1] :
                 book.fill(abs(r.Math.VectorUtil.DeltaPhi(jet,p4s.at(jJet))), "%s%sdphi%d%d"%(self.cs+(i+1,j+1)), 50,0, r.TMath.Pi(),
                           title = ";#Delta#phi_{jet%d,jet%d};events / bin"%(i+1,j+1))
