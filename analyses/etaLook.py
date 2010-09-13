@@ -11,7 +11,7 @@ class etaLook(analysis.analysis) :
         return calculables.zeroArgs()
 
     def listOfSteps(self,params) :
-        jets = ("ak5Jet","Pat")
+        jets = ("ic5Jet","Pat")
         outList=[
             steps.progressPrinter(),
             steps.histogrammer("genpthat", 50, 0.0, 250.0,title=";#hat{p_{T}} (GeV);events / bin"),            
@@ -20,11 +20,16 @@ class etaLook(analysis.analysis) :
             steps.leadingUnCorrJetFilter(jets, 50.0, 10.0),
             steps.leadingUnCorrJetFilter(jets, 60.0, 10.0),
             steps.leadingUnCorrJetFilter(jets, 70.0, 10.0),
+
+           #steps.leadingUnCorrJetFilter(jets, 80.0, 10.0),
+           #steps.leadingUnCorrJetFilter(jets, 90.0, 10.0),
+           #steps.leadingUnCorrJetFilter(jets,100.0, 10.0),
+           #steps.leadingCorrJetFilter(jets, 110.0, 10.0),
+           #steps.leadingCorrJetFilter(jets, 110.0,  3.0),
+
             steps.leadingUnCorrJetFilter(jets, 70.0,  3.0),
             steps.leadingUnCorrJetFilter(jets, 70.0,  2.8),
             steps.leadingUnCorrJetFilter(jets, 70.0,  2.6),
-            #steps.leadingCorrJetFilter(jets, 110.0, 10.0),
-            #steps.leadingCorrJetFilter(jets, 110.0,  3.0),
             ]
         return outList
 
@@ -34,9 +39,9 @@ class etaLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         outList =[
-            specify(name = "qcd_py6_pt15",          nFilesMax = 3, nEventsMax = -1, color = r.kBlue    ),
+            #specify(name = "qcd_py6_pt15",          nFilesMax = 3, nEventsMax = -1, color = r.kBlue    ),
             specify(name = "qcd_py6_pt30",          nFilesMax = 3, nEventsMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py6_pt80",          nFilesMax = 3, nEventsMax = -1, color = r.kBlue    ),
+            #specify(name = "qcd_py6_pt80",          nFilesMax = 3, nEventsMax = -1, color = r.kBlue    ),
             #specify(name = "qcd_py6_pt170",         nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
             #specify(name = "qcd_py6_pt300",         nFilesMax = 1, nEventsMax = 1000, color = r.kBlue    ),
             ]
