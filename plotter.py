@@ -68,22 +68,23 @@ def adjustPad(pad) :
 class plotter(object) :
     def __init__(self,
                  someOrganizer,
-                 psFileName="out.ps",
-                 samplesForRatios=("",""),
-                 sampleLabelsForRatios=("",""),
+                 psFileName = "out.ps",
+                 samplesForRatios = ("",""),
+                 sampleLabelsForRatios = ("",""),
                  extendedStats = True,
-                 doLog=True,
-                 drawYx=False,
-                 doMetFit=False,
-                 doColzFor2D=True,
-                 blackList=["counts","lumiWarn","nEventsOriginalHisto"]
+                 doLog = True,
+                 drawYx = False,
+                 doMetFit = False,
+                 doColzFor2D = True,
+                 shiftUnderOverFlows = True,
+                 blackList = ["counts","lumiWarn","nEventsOriginalHisto"]
                  ) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios",
-                     "doLog","drawYx","doMetFit","doColzFor2D","blackList","extendedStats" ] :
+                     "doLog","drawYx","doMetFit","doColzFor2D","shiftUnderOverFlows","blackList","extendedStats" ] :
             setattr(self,item,eval(item))
         self.plotRatios = self.samplesForRatios!=("","")        
-        self.psOptions="Landscape"
-        self.canvas=r.TCanvas()
+        self.psOptions = "Landscape"
+        self.canvas = r.TCanvas()
         self.nLinesMax = 17
 
     def plotAll(self) :
@@ -382,6 +383,9 @@ class plotter(object) :
             self.printCanvas()
 
     def plot1D(self,histo,count,stuffToKeep) :
+        if self.shiftUnderOverFlows :
+            shiftUnderAndOverflows(histo)
+
         adjustPad(r.gPad)
         if count==0 :
             histo.Draw()
@@ -412,7 +416,7 @@ class plotter(object) :
 
     def plot2D(self,histo,count,sampleName,stuffToKeep) :
     	yx=r.TF1("yx","x",histo.GetXaxis().GetXmin(),histo.GetXaxis().GetXmax())
-    	yx.SetLineColor(r.kBlue)
+    	yx.SetLineColor(r.kBlack)
     	yx.SetLineWidth(1)
     	yx.SetNpx(300)
     	
@@ -430,7 +434,8 @@ class plotter(object) :
         if self.doColzFor2D : histo.Draw("colz")
         else :           histo.Draw()
 
-        if "deltaHtOverHt_vs_mHtOverHt" in histo.GetName() :
+        if "deltaHtOverHt_vs_mHtOverHt" in histo.GetName() \
+               or "deltaHtOverHt_vs_metOverHt" in histo.GetName() :
             histo.GetYaxis().SetRangeUser(0.0,0.7)
             funcs=[
                 makeAlphaTFunc(0.55),
@@ -439,7 +444,9 @@ class plotter(object) :
                 ]
             for func in funcs : func.Draw("same")
             stuffToKeep.extend(funcs)
-        elif self.drawYx :
+        elif self.drawYx \
+                 or "alphaTMet_vs_alphaT" in histo.GetName() \
+                 or "alphaTMet_zoomvs_alphaT" in histo.GetName() :
             yx.Draw("same")
             stuffToKeep.append(yx)
 ##############################
