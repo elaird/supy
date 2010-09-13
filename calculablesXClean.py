@@ -46,11 +46,8 @@ class xcJet(wrappedChain.calculable) :
                 if self.correctForMuons: xcJet += p4
 
         if self.other["muon"][0] :
-            muset = set(matchedMuons)
             nonisomu = self.source["%sIndicesNonIso%s"%self.other["muon"][0]]
-
-            self.source["crock"]["%s%sNonIsoMuonsUniquelyMatched"%self.xcjets] = ( len(muset) == len(nonisomu) ) and \
-                                                                                 ( len(matchedMuons) == len(muset) )
+            self.source["crock"]["%s%sNonIsoMuonsUniquelyMatched"%self.xcjets]= (len(set(matchedMuons)) == len(nonisomu) == len(matchedMuons))
 
     def matchesIn(self,label,p4, exitEarly = True, indicesStr = "%sIndices%s") :
         collection,dR = self.other[label]
