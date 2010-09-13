@@ -202,14 +202,16 @@ class alphaHistogrammer(analysisStep) :
     def __init__(self,cs,etRatherThanPt) :
         self.cs = cs
         self.etRatherThanPt = etRatherThanPt
-        self.deltaPseudoName = "%sDeltaPseudoJetPt%s" % self.cs if not self.etRatherThanPt else "%sDeltaPseudoJetEt%s" % self.cs        
+        self.letter = "E" if self.etRatherThanPt else "p"
+        self.deltaPseudoName = "%sDeltaPseudoJetPt%s" % self.cs if not self.etRatherThanPt else "%sDeltaPseudoJetEt%s" % self.cs
+        self.htName = "%sSumPt%s" % self.cs if not self.etRatherThanPt else "%sSumEt%s" % self.cs
         self.moreName = "%s%s"%self.cs
         
     def uponAcceptance (self,eventVars) :
         book = self.book(eventVars)
 
-        mht = eventVars["%sSumP4%s"%self.cs].pt() 
-        ht = eventVars["%sSumPt%s"%self.cs]
+        mht = eventVars["%sSumP4%s"%self.cs].pt()
+        ht  = eventVars[self.htName]
         deltaHt = eventVars[self.deltaPseudoName]
         alphaT = eventVars["%sAlphaT%s"%self.cs]
         deltaPhiStar = eventVars["%sDeltaPhiStar%s"%self.cs]
@@ -222,10 +224,16 @@ class alphaHistogrammer(analysisStep) :
             return
 
         book.fill( alphaT, "%sAlphaT%s"%self.cs, 80,0.0,2.0,
-                   title = ";#alpha_{T} (using p_{T});events / bin")
+                   title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
+
+        book.fill( alphaT, "%sAlphaTZoom%s"%self.cs, 120, 0.48, 0.60,
+                   title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
 
         book.fill( deltaHt, "%sDeltaHt%s"%self.cs, 50,0.0,500,
                    title = ";#Delta H_{T} (GeV);events / bin")
+
+        book.fill( deltaHt/ht, "%sDeltaHtOverHt%s"%self.cs, 50, 0.0, 1.1,
+                   title = ";#Delta H_{T}/H_{T};events / bin")
 
         book.fill( (mht/ht,deltaHt/ht), "%s_deltaHtOverHt_vs_mHtOverHt_%s"%self.cs, (30,30), (0.0,0.0), (1.0,0.7),
                    title = ";#slash(H_{T}) / H_{T};#Delta H_{T} of two pseudo-jets / H_{T};events / bin")
@@ -236,6 +244,45 @@ class alphaHistogrammer(analysisStep) :
         book.fill( (alphaT,deltaPhiStar),"%s_deltaPhiStar_vs_nJetAlphaT_%s"%self.cs,
                    (500,50), (0.0,0.0),(1.0,r.TMath.Pi()),
                    title=";#alpha_{T} (using p_{T});#Delta#phi*;events / bin")
+#####################################
+class alphaMetHistogrammer(analysisStep) :
+    """alphaMetHistogrammer"""
+
+    def __init__(self,cs,etRatherThanPt,metName) :
+        self.cs = cs
+        self.etRatherThanPt = etRatherThanPt
+        self.letter = "E" if self.etRatherThanPt else "p"
+        self.deltaPseudoName = "%sDeltaPseudoJetPt%s" % self.cs if not self.etRatherThanPt else "%sDeltaPseudoJetEt%s" % self.cs
+        self.htName = "%sSumPt%s" % self.cs if not self.etRatherThanPt else "%sSumEt%s" % self.cs
+        self.metName = metName
+        self.moreName = "%s%s"%self.cs
+        
+    def uponAcceptance (self,eventVars) :
+        book = self.book(eventVars)
+
+        if self.metName!=None :
+            met = eventVars[self.metName].pt()
+        ht  = eventVars[self.htName]
+        deltaHt = eventVars[self.deltaPseudoName]
+        alphaT = eventVars["%sAlphaT%s"%self.cs]
+        alphaTMet = eventVars["%sAlphaTMet%s"%self.cs]
+
+        if not alphaT : return
+
+        book.fill( alphaTMet, "%sAlphaTMet%s"%self.cs, 80,0.0,2.0,
+                   title = ";#alpha_{T} (using jet %s_{T}#semicolon %s);events / bin"%(self.letter,self.metName))
+        
+        book.fill( alphaTMet, "%sAlphaTMetZooom%s"%self.cs, 120, 0.48, 0.60,
+                   title = ";#alpha_{T} (using jet %s_{T}#semicolon %s);events / bin"%(self.letter,self.metName))
+
+        book.fill( (met/ht,deltaHt/ht), "%s_deltaHtOverHt_vs_metOverHt_%s"%self.cs, (30,30), (0.0,0.0), (1.0,0.7),
+                   title = ";#slash(E_{T}) / H_{T};#Delta H_{T} of two pseudo-jets / H_{T};events / bin")
+        
+        book.fill( (alphaT,alphaTMet), "%s_alphaTMet_vs_alphaT_%s"%self.cs, (80,80), (0.0,0.0), (2.0,2.0),
+                   title = ";#alpha_{T};#alpha_{T} (from MET);events / bin")
+        
+        book.fill( (alphaT,alphaTMet), "%s_alphaTMet_zoomvs_alphaT_%s"%self.cs, (60,60), (0.48,0.48), (0.60,0.60),
+                   title = ";#alpha_{T};#alpha_{T} (from MET);events / bin")
 ######################################
 class leadingCorrJetFilter(analysisStep) :
     """leadingCorrJetFilter"""
