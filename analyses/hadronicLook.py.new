@@ -10,6 +10,7 @@ class hadronicLook(analysis.analysis) :
     def parameters(self) :
         objects = {}
         fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets", "jetPtMin"] 
+        #objects["caloAK5_pfMET"] = dict(zip(fields, [("ak5Jet","Pat"), "metP4PF", ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        30.0]))
         objects["caloAK5"] = dict(zip(fields, [("ak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        30.0]))
         objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"metP4TC",     ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo",     True ,        30.0]))
         objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,        30.0]))
@@ -31,6 +32,7 @@ class hadronicLook(analysis.analysis) :
         _photon = params["objects"]["photon"]
         _jetPtMin = params["objects"]["jetPtMin"]
         _etRatherThanPt = params["etRatherThanPt"]
+        _met = params["objects"]["met"]
         
         return calculables.zeroArgs() +\
                calculables.fromCollections("calculablesJet",[_jet]) +\
@@ -48,7 +50,8 @@ class hadronicLook(analysis.analysis) :
                  + [ calculables.jetSumP4(_jet, mcScaleFactor = params["mcMhtScaleFactor"]),
                      calculables.deltaPhiStar(_jet, ptMin = 50.0),
                      calculables.deltaPseudoJet(_jet, _etRatherThanPt),
-                     calculables.alphaT(_jet, _etRatherThanPt) ]
+                     calculables.alphaT(_jet, _etRatherThanPt),
+                     calculables.alphaTMet(_jet, _etRatherThanPt, _met) ]
 
     def listOfSteps(self,params) :
         _jet  = params["objects"]["jet"]
@@ -64,7 +67,7 @@ class hadronicLook(analysis.analysis) :
 
             steps.preIdJetPtSelector(_jet,100.0,0),
             steps.preIdJetPtSelector(_jet, 80.0,1),
-            
+            steps.jetEtaSelector(_jet,2.5,0),
             steps.leadingUnCorrJetPtSelector( [_jet],100.0 ),
             steps.hltFilter("HLT_Jet50U"),
             steps.vertexRequirementFilter(),
@@ -87,6 +90,9 @@ class hadronicLook(analysis.analysis) :
             steps.multiplicityFilter("%sIndices%s"%_electron, nMax = 0),
             steps.histogrammer("%sIndices%s"%_muon,10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
+            steps.histogrammer("%sIndicesOther%s"%_muon,10,-0.5,9.5, title=";number of %s%s above p_{T}#semicolon failing ID or #eta;events / bin"%_muon,
+                               funcString="lambda x:len(x)"),
+            steps.multiplicityFilter("%sIndicesOther%s"%_muon, nMax = 0),
             steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_photon, nMax = 0),
             #steps.histogrammer("%sIndicesUnmatched%s"%_electron,10,-0.5,9.5,title="; N electrons unmatched;events / bin", funcString = "lambda x: len(x)"),
@@ -106,6 +112,7 @@ class hadronicLook(analysis.analysis) :
             steps.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
             steps.passFilter("kinematicPlots1"), 
             steps.alphaHistogrammer(_jet, _etRatherThanPt),
+            steps.alphaMetHistogrammer(_jet, _etRatherThanPt, _met),
 
             ###extrapolation region
             ##steps.variableGreaterFilter(0.50,"%sAlphaT%s"%_jet),
@@ -121,7 +128,7 @@ class hadronicLook(analysis.analysis) :
             #signal selection
             steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
-
+            
             #steps.skimmer(),
             #steps.eventPrinter(),
             #steps.jetPrinter(_jet),
@@ -135,7 +142,9 @@ class hadronicLook(analysis.analysis) :
             #                electrons = params["objects"]["electron"],
             #                photons   = params["objects"]["photon"],                            
             #                recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
-            #                scale = 200.0),#GeV
+            #                scale = 200.0,#GeV
+            #                etRatherThanPt = _etRatherThanPt,
+            #                ),
             
             ]
         return outList
