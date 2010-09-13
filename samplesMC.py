@@ -83,10 +83,13 @@ mc.add("g_jets_mg_pt100_200",'%s/arlogb/ICF/automated/2010_07_26_15_14_40/Photon
 mc.add("g_jets_mg_pt200",    '%s/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt200toInf-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 485 )
             
 #MG TT/EWK
-mc.add("tt_tauola_mg",'utils.getCommandOutput2("ls /vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root | grep -v 4_2").split("\\n")', xs = 95.0 )
+mc.add("tt_tauola_mg",'utils.getCommandOutput2("ls /vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root | grep -v 4_2").split("\\n")',
+       xs = {"LO":95.0,"NLO":157.5}["LO"] )
 mc.add("z_inv_mg",'%s/zph04/ICF/automated/2010_07_14_11_52_58/",itemsToSkip=["14_3.root"])'%srm, xs = 4500.0 )
-mc.add("z_jets_mg",'%s/jad/ICF/automated//2010_07_05_22_43_20/", pruneList=False)'%srm, xs = 2400.0 )
-mc.add("w_jets_mg",'%s/jad/ICF/automated//2010_06_18_22_33_23/")'%srm, xs = 24170.0 )
+mc.add("z_jets_mg",'%s/jad/ICF/automated//2010_07_05_22_43_20/", pruneList=False)'%srm,
+       xs = {"LO":2400.0,"NNLO":3048.0}["LO"] )
+mc.add("w_jets_mg",'%s/jad/ICF/automated//2010_06_18_22_33_23/")'%srm,
+       xs = {"LO":24170.0,"NNLO":31314.0}["LO"] )
 
 #SUSY
 mc.add("lm0",'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM0.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 38.93 )
