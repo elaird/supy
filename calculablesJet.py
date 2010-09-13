@@ -217,6 +217,28 @@ class alphaT(wrappedChain.calculable) :
         ht = self.source[self.sumPtName] if not self.etRatherThanPt else self.source[self.sumEtName]
         self.value = 0.5 * ( ht - dPseudo ) / math.sqrt( ht*ht - sumP4.Perp2() ) 
 ##############################
+class alphaTMet(wrappedChain.calculable) :
+    def name(self) : return "%sAlphaTMet%s" % self.cs
+
+    def __init__(self, collection = None, etRatherThanPt = None, metName = None) :
+        self.cs = collection
+        self.etRatherThanPt = etRatherThanPt
+        self.metName = metName
+        self.sumPtName = "%sSumPt%s" % self.cs
+        self.sumEtName = "%sSumEt%s" % self.cs
+        self.deltaPseudoName = "%sDeltaPseudoJetPt%s" % self.cs if not self.etRatherThanPt else "%sDeltaPseudoJetEt%s" % self.cs
+        self.truncFactor = 0.99
+        self.moreName = "met**2 < ht**2 or met**2 = %.2f * ht**2"%self.truncFactor
+
+    def update(self,ignored) :
+        ht = self.source[self.sumPtName] if not self.etRatherThanPt else self.source[self.sumEtName]
+        met2 = self.source[self.metName].Perp2()
+        ht2 = ht*ht
+        if met2>ht2 :
+            met2= ht2*self.truncFactor
+        dPseudo = self.source[self.deltaPseudoName]
+        self.value = 0.5 * ( ht - dPseudo ) / math.sqrt( ht2 - met2 )
+##############################
 class diJetAlpha(wrappedChain.calculable) :
     def name(self) : return "%sDiJetAlpha%s" % self.cs
     
