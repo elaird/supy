@@ -92,8 +92,20 @@ mc.add("w_jets_mg",'%s/jad/ICF/automated//2010_06_18_22_33_23/")'%srm,
        xs = {"LO":24170.0,"NNLO":31314.0}["LO"] )
 
 #SUSY
-mc.add("lm0",'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM0.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 38.93 )
-mc.add("lm1",'%s/bainbrid/ICF/automated/2010_07_12_17_52_54/LM1.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 4.888 )
+mc.add("lm0" ,'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM0.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 38.93   )
+mc.add("lm1" ,'%s/bainbrid/ICF/automated/2010_07_12_17_52_54/LM1.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 4.888   )
+mc.add("lm2" ,'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM2.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 0.6027  )
+mc.add("lm3" ,'%s/bainbrid/ICF/automated/2010_07_12_17_52_54/LM3.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 3.438   )
+mc.add("lm4" ,'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM4.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 1.879   )
+mc.add("lm5" ,'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM5.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 0.4734  )
+mc.add("lm6" ,'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM6.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 0.3104  )
+mc.add("lm7" ,'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM7.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 1.209   )
+mc.add("lm8" ,'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM8.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 0.7300  )
+mc.add("lm9" ,'%s/bainbrid/ICF/automated/2010_07_12_17_52_54/LM9.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 7.134   )
+mc.add("lm10",'%s/bainbrid/ICF/automated/2010_07_12_17_52_54/LM10.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 0.04778 )
+mc.add("lm11",'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM11.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 0.8236  )
+mc.add("lm12",'%s/bainbrid/ICF/automated/2010_07_12_17_52_54/LM12.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 4.414   )
+mc.add("lm13",'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM13.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 6.899   )
 
 #MG EWK SKIMS
 mc.add("z_inv_mg_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/z_inv_mg/")', xs = 50.2 )
