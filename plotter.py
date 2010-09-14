@@ -76,16 +76,19 @@ class plotter(object) :
                  drawYx = False,
                  doMetFit = False,
                  doColzFor2D = True,
+                 compactOutput = False,
+                 nLinesMax = 17,
                  shiftUnderOverFlows = True,
+                 dontShiftList = [],
                  blackList = ["counts","lumiWarn","nEventsOriginalHisto"]
                  ) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios",
-                     "doLog","drawYx","doMetFit","doColzFor2D","shiftUnderOverFlows","blackList","extendedStats" ] :
+                     "doLog","drawYx","doMetFit","doColzFor2D","nLinesMax","compactOutput",
+                     "shiftUnderOverFlows","dontShiftList","blackList","extendedStats" ] :
             setattr(self,item,eval(item))
         self.plotRatios = self.samplesForRatios!=("","")        
         self.psOptions = "Landscape"
         self.canvas = r.TCanvas()
-        self.nLinesMax = 17
 
     def plotAll(self) :
         print utils.hyphens
@@ -103,10 +106,12 @@ class plotter(object) :
         self.canvas.Clear()
     
         self.selectionsSoFar=[]
-        for selection in self.someOrganizer.selections :
+        for iSelection,selection in enumerate(self.someOrganizer.selections) :
             if selection.name != "" :
                 self.selectionsSoFar.append(selection)
-                self.printSelections(self.selectionsSoFar)
+                if not self.compactOutput or iSelection==len(self.someOrganizer.selections)-1 :
+                    self.printSelections(self.selectionsSoFar)
+            if self.compactOutput : continue
             for plotName in sorted(selection.keys()) :
                 if plotName in self.blackList : continue
                 self.onePlotFunction(selection[plotName],plotName)
