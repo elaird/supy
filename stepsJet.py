@@ -185,7 +185,7 @@ class singleJetHistogrammer(analysisStep) :
             phi2 = phi2mom.at(iJet)
             eta2 = eta2mom.at(iJet)
             mom2Max = 0.1
-            jetLabel = str(i+1) if i <= self.maxIndex else "_ge%d"%(self.maxIndex+1)
+            jetLabel = str(i+1) if i <= self.maxIndex else "_ge%d"%(self.maxIndex+2)
 
             book.fill(eta2,  "%s%s%sEta2mom" %(self.cs+(jetLabel,)), 50,  0.0, mom2Max, title=";jet%s #sigma_{#eta}^{2};events / bin"%jetLabel)
             book.fill(phi2,  "%s%s%sPhi2mom" %(self.cs+(jetLabel,)), 50,  0.0, mom2Max, title=";jet%s #sigma_{#phi}^{2};events / bin"%jetLabel)
