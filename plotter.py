@@ -121,7 +121,7 @@ class plotter(object) :
         text.SetTextFont(102)
         text.SetTextSize(0.55*text.GetTextSize())
 
-        calcs = filter(lambda x:x[1]!="",list(self.someOrganizer.calculables()) )
+        calcs = filter(lambda x:x[1]!="",list(self.someOrganizer.calculables) )
         if not len(calcs) : return text
         length = max([len(calc[0]) for calc in calcs])
         calcs.sort()
