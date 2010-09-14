@@ -12,12 +12,9 @@ class hadronicLook(analysis.analysis) :
         fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets", "jetPtMin"] 
         #objects["caloAK5_pfMET"] = dict(zip(fields, [("ak5Jet","Pat"), "metP4PF", ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        30.0]))
         objects["caloAK5"] = dict(zip(fields, [("ak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        30.0]))
+        #objects["caloAK7"] = dict(zip(fields, [("ak7Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        30.0]))
         objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"metP4TC",     ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo",     True ,        30.0]))
         objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,        30.0]))
-        for key in objects:
-            newkey = key.replace("5","7")
-            objects[newkey] = copy.deepcopy(objects[key])
-            objects[newkey]["jet"] = (objects[key]["jet"][0].replace("5","7"),objects[key]["jet"][1])
 
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [:] ),
@@ -64,7 +61,7 @@ class hadronicLook(analysis.analysis) :
         _photon = params["objects"]["photon"]
         _met  = params["objects"]["met"]
         _etRatherThanPt = params["etRatherThanPt"]
-        
+
         outList=[
             steps.progressPrinter(),
             steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
@@ -117,6 +114,7 @@ class hadronicLook(analysis.analysis) :
             steps.passFilter("kinematicPlots1"), 
             steps.alphaHistogrammer(_jet, _etRatherThanPt),
             steps.alphaMetHistogrammer(_jet, _etRatherThanPt, _met),
+
 
             ###extrapolation region
             ##steps.variableGreaterFilter(0.50,"%sAlphaT%s"%_jet),
