@@ -239,11 +239,11 @@ class alphaHistogrammer(analysisStep) :
                    title = ";#slash(H_{T}) / H_{T};#Delta H_{T} of two pseudo-jets / H_{T};events / bin")
 
         book.fill( (alphaT,ht), "%s_Ht_vs_alphaT_%s"%self.cs, (300,200), (0.0,0.0), (3.0,1000),
-                   title = ";#alpha_{T};H_{T};events / bin")
+                   title = ";#alpha_{T} (using %s_{T});H_{T};events / bin"%self.letter)
         
-        book.fill( (alphaT,deltaPhiStar),"%s_deltaPhiStar_vs_nJetAlphaT_%s"%self.cs,
+        book.fill( (alphaT,deltaPhiStar),"%s_deltaPhiStar_vs_alphaT_%s"%self.cs,
                    (500,50), (0.0,0.0),(1.0,r.TMath.Pi()),
-                   title=";#alpha_{T} (using p_{T});#Delta#phi*;events / bin")
+                   title=";#alpha_{T} (using %s_{T});#Delta#phi*;events / bin"%self.letter)
 #####################################
 class alphaMetHistogrammer(analysisStep) :
     """alphaMetHistogrammer"""
@@ -266,7 +266,8 @@ class alphaMetHistogrammer(analysisStep) :
         deltaHt = eventVars[self.deltaPseudoName]
         alphaT = eventVars["%sAlphaT%s"%self.cs]
         alphaTMet = eventVars["%sAlphaTMet%s"%self.cs]
-
+        deltaPhiStar = eventVars["%sDeltaPhiStar%s"%self.cs]
+        
         if not alphaT : return
 
         book.fill( alphaTMet, "%sAlphaTMet%s"%self.cs, 80,0.0,2.0,
@@ -277,7 +278,14 @@ class alphaMetHistogrammer(analysisStep) :
 
         book.fill( (met/ht,deltaHt/ht), "%s_deltaHtOverHt_vs_metOverHt_%s"%self.cs, (30,30), (0.0,0.0), (1.0,0.7),
                    title = ";#slash(E_{T}) / H_{T};#Delta H_{T} of two pseudo-jets / H_{T};events / bin")
+
+        book.fill( (alphaTMet,ht), "%s_Ht_vs_alphaTMet_%s"%self.cs, (300,200), (0.0,0.0), (3.0,1000),
+                   title = ";#alpha_{T} (using %s_{T}; %s);H_{T};events / bin"%(self.letter,self.metName))
         
+        book.fill( (alphaTMet,deltaPhiStar),"%s_deltaPhiStar_vs_alphaTMet_%s"%self.cs,
+                   (500,50), (0.0,0.0),(1.0,r.TMath.Pi()),
+                   title=";#alpha_{T} (using %s_{T}; %s);#Delta#phi*;events / bin"%(self.letter,self.metName))
+
         book.fill( (alphaT,alphaTMet), "%s_alphaTMet_vs_alphaT_%s"%self.cs, (80,80), (0.0,0.0), (2.0,2.0),
                    title = ";#alpha_{T};#alpha_{T} (from MET);events / bin")
         
