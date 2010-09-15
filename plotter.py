@@ -109,8 +109,8 @@ class plotter(object) :
         for iSelection,selection in enumerate(self.someOrganizer.selections) :
             if selection.name != "" :
                 self.selectionsSoFar.append(selection)
-                if not self.compactOutput or iSelection==len(self.someOrganizer.selections)-1 :
-                    self.printSelections(self.selectionsSoFar)
+                if (not self.compactOutput and len(selection)>1) or iSelection==len(self.someOrganizer.selections)-1:
+                    self.printSelections(self.selectionsSoFar, printAll = self.compactOutput)
             if self.compactOutput : continue
             for plotName in sorted(selection.keys()) :
                 if plotName in self.blackList : continue
@@ -226,7 +226,8 @@ class plotter(object) :
         os.system("gzip -f "+self.psFileName)
         print "The output file \""+pdfFile+"\" has been written."
 
-    def printSelections(self,selections) :
+    def printSelections(self,selections, printAll=False) :
+        if printAll and len(selections)>self.nLinesMax : self.printSelections(selections[:1-self.nLinesMax],printAll)
         self.canvas.cd(0)
         self.canvas.Clear()
         
@@ -370,7 +371,7 @@ class plotter(object) :
                 ratio.SetMarkerStyle(numHisto.GetMarkerStyle())
                 ratio.Draw()
             except:
-                print "failed to make ratio for plot",plotName
+                print "failed to make ratio for plot",numHisto.GetName()
         else :
             self.canvas.cd(2)
         return ratio
@@ -393,9 +394,11 @@ class plotter(object) :
 
         adjustPad(r.gPad)
         if count==0 :
+            histo.SetStats(self.extendedStats)
             histo.Draw()
             if self.doLog : r.gPad.SetLogy()
         else :
+            histo.SetStats(self.extendedStats)
             histo.Draw("same")
             r.gStyle.SetOptFit(0)
             if self.doMetFit and "met" in histo.GetName() :
