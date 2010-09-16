@@ -526,7 +526,7 @@ class displayer(analysisStep) :
         self.text.DrawText(x,0.80,"Run   %#10d"%eventVars["run"])
         self.text.DrawText(x,0.78,"Ls    %#10d"%eventVars["lumiSection"])
         self.text.DrawText(x,0.76,"Event %#10d"%eventVars["event"])
-        self.text.DrawText(x,0.74,"Bx    %#10d"%eventVars["bunch"])
+        #self.text.DrawText(x,0.74,"Bx    %#10d"%eventVars["bunch"])
         
     def drawSkeleton(self,color) :
         #self.canvas.cd(2)
@@ -598,12 +598,12 @@ class displayer(analysisStep) :
         for index in otherJetIndices :
             self.drawP4(p4Vector.at(index),color,lineWidth,arrowSize)
             
-    def drawLowPtJets (self,eventVars,color,lineWidth,arrowSize) :
+    def drawIgnoredJets (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
-        if (not hasattr(self,"lowPtJetEntryInLegend")) :
-            self.lowPtJetEntryInLegend=True
+        if (not hasattr(self,"ignoredJetEntryInLegend")) :
+            self.ignoredJetEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"low p_{T} jets (%s%s)"%self.jets,"l")
+            self.legend.AddEntry(someLine,"ignored jets (%s%s)"%self.jets,"l")
 
         p4Vector=eventVars["%sCorrectedP4%s"%self.jets]
         cleanJetIndices = eventVars["%sIndices%s"%self.jets]
@@ -844,7 +844,7 @@ class displayer(analysisStep) :
         #                         (self.jets[0]+"JPT","Pat"),896,defWidth, defArrowSize*3/4.0)
         #self.drawCleanJets      (eventVars,
         #                         (self.jets[0]+"PF","Pat"), 38,defWidth, defArrowSize*1/2.0)
-        self.drawLowPtJets      (eventVars,r.kCyan    , defWidth, defArrowSize*1/6.0)
+        self.drawIgnoredJets    (eventVars,r.kCyan    , defWidth, defArrowSize*1/6.0)
         #self.drawOtherJets      (eventVars,r.kBlack  )
         self.drawHt             (eventVars,r.kBlue+3  , defWidth, defArrowSize*1/6.0)
         self.drawNJetDeltaHt    (eventVars,r.kBlue-9  , defWidth, defArrowSize*1/6.0)
@@ -866,7 +866,7 @@ class displayer(analysisStep) :
         g3=self.drawAlphaPlot(eventVars,r.kBlack, useMet = True)
         
         r.gStyle.SetOptStat(110011)
-        #g3=self.drawMhtLlPlot(eventVars,r.kBlack)
+        #g4=self.drawMhtLlPlot(eventVars,r.kBlack)
 
         someDir=r.gDirectory
         self.outputFile.cd()
