@@ -85,7 +85,8 @@ class skimmer(analysisStep) :
         self.outputFile=r.TFile(self.outputFileName,"RECREATE")
         self.outputFile.mkdir(self.fileDir)
         self.outputFile.cd(self.fileDir)
-        self.outputTree=chain.CloneTree(0)        #clone structure of tree (but no entries)
+        if chain :
+            self.outputTree=chain.CloneTree(0)    #clone structure of tree (but no entries)
         if not self.outputTree :                  #in case the chain has 0 entries
             r.gROOT.cd()
             return
@@ -184,6 +185,17 @@ class variableGreaterFilter(analysisStep) :
 
     def select (self,eventVars) :
         return eventVars[self.variable]>=self.threshold
+#####################################
+class variableLessFilter(analysisStep) :
+    """variableLessFilter"""
+
+    def __init__(self, threshold, variable, suffix = ""):
+        self.threshold = threshold
+        self.variable = variable
+        self.moreName = "%s<%.3f %s" % (variable,threshold,suffix)
+
+    def select (self,eventVars) :
+        return eventVars[self.variable]<self.threshold
 #####################################
 class variablePtGreaterFilter(analysisStep) :
     """variablePtGreaterFilter"""
@@ -606,7 +618,7 @@ class displayer(analysisStep) :
         if not hasattr(self,"mhtEntryInLegend") :
             self.mhtEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"#slashH_{T} (%s%s)"%self.jets,"l")
+            self.legend.AddEntry(someLine,"MHT (%s%s)"%self.jets,"l")
 
         mh = -eventVars["%sSumP4%s"%self.jets]
         self.drawP4(mh,color,lineWidth,arrowSize)
@@ -642,7 +654,7 @@ class displayer(analysisStep) :
         if (not hasattr(self,"metEntryInLegend")) :
             self.metEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"#slashE_{T} (%s)"%self.met,"l")
+            self.legend.AddEntry(someLine,"MET (%s)"%self.met,"l")
 
         self.drawP4(eventVars[self.met],color,lineWidth,arrowSize)
             
@@ -651,7 +663,7 @@ class displayer(analysisStep) :
         if not hasattr(self,"genMetEntryInLegend") :
             self.genMetEntryInLegend=True
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"GEN #slashE_{T} (%s)"%self.genMet,"l")
+            self.legend.AddEntry(someLine,"GEN MET (%s)"%self.genMet,"l")
 
         self.drawP4(eventVars[self.genMet],color,lineWidth,arrowSize)
             
@@ -723,18 +735,25 @@ class displayer(analysisStep) :
         alphaTFunc.SetNpx(300)
         return alphaTFunc
 
-    def drawAlphaPlot (self,eventVars,color) :
+    def drawAlphaPlot (self, eventVars, color, useMet = False) :
+        mhtVar = "%sSumP4%s"%self.jets if not useMet else self.met
+        mhtLabel = "MHT"               if not useMet else "MET"
+        alphaTVar = "AlphaT"           if not useMet else "AlphaTMet"
+        padYOffset = 0.0               if not useMet else 0.3
+
         stuffToKeep=[]
-        pad=r.TPad("pad","pad",0.01+2.0*self.radius,0.01+self.radius,0.95,0.63)
+        pad=r.TPad(alphaTVar+"pad",alphaTVar+"pad",
+                   0.01 + 2.0*self.radius, padYOffset + 0.01 + self.radius,
+                   0.95,                   padYOffset + 0.63)
         pad.cd()
         pad.SetRightMargin(0.01)
-        title=";#slashH_{T}/H_{T};#DeltaH_{T}/H_{T}"
-        alphaHisto=r.TH2D("alphaHisto",title,100,0.0,1.0,100,0.0,0.7)
+        title=";%s/H_{T};#DeltaH_{T}/H_{T}"%mhtLabel
+        alphaHisto=r.TH2D(alphaTVar+"Histo",title,100,0.0,1.0,100,0.0,0.7)
 
-        mht=eventVars["%sSumP4%s"%self.jets].pt()
+        mht=eventVars[mhtVar].pt()
         ht = eventVars["%sSumPt%s"%self.jets]
         deltaHt=eventVars[self.deltaHtName]
-        alphaT =eventVars["%sAlphaT%s"%self.jets]
+        alphaT =eventVars[ "%s%s%s"%(self.jets[0],alphaTVar,self.jets[1]) ]
         
         alphaHisto.Fill(mht/ht,deltaHt/ht)
         alphaHisto.SetStats(False)
@@ -844,6 +863,7 @@ class displayer(analysisStep) :
 
         self.legend.Draw("same")        
         g2=self.drawAlphaPlot(eventVars,r.kBlack)
+        g3=self.drawAlphaPlot(eventVars,r.kBlack, useMet = True)
         
         r.gStyle.SetOptStat(110011)
         #g3=self.drawMhtLlPlot(eventVars,r.kBlack)
