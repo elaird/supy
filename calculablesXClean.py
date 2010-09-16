@@ -9,7 +9,7 @@ class xcJet(wrappedChain.calculable) :
                  gamma    = None, gammaDR    = 0,
                  electron = None, electronDR = 0,
                  muon     = None, muonDR     = 0,
-                 correctForMuons = True,
+                 correctForMuons = None,
                  jesAbs = 1,
                  jesRel = 0 ) :
         self.value = r.std.vector('LorentzV')()
@@ -32,18 +32,17 @@ class xcJet(wrappedChain.calculable) :
         matchedMuons = []
 
         self.value.clear()
-        for iJet,jet in enumerate(jetP4s) :
-            xcJet = self.jes(jet)
-            self.value.push_back(xcJet)
-
-            if self.matchesIn("gamma",xcJet) \
-            or self.matchesIn("electron",xcJet) :
+        for iJet in range(len(jetP4s)) :
+            self.value.push_back(self.jes(jetP4s[iJet]))
+            
+            if self.matchesIn("gamma",self.value[iJet]) \
+            or self.matchesIn("electron",self.value[iJet]) :
                 killed.add(iJet)
                 continue
 
-            for p4 in self.matchesIn("muon",xcJet, exitEarly=False, indicesStr="%sIndicesNonIso%s") :
+            for p4 in self.matchesIn("muon",self.value[iJet], exitEarly=False, indicesStr="%sIndicesNonIso%s") :
                 matchedMuons.append(p4)
-                if self.correctForMuons: xcJet += p4
+                if self.correctForMuons: self.value[iJet] += p4
 
         if self.other["muon"][0] :
             nonisomu = self.source["%sIndicesNonIso%s"%self.other["muon"][0]]
