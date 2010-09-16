@@ -2,11 +2,10 @@ import ROOT as r
 import os,math,string
 import utils
 ##############################
-def setupStyle(extendedStats) :
+def setupStyle() :
     r.gROOT.SetStyle("Plain")
     r.gStyle.SetPalette(1)
-    if extendedStats :
-        r.gStyle.SetOptStat(1111111)
+    r.gStyle.SetOptStat(1111111)
 ##############################
 def combineBinContentAndError(histo,binToContainCombo,binToBeKilled) :
     xflows=histo.GetBinContent(binToBeKilled)
@@ -71,7 +70,7 @@ class plotter(object) :
                  psFileName = "out.ps",
                  samplesForRatios = ("",""),
                  sampleLabelsForRatios = ("",""),
-                 extendedStats = True,
+                 showStatBox = True,
                  doLog = True,
                  drawYx = False,
                  doMetFit = False,
@@ -79,12 +78,12 @@ class plotter(object) :
                  compactOutput = False,
                  nLinesMax = 17,
                  shiftUnderOverFlows = True,
-                 dontShiftList = [],
-                 blackList = ["counts","lumiWarn","nEventsOriginalHisto"]
+                 dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
+                 blackList = ["counts"]
                  ) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios",
                      "doLog","drawYx","doMetFit","doColzFor2D","nLinesMax","compactOutput",
-                     "shiftUnderOverFlows","dontShiftList","blackList","extendedStats" ] :
+                     "shiftUnderOverFlows","dontShiftList","blackList","showStatBox" ] :
             setattr(self,item,eval(item))
         self.plotRatios = self.samplesForRatios!=("","")        
         self.psOptions = "Landscape"
@@ -92,7 +91,7 @@ class plotter(object) :
 
     def plotAll(self) :
         print utils.hyphens
-        setupStyle(self.extendedStats)
+        setupStyle()
 
         self.printCanvas("[")
 
@@ -389,16 +388,16 @@ class plotter(object) :
             self.printCanvas()
 
     def plot1D(self,histo,count,stuffToKeep) :
-        if self.shiftUnderOverFlows :
+        if self.shiftUnderOverFlows and histo.GetName() not in self.dontShiftList :
             shiftUnderAndOverflows(histo)
 
         adjustPad(r.gPad)
         if count==0 :
-            histo.SetStats(self.extendedStats)
+            histo.SetStats(self.showStatBox)
             histo.Draw()
             if self.doLog : r.gPad.SetLogy()
         else :
-            histo.SetStats(self.extendedStats)
+            histo.SetStats(self.showStatBox)
             histo.Draw("same")
             r.gStyle.SetOptFit(0)
             if self.doMetFit and "met" in histo.GetName() :
