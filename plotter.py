@@ -421,6 +421,16 @@ class plotter(object) :
                     tps.SetY1NDC(0.50)
                     tps.SetY2NDC(0.70)
 
+        #move stat box
+        r.gPad.Update()
+        tps=histo.FindObject("stats")
+        stuffToKeep.append(tps)
+        if tps :
+            tps.SetX1NDC(0.86)
+            tps.SetX2NDC(1.00)
+            tps.SetY1NDC(0.70)
+            tps.SetY2NDC(1.00)
+
     def plot2D(self,histo,count,sampleName,stuffToKeep) :
     	yx=r.TF1("yx","x",histo.GetXaxis().GetXmin(),histo.GetXaxis().GetXmax())
     	yx.SetLineColor(r.kBlack)
