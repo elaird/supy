@@ -93,13 +93,13 @@ class jetPrinter(analysisStep) :
 class htMhtPrinter(analysisStep) :
     """htMhtPrinter"""
 
-    def __init__(self,cs) :
-        self.jetCollection=cs[0]
-        self.jetSuffix=cs[1]
-        
+    def __init__(self, cs, etRatherThanPt = False ) :
+        self.cs = cs
+        self.htName = "%sSumPt%s"%self.cs if not etRatherThanPt else  "%sSumEt%s"%self.cs
+        self.mhtName = "%sSumP4%s"%self.cs
     def uponAcceptance(self,eventVars) :
-        outString ="HT %#6.3f GeV"   %eventVars[self.jetCollection+"SumPt"+self.jetSuffix]
-        outString+="; MHT %#6.3f GeV"%eventVars[self.jetCollection+"SumP4"+self.jetSuffix].pt()
+        outString ="HT %#6.3f GeV"   %eventVars[self.htName]
+        outString+="; MHT %#6.3f GeV"%eventVars[self.mhtName].pt()
         print outString
 #####################################
 class diJetAlphaPrinter(analysisStep) :
