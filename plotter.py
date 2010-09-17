@@ -426,6 +426,7 @@ class plotter(object) :
         tps=histo.FindObject("stats")
         stuffToKeep.append(tps)
         if tps :
+            tps.SetTextColor(histo.GetLineColor())
             tps.SetX1NDC(0.86)
             tps.SetX2NDC(1.00)
             tps.SetY1NDC(0.70)
