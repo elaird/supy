@@ -432,6 +432,14 @@ class plotter(object) :
             tps.SetY1NDC(0.70)
             tps.SetY2NDC(1.00)
 
+    def lineDraw(self, name, offset, slope, histo) :
+        if name not in histo.GetName() : return None
+        axis = histo.GetXaxis()
+        func = r.TF1(name,"(%g)+(%g)*x"%(offset,slope),axis.GetXmin(),axis.GetXmax())
+        func.SetLineWidth(1)
+        func.Draw("same")
+        return func
+        
     def plot2D(self,histo,count,sampleName,stuffToKeep) :
     	yx=r.TF1("yx","x",histo.GetXaxis().GetXmin(),histo.GetXaxis().GetXmax())
     	yx.SetLineColor(r.kBlack)
@@ -452,6 +460,7 @@ class plotter(object) :
         if self.doColzFor2D : histo.Draw("colz")
         else :           histo.Draw()
 
+        #plot-specific stuff
         if "deltaHtOverHt_vs_mHtOverHt" in histo.GetName() \
                or "deltaHtOverHt_vs_metOverHt" in histo.GetName() :
             histo.GetYaxis().SetRangeUser(0.0,0.7)
@@ -462,9 +471,17 @@ class plotter(object) :
                 ]
             for func in funcs : func.Draw("same")
             stuffToKeep.extend(funcs)
-        elif self.drawYx \
-                 or "alphaTMet_vs_alphaT" in histo.GetName() \
-                 or "alphaTMet_zoomvs_alphaT" in histo.GetName() :
+        elif self.drawYx :
             yx.Draw("same")
             stuffToKeep.append(yx)
+
+        stuffToKeep.append( self.lineDraw(name = "alphaTMet_vs_alphaT",      offset = 0.0,   slope = 1.0,   histo = histo) )
+        stuffToKeep.append( self.lineDraw(name = "alphaTMet_zoomvs_alphaT",  offset = 0.0,   slope = 1.0,   histo = histo) )
+                                                                                             
+        stuffToKeep.append( self.lineDraw(name = "jurrasicEcalIsolation",    offset = 4.2,   slope = 0.004, histo = histo) )
+        stuffToKeep.append( self.lineDraw(name = "jurassicEcalIsolation",    offset = 4.2,   slope = 0.004, histo = histo) )
+        stuffToKeep.append( self.lineDraw(name = "towerBasedHcalIsolation",  offset = 2.2,   slope = 0.001, histo = histo) )
+        stuffToKeep.append( self.lineDraw(name = "hadronicOverEm",           offset = 0.05,  slope = 0.0,   histo = histo) )
+        stuffToKeep.append( self.lineDraw(name = "hollowConeTrackIsolation", offset = 2.0,   slope = 0.001, histo = histo) )
+        stuffToKeep.append( self.lineDraw(name = "sigmaIetaIeta",            offset = 0.013, slope = 0.0,   histo = histo) )
 ##############################
