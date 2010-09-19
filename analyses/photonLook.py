@@ -16,7 +16,7 @@ class photonLook(analysis.analysis) :
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]                     [0:1] ),
                  "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ]               [0:1] ),
-                 "photonId" :         dict([ ("photonLoose","photonIDLoosePat"), ("photonTight","photonIDTightPat")] [:] ),
+                 "photonId" :         dict([ ("photonLoose","photonIDloosePat"), ("photonTight","photonIDtightPat")] [:] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  "etRatherThanPt" : [True,False]        [0],
                  }
@@ -181,7 +181,7 @@ class photonLook(analysis.analysis) :
             specify(name = "qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
             ]                                                   
         default_list = [                                        
-            specify(name = "tt_tauola_mg",          nFilesMax = -1, color = r.kOrange  ),
+            specify(name = "tt_tauola_mg",          nFilesMax =  3, color = r.kOrange  ),
             specify(name = "g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
             specify(name = "g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
             specify(name = "g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
