@@ -16,7 +16,7 @@ class photonLook(analysis.analysis) :
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]                     [0:1] ),
                  "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ]               [0:1] ),
-                 "photonId" :         dict([ ("photonLoose","photonIDloosePat"), ("photonTight","photonIDtightPat")] [:] ),
+                 "photonId" :         dict([ ("photonLoose","photonIDloosePat"), ("photonTight","photonIDtightPat")] [0:1] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  "etRatherThanPt" : [True,False]        [0],
                  }
@@ -101,7 +101,7 @@ class photonLook(analysis.analysis) :
             
             #many plots
             steps.passFilter("singlePhotonPlots"),
-            steps.singlePhotonHistogrammer(_photon),
+            steps.singlePhotonHistogrammer(_photon, _jet),
             steps.passFilter("jetSumPlots"),
             steps.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             steps.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
