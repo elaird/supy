@@ -95,7 +95,7 @@ class singlePhotonHistogrammer(analysisStep) :
                       (50, 50), (0.0, 0.0), (500.0, 10.0),
                       title=";photon%s p_{T} (GeV);hollow cone track isolation;events / bin"%photonLabel)
             
-            book.fill((photon.pt(),hcTI), "%s%s%ssigmaIetaIeta"%(self.cs+(photonLabel,)),
+            book.fill((photon.pt(),sHH), "%s%s%ssigmaIetaIeta"%(self.cs+(photonLabel,)),
                       (50, 50), (0.0, 0.0), (500.0, 0.1),
                       title=";photon%s p_{T} (GeV);sigma i#eta i#eta;events / bin"%photonLabel)
 #####################################
