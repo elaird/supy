@@ -43,19 +43,21 @@ class photonSelectionHistogrammer(analysisStep) :
 class singlePhotonHistogrammer(analysisStep) :
     """singlePhotonHistogrammer"""
 
-    def __init__(self,cs, maxIndex = 0) :
+    def __init__(self, cs, jetCs, maxIndex = 0) :
         self.cs = cs
-        self.csbase = (cs[0].replace("xc",""),cs[1])
+        self.jetCs = jetCs
         self.maxIndex = maxIndex
         self.moreName="%s%s through index %d" % (self.cs+(maxIndex,))
         self.indicesName = "%sIndices%s" % self.cs
         self.p4sName = "%sP4%s" % self.cs
-
+        self.mhtName = "%sSumP4%s" % self.jetCs
+    
     def uponAcceptance (self,eventVars) :
         book = self.book(eventVars)
         p4s = eventVars[self.p4sName]
         cleanPhotonIndices = eventVars[self.indicesName]
-
+        mht = eventVars[self.mhtName].pt()
+        
         #ID variables
         jurassicEcalIsolations    = eventVars["%sEcalRecHitEtConeDR04%s"%self.cs]
         towerBasedHcalIsolations1 = eventVars["%sHcalDepth1TowSumEtConeDR04%s"%self.cs]
@@ -69,33 +71,41 @@ class singlePhotonHistogrammer(analysisStep) :
         
         for i,iPhoton in enumerate(cleanPhotonIndices) :
             photon = p4s.at(iPhoton)
+            pt = photon.pt()
+
             photonLabel = str(i+1) if i <= self.maxIndex else "_ge%d"%(self.maxIndex+2)
-            book.fill(photon.pt(),  "%s%s%sPt" %(self.cs+(photonLabel,)), 50,  0.0, 500.0, title=";photon%s p_{T} (GeV);events / bin"%photonLabel)
+            book.fill(pt,           "%s%s%sPt" %(self.cs+(photonLabel,)), 50,  0.0, 500.0, title=";photon%s p_{T} (GeV);events / bin"%photonLabel)
             book.fill(photon.eta(), "%s%s%seta"%(self.cs+(photonLabel,)), 50, -5.0,   5.0, title=";photon%s #eta;events / bin"%photonLabel)
 
+            book.fill((pt,mht), "%s%s%smhtVsPhotonPt"%(self.cs+(photonLabel,)),
+                      (50, 50), (0.0, 0.0), (500.0, 500.0),
+                      title=";photon%s p_{T} (GeV);MHT %s%s (GeV);events / bin"%(photonLabel,self.jetCs[0],self.jetCs[1])
+                      )
+
+            #ID variables
             jEI = jurassicEcalIsolations.at(iPhoton)
             tbHI = towerBasedHcalIsolations1.at(iPhoton)+towerBasedHcalIsolations2.at(iPhoton)
             hOE = hadronicOverEms.at(iPhoton)
             hcTI = hollowConeTrackIsolations.at(iPhoton)
             sHH = sigmaIetaIetas.at(iPhoton)
 
-            book.fill((photon.pt(),jEI), "%s%s%sjurassicEcalIsolation"%(self.cs+(photonLabel,)),
+            book.fill((pt,jEI), "%s%s%sjurassicEcalIsolation"%(self.cs+(photonLabel,)),
                       (50, 50), (0.0, 0.0), (500.0, 10.0),
                       title=";photon%s p_{T} (GeV);Jurassic ECAL Isolation;events / bin"%photonLabel)
 
-            book.fill((photon.pt(),tbHI), "%s%s%stowerBasedHcalIsolation"%(self.cs+(photonLabel,)),
+            book.fill((pt,tbHI), "%s%s%stowerBasedHcalIsolation"%(self.cs+(photonLabel,)),
                       (50, 50), (0.0, 0.0), (500.0, 10.0),
                       title=";photon%s p_{T} (GeV);Tower-based HCAL Isolation;events / bin"%photonLabel)
             
-            book.fill((photon.pt(),hOE), "%s%s%shadronicOverEm"%(self.cs+(photonLabel,)),
+            book.fill((pt,hOE), "%s%s%shadronicOverEm"%(self.cs+(photonLabel,)),
                       (50, 50), (0.0, 0.0), (500.0, 1.0),
                       title=";photon%s p_{T} (GeV);Hadronic / EM;events / bin"%photonLabel)
             
-            book.fill((photon.pt(),hcTI), "%s%s%shollowConeTrackIsolation"%(self.cs+(photonLabel,)),
+            book.fill((pt,hcTI), "%s%s%shollowConeTrackIsolation"%(self.cs+(photonLabel,)),
                       (50, 50), (0.0, 0.0), (500.0, 10.0),
                       title=";photon%s p_{T} (GeV);hollow cone track isolation;events / bin"%photonLabel)
             
-            book.fill((photon.pt(),sHH), "%s%s%ssigmaIetaIeta"%(self.cs+(photonLabel,)),
+            book.fill((pt,sHH), "%s%s%ssigmaIetaIeta"%(self.cs+(photonLabel,)),
                       (50, 50), (0.0, 0.0), (500.0, 0.1),
                       title=";photon%s p_{T} (GeV);sigma i#eta i#eta;events / bin"%photonLabel)
 #####################################
