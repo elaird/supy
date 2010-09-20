@@ -44,7 +44,7 @@ class photonID(wrappedChain.calculable) :
         self.p4Name = "%sP4%s" % self.cs
 
         for var in ["EcalRecHitEtConeDR04", "HcalDepth1TowSumEtConeDR04", "HcalDepth2TowSumEtConeDR04",
-                    "HadronicOverEm", "TrkSumPtHollowConeDR04", "SigmaIetaIeta"] :
+                    "HadronicOverEm", "TrkSumPtHollowConeDR04", "SigmaIetaIeta","HasPixelSeed"] :
             setattr(self,var, ("%s"+var+"%s")%self.cs)
 
         levels = ["em","loose","tight"]
@@ -52,12 +52,11 @@ class photonID(wrappedChain.calculable) :
         tbhi = [ (2.2,  0.001) for l in levels ]
         hoe  = [ (0.05, 0.000) for l in levels ]
         hcti = [ (2.0,  0.001) for l in levels ]; hcti[0] = None
-        shh  = [  None         for l in levels ]; hcti[2] = (0.013,0.000)
-
+        shh  = [ (0.013,0.000) for l in levels ]; shh[0] = None; shh[1] = None
         for item in ["jei","tbhi","hoe","hcti","shh"] :
             setattr(self,item,eval(item)[levels.index(level)])
         self.moreName = "from twiki"
-
+        
     def update(self,ignored) :
         self.value = map(self.passId, 
                          self.source[self.p4Name],
@@ -67,16 +66,17 @@ class photonID(wrappedChain.calculable) :
                          self.source[self.HadronicOverEm],
                          self.source[self.TrkSumPtHollowConeDR04],
                          self.source[self.SigmaIetaIeta],
+                         self.source[self.HasPixelSeed],
                          )
 
-    def passId(self, p4, jei, hi1, hi2, hoe, hcti, shh) :
+    def passId(self, p4, jei, hi1, hi2, hoe, hcti, shh, hasPixelSeed) :
         pt = p4.pt()
         if jei       > (self.jei [0] + pt*self.jei [1]) : return False
         if (hi1+hi2) > (self.tbhi[0] + pt*self.tbhi[1]) : return False
         if hoe       > (self.hoe [0] + pt*self.hoe [1]) : return False
         if self.hcti!=None and hcti > (self.hcti[0] + pt*self.hcti[1]) : return False
         if self.shh !=None and shh  > (self.shh [0] + pt*self.shh [1]) : return False
-
+        if hasPixelSeed : return False
         return True
 class photonIDem(photonID) :
     def __init__(self, collection = None) :
