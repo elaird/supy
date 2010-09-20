@@ -477,7 +477,8 @@ class plotter(object) :
 
         stuffToKeep.append( self.lineDraw(name = "alphaTMet_vs_alphaT",      offset = 0.0,   slope = 1.0,   histo = histo) )
         stuffToKeep.append( self.lineDraw(name = "alphaTMet_zoomvs_alphaT",  offset = 0.0,   slope = 1.0,   histo = histo) )
-                                                                                             
+        stuffToKeep.append( self.lineDraw(name = "mhtVsPhotonPt",            offset = 0.0,   slope = 1.0,   histo = histo) )
+
         stuffToKeep.append( self.lineDraw(name = "jurrasicEcalIsolation",    offset = 4.2,   slope = 0.004, histo = histo) )
         stuffToKeep.append( self.lineDraw(name = "jurassicEcalIsolation",    offset = 4.2,   slope = 0.004, histo = histo) )
         stuffToKeep.append( self.lineDraw(name = "towerBasedHcalIsolation",  offset = 2.2,   slope = 0.001, histo = histo) )
