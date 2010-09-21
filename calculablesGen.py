@@ -18,7 +18,7 @@ class genIndices(wrappedChain.calculable) :
         self.label = label
         self.PDGs = frozenset(pdgs)
         self.status = frozenset(status)
-        self.moreName = "pdgId in %s; status in $s" % (str(list(self.PDGs)), str(list(self.status)))
+        self.moreName = "pdgId in %s; status in %s" % (str(list(self.PDGs)), str(list(self.status)))
 
     def update(self,ignored) :
         pdg = self.source["genPdgId"]
