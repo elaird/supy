@@ -1,5 +1,5 @@
 import ROOT as r
-import utils
+import utils,collections
 from analysisStep import analysisStep
 #####################################
 pdgLookupExists=False
@@ -258,4 +258,61 @@ class genSHatHistogrammer(analysisStep) :
         rootSHat = ( p4.at(indices[0])+p4.at(indices[1]) ).mass()
         print indices,rootSHat
         self.book(eventVars).fill(rootSHat, "rootSHat", 100, 0.0, 300.0, title = ";#sqrt{#hat{s}} (GeV);events / bin")
+#####################################
+class genMotherHistogrammer(analysisStep) :
+    """genMotherHistogrammer"""
+
+    def __init__(self, indexLabel, specialPtThreshold) :
+        self.indexLabel = indexLabel
+        self.specialPtThreshold = specialPtThreshold
+        self.keyAll       = "motherIdVsPt%sAll"%self.indexLabel
+        self.keyAllHighPt = "motherIdVsPt%sAllHighPt"%self.indexLabel        
+        self.motherDict = collections.defaultdict(int)
+        self.binLabels = []
+        self.binLabels.append("other")
+
+        self.addParticle( 1, "d"); self.addParticle(-1, "#bar{d}")
+        self.addParticle( 2, "u"); self.addParticle(-2, "#bar{u}")
+        self.addParticle( 3, "s"); self.addParticle(-3, "#bar{s}");
+        self.addParticle( 4, "c"); self.addParticle(-4, "#bar{c}");
+        self.addParticle(21, "gluon")
+        self.addParticle(22, "photon")
+        self.addParticle(111,"#pi^{0}")
+        self.addParticle(221,"#eta")
+        self.addParticle(223,"#omega")
+        self.addParticle(331,"#eta^{/}")
+        
+    def addParticle(self, id, name) :
+        self.binLabels.append(name)
+        self.motherDict[id] = self.binLabels[-1]
+
+    def uponAcceptance (self,eventVars) :
+        indices = eventVars[self.indexLabel]
+        if len(indices)==0 : return
+
+        p4s = eventVars["genP4"]
+        nBinsY = len(self.binLabels)
+        for iParticle in indices :
+            pt = p4s.at(iParticle).pt()
+            motherId = eventVars["genMotherPdgId"][iParticle]
+            if not self.motherDict[motherId] :
+                #print motherId,"not found"
+                yValue = 0
+            else :
+                yValue = self.binLabels.index(self.motherDict[motherId])
+            self.book(eventVars).fill((pt,yValue), self.keyAll, (50,nBinsY), (0.0,-0.5), (500.0, nBinsY-0.5), title = ";GEN photon p_{T} (GeV);mother;photons / bin")
+            if pt>self.specialPtThreshold :
+                self.book(eventVars).fill(yValue, self.keyAllHighPt,
+                                          nBinsY, -0.5, nBinsY-0.5,
+                                          title = ";mother [when GEN photon p_{T}> %.1f (GeV)];photons / bin"%self.specialPtThreshold
+                                          )
+
+    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+        for book in self.books.values() :
+            if self.keyAll in book :
+                for iParticle in range(len(self.binLabels)) :
+                    book[self.keyAll].GetYaxis().SetBinLabel(iParticle+1,self.binLabels[iParticle])
+            if self.keyAllHighPt in book :
+                for iParticle in range(len(self.binLabels)) :
+                    book[self.keyAllHighPt].GetXaxis().SetBinLabel(iParticle+1,self.binLabels[iParticle])
 #####################################
