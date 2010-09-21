@@ -35,6 +35,7 @@ def adjustStepsForData(inSteps) :
         disable = False
         #determine whether to disable
         if type(step) == histogrammer and "genpthat" in step.var : disable = True
+        if type(step) == genMotherHistogrammer : disable = True
         outSteps.append(copy.deepcopy(step))
         if disable : outSteps[-1].disable()        
     return outSteps
