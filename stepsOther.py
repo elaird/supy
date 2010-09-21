@@ -456,12 +456,12 @@ class displayer(analysisStep) :
     #special __doc__ assignment below
     
     def __init__(self,jets = ("",""), met = "", muons = "", electrons = "", photons = "",
-                 recHits = "", recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False) :
+                 recHits = "", recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False) :
 
         self.__doc__ = self.displayerStepName
         self.moreName = "(see below)"
 
-        for item in ["scale","jets","met","muons","electrons","photons","recHits","recHitPtThreshold"] :
+        for item in ["scale","jets","met","muons","electrons","photons","recHits","recHitPtThreshold","doGenParticles"] :
             setattr(self,item,eval(item))
 
         self.genJets = self.jets
@@ -469,6 +469,7 @@ class displayer(analysisStep) :
         self.deltaHtName = "%sDeltaPseudoJetEt%s"%self.jets if etRatherThanPt else "%sDeltaPseudoJetPt%s"%self.jets
         
         self.doGen=False
+        self.doReco = not self.doGenParticles
         self.doLeptons=True
         self.helper=r.displayHelper()
 
@@ -572,6 +573,19 @@ class displayer(analysisStep) :
         p4Vector = eventVars[genJets]
         for jet in p4Vector :
             self.drawP4(jet,color,lineWidth,arrowSize)
+            
+    def drawGenParticles (self, eventVars, color, lineWidth, arrowSize, statusList = None, pdgIdList = None, motherList = None ,label = "") :
+        self.line.SetLineColor(color)
+        if not hasattr(self,"genParticleEntryInLegend"+label) :
+            setattr(self,"genParticleEntryInLegend"+label,True)
+            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            self.legend.AddEntry(someLine,label,"l")
+
+        for iParticle,particle in enumerate(eventVars["genP4"]) :
+            if statusList!=None and eventVars["genStatus"].at(iParticle) not in statusList : continue
+            if pdgIdList!=None and eventVars["genPdgId"].at(iParticle) not in pdgIdList : continue
+            if motherList!=None and eventVars["genMotherPdgId"][iParticle] not in motherList : continue
+            self.drawP4(particle,color,lineWidth,arrowSize)
             
     def drawCleanJets (self,eventVars,jets,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
@@ -836,37 +850,46 @@ class displayer(analysisStep) :
         defWidth=1
         #                                  color      , width   , arrow size
         if self.doGen :
-            self.drawGenJets    (eventVars,r.kBlack   , defWidth, defArrowSize)
+            if self.doGenParticles :
+                self.drawGenParticles(eventVars,r.kBlack  , defWidth, defArrowSize,       label = "all GEN particles")
+                self.drawGenParticles(eventVars,r.kBlue   , defWidth, defArrowSize*4/6.0, statusList = [1], label = "status 1")
+                self.drawGenParticles(eventVars,r.kGreen  , defWidth, defArrowSize*2/6.0, statusList = [1], pdgIdList = [22], label = "status 1 photon")
+                self.drawGenParticles(eventVars,r.kMagenta, defWidth, defArrowSize*1/6.0, statusList = [1], pdgIdList = [22],
+                                      motherList = [1,2,3,4,5,6,-1,-2,-3,-4,-5,-6], label = "status 1 photon w/quark as mother")
+                
+            else :
+                self.drawGenJets    (eventVars,r.kBlack   , defWidth, defArrowSize)
+                self.drawGenMet     (eventVars,r.kMagenta , defWidth, defArrowSize*2/6.0)
+            
+        if self.doReco : 
+            self.drawCleanJets      (eventVars,
+                                     self.jets,r.kBlue    , defWidth, defArrowSize)
+            #self.drawCleanJets      (eventVars,
+            #                         (self.jets[0]+"JPT","Pat"),896,defWidth, defArrowSize*3/4.0)
+            #self.drawCleanJets      (eventVars,
+            #                         (self.jets[0]+"PF","Pat"), 38,defWidth, defArrowSize*1/2.0)
+            self.drawIgnoredJets    (eventVars,r.kCyan    , defWidth, defArrowSize*1/6.0)
+            #self.drawOtherJets      (eventVars,r.kBlack  )
+            self.drawHt             (eventVars,r.kBlue+3  , defWidth, defArrowSize*1/6.0)
+            self.drawNJetDeltaHt    (eventVars,r.kBlue-9  , defWidth, defArrowSize*1/6.0)
+            self.drawMht            (eventVars,r.kRed     , defWidth, defArrowSize*3/6.0)
+            self.drawMet            (eventVars,r.kGreen   , defWidth, defArrowSize*2/6.0)
 
-        self.drawCleanJets      (eventVars,
-                                 self.jets,r.kBlue    , defWidth, defArrowSize)
-        #self.drawCleanJets      (eventVars,
-        #                         (self.jets[0]+"JPT","Pat"),896,defWidth, defArrowSize*3/4.0)
-        #self.drawCleanJets      (eventVars,
-        #                         (self.jets[0]+"PF","Pat"), 38,defWidth, defArrowSize*1/2.0)
-        self.drawIgnoredJets    (eventVars,r.kCyan    , defWidth, defArrowSize*1/6.0)
-        #self.drawOtherJets      (eventVars,r.kBlack  )
-        self.drawHt             (eventVars,r.kBlue+3  , defWidth, defArrowSize*1/6.0)
-        self.drawNJetDeltaHt    (eventVars,r.kBlue-9  , defWidth, defArrowSize*1/6.0)
-        self.drawMht            (eventVars,r.kRed     , defWidth, defArrowSize*3/6.0)
-        self.drawMet            (eventVars,r.kGreen   , defWidth, defArrowSize*2/6.0)
-        if self.doGen :
-            self.drawGenMet     (eventVars,r.kMagenta , defWidth, defArrowSize*2/6.0)
-        
-        if self.doLeptons :
-            self.drawMuons      (eventVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
-            self.drawElectrons  (eventVars,r.kOrange+7, defWidth, defArrowSize*2.5/6.0)
-            self.drawPhotons    (eventVars,r.kOrange  , defWidth, defArrowSize*1.8/6.0)
-           #self.drawTaus       (eventVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
-        
-        self.drawCleanedRecHits (eventVars,r.kOrange-6, defWidth, defArrowSize*2/6.0)
+            if self.doLeptons :
+                self.drawMuons      (eventVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
+                self.drawElectrons  (eventVars,r.kOrange+7, defWidth, defArrowSize*2.5/6.0)
+                self.drawPhotons    (eventVars,r.kOrange  , defWidth, defArrowSize*1.8/6.0)
+                #self.drawTaus       (eventVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
 
-        self.legend.Draw("same")        
-        g2=self.drawAlphaPlot(eventVars,r.kBlack)
-        g3=self.drawAlphaPlot(eventVars,r.kBlack, useMet = True)
-        
+            self.drawCleanedRecHits (eventVars,r.kOrange-6, defWidth, defArrowSize*2/6.0)
+
+        self.legend.Draw("same")
         r.gStyle.SetOptStat(110011)
-        #g4=self.drawMhtLlPlot(eventVars,r.kBlack)
+
+        if self.doReco :
+            g2=self.drawAlphaPlot(eventVars,r.kBlack)
+            g3=self.drawAlphaPlot(eventVars,r.kBlack, useMet = True)
+            #g4=self.drawMhtLlPlot(eventVars,r.kBlack)
 
         someDir=r.gDirectory
         self.outputFile.cd()
