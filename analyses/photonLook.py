@@ -143,9 +143,6 @@ class photonLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
 
-        outList =[
-            specify(name = "JetMET_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20)
-            ]                                                   
         py6_list = [                                            
           ##specify(name = "qcd_py6_pt30",          nFilesMax = -1, color = r.kBlue    ),
             specify(name = "qcd_py6_pt80",          nFilesMax = -1, color = r.kBlue    ),
@@ -177,14 +174,17 @@ class photonLook(analysis.analysis) :
             specify(name = "qcd_py8_pt2200to2600",  nFilesMax = -1, color = r.kBlue    ),
             specify(name = "qcd_py8_pt2600to3000",  nFilesMax = -1, color = r.kBlue    ),
             specify(name = "qcd_py8_pt3000to3500",  nFilesMax = -1, color = r.kBlue    ),
-            ]                                                   
-        mg_list = [                                             
+            ]                                             
+        mg_list = [
             specify(name = "qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
             specify(name = "qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
             specify(name = "qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
             specify(name = "qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
             specify(name = "qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
-            ]                                                   
+            ]
+        data_list = [
+            specify(name = "JetMET_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20)
+            ]                                           
         default_list = [                                        
             #specify(name = "tt_tauola_mg",          nFilesMax =  3, color = r.kOrange  ),
             specify(name = "g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
@@ -197,7 +197,9 @@ class photonLook(analysis.analysis) :
            #specify(name = "lm0",                   nFilesMax = -1, color = r.kRed     ),
            #specify(name = "lm1",                   nFilesMax = -1, color = r.kRed+1   ),
             ]
-        
+
+        outList = []
+        outList+=data_list
         if params["mcSoup"]=="py6" : outList+=py6_list
         if params["mcSoup"]=="py8" : outList+=py8_list
         if params["mcSoup"]=="mg"  : outList+=mg_list
