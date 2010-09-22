@@ -48,6 +48,7 @@ class photonLook(analysis.analysis) :
                  calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15),
                  calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
                  calculables.photonIndicesPat(  ptMin = 20, flagName = params["photonId"]),
+                 calculables.genIndices( pdgs = [22], label = "Photon", status = [1]),
                  #calculables.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
                  #calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
@@ -111,6 +112,7 @@ class photonLook(analysis.analysis) :
             steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
 
+            steps.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
             #steps.photonPtSelector(_photon, 450, 0),
             
             #steps.skimmer(),
@@ -119,7 +121,8 @@ class photonLook(analysis.analysis) :
             #steps.htMhtPrinter(_jet),
             #steps.alphaTPrinter(_jet,_etRatherThanPt),
             #steps.genParticlePrinter(minPt=10.0,minStatus=3),
-
+            #steps.genParticlePrinter(minPt=-10.0,minStatus=1),
+            
             #steps.displayer(jets = _jet,
             #                muons = _muon,
             #                met       = params["objects"]["met"],
@@ -128,6 +131,7 @@ class photonLook(analysis.analysis) :
             #                recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
             #                scale = 400.0,#GeV
             #                etRatherThanPt = _etRatherThanPt,
+            #                doGenParticles = True,
             #                ),
             
             ]
@@ -147,6 +151,7 @@ class photonLook(analysis.analysis) :
             specify(name = "qcd_py6_pt80",          nFilesMax = -1, color = r.kBlue    ),
             specify(name = "qcd_py6_pt170",         nFilesMax = -1, color = r.kBlue    ),
             specify(name = "qcd_py6_pt300",         nFilesMax = -1, color = r.kBlue    ),
+            #specify(name = "qcd_test_skim",         nFilesMax = -1, color = r.kBlue    ),
           ##specify(name = "qcd_py6_pt470",         nFilesMax = -1, color = r.kBlue    ),
           ##specify(name = "qcd_py6_pt800",         nFilesMax = -1, color = r.kBlue    ),
           ##specify(name = "qcd_py6_pt1400",        nFilesMax = -1, color = r.kBlue    ),
@@ -181,13 +186,14 @@ class photonLook(analysis.analysis) :
             specify(name = "qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
             ]                                                   
         default_list = [                                        
-            specify(name = "tt_tauola_mg",          nFilesMax =  3, color = r.kOrange  ),
+            #specify(name = "tt_tauola_mg",          nFilesMax =  3, color = r.kOrange  ),
             specify(name = "g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
             specify(name = "g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
             specify(name = "g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
-            specify(name = "z_inv_mg_skim",         nFilesMax = -1, color = r.kMagenta ),
-            specify(name = "z_jets_mg_skim",        nFilesMax = -1, color = r.kYellow-3),
-            specify(name = "w_jets_mg_skim",        nFilesMax = -1, color = 28         ),
+            #specify(name = "g_jets_test_skim",       nFilesMax = -1, color = r.kGreen   ),
+            #specify(name = "z_inv_mg_skim",         nFilesMax = -1, color = r.kMagenta ),
+            #specify(name = "z_jets_mg_skim",        nFilesMax = -1, color = r.kYellow-3),
+            #specify(name = "w_jets_mg_skim",        nFilesMax = -1, color = 28         ),
            #specify(name = "lm0",                   nFilesMax = -1, color = r.kRed     ),
            #specify(name = "lm1",                   nFilesMax = -1, color = r.kRed+1   ),
             ]
@@ -222,7 +228,6 @@ class photonLook(analysis.analysis) :
             
             org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3}, sources = smSources, keepSources = True)
             org.scale()
-
 
             ##other
             #import deltaPhiLook
