@@ -293,7 +293,8 @@ class genMotherHistogrammer(analysisStep) :
         p4s = eventVars["genP4"]
         nBinsY = len(self.binLabels)
         for iParticle in indices :
-            pt = p4s.at(iParticle).pt()
+            p4 = p4s.at(iParticle)
+            pt = p4.pt()
             motherId = eventVars["genMotherPdgId"][iParticle]
             if not self.motherDict[motherId] :
                 #print motherId,"not found"
@@ -306,6 +307,25 @@ class genMotherHistogrammer(analysisStep) :
                                           nBinsY, -0.5, nBinsY-0.5,
                                           title = ";mother [when GEN photon p_{T}> %.1f (GeV)];photons / bin"%self.specialPtThreshold
                                           )
+                if motherId==2 :
+                    motherIndex = eventVars["genMother"][iParticle]
+                    motherP4 = eventVars["genP4"][motherIndex]
+                    deltaRPhotonMother = r.Math.VectorUtil.DeltaR(p4,motherP4)
+                    deltaRPhotonOther  = r.Math.VectorUtil.DeltaR(p4,motherP4-p4)
+
+                    self.book(eventVars).fill(motherP4.mass(), "mothersMass",
+                                              20, -0.1, 0.4,
+                                              title = ";mother's mass (GeV) [when GEN photon p_{T}> %.1f (GeV) and mother is u quark];photons / bin"%self.specialPtThreshold
+                                              )
+                    self.book(eventVars).fill(deltaRPhotonMother, "deltaRPhotonMother",
+                                              20, 0.0, 1.5,
+                                              title = ";#DeltaR(photon,mother) [when GEN photon p_{T}> %.1f (GeV) and mother is u quark];photons / bin"%self.specialPtThreshold
+                                              )
+                    self.book(eventVars).fill(deltaRPhotonOther, "deltaRPhotonOther",
+                                              20, 0.0, 1.5,
+                                              title = ";#DeltaR(photon,mother-photon) [when GEN photon p_{T}> %.1f (GeV) and mother is u quark];photons / bin"%self.specialPtThreshold
+                                              )
+                
 
     def endFunc(self,chain,otherChainDict,nEvents,xs) :
         for book in self.books.values() :
