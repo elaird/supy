@@ -740,10 +740,12 @@ class displayer(analysisStep) :
             subDetectors=["Ecal","Hcal","Hfem","Hfhad","Ps"]
 
         for detector in subDetectors :
-            flaggedP4s=eventVars["rechit"+self.recHits+"P4"+detector]
-            for hit in flaggedP4s :
-                if hit.pt()<self.recHitPtThreshold : continue
-                self.drawP4(hit,color,lineWidth,arrowSize)
+            for collectionName in ["","cluster"] :
+                varName = "rechit"+collectionName+self.recHits+"P4"+detector
+                if varName not in eventVars : continue
+                for hit in eventVars[varName] :
+                    if hit.pt()<self.recHitPtThreshold : continue
+                    self.drawP4(hit,color,lineWidth,arrowSize)
             
     def makeAlphaTFunc(self,alphaTValue,color) :
         alphaTFunc=r.TF1(("alphaTCurve ( %#5.3g"%alphaTValue)+" )",
