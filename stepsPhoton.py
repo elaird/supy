@@ -51,7 +51,8 @@ class singlePhotonHistogrammer(analysisStep) :
         self.indicesName = "%sIndices%s" % self.cs
         self.p4sName = "%sP4%s" % self.cs
         self.mhtName = "%sSumP4%s" % self.jetCs
-    
+        self.etaBE = 1.479 #from CMS PAS EGM-10-005
+        
     def uponAcceptance (self,eventVars) :
         book = self.book(eventVars)
         p4s = eventVars[self.p4sName]
@@ -104,10 +105,15 @@ class singlePhotonHistogrammer(analysisStep) :
             book.fill((pt,hcTI), "%s%s%shollowConeTrackIsolation"%(self.cs+(photonLabel,)),
                       (50, 50), (0.0, 0.0), (500.0, 10.0),
                       title=";photon%s p_{T} (GeV);hollow cone track isolation;events / bin"%photonLabel)
-            
-            book.fill((pt,sHH), "%s%s%ssigmaIetaIeta"%(self.cs+(photonLabel,)),
-                      (50, 50), (0.0, 0.0), (500.0, 0.1),
-                      title=";photon%s p_{T} (GeV);sigma i#eta i#eta;events / bin"%photonLabel)
+
+            if abs(photon.eta())<self.etaBE :
+                book.fill((pt,sHH), "%s%s%ssigmaIetaIetaBarrel"%(self.cs+(photonLabel,)),
+                          (50, 50), (0.0, 0.0), (500.0, 0.1),
+                          title=";photon%s p_{T} (GeV) [photon in barrel];sigma i#eta i#eta;events / bin"%photonLabel)
+            else :
+                book.fill((pt,sHH), "%s%s%ssigmaIetaIetaEndcap"%(self.cs+(photonLabel,)),
+                          (50, 50), (0.0, 0.0), (500.0, 0.1),
+                          title=";photon%s p_{T} (GeV) [photon in endcap];sigma i#eta i#eta;events / bin"%photonLabel)
 #####################################
 class photonPtSelector(analysisStep) :
     """photonPtSelector"""
