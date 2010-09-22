@@ -112,19 +112,6 @@ mc.add("z_inv_mg_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06
 mc.add("z_jets_mg_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/z_jets_mg/")', xs = 55.4 )
 mc.add("w_jets_mg_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/w_jets_mg/")', xs = 332.4 )
 
-#PY QCD SKIMS
-mc.add("qcd_py_pt80_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/qcd_high_alphaT/pt80/")',  xs = 0.894,    ptHatMin =  80 )
-mc.add("qcd_py_pt170_skim",'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/qcd_high_alphaT/pt170/")', xs = 0.377,    ptHatMin = 170 )
-mc.add("qcd_py_pt300_skim",'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/qcd_high_alphaT/pt300/")', xs = 0.0409,   ptHatMin = 300 )
-mc.add("qcd_py_pt470_skim",'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/qcd_high_alphaT/pt470/")', xs = 0.002362, ptHatMin = 470 )
-mc.adjustOverlappingSamples( ["qcd_py_pt80_skim",
-                              "qcd_py_pt170_skim",
-                              "qcd_py_pt300_skim",
-                              "qcd_py_pt470_skim"] )
-
-#PY QCD SKIMS2
-mc.add("qcd_py_pt30_skim2", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/alphaT.gt.0.525/pt30/")', xs = 12.56, ptHatMin = 30 )
-mc.add("qcd_py_pt80_skim2", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/alphaT.gt.0.525/pt80/")', xs = 4.9,   ptHatMin = 80 )
-mc.adjustOverlappingSamples( ["qcd_py_pt30_skim2",
-                              "qcd_py_pt80_skim2"] )
-
+#TEST SKIMS
+mc.add("qcd_test_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/01_qcd")',  xs = 1.0 )
+mc.add("g_jets_test_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/02_g_jets")',  xs = 1.0 )
