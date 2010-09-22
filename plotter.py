@@ -125,7 +125,7 @@ class plotter(object) :
         text.SetTextFont(102)
         text.SetTextSize(0.55*text.GetTextSize())
 
-        calcs = filter(lambda x:x[1]!="",list(self.someOrganizer.calculables()) )
+        calcs = filter(lambda x:x[1]!="",list(self.someOrganizer.calculables) )
         if not len(calcs) : return text
         length = max([len(calc[0]) for calc in calcs])
         calcs.sort()
@@ -493,5 +493,4 @@ class plotter(object) :
         stuffToKeep.append( self.lineDraw(name = "hollowConeTrackIsolation", suffix = "tight", offset = 2.0,   slope = 0.001, histo = histo, color = r.kBlue) )
         stuffToKeep.append( self.lineDraw(name = "sigmaIetaIetaBarrel",      suffix = "tight", offset = 0.013, slope = 0.0,   histo = histo, color = r.kBlue) )
         stuffToKeep.append( self.lineDraw(name = "sigmaIetaIetaEndcap",      suffix = "tight", offset = 0.030, slope = 0.0,   histo = histo, color = r.kBlue) )
-        
 ##############################
