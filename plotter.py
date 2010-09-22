@@ -125,7 +125,7 @@ class plotter(object) :
         text.SetTextFont(102)
         text.SetTextSize(0.55*text.GetTextSize())
 
-        calcs = filter(lambda x:x[1]!="",list(self.someOrganizer.calculables) )
+        calcs = filter(lambda x:x[1]!="",list(self.someOrganizer.calculables()) )
         if not len(calcs) : return text
         length = max([len(calc[0]) for calc in calcs])
         calcs.sort()
@@ -432,11 +432,12 @@ class plotter(object) :
             tps.SetY1NDC(0.70)
             tps.SetY2NDC(1.00)
 
-    def lineDraw(self, name, offset, slope, histo) :
+    def lineDraw(self, name, offset, slope, histo, color = r.kBlack, suffix = "") :
         if name not in histo.GetName() : return None
         axis = histo.GetXaxis()
-        func = r.TF1(name,"(%g)+(%g)*x"%(offset,slope),axis.GetXmin(),axis.GetXmax())
+        func = r.TF1(name+suffix,"(%g)+(%g)*x"%(offset,slope),axis.GetXmin(),axis.GetXmax())
         func.SetLineWidth(1)
+        func.SetLineColor(color)
         func.Draw("same")
         return func
         
@@ -479,10 +480,18 @@ class plotter(object) :
         stuffToKeep.append( self.lineDraw(name = "alphaTMet_zoomvs_alphaT",  offset = 0.0,   slope = 1.0,   histo = histo) )
         stuffToKeep.append( self.lineDraw(name = "mhtVsPhotonPt",            offset = 0.0,   slope = 1.0,   histo = histo) )
 
-        stuffToKeep.append( self.lineDraw(name = "jurrasicEcalIsolation",    offset = 4.2,   slope = 0.004, histo = histo) )
-        stuffToKeep.append( self.lineDraw(name = "jurassicEcalIsolation",    offset = 4.2,   slope = 0.004, histo = histo) )
-        stuffToKeep.append( self.lineDraw(name = "towerBasedHcalIsolation",  offset = 2.2,   slope = 0.001, histo = histo) )
-        stuffToKeep.append( self.lineDraw(name = "hadronicOverEm",           offset = 0.05,  slope = 0.0,   histo = histo) )
-        stuffToKeep.append( self.lineDraw(name = "hollowConeTrackIsolation", offset = 2.0,   slope = 0.001, histo = histo) )
-        stuffToKeep.append( self.lineDraw(name = "sigmaIetaIeta",            offset = 0.013, slope = 0.0,   histo = histo) )
+        #loose
+        stuffToKeep.append( self.lineDraw(name = "jurassicEcalIsolation",    suffix = "loose", offset = 4.2,   slope = 0.006, histo = histo) )
+        stuffToKeep.append( self.lineDraw(name = "towerBasedHcalIsolation",  suffix = "loose", offset = 2.2,   slope = 0.025, histo = histo) )
+        stuffToKeep.append( self.lineDraw(name = "hadronicOverEm",           suffix = "loose", offset = 0.05,  slope = 0.0,   histo = histo) )
+        stuffToKeep.append( self.lineDraw(name = "hollowConeTrackIsolation", suffix = "loose", offset = 3.5,   slope = 0.001, histo = histo) )
+
+        #tight
+        stuffToKeep.append( self.lineDraw(name = "jurassicEcalIsolation",    suffix = "tight", offset = 4.2,   slope = 0.006, histo = histo, color = r.kBlue) )
+        stuffToKeep.append( self.lineDraw(name = "towerBasedHcalIsolation",  suffix = "tight", offset = 2.2,   slope = 0.025, histo = histo, color = r.kBlue) )
+        stuffToKeep.append( self.lineDraw(name = "hadronicOverEm",           suffix = "tight", offset = 0.05,  slope = 0.0,   histo = histo, color = r.kBlue) )
+        stuffToKeep.append( self.lineDraw(name = "hollowConeTrackIsolation", suffix = "tight", offset = 2.0,   slope = 0.001, histo = histo, color = r.kBlue) )
+        stuffToKeep.append( self.lineDraw(name = "sigmaIetaIetaBarrel",      suffix = "tight", offset = 0.013, slope = 0.0,   histo = histo, color = r.kBlue) )
+        stuffToKeep.append( self.lineDraw(name = "sigmaIetaIetaEndcap",      suffix = "tight", offset = 0.030, slope = 0.0,   histo = histo, color = r.kBlue) )
+        
 ##############################
