@@ -85,7 +85,7 @@ class skimmer(analysisStep) :
         self.outputFile=r.TFile(self.outputFileName,"RECREATE")
         self.outputFile.mkdir(self.fileDir)
         self.outputFile.cd(self.fileDir)
-        if chain :
+        if chain and chain.GetEntry(0)>0 :
             self.outputTree=chain.CloneTree(0)    #clone structure of tree (but no entries)
         if not self.outputTree :                  #in case the chain has 0 entries
             r.gROOT.cd()
@@ -154,12 +154,12 @@ class skimmer(analysisStep) :
         #store other chains
         for (dirName,treeName),chain in otherChainDict.iteritems() :
             self.outputFile.mkdir(dirName).cd()
-            if chain :
+            if chain and chain.GetEntry(0)>0 :
                 outChain=chain.CloneTree()
-            if outChain :
-                outChain.SetName(treeName)
-                outChain.SetDirectory(r.gDirectory)
-                outChain.Write()
+                if outChain :
+                    outChain.SetName(treeName)
+                    outChain.SetDirectory(r.gDirectory)
+                    outChain.Write()
         
         self.outputFile.Close()
         if not self.quietMode : print "The skim file \""+self.outputFileName+"\" has been written."
@@ -306,13 +306,18 @@ class touchstuff(analysisStep) :
 class runLsEventFilter(analysisStep) :
     """runLsEventFilter"""
 
-    def __init__(self, run, lumiSection, event) :
-        for item in ["run","lumiSection","event"] :
-            setattr(self,item,eval(item))
-        self.moreName = "run %d, ls %d, event %d"%(self.run, self.lumiSection, self.event)
-        
+    def __init__(self, fileName) :
+        l = []
+        file = open(fileName)
+        l = [ line.replace("\n","").split(":") for line in file]
+        file.close()
+
+        self.tuples = []
+        for item in l :
+            self.tuples.append( (int(item[0]),int(item[1]),int(item[2])) )
+
     def select (self,eventVars) :
-        return eventVars["run"]==self.run and eventVars["lumiSection"]==self.lumiSection and eventVars["event"]==self.event
+        return (eventVars["run"], eventVars["lumiSection"], eventVars["event"]) in self.tuples
 #####################################
 class runNumberFilter(analysisStep) :
     """runNumberFilter"""
