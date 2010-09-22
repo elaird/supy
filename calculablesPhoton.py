@@ -48,14 +48,17 @@ class photonID(wrappedChain.calculable) :
             setattr(self,var, ("%s"+var+"%s")%self.cs)
 
         levels = ["em","loose","tight"]
-        jei  = [ (4.2,  0.004) for l in levels ]
-        tbhi = [ (2.2,  0.001) for l in levels ]
-        hoe  = [ (0.05, 0.000) for l in levels ]
-        hcti = [ (2.0,  0.001) for l in levels ]; hcti[0] = None
-        shh  = [ (0.013,0.000) for l in levels ]; shh[0] = None; shh[1] = None
-        for item in ["jei","tbhi","hoe","hcti","shh"] :
+        jei  = [ (4.2,  0.006 ) for l in levels ]
+        tbhi = [ (2.2,  0.0025) for l in levels ]
+        hoe  = [ (0.05, 0.000 ) for l in levels ]
+        hcti = [ None           for l in levels ]; hcti[1] = (3.5, 0.001); hcti[2] = (2.0, 0.001)
+        shhBarrel = [ None      for l in levels ]; shhBarrel[2] = (0.013, 0.0)
+        shhEndcap = [ None      for l in levels ]; shhEndcap[2] = (0.030, 0.0)
+
+        self.etaBE = 1.479 #from CMS PAS EGM-10-005
+        for item in ["jei","tbhi","hoe","hcti","shhBarrel","shhEndcap"] :
             setattr(self,item,eval(item)[levels.index(level)])
-        self.moreName = "from twiki"
+        self.moreName = "twiki.cern.ch/twiki/bin/viewauth/CMS/PhotonID, 2010-09-22"
         
     def update(self,ignored) :
         self.value = map(self.passId, 
@@ -75,7 +78,10 @@ class photonID(wrappedChain.calculable) :
         if (hi1+hi2) > (self.tbhi[0] + pt*self.tbhi[1]) : return False
         if hoe       > (self.hoe [0] + pt*self.hoe [1]) : return False
         if self.hcti!=None and hcti > (self.hcti[0] + pt*self.hcti[1]) : return False
-        if self.shh !=None and shh  > (self.shh [0] + pt*self.shh [1]) : return False
+
+        shhVar = self.shhBarrel if abs(p4.eta()<self.etaBE) else self.shhEndcap
+        if shhVar!=None and shh  > (shhVar[0] + pt*shhVar[1]) : return False
+
         if hasPixelSeed : return False
         return True
 class photonIDem(photonID) :
