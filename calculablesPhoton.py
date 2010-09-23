@@ -58,7 +58,7 @@ class photonID(wrappedChain.calculable) :
         self.etaBE = 1.479 #from CMS PAS EGM-10-005
         for item in ["jei","tbhi","hoe","hcti","shhBarrel","shhEndcap"] :
             setattr(self,item,eval(item)[levels.index(level)])
-        self.moreName = "twiki.cern.ch/twiki/bin/viewauth/CMS/PhotonID, 2010-09-22"
+        self.moreName = "twiki.cern.ch/twiki/bin/viewauth/CMS/PhotonID, 2010-09-19"
         
     def update(self,ignored) :
         self.value = map(self.passId, 
@@ -79,7 +79,7 @@ class photonID(wrappedChain.calculable) :
         if hoe       > (self.hoe [0] + pt*self.hoe [1]) : return False
         if self.hcti!=None and hcti > (self.hcti[0] + pt*self.hcti[1]) : return False
 
-        shhVar = self.shhBarrel if abs(p4.eta()<self.etaBE) else self.shhEndcap
+        shhVar = self.shhBarrel if abs(p4.eta())<self.etaBE else self.shhEndcap
         if shhVar!=None and shh  > (shhVar[0] + pt*shhVar[1]) : return False
 
         if hasPixelSeed : return False
