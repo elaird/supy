@@ -130,28 +130,26 @@ class alphaTPrinter(analysisStep) :
 class particleP4Printer(analysisStep) :
     """particleP4Printer"""
 
-    def __init__(self,collection,suffix) :
-        self.collection=collection
-        self.suffix=suffix
-        self.moreName="%s %s" % (collection,suffix)
+    def __init__(self,cs) :
+        self.cs = cs
+        self.moreName="%s %s" %self.cs
         self.nHyphens=56
-
+        self.p4Name = "%sP4%s"%self.cs
     def select (self,eventVars) :
-        p4Vector=eventVars[self.collection+'P4'+self.suffix]
+        p4Vector=eventVars[self.p4Name]
 
         nParticles=len(p4Vector)
         for iParticle in range(nParticles) :
             particle=p4Vector[iParticle]
 
-            outString =self.collection+" %2d" %iParticle
+            outString = "%s%s %2d" %(self.cs[0],self.cs[1],iParticle)
             outString+="; pT %#6.1f GeV"      %particle.pt()
-            outString+="; eta %#4.1f"         %particle.eta()
-            outString+="; phi %#4.1f"         %particle.phi()
+            outString+="; eta %#6.3f"         %particle.eta()
+            outString+="; phi %#6.3f"         %particle.phi()
             print outString
 
-        if (nParticles>0) : print
-        else :
-            print "no "+self.collection+"s"
+        if nParticles>0 : print
+        else :            print "no %s found"%self.cs
 
         return True
 #####################################
@@ -209,7 +207,7 @@ class recHitPrinter(analysisStep) :
         outString=""
         outString+=" %3d     "%i
         outString+="  %#7.1f"%p4.pt()
-        outString+="               %#7.2f"%p4.eta()
+        outString+="               %#7.4f"%p4.eta()
         outString+=" %#5.2f"%p4.phi()
 
         for i in range(len(self.bitInfo)) :
