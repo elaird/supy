@@ -44,7 +44,7 @@ class jetEtaSelector(analysisStep) :
         self.cs = cs
         self.indicesName = "%sIndices%s" % self.cs
         self.p4sName = "%sCorrectedP4%s" % self.cs
-        self.moreName = "%s%s; |eta[index[%d]]|<=%.1f GeV" % (self.cs[0], self.cs[1], jetIndex, jetEtaThreshold)
+        self.moreName = "%s%s; |eta[index[%d]]|<=%.1f" % (self.cs[0], self.cs[1], jetIndex, jetEtaThreshold)
 
     def select (self,eventVars) :
         indices = eventVars[self.indicesName]
