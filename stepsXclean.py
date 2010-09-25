@@ -19,12 +19,12 @@ class vetoCounts(analysisStep) :
         self.vetos["any"] = any(self.vetos.values())
         
         book = self.book(eventVars)
-        for i,key in enumerate(self.vetos.keys()) :
+        for i,key in enumerate(self.keys) :
             if self.vetos[key]:
-                book.fill( i+1, "VetoCounts", self.nBins, 0, self.nBins, title="Vetos;;events / bin")
-                for j,key2 in enumerate(self.vetos.keys()) :
+                book.fill( i, "VetoCounts", self.nBins, 0, self.nBins, title="Vetos;;events / bin")
+                for j,key2 in enumerate(self.keys) :
                     if self.vetos[key2]:
-                        book.fill( (i+1,j+1), "VetoCountsCoincident", (self.nBins,self.nBins), (0,0), (self.nBins,self.nBins),
+                        book.fill( (i,j), "VetoCountsCoincident", (self.nBins,self.nBins), (0,0), (self.nBins,self.nBins),
                                    title="Coincident Vetoes;;;events / bin")
 
     def endFunc(self,chain,otherChainDict,nEvents,xs) :
