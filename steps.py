@@ -5,6 +5,7 @@ from stepsTrigger import *
 from stepsPhoton import *
 from stepsPrint import *
 from stepsGen import *
+from stepsXclean import *
 #####################################
 def adjustStepsForMc(inSteps) :
     dummyBX=bxFilter([])
