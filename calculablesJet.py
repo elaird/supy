@@ -4,6 +4,21 @@ import math,calculables
 def xcStrip(collection) :
     return (collection[0].lstrip("xc"),collection[1])
 ##############################
+class jetIndicesModified(wrappedChain.calculable) :
+    def name(self) : return "%sIndicesModified%s"%self.cs
+
+    def __init__(self, collection = None) :
+        self.cs = collection
+        self.indices = "%sIndices%s"%self.cs
+        self.xcP4 = "%sCorrectedP4%s"%self.cs
+        self.p4 = self.xcP4[2:]
+        self.moreName = "%s differs from %s"%(self.p4,self.xcP4)
+
+    def differentP4(self,i) : return self.source[self.p4][i] != self.source[self.xcP4][i]
+        
+    def update(self,ignored) :
+        self.value = filter(self.differentP4, self.source[self.indices])
+##############################
 class jetIndicesKilled(wrappedChain.calculable) :
     def name(self) : return "%sIndicesKilled%s"%self.cs
     
