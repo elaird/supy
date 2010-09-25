@@ -8,13 +8,13 @@ class vetoCounts(analysisStep) :
                        [("failed_%s%s_unmatched"%objects[obj],"%sIndicesUnmatched%s"%objects[obj]) for obj in ["photon","electron"]]+\
                        [("failed_%s%s"%objects[obj],"%sIndicesOther%s"%objects[obj]) for obj in ["muon","jet"]]
 
-        self.nonUniqueMuMatch="%s%sNonIsoMuonsUniquelyMatched"%objects["jet"]
+        self.uniqueMuMatch="%s%sNonIsoMuonsUniquelyMatched"%objects["jet"]
         self.keys = ["any"]+[key for key,indices in self.lenkeys]+["nonUniqueMuMatch"]
         self.nBins= len(self.keys)
         
     def uponAcceptance(self,eventVars) :
         for key,indices in self.lenkeys : self.vetos[key] = bool(len(eventVars[indices]))
-        self.vetos["nonUniqueMuMatch"] = eventVars["crock"][self.nonUniqueMuMatch]
+        self.vetos["nonUniqueMuMatch"] = not eventVars["crock"][self.uniqueMuMatch]
         self.vetos["any"] = False
         self.vetos["any"] = any(self.vetos.values())
         
