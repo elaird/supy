@@ -31,7 +31,7 @@ class analysisStep(object) :
         return passed
     
     def name(self) :
-        return self.__doc__.ljust(self.docWidth)+self.moreName.ljust(self.moreWidth)
+        return self.__class__.__name__.ljust(self.docWidth)+self.moreName.ljust(self.moreWidth)
 
     def name2(self) :
         return "" if self.moreName2=="" else "\n"+"".ljust(self.docWidth)+self.moreName2.ljust(self.moreWidth)
