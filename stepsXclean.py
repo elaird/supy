@@ -59,7 +59,7 @@ class ecalDepositValidator(analysisStep):
         jetP4sAndCorrs = zip(eventVars[self.jetP4s],eventVars[self.jetCorrs])
         for object in self.objects:
             p4s = eventVars["%sP4%s"%object]
-            for i in eventVars["%sIndicesOther%s"%object] :
+            for i in (set(eventVars["%sIndicesOther%s"%object])-set(eventVars["%sIndicesUnmatched%s"%object])) :
                 p4 = p4s[i]
                 pt = p4.pt()
                 jetPt = self.matchedJetSumPt(p4,jetP4sAndCorrs)
