@@ -147,14 +147,14 @@ class analysisLooper :
         books = self.setupBooks(current)
         for step in self.steps :
             if hasattr(step,"select") and not step.ignoreInAccounting :
-                current = current.mkdir(step.__doc__)
+                current = current.mkdir(step.__class__.__name__)
                 books = self.setupBooks(current)
             step.books = books
             if self.quietMode : step.makeQuiet()
             if self.splitMode : step.setSplitMode()
             step.isSelector = hasattr(step,"select")            
-            assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.__doc__            
-            if step.__doc__==step.skimmerStepName : returnValue=False
+            assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.__class__.__name__            
+            if step.__class__.__name__==step.skimmerStepName : returnValue=False
             if hasattr(step,"setup") : step.setup(self.inputChain,self.fileDirectory,self.name,self.outputDir)
 
             step.needToConsiderPtHatThresholds = self.needToConsiderPtHatThresholds
