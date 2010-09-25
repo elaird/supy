@@ -2,7 +2,6 @@ import ROOT as r
 from analysisStep import analysisStep
 #####################################
 class photonSelectionHistogrammer(analysisStep) :
-    """photonSelectionHistogrammer"""
     
     def __init__(self, nametag="", matchDeltaRMax = None, prompt = False) :
         self.deltaRMax = matchDeltaRMax
@@ -41,7 +40,6 @@ class photonSelectionHistogrammer(analysisStep) :
             book.fill( (abs(gen.eta()),gen.pt(),reco.pt()) , "%sMatchedPhotons"%self.nametag, self.bins3, self.low3, self.up3 )
 #####################################
 class singlePhotonHistogrammer(analysisStep) :
-    """singlePhotonHistogrammer"""
 
     def __init__(self, cs, jetCs, maxIndex = 0) :
         self.cs = cs
@@ -116,7 +114,6 @@ class singlePhotonHistogrammer(analysisStep) :
                           title=";photon%s p_{T} (GeV) [photon in endcap];sigma i#eta i#eta;events / bin"%photonLabel)
 #####################################
 class photonPtSelector(analysisStep) :
-    """photonPtSelector"""
 
     def __init__(self,cs,photonPtThreshold,photonIndex):
         self.photonIndex = photonIndex

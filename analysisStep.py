@@ -8,9 +8,6 @@ class analysisStep(object) :
     moreWidth=40
     moreName=""
     moreName2=""
-    skimmerStepName="skimmer"
-    displayerStepName="displayer"
-    jsonMakerStepName="jsonMaker"
 
     ignoreInAccounting=False
     disabled=False

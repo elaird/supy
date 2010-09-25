@@ -4,7 +4,7 @@ from analysisStep import analysisStep
 import utils
 #####################################
 class histogrammer(analysisStep) :
-    """histogrammer"""
+
     def __init__(self,var,N,low,up,title="", funcString = "lambda x:x" ) :
         for item in ["var","N","low","up","title","funcString"] : setattr(self,item,eval(item))
         self.oneD = type(var) != tuple
@@ -24,7 +24,6 @@ class histogrammer(analysisStep) :
         self.book(eventVars).fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
 #####################################
 class iterHistogrammer(histogrammer) :
-    """iterHistogrammer"""
 
     def uponAcceptance(self,eventVars) :
         if not self.funcStringEvaluated :
@@ -38,12 +37,12 @@ class iterHistogrammer(histogrammer) :
             self.book(eventVars).fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
 #####################################
 class passFilter(analysisStep) :
-    """passFilter"""
+
     def __init__(self,title) : self.moreName = title
     def select(self,eventVars) : return True
 #####################################
 class multiplicityFilter(analysisStep) :
-    """multiplicityFilter"""
+
     def __init__(self,var, nMin = 0, nMax = None ) :
         self.moreName = "%d <= %s"%(nMin,var) + (" <= %d" % nMax if nMax!=None else "")
         self.var = var
@@ -53,7 +52,6 @@ class multiplicityFilter(analysisStep) :
         return self.nMin <= len(eventVars[self.var]) <= self.nMax
 #####################################
 class orFilter(analysisStep) :
-    """orFilter"""
 
     def __init__(self, varGreaterCutList = [], varLessCutList = []) :
         self.varGreaterCutList = varGreaterCutList
@@ -69,10 +67,8 @@ class orFilter(analysisStep) :
         return False
 #####################################
 class skimmer(analysisStep) :
-    #special __doc__ assignment below
     
     def __init__(self) :
-        self.__doc__=self.skimmerStepName
         self.outputTree=0
         self.moreName="(see below)"
         self.alsoWriteExtraTree=False #hard-code until this functionality is fixed
@@ -170,13 +166,11 @@ class skimmer(analysisStep) :
         if not self.quietMode : print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",effXs
 #####################################
 class hbheNoiseFilter(analysisStep) :
-    """hbheNoiseFilter"""
 
     def select (self,eventVars) :
         return eventVars["hbheNoiseFilterResult"]
 #####################################
 class variableGreaterFilter(analysisStep) :
-    """variableGreaterFilter"""
 
     def __init__(self, threshold, variable, suffix = ""):
         self.threshold = threshold
@@ -187,7 +181,6 @@ class variableGreaterFilter(analysisStep) :
         return eventVars[self.variable]>=self.threshold
 #####################################
 class variableLessFilter(analysisStep) :
-    """variableLessFilter"""
 
     def __init__(self, threshold, variable, suffix = ""):
         self.threshold = threshold
@@ -198,7 +191,6 @@ class variableLessFilter(analysisStep) :
         return eventVars[self.variable]<self.threshold
 #####################################
 class variablePtGreaterFilter(analysisStep) :
-    """variablePtGreaterFilter"""
 
     def __init__(self, threshold, variable, suffix = ""):
         self.threshold = threshold
@@ -209,7 +201,6 @@ class variablePtGreaterFilter(analysisStep) :
         return eventVars[self.variable].pt()>=self.threshold
 #####################################
 class objectPtVetoer(analysisStep) :
-    """objectPtVetoer"""
 
     def __init__(self, collection, p4String, suffix, ptThreshold, index):
         self.index = index
@@ -227,7 +218,6 @@ class objectPtVetoer(analysisStep) :
 #        self.book(eventVars).fill(p4Vector[self.objectIndex].eta(),self.objectCollection+"Eta"+self.objectSuffix,100,-5.0,5.0,";#eta;events / bin")
 #####################################
 class soloObjectPtSelector(analysisStep) :
-    """soloObjectPtSelector"""
 
     def __init__(self, collection, p4String, suffix, ptThreshold):
         self.ptThreshold = ptThreshold
@@ -238,7 +228,6 @@ class soloObjectPtSelector(analysisStep) :
         return self.ptThreshold <= eventVars[self.varName].pt()
 #####################################
 class ptRatioLessThanSelector(analysisStep) :
-    """ptRatioLessThanSelector"""
 
     def __init__(self,numVar = None, denVar = None, threshold = None):
         for item in ["numVar","denVar","threshold"] :
@@ -250,7 +239,6 @@ class ptRatioLessThanSelector(analysisStep) :
         return value<self.threshold
 #####################################
 class ptRatioHistogrammer(analysisStep) :
-    """ptRatioHistogrammer"""
 
     def __init__(self,numVar = None, denVar = None):
         for item in ["numVar","denVar"] :
@@ -262,7 +250,7 @@ class ptRatioHistogrammer(analysisStep) :
         book = self.book(ev).fill(value,"ptRatio", 50, 0.0, 2.0, title = ";%s / %s;events / bin"%(self.numVar,self.denVar) )
 #####################################
 class vertexRequirementFilter(analysisStep) :
-    """vertexRequirementFilter"""
+
     #https://twiki.cern.ch/twiki/bin/viewauth/CMS/Collisions2010Recipes#Good_Vertex_selection
     def __init__(self, minNdof = 5.0, maxAbsZ = 24.0, maxD0 = 2.0) :
         for item in ["minNdof","maxAbsZ","maxD0"]: setattr(self,item,eval(item))
@@ -294,7 +282,6 @@ class monsterEventFilter(analysisStep) :
         return (nTracks <= self.maxNumTracks or nGoodTracks > self.minGoodTrackFraction*nTracks)
 #####################################
 class touchstuff(analysisStep) :
-    """touchstuff"""
 
     def __init__(self,stuff) :
         self.stuff = stuff
@@ -304,7 +291,6 @@ class touchstuff(analysisStep) :
         for s in self.stuff : eventVars[s]
 #####################################
 class runLsEventFilter(analysisStep) :
-    """runLsEventFilter"""
 
     def __init__(self, fileName) :
         l = []
@@ -320,7 +306,6 @@ class runLsEventFilter(analysisStep) :
         return (eventVars["run"], eventVars["lumiSection"], eventVars["event"]) in self.tuples
 #####################################
 class runNumberFilter(analysisStep) :
-    """runNumberFilter"""
 
     def __init__(self,runList,acceptRatherThanReject) :
         self.runList = runList
@@ -332,7 +317,6 @@ class runNumberFilter(analysisStep) :
         return not ((eventVars["run"] in self.runList) ^ self.accept)
 #####################################
 class goodRunsOnly2009(analysisStep) :
-    """goodRunsOnly2009"""
 
     def __init__(self,energyString,version) :
         self.moreName = "%s %s" % (energyString,version)
@@ -405,7 +389,6 @@ class goodRunsOnly2009(analysisStep) :
 
 #####################################
 class runHistogrammer(analysisStep) :
-    """runHistogrammer"""
 
     def __init__(self) :
         self.runDict={}
@@ -425,7 +408,6 @@ class runHistogrammer(analysisStep) :
         print self.name(),printList
 #####################################
 class metGroupNoiseEventFilter(analysisStep) :
-    """metGroupNoiseEventFilter"""
 
     def __init__(self,version) :
         self.version=version
@@ -458,12 +440,10 @@ class bxFilter(analysisStep) :
         return eventVars["bunch"] in self.bxList
 #####################################
 class displayer(analysisStep) :
-    #special __doc__ assignment below
     
     def __init__(self,jets = ("",""), met = "", muons = "", electrons = "", photons = "",
                  recHits = "", recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False) :
 
-        self.__doc__ = self.displayerStepName
         self.moreName = "(see below)"
 
         for item in ["scale","jets","met","muons","electrons","photons","recHits","recHitPtThreshold","doGenParticles"] :
@@ -905,7 +885,6 @@ class displayer(analysisStep) :
         someDir.cd()
 #####################################
 class counter(analysisStep) :
-    """counter"""
 
     def __init__(self,label) :
         self.label = label
@@ -915,7 +894,7 @@ class counter(analysisStep) :
         self.book(eventVars).fill(0.0,"countsHisto_"+self.label,1,-0.5,0.5,";dummy axis;number of events")
 #####################################
 class pickEventSpecMaker(analysisStep) :
-    """pickEventSpecMaker"""
+
     #https://twiki.cern.ch/twiki/bin/view/CMS/PickEvents
     def __init__(self,dataSetName) :
         self.dataSetName = dataSetName
@@ -938,7 +917,6 @@ class pickEventSpecMaker(analysisStep) :
         print "The pick events spec. file \""+self.outputFileName+"\" has been written."
 #####################################
 class bxHistogrammer(analysisStep) :
-    """bxHistogrammer"""
 
     def __init__(self) :
         self.nBx=3564+1 #one extra in case count from 1
@@ -947,7 +925,6 @@ class bxHistogrammer(analysisStep) :
         self.book.fill(eventVars["bunch"],"bx",self.nBx,-0.5,0.5,";bx of event;events / bin")
 #####################################
 class jsonMaker(analysisStep) :
-    """jsonMaker"""
 
     def __init__(self) :
         self.runLsDict=collections.defaultdict(list)
@@ -968,7 +945,6 @@ class jsonMaker(analysisStep) :
         utils.mergeRunLsDicts(sillyDict,self.outputFileName)
 #####################################
 class duplicateEventCheck(analysisStep) :
-    """duplicateEventCheck"""
 
     def __init__(self) :
         self.events = collections.defaultdict(set)

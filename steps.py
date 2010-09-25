@@ -18,16 +18,16 @@ def adjustStepsForMc(inSteps) :
     for step in inSteps :
         disable = False
         #determine whether to disable
-        if step.__doc__==dummyHltFilter.__doc__ : disable = True #temporary hack
-        if step.__doc__==dummyHbheNoiseFilter.__doc__ : disable = True #temporary hack
-        if step.__doc__==dummyBX.__doc__ : disable = True
-        if step.__doc__==dummyPhysDecl.__doc__ : disable = True
-        if step.moreName==dummyTechBit0.moreName : disable = True
+        if type(step) in [hltFilter,       #temporary hack
+                          hbheNoiseFilter, #temporary hack
+                          bxFilter,
+                          physicsDeclared] : disable = True
+        if step.moreName == dummyTechBit0.moreName : disable = True
         outSteps.append(copy.deepcopy(step))
         if disable : outSteps[-1].disable()
 
         #turn on gen stuff
-        if step.__doc__==dummyDisplayer.__doc__ : outSteps[-1].switchGenOn()
+        if type(step) == displayer : outSteps[-1].switchGenOn()
     return outSteps
 #####################################
 def adjustStepsForData(inSteps) :

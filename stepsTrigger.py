@@ -3,13 +3,11 @@ from analysisStep import analysisStep
 import math
 #####################################
 class physicsDeclared(analysisStep) :
-    """physicsDeclared"""
 
     def select (self,eventVars) :
         return eventVars["physicsDeclared"]
 #####################################
 class techBitFilter(analysisStep) :
-    """techBitFilter"""
 
     def __init__(self,bitList,acceptRatherThanReject) :
         self.bitList=bitList
@@ -35,7 +33,6 @@ class techBitFilter(analysisStep) :
         return not (anyBitInList ^ self.accept)
 #####################################
 class triggerTest(analysisStep) :
-    """triggerTest"""
 
     def select (self,eventVars) :
         #print eventVars["l1techbits"][9],eventVars["L1triggered"]["L1Tech_HCAL_HF_totalOR_minBias.v0"]
@@ -47,7 +44,6 @@ class triggerTest(analysisStep) :
         return True
 #####################################
 class triggerNameDump(analysisStep) :
-    """triggerNameDump"""
 
     def __init__(self,triggerLevel):
         self.varName = triggerLevel + "triggered"
@@ -59,7 +55,6 @@ class triggerNameDump(analysisStep) :
         return True
 #####################################
 class hltFilter(analysisStep) :
-    """hltFilter"""
 
     def __init__(self,hltPathName):
         self.hltPathName = hltPathName
@@ -69,7 +64,6 @@ class hltFilter(analysisStep) :
         return eventVars["triggered"][self.hltPathName]
 #####################################
 class hltPrescaleHistogrammer(analysisStep) :
-    """hltPrescaleHistogrammer"""
 
     def __init__(self,listOfHltPaths) :
         self.listOfHltPaths = listOfHltPaths
@@ -91,7 +85,6 @@ class hltPrescaleHistogrammer(analysisStep) :
                     book[self.key].GetXaxis().SetBinLabel(iPath+1,self.listOfHltPaths[iPath])
 #####################################
 class hltTurnOnHistogrammer(analysisStep) :
-    """hltTurnOnHistogrammer"""
 
     def __init__(self, probeTrig = None, var = None, tagTrigs = None, binsMinMax = None) :
         self.var = var
@@ -135,7 +128,6 @@ class hltTurnOnHistogrammer(analysisStep) :
 #             book[efficiency].SetBit(r.TH1.kIsAverage)
 #####################################
 class jetMetTriggerHistogrammer(analysisStep) :
-    """jetMetTriggerHistogrammer"""
 
     def __init__(self,triggerJets,triggerMet,offlineJets,offlineMht) :
         self.triggerJets = triggerJets

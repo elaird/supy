@@ -2,7 +2,6 @@ import ROOT as r
 from analysisStep import analysisStep
 #####################################
 class cleanGenJetIndexProducer(analysisStep) :
-    """cleanGenJetIndexProducer"""
 
     def __init__(self,jetCollection,jetSuffix,jetPtThreshold,jetEtaMax):
         self.jetCollection=jetCollection
@@ -46,7 +45,6 @@ class cleanGenJetIndexProducer(analysisStep) :
         return True
 #####################################
 class cleanJetHtMhtProducer(analysisStep) :
-    """cleanJetHtMhtProducer"""
 
     def __init__(self,jetCollection,jetSuffix):
         self.cs = (jetCollection,jetSuffix)
@@ -71,7 +69,6 @@ class cleanJetHtMhtProducer(analysisStep) :
         return True
 #####################################
 class cleanJetIndexProducer(analysisStep) :
-    """cleanJetIndexProducer"""
 
     def __init__(self,jetCollection,jetSuffix,jetPtThreshold,jetEtaMax):
         self.jetCollection = jetCollection
@@ -107,7 +104,6 @@ class cleanJetIndexProducer(analysisStep) :
 
 #####################################
 class cleanJetIndexProducerFromFlag(analysisStep) :
-    """cleanJetIndexProducerFromFlag"""
 
     def __init__(self,jetCollection,jetSuffix,jetPtThreshold,jetEtaMax):
         self.jetCollection=jetCollection
@@ -160,7 +156,6 @@ class cleanJetIndexProducerFromFlag(analysisStep) :
         self.book(eventVars).fill(len(cleanJetIndices), cleanString, 15,-0.5,14.5, title=";number of jets passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin")
 #####################################
 class cleanJetIndexProducerOld(analysisStep) :
-    """cleanJetIndexProducerOld"""
 
     def __init__(self,jetCollection,jetSuffix,jetPtThreshold,corrRatherThanUnCorr,jetEtaMax):
         self.corrFactorThreshold=1.0e-2
@@ -238,7 +233,6 @@ class cleanJetIndexProducerOld(analysisStep) :
         return True
 #####################################
 class cleanJetHtMhtProducerOld(analysisStep) :
-    """cleanJetHtMhtProducerOld"""
 
     def __init__(self,jetCollection,jetSuffix):
         self.jetCollection=jetCollection
@@ -275,7 +269,6 @@ class cleanJetHtMhtProducerOld(analysisStep) :
         return True
 #####################################
 class cleanNJetAlphaProducerOld(analysisStep) :
-    """cleanNJetAlphaProducerOld"""
 
     def __init__(self,jetCollection,jetSuffix):
         self.jetCollection=jetCollection
@@ -334,7 +327,6 @@ class cleanNJetAlphaProducerOld(analysisStep) :
         setattr(extraVars,self.jetCollection+"nJetAlphaT"+self.jetSuffix,nJetAlphaT)
 #####################################
 class cleanNJetAlphaProducer(analysisStep) :
-    """cleanNJetAlphaProducer"""
 
     def __init__(self,collection,suffix):
         self.cs = (collection,suffix)
@@ -379,7 +371,6 @@ class cleanNJetAlphaProducer(analysisStep) :
         eventVars["crock"]["%snJetAlphaT%s"%self.cs] = nJetAlphaT
 #####################################
 class cleanDiJetAlphaProducer(analysisStep) :
-    """cleanDiJetAlphaProducer"""
 
     def __init__(self,collection,suffix):
         self.cs = (collection,suffix)
@@ -430,7 +421,6 @@ class cleanDiJetAlphaProducer(analysisStep) :
             eventVars["crock"]["%sdiJetAlpha_Et%s"%self.cs]=diJetAlpha_Et
 #####################################
 class deltaPhiProducer(analysisStep) :
-    """deltaPhiProducer"""
 
     def __init__(self,collection,suffix) :
         self.cs = (collection,suffix)
@@ -453,7 +443,6 @@ class deltaPhiProducer(analysisStep) :
         return True
 #####################################
 class genParticleCounterOld(analysisStep) :
-    """genParticleCounterOld"""
 
     def __init__(self):
         self.d={}

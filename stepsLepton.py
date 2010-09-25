@@ -1,7 +1,6 @@
 from analysisStep import analysisStep
 ##############################
 class leptonFilter(analysisStep) :
-    """leptonFilter"""
     	
     def __init__(self,nMinLeptons, minPt=0) :
         self.nMinLeptons=nMinLeptons

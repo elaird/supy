@@ -3,7 +3,6 @@ import math
 from analysisStep import analysisStep
 #####################################
 class preIdJetPtSelector(analysisStep) :
-    """preIdJetPtSelector"""
 
     def __init__(self,cs,jetPtThreshold,jetIndex):
         self.jetIndex = jetIndex
@@ -19,7 +18,6 @@ class preIdJetPtSelector(analysisStep) :
         return self.jetPtThreshold <= p4s.at(self.jetIndex).pt()
 #####################################
 class jetPtSelector(analysisStep) :
-    """jetPtSelector"""
 
     def __init__(self,cs,jetPtThreshold,jetIndex):
         self.jetIndex = jetIndex
@@ -36,7 +34,6 @@ class jetPtSelector(analysisStep) :
         return self.jetPtThreshold <= p4s.at(indices[self.jetIndex]).pt()
 #####################################
 class jetEtaSelector(analysisStep) :
-    """jetEtaSelector"""
 
     def __init__(self,cs,jetEtaThreshold,jetIndex):
         self.jetIndex = jetIndex
@@ -53,7 +50,6 @@ class jetEtaSelector(analysisStep) :
         return self.jetEtaThreshold > abs(p4s.at(indices[self.jetIndex]).eta())
 #####################################
 class jetPtVetoer(analysisStep) :
-    """jetPtVetoer"""
 
     def __init__(self,cs,jetPtThreshold,jetIndex):
         self.jetPtThreshold = jetPtThreshold
@@ -68,7 +64,6 @@ class jetPtVetoer(analysisStep) :
         return p4s.at(self.jetIndex).pt() < self.jetPtThreshold
 #####################################
 class leadingUnCorrJetPtSelector(analysisStep) :
-    """leadingUnCorrJetPtSelector"""
 
     def __init__(self,jetCollectionsAndSuffixes,jetPtThreshold):
         self.jetCollectionsAndSuffixes = jetCollectionsAndSuffixes
@@ -89,7 +84,6 @@ class leadingUnCorrJetPtSelector(analysisStep) :
         return False
 #####################################
 class leadingUnCorrJetEtaSelector(analysisStep) :
-    """leadingUnCorrJetPtSelector"""
 
     def __init__(self,cs,jetEtaThreshold):
         self.cs = cs
@@ -107,7 +101,6 @@ class leadingUnCorrJetEtaSelector(analysisStep) :
         return self.jetEtaThreshold > abs (p4s.at(index).eta())
 #####################################
 class cleanJetEmfFilter(analysisStep) :
-    """cleanJetEmfFilter"""
 
     def __init__(self,collection,suffix,ptMin,emfMax):
         self.indicesName = "%sIndices%s" % (collection,suffix)
@@ -132,7 +125,6 @@ class cleanJetEmfFilter(analysisStep) :
         return True
 ######################################
 class cleanJetHtMhtHistogrammer(analysisStep) :
-    """cleanJetHtMhtHistogrammer"""
 
     def __init__(self,cs,etRatherThanPt):
         self.cs = cs
@@ -158,7 +150,6 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
         book.fill(value, "%smHtOverHt%s"%self.cs, 50, 0.0, 1.1, title = "; MHT / H_{T} (GeV) from clean jet %s_{T}'s;events / bin"%self.letter )
 #####################################
 class singleJetHistogrammer(analysisStep) :
-    """singleJetHistogrammer"""
 
     def __init__(self,cs, maxIndex = 2) :
         self.cs = cs
@@ -197,7 +188,6 @@ class singleJetHistogrammer(analysisStep) :
                           title = ";#Delta#phi_{jet%d,jet%d};events / bin"%(i+1,j+1))
 #####################################
 class alphaHistogrammer(analysisStep) :
-    """alphaHistogrammer"""
 
     def __init__(self,cs,etRatherThanPt) :
         self.cs = cs
@@ -246,7 +236,6 @@ class alphaHistogrammer(analysisStep) :
                    title=";#alpha_{T} (using %s_{T});#Delta#phi*;events / bin"%self.letter)
 #####################################
 class alphaMetHistogrammer(analysisStep) :
-    """alphaMetHistogrammer"""
 
     def __init__(self,cs,etRatherThanPt,metName) :
         self.cs = cs
@@ -293,7 +282,6 @@ class alphaMetHistogrammer(analysisStep) :
                    title = ";#alpha_{T};#alpha_{T} (from MET);events / bin")
 ######################################
 class leadingCorrJetFilter(analysisStep) :
-    """leadingCorrJetFilter"""
 
     def __init__(self, cs, ptMin, etaMax):
         self.cs = cs
@@ -318,7 +306,6 @@ class leadingCorrJetFilter(analysisStep) :
         return True
 ######################################
 class leadingUnCorrJetFilter(analysisStep) :
-    """leadingUnCorrJetFilter"""
 
     def __init__(self, cs, ptMin, etaMax, extraHistos = False):
         for item in ["cs","ptMin","etaMax","extraHistos"] :
@@ -347,7 +334,6 @@ class leadingUnCorrJetFilter(analysisStep) :
         return True
 #####################################
 class deltaPhiSelector(analysisStep) :
-    """deltaPhiSelector"""
 
     def __init__(self,cs,minAbs,maxAbs) :
         self.cs = cs
@@ -361,7 +347,6 @@ class deltaPhiSelector(analysisStep) :
         return True
 #####################################
 class mHtOverHtSelector(analysisStep) :
-    """mHtOverHtSelector"""
 
     def __init__(self,cs,min,max) :
         self.cs = cs
@@ -378,7 +363,6 @@ class mHtOverHtSelector(analysisStep) :
         return True
 #####################################
 class deltaPhiHistogrammer(analysisStep) :
-    """deltaPhiHistogrammer"""
 
     def __init__(self,collection,suffix) :
         self.cs = (collection,suffix)
@@ -391,7 +375,6 @@ class deltaPhiHistogrammer(analysisStep) :
         book.fill( eventVars[self.var]["eta"], self.var, 50, -10, 10.0, title = ";"+self.var+";events / bin")
 #####################################
 class alphatEtaDependence(analysisStep) :
-    """alphatEtaDependence"""
 
     def __init__(self,collection) :
         self.cs = collection
@@ -426,7 +409,7 @@ class alphatEtaDependence(analysisStep) :
         return "pt %d-%d"%(self.ptBin*ipt,self.ptBin*(ipt+1)) if ipt<self.iMax else "pt>%d"%(self.iMax*self.ptBin)
 #####################################
 class uniquelyMatchedNonisoMuons(analysisStep) :
-    """uniquelyMatchedNonisoMuons"""
+
     def __init__(self,collection) :
         self.cs = collection
         self.moreName = "%s%s"%self.cs

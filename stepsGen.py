@@ -10,7 +10,6 @@ except ImportError:
     pass
 #####################################
 class ptHatFilter(analysisStep) :
-    """ptHatFilter"""
 
     def __init__(self,maxPtHat) :
         self.maxPtHat=maxPtHat
@@ -20,7 +19,6 @@ class ptHatFilter(analysisStep) :
         return eventVars["genpthat"]<self.maxPtHat
 #####################################
 class susyScanPointPrinter(analysisStep) :
-    """susyScanPointPrinter"""
 
     def __init__(self) :
         self.leavesToPrint=["susyScanA0",
@@ -39,7 +37,6 @@ class susyScanPointPrinter(analysisStep) :
         print outString
 #####################################
 class genJetPrinter(analysisStep) :
-    """genJetPrinter"""
 
     def __init__(self,jetCollection,jetSuffix) :
         self.jetCollection=jetCollection
@@ -80,7 +77,6 @@ class genJetPrinter(analysisStep) :
         print
 #####################################
 class genParticleCountHistogrammer(analysisStep) :
-    """genParticleCountHistogrammer"""
 
     def __init__(self,tanBeta) :
         self.tanBetaThreshold=0.1
@@ -158,7 +154,6 @@ class genParticleCountHistogrammer(analysisStep) :
                                    )
 #####################################
 class genParticlePrinter(analysisStep) :
-    """genParticlePrinter"""
 
     def __init__(self,minPt=-1.0,minStatus=-1):
         self.oneP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
@@ -223,7 +218,6 @@ class genParticlePrinter(analysisStep) :
         print
 #####################################
 class genMassHistogrammer(analysisStep) :
-    """genMassHistogrammer"""
 
     def __init__(self,pdgId = 23):
         self.pdgId = pdgId
@@ -237,7 +231,6 @@ class genMassHistogrammer(analysisStep) :
             self.book(eventVars).fill(p4.mass(), self.histoName, 100, 0.0, 300.0, title = ";mass (GeV);events / bin")
 #####################################
 class genSHatHistogrammer(analysisStep) :
-    """genSHatHistogrammer"""
 
     def uponAcceptance (self,eventVars) :
         p4 = eventVars["genP4"]
@@ -260,7 +253,6 @@ class genSHatHistogrammer(analysisStep) :
         self.book(eventVars).fill(rootSHat, "rootSHat", 100, 0.0, 300.0, title = ";#sqrt{#hat{s}} (GeV);events / bin")
 #####################################
 class genMotherHistogrammer(analysisStep) :
-    """genMotherHistogrammer"""
 
     def __init__(self, indexLabel, specialPtThreshold) :
         self.indexLabel = indexLabel

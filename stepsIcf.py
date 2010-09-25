@@ -14,7 +14,6 @@ def relIso(ecalIso,hcalIso,trkIso,pT) :
     return (ecalIso+hcalIso+trkIso)/pT
 #####################################
 class icfJetPtSorter(analysisStep) :
-    """icfJetPtSorter"""
 
     def uponAcceptance(self,eventVars,extraVars) :
         jetPtsAndIndices=[]
@@ -31,7 +30,6 @@ class icfJetPtSorter(analysisStep) :
             extraVars.jetIndicesSortedByPt.append(jetPtsAndIndices[i][1])
 #####################################
 class icfCleanJetProducer(analysisStep) :
-    """icfCleanJetProducer"""
 
     def __init__(self,jetPtThreshold,jetEtaMax):
         self.jetPtThreshold=jetPtThreshold
@@ -87,7 +85,6 @@ class icfCleanJetProducer(analysisStep) :
         return True
 #####################################
 class icfJetFaker(analysisStep) :
-    """icfJetFaker"""
 
     def __init__(self,jetCollection,jetSuffix) :
         self.jetCollection=jetCollection
@@ -142,7 +139,6 @@ class icfJetFaker(analysisStep) :
         return True
 ######################################
 class icfNCleanJetHistogrammer(analysisStep) :
-    """icfNCleanJetHistogrammer"""
 
     def bookHistos(self) :
         nBins=15
@@ -153,7 +149,6 @@ class icfNCleanJetHistogrammer(analysisStep) :
         self.nCleanJetsHisto.Fill( len(extraVars.cleanJetIndices) )
 ######################################
 class icfNCleanJetEventFilter(analysisStep) :
-    """icfNCleanJetEventFilter"""
 
     def __init__(self,nCleanJets):
         self.nCleanJets=nCleanJets
@@ -163,7 +158,6 @@ class icfNCleanJetEventFilter(analysisStep) :
         return len(extraVars.cleanJetIndices)>=self.nCleanJets
 ######################################
 class icfNOtherJetEventFilter(analysisStep) :
-    """icfNOtherJetEventFilter"""
 
     def __init__(self,nOtherJets):
         self.nOtherJets=nOtherJets
@@ -173,7 +167,6 @@ class icfNOtherJetEventFilter(analysisStep) :
         return len(extraVars.otherJetIndices)<self.nOtherJets
 ######################################
 class icfOtherJetHistogrammer(analysisStep) :
-    """icfOtherJetHistogrammer"""
 
     def __init__(self,singleJetPtThreshold):
         self.singleJetPtThreshold=singleJetPtThreshold
@@ -219,7 +212,6 @@ class icfOtherJetHistogrammer(analysisStep) :
         self.nOtherJetsHisto.Fill(extraVars.nOtherJets)
 #####################################
 class icfCleanJetPtSelector(analysisStep) :
-    """icfCleanJetPtSelector"""
 
     def __init__(self,jetPtThreshold,jetIndex):
         self.jetPtThreshold=jetPtThreshold
@@ -231,7 +223,6 @@ class icfCleanJetPtSelector(analysisStep) :
         return (eventVars["Jetpt"][extraVars.cleanJetIndices[self.jetIndex]]>=self.jetPtThreshold)
 #####################################
 class icfCleanJetPtVetoer(analysisStep) :
-    """icfCleanJetPtVetoer"""
 
     def __init__(self,jetPtThreshold,jetIndex):
         self.jetPtThreshold=jetPtThreshold
@@ -243,7 +234,6 @@ class icfCleanJetPtVetoer(analysisStep) :
         return (eventVars["Jetpt"][extraVars.cleanJetIndices[self.jetIndex]]<self.jetPtThreshold)
 #####################################
 class icfCleanJetEtaSelector(analysisStep) :
-    """icfCleanJetEtaSelector"""
 
     def __init__(self,jetEtaThreshold,jetIndex):
         self.jetEtaThreshold=jetEtaThreshold
@@ -255,7 +245,6 @@ class icfCleanJetEtaSelector(analysisStep) :
         return (r.TMath.Abs(eventVars["Jeteta"][extraVars.cleanJetIndices[self.jetIndex]])<self.jetEtaThreshold)
 #####################################
 class icfCleanJetHtMhtProducer(analysisStep) :
-    """icfCleanJetHtMhtProducer"""
 
     def __init__(self):
         self.mht=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
@@ -275,7 +264,6 @@ class icfCleanJetHtMhtProducer(analysisStep) :
         return True
 #####################################
 class icfMhtAllProducer(analysisStep) :
-    """icfMhtAllProducer"""
 
     def __init__(self,jetPtThreshold):
         self.jetPtThreshold=jetPtThreshold
@@ -305,7 +293,6 @@ class icfMhtAllProducer(analysisStep) :
         setattr(extraVars,"MhtAll",self.mhtAll)
 #####################################
 class icfMhtRatioSelector(analysisStep) :
-    """icfMhtRatioSelector"""
 
     def __init__(self,threshold):
         self.threshold=threshold
@@ -314,7 +301,6 @@ class icfMhtRatioSelector(analysisStep) :
         return ( (extraVars.Mht.pt()/extraVars.MhtAll.pt())<self.threshold )
 #####################################
 class icfCleanJetHtMhtHistogrammer(analysisStep) :
-    """icfCleanJetHtMhtHistogrammer"""
 
     def bookHistos(self):
         self.ht_Histo          =r.TH1D("ht"       ,";H_{T} (GeV) from clean jet p_{T}'s;events / bin" ,50,0.0,1000.0)
@@ -339,7 +325,6 @@ class icfCleanJetHtMhtHistogrammer(analysisStep) :
         self.mHtOverHt_Histo.Fill(value)
 #####################################
 class icfCleanJetPtEtaHistogrammer(analysisStep) :
-    """icfCleanJetPtEtaHistogrammer"""
 
     def bookHistos(self) :
         self.ptAllHisto=    r.TH1D("ptAll",";p_{T} (GeV) of clean jets;events / bin",50,0.0,800.0)
@@ -362,7 +347,6 @@ class icfCleanJetPtEtaHistogrammer(analysisStep) :
                 leadingFilled=True
 #####################################
 class icfCleanNJetAlphaProducer(analysisStep) :
-    """icfCleanNJetAlphaProducer"""
 
     def uponAcceptance (self,eventVars,extraVars) :
         nJetDeltaHt=0.0
@@ -409,7 +393,6 @@ class icfCleanNJetAlphaProducer(analysisStep) :
         extraVars.nJetAlphaT=nJetAlphaT
 #####################################
 class icfCleanDiJetAlphaProducer(analysisStep) :
-    """icfCleanDiJetAlphaProducer"""
 
     def __init__(self):
         self.lvSum=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
@@ -454,7 +437,6 @@ class icfCleanDiJetAlphaProducer(analysisStep) :
         extraVars.diJetAlpha_Et =diJetAlpha_Et
 #####################################
 class icfAlphaHistogrammer(analysisStep) :
-    """icfAlphaHistogrammer"""
 
     def bookHistos(self) :
         bins=100
@@ -489,7 +471,6 @@ class icfAlphaHistogrammer(analysisStep) :
         self.alpha2D_c_Histo.Fill(extraVars.Mht.pt()/extraVars.Ht,extraVars.nJetDeltaHt/extraVars.Ht)
 #####################################
 class icfDeltaPhiProducer(analysisStep) :
-    """icfDeltaPhiProducer"""
 
     def select(self,eventVars,extraVars) :
 
@@ -512,7 +493,6 @@ class icfDeltaPhiProducer(analysisStep) :
         return True
 #####################################
 class icfDeltaPhiSelector(analysisStep) :
-    """icfDeltaPhiSelector"""
 
     def __init__(self,minAbs,maxAbs) :
         self.minAbs=minAbs
@@ -524,7 +504,6 @@ class icfDeltaPhiSelector(analysisStep) :
         return True
 #####################################
 class icfMhtOverHtSelector(analysisStep) :
-    """icfMhtOverHtSelector"""
 
     def __init__(self,min,max) :
         self.min=min
@@ -537,7 +516,6 @@ class icfMhtOverHtSelector(analysisStep) :
         return True
 #####################################
 class icfDeltaPhiHistogrammer(analysisStep) :
-    """icfDeltaPhiHistogrammer"""
 
     def bookHistos(self) :
         bins=50
@@ -572,7 +550,6 @@ class icfDeltaPhiHistogrammer(analysisStep) :
             self.deltaPhiMhtJetHisto[iJet].Fill(extraVars.deltaPhiMhtJet[iJet])
 #####################################
 class icfAnyJetPtSelector(analysisStep) :
-    """icfAnyJetPtSelector"""
 
     def __init__(self,jetPtThreshold,jetIndex):
         self.jetPtThreshold=jetPtThreshold
@@ -585,7 +562,6 @@ class icfAnyJetPtSelector(analysisStep) :
         return (extraVars.jetPtsSortedByPt[self.jetIndex]>=self.jetPtThreshold)
 #####################################
 class icfAnyJetPtVetoer(analysisStep) :
-    """icfAnyJetPtVetoer"""
 
     def __init__(self,jetPtThreshold,jetIndex):
         self.jetPtThreshold=jetPtThreshold
@@ -598,7 +574,6 @@ class icfAnyJetPtVetoer(analysisStep) :
         return (extraVars.jetPtsSortedByPt[self.jetIndex]<self.jetPtThreshold)
 #####################################
 class icfMuonVetoer(analysisStep) :
-    """icfMuonVetoer"""
 
     def __init__(self,muonPtThreshold):
         self.muonPtThreshold=muonPtThreshold
@@ -643,7 +618,6 @@ class icfMuonVetoer(analysisStep) :
         return not anyGoodMuon
 #####################################
 class icfElecVetoer(analysisStep) :
-    """icfElecVetoer"""
 
     def __init__(self,elecPtThreshold):
         self.elecPtThreshold=elecPtThreshold
@@ -675,7 +649,6 @@ class icfElecVetoer(analysisStep) :
         return not anyGoodElec
 #####################################
 class icfPhotVetoer(analysisStep) :
-    """icfPhotVetoer"""
 
     def __init__(self,photPtThreshold):
         self.photPtThreshold=photPtThreshold
@@ -700,7 +673,6 @@ class icfPhotVetoer(analysisStep) :
         return not anyGoodPhot
 #####################################
 class icfCleanJetFromGenProducer(analysisStep) :
-    """icfCleanJetFromGenProducer"""
 
     def __init__(self,jetPtThreshold,jetEtaMax):
         self.jetPtThreshold=jetPtThreshold
@@ -749,7 +721,6 @@ class icfCleanJetFromGenProducer(analysisStep) :
         return True
 #####################################
 class icfGenPrinter(analysisStep) :
-    """icfGenPrinter"""
 
     def __init__(self):
         self.oneP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
@@ -806,7 +777,6 @@ class icfGenPrinter(analysisStep) :
         print
 #####################################
 class icfGenP4Producer(analysisStep) :
-    """icfGenP4Producer"""
 
     def __init__(self):
         self.oneP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
@@ -831,7 +801,6 @@ class icfGenP4Producer(analysisStep) :
         extraVars.genNonMotherP4Sum=(self.sumP4+self.zeroP4)
 #####################################
 class icfGenP4Histogrammer(analysisStep) :
-    """icfGenP4Histogrammer"""
 
     def bookHistos(self) :
         self.ptHisto=r.TH1D("genNonMotherP4Sum",";genNonMotherP4Sum p_{T} (GeV);events / bin",50,0.0,200.0)

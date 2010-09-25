@@ -167,7 +167,7 @@ class analysis(object) :
         listOfSamples = self.listOfSamples(conf)
 
         selectors = filter(lambda s: hasattr(s,"select"), listOfSteps)
-        assert len(selectors) == len(set(map(lambda s:(s.__doc__,s.moreName,s.moreName2), selectors))),"Duplicate selectors are not allowed."
+        assert len(selectors) == len(set(map(lambda s:(s.__class__.__name__,s.moreName,s.moreName2), selectors))),"Duplicate selectors are not allowed."
         assert len(listOfSamples) == len(set(map(lambda s: s.name,listOfSamples))), "Duplicate sample names are not allowed."
 
         computeEntriesForReport = False #temporarily hard-coded
@@ -232,7 +232,7 @@ class analysis(object) :
                 if sampleName==looper.name :
                     looperIndexDict[ptHatLowerThreshold]=iLooper
                 for step in looper.steps :
-                    if step.__doc__==step.skimmerStepName :
+                    if type(step) == steps.skimmer :
                         raise Exception("do not manage non-binned samples when skimming")
 
 
@@ -354,11 +354,11 @@ def mergeFunc(looper,listOfSlices) :
             looper.steps[i].nPass +=stepDataList[i]["nPass" ]
             looper.steps[i].nFail +=stepDataList[i]["nFail" ]
 
-            if looper.steps[i].__doc__==looper.steps[i].displayerStepName :
+            if type(looper.steps[i]) == steps.displayer :
                 displayFileDict[i].append(stepDataList[i]["outputFileName"])
-            if looper.steps[i].__doc__==looper.steps[i].skimmerStepName :
+            if type(looper.steps[i]) == steps.skimmer :
                 skimmerFileDict[i].append(stepDataList[i]["outputFileName"])
-            if looper.steps[i].__doc__==looper.steps[i].jsonMakerStepName :
+            if type(looper.steps[i]) == steps.jsonMaker : 
                 runLsDict[i].append(stepDataList[i]["runLsDict"])
                 jsonFileDict[i].append(stepDataList[i]["outputFileName"])
 

@@ -3,7 +3,6 @@ import ROOT as r
 from analysisStep import analysisStep
 #####################################
 class progressPrinter(analysisStep) :
-    """progressPrinter"""
 
     def __init__(self,suppressionFactor=2,suppressionOffset=300):
         self.nTotal=0
@@ -22,7 +21,6 @@ class progressPrinter(analysisStep) :
             print toPrint
 #####################################
 class printstuff(analysisStep) :
-    """printstuff"""
 
     def __init__(self,stuff) :
         self.stuff = stuff
@@ -33,7 +31,6 @@ class printstuff(analysisStep) :
         print '\t'.join([str(eventVars[s]) for s in self.stuff])
 #####################################
 class eventPrinter(analysisStep) :
-    """eventPrinter"""
 
     def __init__(self) :
         self.nHyphens=56
@@ -48,7 +45,6 @@ class eventPrinter(analysisStep) :
         print outString
 #####################################
 class jetPrinter(analysisStep) :
-    """jetPrinter"""
 
     def __init__(self,cs) :
         self.cs = cs
@@ -91,7 +87,6 @@ class jetPrinter(analysisStep) :
         print
 #####################################
 class htMhtPrinter(analysisStep) :
-    """htMhtPrinter"""
 
     def __init__(self, cs, etRatherThanPt = False ) :
         self.cs = cs
@@ -103,7 +98,6 @@ class htMhtPrinter(analysisStep) :
         print outString
 #####################################
 class diJetAlphaPrinter(analysisStep) :
-    """diJetAlphaPrinter"""
 
     def __init__(self,jets) :
         self.jetCollection=jets[0]
@@ -114,7 +108,6 @@ class diJetAlphaPrinter(analysisStep) :
         print outString
 #####################################
 class alphaTPrinter(analysisStep) :
-    """alphaTPrinter"""
 
     def __init__(self,jets,etRatherThanPt) :
         self.cs = jets
@@ -128,7 +121,6 @@ class alphaTPrinter(analysisStep) :
         print outString
 #####################################
 class particleP4Printer(analysisStep) :
-    """particleP4Printer"""
 
     def __init__(self,cs) :
         self.cs = cs
@@ -154,7 +146,6 @@ class particleP4Printer(analysisStep) :
         return True
 #####################################
 class metPrinter(analysisStep) :
-    """metPrinter"""
 
     def __init__(self,collections) :
         self.collections=collections
@@ -173,7 +164,6 @@ class metPrinter(analysisStep) :
         return True
 #####################################
 class nFlaggedRecHitFilter(analysisStep) :
-    """nFlaggedRecHitFilter"""
 
     def __init__(self,algoType,detector,nFlagged) :
         self.algoType=algoType
@@ -185,7 +175,6 @@ class nFlaggedRecHitFilter(analysisStep) :
         return len(eventVars[self.p4String])>=self.nFlagged
 #####################################
 class recHitPrinter(analysisStep) :
-    """recHitPrinter"""
 
     def __init__(self,algoType,detector) :
         self.algoType=algoType
@@ -239,7 +228,6 @@ class recHitPrinter(analysisStep) :
             print "(sum)",self.makeString(0,self.sum,0)[6:50]
 #####################################
 class recHitHistogrammer(analysisStep) :
-    """recHitHistogrammer"""
 
     def __init__(self,algoType,detector,jetCollection,jetSuffix) :
         self.algoType=algoType
