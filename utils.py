@@ -268,6 +268,7 @@ def ratioHistogram(num,den) :
         b=b.next
         
     lowEdges = [b.lowEdge for b in bins] + [num.GetXaxis().GetBinUpEdge(num.GetNbinsX())]
+    den.GetDirectory().cd()
     ratio = r.TH1D("ratio"+num.GetName()+den.GetName(),"",len(lowEdges)-1, array.array('d',lowEdges))
     
     for i,bin in enumerate(bins) :
