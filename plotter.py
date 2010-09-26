@@ -338,42 +338,46 @@ class plotter(object) :
 
 
     def plotRatio(self,histos,dimension) :
-        numSampleName,denomSampleName=self.samplesForRatios
-        numLabel,denomLabel=self.sampleLabelsForRatios
-    
-        numHisto = None
-        denomHisto = None
-        for sample,histo in zip(self.someOrganizer.samples,histos) :
-            if sample["name"]==numSampleName :
-                numHisto = histo
-            if sample["name"]==denomSampleName :
-                denomHisto = histo
+        numLabel,denomLabel = self.sampleLabelsForRatios
+        numSampleName,denomSampleNames = self.samplesForRatios
+        if type(denomSampleNames)!=list: denomSampleNames = [denomSampleNames]
+        
+        numHisto = histos[self.someOrganizer.indexOfSampleWithName(numSampleName)]
+        denomHistos = map(lambda name: histos[self.someOrganizer.indexOfSampleWithName(name)], denomSampleNames)
 
-        ratio = None
-        if numHisto and denomHisto and numHisto.GetEntries() and denomHisto.GetEntries() :
-            try:
-                ratio=utils.ratioHistogram(numHisto,denomHisto)
-                ratio.SetMinimum(0.0)
-                ratio.SetMaximum(2.0)
-                ratio.GetYaxis().SetTitle(numLabel+"/"+denomLabel)
+        ratios = []
+        same = ""
+        for denomHisto in denomHistos :
+            ratio = None
+            if numHisto and denomHisto and numHisto.GetEntries() and denomHisto.GetEntries() :
+                try:
+                    ratio = utils.ratioHistogram(numHisto,denomHisto)
+                    ratio.SetMinimum(0.0)
+                    ratio.SetMaximum(2.0)
+                    ratio.GetYaxis().SetTitle(numLabel+"/"+denomLabel)
+                    self.canvas.cd(2)
+                    adjustPad(r.gPad)
+                    r.gPad.SetGridy()
+                    ratio.SetStats(False)
+                    ratio.GetXaxis().SetLabelSize(0.0)
+                    ratio.GetXaxis().SetTickLength(3.5*ratio.GetXaxis().GetTickLength())
+                    ratio.GetYaxis().SetLabelSize(0.2)
+                    ratio.GetYaxis().SetNdivisions(502,True)
+                    ratio.GetXaxis().SetTitleOffset(0.2)
+                    ratio.GetYaxis().SetTitleSize(0.2)
+                    ratio.GetYaxis().SetTitleOffset(0.2)
+                    if len(denomHistos)==1: ratio.SetMarkerStyle(numHisto.GetMarkerStyle())
+                    color = numHisto.GetLineColor() if len(denomHistos)==1 else denomHisto.GetLineColor()
+                    ratio.SetLineColor(color)
+                    ratio.SetMarkerColor(color)
+                    ratio.Draw(same)
+                    same = "same"
+                except:
+                    print "failed to make ratio for plot",numHisto.GetName()
+            else :
                 self.canvas.cd(2)
-                adjustPad(r.gPad)
-                r.gPad.SetGridy()
-                ratio.SetStats(False)
-                ratio.GetXaxis().SetLabelSize(0.0)
-                ratio.GetXaxis().SetTickLength(3.5*ratio.GetXaxis().GetTickLength())
-                ratio.GetYaxis().SetLabelSize(0.2)
-                ratio.GetYaxis().SetNdivisions(502,True)
-                ratio.GetXaxis().SetTitleOffset(0.2)
-                ratio.GetYaxis().SetTitleSize(0.2)
-                ratio.GetYaxis().SetTitleOffset(0.2)
-                ratio.SetMarkerStyle(numHisto.GetMarkerStyle())
-                ratio.Draw()
-            except:
-                print "failed to make ratio for plot",numHisto.GetName()
-        else :
-            self.canvas.cd(2)
-        return ratio
+            ratios.append(ratio)
+        return ratios
 
     def onePlotFunction(self,histos,plotName) :
         dimension = dimensionOfHisto(histos)
@@ -382,7 +386,7 @@ class plotter(object) :
 
         count,stuffToKeep = self.plotEachHisto(histos,dimension)
         if self.plotRatios and dimension==1 :
-            ratio = self.plotRatio(histos,dimension)
+            ratios = self.plotRatio(histos,dimension)
         self.canvas.cd(0)
         if count>0 :
             self.printCanvas()
