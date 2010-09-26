@@ -17,7 +17,6 @@ class singleJets(analysis.analysis) :
 
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [1:3] ),
-                 "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ] [0:3] ),
                  "jetId" :  "JetIDloose",
                  "etRatherThanPt" : True,
                  }
@@ -110,9 +109,9 @@ class singleJets(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
 
-        outList =[
+        data = [
             specify(name = "JetMET_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20)
-            ]                                                   
+            ]
         py6_list = [                                            
           ##specify(name = "qcd_py6_pt30",          nFilesMax = -1, color = r.kBlue    ),
             specify(name = "qcd_py6_pt80",          nFilesMax = -1, color = r.kBlue    ),
@@ -159,52 +158,43 @@ class singleJets(analysis.analysis) :
             specify(name = "z_inv_mg_skim",         nFilesMax = -1, color = r.kMagenta ),
             specify(name = "z_jets_mg_skim",        nFilesMax = -1, color = r.kYellow-3),
             specify(name = "w_jets_mg_skim",        nFilesMax = -1, color = 28         ),
-            specify(name = "lm0",                   nFilesMax = -1, color = r.kRed     ),
-            specify(name = "lm1",                   nFilesMax = -1, color = r.kRed+1   ),
+            #specify(name = "lm0",                   nFilesMax = -1, color = r.kRed     ),
+            #specify(name = "lm1",                   nFilesMax = -1, color = r.kRed+1   ),
             ]
         
-        if params["mcSoup"]=="py6" : outList+=py6_list
-        if params["mcSoup"]=="py8" : outList+=py8_list
-        if params["mcSoup"]=="mg"  : outList+=mg_list
-        outList+=default_list
+        outList = data
+        outList += default_list
+
+        outList += py6_list
+        outList += py8_list
+        outList += mg_list
         
         #for i in range(len(outList)):
         #    o = outList[i]
         #    if o.name == "JetMET_skim": continue
-        #    outList[i] = specify(name = o.name, color = o.color, nFilesMax = 1, nEventsMax=5000)
-            
+        #    outList[i] = specify(name = o.name, color = o.color, nFilesMax = 1, nEventsMax=10000)
+
         return outList
 
     def conclude(self) :
-        for tag in self.sideBySideAnalysisTags() :
-            org=organizer.organizer( self.sampleSpecs(tag) )
-            org.mergeSamples(targetSpec = {"name":"g_jets_mg",     "color":r.kGreen},   sources = ["g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
-            
-            smSources = ["g_jets_mg","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"]
-            if "pythia6" in tag :
-                org.mergeSamples(targetSpec = {"name":"qcd_py6",    "color":r.kBlue},    sources = ["qcd_py6_pt%d"%i      for i in [80,170,300] ])
-                smSources.append("qcd_py6")
-            if "pythia8" in tag :
-                lowerPtList = [0,15,20,30,50,80,
-                               120,170,230,300,380,470,600,800,
-                               1000,1400,1800,2200,2600,3000,3500]
-                org.mergeSamples(targetSpec = {"name":"qcd_py8","color":r.kBlue},
-                                 sources = ["qcd_py8_pt%dto%d"%(lowerPtList[i],lowerPtList[i+1]) for i in range(len(lowerPtList)-1)] )
-                smSources.append("qcd_py8")
-            if "madgraph" in tag :
-                org.mergeSamples(targetSpec = {"name":"qcd_mg",    "color":r.kBlue},
-                                 sources = ["qcd_mg_ht_%s"%bin for bin in ["50_100","100_250","250_500","500_1000","1000_inf"] ])
-                smSources.append("qcd_mg")
-            
-            org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3}, sources = smSources, keepSources = True)
-            org.scale()
+        smSources = ["g_jets_mg","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"]
 
+        for tag in self.sideBySideAnalysisTags() :
+
+            org = organizer.organizer( self.sampleSpecs(tag) )
+            org.mergeSamples(targetSpec = {"name":"g_jets_mg", "color":r.kGreen}, allWithPrefix = "g_jets_mg")
+            for color,qcd in zip([r.kRed,r.kBlue,r.kGreen],["qcd_py6", "qcd_py8", "qcd_mg"]) :
+                org.mergeSamples(targetSpec = {"name":qcd, "color":r.kBlue}, allWithPrefix = qcd)
+                if qcd in [sample["name"] for sample in org.samples]:
+                    org.mergeSamples(targetSpec = {"name":"sm_w_"+qcd,"color":color}, sources = smSources+[qcd], keepSources = True)
+                    org.drop(qcd)
+            for sample in smSources: org.drop(sample)                    
+            org.scale()
 
             pl = plotter.plotter(org,
                                  psFileName = self.psFileName(tag),
-                                 samplesForRatios=("JetMET_skim","standard_model"),
-                                 sampleLabelsForRatios=("data","s.m."),
-                                 printStats=False,
-                                 compactOutput=True
+                                 samplesForRatios=("JetMET_skim", filter(lambda name: "sm_w_qcd" in name, [sample["name"] for sample in org.samples])),
+                                 sampleLabelsForRatios=("data","s.m.")
                                  )
             pl.plotAll()
+
