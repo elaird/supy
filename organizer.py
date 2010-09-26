@@ -1,5 +1,5 @@
 import ROOT as r
-import copy
+import copy,re
 
 class organizer(object) :
     """Organize selection and histograms.
@@ -81,12 +81,25 @@ class organizer(object) :
 
         return selections
 
-    def mergeSamples(self,sources = [], targetSpec = {}, keepSources = False) :
-        for org in self.alternateConfigurations :
-            org.mergeSamples(sources,targetSpec,keepSources)
+    def indexOfSampleWithName(self,name) :
+        return [sample["name"] for sample in self.samples].index(name)
 
-        assert not self.scaled, \
-               "Merge must be called before calling scale."
+    def drop(self,sampleName) :
+        index = self.indexOfSampleWithName(sampleName)
+        self.samples = self.samples[:index] + self.samples[index+1:]
+        for selection in self.selections:
+            for key,val in selection.iteritems():
+                selection[key] = val[:index] + val[index+1:]
+
+    def mergeSamples(self,sources = [], targetSpec = {}, keepSources = False, allWithPrefix = None) :
+        for org in self.alternateConfigurations :
+            org.mergeSamples(sources,targetSpec,keepSources,allWithPrefix)
+
+        assert not self.scaled, "Merge must be called before calling scale."
+
+        if not sources and allWithPrefix:
+            sources = filter(lambda n: re.match(allWithPrefix,n), [s["name"] for s in self.samples])
+
         for src in sources:
             if not src in map(lambda s: s["name"], self.samples): print "You have requested to merge unspecified sample %s"%src
         sourceIndices = filter(lambda i: self.samples[i]["name"] in sources, range(len(self.samples)))
@@ -119,7 +132,7 @@ class organizer(object) :
                 selection[key] = tuplePopInsert( val, hist )
             selection.rawFailPass = tuplePopInsert( selection.rawFailPass, None )
         self.samples = tuplePopInsert( self.samples, target )
-
+        return
 
     def scale(self, lumiToUseInAbsenceOfData = None) :
         for org in self.alternateConfigurations :
