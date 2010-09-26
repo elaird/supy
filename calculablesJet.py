@@ -171,7 +171,7 @@ class jetSumP4(wrappedChain.calculable) :
         indices = self.source[self.indicesName]
         self.value = reduce( lambda x,i: x+p4s.at(i), indices[1:], p4s.at(indices[0]) ) if len(indices) else None
 
-        if "genpthat" not in self.source : return
+        if "genpthat" not in self.source or not self.value : return
         #for MC only
         self.value *= self.mcScaleFactor
         ht = self.source["%sSumPt%s"%self.cs]
