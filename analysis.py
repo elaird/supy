@@ -33,7 +33,7 @@ class analysis(object) :
         self.name = self.__class__.__name__
 
         for item in ["baseOutputDirectory","listOfSampleDictionaries",
-                     "mainTree","otherTreesToKeepWhenSkimming","printNodesUsed"] :
+                     "mainTree","otherTreesToKeepWhenSkimming","leavesToBlackList","printNodesUsed"] :
             setattr(self, "_"+item, getattr(self,item)() )
 
         self.fileDirectory,self.treeName = self._mainTree
@@ -67,7 +67,7 @@ class analysis(object) :
     def outputPlotFileName(self,conf,sampleName) : return "%s/%s_plots.root" % ( self.outputDirectory(conf), sampleName )
     def psFileName(self,tag="") : return "%s/%s%s.ps" % (self.namedOutputDirectory(), self.name, "_"+tag if len(tag) else "")
 
-    def baseOutputDirectory(self) :            raise Exception("NotImplemented", "Implement a member function %s"%"baseOutputDirectory(self)")
+    def baseOutputDirectory(self) :      raise Exception("NotImplemented", "Implement a member function %s"%"baseOutputDirectory(self)")
     def listOfSteps(self,config) :       raise Exception("NotImplemented", "Implement a member function %s"%"listOfSteps(self,config)")
     def listOfCalculables(self,config) : raise Exception("NotImplemented", "Implement a member function %s"%"listOfCalculables(self,config)")
     def listOfSampleDictionaries(self) : raise Exception("NotImplemented", "Implement a member function %s"%"sampleDict(self)")
@@ -76,6 +76,7 @@ class analysis(object) :
     def printNodesUsed(self) : return False
     def mainTree(self) : return ("susyTree","tree")
     def otherTreesToKeepWhenSkimming(self) : return [("lumiTree","tree")]
+    def leavesToBlackList(self) : return ["hltL1Seeds"]
     def parameters(self) : return {}
     def conclude(self) : return
 
@@ -197,6 +198,7 @@ class analysis(object) :
             sampleLoopers.append(analysisLooper(self.fileDirectory,
                                                 self.treeName,
                                                 self._otherTreesToKeepWhenSkimming,
+                                                self._leavesToBlackList,
                                                 self.outputDirectory(conf),
                                                 self.outputPlotFileName(conf,sampleName),
                                                 adjustedListOfSteps,
