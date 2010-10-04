@@ -4,7 +4,7 @@ from collections import defaultdict
 
 class wrappedChain(dict) : 
 
-    def __init__(self, chain, calculables = [] , useSetBranchAddress = True) :
+    def __init__(self, chain, calculables = [], useSetBranchAddress = True, leavesToBlackList = []) :
         """Set up the nodes"""
         self.__activeNodes = defaultdict(int)
         self.__activeNodeList = []
@@ -14,6 +14,7 @@ class wrappedChain(dict) :
         for branch in chain.GetListOfBranches() :
             nameB = branch.GetName()
             nameL = (lambda nL: nameB if nL=="_" else nL )(branch.GetListOfLeaves().At(0).GetName())
+            if nameL in leavesToBlackList : continue
             dict.__setitem__(self, nameL, self.__branchNode( nameL, nameB, chain , useSetBranchAddress) )
 
         for calc in calculables :
