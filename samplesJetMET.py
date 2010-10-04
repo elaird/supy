@@ -25,3 +25,7 @@ jetmet.add("JetMET.Run2010A-PromptReco-v4.RECO.Alex",       '%s/as1604//ICF/auto
 #jetmet.add("Bryn.test.data", 'utils.getCommandOutput2("cat /home/hep/elaird1/LumiToOutput2.txt").replace(\'"\',"").replace("\\n","").split(",")[0:3]',   lumi = 999999.9 )
 #jetmet.add("PF_skim", '["~/public_html/23_high_alphaT_events/pf/SusyCAF_Tree.root"]',   lumi = 999999.9 )
 #jetmet.add("PF_skim_skim", '["~/public_html/23_high_alphaT_events/pf/PF_skim_skim.root"]',   lumi = 999999.9 )
+
+#TEST
+jetmet.add("JetMET_test_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/03_jetmet/")', lumi = 2.601 ) #/pb
+jetmet.add("JetMET_test_skim2", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/04_38_recipe/")', lumi = 2.601 ) #/pb
