@@ -115,3 +115,4 @@ mc.add("w_jets_mg_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/0
 #TEST SKIMS
 mc.add("qcd_test_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/01_qcd")',  xs = 1.0 )
 mc.add("g_jets_test_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/02_g_jets")',  xs = 1.0 )
+mc.add("burt_test_skim",'utils.getCommandOutput2("ls /vols/cms02/bbetchar/tmp//testSkim/config/*skim* | grep -v V14_minbias_py6_2_skim.root").split("\\n")', xs = 71.260e9 )
