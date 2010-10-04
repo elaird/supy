@@ -6,7 +6,7 @@ import ROOT as r
 class analysisLooper :
     """class to set up and loop over events"""
 
-    def __init__(self,fileDirectory,treeName,otherTreesToKeepWhenSkimming,
+    def __init__(self,fileDirectory,treeName,otherTreesToKeepWhenSkimming,leavesToBlackList,
                  outputDir,outputPlotFileName,steps,calculables,
                  sampleSpec,fileListCommand,xs,lumi,lumiWarn,
                  computeEntriesForReport,printNodesUsed,inputFiles = None):
@@ -14,7 +14,7 @@ class analysisLooper :
         for arg in ["name","nEventsMax","color","markerStyle"] :
             setattr(self,arg,getattr(sampleSpec,arg))
 
-        for arg in ["fileDirectory","treeName","otherTreesToKeepWhenSkimming",
+        for arg in ["fileDirectory","treeName","otherTreesToKeepWhenSkimming","leavesToBlackList",
                     "inputFiles","outputDir","fileListCommand","xs","lumi","lumiWarn",
                     "computeEntriesForReport","printNodesUsed","outputPlotFileName"] :
             setattr(self,arg,eval(arg))
@@ -44,7 +44,11 @@ class analysisLooper :
             assert (not iStep) or (not step.ignoreInAccounting),"An Ignored step may only be the first step"
 
         #loop through entries
-        chainWrapper = wrappedChain.wrappedChain(self.inputChain, calculables = self.calculables, useSetBranchAddress = useSetBranchAddress)
+        chainWrapper = wrappedChain.wrappedChain(self.inputChain,
+                                                 calculables = self.calculables,
+                                                 useSetBranchAddress = useSetBranchAddress,
+                                                 leavesToBlackList = self.leavesToBlackList
+                                                 )
         map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
         for step in self.steps :
             step.nPass = 0
