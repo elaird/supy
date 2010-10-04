@@ -143,15 +143,19 @@ def fileListFromSrmLs(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
 
     fileList=[]
     sizes=[]
-    cmd="srmls "+srmPrefix+"/"+location+" 2>&1 | grep -v JAVA_OPTIONS"
+    offset = 0
+    output = []
     #print cmd
-    output=getCommandOutput2(cmd)
-    for line in output.split("\n") :
+    while len(output) >= 1000*offset :
+        cmd="srmls --count 1000 --offset %d %s/%s 2>&1 | grep -v JAVA_OPTIONS"% (1000*offset,srmPrefix,location)
+        output += getCommandOutput2(cmd).split('\n')
+        offset += 1
+    for line in output :
         if ".root" not in line : continue
-        acceptFile=True
-        fields=line.split()
-        size=float(fields[0])
-        fileName=fields[1]
+        acceptFile = True
+        fields = line.split()
+        size = float(fields[0])
+        fileName = fields[1]
         
         if size<=sizeThreshold : acceptFile=False
         for item in itemsToSkip :
