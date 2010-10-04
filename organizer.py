@@ -82,7 +82,9 @@ class organizer(object) :
         return selections
 
     def indexOfSampleWithName(self,name) :
-        return [sample["name"] for sample in self.samples].index(name)
+        someList = [sample["name"] for sample in self.samples]
+        assert name in someList,"organizer: sample %s not found"%name
+        return someList.index(name)
 
     def drop(self,sampleName) :
         index = self.indexOfSampleWithName(sampleName)
