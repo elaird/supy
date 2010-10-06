@@ -123,6 +123,19 @@ class cleanJetEmfFilter(analysisStep) :
             if emf.at(index) > self.jetEmfMax :
                 return False
         return True
+#####################################
+class htSelector(analysisStep) :
+
+    def __init__(self,jetCollectionsAndSuffixes,htThreshold):
+        self.jetCollectionsAndSuffixes = jetCollectionsAndSuffixes
+        self.htThreshold = htThreshold
+        self.moreName = ''.join(["%s%s;" % cS for cS in self.jetCollectionsAndSuffixes])
+        self.moreName2 = " HT>=%.1f GeV" % self.htThreshold
+
+    def select (self,eventVars) :
+        for cs in self.jetCollectionsAndSuffixes :
+            if eventVars["%sSumPt%s"%cs]>self.htThreshold : return True
+        return False
 ######################################
 class cleanJetHtMhtHistogrammer(analysisStep) :
 
