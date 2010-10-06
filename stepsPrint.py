@@ -48,18 +48,19 @@ class jetPrinter(analysisStep) :
 
     def __init__(self,cs) :
         self.cs = cs
+        self.cs2 = (cs[0].replace("xc",""),cs[1])
         self.moreName="%s %s"%cs
-
+        
     def uponAcceptance (self,eventVars) :
 
         isPf = "PF" in self.cs[0]
         p4Vector        =eventVars['%sCorrectedP4%s'     %self.cs]
-        corrFactorVector=eventVars['%sCorrFactor%s'      %self.cs]
+        corrFactorVector=eventVars['%sCorrFactor%s'      %self.cs2]
 
         if not isPf :
-            jetEmfVector    =eventVars['%sEmEnergyFraction%s'%self.cs]
-            jetFHpdVector   =eventVars['%sJetIDFHPD%s'       %self.cs]
-            jetN90Vector    =eventVars['%sJetIDN90Hits%s'    %self.cs]
+            jetEmfVector    =eventVars['%sEmEnergyFraction%s'%self.cs2]
+            jetFHpdVector   =eventVars['%sJetIDFHPD%s'       %self.cs2]
+            jetN90Vector    =eventVars['%sJetIDN90Hits%s'    %self.cs2]
 
         jetIndices = eventVars["%sIndices%s"%self.cs]
         jetIndicesOther = eventVars["%sIndicesOther%s"%self.cs]
