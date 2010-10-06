@@ -187,7 +187,7 @@ def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
     if pruneList :   fileList=pruneCrabDuplicates(fileList,size)
     return fileList
 #####################################
-def fileListFromDisk(location,itemsToSkip=[],sizeThreshold=0) :
+def fileListFromDisk(location, isDirectory = True, itemsToSkip = [], sizeThreshold = 0) :
     fileList=[]
     cmd="ls -l "+location
     #print cmd
@@ -202,8 +202,8 @@ def fileListFromDisk(location,itemsToSkip=[],sizeThreshold=0) :
         if size<=sizeThreshold : acceptFile=False
         for item in itemsToSkip :
             if item in fileName : acceptFile=False
-        if acceptFile : fileList.append(location+"/"+fileName)
-            
+        if acceptFile : fileList.append(fileName if not isDirectory else location+"/"+fileName)
+
     return fileList
 #####################################        
 class rBin(object) :
