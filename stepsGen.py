@@ -252,6 +252,40 @@ class genSHatHistogrammer(analysisStep) :
         print indices,rootSHat
         self.book(eventVars).fill(rootSHat, "rootSHat", 100, 0.0, 300.0, title = ";#sqrt{#hat{s}} (GeV);events / bin")
 #####################################
+class photonPurityPlots(analysisStep) :
+
+    def __init__(self, label, jetCs, photonCs) :
+        for item in ["label","jetCs","photonCs"] :
+            setattr(self,item,eval(item))
+        
+    def uponAcceptance (self, eventVars) :
+        genP4s   = eventVars["genP4"]
+        jetSumP4 = eventVars["%sSumP4%s"%self.jetCs]
+        recoP4   = eventVars["%sP4%s"%self.photonCs].at( eventVars["%sIndices%s"%self.photonCs][0] )
+        categories = eventVars["category"+self.label]
+
+        recoPt = recoP4.pt()
+        matchedIndices = []
+        for index in eventVars["genIndices"+self.label] :
+            genP4 = genP4s.at(index)
+            genPt  = genP4.pt()            
+            deltaR = r.Math.VectorUtil.DeltaR(recoP4,genP4)
+            if genPt>0.3*recoPt :
+                self.book(eventVars).fill(deltaR,"deltaRGenReco", 100, 0.0, 5.0, title = ";#DeltaR (GEN,RECO) photon when {gen pT > 0.3 reco pT};photons / bin")
+
+            if deltaR>0.5 :
+                continue
+            matchedIndices.append(index)
+            self.book(eventVars).fill(genPt,         categories[index]+"genPt" , 100, 0.0, 200.0, title = ";GEN photon p_{T} (GeV);photons / bin")
+            self.book(eventVars).fill(recoPt,        categories[index]+"recoPt", 100, 0.0, 200.0, title = ";reco. photon p_{T} (GeV);photons / bin")
+            self.book(eventVars).fill(jetSumP4.pt(), categories[index]+"mht",    100, 0.0, 200.0, title = ";MHT (GeV);photons / bin")
+        self.book(eventVars).fill(len(matchedIndices),"nMatch",10, -0.5, 9.5, title = ";N gen. photons within #DeltaR 0.5 of the reco photon;photons / bin")
+
+        if len(matchedIndices)==1 :
+            self.book(eventVars).fill( ( recoPt, genP4s.at(matchedIndices[0]).pt() ), "genVsRecoPt",
+                                       (50,50), (0.0,0.0), (200.0,200.0),
+                                       title = "nMatch = 1;RECO photon p_{T} (GeV);GEN photon p_{T} (GeV);photons / bin")
+#####################################
 class genMotherHistogrammer(analysisStep) :
 
     def __init__(self, indexLabel, specialPtThreshold) :
@@ -278,7 +312,28 @@ class genMotherHistogrammer(analysisStep) :
         self.binLabels.append(name)
         self.motherDict[id] = self.binLabels[-1]
 
-    def uponAcceptance (self,eventVars) :
+    def fillSpecialHistos(self, eventVars) :
+        self.fillSpecialHistos(eventVars)
+        motherIndex = eventVars["genMother"].at(iParticle)
+        #motherIndex = eventVars["genMotherIndex"].at(iParticle)
+        motherP4 = eventVars["genP4"].at(motherIndex)
+        deltaRPhotonMother = r.Math.VectorUtil.DeltaR(p4,motherP4)
+        deltaRPhotonOther  = r.Math.VectorUtil.DeltaR(p4,motherP4-p4)
+        
+        self.book(eventVars).fill(motherP4.mass(), "mothersMass",
+                                  20, -0.1, 0.4,
+                                  title = ";mother's mass (GeV) [when GEN photon p_{T}> %.1f (GeV) and mother is u quark];photons / bin"%self.specialPtThreshold
+                                  )
+        self.book(eventVars).fill(deltaRPhotonMother, "deltaRPhotonMother",
+                                  20, 0.0, 1.5,
+                                  title = ";#DeltaR(photon,mother) [when GEN photon p_{T}> %.1f (GeV) and mother is u quark];photons / bin"%self.specialPtThreshold
+                                  )
+        self.book(eventVars).fill(deltaRPhotonOther, "deltaRPhotonOther",
+                                  20, 0.0, 1.5,
+                                  title = ";#DeltaR(photon,mother-photon) [when GEN photon p_{T}> %.1f (GeV) and mother is u quark];photons / bin"%self.specialPtThreshold
+                                  )
+        
+    def uponAcceptance (self, eventVars) :
         indices = eventVars[self.indexLabel]
         if len(indices)==0 : return
 
@@ -299,27 +354,9 @@ class genMotherHistogrammer(analysisStep) :
                                           nBinsY, -0.5, nBinsY-0.5,
                                           title = ";mother [when GEN photon p_{T}> %.1f (GeV)];photons / bin"%self.specialPtThreshold
                                           )
-                if motherId==2 :
-                    motherIndex = eventVars["genMother"][iParticle]
-                    motherP4 = eventVars["genP4"][motherIndex]
-                    deltaRPhotonMother = r.Math.VectorUtil.DeltaR(p4,motherP4)
-                    deltaRPhotonOther  = r.Math.VectorUtil.DeltaR(p4,motherP4-p4)
+                if motherId==2 : self.fillSpecialHistos(eventVars)
 
-                    self.book(eventVars).fill(motherP4.mass(), "mothersMass",
-                                              20, -0.1, 0.4,
-                                              title = ";mother's mass (GeV) [when GEN photon p_{T}> %.1f (GeV) and mother is u quark];photons / bin"%self.specialPtThreshold
-                                              )
-                    self.book(eventVars).fill(deltaRPhotonMother, "deltaRPhotonMother",
-                                              20, 0.0, 1.5,
-                                              title = ";#DeltaR(photon,mother) [when GEN photon p_{T}> %.1f (GeV) and mother is u quark];photons / bin"%self.specialPtThreshold
-                                              )
-                    self.book(eventVars).fill(deltaRPhotonOther, "deltaRPhotonOther",
-                                              20, 0.0, 1.5,
-                                              title = ";#DeltaR(photon,mother-photon) [when GEN photon p_{T}> %.1f (GeV) and mother is u quark];photons / bin"%self.specialPtThreshold
-                                              )
-                
-
-    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+    def endFunc(self, chain, otherChainDict, nEvents, xs) :
         for book in self.books.values() :
             if self.keyAll in book :
                 for iParticle in range(len(self.binLabels)) :
