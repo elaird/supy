@@ -27,6 +27,26 @@ class genIndices(wrappedChain.calculable) :
                              status.at(i) in self.status, range(pdg.size()) )
 
 ##############################
+class genPhotonCategory(wrappedChain.calculable) :
+    def name(self) :
+        return "category"+self.label
+
+    def __init__(self, label) :
+        self.moreName = "hi"
+        self.label = label
+        
+    def update(self, ignored) :
+        self.value = {}
+
+        for index in self.source["genIndices"+self.label] :
+            moId = self.source["genMotherPdgId"][index]
+            if moId==22 :
+                self.value[index] = "direct"
+            elif abs(moId)<22 :
+                self.value[index] = "fragmentation"
+            else :
+                self.value[index] = "other"
+##############################
 class genParticleCounter(wrappedChain.calculable) :
     def name(self) : return "GenParticleCategoryCounts"
 
