@@ -313,7 +313,6 @@ class genMotherHistogrammer(analysisStep) :
         self.motherDict[id] = self.binLabels[-1]
 
     def fillSpecialHistos(self, eventVars) :
-        self.fillSpecialHistos(eventVars)
         motherIndex = eventVars["genMother"].at(iParticle)
         #motherIndex = eventVars["genMotherIndex"].at(iParticle)
         motherP4 = eventVars["genP4"].at(motherIndex)
