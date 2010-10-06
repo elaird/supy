@@ -372,11 +372,15 @@ def mergeFunc(looper,listOfSlices) :
     looperPrint(looper)
 
     cmd = "hadd -f "+looper.outputPlotFileName+" "+" ".join(plotFileNameList)
-    cmd+= " | grep -v 'Source file' | grep -v 'Target path' | grep -v 'Found subdirectory'"
-    #print cmd
     hAddOut = utils.getCommandOutput2(cmd)
+
+    for line in hAddOut.split("\n") :
+        if 'Source file' in line or \
+           'Target path' in line or \
+           'Found subdirectory' in line : continue
+        print line.replace("Target","The output")+" has been written."
+        break
             
-    print hAddOut[:-1].replace("Target","The output")+" has been written."
     print utils.hyphens
 
     mergeDisplays(displayFileDict, looper)
