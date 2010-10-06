@@ -34,13 +34,21 @@ class hadronicLook(analysis.analysis) :
         _jetPtMin = params["objects"]["jetPtMin"]
         _etRatherThanPt = params["etRatherThanPt"]
         _met = params["objects"]["met"]
+        _correctForMuons = not params["objects"]["muonsInJets"]
         
         return calculables.zeroArgs() +\
                calculables.fromCollections("calculablesJet",[_jet]) +\
                calculables.fromCollections("calculablesMuon",[_muon]) +\
                calculables.fromCollections("calculablesElectron",[_electron]) +\
                calculables.fromCollections("calculablesPhoton",[_photon]) +\
-               [ #calculables.xcJet( _jet,  gamma = _photon, gammaDR = 0.5, muon = _muon, muonDR = 0.5, electron = _electron, electronDR = 0.5),
+               [ #calculables.xcJet(_jet,
+                 #                  gamma = _photon,
+                 #                  gammaDR = 0.5,
+                 #                  muon = _muon,
+                 #                  muonDR = 0.5,
+                 #                  correctForMuons = _correctForMuons,
+                 #                  electron = _electron,
+                 #                  electronDR = 0.5),
                  calculables.jetIndices( _jet, _jetPtMin, etaMax = 3.0, flagName = params["jetId"]),
                  calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15),
                  calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
@@ -65,7 +73,7 @@ class hadronicLook(analysis.analysis) :
         outList=[
             steps.progressPrinter(),
             steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
-
+            
             steps.preIdJetPtSelector(_jet,100.0,0),
             steps.preIdJetPtSelector(_jet, 80.0,1),
             steps.jetEtaSelector(_jet,2.5,0),
@@ -76,7 +84,7 @@ class hadronicLook(analysis.analysis) :
             steps.physicsDeclared(),
             steps.monsterEventFilter(),
             steps.hbheNoiseFilter(),
-
+            
             steps.hltPrescaleHistogrammer(["HLT_Jet50U","HLT_HT100U","HLT_MET45"]),       
             
             steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
@@ -96,12 +104,13 @@ class hadronicLook(analysis.analysis) :
             steps.multiplicityFilter("%sIndicesOther%s"%_muon, nMax = 0),
             steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_photon, nMax = 0),
+
             #steps.histogrammer("%sIndicesUnmatched%s"%_electron,10,-0.5,9.5,title="; N electrons unmatched;events / bin", funcString = "lambda x: len(x)"),
             #steps.multiplicityFilter("%sIndicesUnmatched%s"%_electron, nMax = 0),
             #steps.histogrammer("%sIndicesUnmatched%s"%_photon,10,-0.5,9.5,title="; N photons unmatched;events / bin", funcString = "lambda x: len(x)"),
             #steps.multiplicityFilter("%sIndicesUnmatched%s"%_photon, nMax = 0),
             #steps.uniquelyMatchedNonisoMuons(_jet),
-
+            
             steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
             steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
             
@@ -114,8 +123,7 @@ class hadronicLook(analysis.analysis) :
             steps.passFilter("kinematicPlots1"), 
             steps.alphaHistogrammer(_jet, _etRatherThanPt),
             steps.alphaMetHistogrammer(_jet, _etRatherThanPt, _met),
-
-
+            
             ###extrapolation region
             ##steps.variableGreaterFilter(0.50,"%sAlphaT%s"%_jet),
             ##
@@ -126,14 +134,18 @@ class hadronicLook(analysis.analysis) :
             ##steps.cleanJetHtMhtHistogrammer(_jet),
             ###steps.passFilter("kinematicPlots2"), 
             ###steps.alphaHistogrammer(_jet),
-
+            
             #signal selection
             steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
             
+            ##steps.variableGreaterFilter(0.53,"%sAlphaTMet%s"%_jet),
+            
             #steps.skimmer(),
             #steps.eventPrinter(),
             #steps.jetPrinter(_jet),
+            #steps.particleP4Printer(_photon),
+            #steps.recHitPrinter("clusterPF","Ecal"),
             #steps.htMhtPrinter(_jet),
             #steps.alphaTPrinter(_jet,_etRatherThanPt),
             #steps.genParticlePrinter(minPt=10.0,minStatus=3),
@@ -144,7 +156,7 @@ class hadronicLook(analysis.analysis) :
             #                electrons = params["objects"]["electron"],
             #                photons   = params["objects"]["photon"],                            
             #                recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
-            #                scale = 200.0,#GeV
+            #                scale = 400.0,#GeV
             #                etRatherThanPt = _etRatherThanPt,
             #                ),
             
@@ -157,9 +169,6 @@ class hadronicLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
 
-        outList =[
-            specify(name = "JetMET_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20)
-            ]                                                   
         py6_list = [                                            
           ##specify(name = "qcd_py6_pt30",          nFilesMax = -1, color = r.kBlue    ),
             specify(name = "qcd_py6_pt80",          nFilesMax = -1, color = r.kBlue    ),
@@ -209,7 +218,12 @@ class hadronicLook(analysis.analysis) :
             specify(name = "lm0",                   nFilesMax = -1, color = r.kRed     ),
             specify(name = "lm1",                   nFilesMax = -1, color = r.kRed+1   ),
             ]
-        
+
+        dataList = [
+            specify(name = "JetMET_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20)
+            ]                                            
+        outList = []
+        outList += dataList
         if params["mcSoup"]=="py6" : outList+=py6_list
         if params["mcSoup"]=="py8" : outList+=py8_list
         if params["mcSoup"]=="mg"  : outList+=mg_list
@@ -240,7 +254,6 @@ class hadronicLook(analysis.analysis) :
             
             org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3}, sources = smSources, keepSources = True)
             org.scale()
-
 
             ##other
             #import deltaPhiLook
