@@ -2,43 +2,33 @@
 
 import os,analysis,utils,calculables,steps,samples
 
+jetAlgoList=[("ak5Jet"+jetType,"Pat") for jetType in ["","PF","JPT"]]
+
 class hadronicSkim(analysis.analysis) :
     def baseOutputDirectory(self) :
         return "/vols/cms02/%s/tmp/"%os.environ["USER"]
 
     def listOfSteps(self,params) :
-        jetAlgoList=[("ak5Jet"+jetType,"Pat") for jetType in ["","PF","JPT"]]
         stepList=[ steps.progressPrinter(2,300),
-                   steps.hltFilter("HLT_Jet50U"),
-                   steps.leadingUnCorrJetPtSelector(jetAlgoList,100.0),
+                   steps.hltFilterList(["HLT_HT100U","HLT_HT120U","HLT_HT140U"]),
                    steps.techBitFilter([0],True),
                    steps.physicsDeclared(),
                    steps.vertexRequirementFilter(),
                    steps.monsterEventFilter(),
+                   steps.htSelector(jetAlgoList,250.0),
                    steps.skimmer(),
                    ]
         return stepList
 
     def listOfCalculables(self,params) :
-        return calculables.zeroArgs()
+        return calculables.zeroArgs() +\
+               calculables.fromCollections("calculablesJet",jetAlgoList) +\
+               [calculables.jetIndices( jet, 30.0, etaMax = 3.0, flagName = "JetIDloose") for jet in jetAlgoList]
+    
 
     def listOfSamples(self,params) :
         from samples import specify
-        return [#specify(name = "MinimumBias.Commissioning10-SD_JetMETTau-Jun14thSkim_v1.RECO.Bryn" ),
-                #specify(name = "JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn"                     ),
-                #specify(name = "JetMETTau.Run2010A-Jul16thReReco-v1.RECO.Bryn"                     ),
-                #specify(name = "JetMETTau.Run2010A-PromptReco-v4.RECO.Bryn"                        ),
-                #specify(name = "JetMETTau.Run2010A-PromptReco-v4.RECO.Loukas"                      ),
-                #specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Loukas"                         ),
-                #specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Martyn"                         ),
-                #specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Bryn"                           ),
-                #specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Bryn2"                           ),
-                specify(name = "JetMET.Run2010A-PromptReco-v4.RECO.Alex"                           ),
-
-                #specify(name = "z_inv_mg"    ),
-                #specify(name = "z_jets_mg"   ),
-                #specify(name = "w_jets_mg"   ),
-                ]
+        return [specify(name = "Jet.Run2010B-PromptReco-v2.RECO.Burt")]
 
     def listOfSampleDictionaries(self) :
         return [samples.jetmet,samples.mc]
