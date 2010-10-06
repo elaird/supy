@@ -63,6 +63,17 @@ class hltFilter(analysisStep) :
     def select (self,eventVars) :
         return eventVars["triggered"][self.hltPathName]
 #####################################
+class hltFilterList(analysisStep) :
+
+    def __init__(self,hltPathNames):
+        self.hltPathNames = hltPathNames
+        self.moreName = "any of "+str(self.hltPathNames)
+
+    def select (self,eventVars) :
+        for path in self.hltPathNames :
+            if eventVars["triggered"][path] : return True
+        return False
+#####################################
 class hltPrescaleHistogrammer(analysisStep) :
 
     def __init__(self,listOfHltPaths) :
