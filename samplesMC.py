@@ -84,17 +84,18 @@ mc.add("g_jets_mg_pt200",    '%s/arlogb/ICF/automated/2010_07_26_15_14_40/Photon
 
 #PY GAMMA + JETS INCLUSIVE
 rnString = 'utils.fileListFromDisk(location = "/vols/cms02/rnandi/PhotonJet_Pt%d.root", isDirectory = False)'
-mc.add("g_jets_py_pt15"  , rnString%15  , xs = 1.922e+05, ptHatMin =   15) 
-mc.add("g_jets_py_pt30"  , rnString%30  , xs = 2.007e+04, ptHatMin =   30) 
-mc.add("g_jets_py_pt80"  , rnString%80  , xs = 5.565e+02, ptHatMin =   80) 
-mc.add("g_jets_py_pt170" , rnString%170 , xs = 2.437e+01, ptHatMin =  170)
-mc.add("g_jets_py_pt300" , rnString%300 , xs = 1.636e+00, ptHatMin =  300)
-mc.add("g_jets_py_pt470" , rnString%470 , xs = 1.360e-01, ptHatMin =  470)
-mc.add("g_jets_py_pt800" , rnString%800 , xs = 3.477e-03, ptHatMin =  800)
-mc.add("g_jets_py_pt1400", rnString%1400, xs = 1.286e-05, ptHatMin = 1400)
-mc.add("g_jets_py_pt2200", rnString%2200, xs = 4.035e-09, ptHatMin = 2200)
-mc.add("g_jets_py_pt3000", rnString%3000, xs = 1.779e-14, ptHatMin = 3000)
-            
+mc.add("g_jets_py6_pt15"  , rnString%15  , xs = 1.922e+05, ptHatMin =   15) 
+mc.add("g_jets_py6_pt30"  , rnString%30  , xs = 2.007e+04, ptHatMin =   30) 
+mc.add("g_jets_py6_pt80"  , rnString%80  , xs = 5.565e+02, ptHatMin =   80) 
+mc.add("g_jets_py6_pt170" , rnString%170 , xs = 2.437e+01, ptHatMin =  170)
+mc.add("g_jets_py6_pt300" , rnString%300 , xs = 1.636e+00, ptHatMin =  300)
+mc.add("g_jets_py6_pt470" , rnString%470 , xs = 1.360e-01, ptHatMin =  470)
+mc.add("g_jets_py6_pt800" , rnString%800 , xs = 3.477e-03, ptHatMin =  800)
+mc.add("g_jets_py6_pt1400", rnString%1400, xs = 1.286e-05, ptHatMin = 1400)
+mc.add("g_jets_py6_pt2200", rnString%2200, xs = 4.035e-09, ptHatMin = 2200)
+mc.add("g_jets_py6_pt3000", rnString%3000, xs = 1.779e-14, ptHatMin = 3000)
+mc.adjustOverlappingSamples( ["g_jets_py6_pt%d"%i for i in [15,30,80,170,300,470,800,1400,2200,3000] ] )
+
 #MG TT/EWK
 mc.add("tt_tauola_mg",'utils.fileListFromDisk(location = "/vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root", isDirectory = False, itemsToSkip = ["_4_2"] )',
        xs = {"LO":95.0,"NLO":157.5}["LO"] )
