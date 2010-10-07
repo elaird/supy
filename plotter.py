@@ -79,12 +79,14 @@ class plotter(object) :
                  nLinesMax = 17,
                  shiftUnderOverFlows = True,
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
-                 blackList = ["counts"]
+                 blackList = []
                  ) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios",
                      "doLog","drawYx","doMetFit","doColzFor2D","nLinesMax","compactOutput",
                      "shiftUnderOverFlows","dontShiftList","blackList","showStatBox" ] :
             setattr(self,item,eval(item))
+
+        self.blackList.append("counts")
         self.plotRatios = self.samplesForRatios!=("","")        
         self.psOptions = "Landscape"
         self.canvas = r.TCanvas()
