@@ -113,9 +113,9 @@ class singlePhotonHistogrammer(analysisStep) :
                           (50, 50), (0.0, 0.0), (500.0, 0.1),
                           title=";photon%s p_{T} (GeV) [photon in endcap];sigma i#eta i#eta;events / bin"%photonLabel)
 #####################################
-class photonPtSelector(analysisStep) :
+class photonPtGreaterSelector(analysisStep) :
 
-    def __init__(self,cs,photonPtThreshold,photonIndex):
+    def __init__(self, cs, photonPtThreshold, photonIndex):
         self.photonIndex = photonIndex
         self.photonPtThreshold = photonPtThreshold
         self.cs = cs
@@ -128,4 +128,20 @@ class photonPtSelector(analysisStep) :
         if len(indices) <= self.photonIndex : return False
         p4s = eventVars[self.p4sName]
         return self.photonPtThreshold <= p4s.at(indices[self.photonIndex]).pt()
+#####################################
+class photonPtLessSelector(analysisStep) :
+
+    def __init__(self, cs, photonPtThreshold, photonIndex):
+        self.photonIndex = photonIndex
+        self.photonPtThreshold = photonPtThreshold
+        self.cs = cs
+        self.indicesName = "%sIndices%s" % self.cs
+        self.p4sName = "%sP4%s" % self.cs
+        self.moreName = "%s%s; pT[index[%d]]<%.1f GeV" % (self.cs[0], self.cs[1], photonIndex, photonPtThreshold)
+
+    def select (self,eventVars) :
+        indices = eventVars[self.indicesName]
+        if len(indices) <= self.photonIndex : return False
+        p4s = eventVars[self.p4sName]
+        return self.photonPtThreshold > p4s.at(indices[self.photonIndex]).pt()
 #####################################
