@@ -127,6 +127,7 @@ class photonLook(analysis.analysis) :
             steps.passFilter("purityPlots4"),
             steps.photonPurityPlots("Photon", _jet, _photon),
 
+            #steps.photonPtSelector(_photon, 450, 0),
             
             #steps.skimmer(),
             #steps.eventPrinter(),
@@ -158,65 +159,65 @@ class photonLook(analysis.analysis) :
         from samples import specify
 
         qcd_py6 = [                                            
-          ##specify(name = "qcd_py6_pt30",          nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py6_pt80",          nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py6_pt170",         nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py6_pt300",         nFilesMax =  -1, color = r.kBlue    ),
-          ##specify(name = "qcd_test_skim",         nFilesMax =  -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py6_pt470",         nFilesMax =  -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py6_pt800",         nFilesMax =  -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py6_pt1400",        nFilesMax =  -1, color = r.kBlue    ),
-            ]                                                    
-                                                                 
-        qcd_py8 = [                                              
-          ##specify(name = "qcd_py8_pt0to15",       nFilesMax =  -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py8_pt15to20",      nFilesMax =  -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py8_pt20to30",      nFilesMax =  -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py8_pt30to50",      nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt50to80",      nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt80to120",     nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt120to170",    nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt170to230",    nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt230to300",    nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt300to380",    nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt380to470",    nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt470to600",    nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt600to800",    nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt800to1000",   nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt1000to1400",  nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt1400to1800",  nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt1800to2200",  nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt2200to2600",  nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt2600to3000",  nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt3000to3500",  nFilesMax =  -1, color = r.kBlue    ),
-            ]                                                    
-                                                                 
-        qcd_mg = [                                               
-            specify(name = "qcd_mg_ht_50_100",      nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_100_250",     nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_250_500",     nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_500_1000",    nFilesMax =  -1, color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_1000_inf",    nFilesMax =  -1, color = r.kBlue    ),
-            ]                                                    
-                                                                 
-        g_jets_mg = [                                            
-            specify(name = "g_jets_mg_pt40_100",    nFilesMax =  -1, color = r.kGreen   ),
-            specify(name = "g_jets_mg_pt100_200",   nFilesMax =  -1, color = r.kGreen   ),
-            specify(name = "g_jets_mg_pt200",       nFilesMax =  -1, color = r.kGreen   ),
-          ##specify(name = "g_jets_test_skim",      nFilesMax =  -1, color = r.kGreen   ),
-            ]                                                    
-                                                                 
-        data = [                                                 
-            specify(name = "JetMET_skim",           nFilesMax =  -1, color = r.kBlack, markerStyle = 20)
+          ##specify(name = "qcd_py6_pt30",          nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py6_pt80",          nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py6_pt170",         nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py6_pt300",         nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "qcd_test_skim",         nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py6_pt470",         nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py6_pt800",         nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py6_pt1400",        nFilesMax = -1, color = r.kBlue    ),
+            ]                                                   
+                                                                
+        qcd_py8 = [                                             
+          ##specify(name = "qcd_py8_pt0to15",       nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py8_pt15to20",      nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py8_pt20to30",      nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py8_pt30to50",      nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt50to80",      nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt80to120",     nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt120to170",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt170to230",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt230to300",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt300to380",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt380to470",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt470to600",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt600to800",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt800to1000",   nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt1000to1400",  nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt1400to1800",  nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt1800to2200",  nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt2200to2600",  nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt2600to3000",  nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt3000to3500",  nFilesMax = -1, color = r.kBlue    ),
+            ]                                                   
+                                                                
+        qcd_mg = [                                              
+            specify(name = "qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
+            ]                                                   
+                                                                
+        g_jets_mg = [                                           
+            specify(name = "g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
+            specify(name = "g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
+            specify(name = "g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
+          ##specify(name = "g_jets_test_skim",      nFilesMax = -1, color = r.kGreen   ),
+            ]                                                   
+                                                                
+        data = [                                                
+            specify(name = "JetMET_skim",           nFilesMax = -1, color = r.kBlack, markerStyle = 20)
             ]
 
         other = [                                        
-            specify(name = "tt_tauola_mg",          nFilesMax =  3, color = r.kOrange  ),
+           #specify(name = "tt_tauola_mg",          nFilesMax =  3, color = r.kOrange  ),
             specify(name = "z_inv_mg_skim",         nFilesMax = -1, color = r.kMagenta ),
             specify(name = "z_jets_mg_skim",        nFilesMax = -1, color = r.kYellow-3),
             specify(name = "w_jets_mg_skim",        nFilesMax = -1, color = 28         ),
-            specify(name = "lm0",                   nFilesMax = -1, color = r.kRed     ),
-            specify(name = "lm1",                   nFilesMax = -1, color = r.kRed+1   ),
+           #specify(name = "lm0",                   nFilesMax = -1, color = r.kRed     ),
+           #specify(name = "lm1",                   nFilesMax = -1, color = r.kRed+1   ),
             ]
 
         g_jets_py6 = [
@@ -239,7 +240,7 @@ class photonLook(analysis.analysis) :
             outList+=g_jets_mg
 
         outList+=data
-        #outList+=other
+        outList+=other
         return outList
 
     def mergeSamples(self, org, tag) :
