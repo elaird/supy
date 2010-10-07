@@ -134,7 +134,7 @@ class htSelector(analysisStep) :
 
     def select (self,eventVars) :
         for cs in self.jetCollectionsAndSuffixes :
-            if eventVars["%sSumPt%s"%cs]>self.htThreshold : return True
+            if eventVars["%sSumEt%s"%cs]>self.htThreshold : return True
         return False
 ######################################
 class cleanJetHtMhtHistogrammer(analysisStep) :
