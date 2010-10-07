@@ -15,7 +15,7 @@ class photonLook(analysis.analysis) :
 
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]                     [0:1] ),
-                 "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ]               [0:1] ),
+                 "mcSoup" :           dict([ ("pythia6","py6"), ("madgraph","mg"), ("pythia8","py8") ]               [0:2] ),
                  "photonId" :         dict([ ("photonLoose","photonIDloosePat"), ("photonTight","photonIDtightPat")] [0:1] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  "etRatherThanPt" : [True,False]        [0],
@@ -49,6 +49,7 @@ class photonLook(analysis.analysis) :
                  calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
                  calculables.photonIndicesPat(  ptMin = 20, flagName = params["photonId"]),
                  calculables.genIndices( pdgs = [22], label = "Photon", status = [1]),
+                 calculables.genPhotonCategory(label = "Photon"),
                  #calculables.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
                  #calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
@@ -97,9 +98,15 @@ class photonLook(analysis.analysis) :
             steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_photon, nMin = 1, nMax = 1),
 
+            steps.passFilter("purityPlots1"),
+            steps.photonPurityPlots("Photon", _jet, _photon),
+
             steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
             steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
-            
+
+            steps.passFilter("purityPlots2"),
+            steps.photonPurityPlots("Photon", _jet, _photon),
+
             #many plots
             steps.passFilter("singlePhotonPlots"),
             steps.singlePhotonHistogrammer(_photon, _jet),
@@ -110,15 +117,22 @@ class photonLook(analysis.analysis) :
             steps.alphaHistogrammer(_jet, _etRatherThanPt),
 
             steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
-            steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
 
+            steps.passFilter("purityPlots3"),
+            steps.photonPurityPlots("Photon", _jet, _photon),
+
+            steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
             steps.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
-            #steps.photonPtSelector(_photon, 450, 0),
+
+            steps.passFilter("purityPlots4"),
+            steps.photonPurityPlots("Photon", _jet, _photon),
+
             
             #steps.skimmer(),
             #steps.eventPrinter(),
             #steps.jetPrinter(_jet),
             #steps.htMhtPrinter(_jet),
+            #steps.particleP4Printer(_photon),
             #steps.alphaTPrinter(_jet,_etRatherThanPt),
             #steps.genParticlePrinter(minPt=10.0,minStatus=3),
             #steps.genParticlePrinter(minPt=-10.0,minStatus=1),
@@ -143,117 +157,203 @@ class photonLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
 
-        py6_list = [                                            
-          ##specify(name = "qcd_py6_pt30",          nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py6_pt80",          nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py6_pt170",         nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py6_pt300",         nFilesMax = -1, color = r.kBlue    ),
-            #specify(name = "qcd_test_skim",         nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py6_pt470",         nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py6_pt800",         nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py6_pt1400",        nFilesMax = -1, color = r.kBlue    ),
-            ]                                                   
-        py8_list = [                                            
-          ##specify(name = "qcd_py8_pt0to15",       nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py8_pt15to20",      nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py8_pt20to30",      nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py8_pt30to50",      nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt50to80",      nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt80to120",     nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt120to170",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt170to230",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt230to300",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt300to380",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt380to470",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt470to600",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt600to800",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt800to1000",   nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt1000to1400",  nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt1400to1800",  nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt1800to2200",  nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt2200to2600",  nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt2600to3000",  nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt3000to3500",  nFilesMax = -1, color = r.kBlue    ),
-            ]                                             
-        mg_list = [
-            specify(name = "qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
+        qcd_py6 = [                                            
+          ##specify(name = "qcd_py6_pt30",          nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py6_pt80",          nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py6_pt170",         nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py6_pt300",         nFilesMax =  -1, color = r.kBlue    ),
+          ##specify(name = "qcd_test_skim",         nFilesMax =  -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py6_pt470",         nFilesMax =  -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py6_pt800",         nFilesMax =  -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py6_pt1400",        nFilesMax =  -1, color = r.kBlue    ),
+            ]                                                    
+                                                                 
+        qcd_py8 = [                                              
+          ##specify(name = "qcd_py8_pt0to15",       nFilesMax =  -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py8_pt15to20",      nFilesMax =  -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py8_pt20to30",      nFilesMax =  -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py8_pt30to50",      nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt50to80",      nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt80to120",     nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt120to170",    nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt170to230",    nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt230to300",    nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt300to380",    nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt380to470",    nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt470to600",    nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt600to800",    nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt800to1000",   nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt1000to1400",  nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt1400to1800",  nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt1800to2200",  nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt2200to2600",  nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt2600to3000",  nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt3000to3500",  nFilesMax =  -1, color = r.kBlue    ),
+            ]                                                    
+                                                                 
+        qcd_mg = [                                               
+            specify(name = "qcd_mg_ht_50_100",      nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_100_250",     nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_250_500",     nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_500_1000",    nFilesMax =  -1, color = r.kBlue    ),
+            specify(name = "qcd_mg_ht_1000_inf",    nFilesMax =  -1, color = r.kBlue    ),
+            ]                                                    
+                                                                 
+        g_jets_mg = [                                            
+            specify(name = "g_jets_mg_pt40_100",    nFilesMax =  -1, color = r.kGreen   ),
+            specify(name = "g_jets_mg_pt100_200",   nFilesMax =  -1, color = r.kGreen   ),
+            specify(name = "g_jets_mg_pt200",       nFilesMax =  -1, color = r.kGreen   ),
+          ##specify(name = "g_jets_test_skim",      nFilesMax =  -1, color = r.kGreen   ),
+            ]                                                    
+                                                                 
+        data = [                                                 
+            specify(name = "JetMET_skim",           nFilesMax =  -1, color = r.kBlack, markerStyle = 20)
             ]
-        data_list = [
-            specify(name = "JetMET_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20)
-            ]                                           
-        default_list = [                                        
-            #specify(name = "tt_tauola_mg",          nFilesMax =  3, color = r.kOrange  ),
-            specify(name = "g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
-            specify(name = "g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
-            specify(name = "g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
-            #specify(name = "g_jets_test_skim",       nFilesMax = -1, color = r.kGreen   ),
-            #specify(name = "z_inv_mg_skim",         nFilesMax = -1, color = r.kMagenta ),
-            #specify(name = "z_jets_mg_skim",        nFilesMax = -1, color = r.kYellow-3),
-            #specify(name = "w_jets_mg_skim",        nFilesMax = -1, color = 28         ),
-           #specify(name = "lm0",                   nFilesMax = -1, color = r.kRed     ),
-           #specify(name = "lm1",                   nFilesMax = -1, color = r.kRed+1   ),
+
+        other = [                                        
+            specify(name = "tt_tauola_mg",          nFilesMax =  3, color = r.kOrange  ),
+            specify(name = "z_inv_mg_skim",         nFilesMax = -1, color = r.kMagenta ),
+            specify(name = "z_jets_mg_skim",        nFilesMax = -1, color = r.kYellow-3),
+            specify(name = "w_jets_mg_skim",        nFilesMax = -1, color = 28         ),
+            specify(name = "lm0",                   nFilesMax = -1, color = r.kRed     ),
+            specify(name = "lm1",                   nFilesMax = -1, color = r.kRed+1   ),
+            ]
+
+        g_jets_py6 = [
+            specify(name = "g_jets_py6_pt30",       nFilesMax = -1, nEventsMax = 100000, color = r.kGreen),
+            specify(name = "g_jets_py6_pt80",       nFilesMax = -1, nEventsMax = 100000, color = r.kGreen),
+            specify(name = "g_jets_py6_pt170",      nFilesMax = -1, nEventsMax = 100000, color = r.kGreen),
             ]
 
         outList = []
-        outList+=data_list
-        if params["mcSoup"]=="py6" : outList+=py6_list
-        if params["mcSoup"]=="py8" : outList+=py8_list
-        if params["mcSoup"]=="mg"  : outList+=mg_list
-        outList+=default_list
+        if params["mcSoup"]=="py6" :
+            outList+=qcd_py6
+            outList+=g_jets_py6
+            
+        if params["mcSoup"]=="py8" :
+            outList+=qcd_py8
+            outList+=g_jets_py6#no py8 available
+            
+        if params["mcSoup"]=="mg":
+            outList+=qcd_mg
+            outList+=g_jets_mg
+
+        outList+=data
+        #outList+=other
         return outList
 
+    def mergeSamples(self, org, tag) :
+        def py6(org, smSources) :
+            org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue},
+                             sources = ["qcd_py6_pt%d"%i      for i in [80,170,300] ])
+            smSources.append("qcd_py6")
+            org.mergeSamples(targetSpec = {"name":"g_jets_py6", "color":r.kGreen},
+                             sources = ["g_jets_py6_pt%d"%i      for i in [30,80,170] ])
+            smSources.append("g_jets_py6")
+
+        def py8(org, smSources) :
+            lowerPtList = [0,15,20,30,50,80,120,170,230,300,380,470,600,800,1000,1400,1800,2200,2600,3000,3500]
+            org.mergeSamples(targetSpec = {"name":"qcd_py8", "color":r.kBlue},
+                             sources = ["qcd_py8_pt%dto%d"%(lowerPtList[i],lowerPtList[i+1]) for i in range(len(lowerPtList)-1)] )
+            smSources.append("qcd_py8")
+        
+        def mg(org, smSources) :
+            org.mergeSamples(targetSpec = {"name":"qcd_mg", "color":r.kBlue},
+                             sources = ["qcd_mg_ht_%s"%bin for bin in ["50_100","100_250","250_500","500_1000","1000_inf"] ])
+            smSources.append("qcd_mg")
+            
+            org.mergeSamples(targetSpec = {"name":"g_jets_mg", "color":r.kGreen},
+                             sources = ["g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
+            smSources.append("g_jets_mg")
+            
+        smSources = ["tt_tauola_mg", "z_inv_mg_skim", "z_jets_mg_skim", "w_jets_mg_skim"]
+        if "pythia6"  in tag : py6(org, smSources)
+        if "pythia8"  in tag : py8(org, smSources)
+        if "madgraph" in tag : mg (org, smSources)
+        org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
+        
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
             #organize
-            org=organizer.organizer( self.sampleSpecs(tag) )
-            org.mergeSamples(targetSpec = {"name":"g_jets_mg",     "color":r.kGreen},   sources = ["g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
-            
-            smSources = ["g_jets_mg","tt_tauola_mg","z_inv_mg_skim","z_jets_mg_skim","w_jets_mg_skim"]
-            if "pythia6" in tag :
-                org.mergeSamples(targetSpec = {"name":"qcd_py6",    "color":r.kBlue},    sources = ["qcd_py6_pt%d"%i      for i in [80,170,300] ])
-                smSources.append("qcd_py6")
-            if "pythia8" in tag :
-                lowerPtList = [0,15,20,30,50,80,
-                               120,170,230,300,380,470,600,800,
-                               1000,1400,1800,2200,2600,3000,3500]
-                org.mergeSamples(targetSpec = {"name":"qcd_py8","color":r.kBlue},
-                                 sources = ["qcd_py8_pt%dto%d"%(lowerPtList[i],lowerPtList[i+1]) for i in range(len(lowerPtList)-1)] )
-                smSources.append("qcd_py8")
-            if "madgraph" in tag :
-                org.mergeSamples(targetSpec = {"name":"qcd_mg",    "color":r.kBlue},
-                                 sources = ["qcd_mg_ht_%s"%bin for bin in ["50_100","100_250","250_500","500_1000","1000_inf"] ])
-                smSources.append("qcd_mg")
-            
-            org.mergeSamples(targetSpec = {"name":"standard_model","color":r.kGreen+3}, sources = smSources, keepSources = True)
+            org = organizer.organizer( self.sampleSpecs(tag) )
+            self.mergeSamples(org, tag)
             org.scale()
 
-            ##other
-            #import deltaPhiLook
-            #numers = ["JetMET_skim","standard_model"]
-            #if "pythia" in tag :   qcdLabel = "qcd_py"
-            #if "madgraph" in tag : qcdLabel = "qcd_mg"
-            #
-            #for numer,denom in zip(numers,[qcdLabel]*len(numers)) :
-            #    d = deltaPhiLook.deltaPhiLooker(org,tag,(numer,denom))
-            #    d.makeSlicePlots()
-            #    if numer==numers[0] :
-            #        d.makeSliceComparisonPlots(qcdLabel)
-
-            #plot
+            #plot all
             pl = plotter.plotter(org,
                                  psFileName = self.psFileName(tag),
                                  samplesForRatios=("JetMET_skim","standard_model"),
                                  sampleLabelsForRatios=("data","s.m."),
+                                 blackList = ["deltaRGenReco",
+                                              "directgenPt",
+                                              "directrecoPt",
+                                              "directmht",
+                                              "fragmentationgenPt",
+                                              "fragmentationrecoPt",
+                                              "fragmentationmht",
+                                              "othergenPt",
+                                              "otherrecoPt",
+                                              "othermht",
+                                              ]
+                                 
                                  )
             pl.plotAll()
 
-            #import statMan
-            #statMan.go(a.organizeHistograms(),
-            #           dataSampleName="JetMETTau.Run2010A",
-            #           mcSampleName="standard_model",
-            #           moneyPlotName="ak5JetPat_alphaT_vs_Ht_ge2jets",
-            #           xCut=0.51,yCut=330.0)
+            ##purity plots
+            #self.makePurityPlots(org, tag)
+            
+    def makePurityPlots(self, org, tag) :
+        def sampleIndex(org, name) :
+            for iSample,sample in enumerate(org.samples) :
+                if sample["name"]==name : return iSample
+            assert False, "could not find sample %s"%name
+
+        for selection in org.selections :
+            if selection.name != "passFilter" : continue
+            if "purityPlots3" not in selection.title : continue
+
+            variables = ["genPt"]
+            #variables = ["genPt","recoPt","mht"]
+            for variable in variables :
+                sum = None
+                categories = ["direct","fragmentation","other"]
+                colors = {"direct":r.kBlack, "fragmentation":r.kBlue, "other":r.kMagenta}
+                labels = {"direct":"mother is photon", "fragmentation":"mother is quark", "other":"mother is other"}
+                histos = {}
+                reBinFactor = 10
+                for category in categories :
+                    histoOrig = selection[category+variable][sampleIndex(org,"standard_model")]
+                    histos[category] = histoOrig.Clone(histoOrig.GetName()+"clone")
+                    histos[category].Rebin(reBinFactor)
+                    if sum==None :
+                        sum = histos[category].Clone()
+                    else :
+                        sum.Add(histos[category])
+
+                canvas = r.TCanvas()
+                canvas.SetRightMargin(0.2)
+                null = histos[categories[0]].Clone()
+                null.Reset()
+                null.SetStats(False)
+                null.GetYaxis().SetTitle("fraction of events")
+                null.Draw()
+                keep = []
+                e = 0.02
+                legend = r.TLegend(0.80+e, 0.60-e, 0.95+e, 0.90-e)
+                for category in categories :
+                    result = histos[category].Clone("result"+category)
+                    result.Reset()
+                    result.Divide(histos[category], sum, 1.0, 1.0, "b")
+                    result.SetLineColor(colors[category])
+                    result.SetMarkerColor(colors[category])
+                    result.SetMarkerStyle(20)
+                    result.Draw("same")
+                    legend.AddEntry(result,labels[category],"p")
+                    keep.append(result)
+
+                legend.Draw()
+                eps = "%s_%s_%s.eps"%(tag,variable,selection.title)
+                pdf = eps.replace(".eps",".pdf")
+                canvas.Print(eps)
+                os.system("epstopdf "+eps)
+                os.remove(eps)
