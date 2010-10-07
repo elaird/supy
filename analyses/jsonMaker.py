@@ -15,7 +15,7 @@ class jsonMaker(analysis.analysis) :
         return calculables.zeroArgs()
 
     def listOfSamples(self,params) :
-        return [samples.specify(name = "JetMET_skim")]
+        return [samples.specify(name = "Jet.Run2010B-PromptReco-v2.RECO.Burt_skim")]
                 
 
     def listOfSampleDictionaries(self) :
