@@ -19,6 +19,7 @@ def adjustStepsForMc(inSteps) :
         disable = False
         #determine whether to disable
         if type(step) in [hltFilter,       #temporary hack
+                          hltFilterList,   #temporary hack
                           hbheNoiseFilter, #temporary hack
                           bxFilter,
                           physicsDeclared] : disable = True
