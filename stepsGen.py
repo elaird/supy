@@ -312,9 +312,10 @@ class genMotherHistogrammer(analysisStep) :
         self.binLabels.append(name)
         self.motherDict[id] = self.binLabels[-1]
 
-    def fillSpecialHistos(self, eventVars) :
+    def fillSpecialHistos(self, eventVars, iParticle) :
         motherIndex = eventVars["genMother"].at(iParticle)
         #motherIndex = eventVars["genMotherIndex"].at(iParticle)
+        p4 = eventVars["genP4"].at(iParticle)
         motherP4 = eventVars["genP4"].at(motherIndex)
         deltaRPhotonMother = r.Math.VectorUtil.DeltaR(p4,motherP4)
         deltaRPhotonOther  = r.Math.VectorUtil.DeltaR(p4,motherP4-p4)
@@ -353,7 +354,7 @@ class genMotherHistogrammer(analysisStep) :
                                           nBinsY, -0.5, nBinsY-0.5,
                                           title = ";mother [when GEN photon p_{T}> %.1f (GeV)];photons / bin"%self.specialPtThreshold
                                           )
-                if motherId==2 : self.fillSpecialHistos(eventVars)
+                if motherId==2 : self.fillSpecialHistos(eventVars, iParticle)
 
     def endFunc(self, chain, otherChainDict, nEvents, xs) :
         for book in self.books.values() :
