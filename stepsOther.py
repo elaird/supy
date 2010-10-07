@@ -457,6 +457,8 @@ class displayer(analysisStep) :
         self.doReco = not self.doGenParticles
         self.doLeptons=True
         self.helper=r.displayHelper()
+        self.deadEcalRegionVectors=[]
+        self.deadEcalRegionSpecFileName = "deadRegionList.txt"
 
     def switchGenOn(self) :
         self.doGen=True
@@ -471,16 +473,20 @@ class displayer(analysisStep) :
         self.canvas=r.TCanvas("canvas","canvas",500,500)
         self.canvasIndex=0
 
-        self.ellipse=r.TEllipse()
+        self.ellipse = r.TEllipse()
         self.ellipse.SetFillStyle(0)
-        self.line=r.TLine()
-        self.arrow=r.TArrow()
-        self.radius=0.3
-        self.x0=self.radius
-        self.y0=self.radius+0.05
-        self.text=r.TText()
-        self.latex=r.TLatex()
-        self.legend=r.TLegend(0.01+2.0*self.radius,self.radius,0.95,0.05)
+
+        self.box = r.TBox()
+        self.box.SetFillColor(r.kOrange-6)
+        
+        self.line = r.TLine()
+        self.arrow = r.TArrow()
+        self.radius = 0.3
+        self.x0 = self.radius
+        self.y0 = self.radius+0.05
+        self.text = r.TText()
+        self.latex = r.TLatex()
+        self.legend = r.TLegend(0.01+2.0*self.radius,self.radius,0.95,0.05)
 
         self.alphaFuncs=[
             self.makeAlphaTFunc(0.55,r.kBlack),
@@ -493,7 +499,23 @@ class displayer(analysisStep) :
         self.metLlHisto=r.TH2D("metLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashE_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
         self.mhtLlHisto.SetDirectory(0)
         self.metLlHisto.SetDirectory(0)
-        
+
+        self.etaPhiPlot = r.TH2D("etaPhi",";#eta;#phi;",1, -3.0, 3.0, 1, -r.TMath.Pi(), r.TMath.Pi() )
+        self.etaPhiPlot.SetStats(False)
+        if self.doGenParticles :
+            self.populateDeadRegionList()
+
+    def populateDeadRegionList(self) :
+        inFile=open(self.deadEcalRegionSpecFileName)
+        for line in inFile :
+            if line[0]=="#" : continue
+            fieldList=line.split()
+            eta=float(fieldList[0])
+            phi=float(fieldList[1])
+            self.deadEcalRegionVectors.append(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0,eta,phi,0.0))
+            #print self.deadEcalRegionVectors[-1].eta(),self.deadEcalRegionVectors[-1].phi()
+        inFile.close()
+                                                                                        
     def endFunc(self,chain,otherChainDict,nEvents,xs) :
         self.outputFile.Write()
         self.outputFile.Close()
@@ -546,6 +568,11 @@ class displayer(analysisStep) :
         self.arrow.SetFillColor(color)
         self.arrow.DrawArrow(self.x0,self.y0,x1,y1)
         
+    def drawCircle(self, p4, color, lineWidth, circleRadius) :
+        self.ellipse.SetLineColor(color)
+        self.ellipse.SetLineWidth(lineWidth)
+        self.ellipse.DrawEllipse(p4.eta(), p4.phi(), circleRadius, circleRadius, 0.0, 360.0, 0.0, "")
+        
     def drawGenJets (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
         if not hasattr(self,"genJetEntryInLegend") :
@@ -559,7 +586,7 @@ class displayer(analysisStep) :
         for jet in p4Vector :
             self.drawP4(jet,color,lineWidth,arrowSize)
             
-    def drawGenParticles (self, eventVars, color, lineWidth, arrowSize, statusList = None, pdgIdList = None, motherList = None ,label = "") :
+    def drawGenParticles (self, eventVars, color, lineWidth, arrowSize, statusList = None, pdgIdList = None, motherList = None, label = "", circleRadius = None) :
         self.line.SetLineColor(color)
         if not hasattr(self,"genParticleEntryInLegend"+label) :
             setattr(self,"genParticleEntryInLegend"+label,True)
@@ -570,7 +597,10 @@ class displayer(analysisStep) :
             if statusList!=None and eventVars["genStatus"].at(iParticle) not in statusList : continue
             if pdgIdList!=None and eventVars["genPdgId"].at(iParticle) not in pdgIdList : continue
             if motherList!=None and eventVars["genMotherPdgId"][iParticle] not in motherList : continue
-            self.drawP4(particle,color,lineWidth,arrowSize)
+            if circleRadius==None :
+                self.drawP4(particle,color,lineWidth,arrowSize)
+            else :
+                self.drawCircle(particle,color,lineWidth,circleRadius)
             
     def drawCleanJets (self,eventVars,jets,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
@@ -736,6 +766,36 @@ class displayer(analysisStep) :
         alphaTFunc.SetNpx(300)
         return alphaTFunc
 
+    def drawEtaPhiPlot (self, eventVars) :
+        stuffToKeep=[]
+        pad=r.TPad("etaPhiPad","etaPhiPad",
+                   0.01 + 2.0*self.radius, 0.01 + self.radius,
+                   0.95,                   0.63)
+        
+        pad.cd()
+        pad.SetRightMargin(0.01)
+        pad.SetTickx()
+        pad.SetTicky()
+        pad.SetGridx()
+        pad.SetGridy()
+
+        self.etaPhiPlot.Draw()
+
+        for deadRegion in self.deadEcalRegionVectors :
+            value = 0.087/2
+            self.box.DrawBox(deadRegion.eta()-value, deadRegion.phi()-value, deadRegion.eta()+value, deadRegion.phi()+value)
+
+        if self.doGenParticles :
+            self.drawGenParticles(eventVars,r.kMagenta, lineWidth = 1, arrowSize = -1.0, statusList = [1], pdgIdList = [22],
+                                  motherList = [1,2,3,4,5,6,-1,-2,-3,-4,-5,-6], label = "status 1 photon w/quark as mother", circleRadius = 0.15)
+            self.drawGenParticles(eventVars,r.kOrange, lineWidth = 1, arrowSize = -1.0, statusList = [1], pdgIdList = [22],
+                                  motherList = [22], label = "status 1 photon w/photon as mother", circleRadius = 0.15)
+
+        stuffToKeep.extend([pad])
+        self.canvas.cd()
+        pad.Draw()
+        return stuffToKeep
+
     def drawAlphaPlot (self, eventVars, color, useMet = False) :
         mhtVar = "%sSumP4%s"%self.jets if not useMet else self.met
         mhtLabel = "MHT"               if not useMet else "MET"
@@ -843,7 +903,8 @@ class displayer(analysisStep) :
                 self.drawGenParticles(eventVars,r.kGreen  , defWidth, defArrowSize*2/6.0, statusList = [1], pdgIdList = [22], label = "status 1 photon")
                 self.drawGenParticles(eventVars,r.kMagenta, defWidth, defArrowSize*1/6.0, statusList = [1], pdgIdList = [22],
                                       motherList = [1,2,3,4,5,6,-1,-2,-3,-4,-5,-6], label = "status 1 photon w/quark as mother")
-                
+                self.drawGenParticles(eventVars,r.kOrange, defWidth, defArrowSize*1/6.0, statusList = [1], pdgIdList = [22],
+                                      motherList = [22], label = "status 1 photon w/photon as mother")
             else :
                 self.drawGenJets    (eventVars,r.kBlack   , defWidth, defArrowSize)
                 self.drawGenMet     (eventVars,r.kMagenta , defWidth, defArrowSize*2/6.0)
@@ -873,10 +934,12 @@ class displayer(analysisStep) :
         self.legend.Draw("same")
         r.gStyle.SetOptStat(110011)
 
+        if self.doGenParticles :
+            gg = self.drawEtaPhiPlot(eventVars)
         if self.doReco :
-            g2=self.drawAlphaPlot(eventVars,r.kBlack)
-            g3=self.drawAlphaPlot(eventVars,r.kBlack, useMet = True)
-            #g4=self.drawMhtLlPlot(eventVars,r.kBlack)
+            g2 = self.drawAlphaPlot(eventVars,r.kBlack)
+            g3 = self.drawAlphaPlot(eventVars,r.kBlack, useMet = True)
+            #g4 = self.drawMhtLlPlot(eventVars,r.kBlack)
 
         someDir=r.gDirectory
         self.outputFile.cd()
