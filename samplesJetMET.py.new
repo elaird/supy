@@ -13,7 +13,7 @@ jetmet.add("JetMET_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/
 #jetmet.add("JetMETTau.Run2010A_old", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/data1/")', lumi = 0.012+0.120+0.1235 ) #/pb
 
 #38X
-jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.Burt_skim",
+jetmet.add("Run2010B_skim",
            'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/Jet.Run2010B-PromptReco-v2.RECO.Burt/")', lumi = 1.372) #/pb
 
 #ORIGINALS
@@ -38,3 +38,4 @@ jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.Burt",          '%s/bbetchar//ICF/au
 #TEST
 jetmet.add("JetMET_test_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/03_jetmet/")', lumi = 2.601 ) #/pb
 jetmet.add("JetMET_test_skim2", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/04_38_recipe/")', lumi = 2.601 ) #/pb
+jetmet.add("test", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/tmp//hadronicLook/defaultMht_pythia6_ge2_caloAK5/config00/Run2010B_skim_*_skim.root", isDirectory = False)', lumi = 1.372 ) #/pb
