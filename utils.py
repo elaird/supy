@@ -106,7 +106,7 @@ def getCommandOutput2(command):
     #if err: raise RuntimeError, '%s failed w/ exit code %d' % (command, err)
     return data
 #####################################
-def pruneCrabDuplicates(inList,sizes) :
+def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False) :
     import re
     from collections import defaultdict
     # CRAB old : filepathWithName_JOB_ATTEMPT.root
@@ -127,7 +127,7 @@ def pruneCrabDuplicates(inList,sizes) :
         attempt,size,rnd = max(val)
         maxSize = max([v[1] for v in val])
 
-        if size == maxSize :
+        if size == maxSize or alwaysUseLastAttempt :
             fileName = recombine % (front,job,attempt,rnd)
             outList.append(fileName)
             if len(val) > 1 : resolved += 1
@@ -137,7 +137,7 @@ def pruneCrabDuplicates(inList,sizes) :
         print "File duplications, unresolved(%d), resolved(%d)" % (abandoned,resolved)
     return outList
 #####################################
-def fileListFromSrmLs(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
+def fileListFromSrmLs(location, itemsToSkip = [], sizeThreshold = 0, pruneList = True, alwaysUseLastAttempt = False) :
     srmPrefix="srm://gfe02.grid.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN="
     dCachePrefix="dcap://gfe02.grid.hep.ph.ic.ac.uk:22128"
 
@@ -164,7 +164,7 @@ def fileListFromSrmLs(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
             fileList.append(dCachePrefix+fileName)
             sizes.append(size)
 
-    if pruneList :   fileList=pruneCrabDuplicates(fileList,sizes)
+    if pruneList :   fileList=pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt)
     return fileList
 #####################################    
 def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
