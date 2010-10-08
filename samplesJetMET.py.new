@@ -15,6 +15,10 @@ jetmet.add("JetMET_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/
 #38X
 jetmet.add("Run2010B_skim",
            'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/Jet.Run2010B-PromptReco-v2.RECO.Burt/")', lumi = 1.372) #/pb
+jetmet.add("Run2010A_JM_skim",
+           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/JetMET.Run2010A-Sep17ReReco_v2.RECO.Burt/")', lumi = 2.889) #/pb
+jetmet.add("Run2010A_JMT_skim",
+           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/JetMETTau.Run2010A-Sep17ReReco_v2.RECO.Burt/")', lumi = 0.172) #/pb
 
 #ORIGINALS
 #36X
