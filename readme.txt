@@ -7,11 +7,11 @@ GPLv3 (http://www.gnu.org/licenses/gpl.html)
 | Instructions |
 ----------------
 0) Set up pyROOT:
-- use a CMSSW area:  cd /somewhere/CMSSW_3_8_1_patch2/src && cmsenv
+- use a CMSSW area:  cd /somewhere/CMSSW_3_8_4_patch3/src && cmsenv
 - or see note (A)
 
 1) Check out the code:
-- cvs co -d supy -r V9-2 UserCode/elaird/supy
+- cvs co -d supy -r V10-1 UserCode/elaird/supy
 - cd supy
 
 2) (required only if running from dcache at IC) Use better dcap libraries:
