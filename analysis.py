@@ -136,10 +136,18 @@ class analysis(object) :
 
         if self._jobId!=None :
             listOfLoopers[0].go()
+
+        elif self._profile :
+            self.listOfLoopersForProf = listOfLoopers
+            import cProfile
+            cProfile.run("someInstance.goLoop()","resultProfile.out")
+
         else :
-            ##for looper in listOfLoopers : looper.go()
             utils.operateOnListUsingQueue(self._loop,utils.goWorker,listOfLoopers)
 
+    def goLoop(self) :
+        for looper in self.listOfLoopersForProf : looper.go()
+        
     def sampleSpecs(self, tag = None) :
         condition = tag or (len(self.sideBySideAnalysisTags())==1 and self.sideBySideAnalysisTags()[0]=="")
         assert condition,"There are side-by-side analyses specified, but sampleSpecs() was not passed a tag."
@@ -286,12 +294,6 @@ class analysis(object) :
         ##for item in workList : mergeFunc(*item)
         utils.operateOnListUsingQueue(nCores,mergeWorker,workList)
         os.remove(self.jobsFile())
-                
-    def profile(self) :
-        global runFunc
-        runFunc=self.loopOverSamples
-        import cProfile
-        cProfile.run("analysis.runFunc()","resultProfile.out")
 #############################################
 def looperPrint(looper) :
     print utils.hyphens
