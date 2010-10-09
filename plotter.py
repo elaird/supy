@@ -161,12 +161,12 @@ class plotter(object) :
             if sample!=None :
                 if "lumi" in sample :
                     if iSource!=None :
-                        value = sample["lumi"][iSource]
+                        value = sample["lumiOfSources"][iSource]
                     else :
                         value = sample["lumi"]                        
                 elif "xs" in sample :
                     if iSource!=None :
-                        value = sample["nEvents"][iSource]/sample["xs"][iSource]
+                        value = sample["nEvents"][iSource]/sample["xsOfSources"][iSource]
                     else :
                         value = sample["nEvents"]/sample["xs"]
             return "%.1f"%value
