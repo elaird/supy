@@ -110,9 +110,11 @@ class organizer(object) :
         target['sources'] = map(lambda i: self.samples[i]["name"], sourceIndices)
         target['nEvents'] = map(lambda i: self.samples[i]['nEvents'], sourceIndices)
         if all(["xs" in self.samples[i] for i in sourceIndices]) : 
-            target["xs"] = [self.samples[i]["xs"] for i in sourceIndices ]
+            target["xsSources"] = [self.samples[i]["xs"] for i in sourceIndices ]
+            target["xs"] = sum(target["xsOfSources"])
         elif all(["lumi" in self.samples[i] for i in sourceIndices]):
-            target["lumi"] = [self.samples[i]["lumi"] for i in sourceIndices ]
+            target["lumiSources"] = [self.samples[i]["lumi"] for i in sourceIndices ]
+            target["lumi"] = sum(target['lumiOfSources'])
         else: raise Exception("Cannot merge data with sim")
         
         def tuplePopInsert(orig, item) :
