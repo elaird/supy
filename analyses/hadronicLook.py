@@ -307,8 +307,8 @@ class hadronicLook(analysis.analysis) :
             #plot
             pl = plotter.plotter(org,
                                  psFileName = self.psFileName(tag),
-                                 #samplesForRatios=("JetMET_skim","standard_model"),
-                                 #sampleLabelsForRatios=("data","s.m."),
+                                 samplesForRatios=("2010 Data","standard_model"),
+                                 sampleLabelsForRatios=("data","s.m."),
                                  )
             pl.plotAll()
 
