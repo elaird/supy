@@ -268,7 +268,6 @@ class vertexRequirementFilter(analysisStep) :
         return False
 #####################################
 class monsterEventFilter(analysisStep) :
-    """monsterEventFilter"""
     
     def __init__(self,maxNumTracks=10,minGoodTrackFraction=0.25) :
         self.maxNumTracks=maxNumTracks
@@ -430,7 +429,6 @@ class metGroupNoiseEventFilter(analysisStep) :
         return  (eventVars["run"],eventVars["lumiSection"],eventVars["event"])   not in   self.setOfBadTuples
 #####################################
 class bxFilter(analysisStep) :
-    """bxFilter"""
 
     def __init__(self,bxList) :
         self.bxList = bxList
@@ -478,6 +476,7 @@ class displayer(analysisStep) :
 
         self.box = r.TBox()
         self.box.SetFillColor(r.kOrange-6)
+        self.box.SetLineColor(r.kOrange-6)
         
         self.line = r.TLine()
         self.arrow = r.TArrow()
@@ -768,9 +767,9 @@ class displayer(analysisStep) :
     def drawEtaPhiPlot (self, eventVars) :
         stuffToKeep=[]
         pad=r.TPad("etaPhiPad","etaPhiPad",
-                   0.01 + 1.0*self.radius, 0.36 + self.radius,
-                   0.00 + 2.0*self.radius, 0.98)
-        
+                   0.01 + 2.0*self.radius, 0.34 + self.radius,
+                   0.94                  , 1.27 - self.radius)
+
         pad.cd()
         pad.SetRightMargin(0.01)
         pad.SetTickx()
@@ -803,38 +802,53 @@ class displayer(analysisStep) :
                 drawBox(region)
             badJet = eventVars["%sCorrectedP4%s"%self.jets].at(index)
             self.drawCircle(badJet, r.kBlack, lineWidth = 1, circleRadius = 0.5)
-            
-        stuffToKeep.extend([pad])
+
+
+        legend = r.TLegend(0.6,0.92,1.0,1.0)
+        legend.SetFillStyle(0)
+        legend.AddEntry(self.box,"dead ECAL cells","f")
+        legend.AddEntry(self.ellipse,"\"bad\" jet","l")
+        legend.Draw()
+        stuffToKeep.extend([pad, legend])
         self.canvas.cd()
         pad.Draw()
         return stuffToKeep
 
-    def drawAlphaPlot (self, eventVars, color, useMet = False) :
-        mhtVar = "%sSumP4%s"%self.jets if not useMet else self.met
-        mhtLabel = "MHT"               if not useMet else "MET"
-        alphaTVar = "AlphaT"           if not useMet else "AlphaTMet"
-        padYOffset = 0.0               if not useMet else 0.3
-
+    def drawAlphaPlot (self, eventVars, color, showAlphaTMet = False) :
         stuffToKeep=[]
-        pad=r.TPad(alphaTVar+"pad",alphaTVar+"pad",
-                   0.01 + 2.0*self.radius, padYOffset + 0.01 + self.radius,
-                   0.95,                   padYOffset + 0.63)
+        pad=r.TPad("alphaTpad","alphaTpad",
+                   0.01 + 2.0*self.radius, 0.01 + self.radius,
+                   0.94,                   0.94 - self.radius)
         pad.cd()
         pad.SetRightMargin(0.01)
-        title=";%s/H_{T};#DeltaH_{T}/H_{T}"%mhtLabel
-        alphaHisto=r.TH2D(alphaTVar+"Histo",title,100,0.0,1.0,100,0.0,0.7)
+        title = ";"
+        if showAlphaTMet :
+            title +="#color[%d]{MET/H_{T}}              "%r.kGreen
+        title+= "#color[%d]{MHT/H_{T}};#DeltaH_{T}/H_{T}"%r.kBlue
+        alphaTHisto = r.TH2D("alphaTHisto",title,100,0.0,1.0,100,0.0,0.7)
+        alphaTMetHisto = alphaTHisto.Clone("alphaTMetHisto")
 
-        mht=eventVars[mhtVar].pt()
-        ht = eventVars["%sSumPt%s"%self.jets]
-        deltaHt=eventVars[self.deltaHtName]
-        alphaT =eventVars[ "%s%s%s"%(self.jets[0],alphaTVar,self.jets[1]) ]
+        mht = eventVars["%sSumP4%s"%self.jets].pt()
+        met = eventVars[self.met].pt()
+        ht  = eventVars["%sSumPt%s"%self.jets]
+        deltaHt   = eventVars[self.deltaHtName]
+        alphaT    = eventVars["%sAlphaT%s"%self.jets]
+        alphaTMet = eventVars["%sAlphaTMet%s"%self.jets]
         
-        alphaHisto.Fill(mht/ht,deltaHt/ht)
-        alphaHisto.SetStats(False)
-        alphaHisto.SetMarkerStyle(29)
-        alphaHisto.GetYaxis().SetTitleOffset(1.25)
-        alphaHisto.SetMarkerColor(r.kBlue)
-        alphaHisto.Draw("p")
+        alphaTHisto.Fill(mht/ht,deltaHt/ht)
+        alphaTHisto.SetStats(False)
+        alphaTHisto.SetMarkerStyle(29)
+        alphaTHisto.GetYaxis().SetTitleOffset(1.25)
+        alphaTHisto.SetMarkerColor(r.kBlue)
+        alphaTHisto.Draw("p")
+
+        if showAlphaTMet :
+            alphaTMetHisto.Fill(met/ht,deltaHt/ht)
+            alphaTMetHisto.SetStats(False)
+            alphaTMetHisto.SetMarkerStyle(29)
+            alphaTMetHisto.GetYaxis().SetTitleOffset(1.25)
+            alphaTMetHisto.SetMarkerColor(r.kGreen)
+            alphaTMetHisto.Draw("psame")
 
         legend=r.TLegend(0.1,0.9,0.6,0.6)
         legend.SetFillStyle(0)
@@ -843,9 +857,11 @@ class displayer(analysisStep) :
             func.Draw("same")
             legend.AddEntry(func,func.GetName(),"l")
 
-        legend.AddEntry(alphaHisto,"this event ( %#5.3g )"%alphaT,"p")
+        legend.AddEntry(alphaTHisto,"this event ( %#5.3g )"%alphaT,"p")
+        if showAlphaTMet :
+            legend.AddEntry(alphaTMetHisto,"this event ( %#5.3g )"%alphaTMet,"p")
         legend.Draw()
-        stuffToKeep.extend([pad,alphaHisto,legend])
+        stuffToKeep.extend([pad,alphaTHisto,alphaTMetHisto,legend])
         self.canvas.cd()
         pad.Draw()
         return stuffToKeep
@@ -950,8 +966,7 @@ class displayer(analysisStep) :
         if self.doGenParticles or self.doEtaPhiPlot :
             gg = self.drawEtaPhiPlot(eventVars)
         if self.doReco :
-            g2 = self.drawAlphaPlot(eventVars,r.kBlack)
-            g3 = self.drawAlphaPlot(eventVars,r.kBlack, useMet = True)
+            g3 = self.drawAlphaPlot(eventVars,r.kBlack, showAlphaTMet = True)
             #g4 = self.drawMhtLlPlot(eventVars,r.kBlack)
 
         someDir=r.gDirectory
