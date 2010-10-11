@@ -36,10 +36,11 @@ class jetIndicesOther(calculables.indicesOther) :
 class jetIndices(wrappedChain.calculable) :
     def name(self) : return self.indices
     
-    def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None):
-        self.indices = "%sIndices%s" % collection
-        self.other = "%sIndicesOther%s" % collection
-        self.killed = "%sIndicesKilled%s" % collection
+    def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None, extraName = ""):
+        self.extraName = extraName
+        self.indices = "%sIndices%s%s"      % (collection[0],collection[1],extraName)
+        self.other = "%sIndicesOther%s%s"   % (collection[0],collection[1],extraName)
+        self.killed = "%sIndicesKilled%s%s" % (collection[0],collection[1],extraName)
         self.p4s = '%sCorrectedP4%s' % collection
         self.pt2Min = ptMin*ptMin
         self.etaMax = etaMax
@@ -50,8 +51,8 @@ class jetIndices(wrappedChain.calculable) :
 
     def update(self,ignored) :
         self.value = []
-        other  = self.source[self.other]
-        killed = self.source[self.killed]
+        other  = self.source[self.other]  if self.extraName=="" else []
+        killed = self.source[self.killed] if self.extraName=="" else []
         jetIds = self.source[self.flag] if self.flag else p4s.size()*[1]
         p4s    = self.source[self.p4s]
         pt2s    = []
@@ -302,11 +303,11 @@ class jetDeltaX01(wrappedChain.calculable) :
 class deltaPhiStar(wrappedChain.calculable) :
     def name(self) : return "%sDeltaPhiStar%s"%self.cs
 
-    def __init__(self, collection = None, ptMin = None) :
+    def __init__(self, collection = None, ptMin = None, extraName = None) :
         self.cs = collection
         self.ptMin = ptMin
         self.p4Name = '%sCorrectedP4%s' % self.cs
-        self.indicesName = '%sIndices%s' % self.cs
+        self.indicesName = '%sIndices%s%s' % (self.cs[0],self.cs[1],extraName)
         self.sumP4Name = "%sSumP4%s" % self.cs
         self.moreName = "pT>%.1f GeV"%self.ptMin
         
@@ -318,11 +319,15 @@ class deltaPhiStar(wrappedChain.calculable) :
         jets = self.source[self.p4Name]
         sumP4 = self.source[self.sumP4Name]
 
+        self.value = {}
+        self.value["DeltaPhiStar"] = None
+        self.value["DeltaPhiStarJetIndex"] = None
         dPhi = []
         for i in indices :
             if jets.at(i).pt()<self.ptMin : continue
-            dPhi.append( abs(r.Math.VectorUtil.DeltaPhi(jets.at(i),jets.at(i)-sumP4)) )
-        if len(dPhi) : self.value = min(dPhi)
+            dPhi.append( (abs(r.Math.VectorUtil.DeltaPhi(jets.at(i),jets.at(i)-sumP4)),i) )
+        if len(dPhi) :
+            self.value["DeltaPhiStar"],self.value["DeltaPhiStarJetIndex"] = min(dPhi)
 ##############################
 class maxProjMHT(wrappedChain.calculable) :
     def name(self) : return "%sMaxProjMHT%s"%self.cs
