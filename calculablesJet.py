@@ -348,3 +348,19 @@ class maxProjMHT(wrappedChain.calculable) :
 
         self.value = -min( [ sumP4.pt() / math.sqrt(jets.at(i).pt()) * \
                              math.cos(r.Math.VectorUtil.DeltaPhi(jets.at(i),sumP4)) for i in indices])
+#####################################
+class mhtMinusMetOverMeff(wrappedChain.calculable) :
+
+    def __init__(self, jets, met, etRatherThanPt) :
+        self.jets = jets
+        self.met = met
+        self.etRatherThanPt = etRatherThanPt
+        self.moreName = "%s%s; %s; %s"%(self.jets[0], self.jets[1], self.met, "ET" if self.etRatherThanPt else "pT")
+        self.mht = "%sSumP4%s"%self.jets
+        self.ht  = "%sSumEt%s"%self.jets if self.etRatherThanPt else "%sSumPt%s"%self.jets
+        
+    def update(self, ignored) :
+        mht = self.source[self.mht].pt()
+        self.value = (mht - self.source[self.met].pt())/(self.source[self.ht] + mht)
+
+    
