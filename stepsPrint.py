@@ -142,7 +142,7 @@ class particleP4Printer(analysisStep) :
             print outString
 
         if nParticles>0 : print
-        else :            print "no %s found"%self.cs
+        else :            print "no %s%s found"%self.cs
 
         return True
 #####################################
