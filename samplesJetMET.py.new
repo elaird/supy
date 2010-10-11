@@ -48,3 +48,6 @@ jetmet.add("JetMETTau.Run2010A-Sep17ReReco_v2.RECO.Burt",   '%s/bbetchar//ICF/au
 jetmet.add("JetMET_test_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/03_jetmet/")', lumi = 2.601 ) #/pb
 jetmet.add("JetMET_test_skim2", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/04_38_recipe/")', lumi = 2.601 ) #/pb
 jetmet.add("test", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/tmp//hadronicLook/defaultMht_pythia6_ge2_caloAK5/config00/Run2010B_skim_*_skim.root", isDirectory = False)', lumi = 1.372 ) #/pb
+jetmet.add("2010_data_skim_calo",'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/06_highAlphaT/2010_data_skim_calo.root", isDirectory = False)', lumi = 6.68 )
+jetmet.add("2010_data_skim_pf",  'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/06_highAlphaT/2010_data_skim_pf.root", isDirectory = False)', lumi = 6.68 )
+#jetmet.add("Bryn_request",'eval(utils.getCommandOutput2("cat /home/hep/elaird1/ForTed.txt"))', lumi = 9999999.9)
