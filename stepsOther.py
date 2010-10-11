@@ -315,78 +315,6 @@ class runNumberFilter(analysisStep) :
     def select (self,eventVars) :
         return not ((eventVars["run"] in self.runList) ^ self.accept)
 #####################################
-class goodRunsOnly2009(analysisStep) :
-
-    def __init__(self,energyString,version) :
-        self.moreName = "%s %s" % (energyString,version)
-        self.runList=[]
-        self.runLsList=[]
-
-        #http://indico.cern.ch/getFile.py/access?contribId=4&resId=0&materialId=slides&confId=81465
-        #assume "12732" means 123732
-        self.runLsList_900GeV_v1=[123596,123615,123732,123815,
-                                 123818,123906,123908,123909,
-                                 124006,124008,124009,124017,
-                                 124020,124022,124023,124024,
-                                 124025,124027,124030
-                                 ]
-
-        self.bogusLsRequirements(self.runLsList_900GeV_v1)
-        #http://indico.cern.ch/getFile.py/access?contribId=2&resId=0&materialId=slides&confId=76798
-        self.runLsList_900GeV_v2=[123596,123615,123732,123815,
-                                  123818,123906,123908,124008,
-                                  124009,124020,124022,124023,
-                                  124024,124025,124027,124030
-                                  ]
-        self.bogusLsRequirements(self.runLsList_900GeV_v2)
-
-        #2 TeV
-        self.runLsList_2TeV=[124120]
-        self.bogusLsRequirements(self.runLsList_2TeV)
-
-        #format is (run, first good ls, last good ls)
-        self.runLsList_900GeV_v3=[
-            (123596,  2, 9999),
-            (123615, 70, 9999),
-            (123732, 62,  109),
-            (123815,  8, 9999),
-            (123818,  2,   42),
-            (123908,  2,   12),
-            (124008,  1,    1),
-            (124009,  1,   68),
-            (124020, 12,   94),
-            (124022, 66,  179),
-            (124023, 38, 9999),
-            (124024,  2,   83),
-            (124025,  5,   13),
-            (124027, 24, 9999),
-            (124030,  2, 9999),
-            ]
-        
-        if (energyString=="2 TeV") :
-            self.runLsList=self.runLsList_2TeV
-        elif (energyString=="900 GeV") :
-            self.runLsList=getattr(self,"runLsList_900GeV_"+version)
-
-        self.buildRunDict()
-        
-    def bogusLsRequirements(self,someList) :
-        for i in range(len(someList)) :
-            someList[i]=(someList[i],0,9999)
-
-    def buildRunDict(self) :
-        self.runDict={}
-        for tuple in self.runLsList :
-            self.runDict[tuple[0]]=[tuple[1],tuple[2]]
-        
-    def select (self,eventVars) :
-        if eventVars["run"] not in self.runDict : return False
-        ls = eventVars["lumiSection"]
-        if ls < self.runDict[run][0] or \
-           ls > self.runDict[run][1] : return False
-        return True
-
-#####################################
 class runHistogrammer(analysisStep) :
 
     def __init__(self) :
@@ -405,28 +333,6 @@ class runHistogrammer(analysisStep) :
         for key in sorted(self.runDict) :
             printList.append( (key,self.runDict[key]) )
         print self.name(),printList
-#####################################
-class metGroupNoiseEventFilter(analysisStep) :
-
-    def __init__(self,version) :
-        self.version=version
-        self.moreName=self.version
-        self.setupStuff()
-
-    def setupStuff(self) :
-        self.setOfBadTuples = set([])
-
-        inFile = open("/afs/cern.ch/user/e/elaird/public/susypvt/misc/cleaned_events/cleaned_events_"+self.version+".txt")
-        for line in inFile :
-            varList = line.split()
-            run = int(varList[1])
-            ls = int(varList[3])
-            event = int(varList[5])
-            self.setOfBadTuples.add( (run,ls,event) )
-        inFile.close()
-        
-    def select (self,eventVars) :
-        return  (eventVars["run"],eventVars["lumiSection"],eventVars["event"])   not in   self.setOfBadTuples
 #####################################
 class bxFilter(analysisStep) :
 
@@ -1045,4 +951,25 @@ class duplicateEventCheck(analysisStep) :
         event = ev["event"]
         assert event not in runLs, "You have a duplicate event: run %d, lumiSection %d, event %d"%(ev["run"],ev["lumiSection"],event)
         runLs.add(event)
+#####################################
+class deadEcalFilter(analysisStep) :
+    def __init__(self, jets = None, dR = None, dPhiStarCut = None, nXtalThreshold = None) :
+        for item in ["jets","dR","dPhiStarCut","nXtalThreshold"] :
+            setattr(self,item,eval(item))
+        self.dps = "%sDeltaPhiStar%s"%self.jets
+        self.badJet = r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0,0.0,0.0,0.0)
+        self.moreName = "%s%s; dR>%5.3f when deltaPhiStar<%5.3f and nXtal>%d"%(self.jets[0], self.jets[1], self.dR, self.dPhiStarCut, self.nXtalThreshold)
+        
+    def select(self, eventVars) :
+        d = eventVars[self.dps]
+        index = d["DeltaPhiStarJetIndex"]
+        if d["DeltaPhiStar"]>self.dPhiStarCut :
+            return True
+        jet = eventVars["%sCorrectedP4%s"%self.jets].at(index)
+        self.badJet.SetCoordinates(jet.pt(),jet.eta(),jet.phi(),jet.E())
+        for iRegion,region in enumerate(eventVars["ecalDeadTowerTrigPrimP4"]) :
+            if eventVars["ecalDeadTowerNBadXtals"].at(iRegion)<self.nXtalThreshold : continue
+            if r.Math.VectorUtil.DeltaR(self.badJet,region) < self.dR :
+                return False
+        return True
 #####################################
