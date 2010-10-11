@@ -442,11 +442,11 @@ class bxFilter(analysisStep) :
 class displayer(analysisStep) :
     
     def __init__(self,jets = ("",""), met = "", muons = "", electrons = "", photons = "",
-                 recHits = "", recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False) :
+                 recHits = "", recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False, doEtaPhiPlot = True) :
 
         self.moreName = "(see below)"
 
-        for item in ["scale","jets","met","muons","electrons","photons","recHits","recHitPtThreshold","doGenParticles"] :
+        for item in ["scale","jets","met","muons","electrons","photons","recHits","recHitPtThreshold","doGenParticles", "doEtaPhiPlot"] :
             setattr(self,item,eval(item))
 
         self.genJets = self.jets
@@ -457,7 +457,7 @@ class displayer(analysisStep) :
         self.doReco = not self.doGenParticles
         self.doLeptons=True
         self.helper=r.displayHelper()
-        self.deadEcalRegionVectors=[]
+        self.deadEcalRegionVectorsFromFile=[]
         self.deadEcalRegionSpecFileName = "deadRegionList.txt"
 
     def switchGenOn(self) :
@@ -512,8 +512,7 @@ class displayer(analysisStep) :
             fieldList=line.split()
             eta=float(fieldList[0])
             phi=float(fieldList[1])
-            self.deadEcalRegionVectors.append(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0,eta,phi,0.0))
-            #print self.deadEcalRegionVectors[-1].eta(),self.deadEcalRegionVectors[-1].phi()
+            self.deadEcalRegionVectorsFromFile.append(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0,eta,phi,0.0))
         inFile.close()
                                                                                         
     def endFunc(self,chain,otherChainDict,nEvents,xs) :
@@ -769,8 +768,8 @@ class displayer(analysisStep) :
     def drawEtaPhiPlot (self, eventVars) :
         stuffToKeep=[]
         pad=r.TPad("etaPhiPad","etaPhiPad",
-                   0.01 + 2.0*self.radius, 0.01 + self.radius,
-                   0.95,                   0.63)
+                   0.01 + 1.0*self.radius, 0.36 + self.radius,
+                   0.00 + 2.0*self.radius, 0.98)
         
         pad.cd()
         pad.SetRightMargin(0.01)
@@ -781,16 +780,30 @@ class displayer(analysisStep) :
 
         self.etaPhiPlot.Draw()
 
-        for deadRegion in self.deadEcalRegionVectors :
+        def drawBox(fourVector) :
             value = 0.087/2
-            self.box.DrawBox(deadRegion.eta()-value, deadRegion.phi()-value, deadRegion.eta()+value, deadRegion.phi()+value)
-
+            self.box.DrawBox(fourVector.eta()-value, fourVector.phi()-value, fourVector.eta()+value, fourVector.phi()+value)
+            
+        for deadRegion in self.deadEcalRegionVectorsFromFile :
+            drawBox(deadRegion)
+            
         if self.doGenParticles :
             self.drawGenParticles(eventVars,r.kMagenta, lineWidth = 1, arrowSize = -1.0, statusList = [1], pdgIdList = [22],
                                   motherList = [1,2,3,4,5,6,-1,-2,-3,-4,-5,-6], label = "status 1 photon w/quark as mother", circleRadius = 0.15)
             self.drawGenParticles(eventVars,r.kOrange, lineWidth = 1, arrowSize = -1.0, statusList = [1], pdgIdList = [22],
                                   motherList = [22], label = "status 1 photon w/photon as mother", circleRadius = 0.15)
-
+        else :
+            d = eventVars["%sDeltaPhiStar%s"%self.jets]
+            index = d["DeltaPhiStarJetIndex"]
+            title = "#Delta#phi * = %6.4f"%d["DeltaPhiStar"]
+            title+= "#semicolon index = %d"%index
+            self.etaPhiPlot.SetTitle(title)
+            for iRegion,region in enumerate(eventVars["ecalDeadTowerTrigPrimP4"]) :
+                if eventVars["ecalDeadTowerNBadXtals"].at(iRegion)<5 : continue
+                drawBox(region)
+            badJet = eventVars["%sCorrectedP4%s"%self.jets].at(index)
+            self.drawCircle(badJet, r.kBlack, lineWidth = 1, circleRadius = 0.5)
+            
         stuffToKeep.extend([pad])
         self.canvas.cd()
         pad.Draw()
@@ -934,7 +947,7 @@ class displayer(analysisStep) :
         self.legend.Draw("same")
         r.gStyle.SetOptStat(110011)
 
-        if self.doGenParticles :
+        if self.doGenParticles or self.doEtaPhiPlot :
             gg = self.drawEtaPhiPlot(eventVars)
         if self.doReco :
             g2 = self.drawAlphaPlot(eventVars,r.kBlack)
