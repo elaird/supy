@@ -21,6 +21,8 @@ jetmet.add("Run2010A_JM_skim",
            'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/JetMET.Run2010A-Sep17ReReco_v2.RECO.Burt/")', lumi = 2.889) #/pb
 jetmet.add("Run2010A_JMT_skim",
            'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/JetMETTau.Run2010A-Sep17ReReco_v2.RECO.Burt/")', lumi = 0.172) #/pb
+jetmet.add("Tanja_sync",
+           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/Jet.Run2010B-PromptReco-v2.RECO.Burt2/Jet.Run2010B-PromptReco-v2.RECO.Burt2_[6-9]_skim.root", isDirectory = False)', lumi = 9999999.9) #/pb
 
 #ORIGINALS
 #36X
