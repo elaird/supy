@@ -43,7 +43,7 @@ class photonID(wrappedChain.calculable) :
         self.idName = "%sID%s%s" % (self.cs[0],level,self.cs[1])
         self.p4Name = "%sP4%s" % self.cs
 
-        for var in ["EcalRecHitEtConeDR04", "HcalDepth1TowSumEtConeDR04", "HcalDepth2TowSumEtConeDR04",
+        for var in ["EcalRecHitEtConeDR04", "HcalTowSumEtConeDR04",
                     "HadronicOverEm", "TrkSumPtHollowConeDR04", "SigmaIetaIeta","HasPixelSeed"] :
             setattr(self,var, ("%s"+var+"%s")%self.cs)
 
@@ -64,18 +64,17 @@ class photonID(wrappedChain.calculable) :
         self.value = map(self.passId, 
                          self.source[self.p4Name],
                          self.source[self.EcalRecHitEtConeDR04],
-                         self.source[self.HcalDepth1TowSumEtConeDR04],
-                         self.source[self.HcalDepth2TowSumEtConeDR04],
+                         self.source[self.HcalTowSumEtConeDR04],
                          self.source[self.HadronicOverEm],
                          self.source[self.TrkSumPtHollowConeDR04],
                          self.source[self.SigmaIetaIeta],
                          self.source[self.HasPixelSeed],
                          )
 
-    def passId(self, p4, jei, hi1, hi2, hoe, hcti, shh, hasPixelSeed) :
+    def passId(self, p4, jei, hi, hoe, hcti, shh, hasPixelSeed) :
         pt = p4.pt()
         if jei       > (self.jei [0] + pt*self.jei [1]) : return False
-        if (hi1+hi2) > (self.tbhi[0] + pt*self.tbhi[1]) : return False
+        if hi        > (self.tbhi[0] + pt*self.tbhi[1]) : return False
         if hoe       > (self.hoe [0] + pt*self.hoe [1]) : return False
         if self.hcti!=None and hcti > (self.hcti[0] + pt*self.hcti[1]) : return False
         
@@ -84,6 +83,16 @@ class photonID(wrappedChain.calculable) :
         
         if hasPixelSeed : return False
         return True
+####################################    
+class HcalTowSumEtConeDR04(wrappedChain.calculable) :
+    def name(self) : return "%sHcalTowSumEtConeDR04%s"%self.collection
+    def __init__(self, collection = None) :
+        self.collection = collection
+        self.var1 = "%sHcalDepth1TowSumEtConeDR04%s"%collection
+        self.var2 = "%sHcalDepth2TowSumEtConeDR04%s"%collection
+    def update(self, ignored) :
+        size = len(self.source[self.var1])
+        self.value = [self.source[self.var1].at(i)+self.source[self.var2].at(i) for i in range(size)]
 ####################################
 class photonIDEmFromTwiki(photonID) :
     def __init__(self, collection = None) :
