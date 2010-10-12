@@ -120,12 +120,12 @@ mc.adjustOverlappingSamples( ["v12_g_jets_py6_pt%d"%i for i in [15,30,80,170,300
 
 #MG TT/EWK
 mc.add("tt_tauola_mg_v12",'utils.fileListFromDisk(location = "/vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root", isDirectory = False, itemsToSkip = ["_4_2"] )',
-       xs = {"LO":95.0,"NLO":157.5}["LO"] )
+       xs = {"LO":95.0,"NLO":157.5}["NLO"] )
 mc.add("z_inv_mg_v12",'%s/zph04/ICF/automated/2010_07_14_11_52_58/",itemsToSkip=["14_3.root"])'%srm, xs = 4500.0 )
 mc.add("z_jets_mg_v12",'%s/jad/ICF/automated//2010_07_05_22_43_20/", pruneList=False)'%srm,
-       xs = {"LO":2400.0,"NNLO":3048.0}["LO"] )
+       xs = {"LO":2400.0,"NNLO":3048.0}["NNLO"] )
 mc.add("w_jets_mg_v12",'%s/jad/ICF/automated//2010_06_18_22_33_23/")'%srm,
-       xs = {"LO":24170.0,"NNLO":31314.0}["LO"] )
+       xs = {"LO":24170.0,"NNLO":31314.0}["NNLO"] )
 
 #SUSY
 mc.add("lm0_v12" ,'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM0.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 38.93   )
