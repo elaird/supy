@@ -16,7 +16,7 @@ class photonLook(analysis.analysis) :
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]                     [0:1] ),
                  "mcSoup" :           dict([ ("pythia6","py6"), ("madgraph","mg"), ("pythia8","py8") ]               [0:2] ),
-                 "photonId" :         dict([ ("photonLoose","photonIDloosePat"), ("photonTight","photonIDtightPat")] [0:1] ),
+                 "photonId" :         dict([ ("photonLoose","photonIDLooseFromTwikiPat"), ("photonTight","photonIDTightFromTwikiPat")] [0:1] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  "etRatherThanPt" : [True,False]        [0],
                  }
@@ -157,74 +157,69 @@ class photonLook(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify
-
-        qcd_py6 = [                                            
-          ##specify(name = "qcd_py6_pt30",          nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py6_pt80",          nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py6_pt170",         nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py6_pt300",         nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "qcd_test_skim",         nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py6_pt470",         nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py6_pt800",         nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py6_pt1400",        nFilesMax = -1, color = r.kBlue    ),
-            ]                                                   
-                                                                
-        qcd_py8 = [                                             
-          ##specify(name = "qcd_py8_pt0to15",       nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py8_pt15to20",      nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py8_pt20to30",      nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py8_pt30to50",      nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt50to80",      nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt80to120",     nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt120to170",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt170to230",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt230to300",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt300to380",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt380to470",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt470to600",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt600to800",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt800to1000",   nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt1000to1400",  nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt1400to1800",  nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt1800to2200",  nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt2200to2600",  nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt2600to3000",  nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt3000to3500",  nFilesMax = -1, color = r.kBlue    ),
-            ]                                                   
-                                                                
-        qcd_mg = [                                              
-            specify(name = "qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
-            ]                                                   
-                                                                
-        g_jets_mg = [                                           
-            specify(name = "g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
-            specify(name = "g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
-            specify(name = "g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
-          ##specify(name = "g_jets_test_skim",      nFilesMax = -1, color = r.kGreen   ),
-            ]                                                   
-                                                                
         data = [                                                
-            specify(name = "JetMET_skim",           nFilesMax = -1, color = r.kBlack, markerStyle = 20)
-            ]
-
-        other = [                                        
-           #specify(name = "tt_tauola_mg",          nFilesMax =  3, color = r.kOrange  ),
-            specify(name = "z_inv_mg_skim",         nFilesMax = -1, color = r.kMagenta ),
-            specify(name = "z_jets_mg_skim",        nFilesMax = -1, color = r.kYellow-3),
-            specify(name = "w_jets_mg_skim",        nFilesMax = -1, color = 28         ),
-           #specify(name = "lm0",                   nFilesMax = -1, color = r.kRed     ),
-           #specify(name = "lm1",                   nFilesMax = -1, color = r.kRed+1   ),
-            ]
-
-        g_jets_py6 = [
-            specify(name = "g_jets_py6_pt30",       nFilesMax = -1, nEventsMax = 100000, color = r.kGreen),
-            specify(name = "g_jets_py6_pt80",       nFilesMax = -1, nEventsMax = 100000, color = r.kGreen),
-            specify(name = "g_jets_py6_pt170",      nFilesMax = -1, nEventsMax = 100000, color = r.kGreen),
-            ]
+            specify(name = "Run2010B_J_skim1",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+           #specify(name = "2010_data_skim_calo",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+           #specify(name = "2010_data_skim_pf",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+           #specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            ]                                                       
+        qcd_py6 = [                                                 
+          ##specify(name = "v12_qcd_py6_pt30",          nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "v12_qcd_py6_pt80",          nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "v12_qcd_py6_pt170",         nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "v12_qcd_py6_pt300",         nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "v12_qcd_py6_pt470",         nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "v12_qcd_py6_pt800",         nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "v12_qcd_py6_pt1400",        nFilesMax = -1, color = r.kBlue    ),
+            ]                                                       
+        g_jets_py6 = [                                              
+            specify(name = "v12_g_jets_py6_pt30",       nFilesMax = -1, nEventsMax = 1000000, color = r.kGreen),
+            specify(name = "v12_g_jets_py6_pt80",       nFilesMax = -1, nEventsMax =  100000, color = r.kGreen),
+            specify(name = "v12_g_jets_py6_pt170",      nFilesMax = -1, nEventsMax =  100000, color = r.kGreen),
+            ]                                                       
+        qcd_py8 = [                                                 
+          ##specify(name = "qcd_py8_pt0to15",           nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py8_pt15to30",          nFilesMax = -1, color = r.kBlue    ),
+          ##specify(name = "qcd_py8_pt30to50",          nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt50to80",          nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt80to120",         nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt120to170",        nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt170to300",        nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt300to470",        nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt470to600",        nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt600to800",        nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt800to1000",       nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt1000to1400",      nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt1400to1800",      nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "qcd_py8_pt1800",            nFilesMax = -1, color = r.kBlue    ),
+            ]                                                       
+        qcd_mg = [                                                  
+            specify(name = "v12_qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "v12_qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "v12_qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "v12_qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "v12_qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
+            ]                                                       
+        g_jets_mg = [                                               
+            specify(name = "v12_g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
+            specify(name = "v12_g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
+            specify(name = "v12_g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
+            ]                                                       
+        ttbar_mg = [                                                
+            specify(name = "tt_tauola_mg_v12",          nFilesMax =  3, color = r.kOrange  ),
+            ]                                                       
+        ewk = [                                                     
+            specify(name = "z_inv_mg_v12",              nFilesMax = -1, color = r.kMagenta ),
+            specify(name = "z_jets_mg_v12",             nFilesMax = -1, color = r.kYellow-3),
+            specify(name = "w_jets_mg_v12",             nFilesMax = -1, color = 28         ),
+            ]                                                       
+        susy = [                                                    
+            specify(name = "lm0_v12",                   nFilesMax = -1, color = r.kRed     ),
+            specify(name = "lm1_v12",                   nFilesMax = -1, color = r.kRed+1   ),
+            ]                                                   
 
         outList = []
         if params["mcSoup"]=="py6" :
@@ -240,38 +235,61 @@ class photonLook(analysis.analysis) :
             outList+=g_jets_mg
 
         outList+=data
-        outList+=other
+        #outList+=ttbar_mg
+        outList+=ewk
+        #outList+=susy
+
+        ##uncomment for short tests
+        #for i in range(len(outList)):
+        #    o = outList[i]
+        #    #if "2010" in o.name: continue
+        #    outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
+        
         return outList
 
     def mergeSamples(self, org, tag) :
         def py6(org, smSources) :
-            org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue},
-                             sources = ["qcd_py6_pt%d"%i      for i in [80,170,300] ])
-            smSources.append("qcd_py6")
-            org.mergeSamples(targetSpec = {"name":"g_jets_py6", "color":r.kGreen},
-                             sources = ["g_jets_py6_pt%d"%i      for i in [30,80,170] ])
-            smSources.append("g_jets_py6")
+            org.mergeSamples(targetSpec = {"name":"qcd_py6_v12", "color":r.kBlue},
+                             sources = ["v12_qcd_py6_pt%d"%i      for i in [80,170,300] ])
+            smSources.append("qcd_py6_v12")
+
+            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen},
+                             sources = ["v12_g_jets_py6_pt%d"%i      for i in [30,80,170] ])
+            smSources.append("g_jets_py6_v12")
 
         def py8(org, smSources) :
-            lowerPtList = [0,15,20,30,50,80,120,170,230,300,380,470,600,800,1000,1400,1800,2200,2600,3000,3500]
-            org.mergeSamples(targetSpec = {"name":"qcd_py8", "color":r.kBlue},
-                             sources = ["qcd_py8_pt%dto%d"%(lowerPtList[i],lowerPtList[i+1]) for i in range(len(lowerPtList)-1)] )
+            lowerPtList = [0,15,30,50,80,120,170,300,470,600,800,1000,1400,1800]
+            sources = ["qcd_py8_pt%dto%d"%(lowerPtList[i],lowerPtList[i+1]) for i in range(len(lowerPtList)-1)]
+            sources.append("qcd_py8_pt%d"%lowerPtList[-1])
+            org.mergeSamples(targetSpec = {"name":"qcd_py8", "color":r.kBlue}, sources = sources)
             smSources.append("qcd_py8")
-        
+
+            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen},
+                             sources = ["v12_g_jets_py6_pt%d"%i      for i in [30,80,170] ])
+            smSources.append("g_jets_py6_v12")
+
         def mg(org, smSources) :
-            org.mergeSamples(targetSpec = {"name":"qcd_mg", "color":r.kBlue},
-                             sources = ["qcd_mg_ht_%s"%bin for bin in ["50_100","100_250","250_500","500_1000","1000_inf"] ])
-            smSources.append("qcd_mg")
+            org.mergeSamples(targetSpec = {"name":"qcd_mg_v12", "color":r.kBlue},
+                             sources = ["v12_qcd_mg_ht_%s"%bin for bin in ["50_100","100_250","250_500","500_1000","1000_inf"] ])
+            smSources.append("qcd_mg_v12")
             
-            org.mergeSamples(targetSpec = {"name":"g_jets_mg", "color":r.kGreen},
-                             sources = ["g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
-            smSources.append("g_jets_mg")
-            
-        smSources = ["tt_tauola_mg", "z_inv_mg_skim", "z_jets_mg_skim", "w_jets_mg_skim"]
+            org.mergeSamples(targetSpec = {"name":"g_jets_mg_v12", "color":r.kGreen},
+                             sources = ["v12_g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
+            smSources.append("g_jets_mg_v12")
+
+        smSources = ["tt_tauola_mg_v12", "z_inv_mg_v12", "z_jets_mg_v12", "w_jets_mg_v12"]
         if "pythia6"  in tag : py6(org, smSources)
         if "pythia8"  in tag : py8(org, smSources)
         if "madgraph" in tag : mg (org, smSources)
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
+        org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20},
+                         sources = ["Run2010B_J_skim1","Run2010B_J_skim2","Run2010A_JM_skim","Run2010A_JMT_skim"])
+        
+        ##uncomment for short tests
+        #for i in range(len(outList)):
+        #    o = outList[i]
+        #    #if "2010" in o.name: continue
+        #    outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
         
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
