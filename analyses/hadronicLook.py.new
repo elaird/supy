@@ -55,7 +55,7 @@ class hadronicLook(analysis.analysis) :
                  calculables.jetIndices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
                  calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15),
                  calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
-                 calculables.photonIndicesPat(  ptMin = 20, flagName = "photonIDLoosePat"),
+                 calculables.photonIndicesPat(  ptMin = 20, flagName = "photonIDLooseFromTwikiPat"),
                  calculables.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
                  calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
@@ -177,13 +177,13 @@ class hadronicLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [                                                
-           specify(name = "Run2010B_J_skim1",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-           specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-           specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-           specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-          #specify(name = "2010_data_skim_calo",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-          #specify(name = "2010_data_skim_pf",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-          #specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_J_skim1",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+           #specify(name = "2010_data_skim_calo",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+           #specify(name = "2010_data_skim_pf",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+           #specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             ]                                                       
         qcd_py6 = [                                                 
           ##specify(name = "v12_qcd_py6_pt30",          nFilesMax = -1, color = r.kBlue    ),
