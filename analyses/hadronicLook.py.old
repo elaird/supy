@@ -231,9 +231,9 @@ class hadronicLook(analysis.analysis) :
             specify(name = "tt_tauola_mg_v12",          nFilesMax =  3, color = r.kOrange  ),
             ]                                                       
         ewk = [                                                     
-            specify(name = "z_inv_mg_skim_v12",         nFilesMax = -1, color = r.kMagenta ),
-            specify(name = "z_jets_mg_skim_v12",        nFilesMax = -1, color = r.kYellow-3),
-            specify(name = "w_jets_mg_skim_v12",        nFilesMax = -1, color = 28         ),
+            specify(name = "z_inv_mg_v12",              nFilesMax = -1, color = r.kMagenta ),
+            specify(name = "z_jets_mg_v12",             nFilesMax = -1, color = r.kYellow-3),
+            specify(name = "w_jets_mg_v12",             nFilesMax = -1, color = 28         ),
             ]                                                       
         susy = [                                                    
             specify(name = "lm0_v12",                   nFilesMax = -1, color = r.kRed     ),
@@ -296,7 +296,7 @@ class hadronicLook(analysis.analysis) :
                              sources = ["v12_g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
             smSources.append("g_jets_mg_v12")
 
-        smSources = ["tt_tauola_mg_v12", "z_inv_mg_skim_v12", "z_jets_mg_skim_v12", "w_jets_mg_skim_v12"]
+        smSources = ["tt_tauola_mg_v12", "z_inv_mg_v12", "z_jets_mg_v12", "w_jets_mg_v12"]
         if "pythia6"  in tag : py6(org, smSources)
         if "pythia8"  in tag : py8(org, smSources)
         if "madgraph" in tag : mg (org, smSources)
