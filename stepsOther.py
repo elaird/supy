@@ -361,8 +361,6 @@ class displayer(analysisStep) :
         self.doReco = not self.doGenParticles
         self.doLeptons=True
         self.helper=r.displayHelper()
-        self.deadEcalRegionVectorsFromFile=[]
-        self.deadEcalRegionSpecFileName = "deadRegionList.txt"
 
     def switchGenOn(self) :
         self.doGen=True
@@ -407,19 +405,7 @@ class displayer(analysisStep) :
 
         self.etaPhiPlot = r.TH2D("etaPhi",";#eta;#phi;",1, -3.0, 3.0, 1, -r.TMath.Pi(), r.TMath.Pi() )
         self.etaPhiPlot.SetStats(False)
-        if self.doGenParticles :
-            self.populateDeadRegionList()
 
-    def populateDeadRegionList(self) :
-        inFile=open(self.deadEcalRegionSpecFileName)
-        for line in inFile :
-            if line[0]=="#" : continue
-            fieldList=line.split()
-            eta=float(fieldList[0])
-            phi=float(fieldList[1])
-            self.deadEcalRegionVectorsFromFile.append(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0,eta,phi,0.0))
-        inFile.close()
-                                                                                        
     def endFunc(self,chain,otherChainDict,nEvents,xs) :
         self.outputFile.Write()
         self.outputFile.Close()
@@ -688,10 +674,12 @@ class displayer(analysisStep) :
         def drawBox(fourVector) :
             value = 0.087/2
             self.box.DrawBox(fourVector.eta()-value, fourVector.phi()-value, fourVector.eta()+value, fourVector.phi()+value)
-            
-        for deadRegion in self.deadEcalRegionVectorsFromFile :
-            drawBox(deadRegion)
-            
+
+        #draw dead ECAL regions
+        for iRegion,region in enumerate(eventVars["ecalDeadTowerTrigPrimP4"]) :
+            if eventVars["ecalDeadTowerNBadXtals"].at(iRegion)<5 : continue
+            drawBox(region)
+        
         if self.doGenParticles :
             self.drawGenParticles(eventVars,r.kMagenta, lineWidth = 1, arrowSize = -1.0, statusList = [1], pdgIdList = [22],
                                   motherList = [1,2,3,4,5,6,-1,-2,-3,-4,-5,-6], label = "status 1 photon w/quark as mother", circleRadius = 0.15)
@@ -703,12 +691,8 @@ class displayer(analysisStep) :
             title = "#Delta#phi * = %6.4f"%d["DeltaPhiStar"]
             title+= "#semicolon index = %d"%index
             self.etaPhiPlot.SetTitle(title)
-            for iRegion,region in enumerate(eventVars["ecalDeadTowerTrigPrimP4"]) :
-                if eventVars["ecalDeadTowerNBadXtals"].at(iRegion)<5 : continue
-                drawBox(region)
             badJet = eventVars["%sCorrectedP4%s"%self.jets].at(index)
             self.drawCircle(badJet, r.kBlack, lineWidth = 1, circleRadius = 0.5)
-
 
         legend = r.TLegend(0.6,0.92,1.0,1.0)
         legend.SetFillStyle(0)
