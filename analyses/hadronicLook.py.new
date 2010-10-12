@@ -11,10 +11,10 @@ class hadronicLook(analysis.analysis) :
         objects = {}
         fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets", "jetPtMin"] 
         #objects["caloAK5_pfMET"] = dict(zip(fields, [("ak5Jet","Pat"), "metP4PF", ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
-        objects["caloAK5"] = dict(zip(fields, [("ak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
-        #objects["caloAK7"] = dict(zip(fields, [("ak7Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
-        #objects["jptAK5"]  = dict(zip(fields, [("ak5JetJPT","Pat"),"metP4TC",     ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo",     True ,        50.0]))
-        #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,        50.0]))
+        objects["caloAK5"] = dict(zip(fields, [("xcak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
+        objects["caloAK7"] = dict(zip(fields, [("xcak7Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
+        objects["jptAK5"]  = dict(zip(fields, [("xcak5JetJPT","Pat"),"metP4TC",     ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo",     True ,        50.0]))
+        objects["pfAK5"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,        50.0]))
 
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
@@ -43,21 +43,21 @@ class hadronicLook(analysis.analysis) :
                calculables.fromCollections("calculablesMuon",[_muon]) +\
                calculables.fromCollections("calculablesElectron",[_electron]) +\
                calculables.fromCollections("calculablesPhoton",[_photon]) +\
-               [ #calculables.xcJet(_jet,
-                 #                  gamma = _photon,
-                 #                  gammaDR = 0.5,
-                 #                  muon = _muon,
-                 #                  muonDR = 0.5,
-                 #                  correctForMuons = _correctForMuons,
-                 #                  electron = _electron,
-                 #                  electronDR = 0.5),
+               [ calculables.xcJet(_jet,
+                                   gamma = _photon,
+                                   gammaDR = 0.5,
+                                   muon = _muon,
+                                   muonDR = 0.5,
+                                   correctForMuons = _correctForMuons,
+                                   electron = _electron,
+                                   electronDR = 0.5),
                  calculables.jetIndices( _jet, _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
                  calculables.jetIndices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
                  calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15),
                  calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
                  calculables.photonIndicesPat(  ptMin = 20, flagName = "photonIDLoosePat"),
-                 #calculables.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
-                 #calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
+                 calculables.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
+                 calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
                  + [ calculables.jetSumP4(_jet, mcScaleFactor = 1.0),
                      calculables.deltaPhiStar(_jet, ptMin = lowPtThreshold, extraName = lowPtName),
@@ -110,11 +110,11 @@ class hadronicLook(analysis.analysis) :
             steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_photon, nMax = 0),
 
-            #steps.histogrammer("%sIndicesUnmatched%s"%_electron,10,-0.5,9.5,title="; N electrons unmatched;events / bin", funcString = "lambda x: len(x)"),
-            #steps.multiplicityFilter("%sIndicesUnmatched%s"%_electron, nMax = 0),
-            #steps.histogrammer("%sIndicesUnmatched%s"%_photon,10,-0.5,9.5,title="; N photons unmatched;events / bin", funcString = "lambda x: len(x)"),
-            #steps.multiplicityFilter("%sIndicesUnmatched%s"%_photon, nMax = 0),
-            #steps.uniquelyMatchedNonisoMuons(_jet),
+            steps.histogrammer("%sIndicesUnmatched%s"%_electron,10,-0.5,9.5,title="; N electrons unmatched;events / bin", funcString = "lambda x: len(x)"),
+            steps.multiplicityFilter("%sIndicesUnmatched%s"%_electron, nMax = 0),
+            steps.histogrammer("%sIndicesUnmatched%s"%_photon,10,-0.5,9.5,title="; N photons unmatched;events / bin", funcString = "lambda x: len(x)"),
+            steps.multiplicityFilter("%sIndicesUnmatched%s"%_photon, nMax = 0),
+            steps.uniquelyMatchedNonisoMuons(_jet),
             
             steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
             steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
@@ -143,6 +143,7 @@ class hadronicLook(analysis.analysis) :
             #signal selection
             steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
+            steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - PFMET)/(MHT+HT);events / bin"),
             steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
             steps.deadEcalFilter(jets = _jet, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
             ##steps.variableGreaterFilter(0.53,"%sAlphaTMet%s"%_jet),
