@@ -34,6 +34,9 @@ class hadronicLook(analysis.analysis) :
         _etRatherThanPt = params["etRatherThanPt"]
         _met = params["objects"]["met"]
         _correctForMuons = not params["objects"]["muonsInJets"]
+
+        lowPtThreshold = 30.0
+        lowPtName = "lowPt"
         
         return calculables.zeroArgs() +\
                calculables.fromCollections("calculablesJet",[_jet]) +\
@@ -48,7 +51,8 @@ class hadronicLook(analysis.analysis) :
                  #                  correctForMuons = _correctForMuons,
                  #                  electron = _electron,
                  #                  electronDR = 0.5),
-                 calculables.jetIndices( _jet, _jetPtMin, etaMax = 3.0, flagName = params["jetId"]),
+                 calculables.jetIndices( _jet, _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
+                 calculables.jetIndices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
                  calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15),
                  calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
                  calculables.photonIndicesPat(  ptMin = 20, flagName = "photonIDLoosePat"),
@@ -56,10 +60,13 @@ class hadronicLook(analysis.analysis) :
                  #calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
                  + [ calculables.jetSumP4(_jet, mcScaleFactor = 1.0),
-                     calculables.deltaPhiStar(_jet, ptMin = 50.0),
+                     calculables.deltaPhiStar(_jet, ptMin = lowPtThreshold, extraName = lowPtName),
                      calculables.deltaPseudoJet(_jet, _etRatherThanPt),
                      calculables.alphaT(_jet, _etRatherThanPt),
-                     calculables.alphaTMet(_jet, _etRatherThanPt, _met) ]
+                     calculables.alphaTMet(_jet, _etRatherThanPt, _met),
+                    #calculables.mhtMinusMetOverMeff(_jet, _met, _etRatherThanPt),
+                     calculables.mhtMinusMetOverMeff(_jet, "metP4PF", _etRatherThanPt),
+                     ]
 
     def listOfSteps(self,params) :
         _jet  = params["objects"]["jet"]
@@ -102,7 +109,7 @@ class hadronicLook(analysis.analysis) :
             steps.multiplicityFilter("%sIndicesOther%s"%_muon, nMax = 0),
             steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_photon, nMax = 0),
-            
+
             #steps.histogrammer("%sIndicesUnmatched%s"%_electron,10,-0.5,9.5,title="; N electrons unmatched;events / bin", funcString = "lambda x: len(x)"),
             #steps.multiplicityFilter("%sIndicesUnmatched%s"%_electron, nMax = 0),
             #steps.histogrammer("%sIndicesUnmatched%s"%_photon,10,-0.5,9.5,title="; N photons unmatched;events / bin", funcString = "lambda x: len(x)"),
@@ -136,12 +143,14 @@ class hadronicLook(analysis.analysis) :
             #signal selection
             steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
-            
+            steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
+            steps.deadEcalFilter(jets = _jet, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
             ##steps.variableGreaterFilter(0.53,"%sAlphaTMet%s"%_jet),
             
             #steps.skimmer(),
             #steps.eventPrinter(),
             #steps.jetPrinter(_jet),
+            #steps.particleP4Printer(_muon),
             #steps.particleP4Printer(_photon),
             #steps.recHitPrinter("clusterPF","Ecal"),
             #steps.htMhtPrinter(_jet),
@@ -167,11 +176,13 @@ class hadronicLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [                                                
-            specify(name = "Run2010B_J_skim1",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-           #specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+           specify(name = "Run2010B_J_skim1",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+           specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+           specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+           specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+          #specify(name = "2010_data_skim_calo",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+          #specify(name = "2010_data_skim_pf",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+          #specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             ]                                                       
         qcd_py6 = [                                                 
           ##specify(name = "v12_qcd_py6_pt30",          nFilesMax = -1, color = r.kBlue    ),
@@ -216,16 +227,16 @@ class hadronicLook(analysis.analysis) :
             specify(name = "v12_g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
             ]                                                       
         ttbar_mg = [                                                
-            specify(name = "v12_tt_tauola_mg",          nFilesMax =  3, color = r.kOrange  ),
+            specify(name = "tt_tauola_mg_v12",          nFilesMax =  3, color = r.kOrange  ),
             ]                                                       
         ewk = [                                                     
-            specify(name = "v12_z_inv_mg_skim",         nFilesMax = -1, color = r.kMagenta ),
-            specify(name = "v12_z_jets_mg_skim",        nFilesMax = -1, color = r.kYellow-3),
-            specify(name = "v12_w_jets_mg_skim",        nFilesMax = -1, color = 28         ),
+            specify(name = "z_inv_mg_skim_v12",         nFilesMax = -1, color = r.kMagenta ),
+            specify(name = "z_jets_mg_skim_v12",        nFilesMax = -1, color = r.kYellow-3),
+            specify(name = "w_jets_mg_skim_v12",        nFilesMax = -1, color = 28         ),
             ]                                                       
         susy = [                                                    
-            specify(name = "v12_lm0",                   nFilesMax = -1, color = r.kRed     ),
-            specify(name = "v12_lm1",                   nFilesMax = -1, color = r.kRed+1   ),
+            specify(name = "lm0_v12",                   nFilesMax = -1, color = r.kRed     ),
+            specify(name = "lm1_v12",                   nFilesMax = -1, color = r.kRed+1   ),
             ]                                                   
 
         outList = []
@@ -245,17 +256,24 @@ class hadronicLook(analysis.analysis) :
         outList+=ttbar_mg
         outList+=ewk
         outList+=susy
+
+        #uncomment for short tests
+        for i in range(len(outList)):
+            o = outList[i]
+            #if "2010" in o.name: continue
+            outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
+        
         return outList
 
     def mergeSamples(self, org, tag) :
         def py6(org, smSources) :
-            org.mergeSamples(targetSpec = {"name":"v12_qcd_py6", "color":r.kBlue},
+            org.mergeSamples(targetSpec = {"name":"qcd_py6_v12", "color":r.kBlue},
                              sources = ["v12_qcd_py6_pt%d"%i      for i in [80,170,300] ])
-            smSources.append("v12_qcd_py6")
+            smSources.append("qcd_py6_v12")
 
-            org.mergeSamples(targetSpec = {"name":"v12_g_jets_py6", "color":r.kGreen},
+            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen},
                              sources = ["v12_g_jets_py6_pt%d"%i      for i in [30,80,170] ])
-            smSources.append("v12_g_jets_py6")
+            smSources.append("g_jets_py6_v12")
 
         def py8(org, smSources) :
             lowerPtList = [0,15,30,50,80,120,170,300,470,600,800,1000,1400,1800]
@@ -264,20 +282,20 @@ class hadronicLook(analysis.analysis) :
             org.mergeSamples(targetSpec = {"name":"qcd_py8", "color":r.kBlue}, sources = sources)
             smSources.append("qcd_py8")
 
-            org.mergeSamples(targetSpec = {"name":"v12_g_jets_py6", "color":r.kGreen},
+            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen},
                              sources = ["v12_g_jets_py6_pt%d"%i      for i in [30,80,170] ])
-            smSources.append("v12_g_jets_py6")
+            smSources.append("g_jets_py6_v12")
 
         def mg(org, smSources) :
-            org.mergeSamples(targetSpec = {"name":"v12_qcd_mg", "color":r.kBlue},
+            org.mergeSamples(targetSpec = {"name":"qcd_mg_v12", "color":r.kBlue},
                              sources = ["v12_qcd_mg_ht_%s"%bin for bin in ["50_100","100_250","250_500","500_1000","1000_inf"] ])
-            smSources.append("v12_qcd_mg")
+            smSources.append("qcd_mg_v12")
             
-            org.mergeSamples(targetSpec = {"name":"v12_g_jets_mg", "color":r.kGreen},
+            org.mergeSamples(targetSpec = {"name":"g_jets_mg_v12", "color":r.kGreen},
                              sources = ["v12_g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
-            smSources.append("v12_g_jets_mg")
+            smSources.append("g_jets_mg_v12")
 
-        smSources = ["v12_tt_tauola_mg", "v12_z_inv_mg_skim", "v12_z_jets_mg_skim", "v12_w_jets_mg_skim"]
+        smSources = ["tt_tauola_mg_v12", "z_inv_mg_skim_v12", "z_jets_mg_skim_v12", "w_jets_mg_skim_v12"]
         if "pythia6"  in tag : py6(org, smSources)
         if "pythia8"  in tag : py8(org, smSources)
         if "madgraph" in tag : mg (org, smSources)
