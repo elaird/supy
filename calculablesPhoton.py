@@ -47,7 +47,7 @@ class photonID(wrappedChain.calculable) :
                     "HadronicOverEm", "TrkSumPtHollowConeDR04", "SigmaIetaIeta","HasPixelSeed"] :
             setattr(self,var, ("%s"+var+"%s")%self.cs)
 
-        levels = ["em","loose","tight"]
+        levels = ["EmFromTwiki","LooseFromTwiki","TightFromTwiki"]
         jei  = [ (4.2,  0.006 ) for l in levels ]
         tbhi = [ (2.2,  0.0025) for l in levels ]
         hoe  = [ (0.05, 0.000 ) for l in levels ]
@@ -78,19 +78,22 @@ class photonID(wrappedChain.calculable) :
         if (hi1+hi2) > (self.tbhi[0] + pt*self.tbhi[1]) : return False
         if hoe       > (self.hoe [0] + pt*self.hoe [1]) : return False
         if self.hcti!=None and hcti > (self.hcti[0] + pt*self.hcti[1]) : return False
-
+        
         shhVar = self.shhBarrel if abs(p4.eta())<self.etaBE else self.shhEndcap
         if shhVar!=None and shh  > (shhVar[0] + pt*shhVar[1]) : return False
-
+        
         if hasPixelSeed : return False
         return True
-class photonIDem(photonID) :
+####################################
+class photonIDEmFromTwiki(photonID) :
     def __init__(self, collection = None) :
-        super(photonIDem,self).__init__(collection,"em")
-class photonIDloose(photonID) :
+        super(photonIDEmFromTwiki,self).__init__(collection,"EmFromTwiki")
+####################################
+class photonIDLooseFromTwiki(photonID) :
     def __init__(self, collection = None) :
-        super(photonIDloose,self).__init__(collection,"loose")
-class photonIDtight(photonID) :
+        super(photonIDLooseFromTwiki,self).__init__(collection,"LooseFromTwiki")
+####################################
+class photonIDTightFromTwiki(photonID) :
     def __init__(self, collection = None) :
-        super(photonIDtight,self).__init__(collection,"tight")
+        super(photonIDTightFromTwiki,self).__init__(collection,"TightFromTwiki")
 ####################################
