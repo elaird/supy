@@ -258,11 +258,11 @@ class hadronicLook(analysis.analysis) :
         outList+=ewk
         outList+=susy
 
-        #uncomment for short tests
-        for i in range(len(outList)):
-            o = outList[i]
-            #if "2010" in o.name: continue
-            outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
+        ##uncomment for short tests
+        #for i in range(len(outList)):
+        #    o = outList[i]
+        #    #if "2010" in o.name: continue
+        #    outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
         
         return outList
 
