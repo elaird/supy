@@ -75,8 +75,8 @@ class photonLook(analysis.analysis) :
             steps.progressPrinter(),
             steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
 
-            steps.preIdJetPtSelector(_jet,100.0,0),
-            steps.preIdJetPtSelector(_jet,100.0,1),
+            steps.jetPtSelector(_jet,100.0,0),
+            steps.jetPtSelector(_jet,100.0,1),
             steps.jetEtaSelector(_jet,2.5,0),
             steps.hltFilter("HLT_HT100U"),
             steps.vertexRequirementFilter(),
@@ -236,8 +236,8 @@ class photonLook(analysis.analysis) :
             outList+=g_jets_mg
 
         outList+=data
-        #outList+=ttbar_mg
         outList+=ewk
+        #outList+=ttbar_mg
         #outList+=susy
 
         ##uncomment for short tests
