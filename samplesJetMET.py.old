@@ -13,18 +13,30 @@ jetmet.add("JetMET_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/
 #jetmet.add("JetMETTau.Run2010A_old", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/data1/")', lumi = 0.012+0.120+0.1235 ) #/pb
 
 #38X
-jetmet.add("Run2010B_J_skim1",
-           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/Jet.Run2010B-PromptReco-v2.RECO.Burt/")', lumi = 1.372) #/pb
-jetmet.add("Run2010B_J_skim2",
-           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/Jet.Run2010B-PromptReco-v2.RECO.Burt2/")', lumi = 2.246) #/pb
+jetmet.add("Run2010B_J_skim",
+           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/12_skims/Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt/")', lumi = 3.897) #/pb
 jetmet.add("Run2010A_JM_skim",
-           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/JetMET.Run2010A-Sep17ReReco_v2.RECO.Burt/")', lumi = 2.889) #/pb
+           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/12_skims/JetMET.Run2010A-Sep17ReReco_v2.RECO.RAW.Burt/")', lumi = 2.889) #/pb
+#jetmet.add("Run2010B_J_skim1",
+#           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/Jet.Run2010B-PromptReco-v2.RECO.Burt/")', lumi = 1.372) #/pb
+#jetmet.add("Run2010B_J_skim2",
+#           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/Jet.Run2010B-PromptReco-v2.RECO.Burt2/")', lumi = 2.246) #/pb
+#jetmet.add("Run2010A_JM_skim",
+#           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/JetMET.Run2010A-Sep17ReReco_v2.RECO.Burt/")', lumi = 2.889) #/pb
 jetmet.add("Run2010A_JMT_skim",
            'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/JetMETTau.Run2010A-Sep17ReReco_v2.RECO.Burt/")', lumi = 0.172) #/pb
 jetmet.add("Tanja_sync",
            'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/Jet.Run2010B-PromptReco-v2.RECO.Burt2/Jet.Run2010B-PromptReco-v2.RECO.Burt2_[6-9]_skim.root", isDirectory = False)', lumi = 9999999.9) #/pb
 
 #ORIGINALS
+#38X
+jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt",      '%s/bbetchar//ICF/automated/2010_10_12_09_56_12/")'%srm, lumi = 99999.9 )
+jetmet.add("JetMET.Run2010A-Sep17ReReco_v2.RECO.RAW.Burt",  '%s/bbetchar//ICF/automated/2010_10_12_10_01_47/")'%srm, lumi = 99999.9 )
+jetmet.add("JetMETTau.Run2010A-Sep17ReReco_v2.RECO.Burt",   '%s/bbetchar//ICF/automated/2010_10_05_23_30_00/", alwaysUseLastAttempt = True)'%srm, lumi = 99999.9 )
+#jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.Burt",          '%s/bbetchar//ICF/automated/2010_10_05_22_57_38/")'%srm, lumi = 99999.9 ) #deprecated; use the above instead
+#jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.Burt2",         '%s/bbetchar//ICF/automated/2010_10_08_18_56_52/")'%srm, lumi = 99999.9 ) #deprecated; use the above instead
+#jetmet.add("JetMET.Run2010A-Sep17ReReco_v2.RECO.Burt",      '%s/bbetchar//ICF/automated/2010_10_05_23_25_55/", alwaysUseLastAttempt = True)'%srm, lumi = 99999.9 )#deprecated; use the above instead
+
 #36X
 jetmet.add("MinimumBias.Commissioning10-SD_JetMETTau-Jun14thSkim_v1.RECO.Bryn", '%s/bm409/ICF/automated/2010_07_06_22_18_07/")'%srm, lumi = 999999.9 )
 jetmet.add("JetMETTau.Run2010A-Jun14thReReco_v2.RECO.Bryn", '%s/bm409//ICF/automated/2010_07_20_16_52_06/")'%srm,   lumi = 0.012 )
@@ -39,12 +51,6 @@ jetmet.add("JetMET.Run2010A-PromptReco-v4.RECO.Alex",       '%s/as1604//ICF/auto
 #jetmet.add("Bryn.test.data", 'utils.getCommandOutput2("cat /home/hep/elaird1/LumiToOutput2.txt").replace(\'"\',"").replace("\\n","").split(",")[0:3]',   lumi = 999999.9 )
 #jetmet.add("PF_skim", '["~/public_html/23_high_alphaT_events/pf/SusyCAF_Tree.root"]',   lumi = 999999.9 )
 #jetmet.add("PF_skim_skim", '["~/public_html/23_high_alphaT_events/pf/PF_skim_skim.root"]',   lumi = 999999.9 )
-
-#38X
-jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.Burt",          '%s/bbetchar//ICF/automated/2010_10_05_22_57_38/")'%srm, lumi = 99999.9 )
-jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.Burt2",         '%s/bbetchar//ICF/automated/2010_10_08_18_56_52/")'%srm, lumi = 99999.9 )
-jetmet.add("JetMET.Run2010A-Sep17ReReco_v2.RECO.Burt",      '%s/bbetchar//ICF/automated/2010_10_05_23_25_55/", alwaysUseLastAttempt = True)'%srm, lumi = 99999.9 )
-jetmet.add("JetMETTau.Run2010A-Sep17ReReco_v2.RECO.Burt",   '%s/bbetchar//ICF/automated/2010_10_05_23_30_00/", alwaysUseLastAttempt = True)'%srm, lumi = 99999.9 )
 
 #TEST
 jetmet.add("JetMET_test_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/03_jetmet/")', lumi = 2.601 ) #/pb
