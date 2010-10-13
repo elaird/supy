@@ -162,3 +162,4 @@ mc.add("v12_g_jets_test_skim",
 mc.add("v12_qcd_test_skim",
        'utils.fileListFromDisk(location = "/vols/cms02/elaird1/tmp//photonLook/pythia6_ge2_caloAK5_photonLoose/config00/qcd_py6_pt*skim.root", isDirectory = False)',
        xs = 1.0)
+mc.add("markus1",'["dcap://gfe02.grid.hep.ph.ic.ac.uk:22128/pnfs/hep.ph.ic.ac.uk/data/cms/store/user/arlogb/ICF/automated/2010_07_14_17_25_26//PhotonJets_Pt200toInf-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO//SusyCAF_Tree_4_2.root"]', xs = 1.0)
