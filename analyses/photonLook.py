@@ -213,7 +213,7 @@ class photonLook(analysis.analysis) :
             specify(name = "tt_tauola_mg_v12",          nFilesMax =  3, color = r.kOrange  ),
             ]                                                       
         ewk = [                                                     
-            specify(name = "z_inv_mg_v12",              nFilesMax = -1, color = r.kMagenta ),
+           #specify(name = "z_inv_mg_v12",              nFilesMax = -1, color = r.kMagenta ),
             specify(name = "z_jets_mg_v12",             nFilesMax = -1, color = r.kYellow-3),
             specify(name = "w_jets_mg_v12",             nFilesMax = -1, color = 28         ),
             ]                                                       
@@ -285,12 +285,6 @@ class photonLook(analysis.analysis) :
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20},
                          sources = ["Run2010B_J_skim1","Run2010B_J_skim2","Run2010A_JM_skim","Run2010A_JMT_skim"])
-        
-        ##uncomment for short tests
-        #for i in range(len(outList)):
-        #    o = outList[i]
-        #    #if "2010" in o.name: continue
-        #    outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
         
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
