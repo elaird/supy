@@ -145,9 +145,14 @@ mc.add("lm12_v12",'%s/bainbrid/ICF/automated/2010_07_12_17_52_54/LM12.Spring10-S
 mc.add("lm13_v12",'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM13.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 6.899   )
 
 #MG EWK SKIMS
-mc.add("z_inv_mg_skim_v12", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/z_inv_mg/")', xs = 50.2 )
-mc.add("z_jets_mg_skim_v12", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/z_jets_mg/")', xs = 55.4 )
-mc.add("w_jets_mg_skim_v12", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/w_jets_mg/")', xs = 332.4 )
+#created with revision 1.18 of hadronicSkim
+mc.add("z_inv_mg_skim_v12", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/07_z_inv/")',
+       xs = {"LO":9.30}["LO"] ) #4500.0 * 4156 /(1990028+20465)
+
+#created with out-dated skim definition (single jet trigger, etc.)
+#mc.add("z_inv_mg_skim_v12", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/z_inv_mg/")', xs = 50.2 )
+#mc.add("z_jets_mg_skim_v12", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/z_jets_mg/")', xs = 55.4 )
+#mc.add("w_jets_mg_skim_v12", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/w_jets_mg/")', xs = 332.4 )
 
 #TEST SKIMS
 
