@@ -91,6 +91,8 @@ class hadronicLook(analysis.analysis) :
             steps.hbheNoiseFilter(),
             
             steps.hltPrescaleHistogrammer(["HLT_Jet50U","HLT_Jet70U","HLT_Jet100U","HLT_HT100U","HLT_HT120U","HLT_HT140U"]),
+            #steps.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin",
+            #                       funcString="lambda x:x.Et()"),
             
             steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
                                funcString="lambda x:len(x)"),
@@ -177,8 +179,7 @@ class hadronicLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [                                                
-            specify(name = "Run2010B_J_skim1",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_J_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
            #specify(name = "2010_data_skim_calo",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
@@ -302,7 +303,7 @@ class hadronicLook(analysis.analysis) :
         if "madgraph" in tag : mg (org, smSources)
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20},
-                         sources = ["Run2010B_J_skim1","Run2010B_J_skim2","Run2010A_JM_skim","Run2010A_JMT_skim"])
+                         sources = ["Run2010B_J_skim","Run2010A_JM_skim","Run2010A_JMT_skim"])
         
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
