@@ -51,7 +51,7 @@ class photonLook(analysis.analysis) :
                  calculables.jetIndices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
                  calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15),
                  calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
-                 calculables.photonIndicesPat(  ptMin = 20, flagName = params["photonId"]),
+                 calculables.photonIndicesPat(  ptMin = 25, flagName = params["photonId"]),
                  calculables.genIndices( pdgs = [22], label = "Photon", status = [1]),
                  calculables.genPhotonCategory(label = "Photon"),
                  #calculables.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
@@ -61,7 +61,10 @@ class photonLook(analysis.analysis) :
                      calculables.deltaPhiStar(_jet, ptMin = lowPtThreshold, extraName = lowPtName),                     
                      calculables.deltaPseudoJet(_jet, _etRatherThanPt),
                      calculables.alphaT(_jet, _etRatherThanPt),
-                     calculables.alphaTMet(_jet, _etRatherThanPt, _met) ]
+                     calculables.alphaTMet(_jet, _etRatherThanPt, _met),
+                     calculables.metPlusPhoton(met = "metP4PF", photons = _photon, photonIndex = 0),
+                     calculables.mhtMinusMetOverMeff(_jet, "metPlusPhoton", _etRatherThanPt),
+                     ]
 
     def listOfSteps(self,params) :
         _jet  = params["objects"]["jet"]
@@ -123,8 +126,11 @@ class photonLook(analysis.analysis) :
             steps.photonPurityPlots("Photon", _jet, _photon),
 
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
+            steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - [PFMET+photon])/(MHT+HT);events / bin"),
+            steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
+            steps.deadEcalFilter(jets = _jet, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
+            
             steps.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
-
             steps.passFilter("purityPlots4"),
             steps.photonPurityPlots("Photon", _jet, _photon),
 
@@ -159,8 +165,7 @@ class photonLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [                                                
-            specify(name = "Run2010B_J_skim1",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_J_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
            #specify(name = "2010_data_skim_calo",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
@@ -284,7 +289,7 @@ class photonLook(analysis.analysis) :
         if "madgraph" in tag : mg (org, smSources)
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20},
-                         sources = ["Run2010B_J_skim1","Run2010B_J_skim2","Run2010A_JM_skim","Run2010A_JMT_skim"])
+                         sources = ["Run2010B_J_skim","Run2010A_JM_skim","Run2010A_JMT_skim"])
         
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
