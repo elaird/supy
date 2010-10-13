@@ -63,11 +63,11 @@ mc.add("v12_qcd_py8_pt3000to3500",  '%s/%s/QCD_Pt-3000to3500_7TeV-pythia8.%s/")'
 
 #MG QCD
 mgDir = "/as1604/ICF/automated/2010_08_15_23_34_33/"
-mc.add("v12_qcd_mg_ht_50_100",  '%s/%s/QCD_Pt-50To100_7TeV-madgraph.Spring10-START3X_V26-v1.GEN-SIM-RECO/")'%(srm,mgDir), xs =  30e+06)
-mc.add("v12_qcd_mg_ht_100_250", '%s/%s/QCD_Pt100to250-madgraph.Spring10-START3X_V26_S09-v2.GEN-SIM-RECO/ ")'%(srm,mgDir), xs =   7e+06)
-mc.add("v12_qcd_mg_ht_250_500", '%s/%s/QCD_Pt250to500-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/ ")'%(srm,mgDir), xs = 171e+03)
-mc.add("v12_qcd_mg_ht_500_1000",'%s/%s/QCD_Pt500to1000-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%(srm,mgDir), xs = 5200)
-mc.add("v12_qcd_mg_ht_1000_inf",'%s/%s/QCD_Pt1000toInf-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%(srm,mgDir), xs = 83)
+mc.add("v12_qcd_mg_ht_50_100",  '%s/%s/QCD_Pt-50To100_7TeV-madgraph.Spring10-START3X_V26-v1.GEN-SIM-RECO/")'%(srm,mgDir), xs = {"LO": 30e+06}["LO"])
+mc.add("v12_qcd_mg_ht_100_250", '%s/%s/QCD_Pt100to250-madgraph.Spring10-START3X_V26_S09-v2.GEN-SIM-RECO/ ")'%(srm,mgDir), xs = {"LO":  7e+06}["LO"])
+mc.add("v12_qcd_mg_ht_250_500", '%s/%s/QCD_Pt250to500-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/ ")'%(srm,mgDir), xs = {"LO":171e+03}["LO"])
+mc.add("v12_qcd_mg_ht_500_1000",'%s/%s/QCD_Pt500to1000-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%(srm,mgDir), xs = {"LO":5200   }["LO"])
+mc.add("v12_qcd_mg_ht_1000_inf",'%s/%s/QCD_Pt1000toInf-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%(srm,mgDir), xs = {"LO":83     }["LO"])
 #mc.add("qcd_mg_ht_250_500_old",'%s/as1604//ICF/automated/2010_07_27_14_33_00//QCD_Pt250to500-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 171e+03 )
 
 #ALPGEN QCD
@@ -121,7 +121,7 @@ mc.adjustOverlappingSamples( ["v12_g_jets_py6_pt%d"%i for i in [15,30,80,170,300
 #MG TT/EWK
 mc.add("tt_tauola_mg_v12",'utils.fileListFromDisk(location = "/vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root", isDirectory = False, itemsToSkip = ["_4_2"] )',
        xs = {"LO":95.0,"NLO":157.5}["NLO"] )
-mc.add("z_inv_mg_v12",'%s/zph04/ICF/automated/2010_07_14_11_52_58/",itemsToSkip=["14_3.root"])'%srm, xs = 4500.0 )
+mc.add("z_inv_mg_v12",'%s/zph04/ICF/automated/2010_07_14_11_52_58/",itemsToSkip=["14_3.root"])'%srm, xs {"LO":4500.0,"fakeNLO":4500.0*3048.0/2400.0}["fakeNLO"] )
 mc.add("z_jets_mg_v12",'%s/jad/ICF/automated//2010_07_05_22_43_20/", pruneList=False)'%srm,
        xs = {"LO":2400.0,"NNLO":3048.0}["NNLO"] )
 mc.add("w_jets_mg_v12",'%s/jad/ICF/automated//2010_06_18_22_33_23/")'%srm,
