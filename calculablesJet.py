@@ -375,7 +375,8 @@ class mhtMinusMetOverMeff(wrappedChain.calculable) :
         mht = self.source[self.mht].pt()
         self.value = (mht - self.source[self.met].pt())/(self.source[self.ht] + mht)
 #####################################
-class tpMatchedJetIndices(wrappedChain.calculable) :
+class ecalDeadTowerMatchedJetIndices(wrappedChain.calculable) :
+    def name(self) : return "ecalDeadTowerMatched%sIndices%s"%self.cs
 
     def __init__(self, collection) :
         self.cs = collection

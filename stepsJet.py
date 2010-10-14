@@ -429,7 +429,7 @@ class uniquelyMatchedNonisoMuons(analysisStep) :
     def select(self,eventVars) :
         return eventVars["crock"]["%s%sNonIsoMuonsUniquelyMatched"%self.cs]
 #####################################
-class tpHistogrammer(analysisStep) :
+class ecalDeadTowerHistogrammer(analysisStep) :
 
     def __init__(self,collection,thresholds = [0]) :
         self.cs = collection
@@ -442,25 +442,25 @@ class tpHistogrammer(analysisStep) :
         tpEt = map(lambda x: x.Et(), tpP4)
         nBad = eventVars["ecalDeadTowerNBadXtals"]
         productEtN = [et*n for et,n in zip(tpEt,nBad)]
-        #maxStatus = eventVars["ecalDeadTowerMaxStatus"]
-        tpJetIndices = eventVars["tpMatchedJetIndices"]
+        maxStatus = eventVars["ecalDeadTowerMaxStatus"]
+        tpJetIndices = eventVars["ecalDeadTowerMatched%sIndices%s"%self.cs]
         jetP4s = eventVars["%sCorrectedP4%s"%self.cs]
         mht = eventVars["%sSumP4%s"%self.cs].pt()
 
         book.fill((max(tpEt),mht),"tpEtMaxMHTcorr",(256,200),(0,0),(128,500), title=";max tp.Et;MHT;events / bin")
-        book.fill((max(tpEt),mht),"tpEtMaxMHTcorrProf",256,0,128, title=";max tp.Et;mean MHT;events / bin")
         book.fill((max(productEtN),mht),"tpEtNMaxMHTcorr",(256,200),(0,0),(25*128,500), title=";max tp.Et*tp.NbadXtals;MHT;events / bin")
-        book.fill((max(productEtN),mht),"tpEtNMaxMHTcorrProf",256,0,25*128, title=";max tp.Et*tp.NbadXtals;mean MHT;events / bin")
         
         for iJet,Et in zip(tpJetIndices,tpEt) :
             pre,inout = ("un","out of") if iJet == -2 else ("","in")
-            book.fill(Et, pre+"matchedTP_Et", 256,0,128, title=";E_{T} dead ECAL TP, %s jet (GeV);TPs / bin"%inout)
+            book.fill(Et, "TP_Et_%smatched"%pre, 256,0,128, title=";E_{T} dead ECAL TP, %s jet (GeV);TPs / bin"%inout)
             if iJet>=0: book.fill((Et,jetP4s[iJet].pt()), "tpEtJetPtcorr", (256,100),(0,0),(128,500), title=";tp.Et;jet p_{T};matched TPs / bin")
 
+        indicesOverThresh = range(len(tpEt))
         for thresh in self.thresholds :
-            tpJetIndices = filter(lambda i: tpEt[i]>thresh, tpJetIndices)
-
-            book.fill( map(lambda x: x<0, tpJetIndices).count(False), "tpsMatchedAbove%02d"%thresh, 10,-0.5,9.5,
+            indicesOverThresh = filter(lambda i: tpEt[i]>thresh, indicesOverThresh)
+            overThreshTpJetIndices = [tpJetIndices[i] for i in indicesOverThresh]
+            
+            book.fill( map(lambda x: x<0, overThreshTpJetIndices).count(False), "tpsMatchedAbove%02d"%thresh, 10,-0.5,9.5,
                        title=";Number of in-jet ecal dead regions with tp.Et>%02d GeV;events / bin"%thresh)
-            book.fill( tpJetIndices.count(-2), "tpsUnmatchedAbove%02d"%thresh, 10,-0.5,9.5,
+            book.fill( overThreshTpJetIndices.count(-2), "tpsUnmatchedAbove%02d"%thresh, 10,-0.5,9.5,
                        title=";Number of isolated ecal dead regions with tp.Et>%02d GeV;events / bin"%thresh)

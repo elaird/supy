@@ -88,7 +88,7 @@ class tpLook(analysis.analysis) :
             steps.monsterEventFilter(),
             steps.hbheNoiseFilter(),
             
-            steps.tpHistogrammer(_jet,thresholds = [0,2,5,10,25,50]),
+            steps.ecalDeadTowerHistogrammer(_jet,thresholds = [0,2,5,10,25,50]),
             #steps.hltPrescaleHistogrammer(["HLT_Jet50U","HLT_Jet70U","HLT_Jet100U","HLT_HT100U","HLT_HT120U","HLT_HT140U"]),
             #steps.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin",
             #funcString="lambda x:x.Et()"),
@@ -120,7 +120,7 @@ class tpLook(analysis.analysis) :
             #steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
             steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
             #
-            steps.tpHistogrammer(_jet,thresholds = [0,2,5,10,25,50]),
+            steps.ecalDeadTowerHistogrammer(_jet,thresholds = [0,2,5,10,25,50]),
             ##many plots
             #steps.passFilter("singleJetPlots1"),
             #steps.singleJetHistogrammer(_jet),
