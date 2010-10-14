@@ -387,10 +387,9 @@ class tpMatchedJetIndices(wrappedChain.calculable) :
         for i in self.source["%sIndices%s"%self.cs] :
             p4= jetP4s[i]
             ptetaphieV4 = r.Math.PtEtaPhiEVector(p4.pt(),p4.eta(),p4.phi(),p4.E())
-            if r.Math.VectorUtil.DeltaR(tpP4,ptetaphieV4) :
+            if r.Math.VectorUtil.DeltaR(tpP4,ptetaphieV4) < 0.5:
                 return i
         return -2
 
     def update(self,ignored) :
         self.value = map(self.matchingJetIndex,self.source["ecalDeadTowerTrigPrimP4"])
-            
