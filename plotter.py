@@ -34,6 +34,9 @@ def dimensionOfHisto(histos) :
     for histo in histos :
         if not histo : continue
         className=histo.ClassName()
+        if className == "TProfile" :
+            dimensions.append("2")
+            continue
         if len(className)<3 or className[0:2]!="TH" : continue
         dimensions.append(className[2])
 
