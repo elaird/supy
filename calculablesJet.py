@@ -374,5 +374,23 @@ class mhtMinusMetOverMeff(wrappedChain.calculable) :
     def update(self, ignored) :
         mht = self.source[self.mht].pt()
         self.value = (mht - self.source[self.met].pt())/(self.source[self.ht] + mht)
+#####################################
+class tpMatchedJetIndices(wrappedChain.calculable) :
 
-    
+    def __init__(self, collection) :
+        self.cs = collection
+        self.moreName = "tp.Et()>0, dR(tp,%s%s)<0.5"%self.cs
+
+    def matchingJetIndex(self,tpP4) :
+        if tpP4.Et() == 0 : return -1
+        jetP4s = self.source["%sCorrectedP4%s"%self.cs]
+        for i in self.source["%sIndices%s"%self.cs] :
+            p4= jetP4s[i]
+            ptetaphieV4 = r.Math.PtEtaPhiEVector(p4.pt(),p4.eta(),p4.phi(),p4.E())
+            if r.Math.VectorUtil.DeltaR(tpP4,ptetaphieV4) :
+                return i
+        return -2
+
+    def update(self,ignored) :
+        self.value = map(self.matchingJetIndex,self.source["ecalDeadTowerTrigPrimP4"])
+            
