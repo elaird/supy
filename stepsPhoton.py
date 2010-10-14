@@ -1,5 +1,38 @@
-import ROOT as r        
+import ROOT as r
+import math
 from analysisStep import analysisStep
+#####################################
+class photonPtSelector(analysisStep) :
+
+    def __init__(self,cs,photonPtThreshold,photonIndex):
+        self.photonIndex = photonIndex
+        self.photonPtThreshold = photonPtThreshold
+        self.cs = cs
+        self.indicesName = "%sIndices%s" % self.cs
+        self.p4sName = "%sP4%s" % self.cs
+        self.moreName = "%s%s; pT[index[%d]]>=%.1f GeV" % (self.cs[0], self.cs[1], photonIndex, photonPtThreshold)
+
+    def select (self,eventVars) :
+        indices = eventVars[self.indicesName]
+        if len(indices) <= self.photonIndex : return False
+        p4s = eventVars[self.p4sName]
+        return self.photonPtThreshold <= p4s.at(indices[self.photonIndex]).pt()
+#####################################
+class photonEtaSelector(analysisStep) :
+
+    def __init__(self,cs,photonEtaThreshold,photonIndex):
+        self.photonIndex = photonIndex
+        self.photonEtaThreshold = photonEtaThreshold
+        self.cs = cs
+        self.indicesName = "%sIndices%s" % self.cs
+        self.p4sName = "%sP4%s" % self.cs
+        self.moreName = "%s%s; |eta[index[%d]]|<=%.1f" % (self.cs[0], self.cs[1], photonIndex, photonEtaThreshold)
+
+    def select (self,eventVars) :
+        indices = eventVars[self.indicesName]
+        if len(indices) <= self.photonIndex : return False
+        p4s = eventVars[self.p4sName]
+        return self.photonEtaThreshold > abs(p4s.at(indices[self.photonIndex]).eta())
 #####################################
 class photonSelectionHistogrammer(analysisStep) :
     
@@ -49,6 +82,7 @@ class singlePhotonHistogrammer(analysisStep) :
         self.indicesName = "%sIndices%s" % self.cs
         self.p4sName = "%sP4%s" % self.cs
         self.mhtName = "%sSumP4%s" % self.jetCs
+        self.htName  = "%sSumEt%s"%self.jetCs
         self.etaBE = 1.479 #from CMS PAS EGM-10-005
         
     def uponAcceptance (self,eventVars) :
@@ -56,6 +90,7 @@ class singlePhotonHistogrammer(analysisStep) :
         p4s = eventVars[self.p4sName]
         cleanPhotonIndices = eventVars[self.indicesName]
         mht = eventVars[self.mhtName].pt()
+        ht =  eventVars[self.mhtName].pt()
         
         #ID variables
         jurassicEcalIsolations    = eventVars["%sEcalRecHitEtConeDR04%s"%self.cs]
@@ -81,6 +116,16 @@ class singlePhotonHistogrammer(analysisStep) :
                       title=";photon%s p_{T} (GeV);MHT %s%s (GeV);events / bin"%(photonLabel,self.jetCs[0],self.jetCs[1])
                       )
 
+            book.fill(pt-mht, "%s%s%sphotonPtMinusMht"%(self.cs+(photonLabel,)),
+                      100, -200.0, 200.0,
+                      title=";photon%s p_{T} - %s%sMHT (GeV);events / bin"%(photonLabel,self.jetCs[0],self.jetCs[1])
+                      )
+
+            book.fill((pt-mht)/math.sqrt(ht+mht), "%s%s%sphotonPtMinusMhtOverMeff"%(self.cs+(photonLabel,)),
+                      100, -20.0, 20.0,
+                      title=";( photon%s p_{T} - MHT ) / sqrt( H_{T} + MHT )    [ %s%s ] ;events / bin"%(photonLabel,self.jetCs[0],self.jetCs[1])
+                      )
+
             #ID variables
             jEI = jurassicEcalIsolations.at(iPhoton)
             tbHI = towerBasedHcalIsolations1.at(iPhoton)+towerBasedHcalIsolations2.at(iPhoton)
@@ -91,7 +136,7 @@ class singlePhotonHistogrammer(analysisStep) :
             book.fill((pt,jEI), "%s%s%sjurassicEcalIsolation"%(self.cs+(photonLabel,)),
                       (50, 50), (0.0, 0.0), (500.0, 10.0),
                       title=";photon%s p_{T} (GeV);Jurassic ECAL Isolation;events / bin"%photonLabel)
-
+            
             book.fill((pt,tbHI), "%s%s%stowerBasedHcalIsolation"%(self.cs+(photonLabel,)),
                       (50, 50), (0.0, 0.0), (500.0, 10.0),
                       title=";photon%s p_{T} (GeV);Tower-based HCAL Isolation;events / bin"%photonLabel)
@@ -103,7 +148,7 @@ class singlePhotonHistogrammer(analysisStep) :
             book.fill((pt,hcTI), "%s%s%shollowConeTrackIsolation"%(self.cs+(photonLabel,)),
                       (50, 50), (0.0, 0.0), (500.0, 10.0),
                       title=";photon%s p_{T} (GeV);hollow cone track isolation;events / bin"%photonLabel)
-
+            
             if abs(photon.eta())<self.etaBE :
                 book.fill((pt,sHH), "%s%s%ssigmaIetaIetaBarrel"%(self.cs+(photonLabel,)),
                           (50, 50), (0.0, 0.0), (500.0, 0.1),
