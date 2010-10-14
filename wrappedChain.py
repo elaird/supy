@@ -17,7 +17,11 @@ class wrappedChain(dict) :
             if nameL in leavesToBlackList : continue
             dict.__setitem__(self, nameL, self.__branchNode( nameL, nameB, chain , useSetBranchAddress) )
 
-        assert (lambda n: len(n) == len(set(n)))([c.name() for c in calculables]), "Duplicate calculable name"
+        names = [c.name() for c in calculables]
+        if len(names)!=len(set(names)) :
+            for name in names :
+                assert names.count(name)==1,"Duplicate calculable name: %s"%name
+
         for calc in calculables :
             name = calc.name()
             if name in self and name not in preferredCalcs : continue
