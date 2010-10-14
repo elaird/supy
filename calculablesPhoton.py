@@ -58,7 +58,7 @@ class photonID(wrappedChain.calculable) :
         self.etaBE = 1.479 #from CMS PAS EGM-10-005
         for item in ["jei","tbhi","hoe","hcti","shhBarrel","shhEndcap"] :
             setattr(self,item,eval(item)[levels.index(level)])
-        self.moreName = "twiki.cern.ch/twiki/bin/viewauth/CMS/PhotonID, 2010-09-19"
+        self.moreName = "twiki.cern.ch/twiki/bin/viewauth/CMS/PhotonID, 2010-10-14"
         
     def update(self,ignored) :
         self.value = map(self.passId, 
