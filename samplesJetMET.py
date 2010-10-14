@@ -59,3 +59,4 @@ jetmet.add("test", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/tmp//ha
 jetmet.add("2010_data_skim_calo",'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/06_highAlphaT/2010_data_skim_calo.root", isDirectory = False)', lumi = 6.68 )
 jetmet.add("2010_data_skim_pf",  'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/06_highAlphaT/2010_data_skim_pf.root", isDirectory = False)', lumi = 6.68 )
 #jetmet.add("Bryn_request",'eval(utils.getCommandOutput2("cat /home/hep/elaird1/ForTed.txt"))', lumi = 9999999.9)
+jetmet.add("2010_data_photons_high_met",  'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/08_photons_high_met/")', lumi = 6.68 )
