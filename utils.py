@@ -303,4 +303,61 @@ def roundString(val,err,width=None) :
                 dsp_digit-=1
             precision-=1
     return returnVal
-########################
+#####################################
+def printSkimResults(org) :
+    def indicesFromName(name) :
+        out = []
+        for i,selection in enumerate(org.selections) :
+            if selection.name == name : out.append(i)
+        return out
+
+    def numDict(index) :
+        out = {}
+        for sample,failPass in zip(org.samples, org.selections[index].rawFailPass) :
+            key = sample["name"]
+            out[key] = {}
+            if failPass!=None :
+                out[key]["fail"] = failPass[0]
+                out[key]["pass"] = failPass[1]
+            else :
+                out[key]["fail"] = 0.0
+                out[key]["pass"] = 0.0
+        return out
+
+    def aDict(var) :
+        out = {}
+        for sample in org.samples :
+            if var in sample : out[sample["name"]] = sample[var]
+        return out
+        
+    def maxLength(l) : return max([len(s) for s in l])
+    
+    nEventsIn = numDict(0)
+    nameStrings = []
+    dirStrings  = []
+    effStrings  = []
+    for index in indicesFromName("skimmer") :
+        print "efficiencies for skimmer with index",index
+        print "-"*40
+        d = numDict(index)
+        for name in sorted(nEventsIn.keys()) :
+            eff = 0.0
+            denom = nEventsIn[name]["fail"]+nEventsIn[name]["pass"]
+            if denom > 0.0 : eff = d[name]["pass"] / denom
+
+            #format output
+            nameStrings.append( 'mc.add("%s_skim", '%name )
+            dirStrings.append( '\'utils.fileListFromDisk(location = "\%s/%s_*_skim.root", isDirectory = False)\'\%dir, '%name )
+            if name in aDict("xs") : 
+                effStrings.append( 'xs = %e * %e)'%(eff,aDict("xs")[name]) )
+            elif name in aDict("lumi") :
+                effStrings.append( 'lumi = %e)'%aDict("lumi")[name] )
+            else :
+                assert False,"failed to find either xs or lumi"
+        nameLength = maxLength(nameStrings)
+        dirLength  = maxLength(dirStrings)
+        effLength  = maxLength(effStrings)
+        for name,dir,eff in zip(nameStrings, dirStrings, effStrings) :
+            print name.ljust(nameLength) + dir.ljust(dirLength) + eff.ljust(effLength)
+        print
+#####################################
