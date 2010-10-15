@@ -17,10 +17,9 @@ class jsonMaker(analysis.analysis) :
     def listOfSamples(self,params) :
         return [
             #samples.specify(name = "Bryn_request"),            
-            samples.specify(name = "Run2010B_J_skim"),
-            #samples.specify(name = "Run2010B_J_skim2"),
-            samples.specify(name = "Run2010A_JM_skim"),
-            #samples.specify(name = "Run2010A_JMT_skim"),            
+            #samples.specify(name = "Run2010B_J_skim"),
+            #samples.specify(name = "Run2010A_JM_skim"),
+            samples.specify(name = "Run2010A_JMT_skim"),            
             ##samples.specify(name = "JetMET.Run2010A-Sep17ReReco_v2.RECO.Burt"),
             #samples.specify(name = "JetMETTau.Run2010A-Sep17ReReco_v2.RECO.Burt"),
             ]
