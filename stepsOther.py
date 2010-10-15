@@ -200,6 +200,38 @@ class variablePtGreaterFilter(analysisStep) :
     def select (self,eventVars) :
         return eventVars[self.variable].pt()>=self.threshold
 #####################################
+class objectPtSelector(analysisStep) :
+
+    def __init__(self, cs, ptThreshold, index, p4String):
+        self.index = index
+        self.ptThreshold = ptThreshold
+        self.cs = cs
+        self.indicesName = "%sIndices%s" % self.cs
+        self.p4sName = "%s%s%s" % (self.cs[0], p4String, self.cs[1])
+        self.moreName = "%s%s; pT[index[%d]]>=%.1f GeV" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
+
+    def select (self,eventVars) :
+        indices = eventVars[self.indicesName]
+        if len(indices) <= self.index : return False
+        p4s = eventVars[self.p4sName]
+        return self.ptThreshold <= p4s.at(indices[self.index]).pt()
+#####################################
+class objectEtaSelector(analysisStep) :
+
+    def __init__(self, cs, etaThreshold, index, p4String):
+        self.index = index
+        self.etaThreshold = etaThreshold
+        self.cs = cs
+        self.indicesName = "%sIndices%s" % self.cs
+        self.p4sName = "%s%s%s" % (self.cs[0], p4String, self.cs[1])
+        self.moreName = "%s%s; |eta[index[%d]]|<=%.1f" % (self.cs[0], self.cs[1], index, etaThreshold)
+
+    def select (self,eventVars) :
+        indices = eventVars[self.indicesName]
+        if len(indices) <= self.index : return False
+        p4s = eventVars[self.p4sName]
+        return self.etaThreshold > abs(p4s.at(indices[self.index]).eta())
+#####################################
 class objectPtVetoer(analysisStep) :
 
     def __init__(self, collection, p4String, suffix, ptThreshold, index):
@@ -346,11 +378,14 @@ class bxFilter(analysisStep) :
 class displayer(analysisStep) :
     
     def __init__(self,jets = ("",""), met = "", muons = "", electrons = "", photons = "",
-                 recHits = "", recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False, doEtaPhiPlot = True) :
+                 recHits = "", recHitPtThreshold = -1.0, scale = 200.0,
+                 etRatherThanPt = False, doGenParticles = False, doEtaPhiPlot = True,
+                 hotTpThreshold = -1.0) :
 
         self.moreName = "(see below)"
 
-        for item in ["scale","jets","met","muons","electrons","photons","recHits","recHitPtThreshold","doGenParticles", "doEtaPhiPlot"] :
+        for item in ["scale","jets","met","muons","electrons","photons",
+                     "recHits","recHitPtThreshold","doGenParticles", "doEtaPhiPlot","hotTpThreshold"] :
             setattr(self,item,eval(item))
 
         self.genJets = self.jets
@@ -378,9 +413,13 @@ class displayer(analysisStep) :
         self.ellipse = r.TEllipse()
         self.ellipse.SetFillStyle(0)
 
-        self.box = r.TBox()
-        self.box.SetFillColor(r.kOrange-6)
-        self.box.SetLineColor(r.kOrange-6)
+        self.coldBox = r.TBox()
+        self.coldBox.SetFillColor(r.kOrange-6)
+        self.coldBox.SetLineColor(r.kOrange-6)
+
+        self.hotBox = r.TBox()
+        self.hotBox.SetFillColor(r.kRed)
+        self.hotBox.SetLineColor(r.kRed)
         
         self.line = r.TLine()
         self.arrow = r.TArrow()
@@ -673,8 +712,12 @@ class displayer(analysisStep) :
 
         def drawBox(fourVector) :
             value = 0.087/2
-            self.box.DrawBox(fourVector.eta()-value, fourVector.phi()-value, fourVector.eta()+value, fourVector.phi()+value)
-
+            args = (fourVector.eta()-value, fourVector.phi()-value, fourVector.eta()+value, fourVector.phi()+value)
+            if fourVector.Et()>=self.hotTpThreshold :
+                self.hotBox.DrawBox(*args)
+            else :
+                self.coldBox.DrawBox(*args)
+                
         #draw dead ECAL regions
         for iRegion,region in enumerate(eventVars["ecalDeadTowerTrigPrimP4"]) :
             if eventVars["ecalDeadTowerNBadXtals"].at(iRegion)<5 : continue
@@ -696,7 +739,8 @@ class displayer(analysisStep) :
 
         legend = r.TLegend(0.6,0.92,1.0,1.0)
         legend.SetFillStyle(0)
-        legend.AddEntry(self.box,"dead ECAL cells","f")
+        legend.AddEntry(self.coldBox,"dead ECAL cells","f")
+        legend.AddEntry(self.hotBox,"dead ECAL cells with TP ET>%4.1f"%self.hotTpThreshold,"f")
         legend.AddEntry(self.ellipse,"\"bad\" jet","l")
         legend.Draw()
         stuffToKeep.extend([pad, legend])
