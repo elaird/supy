@@ -438,29 +438,49 @@ class ecalDeadTowerHistogrammer(analysisStep) :
     
     def uponAcceptance(self,eventVars) :
         book = self.book(eventVars)
+
         tpP4 = eventVars["ecalDeadTowerTrigPrimP4"]
-        tpEt = map(lambda x: x.Et(), tpP4)
         nBad = eventVars["ecalDeadTowerNBadXtals"]
-        productEtN = [et*n for et,n in zip(tpEt,nBad)]
         maxStatus = eventVars["ecalDeadTowerMaxStatus"]
+        isBarrel = eventVars["ecalDeadTowerIsBarrel"]
         tpJetIndices = eventVars["ecalDeadTowerMatched%sIndices%s"%self.cs]
+
+        tpEt = [p4.Et() for p4 in tpP4]
+        tpEtlost = [et*n/25.0 for et,n in zip(tpEt,nBad)]
+        recoverable = [stat<14 and (n!=15 or not barrel) for stat,n,barrel in zip(maxStatus,nBad,isBarrel)]
+        matched = [i>=0 for i in tpJetIndices]
         jetP4s = eventVars["%sCorrectedP4%s"%self.cs]
         mht = eventVars["%sSumP4%s"%self.cs].pt()
 
-        book.fill((max(tpEt),mht),"tpEtMaxMHTcorr",(256,200),(0,0),(128,500), title=";max tp.Et;MHT;events / bin")
-        book.fill((max(productEtN),mht),"tpEtNMaxMHTcorr",(256,200),(0,0),(25*128,500), title=";max tp.Et*tp.NbadXtals;MHT;events / bin")
+        matchedUnrecoverable = any(map(lambda m,r: m and not r, matched,recoverable))
+        overThresh = sum(tpEtlost) > 10
+        level = "Danger" if overThresh or matchedUnrecoverable else "Clean"
+        book.fill(mht, "mht%s"%level, 200, 0, 500 , title = "%s;MHT (GeV);events / bin"%level)
         
-        for iJet,Et in zip(tpJetIndices,tpEt) :
-            pre,inout = ("un","out of") if iJet == -2 else ("","in")
-            book.fill(Et, "TP_Et_%smatched"%pre, 256,0,128, title=";E_{T} dead ECAL TP, %s jet (GeV);TPs / bin"%inout)
-            if iJet>=0: book.fill((Et,jetP4s[iJet].pt()), "tpEtJetPtcorr", (256,100),(0,0),(128,500), title=";tp.Et;jet p_{T};matched TPs / bin")
+        for i in range(nBad.size()) :
+            sub = "barrel" if isBarrel[i] else "endcap"
+            p4 = tpP4.at(i)
+            book.fill( (p4.eta(),p4.phi()), "tpEtaPhi%d%s"%(maxStatus[i],sub), (100,100),(-4,-4),(4,4), title = "TP status%d, %s;#eta;#phi;events / bin"%(maxStatus[i],sub))
+            book.fill( (maxStatus[i],nBad[i]), "tpStatusNbad%s"%sub, (16, 30), (-0.5,-0.5), (15.5,29.5), title="%s;TP maxStatus;TP number bad xtals;TP / bin"%sub)
 
-        indicesOverThresh = range(len(tpEt))
-        for thresh in self.thresholds :
-            indicesOverThresh = filter(lambda i: tpEt[i]>thresh, indicesOverThresh)
-            overThreshTpJetIndices = [tpJetIndices[i] for i in indicesOverThresh]
-            
-            book.fill( map(lambda x: x<0, overThreshTpJetIndices).count(False), "tpsMatchedAbove%02d"%thresh, 10,-0.5,9.5,
-                       title=";Number of in-jet ecal dead regions with tp.Et>%02d GeV;events / bin"%thresh)
-            book.fill( overThreshTpJetIndices.count(-2), "tpsUnmatchedAbove%02d"%thresh, 10,-0.5,9.5,
-                       title=";Number of isolated ecal dead regions with tp.Et>%02d GeV;events / bin"%thresh)
+            if recoverable[i] :
+                book.fill( tpEt[i], "tpEt%d%sMatched%d"%(nBad[i],sub,matched[i]) , 256, 0, 128, title = "%d bad,%s,matched%d;tp.Et;TPs / bin"%(nBad[i],sub,matched[i]))
+
+        #maxTpEt = max(tpEt)
+        #maxTpEtlost = max(tpEtlost)
+        #book.fill((maxTpEt,mht),"tpEtMaxMHTcorr",(256,200),(0,0),(128,500), title=";max tp.Et;MHT;events / bin")
+        #book.fill((maxTpEtlost,mht),"tpEtlostMaxMHTcorr",(256,200),(0,0),(128,500), title=";max tp.Et*badFraction;MHT;events / bin")
+        #for thresh in self.thresholds :
+        #    if maxTpEt > thresh : book.fill( mht, "mhtwMaxTpEtOver%02d"%thresh, 200,0,500, title = ";MHT, tp.Et_{max}>%02d;events / bin"%thresh)
+        #    if maxTpEtlost > thresh : book.fill( mht, "mhtwMaxTpEtlostOver%02d"%thresh, 200,0,500, title = ";MHT, (tp.Et*badFraction)_{max}>%02d;events / bin"%thresh)
+        #
+        #indicesOverThresh = filter(lambda i: tpEt[i] > 0, range(len(tpEt)))
+        #if not len(indicesOverThresh) : book.fill( mht, "mhtClean", 200,0,500, title="No TP et from dead ecal;MHT;events / bin")
+        #for thresh in self.thresholds :
+        #    indicesOverThresh = filter(lambda i: tpEt[i]>thresh, indicesOverThresh)
+        #    overThreshTpJetIndices = [tpJetIndices[i] for i in indicesOverThresh]
+        #    
+        #    book.fill( map(lambda x: x<0, overThreshTpJetIndices).count(False), "tpsMatchedAbove%02d"%thresh, 10,-0.5,9.5,
+        #               title=";Number of in-jet ecal dead regions with tp.Et>%02d GeV;events / bin"%thresh)
+        #    book.fill( overThreshTpJetIndices.count(-2), "tpsUnmatchedAbove%02d"%thresh, 10,-0.5,9.5,
+        #               title=";Number of isolated ecal dead regions with tp.Et>%02d GeV;events / bin"%thresh)
