@@ -15,8 +15,9 @@ class photonLook(analysis.analysis) :
 
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]                     [0:1] ),
-                 "mcSoup" :           dict([ ("pythia6","py6"), ("madgraph","mg"), ("pythia8","py8") ]               [1:2] ),
+                 "mcSoup" :           dict([ ("pythia6","py6"), ("madgraph","mg"), ("pythia8","py8") ]               [0:1] ),
                  "photonId" :         dict([ ("photonLoose","photonIDLooseFromTwikiPat"), ("photonTight","photonIDTightFromTwikiPat")] [0:1] ),
+                 "useSkims" :         dict([ ("fullSample",False), ("skimSample",True)] [1:2] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  "etRatherThanPt" : [True,False]        [0],
                  }
@@ -99,7 +100,7 @@ class photonLook(analysis.analysis) :
             steps.multiplicityFilter("%sIndicesOther%s"%_jet, nMax = 0),
             
             #electron, muon, photon vetoes
-            steps.multiplicityFilter("%sIndices%s"%_electron, nMax = 0),
+            #steps.multiplicityFilter("%sIndices%s"%_electron, nMax = 0),
             steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
             steps.multiplicityFilter("%sIndicesOther%s"%_muon, nMax = 0),
             steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
@@ -107,7 +108,7 @@ class photonLook(analysis.analysis) :
 
             #steps.passFilter("purityPlots1"),
             #steps.photonPurityPlots("Photon", _jet, _photon),
-
+            
             steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
             steps.variableGreaterFilter(250.0,"%sSumEt%s"%_jet, suffix = "GeV"),
             
@@ -115,6 +116,8 @@ class photonLook(analysis.analysis) :
             #steps.photonPurityPlots("Photon", _jet, _photon),
             
             #many plots
+            steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
+                               funcString="lambda x:len(x)"),
             steps.passFilter("singlePhotonPlots1"),
             steps.singlePhotonHistogrammer(_photon, _jet),
             steps.passFilter("jetSumPlots"),
@@ -126,6 +129,8 @@ class photonLook(analysis.analysis) :
             
             steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             
+            steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
+                               funcString="lambda x:len(x)"),
             steps.passFilter("singlePhotonPlots2"),
             steps.singlePhotonHistogrammer(_photon, _jet),
             
@@ -134,6 +139,8 @@ class photonLook(analysis.analysis) :
             
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
             
+            steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
+                               funcString="lambda x:len(x)"),
             steps.passFilter("singlePhotonPlots3"),
             steps.singlePhotonHistogrammer(_photon, _jet),
             
@@ -141,6 +148,8 @@ class photonLook(analysis.analysis) :
             steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
             steps.deadEcalFilter(jets = _jet, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
             
+            steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
+                               funcString="lambda x:len(x)"),
             steps.passFilter("singlePhotonPlots4"),
             steps.singlePhotonHistogrammer(_photon, _jet),
             
@@ -186,7 +195,11 @@ class photonLook(analysis.analysis) :
            #specify(name = "2010_data_skim_pf",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
            #specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
            #specify(name = "2010_data_photons_high_met",nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            ]                                                       
+            ] if not params["useSkims"] else [
+            specify(name = "Run2010A_JMT_skim_skim",       color = r.kBlack),
+            specify(name = "Run2010A_JM_skim_skim",        color = r.kBlack),
+            specify(name = "Run2010B_J_skim_skim",         color = r.kBlack),
+            ]
         qcd_py6 = [                                                 
           ##specify(name = "v12_qcd_py6_pt30",          nFilesMax = -1, color = r.kBlue    ),
             specify(name = "v12_qcd_py6_pt80",          nFilesMax = -1, color = r.kBlue    ),
@@ -195,12 +208,19 @@ class photonLook(analysis.analysis) :
           ##specify(name = "v12_qcd_py6_pt470",         nFilesMax = -1, color = r.kBlue    ),
           ##specify(name = "v12_qcd_py6_pt800",         nFilesMax = -1, color = r.kBlue    ),
           ##specify(name = "v12_qcd_py6_pt1400",        nFilesMax = -1, color = r.kBlue    ),
-            ]                                                       
+            ] if not params["useSkims"] else [
+            specify(name = "v12_qcd_py6_pt80_skim", color = r.kBlue),
+            specify(name = "v12_qcd_py6_pt170_skim",color = r.kBlue),
+            specify(name = "v12_qcd_py6_pt300_skim",color = r.kBlue),
+            ]
         g_jets_py6 = [                                              
             specify(name = "v12_g_jets_py6_pt30",       nFilesMax = -1, nEventsMax = 1000000, color = r.kGreen),
             specify(name = "v12_g_jets_py6_pt80",       nFilesMax = -1, nEventsMax =  100000, color = r.kGreen),
             specify(name = "v12_g_jets_py6_pt170",      nFilesMax = -1, nEventsMax =  100000, color = r.kGreen),
-            ]                                                       
+            ] if not params["useSkims"] else [
+            specify(name = "v12_g_jets_py6_pt80_skim",  color = r.kGreen),
+            specify(name = "v12_g_jets_py6_pt170_skim", color = r.kGreen),
+            ]
         qcd_py8 = [                                                 
           ##specify(name = "qcd_py8_pt0to15",           nFilesMax = -1, color = r.kBlue    ),
           ##specify(name = "qcd_py8_pt15to30",          nFilesMax = -1, color = r.kBlue    ),
@@ -223,12 +243,22 @@ class photonLook(analysis.analysis) :
             specify(name = "v12_qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
             specify(name = "v12_qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
             specify(name = "v12_qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
-            ]                                                       
+            ] if not params["useSkims"] else [
+            #specify(name = "v12_qcd_mg_ht_50_100_skim",    color = r.kBlue) ,
+            #specify(name = "v12_qcd_mg_ht_100_250_skim",   color = r.kBlue) ,
+            specify(name = "v12_qcd_mg_ht_250_500_skim",   color = r.kBlue) ,
+            specify(name = "v12_qcd_mg_ht_500_1000_skim",  color = r.kBlue) ,
+            specify(name = "v12_qcd_mg_ht_1000_inf_skim",  color = r.kBlue) ,
+            ]
         g_jets_mg = [                                               
             specify(name = "v12_g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
             specify(name = "v12_g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
             specify(name = "v12_g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
-            ]                                                       
+            ] if not params["useSkims"] else [
+            #specify(name = "v12_g_jets_mg_pt40_100_skim",  color = r.kGreen),
+            #specify(name = "v12_g_jets_mg_pt100_200_skim", color = r.kGreen),
+            specify(name = "v12_g_jets_mg_pt200_skim",     color = r.kGreen),
+            ]
         ttbar_mg = [                                                
             specify(name = "tt_tauola_mg_v12",          nFilesMax =  3, color = r.kOrange  ),
             ]                                                       
@@ -255,24 +285,11 @@ class photonLook(analysis.analysis) :
             outList+=qcd_mg
             outList+=g_jets_mg
 
-        #outList+=data
+        outList+=data
         #outList+=ewk
         #outList+=ttbar_mg
         #outList+=susy
 
-        outList = [
-            specify(name = "Run2010A_JMT_skim_skim",       color = r.kBlack),
-            specify(name = "Run2010A_JM_skim_skim",        color = r.kBlack),
-            specify(name = "Run2010B_J_skim_skim",         color = r.kBlack),
-            #specify(name = "v12_g_jets_mg_pt100_200_skim", color = r.kGreen),
-            specify(name = "v12_g_jets_mg_pt200_skim",     color = r.kGreen),
-            #specify(name = "v12_g_jets_mg_pt40_100_skim",  color = r.kGreen),
-            specify(name = "v12_qcd_mg_ht_1000_inf_skim",  color = r.kBlue) ,
-            #specify(name = "v12_qcd_mg_ht_100_250_skim",   color = r.kBlue) ,
-            specify(name = "v12_qcd_mg_ht_250_500_skim",   color = r.kBlue) ,
-            specify(name = "v12_qcd_mg_ht_500_1000_skim",  color = r.kBlue) ,
-            #specify(name = "v12_qcd_mg_ht_50_100_skim",    color = r.kBlue) ,
-            ]
         ##uncomment for short tests
         #for i in range(len(outList)):
         #    o = outList[i]
@@ -282,16 +299,16 @@ class photonLook(analysis.analysis) :
         return outList
 
     def mergeSamples(self, org, tag) :
-        def py6(org, smSources) :
+        def py6(org, smSources, skimString) :
             org.mergeSamples(targetSpec = {"name":"qcd_py6_v12", "color":r.kBlue},
-                             sources = ["v12_qcd_py6_pt%d"%i      for i in [80,170,300] ])
+                             sources = ["v12_qcd_py6_pt%d%s"%(i,skimString) for i in [80,170,300] ])
             smSources.append("qcd_py6_v12")
 
             org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen},
-                             sources = ["v12_g_jets_py6_pt%d"%i      for i in [30,80,170] ])
+                             sources = ["v12_g_jets_py6_pt%d%s"%(i,skimString) for i in [30,80,170] ])
             smSources.append("g_jets_py6_v12")
 
-        def py8(org, smSources) :
+        def py8(org, smSources, skimString) :
             lowerPtList = [0,15,30,50,80,120,170,300,470,600,800,1000,1400,1800]
             sources = ["qcd_py8_pt%dto%d"%(lowerPtList[i],lowerPtList[i+1]) for i in range(len(lowerPtList)-1)]
             sources.append("qcd_py8_pt%d"%lowerPtList[-1])
@@ -302,7 +319,7 @@ class photonLook(analysis.analysis) :
                              sources = ["v12_g_jets_py6_pt%d"%i      for i in [30,80,170] ])
             smSources.append("g_jets_py6_v12")
 
-        def mg(org, smSources) :
+        def mg(org, smSources, skimString) :
             org.mergeSamples(targetSpec = {"name":"qcd_mg_v12", "color":r.kBlue},
                              sources = ["v12_qcd_mg_ht_%s_skim"%bin for bin in ["50_100","100_250","250_500","500_1000","1000_inf"] ])
             smSources.append("qcd_mg_v12")
@@ -311,17 +328,18 @@ class photonLook(analysis.analysis) :
                              sources = ["v12_g_jets_mg_pt%s_skim"%bin for bin in ["40_100","100_200","200"] ])
             smSources.append("g_jets_mg_v12")
 
+        skimString = "_skim" if "skimSample" in tag else ""
         smSources = ["z_inv_mg_v12", "z_jets_mg_v12", "w_jets_mg_v12"]
-        if "pythia6"  in tag : py6(org, smSources)
-        if "pythia8"  in tag : py8(org, smSources)
-        if "madgraph" in tag : mg (org, smSources)
+        if "pythia6"  in tag : py6(org, smSources, skimString)
+        if "pythia8"  in tag : py8(org, smSources, skimString)
+        if "madgraph" in tag : mg (org, smSources, skimString)
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20},
                          sources = ["Run2010B_J_skim_skim","Run2010A_JM_skim_skim","Run2010A_JMT_skim_skim"])
         
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
-            #for skimming only
+            ##for skimming only
             #org = organizer.organizer( self.sampleSpecs(tag) )
             #utils.printSkimResults(org)            
 
