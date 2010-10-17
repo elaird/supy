@@ -259,20 +259,19 @@ class plotter(object) :
         globalMin = 1.0e9
         for histo in histos :
             if not histo : continue
-            max=histo.GetMaximum()
-            if max>globalMax : globalMax=max
-
             if dimension==1 :
                 for iBinX in range(histo.GetNbinsX()+2) :
-                    value=histo.GetBinContent(iBinX)
+                    value = histo.GetBinContent(iBinX)
                     if value>0.0 :
-                        if value<globalMin : globalMin=value
+                        if value<globalMin : globalMin = value
+                        if value>globalMax : globalMax = value
             if dimension==2 :
                 for iBinX in range(histo.GetNbinsX()+2) :
                     for iBinY in range(histo.GetNbinsY()+2) :
                         value=histo.GetBinContent(iBinX,iBinY)
                         if value>0.0 :
-                            if value<globalMin : globalMin=value
+                            if value<globalMin : globalMin = value
+                            if value>globalMax : globalMax = value                            
         return globalMax,globalMin
 
     def setRanges(self,histos,dimension) :
