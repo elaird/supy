@@ -1001,3 +1001,20 @@ class deadEcalFilter(analysisStep) :
                 return False
         return True
 #####################################
+class vertexHistogrammer(analysisStep) :
+    def uponAcceptance(self,eV) :
+        book = self.book(eV)
+
+        index = eV["vertexIndices"]
+        sump3 = eV["vertexSumP3"]
+        sumpt = eV["vertexSumPt"]
+
+        coord = reduce(lambda v,u: (v[0]+u[0],v[1]+u[1],v[2]+u[2]), [(sump3[i].x(),sump3[i].y(),sump3[i].z()) for i in index][1:], (0,0,0))
+        sump3Secondaries = type(sump3[0])(coord[0],coord[1],coord[2])
+
+        book.fill( sumpt[0], "vertex0SumPt", 100, 0, 1200, title = ";primary vertex #Sigma p_{T} (GeV); events / bin")
+        book.fill( sump3[0].rho(), "vertex0MPT%d", 100, 0, 400, title = ";primary vertex MPT (GeV);events / bin")
+
+        book.fill( (sumpt[index[0]], sum(map(sumpt.__getitem__,index[1:]))), "vertexSumPt_0_all", (100,100), (0,0), (1200,400), title = ";primary vertex #Sigma p_{T};secondary vertices #Sigma p_{T};events / bin")
+        book.fill( (sump3[index[0]].rho(), sump3Secondaries.rho()), "vertexMPT_0_all", (100,100), (0,0), (400,200), title = ";primary vertex MPT;secondary verticies MPT;events / bin")
+            
