@@ -346,7 +346,7 @@ def printSkimResults(org) :
             if denom > 0.0 : eff = d[name]["pass"] / denom
 
             #format output
-            nameStrings.append( 'mc.add("%s_skim", '%name )
+            nameStrings.append( 'foo.add("%s_skim", '%name )
             dirStrings.append( '\'utils.fileListFromDisk(location = "%s/'+name+'_*_skim.root", isDirectory = False)\'%dir,')
             if name in aDict("xs") : 
                 effStrings.append( 'xs = %e * %e)'%(eff,aDict("xs")[name]) )
