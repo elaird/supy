@@ -1,8 +1,8 @@
 import calculables
 from wrappedChain import *
 ##############################
-class numberStationsWithMatchingChamber(wrappedChain.calculable) :
-    def name(self) : return "%sNumberStationsWithMatchingChamber%s"%self.muons
+class muonNumberOfMatches(wrappedChain.calculable) :
+    def name(self) : return "%sNumberOfMatches%s"%self.muons
     
     def __init__(self, collection = None) :
         self.moreName = "WARNING: dummy value always = 2"
@@ -11,8 +11,8 @@ class numberStationsWithMatchingChamber(wrappedChain.calculable) :
     def update(self,ignored) :
         self.value = [2] * self.source["%sIsTrackerMuon%s"%self.muons].size()
 ##############################
-class pixelNumberOfValidHits(wrappedChain.calculable) :
-    def name(self) : return "%sPixelNumberOfValidHits%s"%self.muons
+class muonNumberOfValidPixelHits(wrappedChain.calculable) :
+    def name(self) : return "%sNumberOfValidPixelHits%s"%self.muons
     
     def __init__(self, collection = None) :
         self.moreName = "WARNING: dummy value always = 1"
@@ -21,7 +21,7 @@ class pixelNumberOfValidHits(wrappedChain.calculable) :
     def update(self,ignored) :
         self.value = [1]*self.source["%sIsTrackerMuon%s"%self.muons].size()
 ##############################
-class IDtight(wrappedChain.calculable) :
+class muonIDtight(wrappedChain.calculable) :
     def name(self): return "%sIDtight%s"%self.muons
     
     def __init__(self, collection = None) :
@@ -40,9 +40,9 @@ class IDtight(wrappedChain.calculable) :
         self.value = map(self.tight,
                          self.source["%sIsTrackerMuon%s"%self.muons],
                          self.source["%sIDGlobalMuonPromptTight%s"%self.muons],
-                         self.source["%sNumberStationsWithMatchingChamber%s"%self.muons],
+                         self.source["%sNumberOfMatches%s"%self.muons],
                          self.source["%sInnerTrackNumberOfValidHits%s"%self.muons],
-                         self.source["%sPixelNumberOfValidHits%s"%self.muons],
+                         self.source["%sNumberOfValidPixelHits%s"%self.muons],
                          self.source["%sGlobalTrackDxy%s"%self.muons])    
 ##############################
 class combinedRelativeIso(wrappedChain.calculable) :
