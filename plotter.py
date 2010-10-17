@@ -82,13 +82,15 @@ class plotter(object) :
                  nLinesMax = 17,
                  shiftUnderOverFlows = True,
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
-                 blackList = []
+                 blackList = [],
+                 whiteList = []
                  ) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios",
                      "doLog","drawYx","doMetFit","doColzFor2D","nLinesMax","compactOutput",
-                     "shiftUnderOverFlows","dontShiftList","blackList","showStatBox" ] :
+                     "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox" ] :
             setattr(self,item,eval(item))
 
+        self.useWhiteList = len(self.whiteList)>0
         self.blackList.append("counts")
         self.plotRatios = self.samplesForRatios!=("","")        
         self.psOptions = "Landscape"
@@ -115,8 +117,9 @@ class plotter(object) :
                 self.selectionsSoFar.append(selection)
                 if (not self.compactOutput and len(selection)>1) or iSelection==len(self.someOrganizer.selections)-1:
                     self.printSelections(self.selectionsSoFar, printAll = self.compactOutput)
-            if self.compactOutput : continue
+                    if self.compactOutput : continue
             for plotName in sorted(selection.keys()) :
+                if self.useWhiteList and plotName not in self.whiteList : continue
                 if plotName in self.blackList : continue
                 self.onePlotFunction(selection[plotName],plotName)
 
