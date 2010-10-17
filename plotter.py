@@ -117,7 +117,7 @@ class plotter(object) :
                 self.selectionsSoFar.append(selection)
                 if (not self.compactOutput and len(selection)>1) or iSelection==len(self.someOrganizer.selections)-1:
                     self.printSelections(self.selectionsSoFar, printAll = self.compactOutput)
-                    if self.compactOutput : continue
+            if self.compactOutput : continue
             for plotName in sorted(selection.keys()) :
                 if self.useWhiteList and plotName not in self.whiteList : continue
                 if plotName in self.blackList : continue
