@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os,analysis,utils,calculables,steps,samples
+import os,analysis,utils,calculables,steps,samples,organizer
 
 muon = ("muon","Pat")
 
@@ -30,3 +30,7 @@ class muonSkim(analysis.analysis) :
 
     def listOfSampleDictionaries(self) :
         return [samples.jetmet,samples.mc]
+
+    def conclude(self) :
+        org = organizer.organizer( self.sampleSpecs() )
+        utils.printSkimResults(org)            
