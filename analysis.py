@@ -301,19 +301,11 @@ def looperPrint(looper) :
     looper.printStats()
     print utils.hyphens
 #############################################
-def reportEffectiveXs(skimmerFileDict,someLooper) :
-    if len(skimmerFileDict)>0 :
-        for skimmerIndex,skimFileNames in skimmerFileDict.iteritems() :
-            if someLooper.xs==None :
-                print "The",len(skimFileNames),"skim files have been written."
-            else :
-                effXs=0.0
-                nEvents=someLooper.steps[0].nTotal
-                nPass=someLooper.steps[skimmerIndex].nPass
-                if nEvents>0 : effXs=(someLooper.xs+0.0)*nPass/nEvents
-                print "The",len(skimFileNames),"skim files have effective XS =",someLooper.xs,"*",nPass,"/",nEvents,"=",effXs
-            print "( e.g.",skimFileNames[0],")"
-            print utils.hyphens
+def reportSkimFiles(skimmerFileDict,someLooper) :
+    for skimmerIndex,skimFileNames in skimmerFileDict.iteritems() :
+        print "The",len(skimFileNames),"skim files have been written."
+        print "( e.g.",skimFileNames[0],")"
+        print utils.hyphens
 #############################################
 def mergeDisplays(displayFileDict,someLooper) :
     if len(displayFileDict)>0 :
@@ -385,7 +377,7 @@ def mergeFunc(looper,listOfSlices) :
     print utils.hyphens
 
     mergeDisplays(displayFileDict, looper)
-    reportEffectiveXs(skimmerFileDict, looper)
+    reportSkimFiles(skimmerFileDict, looper)
 
     if len(jsonFileDict.values())>0 and len(jsonFileDict.values()[0])>0 :
         utils.mergeRunLsDicts(runLsDict, jsonFileDict.values()[0][0], printHyphens = True)

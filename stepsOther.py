@@ -159,11 +159,6 @@ class skimmer(analysisStep) :
         
         self.outputFile.Close()
         if not self.quietMode : print "The skim file \""+self.outputFileName+"\" has been written."
-
-        if xs==None : return
-        effXs=0.0
-        if nEvents>0 : effXs=(xs+0.0)*self.nPass/nEvents
-        if not self.quietMode : print "The effective XS =",xs,"*",self.nPass,"/",nEvents,"=",effXs
 #####################################
 class hbheNoiseFilter(analysisStep) :
 
