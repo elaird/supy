@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os,analysis,utils,calculables,steps,samples
+import os,analysis,utils,calculables,steps,samples,organizer
 
 jetAlgoList=[("ak5Jet"+jetType,"Pat") for jetType in ["","PF","JPT"]]
 
@@ -34,3 +34,7 @@ class hadronicSkim(analysis.analysis) :
 
     def listOfSampleDictionaries(self) :
         return [samples.jetmet,samples.mc]
+
+    def conclude(self) :
+        org = organizer.organizer( self.sampleSpecs() )
+        utils.printSkimResults(org)
