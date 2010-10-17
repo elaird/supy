@@ -347,7 +347,7 @@ def printSkimResults(org) :
 
             #format output
             nameStrings.append( 'mc.add("%s_skim", '%name )
-            dirStrings.append( '\'utils.fileListFromDisk(location = "\%s/%s_*_skim.root", isDirectory = False)\'\%dir, '%name )
+            dirStrings.append( '\'utils.fileListFromDisk(location = "%s/'+name+'_*_skim.root", isDirectory = False)\'%dir,')
             if name in aDict("xs") : 
                 effStrings.append( 'xs = %e * %e)'%(eff,aDict("xs")[name]) )
             elif name in aDict("lumi") :
