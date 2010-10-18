@@ -22,10 +22,13 @@ class muonSkim(analysis.analysis) :
                [calculables.muonIndices( muon, ptMin = 10, combinedRelIsoMax = 0.50)]
     
     def listOfSamples(self,params) :
+        from samples import specify        
         return [
-            samples.specify(name = "Run2010B_J_skim"),
-            samples.specify(name = "Run2010A_JM_skim"),
-            samples.specify(name = "Run2010A_JMT_skim"),
+            specify(name = "Run2010B_MJ_skim"),
+            specify(name = "Run2010B_J_skim2"),
+            #specify(name = "Run2010B_J_skim"),
+            #specify(name = "Run2010A_JM_skim"),
+            #specify(name = "Run2010A_JMT_skim"),
             ]
 
     def listOfSampleDictionaries(self) :

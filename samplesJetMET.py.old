@@ -4,8 +4,12 @@ jetmet = samples.SampleHolder()
 srm = 'utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user'
 
 #38X SKIMS
+jetmet.add("Run2010B_MJ_skim",
+           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/13_skims/MultiJet.Run2010B-PromptReco-v2.RECO.Burt/")', lumi = 3.467) #/pb
 jetmet.add("Run2010B_J_skim",
            'utils.fileListFromDisk(location = "/vols/cms02/elaird1/12_skims/Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt/")', lumi = 3.897) #/pb
+jetmet.add("Run2010B_J_skim2",
+           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/13_skims/Jet.Run2010B-PromptReco-v2.RECO.Burt3/")', lumi = 0.5107) #/pb
 jetmet.add("Run2010A_JM_skim",
            'utils.fileListFromDisk(location = "/vols/cms02/elaird1/12_skims/JetMET.Run2010A-Sep17ReReco_v2.RECO.RAW.Burt/")', lumi = 2.889) #/pb
 jetmet.add("Run2010A_JMT_skim",
@@ -25,6 +29,8 @@ jetmet.add("Run2010A_JMT_skim",
 jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt",          '%s/bbetchar//ICF/automated/2010_10_12_09_56_12/")'%srm, lumi = 99999.9 )
 jetmet.add("JetMET.Run2010A-Sep17ReReco_v2.RECO.RAW.Burt",      '%s/bbetchar//ICF/automated/2010_10_12_10_01_47/")'%srm, lumi = 99999.9 )
 jetmet.add("JetMETTau.Run2010A-Sep17ReReco_v2.RECO.RAW.Henning",'%s/henning//ICF/automated/2010_10_14_11_50_11/")'%srm,  lumi = 99999.9 )
+jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.Burt3",             '%s/bbetchar//ICF/automated/2010_10_18_00_21_23/")'%srm, lumi = 99999.9 )
+jetmet.add("MultiJet.Run2010B-PromptReco-v2.RECO.Burt",         '%s/bbetchar//ICF/automated/2010_10_18_00_30_19/")'%srm, lumi = 99999.9 )
 
 #deprecated; use the above instead
 #jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.Burt",          '%s/bbetchar//ICF/automated/2010_10_05_22_57_38/")'%srm, lumi = 99999.9 )

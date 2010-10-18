@@ -29,7 +29,10 @@ class hadronicSkim(analysis.analysis) :
         return [
             #samples.specify(name = "Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt"),
             #samples.specify(name = "JetMET.Run2010A-Sep17ReReco_v2.RECO.RAW.Burt"),
-            samples.specify(name = "JetMETTau.Run2010A-Sep17ReReco_v2.RECO.RAW.Henning"),
+            #samples.specify(name = "JetMETTau.Run2010A-Sep17ReReco_v2.RECO.RAW.Henning"),
+            samples.specify(name = "Jet.Run2010B-PromptReco-v2.RECO.Burt3"),
+            samples.specify(name = "MultiJet.Run2010B-PromptReco-v2.RECO.Burt"),
+            
             ]
 
     def listOfSampleDictionaries(self) :
