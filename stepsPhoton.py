@@ -89,8 +89,9 @@ class singlePhotonHistogrammer(analysisStep) :
         book = self.book(eventVars)
         p4s = eventVars[self.p4sName]
         cleanPhotonIndices = eventVars[self.indicesName]
-        mht = eventVars[self.mhtName].pt()
-        ht =  eventVars[self.mhtName].pt()
+        mh = eventVars[self.mhtName]
+        mht = mh.pt() if mh else None
+        ht =  eventVars[self.htName]
         
         #ID variables
         jurassicEcalIsolations    = eventVars["%sEcalRecHitEtConeDR04%s"%self.cs]
@@ -111,9 +112,14 @@ class singlePhotonHistogrammer(analysisStep) :
             book.fill(pt,           "%s%s%sPt" %(self.cs+(photonLabel,)), 50,  0.0, 500.0, title=";photon%s p_{T} (GeV);events / bin"%photonLabel)
             book.fill(photon.eta(), "%s%s%seta"%(self.cs+(photonLabel,)), 50, -5.0,   5.0, title=";photon%s #eta;events / bin"%photonLabel)
 
+            if mht==None : continue
             book.fill((pt,mht), "%s%s%smhtVsPhotonPt"%(self.cs+(photonLabel,)),
                       (50, 50), (0.0, 0.0), (500.0, 500.0),
                       title=";photon%s p_{T} (GeV);MHT %s%s (GeV);events / bin"%(photonLabel,self.jetCs[0],self.jetCs[1])
+                      )
+
+            book.fill(mht/pt, "%s%s%smhtOverPhotonPt"%(self.cs+(photonLabel,)),
+                      50, 0.0, 2.0, title=";MHT %s%s / photon%s p_{T};events / bin"%(self.jetCs[0],self.jetCs[1],photonLabel)
                       )
 
             #book.fill(pt-mht, "%s%s%sphotonPtMinusMht"%(self.cs+(photonLabel,)),
