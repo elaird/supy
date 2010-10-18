@@ -49,7 +49,7 @@ class photonID(wrappedChain.calculable) :
 
         levels = ["EmFromTwiki","LooseFromTwiki","TightFromTwiki","AnalysisNote_2010_268"]
         jei  = [ (4.2,  0.006 ) for l in levels ]; jei[3]  = (4.2, 0.003)
-        tbhi = [ (2.2,  0.0025) for l in levels ]  tbhi[3] = (2.2, 0.001)
+        tbhi = [ (2.2,  0.0025) for l in levels ]; tbhi[3] = (2.2, 0.001)
         hoe  = [ (0.05, 0.000 ) for l in levels ]
         hcti = [ None           for l in levels ]; hcti[1] = (3.5, 0.001); hcti[2] = (2.0, 0.001); hcti[3] = (2.0, 0.001)
         shhBarrel = [ None      for l in levels ]; shhBarrel[2] = (0.013, 0.0)
@@ -59,7 +59,7 @@ class photonID(wrappedChain.calculable) :
         for item in ["jei","tbhi","hoe","hcti","shhBarrel","shhEndcap"] :
             setattr(self,item,eval(item)[levels.index(level)])
 
-        if levels.index(index)<3 :
+        if levels.index(level)<3 :
             self.moreName = "twiki.cern.ch/twiki/bin/viewauth/CMS/PhotonID, 2010-10-14"
             self.photonVariable = "pt"
         else :
