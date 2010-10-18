@@ -54,6 +54,14 @@ class triggerNameDump(analysisStep) :
             print pair.first
         return True
 #####################################
+class ra1Trigger(analysisStep) :
+    def __init__(self) :
+        self.moreName = "HT140U if HT100U prescaled else HT100U"
+        
+    def select (self,eventVars) :
+        oneHundredPrescaled = eventVars["prescaled"]["HLT_HT100U"]>1
+        return eventVars["triggered"]["HLT_HT140U"] if oneHundredPrescaled else eventVars["triggered"]["HLT_HT100U"]
+#####################################
 class hltFilter(analysisStep) :
 
     def __init__(self,hltPathName):
