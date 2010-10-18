@@ -14,10 +14,12 @@ class photonLook(analysis.analysis) :
         #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,        50.0]))
 
         return { "objects": objects,
-                 "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]                     [0:1] ),
-                 "mcSoup" :           dict([ ("pythia6","py6"), ("madgraph","mg"), ("pythia8","py8") ]               [0:1] ),
-                 "photonId" :         dict([ ("photonLoose","photonIDLooseFromTwikiPat"), ("photonTight","photonIDTightFromTwikiPat")] [0:1] ),
-                 "useSkims" :         dict([ ("fullSample",False), ("skimSample",True)] [1:2] ),
+                 "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
+                 "mcSoup" :           dict([ ("pythia6","py6"), ("madgraph","mg"), ("pythia8","py8") ] [0:1] ),
+                 "photonId" :         dict([ ("photonLoose","photonIDLooseFromTwikiPat"),
+                                             ("photonTight","photonIDTightFromTwikiPat"),
+                                             ("photonAN",   "AnalysisNote_2010_268")]                  [0:1] ),
+                 "useSkims" :         dict([ ("fullSample",False), ("skimSample",True)]                [1:2] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  "etRatherThanPt" : [True,False]        [0],
                  }
@@ -50,7 +52,7 @@ class photonLook(analysis.analysis) :
                                     ),
                  calculables.jetIndices( _jet, _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
                  calculables.jetIndices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
-                 calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15),
+                 calculables.muonIndices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
                  calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
                  calculables.photonIndicesPat(  ptMin = 25, flagName = params["photonId"]),
                  calculables.genIndices( pdgs = [22], label = "Photon", status = [1]),
@@ -82,7 +84,7 @@ class photonLook(analysis.analysis) :
             steps.jetPtSelector(_jet,100.0,0),
             steps.jetPtSelector(_jet,100.0,1),
             steps.jetEtaSelector(_jet,2.5,0),
-            steps.hltFilter("HLT_HT100U"),
+            #steps.hltFilter("HLT_HT100U"),
             steps.vertexRequirementFilter(),
             steps.techBitFilter([0],True),
             steps.physicsDeclared(),
@@ -91,7 +93,7 @@ class photonLook(analysis.analysis) :
 
             steps.photonPtSelector(_photon,120.0,0),
             steps.photonEtaSelector(_photon,2.0,0),
-
+            
             steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
                                funcString="lambda x:len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_jet, nMin = params["nJetsMinMax"][0], nMax = params["nJetsMinMax"][1]),
@@ -105,15 +107,12 @@ class photonLook(analysis.analysis) :
             steps.multiplicityFilter("%sIndicesOther%s"%_muon, nMax = 0),
             steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_photon, nMin = 1, nMax = 1),
-
-            #steps.passFilter("purityPlots1"),
-            #steps.photonPurityPlots("Photon", _jet, _photon),
             
             steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
             steps.variableGreaterFilter(250.0,"%sSumEt%s"%_jet, suffix = "GeV"),
             
-            #steps.passFilter("purityPlots2"),
-            #steps.photonPurityPlots("Photon", _jet, _photon),
+            steps.passFilter("purityPlots1"),
+            steps.photonPurityPlots("Photon", _jet, _photon),
             
             #many plots
             steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
@@ -134,8 +133,8 @@ class photonLook(analysis.analysis) :
             steps.passFilter("singlePhotonPlots2"),
             steps.singlePhotonHistogrammer(_photon, _jet),
             
-            #steps.passFilter("purityPlots3"),
-            #steps.photonPurityPlots("Photon", _jet, _photon),
+            steps.passFilter("purityPlots2"),
+            steps.photonPurityPlots("Photon", _jet, _photon),
             
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
             
@@ -154,8 +153,8 @@ class photonLook(analysis.analysis) :
             steps.singlePhotonHistogrammer(_photon, _jet),
             
             steps.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
-            #steps.passFilter("purityPlots4"),
-            #steps.photonPurityPlots("Photon", _jet, _photon),
+            steps.passFilter("purityPlots3"),
+            steps.photonPurityPlots("Photon", _jet, _photon),
             
             #steps.photonPtSelector(_photon, 450, 0),
             
@@ -180,6 +179,7 @@ class photonLook(analysis.analysis) :
             #                ),
             
             ]
+
         return outList
 
     def listOfSampleDictionaries(self) :
@@ -188,6 +188,8 @@ class photonLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [                                                
+           #specify(name = "Run2010B_MJ_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+           #specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_J_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
