@@ -232,6 +232,9 @@ class alphaHistogrammer(analysisStep) :
         book.fill( alphaT, "%sAlphaTZoom%s"%self.cs, 120, 0.48, 0.60,
                    title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
 
+        book.fill( alphaT, "%sAlphaTTwoBin%s"%self.cs, 4, 0.0, 0.55*4,
+                   title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
+
         book.fill( deltaHt, "%sDeltaHt%s"%self.cs, 50,0.0,500,
                    title = ";#Delta H_{T} (GeV);events / bin")
 
