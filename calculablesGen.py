@@ -41,11 +41,11 @@ class genPhotonCategory(wrappedChain.calculable) :
         for index in self.source["genIndices"+self.label] :
             moId = self.source["genMotherPdgId"][index]
             if moId==22 :
-                self.value[index] = "direct"
+                self.value[index] = "photonMother"
             elif abs(moId)<22 :
-                self.value[index] = "fragmentation"
+                self.value[index] = "quarkMother"
             else :
-                self.value[index] = "other"
+                self.value[index] = "otherMother"
 ##############################
 class genParticleCounter(wrappedChain.calculable) :
     def name(self) : return "GenParticleCategoryCounts"
