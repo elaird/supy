@@ -257,6 +257,11 @@ class photonPurityPlots(analysisStep) :
     def __init__(self, label, jetCs, photonCs) :
         for item in ["label","jetCs","photonCs"] :
             setattr(self,item,eval(item))
+
+        self.bin = {}
+        self.bin["photonMother"] = 0
+        self.bin["quarkMother"]  = 1
+        self.bin["otherMother"]  = 2
         
     def uponAcceptance (self, eventVars) :
         genP4s   = eventVars["genP4"]
@@ -278,13 +283,19 @@ class photonPurityPlots(analysisStep) :
             matchedIndices.append(index)
             self.book(eventVars).fill(genPt,         categories[index]+"genPt" , 100, 0.0, 200.0, title = ";GEN photon p_{T} (GeV);photons / bin")
             self.book(eventVars).fill(recoPt,        categories[index]+"recoPt", 100, 0.0, 200.0, title = ";reco. photon p_{T} (GeV);photons / bin")
-            self.book(eventVars).fill(jetSumP4.pt(), categories[index]+"mht",    100, 0.0, 200.0, title = ";MHT (GeV);photons / bin")
-        self.book(eventVars).fill(len(matchedIndices),"nMatch",10, -0.5, 9.5, title = ";N gen. photons within #DeltaR 0.5 of the reco photon;photons / bin")
+            if jetSumP4 :
+                self.book(eventVars).fill(jetSumP4.pt(), categories[index]+"mht",    100, 0.0, 200.0, title = ";MHT (GeV);photons / bin")
 
-        if len(matchedIndices)==1 :
-            self.book(eventVars).fill( ( recoPt, genP4s.at(matchedIndices[0]).pt() ), "genVsRecoPt",
+        nMatch = len(matchedIndices)
+        self.book(eventVars).fill(nMatch,"nMatch",10, -0.5, 9.5, title = ";N gen. photons within #DeltaR 0.5 of the reco photon;photons / bin")
+        label = "1"if len(matchedIndices)==1 else "gt1"
+        for index in matchedIndices :
+            self.book(eventVars).fill( ( recoPt, genP4s.at(index).pt() ), "genVsRecoPt%s"%label,
                                        (50,50), (0.0,0.0), (200.0,200.0),
-                                       title = "nMatch = 1;RECO photon p_{T} (GeV);GEN photon p_{T} (GeV);photons / bin")
+                                       title = "nMatch = %s;RECO photon p_{T} (GeV);GEN photon p_{T} (GeV);photons / bin"%label)
+            self.book(eventVars).fill(self.bin[categories[index]],"photonCategory%s"%label,
+                                      len(self.bin), -0.5, len(self.bin)-0.5,
+                                      title = ";photon category (ph mo.,q mo.,other mo.) when nMatch = %s;photons / bin"%label)
 #####################################
 class genMotherHistogrammer(analysisStep) :
 
@@ -364,4 +375,49 @@ class genMotherHistogrammer(analysisStep) :
             if self.keyAllHighPt in book :
                 for iParticle in range(len(self.binLabels)) :
                     book[self.keyAllHighPt].GetXaxis().SetBinLabel(iParticle+1,self.binLabels[iParticle])
+#####################################
+class zHistogrammer(analysisStep) :
+
+    def __init__(self, jetCs) :
+        self.jetCs = jetCs
+        self.mhtName = "%sSumP4%s" % self.jetCs
+        self.htName  = "%sSumEt%s"%self.jetCs
+        
+    def uponAcceptance (self,eventVars) :
+        book = self.book(eventVars)
+        p4s = eventVars["genP4"]
+        mht = eventVars[self.mhtName].pt()
+        ht =  eventVars[self.htName]
+        
+        book.fill( len(cleanPhotonIndices), "photonMultiplicity", 10, -0.5, 9.5,
+                   title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%self.cs)
+
+        zIndices = eventVars["genIndicesZ"]
+        if len(zS)>1 : return False
+        for index in zIndices :
+            Z = p4s.at(iPhoton)
+            pt = photon.pt()
+
+
+            book.fill(pt,           "%s%s%sPt" %(self.cs+(photonLabel,)), 50,  0.0, 500.0, title=";photon%s p_{T} (GeV);events / bin"%photonLabel)
+            book.fill(photon.eta(), "%s%s%seta"%(self.cs+(photonLabel,)), 50, -5.0,   5.0, title=";photon%s #eta;events / bin"%photonLabel)
+
+            book.fill((pt,mht), "%s%s%smhtVsPhotonPt"%(self.cs+(photonLabel,)),
+                      (50, 50), (0.0, 0.0), (500.0, 500.0),
+                      title=";photon%s p_{T} (GeV);MHT %s%s (GeV);events / bin"%(photonLabel,self.jetCs[0],self.jetCs[1])
+                      )
+
+            book.fill(mht/pt, "%s%s%smhtOverPhotonPt"%(self.cs+(photonLabel,)),
+                      50, 0.0, 2.0, title=";MHT %s%s / photon%s p_{T};events / bin"%(self.jetCs[0],self.jetCs[1],photonLabel)
+                      )
+
+            #book.fill(pt-mht, "%s%s%sphotonPtMinusMht"%(self.cs+(photonLabel,)),
+            #          100, -200.0, 200.0,
+            #          title=";photon%s p_{T} - %s%sMHT (GeV);events / bin"%(photonLabel,self.jetCs[0],self.jetCs[1])
+            #          )
+
+            book.fill((pt-mht)/math.sqrt(ht+mht), "%s%s%sphotonPtMinusMhtOverMeff"%(self.cs+(photonLabel,)),
+                      100, -20.0, 20.0,
+                      title=";( photon%s p_{T} - MHT ) / sqrt( H_{T} + MHT )    [ %s%s ] ;events / bin"%(photonLabel,self.jetCs[0],self.jetCs[1])
+                      )
 #####################################
