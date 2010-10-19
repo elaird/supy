@@ -5,9 +5,12 @@ ph = samples.SampleHolder()
 dir = "/vols/cms02/elaird1/11_skims/09_photons_skim/"
 
 #data
-ph.add("Run2010A_JMT_skim_skim",       'utils.fileListFromDisk(location = "%s/Run2010A_JMT_skim_*_skim.root", isDirectory = False)'     %dir,  lumi = 1.720000e-01)
-ph.add("Run2010A_JM_skim_skim",        'utils.fileListFromDisk(location = "%s/Run2010A_JM_skim_*_skim.root", isDirectory = False)'      %dir,  lumi = 2.889000e+00)
-ph.add("Run2010B_J_skim_skim",         'utils.fileListFromDisk(location = "%s/Run2010B_J_skim_*_skim.root", isDirectory = False)'       %dir,  lumi = 3.897000e+00)
+ph.add("Run2010A_JMT_skim_skim",       'utils.fileListFromDisk(location = "%s/Run2010A_JMT_skim_*_skim.root", isDirectory = False)'  %dir,  lumi = 1.720000e-01)
+ph.add("Run2010A_JM_skim_skim",        'utils.fileListFromDisk(location = "%s/Run2010A_JM_skim_*_skim.root", isDirectory = False)'   %dir,  lumi = 2.889000e+00)
+ph.add("Run2010B_J_skim_skim",         'utils.fileListFromDisk(location = "%s/Run2010B_J_skim_*_skim.root", isDirectory = False)'    %dir,  lumi = 3.897000e+00)
+ph.add("Run2010B_J_skim2_skim",        'utils.fileListFromDisk(location = "%s/Run2010B_J_skim2_*_skim.root", isDirectory = False)'   %dir,  lumi = 5.107000e-01)
+ph.add("Run2010B_MJ_skim_skim",        'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim_*_skim.root", isDirectory = False)'   %dir,  lumi = 3.467000e+00)
+
 
 #MG
 ph.add("v12_g_jets_mg_pt200_skim",     'utils.fileListFromDisk(location = "%s/v12_g_jets_mg_pt200_*_skim.root", isDirectory = False)'   %dir,  xs = 1.189819e-02 * 6.159500e+02)
