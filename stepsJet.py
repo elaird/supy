@@ -229,10 +229,13 @@ class alphaHistogrammer(analysisStep) :
         book.fill( alphaT, "%sAlphaT%s"%self.cs, 80,0.0,2.0,
                    title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
 
+        book.fill( alphaT, "%sAlphaTRough%s"%self.cs, 40,0.0,2.0,
+                   title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
+
         book.fill( alphaT, "%sAlphaTZoom%s"%self.cs, 120, 0.48, 0.60,
                    title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
 
-        book.fill( alphaT, "%sAlphaTTwoBin%s"%self.cs, 4, 0.0, 0.55*4,
+        book.fill( alphaT, "%sAlphaTFewBins%s"%self.cs, 4, 0.0, 0.55*4,
                    title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
 
         book.fill( deltaHt, "%sDeltaHt%s"%self.cs, 50,0.0,500,
