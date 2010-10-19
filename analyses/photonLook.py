@@ -15,10 +15,10 @@ class photonLook(analysis.analysis) :
 
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
-                 "mcSoup" :           dict([ ("pythia6","py6"), ("madgraph","mg"), ("pythia8","py8") ] [0:1] ),
+                 "mcSoup" :           dict([ ("pythia6","py6"), ("madgraph","mg"), ("pythia8","py8") ] [1:2] ),
                  "photonId" :         dict([ ("photonLoose","photonIDLooseFromTwikiPat"),
                                              ("photonTight","photonIDTightFromTwikiPat"),
-                                             ("photonAN",   "AnalysisNote_2010_268")]                  [0:1] ),
+                                             ("photonAN",   "photonIDAnalysisNote")]                   [0:2] ),
                  "useSkims" :         dict([ ("fullSample",False), ("skimSample",True)]                [1:2] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  "etRatherThanPt" : [True,False]        [0],
@@ -84,7 +84,7 @@ class photonLook(analysis.analysis) :
             steps.jetPtSelector(_jet,100.0,0),
             steps.jetPtSelector(_jet,100.0,1),
             steps.jetEtaSelector(_jet,2.5,0),
-            #steps.hltFilter("HLT_HT100U"),
+            steps.lowestUnPrescaledTrigger(),
             steps.vertexRequirementFilter(),
             steps.techBitFilter([0],True),
             steps.physicsDeclared(),
@@ -92,7 +92,7 @@ class photonLook(analysis.analysis) :
             steps.hbheNoiseFilter(),
 
             steps.photonPtSelector(_photon,120.0,0),
-            steps.photonEtaSelector(_photon,2.0,0),
+            steps.photonEtaSelector(_photon,1.45,0),
             
             steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
                                funcString="lambda x:len(x)"),
@@ -109,7 +109,7 @@ class photonLook(analysis.analysis) :
             steps.multiplicityFilter("%sIndices%s"%_photon, nMin = 1, nMax = 1),
             
             steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
-            steps.variableGreaterFilter(250.0,"%sSumEt%s"%_jet, suffix = "GeV"),
+            steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
             
             steps.passFilter("purityPlots1"),
             steps.photonPurityPlots("Photon", _jet, _photon),
@@ -188,8 +188,8 @@ class photonLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [                                                
-           #specify(name = "Run2010B_MJ_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-           #specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_MJ_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_J_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
@@ -201,6 +201,8 @@ class photonLook(analysis.analysis) :
             specify(name = "Run2010A_JMT_skim_skim",       color = r.kBlack),
             specify(name = "Run2010A_JM_skim_skim",        color = r.kBlack),
             specify(name = "Run2010B_J_skim_skim",         color = r.kBlack),
+            specify(name = "Run2010B_J_skim2_skim",        color = r.kBlack),
+            specify(name = "Run2010B_MJ_skim_skim",        color = r.kBlack),
             ]
         qcd_py6 = [                                                 
           ##specify(name = "v12_qcd_py6_pt30",          nFilesMax = -1, color = r.kBlue    ),
@@ -337,7 +339,7 @@ class photonLook(analysis.analysis) :
         if "madgraph" in tag : mg (org, smSources, skimString)
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20},
-                         sources = ["Run2010B_J_skim_skim","Run2010A_JM_skim_skim","Run2010A_JMT_skim_skim"])
+                         sources = ["Run2010B_MJ_skim_skim","Run2010B_J_skim_skim","Run2010B_J_skim2_skim","Run2010A_JM_skim_skim","Run2010A_JMT_skim_skim"])
         
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
@@ -356,15 +358,15 @@ class photonLook(analysis.analysis) :
                                  samplesForRatios = ("2010 Data","standard_model"),
                                  sampleLabelsForRatios = ("data","s.m."),
                                  blackList = ["deltaRGenReco",
-                                              "directgenPt",
-                                              "directrecoPt",
-                                              "directmht",
-                                              "fragmentationgenPt",
-                                              "fragmentationrecoPt",
-                                              "fragmentationmht",
-                                              "othergenPt",
-                                              "otherrecoPt",
-                                              "othermht",
+                                              "photonMothergenPt",
+                                              "photonMotherrecoPt",
+                                              "photonMothermht",
+                                              "quarkMothergenPt",
+                                              "quarkMotherrecoPt",
+                                              "quarkMothermht",
+                                              "otherMothergenPt",
+                                              "otherMotherrecoPt",
+                                              "otherMothermht",
                                               ]
                                  
                                  )
@@ -387,9 +389,9 @@ class photonLook(analysis.analysis) :
             #variables = ["genPt","recoPt","mht"]
             for variable in variables :
                 sum = None
-                categories = ["direct","fragmentation","other"]
-                colors = {"direct":r.kBlack, "fragmentation":r.kBlue, "other":r.kMagenta}
-                labels = {"direct":"mother is photon", "fragmentation":"mother is quark", "other":"mother is other"}
+                categories = ["photonMother","quarkMother","otherMother"]
+                colors = {"photonMother":r.kBlack, "quarkMother":r.kBlue, "otherMother":r.kMagenta}
+                labels = {"photonMother":"mother is photon", "quarkMother":"mother is quark", "otherMother":"mother is other"}
                 histos = {}
                 reBinFactor = 10
                 for category in categories :
