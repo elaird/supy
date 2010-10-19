@@ -53,9 +53,9 @@ class hadronicLook(analysis.analysis) :
                                    electronDR = 0.5),
                  calculables.jetIndices( _jet, _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
                  calculables.jetIndices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
-                 calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 0.15),
+                 calculables.muonIndices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
                  calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
-                 calculables.photonIndicesPat(  ptMin = 20, flagName = "photonIDLooseFromTwikiPat"),
+                 calculables.photonIndicesPat(  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
                  calculables.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
                  calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
@@ -83,7 +83,7 @@ class hadronicLook(analysis.analysis) :
             steps.preIdJetPtSelector(_jet,100.0,0),
             steps.preIdJetPtSelector(_jet,100.0,1),
             steps.jetEtaSelector(_jet,2.5,0),
-            steps.hltFilter("HLT_HT100U"),
+            steps.lowestUnPrescaledTrigger(),
             steps.vertexRequirementFilter(),
             steps.techBitFilter([0],True),
             steps.physicsDeclared(),
@@ -111,7 +111,7 @@ class hadronicLook(analysis.analysis) :
             steps.multiplicityFilter("%sIndicesOther%s"%_muon, nMax = 0),
             steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_photon, nMax = 0),
-
+            
             steps.histogrammer("%sIndicesUnmatched%s"%_electron,10,-0.5,9.5,title="; N electrons unmatched;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndicesUnmatched%s"%_electron, nMax = 0),
             steps.histogrammer("%sIndicesUnmatched%s"%_photon,10,-0.5,9.5,title="; N photons unmatched;events / bin", funcString = "lambda x: len(x)"),
@@ -143,7 +143,7 @@ class hadronicLook(analysis.analysis) :
             ###steps.alphaHistogrammer(_jet),
             
             #signal selection
-            steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
+            #steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
             steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - PFMET)/(MHT+HT);events / bin"),
             steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
@@ -179,12 +179,14 @@ class hadronicLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [                                                
+            specify(name = "Run2010B_MJ_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_J_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-           #specify(name = "2010_data_skim_calo",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-           #specify(name = "2010_data_skim_pf",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-           #specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+          ##specify(name = "2010_data_skim_calo",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+          ##specify(name = "2010_data_skim_pf",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+          ##specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             ]                                                       
         qcd_py6 = [                                                 
           ##specify(name = "v12_qcd_py6_pt30",          nFilesMax = -1, color = r.kBlue    ),
@@ -303,7 +305,7 @@ class hadronicLook(analysis.analysis) :
         if "madgraph" in tag : mg (org, smSources)
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20},
-                         sources = ["Run2010B_J_skim","Run2010A_JM_skim","Run2010A_JMT_skim"])
+                         sources = ["Run2010B_MJ_skim","Run2010B_J_skim","Run2010B_J_skim2","Run2010A_JM_skim","Run2010A_JMT_skim"])
         
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
@@ -327,8 +329,10 @@ class hadronicLook(analysis.analysis) :
             #plot
             pl = plotter.plotter(org,
                                  psFileName = self.psFileName(tag),
-                                 samplesForRatios=("2010 Data","standard_model"),
-                                 sampleLabelsForRatios=("data","s.m."),
+                                 samplesForRatios = ("2010 Data","standard_model"),
+                                 sampleLabelsForRatios = ("data","s.m."),
+                                 #whiteList = ["xcak5JetAlphaTPat","xcak5JetAlphaTZoomPat"],
+                                 #compactOutput = True
                                  )
             pl.plotAll()
 
