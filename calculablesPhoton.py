@@ -47,7 +47,7 @@ class photonID(wrappedChain.calculable) :
                     "HadronicOverEm", "TrkSumPtHollowConeDR04", "SigmaIetaIeta","HasPixelSeed"] :
             setattr(self,var, ("%s"+var+"%s")%self.cs)
 
-        levels = ["EmFromTwiki","LooseFromTwiki","TightFromTwiki","AnalysisNote_2010_268"]
+        levels = ["EmFromTwiki","LooseFromTwiki","TightFromTwiki","AnalysisNote"]
         jei  = [ (4.2,  0.006 ) for l in levels ]; jei[3]  = (4.2, 0.003)
         tbhi = [ (2.2,  0.0025) for l in levels ]; tbhi[3] = (2.2, 0.001)
         hoe  = [ (0.05, 0.000 ) for l in levels ]
@@ -112,7 +112,7 @@ class photonIDTightFromTwiki(photonID) :
     def __init__(self, collection = None) :
         super(photonIDTightFromTwiki,self).__init__(collection,"TightFromTwiki")
 ####################################
-class photonIDAnalysisNote_2010_268(photonID) :
+class photonIDAnalysisNote(photonID) :
     def __init__(self, collection = None) :
-        super(photonIDAnalysisNote_2010_268,self).__init__(collection,"AnalysisNote_2010_268")
+        super(photonIDAnalysisNote,self).__init__(collection,"AnalysisNote")
 ####################################
