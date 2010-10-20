@@ -87,6 +87,13 @@ class jetPrinter(analysisStep) :
             print outString
         print
 #####################################
+class vertexPrinter(analysisStep) :
+    def uponAcceptance(self, eventVars) :
+        for i in range(eventVars["vertexNdof"].size()) :
+            good = "*" if i in eventVars["vertexIndices"] else "-"
+            print "%s vertex %d: sumPt %g GeV"%(good,i,eventVars["vertexSumPt"].at(i))
+        print
+#####################################
 class htMhtPrinter(analysisStep) :
 
     def __init__(self, cs, etRatherThanPt = False ) :
