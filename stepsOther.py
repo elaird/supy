@@ -375,12 +375,13 @@ class displayer(analysisStep) :
     def __init__(self,jets = ("",""), met = "", muons = "", electrons = "", photons = "",
                  recHits = "", recHitPtThreshold = -1.0, scale = 200.0,
                  etRatherThanPt = False, doGenParticles = False, doEtaPhiPlot = True,
-                 hotTpThreshold = -1.0) :
+                 hotTpThreshold = -1.0, deltaPhiStarExtraName = "") :
 
         self.moreName = "(see below)"
 
         for item in ["scale","jets","met","muons","electrons","photons",
-                     "recHits","recHitPtThreshold","doGenParticles", "doEtaPhiPlot","hotTpThreshold"] :
+                     "recHits","recHitPtThreshold","doGenParticles",
+                     "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName"] :
             setattr(self,item,eval(item))
 
         self.genJets = self.jets
@@ -724,7 +725,7 @@ class displayer(analysisStep) :
             self.drawGenParticles(eventVars,r.kOrange, lineWidth = 1, arrowSize = -1.0, statusList = [1], pdgIdList = [22],
                                   motherList = [22], label = "status 1 photon w/photon as mother", circleRadius = 0.15)
         else :
-            d = eventVars["%sDeltaPhiStar%s"%self.jets]
+            d = eventVars["%sDeltaPhiStar%s%s"%(self.jets[0],self.jets[1],self.deltaPhiStarExtraName)]
             index = d["DeltaPhiStarJetIndex"]
             title = "#Delta#phi * = %6.4f"%d["DeltaPhiStar"]
             title+= "#semicolon index = %d"%index
@@ -976,10 +977,10 @@ class duplicateEventCheck(analysisStep) :
         runLs.add(event)
 #####################################
 class deadEcalFilter(analysisStep) :
-    def __init__(self, jets = None, dR = None, dPhiStarCut = None, nXtalThreshold = None) :
+    def __init__(self, jets = None, extraName = "", dR = None, dPhiStarCut = None, nXtalThreshold = None) :
         for item in ["jets","dR","dPhiStarCut","nXtalThreshold"] :
             setattr(self,item,eval(item))
-        self.dps = "%sDeltaPhiStar%s"%self.jets
+        self.dps = "%sDeltaPhiStar%s%s"%(self.jets[0],self.jets[1],extraName)
         self.badJet = r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0,0.0,0.0,0.0)
         self.moreName = "%s%s; dR>%5.3f when deltaPhiStar<%5.3f and nXtal>%d"%(self.jets[0], self.jets[1], self.dR, self.dPhiStarCut, self.nXtalThreshold)
         
