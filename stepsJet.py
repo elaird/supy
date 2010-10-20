@@ -202,12 +202,12 @@ class singleJetHistogrammer(analysisStep) :
 #####################################
 class alphaHistogrammer(analysisStep) :
 
-    def __init__(self,cs,etRatherThanPt) :
+    def __init__(self, cs = None, deltaPhiStarExtraName = "", etRatherThanPt = None) :
         self.cs = cs
-        self.etRatherThanPt = etRatherThanPt
-        self.letter = "E" if self.etRatherThanPt else "p"
-        self.deltaPseudoName = "%sDeltaPseudoJetPt%s" % self.cs if not self.etRatherThanPt else "%sDeltaPseudoJetEt%s" % self.cs
-        self.htName = "%sSumPt%s" % self.cs if not self.etRatherThanPt else "%sSumEt%s" % self.cs
+        self.deltaPhiStar = "%sDeltaPhiStar%s%s"%(self.cs[0], self.cs[1], deltaPhiStarExtraName)
+        self.letter = "E" if etRatherThanPt else "p"
+        self.deltaPseudoName = "%sDeltaPseudoJet%st%s" % (self.cs[0], self.letter, self.cs[1])
+        self.htName = "%sSum%st%s" % (self.cs[0], self.letter, self.cs[1])
         self.moreName = "%s%s"%self.cs
         
     def uponAcceptance (self,eventVars) :
@@ -217,7 +217,7 @@ class alphaHistogrammer(analysisStep) :
         ht  = eventVars[self.htName]
         deltaHt = eventVars[self.deltaPseudoName]
         alphaT = eventVars["%sAlphaT%s"%self.cs]
-        deltaPhiStar = eventVars["%sDeltaPhiStar%s"%self.cs]["DeltaPhiStar"]
+        deltaPhiStar = eventVars[self.deltaPhiStar]["DeltaPhiStar"]
 
         #if diJetAlpha :
         #    book.fill( eventVars["%sDiJetAlpha%s"%self.cs], "%sdijet_alpha%s"%self.cs, 80,0.0,2.0,
@@ -256,8 +256,10 @@ class alphaHistogrammer(analysisStep) :
 #####################################
 class alphaMetHistogrammer(analysisStep) :
 
-    def __init__(self,cs,etRatherThanPt,metName) :
+    def __init__(self, cs = None, deltaPhiStarExtraName = "", etRatherThanPt = None, metName = None) :
         self.cs = cs
+
+        self.deltaPhiStar = "%sDeltaPhiStar%s%s"%(self.cs[0], self.cs[1], deltaPhiStarExtraName)
         self.etRatherThanPt = etRatherThanPt
         self.letter = "E" if self.etRatherThanPt else "p"
         self.deltaPseudoName = "%sDeltaPseudoJetPt%s" % self.cs if not self.etRatherThanPt else "%sDeltaPseudoJetEt%s" % self.cs
@@ -274,7 +276,7 @@ class alphaMetHistogrammer(analysisStep) :
         deltaHt = eventVars[self.deltaPseudoName]
         alphaT = eventVars["%sAlphaT%s"%self.cs]
         alphaTMet = eventVars["%sAlphaTMet%s"%self.cs]
-        deltaPhiStar = eventVars["%sDeltaPhiStar%s"%self.cs]["DeltaPhiStar"]
+        deltaPhiStar = eventVars[self.deltaPhiStar]["DeltaPhiStar"]
         
         if not alphaT : return
 

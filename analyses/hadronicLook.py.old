@@ -3,6 +3,9 @@
 import os,analysis,steps,calculables,samples,organizer,plotter
 import ROOT as r
 
+lowPtThreshold = 30.0
+lowPtName = "lowPt"
+        
 class hadronicLook(analysis.analysis) :
     def baseOutputDirectory(self) :
         return "/vols/cms02/%s/tmp/"%os.environ["USER"]
@@ -35,9 +38,6 @@ class hadronicLook(analysis.analysis) :
         _met = params["objects"]["met"]
         _correctForMuons = not params["objects"]["muonsInJets"]
 
-        lowPtThreshold = 30.0
-        lowPtName = "lowPt"
-        
         return calculables.zeroArgs() +\
                calculables.fromCollections("calculablesJet",[_jet]) +\
                calculables.fromCollections("calculablesMuon",[_muon]) +\
@@ -59,8 +59,8 @@ class hadronicLook(analysis.analysis) :
                  calculables.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
                  calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
-                 + [ calculables.jetSumP4(_jet, mcScaleFactor = 1.0),
-                     calculables.deltaPhiStar(_jet, ptMin = lowPtThreshold, extraName = lowPtName),
+                 + [ calculables.jetSumP4(_jet),
+                     calculables.deltaPhiStar(_jet, jetExtraName = lowPtName),
                      calculables.deltaPseudoJet(_jet, _etRatherThanPt),
                      calculables.alphaT(_jet, _etRatherThanPt),
                      calculables.alphaTMet(_jet, _etRatherThanPt, _met),
@@ -128,8 +128,8 @@ class hadronicLook(analysis.analysis) :
             steps.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             steps.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
             steps.passFilter("kinematicPlots1"), 
-            steps.alphaHistogrammer(_jet, _etRatherThanPt),
-            steps.alphaMetHistogrammer(_jet, _etRatherThanPt, _met),
+            steps.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = lowPtName, etRatherThanPt = _etRatherThanPt),
+            steps.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = lowPtName, etRatherThanPt = _etRatherThanPt, metName = _met),
             
             ###extrapolation region
             ##steps.variableGreaterFilter(0.50,"%sAlphaT%s"%_jet),
@@ -147,7 +147,7 @@ class hadronicLook(analysis.analysis) :
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
             steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - PFMET)/(MHT+HT);events / bin"),
             steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
-            steps.deadEcalFilter(jets = _jet, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
+            steps.deadEcalFilter(jets = _jet, extraName = lowPtName, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
             ##steps.variableGreaterFilter(0.53,"%sAlphaTMet%s"%_jet),
             
             #steps.skimmer(),
@@ -255,7 +255,7 @@ class hadronicLook(analysis.analysis) :
         if params["mcSoup"]=="mg":
             outList+=qcd_mg
             outList+=g_jets_mg
-
+        
         outList+=data
         outList+=ttbar_mg
         outList+=ewk
