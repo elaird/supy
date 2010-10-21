@@ -82,42 +82,42 @@ class sync(analysis.analysis) :
             steps.progressPrinter(),
             steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
 
-            steps.jetPtSelector(_jet,100.0,0),
-            steps.jetPtSelector(_jet,100.0,1),
-            steps.jetEtaSelector(_jet,2.5,0),
-            steps.lowestUnPrescaledTrigger(),
+            steps.hbheNoiseFilter(),
             steps.vertexRequirementFilter(),
             steps.techBitFilter([0],True),
             steps.physicsDeclared(),
             steps.monsterEventFilter(),
-            steps.hbheNoiseFilter(),
+            steps.jetEtaSelector(_jet,2.5,0),
+            steps.jetPtSelector(_jet,100.0,0),
             
             steps.hltPrescaleHistogrammer(["HLT_Jet50U","HLT_Jet70U","HLT_Jet100U","HLT_HT100U","HLT_HT120U","HLT_HT140U"]),
+            steps.vetoCounts(params["objects"]),
             #steps.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin",  funcString="lambda x:x.Et()"),
             ] \
-            + steps.multiplicityPlotFilter("%sIndices%s"%_jet, nMin=params["nJetsMinMax"][0], nMax=params["nJetsMinMax"][1], xlabel="number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts"%_jet) \
-            + steps.multiplicityPlotFilter("%sIndicesOther%s"%_jet,          nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID or #eta"%_jet) \
             + steps.multiplicityPlotFilter("%sIndices%s"%_electron,          nMax = 0, xlabel = "N electrons") \
             + steps.multiplicityPlotFilter("%sIndices%s"%_muon,              nMax = 0, xlabel = "N muons") \
-            + steps.multiplicityPlotFilter("%sIndicesOther%s"%_muon,         nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID of #eta"%_muon) \
             + steps.multiplicityPlotFilter("%sIndices%s"%_photon,            nMax = 0, xlabel = "N photons") \
+            + steps.multiplicityPlotFilter("%sIndicesOther%s"%_jet,          nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID or #eta"%_jet) \
+            + steps.multiplicityPlotFilter("%sIndicesOther%s"%_muon,         nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID of #eta"%_muon) \
             + steps.multiplicityPlotFilter("%sIndicesUnmatched%s"%_electron, nMax = 0, xlabel = "N electrons unmatched") \
             + steps.multiplicityPlotFilter("%sIndicesUnmatched%s"%_photon,   nMax = 0, xlabel = "N photons unmatched") \
             + [
-            steps.uniquelyMatchedNonisoMuons(_jet),
+            steps.jetPtSelector(_jet,100.0,1),
+            #steps.uniquelyMatchedNonisoMuons(_jet),
+            #+ steps.multiplicityPlotFilter("%sIndices%s"%_jet, nMin=params["nJetsMinMax"][0], nMax=params["nJetsMinMax"][1], xlabel="number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts"%_jet) \
             
             steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
             steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
             
             #many plots
-            steps.passFilter("singleJetPlots1"),
-            steps.singleJetHistogrammer(_jet),
-            steps.passFilter("jetSumPlots1"), 
-            steps.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
-            steps.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
-            steps.passFilter("kinematicPlots1"), 
-            steps.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = lowPtName, etRatherThanPt = _etRatherThanPt),
-            steps.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = lowPtName, etRatherThanPt = _etRatherThanPt, metName = _met),
+            #steps.passFilter("singleJetPlots1"),
+            #steps.singleJetHistogrammer(_jet),
+            #steps.passFilter("jetSumPlots1"), 
+            #steps.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
+            #steps.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
+            #steps.passFilter("kinematicPlots1"), 
+            #steps.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = lowPtName, etRatherThanPt = _etRatherThanPt),
+            #steps.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = lowPtName, etRatherThanPt = _etRatherThanPt, metName = _met),
             
             ###extrapolation region
             ##steps.variableGreaterFilter(0.50,"%sAlphaT%s"%_jet),
@@ -132,11 +132,11 @@ class sync(analysis.analysis) :
             
             #signal selection
             #steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
-            steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
-
-            steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - %s)/(MHT+HT);events / bin"%_met),
-            steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
-            steps.deadEcalFilter(jets = _jet, extraName = lowPtName, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
+            #steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
+            #
+            #steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - %s)/(MHT+HT);events / bin"%_met),
+            #steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
+            #steps.deadEcalFilter(jets = _jet, extraName = lowPtName, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
 
             ##steps.variableGreaterFilter(0.53,"%sAlphaTMet%s"%_jet),
             
@@ -169,10 +169,10 @@ class sync(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [                                                
-            specify(name = "Run2010B_MJ_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_J_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            #specify(name = "Run2010B_MJ_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            #specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            #specify(name = "Run2010B_J_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            #specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "2010_data_calo_skim",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "2010_data_pf_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
@@ -234,22 +234,22 @@ class sync(analysis.analysis) :
             ]                                                   
 
         outList = []
-        if params["mcSoup"]=="py6" :
-            outList+=qcd_py6
-            outList+=g_jets_py6
-            
-        if params["mcSoup"]=="py8" :
-            outList+=qcd_py8
-            outList+=g_jets_py6#no py8 available
-            
-        if params["mcSoup"]=="mg":
-            outList+=qcd_mg
-            outList+=g_jets_mg
+        #if params["mcSoup"]=="py6" :
+        #    outList+=qcd_py6
+        #    outList+=g_jets_py6
+        #    
+        #if params["mcSoup"]=="py8" :
+        #    outList+=qcd_py8
+        #    outList+=g_jets_py6#no py8 available
+        #    
+        #if params["mcSoup"]=="mg":
+        #    outList+=qcd_mg
+        #    outList+=g_jets_mg
         
         outList+=data
-        outList+=ttbar_mg
-        outList+=ewk
-        outList+=susy
+        #outList+=ttbar_mg
+        #outList+=ewk
+        #outList+=susy
 
         ##uncomment for short tests
         #for i in range(len(outList)):
