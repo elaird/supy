@@ -96,7 +96,7 @@ class photonLook(analysis.analysis) :
             steps.physicsDeclared(),
             steps.monsterEventFilter(),
             steps.hbheNoiseFilter(),
-            steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
+            steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
             steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
 
             steps.photonPtSelector(_photon,100.0,0),
@@ -146,7 +146,7 @@ class photonLook(analysis.analysis) :
             #                   funcString="lambda x:len(x)"),
             #steps.passFilter("singlePhotonPlots3"),
             #steps.singlePhotonHistogrammer(_photon, _jet),
-
+            
             steps.multiplicityFilter("%sIndices%s"%_jet, nMin = 4, nMax = 4),
             steps.passFilter("singlePhotonPlots4"),
             steps.singlePhotonHistogrammer(_photon, _jet),
@@ -302,8 +302,8 @@ class photonLook(analysis.analysis) :
         outList+=g_jets_mg
 
         outList+=data
-        #outList+=ewk
-        #outList+=ttbar_mg
+        outList+=ewk
+        outList+=ttbar_mg
 
         #outList+=susy
 
