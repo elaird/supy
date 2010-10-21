@@ -47,25 +47,41 @@ class photonID(wrappedChain.calculable) :
                     "HadronicOverEm", "TrkSumPtHollowConeDR04", "SigmaIetaIeta","HasPixelSeed"] :
             setattr(self,var, ("%s"+var+"%s")%self.cs)
 
-        levels = ["EmFromTwiki","LooseFromTwiki","TightFromTwiki","AnalysisNote"]
-        jei  = [ (4.2,  0.006 ) for l in levels ]; jei[3]  = (4.2, 0.003)
-        tbhi = [ (2.2,  0.0025) for l in levels ]; tbhi[3] = (2.2, 0.001)
-        hoe  = [ (0.05, 0.000 ) for l in levels ]
-        hcti = [ None           for l in levels ]; hcti[1] = (3.5, 0.001); hcti[2] = (2.0, 0.001); hcti[3] = (2.0, 0.001)
-        shhBarrel = [ None      for l in levels ]; shhBarrel[2] = (0.013, 0.0)
-        shhEndcap = [ None      for l in levels ]; shhEndcap[2] = (0.030, 0.0)
+        jei = {}; tbhi = {}; hoe = {}; hcti = {}; hctiLower = {}; shhBarrel = {}; shhEndcap = {}; ptVar = {}; etaBE = {}; moreName = {}
+        for l in ["EmFromTwiki","LooseFromTwiki","TightFromTwiki","AnalysisNote","TrkIsoSideBand","TrkIsoRelaxed"] :
+            jei [l]      = (4.2,  0.0060)
+            tbhi[l]      = (2.2,  0.0025)
+            hoe [l]      = (0.05, 0.0000)
+            hcti[l]      = None
+            hctiLower[l] = None
+            shhBarrel[l] = None
+            shhEndcap[l] = None
+            ptVar[l]     = "pt"
+            etaBE[l]     = 1.479 #from CMS PAS EGM-10-005
+            moreName[l]  = "PhotonID twiki, 2010-10-14, %s"%("is"+l.replace("FromTwiki",""))
 
-        self.etaBE = 1.479 #from CMS PAS EGM-10-005
-        for item in ["jei","tbhi","hoe","hcti","shhBarrel","shhEndcap"] :
-            setattr(self,item,eval(item)[levels.index(level)])
+        hcti     ["LooseFromTwiki"] = (3.5, 0.001)
 
-        if levels.index(level)<3 :
-            self.moreName = "twiki.cern.ch/twiki/bin/viewauth/CMS/PhotonID, 2010-10-14"
-            self.photonVariable = "pt"
-        else :
-            self.moreName = "from CMS AN 10-268"
-            self.photonVariable = "Et"            
-        
+        hcti     ["TightFromTwiki"] = (2.0, 0.001)
+        shhBarrel["TightFromTwiki"] = (0.013, 0.0)
+        shhEndcap["TightFromTwiki"] = (0.030, 0.0)
+
+        jei      ["AnalysisNote"]   = (4.2, 0.003)
+        tbhi     ["AnalysisNote"]   = (2.2, 0.001)
+        hcti     ["AnalysisNote"]   = (2.0, 0.001)
+        ptVar    ["AnalysisNote"]   = "Et"
+        moreName ["AnalysisNote"]   = "from CMS AN 10-268"
+
+        hcti     ["TrkIsoRelaxed"]  = (10.0, 0.001)
+        moreName ["TrkIsoRelaxed"]  = "relaxed trkIso"
+
+        hcti     ["TrkIsoSideBand"] = (10.0, 0.001)
+        hctiLower["TrkIsoSideBand"] = ( 2.0, 0.001)
+        moreName ["TrkIsoSideBand"] = "side-band of trkIso"
+
+        for item in ["jei","tbhi","hoe","hcti","hctiLower","shhBarrel","shhEndcap","ptVar","etaBE","moreName"] :
+            setattr(self,item,eval(item)[level])
+
     def update(self,ignored) :
         self.value = map(self.passId, 
                          self.source[self.p4Name],
@@ -78,11 +94,12 @@ class photonID(wrappedChain.calculable) :
                          )
 
     def passId(self, p4, jei, hi, hoe, hcti, shh, hasPixelSeed) :
-        pt = getattr(p4,self.photonVariable)()
+        pt = getattr(p4,self.ptVar)()
         if jei       > (self.jei [0] + pt*self.jei [1]) : return False
         if hi        > (self.tbhi[0] + pt*self.tbhi[1]) : return False
         if hoe       > (self.hoe [0] + pt*self.hoe [1]) : return False
-        if self.hcti!=None and hcti > (self.hcti[0] + pt*self.hcti[1]) : return False
+        if self.hcti!=None      and hcti > (self.hcti[0]      + pt*self.hcti[1]     ) : return False
+        if self.hctiLower!=None and hcti < (self.hctiLower[0] + pt*self.hctiLower[1]) : return False
         
         shhVar = self.shhBarrel if abs(p4.eta())<self.etaBE else self.shhEndcap
         if shhVar!=None and shh  > (shhVar[0] + pt*shhVar[1]) : return False
@@ -111,6 +128,14 @@ class photonIDLooseFromTwiki(photonID) :
 class photonIDTightFromTwiki(photonID) :
     def __init__(self, collection = None) :
         super(photonIDTightFromTwiki,self).__init__(collection,"TightFromTwiki")
+####################################
+class photonIDTrkIsoSideBand(photonID) :
+    def __init__(self, collection = None) :
+        super(photonIDTrkIsoSideBand,self).__init__(collection,"TrkIsoSideBand")
+####################################
+class photonIDTrkIsoRelaxed(photonID) :
+    def __init__(self, collection = None) :
+        super(photonIDTrkIsoRelaxed,self).__init__(collection,"TrkIsoRelaxed")
 ####################################
 class photonIDAnalysisNote(photonID) :
     def __init__(self, collection = None) :
