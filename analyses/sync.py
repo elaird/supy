@@ -169,10 +169,10 @@ class sync(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [                                                
-            #specify(name = "Run2010B_MJ_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            #specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            #specify(name = "Run2010B_J_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            #specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_MJ_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_J_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "2010_data_calo_skim",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "2010_data_pf_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
@@ -304,14 +304,15 @@ class sync(analysis.analysis) :
             
             #organize
             org=organizer.organizer( self.sampleSpecs(tag) )
-            self.mergeSamples(org, tag)
+            org.mergeSamples( targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="Run2010" )
+            #self.mergeSamples(org, tag)
             org.scale()
             
             #plot
             pl = plotter.plotter(org,
                                  psFileName = self.psFileName(tag),
-                                 samplesForRatios = ("2010 Data","standard_model"),
-                                 sampleLabelsForRatios = ("data","s.m."),
+                                 #samplesForRatios = ("2010 Data","standard_model"),
+                                 #sampleLabelsForRatios = ("data","s.m."),
                                  #whiteList = ["xcak5JetAlphaTPat","xcak5JetAlphaTZoomPat"],
                                  #compactOutput = True
                                  )
