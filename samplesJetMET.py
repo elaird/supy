@@ -5,25 +5,22 @@ srm = 'utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/us
 
 #38X SKIMS
 jetmet.add("Run2010B_MJ_skim",
-           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/13_skims/MultiJet.Run2010B-PromptReco-v2.RECO.Burt/")', lumi = 3.467) #/pb
+           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/14_skims/MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Burt/")', lumi = 3.467) #/pb
 jetmet.add("Run2010B_J_skim",
            'utils.fileListFromDisk(location = "/vols/cms02/elaird1/12_skims/Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt/")', lumi = 3.897) #/pb
 jetmet.add("Run2010B_J_skim2",
-           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/13_skims/Jet.Run2010B-PromptReco-v2.RECO.Burt3/")', lumi = 0.5107) #/pb
+           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/14_skims/Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt2/")', lumi = 0.5107) #/pb
 jetmet.add("Run2010A_JM_skim",
            'utils.fileListFromDisk(location = "/vols/cms02/elaird1/12_skims/JetMET.Run2010A-Sep17ReReco_v2.RECO.RAW.Burt/")', lumi = 2.889) #/pb
 jetmet.add("Run2010A_JMT_skim",
            'utils.fileListFromDisk(location = "/vols/cms02/elaird1/12_skims/JetMETTau.Run2010A-Sep17ReReco_v2.RECO.RAW.Henning/")', lumi = 0.172) #/pb
 
-#deprecated; use the above instead
-#jetmet.add("Run2010B_J_skim1",
-#           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/Jet.Run2010B-PromptReco-v2.RECO.Burt/")', lumi = 1.372) #/pb
-#jetmet.add("Run2010B_J_skim2",
-#           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/Jet.Run2010B-PromptReco-v2.RECO.Burt2/")', lumi = 2.246) #/pb
-#jetmet.add("Run2010A_JM_skim",
-#           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/JetMET.Run2010A-Sep17ReReco_v2.RECO.Burt/")', lumi = 2.889) #/pb
-#jetmet.add("Run2010A_JMT_skim",
-#           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/JetMETTau.Run2010A-Sep17ReReco_v2.RECO.Burt/")', lumi = 0.172) #/pb
+##deprecated; use the above instead
+##jetmet.add("Run2010B_MJ_skim",
+##           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/13_skims/MultiJet.Run2010B-PromptReco-v2.RECO.Burt/")', lumi = 3.467) #/pb
+##jetmet.add("Run2010B_J_skim",
+##           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/12_skims/Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt/")', lumi = 3.897) #/pb
+##
 
 #38X ORIGINALS
 jetmet.add("MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Burt",     '%s/bbetchar//ICF/automated/2010_10_18_00_39_32/")'%srm, lumi = 99999.9 )
