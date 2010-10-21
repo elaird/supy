@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os,analysis,steps,calculables,samples,organizer,plotter
+import os,analysis,steps,calculables,samples,organizer,plotter,utils
 import ROOT as r
 
 lowPtThreshold = 30.0
@@ -146,9 +146,11 @@ class hadronicLook(analysis.analysis) :
             #signal selection
             #steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
+
             steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - %s)/(MHT+HT);events / bin"%_met),
             steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
             steps.deadEcalFilter(jets = _jet, extraName = lowPtName, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
+
             ##steps.variableGreaterFilter(0.53,"%sAlphaTMet%s"%_jet),
             
             #steps.skimmer(),
@@ -185,8 +187,8 @@ class hadronicLook(analysis.analysis) :
             specify(name = "Run2010B_J_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-          ##specify(name = "2010_data_skim_calo",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-          ##specify(name = "2010_data_skim_pf",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+          ##specify(name = "2010_data_calo_skim",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+          ##specify(name = "2010_data_pf_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             ]                                                       
         qcd_py6 = [                                                 
@@ -309,23 +311,15 @@ class hadronicLook(analysis.analysis) :
         
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
+            ##for skimming only
+            #org = organizer.organizer( self.sampleSpecs(tag) )
+            #utils.printSkimResults(org)            
+            
             #organize
             org=organizer.organizer( self.sampleSpecs(tag) )
             self.mergeSamples(org, tag)
             org.scale()
-
-            ##other
-            #import deltaPhiLook
-            #numers = ["JetMET_skim","standard_model"]
-            #if "pythia" in tag :   qcdLabel = "qcd_py"
-            #if "madgraph" in tag : qcdLabel = "qcd_mg"
-            #
-            #for numer,denom in zip(numers,[qcdLabel]*len(numers)) :
-            #    d = deltaPhiLook.deltaPhiLooker(org,tag,(numer,denom))
-            #    d.makeSlicePlots()
-            #    if numer==numers[0] :
-            #        d.makeSliceComparisonPlots(qcdLabel)
-
+            
             #plot
             pl = plotter.plotter(org,
                                  psFileName = self.psFileName(tag),
