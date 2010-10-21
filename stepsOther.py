@@ -63,7 +63,7 @@ class orFilter(analysisStep) :
         for var,cut in self.varGreaterCutList:
             if eventVars[var] > cut: return True
         for var,cut in self.varLessCutList:
-            if eventVar[var] < cut: return True
+            if eventVars[var] < cut: return True
         return False
 #####################################
 class skimmer(analysisStep) :
