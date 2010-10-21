@@ -15,8 +15,8 @@ class hadronicLook(analysis.analysis) :
         fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets", "jetPtMin"] 
         #objects["caloAK5_pfMET"] = dict(zip(fields, [("ak5Jet","Pat"), "metP4PF", ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
         objects["caloAK5"] = dict(zip(fields, [("xcak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
-        objects["caloAK7"] = dict(zip(fields, [("xcak7Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
-        objects["jptAK5"]  = dict(zip(fields, [("xcak5JetJPT","Pat"),"metP4TC",     ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo",     True ,        50.0]))
+        #objects["caloAK7"] = dict(zip(fields, [("xcak7Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
+        #objects["jptAK5"]  = dict(zip(fields, [("xcak5JetJPT","Pat"),"metP4TC",     ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo",     True ,        50.0]))
         objects["pfAK5"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,        50.0]))
 
         return { "objects": objects,
@@ -60,12 +60,13 @@ class hadronicLook(analysis.analysis) :
                  calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
                  + [ calculables.jetSumP4(_jet),
-                     calculables.deltaPhiStar(_jet, jetExtraName = lowPtName),
+                     calculables.jetSumP4(_jet, extraName = lowPtName),
+                     calculables.deltaPhiStar(_jet, extraName = lowPtName),
                      calculables.deltaPseudoJet(_jet, _etRatherThanPt),
                      calculables.alphaT(_jet, _etRatherThanPt),
                      calculables.alphaTMet(_jet, _etRatherThanPt, _met),
-                    #calculables.mhtMinusMetOverMeff(_jet, _met, _etRatherThanPt),
-                     calculables.mhtMinusMetOverMeff(_jet, "metP4PF", _etRatherThanPt),
+                     calculables.mhtMinusMetOverMeff(_jet, _met, _etRatherThanPt),
+                    #calculables.mhtMinusMetOverMeff(_jet, "metP4PF", _etRatherThanPt),
                      ]
 
     def listOfSteps(self,params) :
@@ -79,9 +80,9 @@ class hadronicLook(analysis.analysis) :
         outList=[
             steps.progressPrinter(),
             steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
-            
-            steps.preIdJetPtSelector(_jet,100.0,0),
-            steps.preIdJetPtSelector(_jet,100.0,1),
+
+            steps.jetPtSelector(_jet,100.0,0),
+            steps.jetPtSelector(_jet,100.0,1),
             steps.jetEtaSelector(_jet,2.5,0),
             steps.lowestUnPrescaledTrigger(),
             steps.vertexRequirementFilter(),
@@ -145,7 +146,7 @@ class hadronicLook(analysis.analysis) :
             #signal selection
             #steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
-            steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - PFMET)/(MHT+HT);events / bin"),
+            steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - %s)/(MHT+HT);events / bin"%_met),
             steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
             steps.deadEcalFilter(jets = _jet, extraName = lowPtName, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
             ##steps.variableGreaterFilter(0.53,"%sAlphaTMet%s"%_jet),
@@ -264,7 +265,6 @@ class hadronicLook(analysis.analysis) :
         ##uncomment for short tests
         #for i in range(len(outList)):
         #    o = outList[i]
-        #    #if "2010" in o.name: continue
         #    outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
         
         return outList
