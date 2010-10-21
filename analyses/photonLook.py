@@ -3,6 +3,9 @@
 import os,analysis,steps,calculables,samples,organizer,plotter,utils
 import ROOT as r
 
+lowPtThreshold = 30.0
+lowPtName = "lowPt"
+
 class photonLook(analysis.analysis) :
     def baseOutputDirectory(self) :
         return "/vols/cms02/%s/tmp/"%os.environ["USER"]
@@ -15,10 +18,12 @@ class photonLook(analysis.analysis) :
 
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
-                 "mcSoup" :           dict([ ("pythia6","py6"), ("madgraph","mg"), ("pythia8","py8") ] [1:2] ),
+                 #"mcSoup" :           dict([ ("pythia6","py6"), ("madgraph","mg"), ("pythia8","py8") ] [1:2] ),
                  "photonId" :         dict([ ("photonLoose","photonIDLooseFromTwikiPat"),
                                              ("photonTight","photonIDTightFromTwikiPat"),
-                                             ("photonAN",   "photonIDAnalysisNote")]                   [0:2] ),
+                                             ("photonTrkIsoRelaxed","photonIDTrkIsoRelaxedPat"),
+                                             ("photonTrkIsoSideband","photonIDTrkIsoSideBandPat"),
+                                             ("photonAN",   "photonIDAnalysisNotePat")]                [1:2] ),
                  "useSkims" :         dict([ ("fullSample",False), ("skimSample",True)]                [1:2] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  "etRatherThanPt" : [True,False]        [0],
@@ -34,9 +39,6 @@ class photonLook(analysis.analysis) :
         _met = params["objects"]["met"]
         _correctForMuons = not params["objects"]["muonsInJets"]
 
-        lowPtThreshold = 30.0
-        lowPtName = "lowPt"
-        
         return calculables.zeroArgs() +\
                calculables.fromCollections("calculablesJet",[_jet]) +\
                calculables.fromCollections("calculablesMuon",[_muon]) +\
@@ -51,7 +53,7 @@ class photonLook(analysis.analysis) :
                                     electron = _electron, electronDR = 0.5
                                     ),
                  calculables.jetIndices( _jet, _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
-                 calculables.jetIndices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
+                 #calculables.jetIndices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
                  calculables.muonIndices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
                  calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
                  calculables.photonIndicesPat(  ptMin = 25, flagName = params["photonId"]),
@@ -60,13 +62,17 @@ class photonLook(analysis.analysis) :
                  #calculables.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
                  #calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
-                 + [ calculables.jetSumP4(_jet, mcScaleFactor = 1.0),
-                     calculables.deltaPhiStar(_jet, ptMin = lowPtThreshold, extraName = lowPtName),                     
+                 + [ calculables.jetSumP4(_jet),
+                     calculables.jetSumP4PlusPhotons(_jet, extraName = "", photon = _photon, photonIndices = [0]),
+                     calculables.deltaPhiStar(_jet, jetExtraName = "", sumP4ExtraName = "PlusPhotons"),
+                     #calculables.deltaPhiStar(_jet, jetExtraName = lowPtName, sumP4ExtraName = ""),
                      calculables.deltaPseudoJet(_jet, _etRatherThanPt),
                      calculables.alphaT(_jet, _etRatherThanPt),
                      calculables.alphaTMet(_jet, _etRatherThanPt, _met),
                      calculables.metPlusPhoton(met = "metP4PF", photons = _photon, photonIndex = 0),
                      calculables.mhtMinusMetOverMeff(_jet, "metPlusPhoton", _etRatherThanPt),
+                     calculables.vertexID(),
+                     calculables.vertexIndices(sumPtMin = -1.0),
                      ]
 
     def listOfSteps(self,params) :
@@ -90,8 +96,10 @@ class photonLook(analysis.analysis) :
             steps.physicsDeclared(),
             steps.monsterEventFilter(),
             steps.hbheNoiseFilter(),
+            steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
+            steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
 
-            steps.photonPtSelector(_photon,120.0,0),
+            steps.photonPtSelector(_photon,100.0,0),
             steps.photonEtaSelector(_photon,1.45,0),
             
             steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
@@ -108,11 +116,8 @@ class photonLook(analysis.analysis) :
             steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             steps.multiplicityFilter("%sIndices%s"%_photon, nMin = 1, nMax = 1),
             
-            steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
-            steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
-            
-            steps.passFilter("purityPlots1"),
-            steps.photonPurityPlots("Photon", _jet, _photon),
+            #steps.passFilter("purityPlots1"),
+            #steps.photonPurityPlots("Photon", _jet, _photon),
             
             #many plots
             steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
@@ -124,42 +129,35 @@ class photonLook(analysis.analysis) :
             steps.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
             steps.histogrammer("metP4PF",100,0.0,500.0,title=";metP4PF (GeV);events / bin", funcString = "lambda x: x.pt()"),
             steps.passFilter("kinematicPlots"),
-            steps.alphaHistogrammer(_jet, _etRatherThanPt),
+            steps.alphaHistogrammer(_jet, deltaPhiStarExtraName = "%s%s"%("","PlusPhotons"), etRatherThanPt = _etRatherThanPt),
             
-            steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
+            steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
             
             steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
                                funcString="lambda x:len(x)"),
             steps.passFilter("singlePhotonPlots2"),
             steps.singlePhotonHistogrammer(_photon, _jet),
             
-            steps.passFilter("purityPlots2"),
-            steps.photonPurityPlots("Photon", _jet, _photon),
-            
-            steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
-            
-            steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
-                               funcString="lambda x:len(x)"),
-            steps.passFilter("singlePhotonPlots3"),
-            steps.singlePhotonHistogrammer(_photon, _jet),
-            
             steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - [PFMET+photon])/(MHT+HT);events / bin"),
-            steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
-            steps.deadEcalFilter(jets = _jet, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
-            
-            steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
-                               funcString="lambda x:len(x)"),
+            #steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
+            #steps.deadEcalFilter(jets = _jet, extraName = lowPtName, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
+            #
+            #steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
+            #                   funcString="lambda x:len(x)"),
+            #steps.passFilter("singlePhotonPlots3"),
+            #steps.singlePhotonHistogrammer(_photon, _jet),
+
+            steps.multiplicityFilter("%sIndices%s"%_jet, nMin = 4, nMax = 4),
             steps.passFilter("singlePhotonPlots4"),
             steps.singlePhotonHistogrammer(_photon, _jet),
-            
-            steps.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
-            steps.passFilter("purityPlots3"),
-            steps.photonPurityPlots("Photon", _jet, _photon),
-            
-            #steps.photonPtSelector(_photon, 450, 0),
+
+            #steps.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
+            #steps.passFilter("purityPlots3"),
+            #steps.photonPurityPlots("Photon", _jet, _photon),
             
             #steps.skimmer(),
             #steps.eventPrinter(),
+            #steps.vertexPrinter(),
             #steps.jetPrinter(_jet),
             #steps.htMhtPrinter(_jet),
             #steps.particleP4Printer(_photon),
@@ -176,6 +174,8 @@ class photonLook(analysis.analysis) :
             #                scale = 400.0,#GeV
             #                etRatherThanPt = _etRatherThanPt,
             #                #doGenParticles = True,
+            #                #deltaPhiStarExtraName = lowPtName,
+            #                deltaPhiStarExtraName = "%s%s"%("","PlusPhotons"),                            
             #                ),
             
             ]
@@ -265,33 +265,46 @@ class photonLook(analysis.analysis) :
             ]
         ttbar_mg = [                                                
             specify(name = "tt_tauola_mg_v12",          nFilesMax =  3, color = r.kOrange  ),
-            ]                                                       
+            ] if not params["useSkims"] else [
+            specify(name = "tt_tauola_mg_v12_skim",     nFilesMax = -1, color = r.kOrange  ),
+            ]
         ewk = [                                                     
            #specify(name = "z_inv_mg_v12",              nFilesMax = -1, color = r.kMagenta ),
             specify(name = "z_jets_mg_v12",             nFilesMax = -1, color = r.kYellow-3),
             specify(name = "w_jets_mg_v12",             nFilesMax = -1, color = 28         ),
-            ]                                                       
+            ] if not params["useSkims"] else [
+            specify(name = "z_jets_mg_v12_skim",        nFilesMax = -1, color = r.kYellow-3),
+            specify(name = "w_jets_mg_v12_skim",        nFilesMax = -1, color = 28         ),
+            ]
         susy = [                                                    
             specify(name = "lm0_v12",                   nFilesMax = -1, color = r.kRed     ),
             specify(name = "lm1_v12",                   nFilesMax = -1, color = r.kRed+1   ),
             ]                                                   
 
         outList = []
-        if params["mcSoup"]=="py6" :
-            outList+=qcd_py6
-            outList+=g_jets_py6
-            
-        if params["mcSoup"]=="py8" :
-            outList+=qcd_py8
-            outList+=g_jets_py6#no py8 available
-            
-        if params["mcSoup"]=="mg":
-            outList+=qcd_mg
-            outList+=g_jets_mg
+
+        #if params["mcSoup"]=="py6" :
+        #    outList+=qcd_py6
+        #    outList+=g_jets_py6
+        #    
+        #if params["mcSoup"]=="py8" :
+        #    outList+=qcd_py8
+        #    outList+=g_jets_py6#no py8 available
+        #    
+        #if params["mcSoup"]=="mg":
+        #    outList+=qcd_mg
+        #    outList+=g_jets_mg
+
+
+        outList+=qcd_py6
+        outList+=g_jets_py6
+        outList+=qcd_mg
+        outList+=g_jets_mg
 
         outList+=data
         #outList+=ewk
         #outList+=ttbar_mg
+
         #outList+=susy
 
         ##uncomment for short tests
@@ -333,11 +346,19 @@ class photonLook(analysis.analysis) :
             smSources.append("g_jets_mg_v12")
 
         skimString = "_skim" if "skimSample" in tag else ""
+
         smSources = ["z_inv_mg_v12", "z_jets_mg_v12", "w_jets_mg_v12"]
-        if "pythia6"  in tag : py6(org, smSources, skimString)
-        if "pythia8"  in tag : py8(org, smSources, skimString)
-        if "madgraph" in tag : mg (org, smSources, skimString)
-        org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
+        #if "pythia6"  in tag : py6(org, smSources, skimString)
+        #if "pythia8"  in tag : py8(org, smSources, skimString)
+        #if "madgraph" in tag : mg (org, smSources, skimString)
+        py6(org, smSources, skimString)
+        #py8(org, smSources, skimString)
+        mg (org, smSources, skimString)
+
+        org.mergeSamples(targetSpec = {"name":"MG QCD+G", "color":r.kGreen}, sources = ["qcd_mg_v12","g_jets_mg_v12"])
+        org.mergeSamples(targetSpec = {"name":"PY6 QCD+G", "color":r.kBlue}, sources = ["qcd_py6_v12","g_jets_py6_v12"])
+        org.mergeSamples(targetSpec = {"name":"MG TT+EWK", "color":r.kOrange}, sources = ["z_jets_mg_v12_skim", "w_jets_mg_v12_skim", "tt_tauola_mg_v12_skim"])
+        #org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20},
                          sources = ["Run2010B_MJ_skim_skim","Run2010B_J_skim_skim","Run2010B_J_skim2_skim","Run2010A_JM_skim_skim","Run2010A_JMT_skim_skim"])
         
@@ -355,8 +376,10 @@ class photonLook(analysis.analysis) :
             #plot all
             pl = plotter.plotter(org,
                                  psFileName = self.psFileName(tag),
-                                 samplesForRatios = ("2010 Data","standard_model"),
-                                 sampleLabelsForRatios = ("data","s.m."),
+                                 #samplesForRatios = ("2010 Data","standard_model"),
+                                 #sampleLabelsForRatios = ("data","s.m."),
+                                 samplesForRatios = ("2010 Data","MG QCD+G"),
+                                 sampleLabelsForRatios = ("data","MG"),
                                  blackList = ["deltaRGenReco",
                                               "photonMothergenPt",
                                               "photonMotherrecoPt",
