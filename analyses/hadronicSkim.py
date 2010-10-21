@@ -26,13 +26,10 @@ class hadronicSkim(analysis.analysis) :
                [calculables.jetIndices( jet, 30.0, etaMax = 3.0, flagName = "JetIDloose") for jet in jetAlgoList]
     
     def listOfSamples(self,params) :
+        from samples import specify
         return [
-            #samples.specify(name = "Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt"),
-            #samples.specify(name = "JetMET.Run2010A-Sep17ReReco_v2.RECO.RAW.Burt"),
-            #samples.specify(name = "JetMETTau.Run2010A-Sep17ReReco_v2.RECO.RAW.Henning"),
-            samples.specify(name = "Jet.Run2010B-PromptReco-v2.RECO.Burt3"),
-            samples.specify(name = "MultiJet.Run2010B-PromptReco-v2.RECO.Burt"),
-            
+            specify(name = "MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Burt"),
+            specify(name = "Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt2"),
             ]
 
     def listOfSampleDictionaries(self) :
