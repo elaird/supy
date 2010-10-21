@@ -51,6 +51,10 @@ class multiplicityFilter(analysisStep) :
     def select(self,eventVars) :
         return self.nMin <= len(eventVars[self.var]) <= self.nMax
 #####################################
+def multiplicityPlotFilter(var, nMin=0, nMax=None, xlabel="") :
+    return [ histogrammer(var,10,-0.5,9.5, title=";%s;events / bin"%xlabel, funcString="lambda x:len(x)"),
+             multiplicityFilter(var, nMin = nMin , nMax = nMax) ]
+#####################################
 class orFilter(analysisStep) :
 
     def __init__(self, varGreaterCutList = [], varLessCutList = []) :
