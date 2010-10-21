@@ -161,6 +161,7 @@ mc.add("z_inv_mg_skim_v12", 'utils.fileListFromDisk(location="/vols/cms02/elaird
 #mc.add("z_inv_mg_skim_v12", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/z_inv_mg/")', xs = 50.2 )
 #mc.add("z_jets_mg_skim_v12", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/z_jets_mg/")', xs = 55.4 )
 #mc.add("w_jets_mg_skim_v12", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/w_jets_mg/")', xs = 332.4 )
+mc.add("zg_nunu", '%s/bbetchar/ICF/automated/2010_10_09_21_40_58/")'%srm, xs = 2.68 )
 
 #TEST SKIMS
 
