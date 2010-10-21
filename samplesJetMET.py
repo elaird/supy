@@ -26,17 +26,15 @@ jetmet.add("Run2010A_JMT_skim",
 #           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/JetMETTau.Run2010A-Sep17ReReco_v2.RECO.Burt/")', lumi = 0.172) #/pb
 
 #38X ORIGINALS
+jetmet.add("MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Burt",     '%s/bbetchar//ICF/automated/2010_10_18_00_39_32/")'%srm, lumi = 99999.9 )
+jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt2",         '%s/bbetchar//ICF/automated/2010_10_18_00_34_11/")'%srm, lumi = 99999.9 )
 jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt",          '%s/bbetchar//ICF/automated/2010_10_12_09_56_12/")'%srm, lumi = 99999.9 )
 jetmet.add("JetMET.Run2010A-Sep17ReReco_v2.RECO.RAW.Burt",      '%s/bbetchar//ICF/automated/2010_10_12_10_01_47/")'%srm, lumi = 99999.9 )
 jetmet.add("JetMETTau.Run2010A-Sep17ReReco_v2.RECO.RAW.Henning",'%s/henning//ICF/automated/2010_10_14_11_50_11/")'%srm,  lumi = 99999.9 )
-jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.Burt3",             '%s/bbetchar//ICF/automated/2010_10_18_00_21_23/")'%srm, lumi = 99999.9 )
-jetmet.add("MultiJet.Run2010B-PromptReco-v2.RECO.Burt",         '%s/bbetchar//ICF/automated/2010_10_18_00_30_19/")'%srm, lumi = 99999.9 )
 
 #deprecated; use the above instead
-#jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.Burt",          '%s/bbetchar//ICF/automated/2010_10_05_22_57_38/")'%srm, lumi = 99999.9 )
-#jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.Burt2",         '%s/bbetchar//ICF/automated/2010_10_08_18_56_52/")'%srm, lumi = 99999.9 )
-#jetmet.add("JetMET.Run2010A-Sep17ReReco_v2.RECO.Burt",      '%s/bbetchar//ICF/automated/2010_10_05_23_25_55/", alwaysUseLastAttempt = True)'%srm, lumi = 99999.9 )
-#jetmet.add("JetMETTau.Run2010A-Sep17ReReco_v2.RECO.Burt",   '%s/bbetchar//ICF/automated/2010_10_05_23_30_00/", alwaysUseLastAttempt = True)'%srm, lumi = 99999.9 )
+#jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.Burt3",             '%s/bbetchar//ICF/automated/2010_10_18_00_21_23/")'%srm, lumi = 99999.9 )
+#jetmet.add("MultiJet.Run2010B-PromptReco-v2.RECO.Burt",         '%s/bbetchar//ICF/automated/2010_10_18_00_30_19/")'%srm, lumi = 99999.9 )
 
 #36X SKIM
 jetmet.add("JetMET_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/data2/")', lumi = 2.601 ) #/pb
