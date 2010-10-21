@@ -316,15 +316,14 @@ class jetDeltaX01(wrappedChain.calculable) :
         self.value["eta"] = jet0.eta()-jet1.eta()
 ##############################
 class deltaPhiStar(wrappedChain.calculable) :
-    def name(self) : return "%sDeltaPhiStar%s%s%s"%(self.cs[0], self.cs[1], self.jetExtraName, self.sumP4ExtraName)
+    def name(self) : return "%sDeltaPhiStar%s%s"%(self.cs[0], self.cs[1], self.extraName)
 
-    def __init__(self, collection = None, jetExtraName = "", sumP4ExtraName = "") :
+    def __init__(self, collection = None, extraName = "") :
         self.cs = collection
-        self.jetExtraName = jetExtraName
-        self.sumP4ExtraName = sumP4ExtraName
+        self.extraName = extraName
         self.p4Name = '%sCorrectedP4%s' % self.cs
-        self.indicesName = '%sIndices%s%s' % (self.cs[0], self.cs[1], self.jetExtraName)
-        self.sumP4Name = "%sSumP4%s%s" % (self.cs[0], self.cs[1], self.sumP4ExtraName)
+        self.indicesName = '%sIndices%s%s' % (self.cs[0], self.cs[1], self.extraName)
+        self.sumP4Name = "%sSumP4%s%s" % (self.cs[0], self.cs[1], self.extraName)
         
     def update(self,ignored) :
         self.value = None
