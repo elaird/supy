@@ -314,6 +314,7 @@ class sync(analysis.analysis) :
                                  #samplesForRatios = ("2010 Data","standard_model"),
                                  #sampleLabelsForRatios = ("data","s.m."),
                                  #whiteList = ["xcak5JetAlphaTPat","xcak5JetAlphaTZoomPat"],
+                                 blackList = ["nJobsHisto","lumiHisto"]
                                  #compactOutput = True
                                  )
             pl.plotAll()
