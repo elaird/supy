@@ -997,6 +997,35 @@ class deadEcalFilter(analysisStep) :
                 return False
         return True
 #####################################
+class deadEcalFilterIncludingPhotons(analysisStep) :
+    def __init__(self, jets = None, extraName = "", photons = None, dR = None, dPhiStarCut = None, nXtalThreshold = None) :
+        for item in ["jets","photons","dR","dPhiStarCut","nXtalThreshold"] :
+            setattr(self,item,eval(item))
+        self.dps = "%sDeltaPhiStarIncludingPhotons%s%s"%(self.jets[0],self.jets[1],extraName)
+        self.badThing = r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0,0.0,0.0,0.0)
+        self.moreName = "%s%s; %s%s; dR>%5.3f when deltaPhiStar<%5.3f and nXtal>%d"%(self.jets[0], self.jets[1],
+                                                                                     self.photons[0], self.photons[1],
+                                                                                     self.dR, self.dPhiStarCut, self.nXtalThreshold)
+        
+    def select(self, eventVars) :
+        d = eventVars[self.dps]
+        if d["DeltaPhiStar"]>self.dPhiStarCut :
+            return True
+
+        jetIndex = d["DeltaPhiStarJetIndex"]
+        photonIndex = d["DeltaPhiStarPhotonIndex"]
+        if jetIndex!=None :
+            thing = eventVars["%sCorrectedP4%s"%self.jets].at(jetIndex)
+        elif photonIndex!=None :
+            thing = eventVars["%sP4%s"%self.photons].at(photonIndex)
+
+        self.badThing.SetCoordinates(thing.pt(),thing.eta(),thing.phi(),thing.E())
+        for iRegion,region in enumerate(eventVars["ecalDeadTowerTrigPrimP4"]) :
+            if eventVars["ecalDeadTowerNBadXtals"].at(iRegion)<self.nXtalThreshold : continue
+            if r.Math.VectorUtil.DeltaR(self.badThing,region) < self.dR :
+                return False
+        return True
+#####################################
 class vertexHistogrammer(analysisStep) :
     def uponAcceptance(self,eV) :
         book = self.book(eV)
@@ -1004,13 +1033,14 @@ class vertexHistogrammer(analysisStep) :
         index = eV["vertexIndices"]
         sump3 = eV["vertexSumP3"]
         sumpt = eV["vertexSumPt"]
+        if not len(sumpt) or not len(sump3) : return
+        
+        #coord = reduce(lambda v,u: (v[0]+u[0],v[1]+u[1],v[2]+u[2]), [(sump3[i].x(),sump3[i].y(),sump3[i].z()) for i in index][1:], (0,0,0))
+        #sump3Secondaries = type(sump3[0])(coord[0],coord[1],coord[2])
 
-        coord = reduce(lambda v,u: (v[0]+u[0],v[1]+u[1],v[2]+u[2]), [(sump3[i].x(),sump3[i].y(),sump3[i].z()) for i in index][1:], (0,0,0))
-        sump3Secondaries = type(sump3[0])(coord[0],coord[1],coord[2])
+        book.fill( sumpt[0], "vertex0SumPt", 40, 0, 1200, title = ";primary vertex #Sigma p_{T} (GeV); events / bin")
+        book.fill( sump3[0].rho(), "vertex0MPT%d", 40, 0, 400, title = ";primary vertex MPT (GeV);events / bin")
 
-        book.fill( sumpt[0], "vertex0SumPt", 100, 0, 1200, title = ";primary vertex #Sigma p_{T} (GeV); events / bin")
-        book.fill( sump3[0].rho(), "vertex0MPT%d", 100, 0, 400, title = ";primary vertex MPT (GeV);events / bin")
-
-        book.fill( (sumpt[index[0]], sum(map(sumpt.__getitem__,index[1:]))), "vertexSumPt_0_all", (100,100), (0,0), (1200,400), title = ";primary vertex #Sigma p_{T};secondary vertices #Sigma p_{T};events / bin")
-        book.fill( (sump3[index[0]].rho(), sump3Secondaries.rho()), "vertexMPT_0_all", (100,100), (0,0), (400,200), title = ";primary vertex MPT;secondary verticies MPT;events / bin")
-            
+        book.fill( sum(map(sumpt.__getitem__,index[1:])), "vertexGt0SumPt", 20, 0, 100, title = ";secondary vertices #Sigma p_{T};events / bin")
+        #book.fill( (sumpt[index[0]], sum(map(sumpt.__getitem__,index[1:]))), "vertexSumPt_0_all", (100,100), (0,0), (1200,400), title = ";primary vertex #Sigma p_{T};secondary vertices #Sigma p_{T};events / bin")
+        #book.fill( (sump3[index[0]].rho(), sump3Secondaries.rho()), "vertexMPT_0_all", (100,100), (0,0), (400,200), title = ";primary vertex MPT;secondary verticies MPT;events / bin")
