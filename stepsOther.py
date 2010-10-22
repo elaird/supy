@@ -323,14 +323,10 @@ class touchstuff(analysisStep) :
 class runLsEventFilter(analysisStep) :
 
     def __init__(self, fileName) :
-        l = []
+        self.moreName = "run:ls:event in %s"%fileName
         file = open(fileName)
-        l = [ line.replace("\n","").split(":") for line in file]
+        self.tuples = [ eval("(%s,%s,%s)"%tuple(line.replace("\n","").split(":"))) for line in file]
         file.close()
-
-        self.tuples = []
-        for item in l :
-            self.tuples.append( (int(item[0]),int(item[1]),int(item[2])) )
 
     def select (self,eventVars) :
         return (eventVars["run"], eventVars["lumiSection"], eventVars["event"]) in self.tuples
@@ -578,8 +574,8 @@ class displayer(analysisStep) :
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"MHT (%s%s)"%self.jets,"l")
 
-        mh = -eventVars["%sSumP4%s"%self.jets]
-        self.drawP4(mh,color,lineWidth,arrowSize)
+        sump4 = eventVars["%sSumP4%s"%self.jets]
+        if sump4 : self.drawP4(-sump4,color,lineWidth,arrowSize)
             
     def drawHt (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
@@ -762,14 +758,14 @@ class displayer(analysisStep) :
         alphaTHisto = r.TH2D("alphaTHisto",title,100,0.0,1.0,100,0.0,0.7)
         alphaTMetHisto = alphaTHisto.Clone("alphaTMetHisto")
 
-        mht = eventVars["%sSumP4%s"%self.jets].pt()
+        mht = eventVars["%sSumP4%s"%self.jets].pt() if eventVars["%sSumP4%s"%self.jets] else 0
         met = eventVars[self.met].pt()
         ht  = eventVars["%sSumPt%s"%self.jets]
         deltaHt   = eventVars[self.deltaHtName]
         alphaT    = eventVars["%sAlphaT%s"%self.jets]
         alphaTMet = eventVars["%sAlphaTMet%s"%self.jets]
         
-        alphaTHisto.Fill(mht/ht,deltaHt/ht)
+        if ht : alphaTHisto.Fill(mht/ht,deltaHt/ht)
         alphaTHisto.SetStats(False)
         alphaTHisto.SetMarkerStyle(29)
         alphaTHisto.GetYaxis().SetTitleOffset(1.25)
@@ -777,7 +773,7 @@ class displayer(analysisStep) :
         alphaTHisto.Draw("p")
 
         if showAlphaTMet :
-            alphaTMetHisto.Fill(met/ht,deltaHt/ht)
+            if ht : alphaTMetHisto.Fill(met/ht,deltaHt/ht)
             alphaTMetHisto.SetStats(False)
             alphaTMetHisto.SetMarkerStyle(29)
             alphaTMetHisto.GetYaxis().SetTitleOffset(1.25)
