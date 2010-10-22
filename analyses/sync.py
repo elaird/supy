@@ -14,7 +14,7 @@ class sync(analysis.analysis) :
         objects = {}
         fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets", "jetPtMin"] 
         #objects["caloAK5_pfMET"] = dict(zip(fields, [("ak5Jet","Pat"), "metP4PF", ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
-        objects["caloAK5"]         = dict(zip(fields, [("xcak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
+        #objects["caloAK5"]         = dict(zip(fields, [("xcak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
         objects["caloAK5noJetMod"] = dict(zip(fields, [("xcak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    True,        50.0]))
         #objects["caloAK7"] = dict(zip(fields, [("xcak7Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
         #objects["jptAK5"]  = dict(zip(fields, [("xcak5JetJPT","Pat"),"metP4TC",     ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo",     True ,        50.0]))
@@ -25,6 +25,7 @@ class sync(analysis.analysis) :
                  "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ] [0:1] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  "etRatherThanPt" : [True,False]        [0],
+                 "eId" : "80"
                  #"jesAbs":  [1.0,1.1,0.9]               [:],
                  #"jesRel":  0,
                  }
@@ -54,9 +55,9 @@ class sync(analysis.analysis) :
                                    electronDR = 0.5),
                  calculables.jetIndices( _jet, _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
                  calculables.jetIndices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
-                 calculables.muonIndices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
-                 calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
-                 calculables.photonIndicesPat(  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
+                 calculables.muonIndices( _muon, ptMin = 20, combinedRelIsoMax = 500),
+                 calculables.electronIndices( _electron, ptMin = 20, simpleEleID = params["eId"], useCombinedIso = True),
+                 calculables.photonIndicesPat(  ptMin = 20, flagName = "photonIDLooseFromTwikiPat"),
                  calculables.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
                  calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
@@ -87,27 +88,29 @@ class sync(analysis.analysis) :
             steps.techBitFilter([0],True),
             steps.physicsDeclared(),
             steps.monsterEventFilter(),
-            steps.jetEtaSelector(_jet,2.5,0),
-            steps.jetPtSelector(_jet,100.0,0),
             
             steps.hltPrescaleHistogrammer(["HLT_Jet50U","HLT_Jet70U","HLT_Jet100U","HLT_HT100U","HLT_HT120U","HLT_HT140U"]),
             steps.vetoCounts(params["objects"]),
+            steps.vetoLists(params["objects"]),
             #steps.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin",  funcString="lambda x:x.Et()"),
-            ] \
-            + steps.multiplicityPlotFilter("%sIndices%s"%_electron,          nMax = 0, xlabel = "N electrons") \
-            + steps.multiplicityPlotFilter("%sIndices%s"%_muon,              nMax = 0, xlabel = "N muons") \
-            + steps.multiplicityPlotFilter("%sIndices%s"%_photon,            nMax = 0, xlabel = "N photons") \
-            + steps.multiplicityPlotFilter("%sIndicesOther%s"%_jet,          nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID or #eta"%_jet) \
-            + steps.multiplicityPlotFilter("%sIndicesOther%s"%_muon,         nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID of #eta"%_muon) \
-            + steps.multiplicityPlotFilter("%sIndicesUnmatched%s"%_electron, nMax = 0, xlabel = "N electrons unmatched") \
-            + steps.multiplicityPlotFilter("%sIndicesUnmatched%s"%_photon,   nMax = 0, xlabel = "N photons unmatched") \
-            + [
-            steps.jetPtSelector(_jet,100.0,1),
+            steps.runLsEventFilter(fileName = "tomExtra.txt")
+            ]
+        #outList += steps.multiplicityPlotFilter("%sIndices%s"%_electron,          nMin = 1, xlabel = "N electrons")
+        #outList += steps.multiplicityPlotFilter("%sIndices%s"%_muon,              nMax = 0, xlabel = "N muons")
+        #outList += steps.multiplicityPlotFilter("%sIndices%s"%_photon,            nMax = 0, xlabel = "N photons") 
+        #outList += steps.multiplicityPlotFilter("%sIndicesOther%s"%_jet,          nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID or #eta"%_jet)
+        #outList += steps.multiplicityPlotFilter("%sIndicesOther%s"%_muon,         nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID of #eta"%_muon)
+        #outList += steps.multiplicityPlotFilter("%sIndicesUnmatched%s"%_electron, nMax = 0, xlabel = "N electrons unmatched")
+        #outList += steps.multiplicityPlotFilter("%sIndicesUnmatched%s"%_photon,   nMax = 0, xlabel = "N photons unmatched")
+        #outList += steps.multiplicityPlotFilter("%sIndices%s"%_jet, nMin=params["nJetsMinMax"][0], nMax=params["nJetsMinMax"][1], xlabel="number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts"%_jet)
+        outList += [
+            #steps.jetEtaSelector(_jet,2.5,0),
+            #steps.jetPtSelector(_jet,100.0,0),
+            #steps.jetPtSelector(_jet,100.0,1),
             #steps.uniquelyMatchedNonisoMuons(_jet),
-            #+ steps.multiplicityPlotFilter("%sIndices%s"%_jet, nMin=params["nJetsMinMax"][0], nMax=params["nJetsMinMax"][1], xlabel="number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts"%_jet) \
             
-            steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
-            steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
+            #steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
+            #steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
             
             #many plots
             #steps.passFilter("singleJetPlots1"),
@@ -150,15 +153,17 @@ class sync(analysis.analysis) :
             #steps.alphaTPrinter(_jet,_etRatherThanPt),
             #steps.genParticlePrinter(minPt=10.0,minStatus=3),
             #
-            #steps.displayer(jets = _jet,
-            #                muons = _muon,
-            #                met       = params["objects"]["met"],
-            #                electrons = params["objects"]["electron"],
-            #                photons   = params["objects"]["photon"],                            
-            #                recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
-            #                scale = 400.0,#GeV
-            #                etRatherThanPt = _etRatherThanPt,
-            #                ),
+            steps.electronPrinter(_electron,id = params["eId"]),
+            steps.displayer(jets = _jet,
+                            muons = _muon,
+                            met       = params["objects"]["met"],
+                            electrons = params["objects"]["electron"],
+                            photons   = params["objects"]["photon"],                            
+                            recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
+                            scale = 400.0,#GeV
+                            etRatherThanPt = _etRatherThanPt,
+                            deltaPhiStarExtraName = lowPtName
+                            ),
             
             ]
         return outList
@@ -169,10 +174,10 @@ class sync(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [                                                
-            specify(name = "Run2010B_MJ_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_J_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            #specify(name = "Run2010B_MJ_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            #specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            #specify(name = "Run2010B_J_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            #specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "2010_data_calo_skim",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "2010_data_pf_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
