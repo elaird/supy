@@ -36,6 +36,34 @@ class vetoCounts(analysisStep) :
                     if hist.GetNbinsY() > 1: 
                         hist.GetYaxis().SetBinLabel(i+1,self.keys[i])
                     
+#####################################
+class vetoLists(analysisStep) :
+    def __init__(self, objects) :
+        self.vetos = {}
+        self.lenkeys = [("%s%s"%objects[obj],"%sIndices%s"%objects[obj]) for obj in ["photon","electron","muon"]] +\
+                       [("failed_%s%s_unmatched"%objects[obj],"%sIndicesUnmatched%s"%objects[obj]) for obj in ["photon","electron"]]+\
+                       [("failed_%s%s"%objects[obj],"%sIndicesOther%s"%objects[obj]) for obj in ["muon","jet"]]
+
+        self.uniqueMuMatch="%s%sNonIsoMuonsUniquelyMatched"%objects["jet"]
+        self.keys = ["any"]+[key for key,indices in self.lenkeys]+["nonUniqueMuMatch"]
+        self.lists = dict([(key,[]) for key in self.keys])
+        
+    def uponAcceptance(self,eventVars) :
+        for key,indices in self.lenkeys : self.vetos[key] = bool(len(eventVars[indices]))
+        self.vetos["nonUniqueMuMatch"] = not eventVars["crock"][self.uniqueMuMatch]
+        self.vetos["any"] = False
+        self.vetos["any"] = any(self.vetos.values())
+
+        runLumiEvent = (eventVars["run"],eventVars["lumiSection"],eventVars["event"])
+        for key in self.keys :
+            if self.vetos[key] : self.lists[key].append(runLumiEvent)
+        
+    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+        for key in self.lists :
+            file = open("%sVetos.txt"%key,"w")
+            for RLE in sorted(self.lists[key]) : print >>file, "%d, %d, %d"%RLE
+            file.close()
+#####################################
 class ecalDepositValidator(analysisStep):
     def __init__(self,objects,dR) :
         self.dR = dR
@@ -69,6 +97,7 @@ class ecalDepositValidator(analysisStep):
                     book.fill( pt/jetPt, "jetPtMatchOther%s%sOverflow"%object, 100, 0, 1.1,
                                title="Overflow: jet matching of failed %s%s; pT_{failed %s%s} / #sum pT_{matched uncorr. jets};events / bin"%(object+object)  )
 
+#####################################
 class jetModHistogrammer(analysisStep) :
     def __init__(self,jets) :
         self.jets = jets
