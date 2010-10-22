@@ -110,7 +110,10 @@ class singlePhotonHistogrammer(analysisStep) :
 
             photonLabel = str(i+1) if i <= self.maxIndex else "_ge%d"%(self.maxIndex+2)
             book.fill(pt,           "%s%s%sPt" %(self.cs+(photonLabel,)), 50,  0.0, 500.0, title=";photon%s p_{T} (GeV);events / bin"%photonLabel)
-            book.fill(photon.eta(), "%s%s%seta"%(self.cs+(photonLabel,)), 50, -5.0,   5.0, title=";photon%s #eta;events / bin"%photonLabel)
+            book.fill(photon.eta(), "%s%s%seta"%(self.cs+(photonLabel,)), 20, -3.0,   3.0, title=";photon%s #eta;events / bin"%photonLabel)
+            book.fill(photon.phi(), "%s%s%sphi"%(self.cs+(photonLabel,)), 20, -r.TMath.Pi(), r.TMath.Pi(), title=";photon%s #phi;events / bin"%photonLabel)
+            book.fill((photon.eta(), photon.phi()),  "%s%s%sPhiVsEta"%(self.cs+(photonLabel,)),
+                      (10, 10), (-3.0, -r.TMath.Pi()), (3.0, r.TMath.Pi()), title=";photon%s #eta;photon%s #phi;events / bin"%(photonLabel,photonLabel))
 
             if mht==None : continue
             book.fill((pt,mht), "%s%s%smhtVsPhotonPt"%(self.cs+(photonLabel,)),
