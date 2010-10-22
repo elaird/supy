@@ -229,7 +229,7 @@ class alphaT(wrappedChain.calculable) :
         sumP4   = self.source[self.sumP4Name]
         dPseudo = self.source[self.deltaPseudoName]
         ht = self.source[self.sumPtName] if not self.etRatherThanPt else self.source[self.sumEtName]
-        self.value = 0.5 * ( ht - dPseudo ) / math.sqrt( ht*ht - sumP4.Perp2() ) 
+        self.value = 0.5 * ( ht - dPseudo ) / math.sqrt( ht*ht - sumP4.Perp2() ) if sumP4 else 0
 ##############################
 #class alphaTWithPhotonRatherThanMht(wrappedChain.calculable) :
 #    def name(self) : return "%sAlphaT%s" % self.cs
@@ -268,7 +268,7 @@ class alphaTMet(wrappedChain.calculable) :
         if met2>ht2 :
             met2= ht2*self.truncFactor
         dPseudo = self.source[self.deltaPseudoName]
-        self.value = 0.5 * ( ht - dPseudo ) / math.sqrt( ht2 - met2 )
+        self.value = 0.5 * ( ht - dPseudo ) / math.sqrt( ht2 - met2 ) if ht2-met2 else 0
 ##############################
 class diJetAlpha(wrappedChain.calculable) :
     def name(self) : return "%sDiJetAlpha%s" % self.cs
@@ -388,6 +388,23 @@ class mhtMinusMetOverMeff(wrappedChain.calculable) :
         mht = self.source[self.mht].pt()
         self.value = (mht - self.source[self.met].pt())/(self.source[self.ht] + mht)
 #####################################
+class jetDeadEcalIndices(wrappedChain.calculable) :
+    def name(self) : return "%sDeadEcalIndices%s"%self.cs
+
+    def __init__(self,collection) :
+        self.cs = collection
+        self.moreName = "dR < 0.5"
+
+    def deadEcalIndices(self,p4) :
+        deadTP = self.source["ecalDeadTowerTrigPrimP4"]
+        indices = []
+        for i in range(deadTP.size()) :
+            if 0.5 > r.Math.VectorUtil.DeltaR(deadTP.at(i),p4) : indices.apppend(i)
+        return indices
+
+    def update(self,ignored) :
+        self.value = map( self.deadEcalIndices, self.source["%sCorrectedP4%s"%self.cs] )
+
 class ecalDeadTowerMatchedJetIndices(wrappedChain.calculable) :
     def name(self) : return "ecalDeadTowerMatched%sIndices%s"%self.cs
 
