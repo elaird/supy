@@ -63,15 +63,18 @@ class vertexID(wrappedChain.calculable) :
 class vertexIndices(wrappedChain.calculable) :
     def __init__(self, sumPtMin = None) :
         self.sumPtMin = sumPtMin
-        self.moreName = "sumPt >=%.1f; pass ID"%sumPtMin
+        self.moreName = ""
+        if self.sumPtMin!=None :
+            moreName += "sumPt >=%.1f"%sumPtMin
+        self.moreName += "; pass ID"
         
     def update(self,ignored) :
         sumPt = self.source["vertexSumPt"]
         id = self.source["vertexID"]
         self.value = []
         other = self.source["vertexIndicesOther"]
-        for i in range(sumPt.size()) :
-            if sumPt.at(i) < self.sumPtMin : continue
+        for i in range(len(id)) :
+            if self.sumPtMin!=None and sumPt.at(i) < self.sumPtMin : continue
             elif id[i] : self.value.append(i)
             else : other.append(i)
         self.value.sort( key = sumPt.__getitem__, reverse = True )
@@ -81,3 +84,18 @@ class vertexIndicesOther(calculables.indicesOther) :
         super(vertexIndicesOther, self).__init__(("vertex",""))
         self.moreName = "pass sumPtMin; fail ID"
 
+class vertexSumPt(wrappedChain.calculable) :
+    def __init__(self) :
+        self.sumPts = r.std.vector('double')()
+        for i in range(100) :
+            self.sumPts.push_back(-100.0)
+            
+    def update(self, ignored) :
+        self.value = self.sumPts
+
+class vertexSumP3(wrappedChain.calculable) :
+    def __init__(self) :
+        self.sumP3s = r.std.vector(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double')))()
+
+    def update(self, ignored) :
+        self.value = self.sumP3s
