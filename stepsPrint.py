@@ -126,7 +126,7 @@ class vertexPrinter(analysisStep) :
     def uponAcceptance(self, eventVars) :
         for i in range(eventVars["vertexNdof"].size()) :
             good = "*" if i in eventVars["vertexIndices"] else "-"
-            print "%s vertex %d: sumPt %g GeV"%(good,i,eventVars["vertexSumPt"].at(i))
+            print "%s vertex %d: sumPt %g GeV; z = %g cm"%(good,i,eventVars["vertexSumPt"].at(i),eventVars["vertexPosition"].at(i).z())
         print
 #####################################
 class htMhtPrinter(analysisStep) :
