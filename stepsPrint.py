@@ -44,6 +44,41 @@ class eventPrinter(analysisStep) :
         outString+="  bx %4d"%eventVars["bunch"]
         print outString
 #####################################
+class electronPrinter(analysisStep) :
+    def __init__(self,cs, id=None) :
+        self.cs = cs
+        self.id = id
+        self.moreName = "%s%s"%cs
+    def uponAcceptance(self,eventVars) :
+        p4s = eventVars["%sP4%s"%self.cs]
+        indices = eventVars["%sIndices%s"%self.cs]
+        indicesOther = eventVars["%sIndicesOther%s"%self.cs]
+        id = eventVars["%sID%s%s"%(self.cs[0],self.id,self.cs[1])]
+        cIso = eventVars["%sIsoCombined%s"%self.cs]
+        hoe = eventVars["%sHcalOverEcal%s"%self.cs]
+        dphi=eventVars["%sDeltaPhiSuperClusterTrackAtVtx%s"%self.cs]
+        deta=eventVars["%sDeltaEtaSuperClusterTrackAtVtx%s"%self.cs]
+        inin = eventVars["%sSigmaIetaIeta%s"%self.cs]
+        
+        print
+        print "(%d, %d, %d) electrons" % (eventVars["run"], eventVars["lumiSection"], eventVars["event"] )
+        print '\t'.join([" ","  pT","  eta","  phi","  cIso","  hoe","  deta","  dphi","  inin"])
+        print "-------------------------------------------------------------------------"
+        for i in range(len(p4s)) :
+            p4 = p4s[i]
+            symbol = "-" if i in indicesOther else \
+                     "*" if i in indices else \
+                     " "
+            print '\t'.join([symbol,
+                             "%.1f"%p4.pt(),
+                             "%+.1f"%p4.eta(),
+                             "%+.1f"%p4.phi(),
+                             str(cIso[i])[:6],
+                             "%.5f"%hoe[i],
+                             "%+.5f"%deta[i],
+                             "%+.5f"%dphi[i],
+                             "%.5f"%inin[i]])
+#####################################
 class jetPrinter(analysisStep) :
 
     def __init__(self,cs) :
