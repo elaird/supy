@@ -173,7 +173,7 @@ class jetSumP4(wrappedChain.calculable) :
         self.value = reduce( lambda x,i: x+p4s.at(i), indices[1:], p4s.at(indices[0]) ) if len(indices) else None
 ##############################
 class jetSumP4PlusPhotons(wrappedChain.calculable) :
-    def name(self) : return "%sSumP4%s%s%s" % (self.cs[0], self.cs[1], self.extraName, "PlusPhotons")
+    def name(self) : return "%sSumP4PlusPhotons%s%s" % (self.cs[0], self.cs[1], self.extraName)
 
     def __init__(self, collection = None, extraName = "", photon = None, photonIndices = None) :
         self.cs = collection
@@ -231,22 +231,28 @@ class alphaT(wrappedChain.calculable) :
         ht = self.source[self.sumPtName] if not self.etRatherThanPt else self.source[self.sumEtName]
         self.value = 0.5 * ( ht - dPseudo ) / math.sqrt( ht*ht - sumP4.Perp2() ) if sumP4 else 0
 ##############################
-#class alphaTWithPhotonRatherThanMht(wrappedChain.calculable) :
-#    def name(self) : return "%sAlphaT%s" % self.cs
-#
-#    def __init__(self, collection = None, etRatherThanPt = None) :
-#        self.cs = collection
-#        self.etRatherThanPt = etRatherThanPt
-#        self.sumP4Name = "%sSumP4%s" % self.cs
-#        self.sumPtName = "%sSumPt%s" % self.cs
-#        self.sumEtName = "%sSumEt%s" % self.cs
-#        self.deltaPseudoName = "%sDeltaPseudoJetPt%s" % self.cs if not self.etRatherThanPt else "%sDeltaPseudoJetEt%s" % self.cs
-#
-#    def update(self,ignored) :
-#        sumP4   = self.source[self.sumP4Name]
-#        dPseudo = self.source[self.deltaPseudoName]
-#        ht = self.source[self.sumPtName] if not self.etRatherThanPt else self.source[self.sumEtName]
-#        self.value = 0.5 * ( ht - dPseudo ) / math.sqrt( ht*ht - sumP4.Perp2() ) 
+class alphaTWithPhoton1PtRatherThanMht(wrappedChain.calculable) :
+    def name(self) : return "%sAlphaTWithPhoton1PtRatherThanMht%s" % self.cs
+
+    def __init__(self, collection = None, photons = None, photonIndices = None, etRatherThanPt = None) :
+        self.cs = collection
+        self.photons = photons
+        self.sumP4Name = "%sSumP4%s" % self.cs
+        self.htName = "%sSumPt%s" % self.cs if not etRatherThanPt else "%sSumEt%s" % self.cs
+        self.deltaPseudoName = "%sDeltaPseudoJetPt%s" % self.cs if not etRatherThanPt else "%sDeltaPseudoJetEt%s" % self.cs
+        self.moreName = "some exception"
+        
+    def update(self,ignored) :
+        indices = self.source["%sIndices%s"%self.photons]
+        if not len(indices) :
+            self.value = None
+            return
+        dPseudo = self.source[self.deltaPseudoName]
+        ht      = self.source[self.htName]
+        ht2 = ht*ht
+        mht2 = self.source["%sP4%s"%self.photons].at(indices[0]).Perp2()
+        mht2Use = mht2 if mht2<ht2 else 0.99*ht2
+        self.value = 0.5 * ( ht - dPseudo ) / math.sqrt( ht*ht - mht2Use ) 
 ##############################
 class alphaTMet(wrappedChain.calculable) :
     def name(self) : return "%sAlphaTMet%s" % self.cs
@@ -342,6 +348,41 @@ class deltaPhiStar(wrappedChain.calculable) :
         if len(dPhi) :
             self.value["DeltaPhiStar"],self.value["DeltaPhiStarJetIndex"] = min(dPhi)
 ##############################
+class deltaPhiStarIncludingPhotons(wrappedChain.calculable) :
+    def name(self) : return "%sDeltaPhiStarIncludingPhotons%s%s"%(self.cs[0], self.cs[1], self.extraName)
+
+    def __init__(self, collection = None, photons = None, extraName = "") :
+        self.cs = collection
+        self.photons = photons
+        self.extraName = extraName
+        self.p4Name = '%sCorrectedP4%s' % self.cs
+        self.indicesName = '%sIndices%s%s' % (self.cs[0], self.cs[1], self.extraName)
+        self.sumP4Name = "%sSumP4PlusPhotons%s%s" % (self.cs[0], self.cs[1], self.extraName)        
+
+        self.photonP4Name = '%sP4%s' % photons
+        self.photonIndicesName = '%sIndices%s' % photons
+        
+    def update(self,ignored) :
+        self.value = {}
+        self.value["DeltaPhiStar"] = None
+        self.value["DeltaPhiStarJetIndex"] = None
+        self.value["DeltaPhiStarPhotonIndex"] = None
+
+        sumP4 = self.source[self.sumP4Name]
+        if not sumP4 : return
+        
+        jets = self.source[self.p4Name]
+        photons = self.source[self.photonP4Name]
+
+        dPhi = []
+        for i in self.source[self.indicesName] :
+            dPhi.append( (abs(r.Math.VectorUtil.DeltaPhi(jets.at(i),    jets.at(i)-sumP4)),   i, None) )
+        for i in self.source[self.photonIndicesName] :
+            dPhi.append( (abs(r.Math.VectorUtil.DeltaPhi(photons.at(i), photons.at(i)-sumP4)), None, i) )
+
+        if len(dPhi) :
+            self.value["DeltaPhiStar"],self.value["DeltaPhiStarJetIndex"],self.value["DeltaPhiStarPhotonIndex"] = min(dPhi)
+##############################
 class maxProjMHT(wrappedChain.calculable) :
     def name(self) : return "%sMaxProjMHT%s"%self.cs
 
@@ -362,8 +403,34 @@ class maxProjMHT(wrappedChain.calculable) :
         self.value = -min( [ sumP4.pt() / math.sqrt(jets.at(i).pt()) * \
                              math.cos(r.Math.VectorUtil.DeltaPhi(jets.at(i),sumP4)) for i in indices])
 #####################################
-class metPlusPhoton(wrappedChain.calculable) :
+class mhtIncludingPhotonsOverMet(wrappedChain.calculable) :
 
+    def __init__(self, jets, met, etRatherThanPt) :
+        self.jets = jets
+        self.met = met
+        self.etRatherThanPt = etRatherThanPt
+        self.moreName = "%s%s; %s; %s"%(self.jets[0], self.jets[1], self.met, "ET" if self.etRatherThanPt else "pT")
+        self.mht = "%sSumP4PlusPhotons%s"%self.jets
+        self.ht  = "%sSumEt%s"%self.jets if self.etRatherThanPt else "%sSumPt%s"%self.jets
+        
+    def update(self, ignored) :
+        self.value = self.source[self.mht].pt()/self.source[self.met].pt()
+#####################################
+class mhtOverMet(wrappedChain.calculable) :
+
+    def __init__(self, jets, met, etRatherThanPt) :
+        self.jets = jets
+        self.met = met
+        self.etRatherThanPt = etRatherThanPt
+        self.moreName = "%s%s; %s; %s"%(self.jets[0], self.jets[1], self.met, "ET" if self.etRatherThanPt else "pT")
+        self.mht = "%sSumP4%s"%self.jets
+        self.ht  = "%sSumEt%s"%self.jets if self.etRatherThanPt else "%sSumPt%s"%self.jets
+        
+    def update(self, ignored) :
+        self.value = self.source[self.mht].pt()/self.source[self.met].pt()
+#####################################
+class metPlusPhoton(wrappedChain.calculable) :
+            
     def __init__(self, met, photons, photonIndex) :
         self.met = met
         self.photons = photons
