@@ -411,7 +411,6 @@ class mhtIncludingPhotonsOverMet(wrappedChain.calculable) :
         self.etRatherThanPt = etRatherThanPt
         self.moreName = "%s%s; %s; %s"%(self.jets[0], self.jets[1], self.met, "ET" if self.etRatherThanPt else "pT")
         self.mht = "%sSumP4PlusPhotons%s"%self.jets
-        self.ht  = "%sSumEt%s"%self.jets if self.etRatherThanPt else "%sSumPt%s"%self.jets
         
     def update(self, ignored) :
         self.value = self.source[self.mht].pt()/self.source[self.met].pt()
@@ -424,7 +423,6 @@ class mhtOverMet(wrappedChain.calculable) :
         self.etRatherThanPt = etRatherThanPt
         self.moreName = "%s%s; %s; %s"%(self.jets[0], self.jets[1], self.met, "ET" if self.etRatherThanPt else "pT")
         self.mht = "%sSumP4%s"%self.jets
-        self.ht  = "%sSumEt%s"%self.jets if self.etRatherThanPt else "%sSumPt%s"%self.jets
         
     def update(self, ignored) :
         self.value = self.source[self.mht].pt()/self.source[self.met].pt()
