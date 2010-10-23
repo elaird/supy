@@ -111,7 +111,8 @@ class eleIso(wrappedChain.calculable) :
                      map(self.relIso,
                          self.source["%sTrackIsoRel%s"%self.ele],
                          self.source["%sEcalIsoRel%s"%self.ele],
-                         self.source["%sHcalIsoRel%s"%self.ele])
+                         self.source["%sHcalIsoRel%s"%self.ele],
+                         self.source["%sP4%s"%self.ele])
 class elecIso95(eleIso) :
     def __init__(self,collection) : super(elecIso95,self).__init__(collection,"95", True)
 class elecIso90(eleIso) :
@@ -162,7 +163,7 @@ class eleIsoRel(wrappedChain.calculable) :
         self.isoName = collection[0]+isoName+collection[1]
         self.p4 = "%sP4%s"%collection
     def relIso(self, iso, p4) : return iso/p4.pt()
-    def update(self,ignored) : self.value = map(self.relIso, self.isoSource, self.p4)
+    def update(self,ignored) : self.value = map(self.relIso, self.source[self.isoSource], self.source[self.p4])
     
 class eleTrackIsoRel(eleIsoRel) :
     def __init__(self, collection = None) : super(eleTrackIsoRel,self).__init__(collection, "TrackIsoRel", "Dr03TkSumPt")
