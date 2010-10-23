@@ -492,3 +492,30 @@ class ecalDeadTowerHistogrammer(analysisStep) :
         #               title=";Number of in-jet ecal dead regions with tp.Et>%02d GeV;events / bin"%thresh)
         #    book.fill( overThreshTpJetIndices.count(-2), "tpsUnmatchedAbove%02d"%thresh, 10,-0.5,9.5,
         #               title=";Number of isolated ecal dead regions with tp.Et>%02d GeV;events / bin"%thresh)
+
+
+#####################################
+class metVsMhtHistogrammer(analysisStep) :
+    def __init__(self, mht = None, met = None) :
+        self.mht = mht
+        self.met = met
+    
+    def uponAcceptance(self,eventVars) :
+        book = self.book(eventVars)
+        book.fill( (eventVars[self.mht].pt(), eventVars[self.met].pt()), "%sVs%s"%(self.mht,self.met),
+                   (25, 25), (0.0, 0.0), (100.0, 100.0), title = ";MHT [%s] (GeV);MET [%s] (GeV);events / bin"%(self.mht,self.met))
+#####################################
+class photon1PtOverHtHistogrammer(analysisStep) :
+    def __init__(self, jets = None, photons = None, etRatherThanPt = None) :
+        self.jets = jets
+        self.ht = "%sSum%s%s"%(jets[0],"Et" if etRatherThanPt else "pT",jets[1])
+        self.photonIndices = "%sIndices%s"%photons
+        self.photonP4 = "%sP4%s"%photons
+    
+    def uponAcceptance(self,eventVars) :
+        if not len(eventVars[self.photonIndices]) : return
+        index = eventVars[self.photonIndices][0]
+        book = self.book(eventVars)
+        book.fill( eventVars[self.photonP4][index].pt()/eventVars[self.ht], "photon1PtOverHt",
+                   20, 0.0, 2.0, title = ";photon1 pT / HT [%s%s];events / bin"%self.jets)
+#####################################
