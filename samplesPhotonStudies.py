@@ -3,7 +3,7 @@ import samples
 ph = samples.SampleHolder()
 
 #V4 skims
-dir = /vols/cms02/elaird1/11_skims/14_photons_skim
+dir = "/vols/cms02/elaird1/11_skims/14_photons_skim"
 ph.add("Run2010A_JMT_skim_skim",       'utils.fileListFromDisk(location = "%s/Run2010A_JMT_skim_*_skim.root", isDirectory = False)'%dir,      lumi = 1.720000e-01)
 ph.add("Run2010A_JM_skim_skim",        'utils.fileListFromDisk(location = "%s/Run2010A_JM_skim_*_skim.root", isDirectory = False)'%dir,       lumi = 2.889000e+00)
 ph.add("Run2010B_J_skim_skim",         'utils.fileListFromDisk(location = "%s/Run2010B_J_skim_*_skim.root", isDirectory = False)'%dir,        lumi = 3.897000e+00)
@@ -13,15 +13,15 @@ ph.add("Run2010B_MJ_skim2_skim",       'utils.fileListFromDisk(location = "%s/Ru
 ph.add("tt_tauola_mg_v12_skim",        'utils.fileListFromDisk(location = "%s/tt_tauola_mg_v12_*_skim.root", isDirectory = False)'%dir,       xs = 2.966667e-04 * 1.575000e+02)
 ph.add("v12_g_jets_mg_pt100_200_skim", 'utils.fileListFromDisk(location = "%s/v12_g_jets_mg_pt100_200_*_skim.root", isDirectory = False)'%dir,xs = 1.024178e-06 * 4.414520e+03)
 ph.add("v12_g_jets_mg_pt200_skim",     'utils.fileListFromDisk(location = "%s/v12_g_jets_mg_pt200_*_skim.root", isDirectory = False)'%dir,    xs = 2.460793e-02 * 6.159500e+02)
-ph.add("v12_g_jets_mg_pt40_100_skim",  'utils.fileListFromDisk(location = "%s/v12_g_jets_mg_pt40_100_*_skim.root", isDirectory = False)'%dir, xs = 0.000000e+00 * 2.999740e+04)
+#ph.add("v12_g_jets_mg_pt40_100_skim",  'utils.fileListFromDisk(location = "%s/v12_g_jets_mg_pt40_100_*_skim.root", isDirectory = False)'%dir, xs = 0.000000e+00 * 2.999740e+04)
 ph.add("v12_g_jets_py6_pt170_skim",    'utils.fileListFromDisk(location = "%s/v12_g_jets_py6_pt170_*_skim.root", isDirectory = False)'%dir,   xs = 7.161000e-02 * 2.437000e+01)
 ph.add("v12_g_jets_py6_pt30_skim",     'utils.fileListFromDisk(location = "%s/v12_g_jets_py6_pt30_*_skim.root", isDirectory = False)'%dir,    xs = 1.000000e-06 * 1.951350e+04)
 ph.add("v12_g_jets_py6_pt80_skim",     'utils.fileListFromDisk(location = "%s/v12_g_jets_py6_pt80_*_skim.root", isDirectory = False)'%dir,    xs = 4.560000e-03 * 5.321300e+02)
 ph.add("v12_qcd_mg_ht_1000_inf_skim",  'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_1000_inf_*_skim.root", isDirectory = False)'%dir, xs = 1.096197e-03 * 1.054100e+02)
-ph.add("v12_qcd_mg_ht_100_250_skim",   'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_100_250_*_skim.root", isDirectory = False)'%dir,  xs = 0.000000e+00 * 8.890000e+06)
+#ph.add("v12_qcd_mg_ht_100_250_skim",   'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_100_250_*_skim.root", isDirectory = False)'%dir,  xs = 0.000000e+00 * 8.890000e+06)
 ph.add("v12_qcd_mg_ht_250_500_skim",   'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_250_500_*_skim.root", isDirectory = False)'%dir,  xs = 2.519751e-05 * 2.171700e+05)
 ph.add("v12_qcd_mg_ht_500_1000_skim",  'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_500_1000_*_skim.root", isDirectory = False)'%dir, xs = 1.009503e-03 * 6.604000e+03)
-ph.add("v12_qcd_mg_ht_50_100_skim",    'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_50_100_*_skim.root", isDirectory = False)'%dir,   xs = 0.000000e+00 * 3.810000e+07)
+#ph.add("v12_qcd_mg_ht_50_100_skim",    'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_50_100_*_skim.root", isDirectory = False)'%dir,   xs = 0.000000e+00 * 3.810000e+07)
 ph.add("v12_qcd_py6_pt170_skim",       'utils.fileListFromDisk(location = "%s/v12_qcd_py6_pt170_*_skim.root", isDirectory = False)'%dir,      xs = 7.339334e-04 * 2.421400e+04)
 ph.add("v12_qcd_py6_pt300_skim",       'utils.fileListFromDisk(location = "%s/v12_qcd_py6_pt300_*_skim.root", isDirectory = False)'%dir,      xs = 2.502585e-03 * 1.256000e+03)
 ph.add("v12_qcd_py6_pt80_skim",        'utils.fileListFromDisk(location = "%s/v12_qcd_py6_pt80_*_skim.root", isDirectory = False)'%dir,       xs = 2.710825e-05 * 8.983300e+05)
