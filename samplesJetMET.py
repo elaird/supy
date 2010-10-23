@@ -40,11 +40,10 @@ jetmet.add("JetMETTau.Run2010A-Sep17ReReco_v2.RECO.RAW.Henning",'%s/henning//ICF
 jetmet.add("JetMET_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/data2/")', lumi = 2.601 ) #/pb
 
 #TEST
-jetmet.add("JetMET_test_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/03_jetmet/")', lumi = 2.601 ) #/pb
-jetmet.add("JetMET_test_skim2", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/04_38_recipe/")', lumi = 2.601 ) #/pb
-jetmet.add("test", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/tmp//hadronicLook/defaultMht_pythia6_ge2_caloAK5/config00/Run2010B_skim_*_skim.root", isDirectory = False)', lumi = 1.372 ) #/pb
-jetmet.add("2010_data_calo_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/13_hadronicLook/ak5Calo_mix.root", isDirectory = False)', lumi = 10.9357)
-jetmet.add("2010_data_pf_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/13_hadronicLook/ak5Pf_mix.root", isDirectory = False)', lumi = 10.9357)
+jetmet.add("2010_data_calo_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/13_hadronicLook/ak5Calo_mix_v2.root", isDirectory = False)', lumi = 15.086)
+jetmet.add("2010_data_pf_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/13_hadronicLook/ak5Pf_mix_v2.root", isDirectory = False)', lumi = 15.086)
+#jetmet.add("2010_data_calo_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/13_hadronicLook/pythia6_ge2_caloAK5/")', lumi = 999999.9 ) #/pb
+#jetmet.add("2010_data_pf_skim",   'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/13_hadronicLook/pythia6_ge2_pfAK5/")', lumi = 999999.9 ) #/pb
 jetmet.add("2010_data_photons_high_met",  'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/08_photons_high_met/")', lumi = 6.68 )
 jetmet.add("Tanja_sync",
            'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/Jet.Run2010B-PromptReco-v2.RECO.Burt2/Jet.Run2010B-PromptReco-v2.RECO.Burt2_[6-9]_skim.root", isDirectory = False)', lumi = 9999999.9) #/pb
