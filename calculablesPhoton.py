@@ -47,13 +47,14 @@ class photonID(wrappedChain.calculable) :
                     "HadronicOverEm", "TrkSumPtHollowConeDR04", "SigmaIetaIeta","HasPixelSeed"] :
             setattr(self,var, ("%s"+var+"%s")%self.cs)
 
-        jei = {}; tbhi = {}; hoe = {}; hcti = {}; hctiLower = {}; shhBarrel = {}; shhEndcap = {}; ptVar = {}; etaBE = {}; moreName = {}
-        for l in ["EmFromTwiki","LooseFromTwiki","TightFromTwiki","AnalysisNote","TrkIsoSideBand","TrkIsoRelaxed"] :
-            jei [l]      = (4.2,  0.0060)
-            tbhi[l]      = (2.2,  0.0025)
+        jei = {}; jeiLower = {}; tbhi = {}; tbhiLower = {}; hcti = {}; hctiLower = {};
+        hoe = {}; shhBarrel = {}; shhEndcap = {}; ptVar = {}; etaBE = {}; moreName = {}
+        for l in ["EmFromTwiki","LooseFromTwiki","TightFromTwiki",
+                  "AnalysisNote","TrkIsoSideBand","TrkIsoRelaxed","IsoSideBand","IsoRelaxed"] :
+            jei [l]      = (4.2,  0.0060); jeiLower[l]  = None
+            tbhi[l]      = (2.2,  0.0025); tbhiLower[l] = None
+            hcti[l]      = None          ; hctiLower[l] = None
             hoe [l]      = (0.05, 0.0000)
-            hcti[l]      = None
-            hctiLower[l] = None
             shhBarrel[l] = None
             shhEndcap[l] = None
             ptVar[l]     = "pt"
@@ -79,7 +80,23 @@ class photonID(wrappedChain.calculable) :
         hctiLower["TrkIsoSideBand"] = ( 2.0, 0.001)
         moreName ["TrkIsoSideBand"] = "side-band of trkIso"
 
-        for item in ["jei","tbhi","hoe","hcti","hctiLower","shhBarrel","shhEndcap","ptVar","etaBE","moreName"] :
+        jei      ["IsoRelaxed"]  = (8.2,  0.0060)
+        tbhi     ["IsoRelaxed"]  = (6.2,  0.0025)
+        hcti     ["IsoRelaxed"]  = (10.0, 0.001)
+        moreName ["IsoRelaxed"]  = "relaxed trkIso [ ,10]; hcalIso[ ,6]; ecalIso[ ,8]"
+
+        jei      ["IsoSideBand"] = (8.2,  0.0060)
+        jeiLower ["IsoSideBand"] = jei ["TightFromTwiki"]
+        tbhi     ["IsoSideBand"] = (6.2,  0.0025)
+        tbhiLower["IsoSideBand"] = tbhi["TightFromTwiki"]
+        hcti     ["IsoSideBand"] = (10.0, 0.001)
+        hctiLower["IsoSideBand"] = hcti["TightFromTwiki"]
+        moreName ["IsoSideBand"] = "side-band of trkIso [2,10]; hcalIso[2,6]; ecalIso[4,8]"
+
+        for item in ["jei","jeiLower",
+                     "tbhi","tbhiLower",
+                     "hcti","hctiLower",
+                     "hoe","shhBarrel","shhEndcap","ptVar","etaBE","moreName"] :
             setattr(self,item,eval(item)[level])
 
     def update(self,ignored) :
@@ -93,14 +110,23 @@ class photonID(wrappedChain.calculable) :
                          self.source[self.HasPixelSeed],
                          )
 
-    def passId(self, p4, jei, hi, hoe, hcti, shh, hasPixelSeed) :
-        pt = getattr(p4,self.ptVar)()
-        if jei       > (self.jei [0] + pt*self.jei [1]) : return False
-        if hi        > (self.tbhi[0] + pt*self.tbhi[1]) : return False
-        if hoe       > (self.hoe [0] + pt*self.hoe [1]) : return False
-        if self.hcti!=None      and hcti > (self.hcti[0]      + pt*self.hcti[1]     ) : return False
-        if self.hctiLower!=None and hcti < (self.hctiLower[0] + pt*self.hctiLower[1]) : return False
+    def passId(self, p4, jei, tbhi, hoe, hcti, shh, hasPixelSeed) :
+        def pass1(item, value, alsoLower = False) :
+            member = getattr(self,item)
+            if member!=None and value > (member[0] + pt*member[1]) :
+                return False
+            if alsoLower :
+                memberLower = getattr(self,item+"Lower")
+                if memberLower!=None and value < (memberLower[0] + pt*memberLower[1]) : return False
+            return True
         
+        pt = getattr(p4,self.ptVar)()
+
+        if not pass1("jei",  eval("jei"),  alsoLower = True)  : return False
+        if not pass1("tbhi", eval("tbhi"), alsoLower = True)  : return False
+        if not pass1("hcti", eval("hcti"), alsoLower = True)  : return False
+        if not pass1("hoe",  eval("hoe"),  alsoLower = False) : return False
+
         shhVar = self.shhBarrel if abs(p4.eta())<self.etaBE else self.shhEndcap
         if shhVar!=None and shh  > (shhVar[0] + pt*shhVar[1]) : return False
         
@@ -132,6 +158,14 @@ class photonIDTightFromTwiki(photonID) :
 class photonIDTrkIsoSideBand(photonID) :
     def __init__(self, collection = None) :
         super(photonIDTrkIsoSideBand,self).__init__(collection,"TrkIsoSideBand")
+####################################
+class photonIDIsoRelaxed(photonID) :
+    def __init__(self, collection = None) :
+        super(photonIDIsoRelaxed,self).__init__(collection,"IsoRelaxed")
+####################################
+class photonIDIsoSideBand(photonID) :
+    def __init__(self, collection = None) :
+        super(photonIDIsoSideBand,self).__init__(collection,"IsoSideBand")
 ####################################
 class photonIDTrkIsoRelaxed(photonID) :
     def __init__(self, collection = None) :
