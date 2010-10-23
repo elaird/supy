@@ -28,8 +28,7 @@ class hadronicSkim(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         return [
-            specify(name = "MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Burt"),
-            specify(name = "Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt2"),
+            specify(name = "MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Burt2"),
             ]
 
     def listOfSampleDictionaries(self) :
