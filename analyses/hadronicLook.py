@@ -13,7 +13,7 @@ class hadronicLook(analysis.analysis) :
     def parameters(self) :
         objects = {}
         fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets", "jetPtMin"] 
-        #objects["caloAK5_pfMET"] = dict(zip(fields, [("ak5Jet","Pat"), "metP4PF", ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
+        #objects["caloAK5_pfMET"] = dict(zip(fields, [("xcak5Jet","Pat"), "metP4PF", ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
         objects["caloAK5"] = dict(zip(fields, [("xcak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
         #objects["caloAK7"] = dict(zip(fields, [("xcak7Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
         #objects["jptAK5"]  = dict(zip(fields, [("xcak5JetJPT","Pat"),"metP4TC",     ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo",     True ,        50.0]))
@@ -65,7 +65,8 @@ class hadronicLook(analysis.analysis) :
                      calculables.deltaPseudoJet(_jet, _etRatherThanPt),
                      calculables.alphaT(_jet, _etRatherThanPt),
                      calculables.alphaTMet(_jet, _etRatherThanPt, _met),
-                     calculables.mhtMinusMetOverMeff(_jet, _met, _etRatherThanPt),
+                     calculables.mhtOverMet(_jet, _met, _etRatherThanPt),
+                     #calculables.mhtMinusMetOverMeff(_jet, _met, _etRatherThanPt),
                     #calculables.mhtMinusMetOverMeff(_jet, "metP4PF", _etRatherThanPt),
                      ]
 
@@ -91,7 +92,7 @@ class hadronicLook(analysis.analysis) :
             steps.monsterEventFilter(),
             steps.hbheNoiseFilter(),
             
-            steps.hltPrescaleHistogrammer(["HLT_Jet50U","HLT_Jet70U","HLT_Jet100U","HLT_HT100U","HLT_HT120U","HLT_HT140U"]),
+            steps.hltPrescaleHistogrammer(["HLT_HT100U","HLT_HT120U","HLT_HT140U","HLT_HT150U"]),
             #steps.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin",
             #                       funcString="lambda x:x.Et()"),
             
@@ -147,8 +148,11 @@ class hadronicLook(analysis.analysis) :
             #steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
 
-            steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - %s)/(MHT+HT);events / bin"%_met),
-            steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
+            #steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - %s)/(MHT+HT);events / bin"%_met),
+            #steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
+
+            steps.histogrammer("mhtOverMet", 100, -1.0, 1.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
+            steps.variableLessFilter(1.25,"mhtOverMet"),
             steps.deadEcalFilter(jets = _jet, extraName = lowPtName, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
 
             ##steps.variableGreaterFilter(0.53,"%sAlphaTMet%s"%_jet),
@@ -162,7 +166,7 @@ class hadronicLook(analysis.analysis) :
             #steps.htMhtPrinter(_jet),
             #steps.alphaTPrinter(_jet,_etRatherThanPt),
             #steps.genParticlePrinter(minPt=10.0,minStatus=3),
-            #
+            
             #steps.displayer(jets = _jet,
             #                muons = _muon,
             #                met       = params["objects"]["met"],
@@ -171,6 +175,7 @@ class hadronicLook(analysis.analysis) :
             #                recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
             #                scale = 400.0,#GeV
             #                etRatherThanPt = _etRatherThanPt,
+            #                deltaPhiStarExtraName = lowPtName,                            
             #                ),
             
             ]
@@ -182,6 +187,7 @@ class hadronicLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [                                                
+            specify(name = "Run2010B_MJ_skim2",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_J_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
