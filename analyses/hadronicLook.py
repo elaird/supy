@@ -151,7 +151,7 @@ class hadronicLook(analysis.analysis) :
             #steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - %s)/(MHT+HT);events / bin"%_met),
             #steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
 
-            steps.histogrammer("mhtOverMet", 100, -1.0, 1.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
+            steps.histogrammer("mhtOverMet", 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
             steps.variableLessFilter(1.25,"mhtOverMet"),
             steps.deadEcalFilter(jets = _jet, extraName = lowPtName, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
 
@@ -313,7 +313,7 @@ class hadronicLook(analysis.analysis) :
         if "madgraph" in tag : mg (org, smSources)
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20},
-                         sources = ["Run2010B_MJ_skim","Run2010B_J_skim","Run2010B_J_skim2","Run2010A_JM_skim","Run2010A_JMT_skim"])
+                         sources = ["Run2010B_MJ_skim","Run2010B_MJ_skim2","Run2010B_J_skim","Run2010B_J_skim2","Run2010A_JM_skim","Run2010A_JMT_skim"])
         
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
