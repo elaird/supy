@@ -55,12 +55,12 @@ class triggerNameDump(analysisStep) :
         return True
 #####################################
 class lowestUnPrescaledTrigger(analysisStep) :
-    def __init__(self, listOfPaths = ["HLT_HT100U","HLT_HT120U","HLT_HT140U"]) :
-        self.listOfPaths = listOfPaths
-        self.moreName = "lowest unprescaled of "+str(listOfPaths).replace("HLT_","")
+    def __init__(self, sortedListOfPaths = []) :
+        self.sortedListOfPaths = sortedListOfPaths
+        self.moreName = "lowest unprescaled of "+','.join(self.sortedListOfPaths).replace("HLT_","")
         
     def select (self,eventVars) :
-        for path in self.listOfPaths :
+        for path in self.sortedListOfPaths :
             if eventVars["prescaled"][path]==1 : return eventVars["triggered"][path]
         return False
 #####################################
