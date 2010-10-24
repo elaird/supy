@@ -85,7 +85,7 @@ class hadronicLook(analysis.analysis) :
             steps.jetPtSelector(_jet,100.0,0),
             steps.jetPtSelector(_jet,100.0,1),
             steps.jetEtaSelector(_jet,2.5,0),
-            steps.lowestUnPrescaledTrigger(),
+            steps.lowestUnPrescaledTrigger(["HLT_HT100U","HLT_HT120U","HLT_HT140U","HLT_HT150U"]),
             steps.vertexRequirementFilter(),
             steps.techBitFilter([0],True),
             steps.physicsDeclared(),
@@ -243,9 +243,9 @@ class hadronicLook(analysis.analysis) :
             specify(name = "tt_tauola_mg_v12",          nFilesMax =  3, color = r.kOrange  ),
             ]                                                       
         ewk = [                                                     
-            specify(name = "z_inv_mg_v12",              nFilesMax = -1, color = r.kMagenta ),
-            specify(name = "z_jets_mg_v12",             nFilesMax = -1, color = r.kYellow-3),
-            specify(name = "w_jets_mg_v12",             nFilesMax = -1, color = 28         ),
+            specify(name = "z_inv_mg_v12_skim",         nFilesMax = -1, color = r.kMagenta ),
+            specify(name = "z_jets_mg_v12_skim",        nFilesMax = -1, color = r.kYellow-3),
+            specify(name = "w_jets_mg_v12_skim",        nFilesMax = -1, color = 28         ),
             ]                                                       
         susy = [                                                    
             specify(name = "lm0_v12",                   nFilesMax = -1, color = r.kRed     ),
