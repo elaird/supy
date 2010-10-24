@@ -158,8 +158,7 @@ mc.add("w_jets_mg_v12_skim", 'utils.fileListFromDisk(location = "/vols/cms02/ela
        xs = 4.462162e-03 * 3.131400e+04)
 mc.add("z_inv_mg_v12_skim",  'utils.fileListFromDisk(location = "/vols/cms02/elaird1/14_skims/ZinvisibleJets-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")',
        xs = 2.067155e-03 * 5.715000e+03)
-mc.add("z_jets_mg_v12_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/14_skims/ZJets-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")',
-       xs = 1.185708e-02 * 3.048000e+03)
+mc.add("z_jets_mg_v12_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/14_skims/ZJets-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/", itemsToSkip = %s)'%str(["v12_1%d_skim.root"%i for i in range(1,10) ]), xs = 1.185708e-02 * 3.048000e+03)
 
 #TEST SKIMS
 mc.add("v12_g_jets_test_skim",
