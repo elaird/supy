@@ -243,7 +243,7 @@ class analysis(object) :
                     looperIndexDict[ptHatLowerThreshold]=iLooper
                 for step in looper.steps :
                     if type(step) == steps.skimmer :
-                        print "WARNING: you are skmming inclusive samples.  The skims of all but the highest bin will be exclusive.  Use utils.printSkimResults()."
+                        print "WARNING: you are skimming inclusive samples.  The skims of all but the highest bin will be exclusive.  Use utils.printSkimResults()."
 
         ptHatLowerThresholdsAndSampleNames.sort()
         for iItem in range(len(ptHatLowerThresholdsAndSampleNames)) :
