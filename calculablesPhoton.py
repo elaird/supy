@@ -50,7 +50,7 @@ class photonID(wrappedChain.calculable) :
         jei = {}; jeiLower = {}; tbhi = {}; tbhiLower = {}; hcti = {}; hctiLower = {};
         hoe = {}; shhBarrel = {}; shhEndcap = {}; ptVar = {}; etaBE = {}; moreName = {}
         for l in ["EmFromTwiki","LooseFromTwiki","TightFromTwiki",
-                  "AnalysisNote","TrkIsoSideBand","TrkIsoRelaxed","IsoSideBand","IsoRelaxed"] :
+                  "AnalysisNote_10_268","EGM_10_006","TrkIsoSideBand","TrkIsoRelaxed","IsoSideBand","IsoRelaxed"] :
             jei [l]      = (4.2,  0.0060); jeiLower[l]  = None
             tbhi[l]      = (2.2,  0.0025); tbhiLower[l] = None
             hcti[l]      = None          ; hctiLower[l] = None
@@ -67,23 +67,31 @@ class photonID(wrappedChain.calculable) :
         shhBarrel["TightFromTwiki"] = (0.013, 0.0)
         shhEndcap["TightFromTwiki"] = (0.030, 0.0)
 
-        jei      ["AnalysisNote"]   = (4.2, 0.003)
-        tbhi     ["AnalysisNote"]   = (2.2, 0.001)
-        hcti     ["AnalysisNote"]   = (2.0, 0.001)
-        ptVar    ["AnalysisNote"]   = "Et"
-        moreName ["AnalysisNote"]   = "from CMS AN 10-268"
+        jei      ["AnalysisNote_10_268"] = (4.2, 0.003)
+        tbhi     ["AnalysisNote_10_268"] = (2.2, 0.001)
+        hcti     ["AnalysisNote_10_268"] = (2.0, 0.001)
+        ptVar    ["AnalysisNote_10_268"] = "Et"
+        moreName ["AnalysisNote_10_268"] = "from CMS AN 10-268"
 
-        hcti     ["TrkIsoRelaxed"]  = (10.0, 0.001)
-        moreName ["TrkIsoRelaxed"]  = "relaxed trkIso"
+        jei      ["EGM_10_006"] = (2.4,  0.0)
+        tbhi     ["EGM_10_006"] = (1.0,  0.0)
+        hcti     ["EGM_10_006"] = (0.9,  0.0)
+        hoe      ["EGM_10_006"] = (0.03, 0.0)
+        shhBarrel["EGM_10_006"] = (0.01, 0.0)
+        shhEndcap["EGM_10_006"] = (0.028,0.0)
+        moreName ["EGM_10_006"] = "from EGM 10-006"
+
+        hcti     ["TrkIsoRelaxed"] = (10.0, 0.001)
+        moreName ["TrkIsoRelaxed"] = "relaxed trkIso"
 
         hcti     ["TrkIsoSideBand"] = (10.0, 0.001)
         hctiLower["TrkIsoSideBand"] = ( 2.0, 0.001)
         moreName ["TrkIsoSideBand"] = "side-band of trkIso"
 
-        jei      ["IsoRelaxed"]  = (8.2,  0.0060)
-        tbhi     ["IsoRelaxed"]  = (6.2,  0.0025)
-        hcti     ["IsoRelaxed"]  = (10.0, 0.001)
-        moreName ["IsoRelaxed"]  = "relaxed trkIso [ ,10]; hcalIso[ ,6]; ecalIso[ ,8]"
+        jei      ["IsoRelaxed"] = (8.2,  0.0060)
+        tbhi     ["IsoRelaxed"] = (6.2,  0.0025)
+        hcti     ["IsoRelaxed"] = (10.0, 0.001)
+        moreName ["IsoRelaxed"] = "relaxed trkIso [ ,10]; hcalIso[ ,6]; ecalIso[ ,8]"
 
         jei      ["IsoSideBand"] = (8.2,  0.0060)
         jeiLower ["IsoSideBand"] = jei ["TightFromTwiki"]
@@ -142,6 +150,14 @@ class HcalTowSumEtConeDR04(wrappedChain.calculable) :
     def update(self, ignored) :
         size = len(self.source[self.var1])
         self.value = [self.source[self.var1].at(i)+self.source[self.var2].at(i) for i in range(size)]
+####################################    
+class SeedTime(wrappedChain.calculable) :
+    def name(self) : return "%sSeedTime%s"%self.collection
+    def __init__(self, collection = None) :
+        self.collection = collection
+        self.p4s = "%sP4%s"%self.collection
+    def update(self, ignored) :
+        self.value = [-100.0]*len(self.source[self.p4s])
 ####################################
 class photonIDEmFromTwiki(photonID) :
     def __init__(self, collection = None) :
@@ -171,7 +187,11 @@ class photonIDTrkIsoRelaxed(photonID) :
     def __init__(self, collection = None) :
         super(photonIDTrkIsoRelaxed,self).__init__(collection,"TrkIsoRelaxed")
 ####################################
-class photonIDAnalysisNote(photonID) :
+class photonIDAnalysisNote_10_268(photonID) :
     def __init__(self, collection = None) :
-        super(photonIDAnalysisNote,self).__init__(collection,"AnalysisNote")
+        super(photonIDAnalysisNote_10_268,self).__init__(collection,"AnalysisNote_10_268")
+####################################
+class photonIDEGM_10_006(photonID) :
+    def __init__(self, collection = None) :
+        super(photonIDEGM_10_006,self).__init__(collection,"EGM_10_006")
 ####################################
