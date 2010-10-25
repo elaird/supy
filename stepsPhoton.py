@@ -81,6 +81,7 @@ class singlePhotonHistogrammer(analysisStep) :
         self.moreName="%s%s through index %d" % (self.cs+(maxIndex,))
         self.indicesName = "%sIndices%s" % self.cs
         self.p4sName = "%sP4%s" % self.cs
+        self.seedTimes = "%sSeedTime%s" % self.cs
         self.mhtName = "%sSumP4%s" % self.jetCs
         self.htName  = "%sSumEt%s"%self.jetCs
         self.etaBE = 1.479 #from CMS PAS EGM-10-005
@@ -88,6 +89,7 @@ class singlePhotonHistogrammer(analysisStep) :
     def uponAcceptance (self,eventVars) :
         book = self.book(eventVars)
         p4s = eventVars[self.p4sName]
+        seedTimes = eventVars[self.seedTimes]
         cleanPhotonIndices = eventVars[self.indicesName]
         mh = eventVars[self.mhtName]
         mht = mh.pt() if mh else None
@@ -107,11 +109,12 @@ class singlePhotonHistogrammer(analysisStep) :
         for i,iPhoton in enumerate(cleanPhotonIndices) :
             photon = p4s.at(iPhoton)
             pt = photon.pt()
-
+            
             photonLabel = str(i+1) if i <= self.maxIndex else "_ge%d"%(self.maxIndex+2)
-            book.fill(pt,           "%s%s%sPt" %(self.cs+(photonLabel,)), 50,  0.0, 500.0, title=";photon%s p_{T} (GeV);events / bin"%photonLabel)
-            book.fill(photon.eta(), "%s%s%seta"%(self.cs+(photonLabel,)), 20, -3.0,   3.0, title=";photon%s #eta;events / bin"%photonLabel)
-            book.fill(photon.phi(), "%s%s%sphi"%(self.cs+(photonLabel,)), 20, -r.TMath.Pi(), r.TMath.Pi(), title=";photon%s #phi;events / bin"%photonLabel)
+            book.fill(seedTimes[iPhoton], "%s%s%sSeedTime" %(self.cs+(photonLabel,)), 100,  -20.0, 20.0, title=";photon%s seed crystal time (ns);events / bin"%photonLabel)
+            book.fill(pt,                 "%s%s%sPt" %(self.cs+(photonLabel,)), 50,  0.0, 500.0, title=";photon%s p_{T} (GeV);events / bin"%photonLabel)
+            book.fill(photon.eta(),       "%s%s%seta"%(self.cs+(photonLabel,)), 20, -3.0,   3.0, title=";photon%s #eta;events / bin"%photonLabel)
+            book.fill(photon.phi(),       "%s%s%sphi"%(self.cs+(photonLabel,)), 20, -r.TMath.Pi(), r.TMath.Pi(), title=";photon%s #phi;events / bin"%photonLabel)
             book.fill((photon.eta(), photon.phi()),  "%s%s%sPhiVsEta"%(self.cs+(photonLabel,)),
                       (10, 10), (-3.0, -r.TMath.Pi()), (3.0, r.TMath.Pi()), title=";photon%s #eta;photon%s #phi;events / bin"%(photonLabel,photonLabel))
 
