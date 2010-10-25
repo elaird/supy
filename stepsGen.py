@@ -252,6 +252,30 @@ class genSHatHistogrammer(analysisStep) :
         print indices,rootSHat
         self.book(eventVars).fill(rootSHat, "rootSHat", 100, 0.0, 300.0, title = ";#sqrt{#hat{s}} (GeV);events / bin")
 #####################################
+class photonEfficiencyPlots(analysisStep) :
+
+    def __init__(self, label, ptCut, etaCut, jets) :
+        for item in ["label","ptCut","etaCut","jets"] :
+            setattr(self,item,eval(item))
+        self.ht = "%sSumEt%s"%self.jets
+        self.indices = "%sIndices%s"%self.jets
+        self.moreName = "pT>%g GeV; |eta|<%g"%(self.ptCut, self.etaCut)
+
+    def uponAcceptance (self, eventVars) :
+        genP4s = eventVars["genP4"]
+        for genIndex in eventVars["genIndices"+self.label] :
+            photon = genP4s.at(genIndex)
+            pt = photon.pt()
+            eta = photon.eta()
+            phi = photon.phi()
+            if pt<self.ptCut or self.etaCut<abs(eta) : continue
+            self.book(eventVars).fill(eta,"photonEta"+self.label, 100, -3.0,   3.0, title = ";gen photon #eta;photons / bin")
+            self.book(eventVars).fill(pt, "photonPt"+self.label,  100,  0.0, 500.0, title = ";gen photon p_{T} (GeV);photons / bin")
+            self.book(eventVars).fill((eta, phi), "photonPhiVsEta"+self.label, (72, 72), (-3.0, -r.TMath.Pi()), (3.0, r.TMath.Pi()),
+                                      title = ";gen photon #eta;gen photon #phi;photons / bin")
+            self.book(eventVars).fill(len(eventVars[self.indices]), "nJets"+self.label,  10, -0.5, 9.5,   title = ";nJets [gen photon satisfies cuts];photons / bin")
+            self.book(eventVars).fill(eventVars[self.ht],           "ht"+self.label,    100,  0.0, 500.0, title = ";H_{T} (GeV) [gen photon satisfies cuts];photons / bin")
+#####################################
 class photonPurityPlots(analysisStep) :
 
     def __init__(self, label, jetCs, photonCs) :
@@ -273,18 +297,18 @@ class photonPurityPlots(analysisStep) :
         matchedIndices = []
         for index in eventVars["genIndices"+self.label] :
             genP4 = genP4s.at(index)
-            genPt  = genP4.pt()            
+            genPt  = genP4.pt()
             deltaR = r.Math.VectorUtil.DeltaR(recoP4,genP4)
-            if genPt>0.3*recoPt :
-                self.book(eventVars).fill(deltaR,"deltaRGenReco", 100, 0.0, 5.0, title = ";#DeltaR (GEN,RECO) photon when {gen pT > 0.3 reco pT};photons / bin")
+            #if genPt>0.3*recoPt :
+            #    self.book(eventVars).fill(deltaR,"deltaRGenReco", 100, 0.0, 5.0, title = ";#DeltaR (GEN,RECO) photon when {gen pT > 0.3 reco pT};photons / bin")
 
             if deltaR>0.5 :
                 continue
             matchedIndices.append(index)
-            self.book(eventVars).fill(genPt,         categories[index]+"genPt" , 100, 0.0, 200.0, title = ";GEN photon p_{T} (GeV);photons / bin")
-            self.book(eventVars).fill(recoPt,        categories[index]+"recoPt", 100, 0.0, 200.0, title = ";reco. photon p_{T} (GeV);photons / bin")
-            if jetSumP4 :
-                self.book(eventVars).fill(jetSumP4.pt(), categories[index]+"mht",    100, 0.0, 200.0, title = ";MHT (GeV);photons / bin")
+            #self.book(eventVars).fill(genPt,         categories[index]+"genPt" , 100, 0.0, 200.0, title = ";GEN photon p_{T} (GeV);photons / bin")
+            #self.book(eventVars).fill(recoPt,        categories[index]+"recoPt", 100, 0.0, 200.0, title = ";reco. photon p_{T} (GeV);photons / bin")
+            #if jetSumP4 :
+            #    self.book(eventVars).fill(jetSumP4.pt(), categories[index]+"mht",    100, 0.0, 200.0, title = ";MHT (GeV);photons / bin")
 
         nMatch = len(matchedIndices)
         self.book(eventVars).fill(nMatch,"nMatch",10, -0.5, 9.5, title = ";N gen. photons within #DeltaR 0.5 of the reco photon;photons / bin")
@@ -295,7 +319,14 @@ class photonPurityPlots(analysisStep) :
                                        title = "nMatch = %s;RECO photon p_{T} (GeV);GEN photon p_{T} (GeV);photons / bin"%label)
             self.book(eventVars).fill(self.bin[categories[index]],"photonCategory%s"%label,
                                       len(self.bin), -0.5, len(self.bin)-0.5,
-                                      title = ";photon category (ph mo.,q mo.,other mo.) when nMatch = %s;photons / bin"%label)
+                                      title = ";photon category when nMatch = %s;photons / bin"%label)
+
+    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+        for book in self.books.values() :
+            for key,histo in book.iteritems() :
+                if "photonCategory" in histo.GetName() :
+                    for label,iBin in self.bin.iteritems() :
+                        histo.GetXaxis().SetBinLabel(iBin+1,label)
 #####################################
 class genMotherHistogrammer(analysisStep) :
 
