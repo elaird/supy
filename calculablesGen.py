@@ -32,7 +32,6 @@ class genPhotonCategory(wrappedChain.calculable) :
         return "category"+self.label
 
     def __init__(self, label) :
-        self.moreName = "hi"
         self.label = label
         
     def update(self, ignored) :
