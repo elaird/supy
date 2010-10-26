@@ -263,18 +263,29 @@ class photonEfficiencyPlots(analysisStep) :
 
     def uponAcceptance (self, eventVars) :
         genP4s = eventVars["genP4"]
+        nGen = genP4s.size()
+
+        n = 0
         for genIndex in eventVars["genIndices"+self.label] :
             photon = genP4s.at(genIndex)
             pt = photon.pt()
             eta = photon.eta()
             phi = photon.phi()
+            
             if pt<self.ptCut or self.etaCut<abs(eta) : continue
+
+            iso = eventVars["genIsolation"+self.label][genIndex]
+
+            n+=1
+            self.book(eventVars).fill(iso,"photonIso"+self.label, 100, 0.0,  100.0, title = ";gen photon isolation [5 GeV cut-off] (GeV);photons / bin")
             self.book(eventVars).fill(eta,"photonEta"+self.label, 100, -3.0,   3.0, title = ";gen photon #eta;photons / bin")
             self.book(eventVars).fill(pt, "photonPt"+self.label,  100,  0.0, 500.0, title = ";gen photon p_{T} (GeV);photons / bin")
             self.book(eventVars).fill((eta, phi), "photonPhiVsEta"+self.label, (72, 72), (-3.0, -r.TMath.Pi()), (3.0, r.TMath.Pi()),
                                       title = ";gen photon #eta;gen photon #phi;photons / bin")
             self.book(eventVars).fill(len(eventVars[self.indices]), "nJets"+self.label,  10, -0.5, 9.5,   title = ";nJets [gen photon satisfies cuts];photons / bin")
             self.book(eventVars).fill(eventVars[self.ht],           "ht"+self.label,    100,  0.0, 500.0, title = ";H_{T} (GeV) [gen photon satisfies cuts];photons / bin")
+
+        self.book(eventVars).fill(n,"nGenPhotons"+self.label, 10, -0.5, 9.5,title = ";N gen photons [gen photon satisfies cuts];photons / bin")
 #####################################
 class photonPurityPlots(analysisStep) :
 
