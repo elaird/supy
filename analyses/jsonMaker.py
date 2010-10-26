@@ -16,11 +16,11 @@ class jsonMaker(analysis.analysis) :
 
     def listOfSamples(self,params) :
         return [
-            samples.specify(name = "Mu.Run2010_skim"),
+            samples.specify(name = "Photon.Run2010_skim"),
             ]
                 
     def listOfSampleDictionaries(self) :
-        return [samples.jetmet, samples.muon]
+        return [samples.jetmet, samples.muon, samples.photon]
 
     def mainTree(self) :
         return ("lumiTree","tree")
