@@ -10,7 +10,7 @@ photon.add("Photon.Run2010B-PromptReco-v2.RECO.Martyn",   '%s/mjarvis//ICF/autom
 photon.add("Photon.Run2010B-PromptReco-v2.RECO.Robin",    '%s/rnandi//ICF/automated/2010_10_13_14_47_32/")'%srm,  lumi = 99999.9 )
 
 #skim of the above
-photon.add("Photon.Run2010_skim", 'utils.fileListFromDisk(location=  "/vols/cms02/elaird1/11_skims/18_photon_dataset/")', lumi = 99999.9)
+photon.add("Photon.Run2010_skim", 'utils.fileListFromDisk(location=  "/vols/cms02/elaird1/11_skims/18_photon_dataset/")', lumi = 9.421) #/pb
 
 #V5 skims
 dir = "/vols/cms02/elaird1/11_skims/16_photons_skim/"
