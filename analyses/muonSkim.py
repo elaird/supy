@@ -24,11 +24,14 @@ class muonSkim(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify        
         return [
-            specify(name = "Run2010B_MJ_skim2"),
+            specify(name = "Mu.Run2010A-Sep17ReReco_v2.RECO.Robin"),
+            specify(name = "Mu.Run2010B-PromptReco-v2.RECO.Arlo1"),
+            specify(name = "Mu.Run2010B-PromptReco-v2.RECO.Arlo2"),
+            specify(name = "Mu.Run2010B-PromptReco-v2.RECO.Martyn"),
             ]
 
     def listOfSampleDictionaries(self) :
-        return [samples.jetmet,samples.mc]
+        return [samples.jetmet, samples.muon, samples.mc]
 
     def conclude(self) :
         org = organizer.organizer( self.sampleSpecs() )
