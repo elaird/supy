@@ -1,4 +1,5 @@
 from wrappedChain import wrappedChain
+import ROOT as r
 ##############################
 class genMotherPdgId(wrappedChain.calculable) :
 
@@ -25,7 +26,28 @@ class genIndices(wrappedChain.calculable) :
         status = self.source["genStatus"]
         self.value = filter( lambda i: pdg.at(i) in self.PDGs and \
                              status.at(i) in self.status, range(pdg.size()) )
-
+##############################
+class genIsolations(wrappedChain.calculable) :
+    def name(self) : return "genIsolation"+self.label
+    
+    def __init__(self, label = None, coneSize = None) :
+        for item in ["label","coneSize"] :
+            setattr(self,item,eval(item))
+        
+    def update(self, ignored) :
+        genP4s = self.source["genP4"]
+        nGen = genP4s.size()
+        genIndices = self.source["genIndices"+self.label]
+        self.value = {}
+        for genIndex in genIndices :
+            iso = 0.0
+            for iParticle in range(nGen) :
+                if iParticle==genIndex : continue
+                if self.source["genStatus"].at(iParticle)!=1 : continue
+                if self.source["genPdgId"].at(iParticle) in [-12, 12, -14, 14, -16, 16] : continue
+                if r.Math.VectorUtil.DeltaR(genP4s.at(genIndex), genP4s.at(iParticle)) > self.coneSize : continue
+                iso += genP4s.at(iParticle).pt()
+            self.value[genIndex] = iso
 ##############################
 class genPhotonCategory(wrappedChain.calculable) :
     def name(self) :
