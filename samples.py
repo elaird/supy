@@ -40,4 +40,4 @@ class SampleHolder(dict) :
 from samplesMC import *
 from samplesJetMET import *
 from samplesMuon import *
-from samplesPhotonStudies import *
+from samplesPhoton import *
