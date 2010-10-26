@@ -50,7 +50,7 @@ class photonID(wrappedChain.calculable) :
         jei = {}; jeiLower = {}; tbhi = {}; tbhiLower = {}; hcti = {}; hctiLower = {};
         hoe = {}; shhBarrel = {}; shhEndcap = {}; ptVar = {}; etaBE = {}; moreName = {}
         for l in ["EmFromTwiki","LooseFromTwiki","TightFromTwiki",
-                  "AnalysisNote_10_268","EGM_10_006","TrkIsoSideBand","TrkIsoRelaxed","IsoSideBand","IsoRelaxed"] :
+                  "AnalysisNote_10_268","EGM_10_006_Loose","EGM_10_006_Tight","TrkIsoSideBand","TrkIsoRelaxed","IsoSideBand","IsoRelaxed"] :
             jei [l]      = (4.2,  0.0060); jeiLower[l]  = None
             tbhi[l]      = (2.2,  0.0025); tbhiLower[l] = None
             hcti[l]      = None          ; hctiLower[l] = None
@@ -73,13 +73,21 @@ class photonID(wrappedChain.calculable) :
         ptVar    ["AnalysisNote_10_268"] = "Et"
         moreName ["AnalysisNote_10_268"] = "from CMS AN 10-268"
 
-        jei      ["EGM_10_006"] = (2.4,  0.0)
-        tbhi     ["EGM_10_006"] = (1.0,  0.0)
-        hcti     ["EGM_10_006"] = (0.9,  0.0)
-        hoe      ["EGM_10_006"] = (0.03, 0.0)
-        shhBarrel["EGM_10_006"] = (0.01, 0.0)
-        shhEndcap["EGM_10_006"] = (0.028,0.0)
-        moreName ["EGM_10_006"] = "from EGM 10-006"
+        jei      ["EGM_10_006_Tight"] = (2.4,  0.0)
+        tbhi     ["EGM_10_006_Tight"] = (1.0,  0.0)
+        hcti     ["EGM_10_006_Tight"] = (0.9,  0.0)
+        hoe      ["EGM_10_006_Tight"] = (0.03, 0.0)
+        shhBarrel["EGM_10_006_Tight"] = (0.01, 0.0)
+        shhEndcap["EGM_10_006_Tight"] = (0.028,0.0)
+        moreName ["EGM_10_006_Tight"] = "EGM 10-006 tight"
+
+        jei      ["EGM_10_006_Loose"] = (4.2,  0.0)
+        tbhi     ["EGM_10_006_Loose"] = (2.2,  0.0)
+        hcti     ["EGM_10_006_Loose"] = (2.0,  0.0)
+        hoe      ["EGM_10_006_Loose"] = (0.05, 0.0)
+        shhBarrel["EGM_10_006_Loose"] = (0.01, 0.0)
+        shhEndcap["EGM_10_006_Loose"] = (0.03, 0.0)
+        moreName ["EGM_10_006_Loose"] = "EGM 10-006 loose"
 
         hcti     ["TrkIsoRelaxed"] = (10.0, 0.001)
         moreName ["TrkIsoRelaxed"] = "relaxed trkIso"
@@ -191,7 +199,11 @@ class photonIDAnalysisNote_10_268(photonID) :
     def __init__(self, collection = None) :
         super(photonIDAnalysisNote_10_268,self).__init__(collection,"AnalysisNote_10_268")
 ####################################
-class photonIDEGM_10_006(photonID) :
+class photonIDEGM_10_006_Tight(photonID) :
     def __init__(self, collection = None) :
-        super(photonIDEGM_10_006,self).__init__(collection,"EGM_10_006")
+        super(photonIDEGM_10_006_Tight,self).__init__(collection,"EGM_10_006_Tight")
+####################################
+class photonIDEGM_10_006_Loose(photonID) :
+    def __init__(self, collection = None) :
+        super(photonIDEGM_10_006_Loose,self).__init__(collection,"EGM_10_006_Loose")
 ####################################
