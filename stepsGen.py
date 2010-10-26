@@ -254,12 +254,12 @@ class genSHatHistogrammer(analysisStep) :
 #####################################
 class photonEfficiencyPlots(analysisStep) :
 
-    def __init__(self, label, ptCut, etaCut, jets) :
-        for item in ["label","ptCut","etaCut","jets"] :
+    def __init__(self, label, ptCut, etaCut, isoCut, jets) :
+        for item in ["label","ptCut","etaCut","isoCut","jets"] :
             setattr(self,item,eval(item))
         self.ht = "%sSumEt%s"%self.jets
         self.indices = "%sIndices%s"%self.jets
-        self.moreName = "pT>%g GeV; |eta|<%g"%(self.ptCut, self.etaCut)
+        self.moreName = "pT>%g GeV; |eta|<%g; iso<%g"%(self.ptCut, self.etaCut, self.isoCut)
 
     def uponAcceptance (self, eventVars) :
         genP4s = eventVars["genP4"]
@@ -275,6 +275,7 @@ class photonEfficiencyPlots(analysisStep) :
             if pt<self.ptCut or self.etaCut<abs(eta) : continue
 
             iso = eventVars["genIsolation"+self.label][genIndex]
+            if self.isoCut < iso : continue
 
             n+=1
             self.book(eventVars).fill(iso,"photonIso"+self.label, 100, 0.0,  100.0, title = ";gen photon isolation [5 GeV cut-off] (GeV);photons / bin")
