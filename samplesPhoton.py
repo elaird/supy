@@ -9,8 +9,42 @@ photon.add("Photon.Run2010B-PromptReco-v2.RECO.Alex",     '%s/as1604//ICF/automa
 photon.add("Photon.Run2010B-PromptReco-v2.RECO.Martyn",   '%s/mjarvis//ICF/automated/2010_10_22_16_06_53/")'%srm, lumi = 99999.9 )
 photon.add("Photon.Run2010B-PromptReco-v2.RECO.Robin",    '%s/rnandi//ICF/automated/2010_10_13_14_47_32/")'%srm,  lumi = 99999.9 )
 
-#skim of the above
-photon.add("Photon.Run2010_skim", 'utils.fileListFromDisk(location=  "/vols/cms02/elaird1/11_skims/18_photon_dataset/")', lumi = 13.48) #/pb
+#skims from photonSkim.py (1 very loose photon>80 GeV)
+photon.add("Ph.Data_markusSkim", 'utils.fileListFromDisk(location=  "/vols/cms02/elaird1/11_skims/18_photon_dataset/")', lumi = 13.48) #/pb
+dir = "/vols/cms02/elaird1/11_skims/19_onePhotonGt80_skim/"
+photon.add("v12_g_jets_mg_pt100_200_markusSkim", 'utils.fileListFromDisk(location = "%s/v12_g_jets_mg_pt100_200_*_skim.root", isDirectory = False)'%dir,
+           xs = 8.003540e-02 * 4.414520e+03)
+photon.add("v12_g_jets_mg_pt200_markusSkim",     'utils.fileListFromDisk(location = "%s/v12_g_jets_mg_pt200_*_skim.root", isDirectory = False)'%dir,
+           xs = 1.375949e-01 * 6.159500e+02)
+photon.add("v12_g_jets_mg_pt40_100_markusSkim",  'utils.fileListFromDisk(location = "%s/v12_g_jets_mg_pt40_100_*_skim.root", isDirectory = False)'%dir,
+           xs = 4.532579e-03 * 2.999740e+04)
+photon.add("v12_qcd_mg_ht_1000_inf_markusSkim",  'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_1000_inf_*_skim.root", isDirectory = False)'%dir,
+           xs = 1.232644e-03 * 1.054100e+02)
+photon.add("v12_qcd_mg_ht_100_250_markusSkim",   'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_100_250_*_skim.root", isDirectory = False)'%dir,
+           xs = 8.336211e-05 * 8.890000e+06)
+photon.add("v12_qcd_mg_ht_250_500_markusSkim",   'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_250_500_*_skim.root", isDirectory = False)'%dir,
+           xs = 1.871940e-03 * 2.171700e+05)
+photon.add("v12_qcd_mg_ht_500_1000_markusSkim",  'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_500_1000_*_skim.root", isDirectory = False)'%dir,
+           xs = 1.747501e-03 * 6.604000e+03)
+#photon.add("v12_qcd_mg_ht_50_100_markusSkim",    'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_50_100_*_skim.root", isDirectory = False)'%dir,xs = 0.000000e+00 * 3.810000e+07)
+
+##example from photonSkim.py
+##-----------------------------------------------------------------------------------------------
+##v12_qcd_mg_ht_500_1000
+##-----------------------------------------------------------------------------------------------
+##Calculables' configuration:
+##photonIndicesPat                pT>=80.0 GeV; photonIDIsoRelaxedPat
+##photonIDIsoRelaxedPat           relaxed trkIso [ ,10]; hcalIso[ ,6]; ecalIso[ ,8]
+##photonIndicesOtherPat           pass ptMin; fail id/iso
+##-----------------------------------------------------------------------------------------------
+##Steps:                                                                       nPass      (nFail)
+##progressPrinter               factor=2, offset=300
+##multiplicityFilter            1 <= photonIndicesPat                           4080    (2330682)
+##skimmer                       (see below)                                     4080          (0)
+##-----------------------------------------------------------------------------------------------
+##The output file: /vols/cms02/elaird1/tmp//photonSkim//config/v12_qcd_mg_ht_500_1000_plots.root has been written.
+##-----------------------------------------------------------------------------------------------
+
 
 #V5 skims
 dir = "/vols/cms02/elaird1/11_skims/16_photons_skim/"
