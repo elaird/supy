@@ -24,7 +24,7 @@ class photonSkim(analysis.analysis) :
         from samples import specify        
         return [
             specify(name = "EG.Run2010A-Sep17ReReco_v2.RECO"),
-            #specify(name = "Photon.Run2010B-PromptReco-v2.RECO.Alex"),
+            specify(name = "Photon.Run2010B-PromptReco-v2.RECO.Alex"),
             specify(name = "Photon.Run2010B-PromptReco-v2.RECO.Martyn"),
             specify(name = "Photon.Run2010B-PromptReco-v2.RECO.Robin"),
             ]
