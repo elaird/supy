@@ -23,10 +23,15 @@ class photonSkim(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify        
         return [
-            specify(name = "EG.Run2010A-Sep17ReReco_v2.RECO"),
-            specify(name = "Photon.Run2010B-PromptReco-v2.RECO.Alex"),
-            specify(name = "Photon.Run2010B-PromptReco-v2.RECO.Martyn"),
-            specify(name = "Photon.Run2010B-PromptReco-v2.RECO.Robin"),
+            specify(name = "v12_qcd_mg_ht_50_100"),      
+            specify(name = "v12_qcd_mg_ht_100_250"),     
+            specify(name = "v12_qcd_mg_ht_250_500"),     
+            specify(name = "v12_qcd_mg_ht_500_1000"),    
+            specify(name = "v12_qcd_mg_ht_1000_inf"),    
+
+            specify(name = "v12_g_jets_mg_pt40_100"),    
+            specify(name = "v12_g_jets_mg_pt100_200"),   
+            specify(name = "v12_g_jets_mg_pt200"),       
             ]
 
     def listOfSampleDictionaries(self) :
