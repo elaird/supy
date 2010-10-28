@@ -50,15 +50,16 @@ class genMinDeltaRPhotonOther(wrappedChain.calculable) :
         self.label = label
         
     def update(self,ignored) :
-        indices = self.source["genIndicesStatus3NoStatus3Daughter"]
+        st3Indices = self.source["genIndicesStatus3NoStatus3Daughter"]
         genP4s = self.source["genP4"]
         ids = self.source["genPdgId"]
 
         def minDeltaR(photonIndex) :
-            candidates = [ (r.Math.VectorUtil.DeltaR(genP4s.at(photonIndex), genP4s.at(i)), ids.at(i))  for i in indices]
+            candidates = [ (r.Math.VectorUtil.DeltaR(genP4s.at(photonIndex), genP4s.at(i)), ids.at(i))  for i in st3Indices]
             return min(filter(lambda x: x[1]!=22, candidates))
 
-        self.value = min( [minDeltaR(photonIndex) for photonIndex in self.source["genIndices"+self.label]] )[0]
+        photonIndices = self.source["genIndices"+self.label]
+        self.value = min( [minDeltaR(photonIndex) for photonIndex in photonIndices] )[0] if len(photonIndices) else None
 ##############################
 class genIsolations(wrappedChain.calculable) :
     def name(self) : return "genIsolation"+self.label
