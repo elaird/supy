@@ -293,10 +293,10 @@ class photonEfficiencyPlots(analysisStep) :
             jetHt    = eventVars[self.jetHt]
             photonHt = eventVars[self.photonHt]
             
-            self.book(eventVars).fill(nJets,            "nJets"+self.label,              10, -0.5, 9.5,   title = ";nJets [gen photon satisfies cuts];photons / bin")
-            self.book(eventVars).fill(jetHt,            "jetHt"+self.label,             100,  0.0, 600.0, title = ";H_{T} [jets] (GeV) [gen photon satisfies cuts];photons / bin")
-            self.book(eventVars).fill(nJets + nPhotons, "nJetsPlusnPhotons"+self.label,  10, -0.5, 9.5,   title = ";nJets+nPhotons [gen photon satisfies cuts];photons / bin")
-            self.book(eventVars).fill(jetHt + photonHt, "jetHtPlusPhotonHt"+self.label, 100,  0.0, 600.0, title = ";H_{T} [jets+photons] (GeV) [gen photon satisfies cuts];photons / bin")
+            self.book(eventVars).fill(nJets,            "nJets"+self.label,              10, -0.5, 9.5,    title = ";nJets [gen photon satisfies cuts];photons / bin")
+            self.book(eventVars).fill(jetHt,            "jetHt"+self.label,             100,  0.0, 1000.0, title = ";H_{T} [jets] (GeV) [gen photon satisfies cuts];photons / bin")
+            self.book(eventVars).fill(nJets + nPhotons, "nJetsPlusnPhotons"+self.label,  10, -0.5, 9.5,    title = ";nJets+nPhotons [gen photon satisfies cuts];photons / bin")
+            self.book(eventVars).fill(jetHt + photonHt, "jetHtPlusPhotonHt"+self.label, 100,  0.0, 1000.0, title = ";H_{T} [jets+photons] (GeV) [gen photon satisfies cuts];photons / bin")
 
         self.book(eventVars).fill(n,"nGenPhotons"+self.label, 10, -0.5, 9.5,title = ";N gen photons [gen photon satisfies cuts];photons / bin")
 #####################################
