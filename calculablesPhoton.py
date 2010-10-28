@@ -24,6 +24,19 @@ class photonIndicesPat(wrappedChain.calculable) :
             elif ids[i] : self.value.append(i)
             else: other.append(i)
 ##############################
+class sumEt(wrappedChain.calculable) :
+    def name(self) : return "%sSumEt%s"% self.cs
+
+    def __init__(self, collection = None) :
+        self.cs = collection
+        self.p4Name = '%sP4%s' % self.cs
+        self.indicesName = "%sIndices%s" % self.cs
+
+    def update(self,ignored) :
+        p4s = self.source[self.p4Name]
+        indices = self.source[self.indicesName]
+        self.value = reduce( lambda x,i: x+p4s.at(i).Et(), indices , 0)
+##############################
 class leadingPt(wrappedChain.calculable) :
     def name(self) : return "%sLeadingPt%s"%self.photons
 
