@@ -88,6 +88,8 @@ class singlePhotonHistogrammer(analysisStep) :
         self.mhtName = "%sSumP4%s" % self.jetCs
         self.htName  = "%sSumEt%s"%self.jetCs
         self.etaBE = 1.479 #from CMS PAS EGM-10-005
+
+        self.minDeltaRToJet = "%s%sMinDeltaRToJet%s%s"% (self.cs[0], self.cs[1], self.jetCs[0], self.jetCs[1])
         
     def uponAcceptance (self,eventVars) :
         book = self.book(eventVars)
@@ -116,8 +118,8 @@ class singlePhotonHistogrammer(analysisStep) :
             photon = p4s.at(iPhoton)
             pt = photon.pt()
 
-            minDeltaRToJet = min([r.Math.VectorUtil.DeltaR( photon, jetP4s.at(iJet) ) for iJet in cleanJetIndices]) if len(cleanJetIndices) else None
-
+            minDeltaRToJet = eventVars[self.minDeltaRToJet]
+            
             photonLabel = str(i+1) if i <= self.maxIndex else "_ge%d"%(self.maxIndex+2)
             book.fill(seedTimes[iPhoton], "%s%s%sSeedTime" %(self.cs+(photonLabel,)), 100,  -20.0, 20.0, title=";photon%s seed crystal time (ns);events / bin"%photonLabel)
             book.fill(pt,                 "%s%s%sPt" %(self.cs+(photonLabel,)), 50,  0.0, 500.0, title=";photon%s p_{T} (GeV);events / bin"%photonLabel)
@@ -126,7 +128,9 @@ class singlePhotonHistogrammer(analysisStep) :
             book.fill((photon.eta(), photon.phi()),  "%s%s%sPhiVsEta"%(self.cs+(photonLabel,)),
                       (10, 10), (-3.0, -r.TMath.Pi()), (3.0, r.TMath.Pi()), title=";photon%s #eta;photon%s #phi;events / bin"%(photonLabel,photonLabel))
 
-            if minDeltaRToJet : book.fill(minDeltaRToJet,  "%s%s%sMinDRToJet"%(self.cs+(photonLabel,)), 50, 0.0, 5.0, title=";photon%s #DeltaR to closest jet;events / bin"%photonLabel)
+            if iPhoton in minDeltaRToJet :
+                book.fill(minDeltaRToJet[iPhoton],  "%s%s%sMinDRToJet"%(self.cs+(photonLabel,)), 50, 0.0, 5.0, title=";photon%s #DeltaR to closest jet;events / bin"%photonLabel)
+
             if mht==None : continue
             book.fill((pt,mht), "%s%s%smhtVsPhotonPt"%(self.cs+(photonLabel,)),
                       (50, 50), (0.0, 0.0), (500.0, 500.0),
