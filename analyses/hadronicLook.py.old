@@ -95,30 +95,16 @@ class hadronicLook(analysis.analysis) :
             steps.hltPrescaleHistogrammer(["HLT_HT100U","HLT_HT120U","HLT_HT140U","HLT_HT150U"]),
             #steps.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin",
             #                       funcString="lambda x:x.Et()"),
-            
-            steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
-                               funcString="lambda x:len(x)"),
-            steps.multiplicityFilter("%sIndices%s"%_jet, nMin = params["nJetsMinMax"][0], nMax = params["nJetsMinMax"][1]),
-            steps.histogrammer("%sIndicesOther%s"%_jet,10,-0.5,9.5, title=";number of %s%s above p_{T}#semicolon failing ID or #eta;events / bin"%_jet,
-                               funcString="lambda x:len(x)"),
-            steps.multiplicityFilter("%sIndicesOther%s"%_jet, nMax = 0),
-            
-            #electron, muon, photon vetoes
-            steps.histogrammer("%sIndices%s"%_electron,10,-0.5,9.5,title="; N electrons ;events / bin", funcString = "lambda x: len(x)"),
-            steps.multiplicityFilter("%sIndices%s"%_electron, nMax = 0),
-            steps.histogrammer("%sIndices%s"%_muon,10,-0.5,9.5,title="; N muons ;events / bin", funcString = "lambda x: len(x)"),
-            steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
-            steps.histogrammer("%sIndicesOther%s"%_muon,10,-0.5,9.5, title=";number of %s%s above p_{T}#semicolon failing ID or #eta;events / bin"%_muon,
-                               funcString="lambda x:len(x)"),
-            steps.multiplicityFilter("%sIndicesOther%s"%_muon, nMax = 0),
-            steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
-            steps.multiplicityFilter("%sIndices%s"%_photon, nMax = 0),
-            
-            steps.histogrammer("%sIndicesUnmatched%s"%_electron,10,-0.5,9.5,title="; N electrons unmatched;events / bin", funcString = "lambda x: len(x)"),
-            steps.multiplicityFilter("%sIndicesUnmatched%s"%_electron, nMax = 0),
-            steps.histogrammer("%sIndicesUnmatched%s"%_photon,10,-0.5,9.5,title="; N photons unmatched;events / bin", funcString = "lambda x: len(x)"),
-            steps.multiplicityFilter("%sIndicesUnmatched%s"%_photon, nMax = 0),
-            steps.uniquelyMatchedNonisoMuons(_jet),
+            ]
+        outList += steps.multiplicityPlotFilter("%sIndices%s"%_electron,          nMax = 0, xlabel = "N electrons")
+        outList += steps.multiplicityPlotFilter("%sIndices%s"%_muon,              nMax = 0, xlabel = "N muons")
+        outList += steps.multiplicityPlotFilter("%sIndices%s"%_photon,            nMax = 0, xlabel = "N photons") 
+        outList += steps.multiplicityPlotFilter("%sIndicesOther%s"%_jet,          nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID or #eta"%_jet)
+        outList += steps.multiplicityPlotFilter("%sIndicesOther%s"%_muon,         nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID of #eta"%_muon)
+        outList += steps.multiplicityPlotFilter("%sIndicesUnmatched%s"%_electron, nMax = 0, xlabel = "N electrons unmatched")
+        outList += steps.multiplicityPlotFilter("%sIndicesUnmatched%s"%_photon,   nMax = 0, xlabel = "N photons unmatched")
+        outList += steps.multiplicityPlotFilter("%sIndices%s"%_jet, nMin=params["nJetsMinMax"][0], nMax=params["nJetsMinMax"][1], xlabel="number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts"%_jet)
+        outList +=[steps.uniquelyMatchedNonisoMuons(_jet),
             
             steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
             steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
@@ -270,41 +256,30 @@ class hadronicLook(analysis.analysis) :
         outList+=ewk
         outList+=susy
 
-        ##uncomment for short tests
-        #for i in range(len(outList)):
-        #    o = outList[i]
-        #    outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
+        #uncomment for short tests
+        for i in range(len(outList)):
+            o = outList[i]
+            outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
         
         return outList
 
     def mergeSamples(self, org, tag) :
         def py6(org, smSources) :
-            org.mergeSamples(targetSpec = {"name":"qcd_py6_v12", "color":r.kBlue},
-                             sources = ["v12_qcd_py6_pt%d"%i      for i in [80,170,300] ])
+            org.mergeSamples(targetSpec = {"name":"qcd_py6_v12", "color":r.kBlue}, allWithPrefix="v12_qcd_py6")
+            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen}, allWithPrefix="v12_g_jets_py6")
             smSources.append("qcd_py6_v12")
-
-            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen},
-                             sources = ["v12_g_jets_py6_pt%d"%i      for i in [30,80,170] ])
             smSources.append("g_jets_py6_v12")
 
         def py8(org, smSources) :
-            lowerPtList = [0,15,30,50,80,120,170,300,470,600,800,1000,1400,1800]
-            sources = ["qcd_py8_pt%dto%d"%(lowerPtList[i],lowerPtList[i+1]) for i in range(len(lowerPtList)-1)]
-            sources.append("qcd_py8_pt%d"%lowerPtList[-1])
-            org.mergeSamples(targetSpec = {"name":"qcd_py8", "color":r.kBlue}, sources = sources)
+            org.mergeSamples(targetSpec = {"name":"qcd_py8", "color":r.kBlue}, allWithPrefix="qcd_py8")
+            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen}, allWithPrefix="v12_g_jets_py6")
             smSources.append("qcd_py8")
-
-            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen},
-                             sources = ["v12_g_jets_py6_pt%d"%i      for i in [30,80,170] ])
             smSources.append("g_jets_py6_v12")
 
         def mg(org, smSources) :
-            org.mergeSamples(targetSpec = {"name":"qcd_mg_v12", "color":r.kBlue},
-                             sources = ["v12_qcd_mg_ht_%s"%bin for bin in ["50_100","100_250","250_500","500_1000","1000_inf"] ])
+            org.mergeSamples(targetSpec = {"name":"qcd_mg_v12", "color":r.kBlue}, allWithPrefix="v12_qcd_mg")
+            org.mergeSamples(targetSpec = {"name":"g_jets_mg_v12", "color":r.kGreen}, allWithPrefix="v12_g_jets_mg")
             smSources.append("qcd_mg_v12")
-            
-            org.mergeSamples(targetSpec = {"name":"g_jets_mg_v12", "color":r.kGreen},
-                             sources = ["v12_g_jets_mg_pt%s"%bin for bin in ["40_100","100_200","200"] ])
             smSources.append("g_jets_mg_v12")
 
         smSources = ["tt_tauola_mg_v12", "z_inv_mg_v12_skim", "z_jets_mg_v12_skim", "w_jets_mg_v12_skim"]
@@ -312,8 +287,7 @@ class hadronicLook(analysis.analysis) :
         if "pythia8"  in tag : py8(org, smSources)
         if "madgraph" in tag : mg (org, smSources)
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
-        org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20},
-                         sources = ["Run2010B_MJ_skim","Run2010B_MJ_skim2","Run2010B_J_skim","Run2010B_J_skim2","Run2010A_JM_skim","Run2010A_JMT_skim"])
+        org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="Run2010")
         
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
