@@ -254,11 +254,13 @@ class genSHatHistogrammer(analysisStep) :
 #####################################
 class photonEfficiencyPlots(analysisStep) :
 
-    def __init__(self, label, ptCut, etaCut, isoCut, jets) :
-        for item in ["label","ptCut","etaCut","isoCut","jets"] :
+    def __init__(self, label, ptCut, etaCut, isoCut, jets, photons) :
+        for item in ["label","ptCut","etaCut","isoCut","jets", "photons"] :
             setattr(self,item,eval(item))
-        self.ht = "%sSumEt%s"%self.jets
-        self.indices = "%sIndices%s"%self.jets
+        self.jetHt = "%sSumEt%s"%self.jets
+        self.photonHt = "%sSumEt%s"%self.photons
+        self.jetIndices = "%sIndices%s"%self.jets
+        self.photonIndices = "%sIndices%s"%self.photons
         self.moreName = "pT>%g GeV; |eta|<%g; iso<%g"%(self.ptCut, self.etaCut, self.isoCut)
 
     def uponAcceptance (self, eventVars) :
@@ -285,8 +287,16 @@ class photonEfficiencyPlots(analysisStep) :
             self.book(eventVars).fill(pt, "photonPt"+self.label,  100,  0.0, 500.0, title = ";gen photon p_{T} (GeV);photons / bin")
             self.book(eventVars).fill((eta, phi), "photonPhiVsEta"+self.label, (72, 72), (-3.0, -r.TMath.Pi()), (3.0, r.TMath.Pi()),
                                       title = ";gen photon #eta;gen photon #phi;photons / bin")
-            self.book(eventVars).fill(len(eventVars[self.indices]), "nJets"+self.label,  10, -0.5, 9.5,   title = ";nJets [gen photon satisfies cuts];photons / bin")
-            self.book(eventVars).fill(eventVars[self.ht],           "ht"+self.label,    100,  0.0, 500.0, title = ";H_{T} (GeV) [gen photon satisfies cuts];photons / bin")
+
+            nJets    = len(eventVars[self.jetIndices])
+            nPhotons = len(eventVars[self.photonIndices])
+            jetHt    = eventVars[self.jetHt]
+            photonHt = eventVars[self.photonHt]
+            
+            self.book(eventVars).fill(nJets,            "nJets"+self.label,              10, -0.5, 9.5,   title = ";nJets [gen photon satisfies cuts];photons / bin")
+            self.book(eventVars).fill(jetHt,            "jetHt"+self.label,             100,  0.0, 600.0, title = ";H_{T} [jets] (GeV) [gen photon satisfies cuts];photons / bin")
+            self.book(eventVars).fill(nJets + nPhotons, "nJetsPlusnPhotons"+self.label,  10, -0.5, 9.5,   title = ";nJets+nPhotons [gen photon satisfies cuts];photons / bin")
+            self.book(eventVars).fill(jetHt + photonHt, "jetHtPlusPhotonHt"+self.label, 100,  0.0, 600.0, title = ";H_{T} [jets+photons] (GeV) [gen photon satisfies cuts];photons / bin")
 
         self.book(eventVars).fill(n,"nGenPhotons"+self.label, 10, -0.5, 9.5,title = ";N gen photons [gen photon satisfies cuts];photons / bin")
 #####################################
