@@ -274,6 +274,8 @@ class photonEfficiencyPlots(analysisStep) :
             
             if pt<self.ptCut or self.etaCut<abs(eta) : continue
 
+            if eventVars["category"+self.label][genIndex]=="otherMother" : continue
+            
             iso = eventVars["genIsolation"+self.label][genIndex]
             if self.isoCut < iso : continue
 
