@@ -10,7 +10,14 @@ class genMotherPdgId(wrappedChain.calculable) :
         return 0 if not hasMom else \
                mom if not momStored else \
                self.source["genPdgId"].at(mom)
+##############################
+class genMotherIndex(wrappedChain.calculable) :
 
+    def update(self,ignored) :
+        self.value = map( self.motherIndex, self.source["genHasMother"], self.source["genMotherStored"], self.source["genMother"])
+
+    def motherIndex(self, hasMom, momStored, mom) :
+        return -1 if not (hasMom and momStored) else mom
 ##############################
 class genIndices(wrappedChain.calculable) :
     def name(self) : return "genIndices" + self.label
@@ -26,6 +33,32 @@ class genIndices(wrappedChain.calculable) :
         status = self.source["genStatus"]
         self.value = filter( lambda i: pdg.at(i) in self.PDGs and \
                              status.at(i) in self.status, range(pdg.size()) )
+##############################
+class genIndicesStatus3NoStatus3Daughter(wrappedChain.calculable) :
+    def update(self,ignored) :
+        status = self.source["genStatus"]
+        mother = self.source["genMotherIndex"]
+
+        status3List = filter( lambda i: status.at(i)==3, range(status.size()) )
+        motherIndices = set([mother[i] for i in status3List])
+        self.value = filter( lambda i: i not in motherIndices, status3List )
+##############################
+class genMinDeltaRPhotonOther(wrappedChain.calculable) :
+    def name(self) : return "genMinDeltaRPhotonOther"+self.label
+    
+    def __init__(self, label) :
+        self.label = label
+        
+    def update(self,ignored) :
+        indices = self.source["genIndicesStatus3NoStatus3Daughter"]
+        genP4s = self.source["genP4"]
+        ids = self.source["genPdgId"]
+
+        def minDeltaR(photonIndex) :
+            candidates = [ (r.Math.VectorUtil.DeltaR(genP4s.at(photonIndex), genP4s.at(i)), ids.at(i))  for i in indices]
+            return min(filter(lambda x: x[1]!=22, candidates))
+
+        self.value = min( [minDeltaR(photonIndex) for photonIndex in self.source["genIndices"+self.label]] )[0]
 ##############################
 class genIsolations(wrappedChain.calculable) :
     def name(self) : return "genIsolation"+self.label
