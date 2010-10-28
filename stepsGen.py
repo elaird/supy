@@ -257,10 +257,13 @@ class photonEfficiencyPlots(analysisStep) :
     def __init__(self, label, ptCut, etaCut, isoCut, jets, photons) :
         for item in ["label","ptCut","etaCut","isoCut","jets", "photons"] :
             setattr(self,item,eval(item))
-        self.jetHt = "%sSumEt%s"%self.jets
-        self.photonHt = "%sSumEt%s"%self.photons
-        self.jetIndices = "%sIndices%s"%self.jets
+        self.jetHt         = "%sSumEt%s"  %self.jets
+        self.photonHt      = "%sSumEt%s"  %self.photons
+        
+        self.jetIndices    = "%sIndices%s"%self.jets
         self.photonIndices = "%sIndices%s"%self.photons
+
+        self.minDeltaRToJet = "%s%sMinDeltaRToJet%s%s"% (self.photons[0], self.photons[1], self.jets[0], self.jets[1])
         self.moreName = "pT>%g GeV; |eta|<%g; iso<%g"%(self.ptCut, self.etaCut, self.isoCut)
 
     def uponAcceptance (self, eventVars) :
@@ -288,16 +291,21 @@ class photonEfficiencyPlots(analysisStep) :
             self.book(eventVars).fill((eta, phi), "photonPhiVsEta"+self.label, (72, 72), (-3.0, -r.TMath.Pi()), (3.0, r.TMath.Pi()),
                                       title = ";gen photon #eta;gen photon #phi;photons / bin")
 
-            nJets    = len(eventVars[self.jetIndices])
-            nPhotons = len(eventVars[self.photonIndices])
-            jetHt    = eventVars[self.jetHt]
-            photonHt = eventVars[self.photonHt]
+            nJets = len(eventVars[self.jetIndices])
+            jetHt = eventVars[self.jetHt]
+
+            photonIndices = eventVars[self.photonIndices]
+            nPhotons      = len(photonIndices)
+            photonHt      = eventVars[self.photonHt]
             
             self.book(eventVars).fill(nJets,            "nJets"+self.label,              10, -0.5, 9.5,    title = ";nJets [gen photon satisfies cuts];photons / bin")
             self.book(eventVars).fill(jetHt,            "jetHt"+self.label,             100,  0.0, 1000.0, title = ";H_{T} [jets] (GeV) [gen photon satisfies cuts];photons / bin")
             self.book(eventVars).fill(nJets + nPhotons, "nJetsPlusnPhotons"+self.label,  10, -0.5, 9.5,    title = ";nJets+nPhotons [gen photon satisfies cuts];photons / bin")
             self.book(eventVars).fill(jetHt + photonHt, "jetHtPlusPhotonHt"+self.label, 100,  0.0, 1000.0, title = ";H_{T} [jets+photons] (GeV) [gen photon satisfies cuts];photons / bin")
-
+            deltaR = eventVars["genMinDeltaRPhotonOtherStatus3Photon"]
+            if deltaR!=None : 
+                self.book(eventVars).fill(deltaR, "getMinDeltaRPhotonOtherStatus3Photon"+self.label,50, 0.0, 5.0,
+                                          title = ";#DeltaR between st.3 photon and nearest daughterless st.3 particle; events / bin")
         self.book(eventVars).fill(n,"nGenPhotons"+self.label, 10, -0.5, 9.5,title = ";N gen photons [gen photon satisfies cuts];photons / bin")
 #####################################
 class photonPurityPlots(analysisStep) :
