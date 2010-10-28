@@ -361,3 +361,32 @@ def printSkimResults(org) :
             print name.ljust(nameLength) + dir.ljust(dirLength) + eff.ljust(effLength)
         print
 #####################################
+def phiOrder(p4s, indices) :
+    if not indices : return indices
+    mp4 = reduce(lambda x,i: x-p4s.at(i), indices, r.LorentzV())
+    iPhi = collections.deque(sorted(indices, key = lambda i: p4s.at(i).phi()))
+    dphi = [r.Math.VectorUtil.DeltaPhi(mp4,p4s.at(i)) for i in iPhi]
+    dphiP = [dp if dp>0 else 2*math.pi + dp for dp in dphi]
+    rotation = -dphiP.index(min(dphiP))
+    iPhi.rotate(rotation)
+    return iPhi
+#####################################
+def partialSumP4(p4s, indices) :
+    partial = [r.LorentzV()]
+    for i in indices:
+        partial.append(partial[-1]+p4s[i])
+    return partial
+#####################################
+# Area and Centroid of polygon
+# http://en.wikipedia.org/wiki/Polygon
+def partialSumP4Area(partials) :
+    p = partials + partials[:1]
+    return 0.5 * sum([ p[i].x()*p[i+1].y() - p[i+1].x()*p[i].y() for i in range(len(partials))])
+def partialSumP4Centroid(partials) :
+    A = partialSumP4Area(partials)
+    p = partials + partials[:1]
+    oneOverSixA = 1./(6*A)
+    Cx = oneOverSixA * sum([ (p[i].x()+p[i+1].x())*(p[i].x()*p[i+1].y() - p[i+1].x()*p[i].y()) for i in range(len(partials))])
+    Cy = oneOverSixA * sum([ (p[i].y()+p[i+1].y())*(p[i].x()*p[i+1].y() - p[i+1].x()*p[i].y()) for i in range(len(partials))])
+    return r.LorentzV(Cx,Cy,0,0)
+#####################################

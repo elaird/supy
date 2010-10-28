@@ -1,5 +1,6 @@
 from wrappedChain import *
-import math,calculables
+import math,collections
+import calculables,utils
 
 def xcStrip(collection) :
     return (collection[0].lstrip("xc"),collection[1])
@@ -65,6 +66,15 @@ class jetIndices(wrappedChain.calculable) :
                 self.value.append(i)
             else: other.append(i)
         self.value.sort( key = pt2s.__getitem__, reverse = True)
+####################################
+class jetIndicesPhi(wrappedChain.calculable) :
+    def name(self) : return self.name_
+    def __init__(self,collection) :
+        self.name_ = "%sIndicesPhi%s"%collection
+        self.jets = "%sCorrectedP4%s"%collection
+        self.indices = "%sIndices%s"%collection
+    def update(self,ignored) :
+        self.value = utils.phiOrder(self.source[self.jets], self.source[self.indices])
 ####################################
 class PFJetID(wrappedChain.calculable) :
     def name(self) : return self.idName
@@ -171,6 +181,29 @@ class jetSumP4(wrappedChain.calculable) :
         p4s = self.source[self.p4Name]
         indices = self.source[self.indicesName]
         self.value = reduce( lambda x,i: x+p4s.at(i), indices[1:], p4s.at(indices[0]) ) if len(indices) else None
+##############################
+class jetPartialSumP4(wrappedChain.calculable) :
+    def name(self) : return self.name_
+    def __init__(self,collection) :
+        self.name_ = "%sPartialSumP4%s"%collection
+        self.p4s = "%sCorrectedP4%s"%collection
+        self.indices = "%sIndicesPhi%s"%collection
+    def update(self,ignored) :
+        self.value = utils.partialSumP4(self.source[self.p4s], self.source[self.indices])
+class jetPartialSumP4Centroid(wrappedChain.calculable) :
+    def name(self) : return self.name_
+    def __init__(self,collection) :
+        self.name_ = "%sPartialSumP4Centroid%s"%collection
+        self.partials = "%sPartialSumP4%s"%collection
+    def update(self,ignored) :
+        self.value = utils.partialSumP4Centroid(self.source[self.partials])
+class jetPartialSumP4Area(wrappedChain.calculable) :
+    def name(self) : return self.name_
+    def __init__(self,collection) :
+        self.name_ = "%sPartialSumP4Area%s"%collection
+        self.partials = "%sPartialSumP4%s"%collection
+    def update(self,ignored) :
+        self.value = utils.partialSumP4Area(self.source[self.partials])
 ##############################
 class jetSumP4PlusPhotons(wrappedChain.calculable) :
     def name(self) : return "%sSumP4PlusPhotons%s%s" % (self.cs[0], self.cs[1], self.extraName)

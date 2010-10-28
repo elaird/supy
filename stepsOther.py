@@ -375,13 +375,13 @@ class displayer(analysisStep) :
     def __init__(self,jets = ("",""), met = "", muons = "", electrons = "", photons = "",
                  recHits = "", recHitPtThreshold = -1.0, scale = 200.0,
                  etRatherThanPt = False, doGenParticles = False, doEtaPhiPlot = True,
-                 hotTpThreshold = -1.0, deltaPhiStarExtraName = "") :
+                 hotTpThreshold = -1.0, deltaPhiStarExtraName = "", tipToTail = False) :
 
         self.moreName = "(see below)"
 
         for item in ["scale","jets","met","muons","electrons","photons",
                      "recHits","recHitPtThreshold","doGenParticles",
-                     "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName"] :
+                     "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "tipToTail"] :
             setattr(self,item,eval(item))
 
         self.genJets = self.jets
@@ -479,19 +479,21 @@ class displayer(analysisStep) :
 
         return []
 
-    def drawP4(self,p4,color,lineWidth,arrowSize) :
-        x1=self.x0+p4.px()*self.radius/self.scale
-        y1=self.y0+p4.py()*self.radius/self.scale
+    def drawP4(self,p4,color,lineWidth,arrowSize, p4Initial = None) :
+        x0 = self.x0+p4Initial.px()*self.radius/self.scale if p4Initial else self.x0
+        y0 = self.y0+p4Initial.py()*self.radius/self.scale if p4Initial else self.y0
+        x1 = x0+p4.px()*self.radius/self.scale
+        y1 = y0+p4.py()*self.radius/self.scale
 
         #self.line.SetLineColor(color)
         #self.line.SetLineWidth(lineWidth)
-        #self.line.DrawLine(self.x0,self.y0,x1,y1)
+        #self.line.DrawLine(x0,y0,x1,y1)
 
         self.arrow.SetLineColor(color)
         self.arrow.SetLineWidth(lineWidth)
         self.arrow.SetArrowSize(arrowSize)
         self.arrow.SetFillColor(color)
-        self.arrow.DrawArrow(self.x0,self.y0,x1,y1)
+        self.arrow.DrawArrow(x0,y0,x1,y1)
         
     def drawCircle(self, p4, color, lineWidth, circleRadius) :
         self.ellipse.SetLineColor(color)
@@ -507,8 +509,15 @@ class displayer(analysisStep) :
 
         genJets = "%sGenJetP4%s"%self.genJets
         if genJets[:2] == "xc": genJets = genJets[2:]
-        p4Vector = eventVars[genJets]
-        for jet in p4Vector :
+        p4s = eventVars[genJets]
+        if self.tipToTail :
+            phiOrder = utils.phiOrder(p4s, range(len(p4s)))
+            partials = utils.partialSumP4(p4s, phiOrder)
+            mean = utils.partialSumP4Centroid(partials)
+            for i in range(len(phiOrder)) :
+                self.drawP4( p4s.at(phiOrder[i]), color, lineWidth, 0.3*arrowSize, partials[i]-mean)
+            return
+        for jet in p4s :
             self.drawP4(jet,color,lineWidth,arrowSize)
             
     def drawGenParticles (self, eventVars, color, lineWidth, arrowSize, statusList = None, pdgIdList = None, motherList = None, label = "", circleRadius = None) :
@@ -532,13 +541,21 @@ class displayer(analysisStep) :
         legString = "%scleanJetEntryInLegend%s"%jets
         if not hasattr(self,legString) :
             setattr(self,legString,True)
-            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
+            someLine = self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"clean jets (%s%s)"%jets,"l")
+            
+        p4s = eventVars['%sCorrectedP4%s'%self.jets]
+        if self.tipToTail :
+            phiOrder = eventVars["%sIndicesPhi%s"%self.jets]
+            partials = eventVars["%sPartialSumP4%s"%self.jets]
+            mean = utils.partialSumP4Centroid(partials)
+            for i in range(len(phiOrder)) :
+                self.drawP4( p4s.at(phiOrder[i]), color, lineWidth, 0.3*arrowSize, partials[i]-mean)
+            return
 
-        p4Vector=eventVars['%sCorrectedP4%s'%self.jets]
         cleanJetIndices = eventVars["%sIndices%s"%self.jets]
         for iJet in cleanJetIndices :
-            self.drawP4(p4Vector.at(iJet),color,lineWidth,arrowSize)
+            self.drawP4(p4s.at(iJet),color,lineWidth,arrowSize)
             
     def drawOtherJets (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
@@ -547,7 +564,7 @@ class displayer(analysisStep) :
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"\"other\" jets","l")
 
-        p4Vector=eventVars["%sCorrectedP4%s"%self.jets]
+        p4Vector = eventVars["%sCorrectedP4%s"%self.jets]
         otherJetIndices = eventVars["%sIndicesOther%s"%self.jets]
         for index in otherJetIndices :
             self.drawP4(p4Vector.at(index),color,lineWidth,arrowSize)
@@ -559,13 +576,20 @@ class displayer(analysisStep) :
             someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"ignored jets (%s%s)"%self.jets,"l")
 
-        p4Vector=eventVars["%sCorrectedP4%s"%self.jets]
-        cleanJetIndices = eventVars["%sIndices%s"%self.jets]
-        otherJetIndices = eventVars["%sIndicesOther%s"%self.jets]
-        for iJet in range(len(p4Vector)) :
-            if (iJet in cleanJetIndices) : continue
-            if (iJet in otherJetIndices) : continue
-            self.drawP4(p4Vector.at(iJet),color,lineWidth,arrowSize)
+        p4s = eventVars["%sCorrectedP4%s"%self.jets]
+        ignoredJetIndices = set(range(len(p4s))) \
+                            - set(eventVars["%sIndices%s"%self.jets]) \
+                            - set(eventVars["%sIndicesOther%s"%self.jets])
+        if self.tipToTail :
+            phiOrder = utils.phiOrder(p4s, ignoredJetIndices)
+            partials = utils.partialSumP4(p4s, phiOrder)
+            goodPartials = eventVars["%sPartialSumP4%s"%self.jets]
+            offset = goodPartials[-1] - eventVars["%sPartialSumP4Centroid%s"%self.jets]
+            for i in range(len(phiOrder)) :
+                self.drawP4( p4s.at(phiOrder[i]), color,lineWidth,arrowSize, partials[i]+offset)
+            return
+        for iJet in ignoredJetIndices :
+            self.drawP4(p4s.at(iJet),color,lineWidth,arrowSize)
             
     def drawMht (self,eventVars,color,lineWidth,arrowSize) :
         self.line.SetLineColor(color)
@@ -575,6 +599,12 @@ class displayer(analysisStep) :
             self.legend.AddEntry(someLine,"MHT (%s%s)"%self.jets,"l")
 
         sump4 = eventVars["%sSumP4%s"%self.jets]
+        if self.tipToTail :
+            phiOrder = eventVars["%sIndicesPhi%s"%self.jets]
+            partials = eventVars["%sPartialSumP4%s"%self.jets]
+            mean = eventVars["%sPartialSumP4Centroid%s"%self.jets]
+            if sump4 : self.drawP4(-sump4,color,lineWidth,arrowSize, partials[-1]-mean)
+            return
         if sump4 : self.drawP4(-sump4,color,lineWidth,arrowSize)
             
     def drawHt (self,eventVars,color,lineWidth,arrowSize) :
