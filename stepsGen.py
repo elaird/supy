@@ -322,7 +322,10 @@ class photonPurityPlots(analysisStep) :
     def uponAcceptance (self, eventVars) :
         genP4s   = eventVars["genP4"]
         jetSumP4 = eventVars["%sSumP4%s"%self.jetCs]
-        recoP4   = eventVars["%sP4%s"%self.photonCs].at( eventVars["%sIndices%s"%self.photonCs][0] )
+
+        photonIndices = eventVars["%sIndices%s"%self.photonCs]
+        if not len(photonIndices) : return
+        recoP4   = eventVars["%sP4%s"%self.photonCs].at( photonIndices[0] )
         categories = eventVars["category"+self.label]
 
         recoPt = recoP4.pt()
