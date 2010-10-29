@@ -208,20 +208,20 @@ class jetPartialSumP4Area(wrappedChain.calculable) :
 class jetSumP4PlusPhotons(wrappedChain.calculable) :
     def name(self) : return "%sSumP4PlusPhotons%s%s" % (self.cs[0], self.cs[1], self.extraName)
 
-    def __init__(self, collection = None, extraName = "", photon = None, photonIndices = None) :
+    def __init__(self, collection = None, extraName = "", photon = None) :
         self.cs = collection
         self.extraName = extraName
         self.p4Name = '%sCorrectedP4%s' % self.cs
         self.indicesName = "%sIndices%s%s" % (self.cs[0], self.cs[1], self.extraName)
         self.photonP4Name = '%sP4%s' % photon
         self.photonIndicesName = '%sIndices%s' % photon
-        self.photonIndices = photonIndices
         
     def update(self,ignored) :
         p4s = self.source[self.p4Name]
         indices = self.source[self.indicesName]
         self.value = reduce( lambda x,i: x+p4s.at(i), indices[1:], p4s.at(indices[0]) ) if len(indices) else None
-        for i in self.photonIndices :
+        photonIndices = self.source[self.photonIndicesName]
+        for i in photonIndices :
             self.value += self.source[self.photonP4Name].at(i)
 ##############################
 class deltaPseudoJet(wrappedChain.calculable) :
