@@ -3,9 +3,33 @@ import samples
 mc = samples.SampleHolder()
 srm = 'utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user'
 
+#PY 6 QCD
+tag1 = "/bm409/ICF/automated/2010_10_11_23_08_00/"
+tag2 = "/bbetchar/ICF/automated/2010_10_18_17_55_22/"
+tag3 = "/bbetchar/ICF/automated/2010_10_17_20_12_27/"
+tag4 = "/bm409/ICF/automated/2010_10_11_23_03_46/"
+tagB = "_TuneZ2_7TeV_pythia6.Fall10-START38_V12-v1.GEN-SIM-RECO/"
+
+mc.add('qcd_pt_0to5'          , '%s/%s/QCD_Pt_0to5%s'      %(srm,tag1,tagB), xs = 4.844e+10)
+mc.add('qcd_pt_5to15'         , '%s/%s/QCD_Pt_5to15%s'     %(srm,tag1,tagB), xs = 3.675e+10)
+mc.add('qcd_pt_15to30'        , '%s/%s/QCD_Pt_15to30%s'    %(srm,tag1,tagB), xs = 8.159e+08)
+mc.add('qcd_pt_30to50'        , '%s/%s/QCD_Pt_30to50%s'    %(srm,tag1,tagB), xs = 5.312e+07)
+mc.add('qcd_pt_50to80'        , '%s/%s/QCD_Pt_50to80%s'    %(srm,tag1,tagB), xs = 6.359e+06)
+mc.add('qcd_pt_80to120'       , '%s/%s/QCD_Pt_80to120 %s'  %(srm,tag1,tagB), xs = 7.843e+05)
+mc.add('qcd_pt_120to170'      , '%s/%s/QCD_Pt_120to170%s'  %(srm,tag1,tagB), xs = 1.151e+05)
+mc.add('qcd_pt_170to300'      , '%s/%s/QCD_Pt_170to300%s'  %(srm,tag1,tagB), xs = 2.426e+04)
+mc.add('qcd_py6_pt_300to470'  , '%s/%s/QCD_Pt_300to470%s'  %(srm,tag2,tagB), xs = 1.168e+03)
+mc.add('qcd_py6_pt_470to600'  , '%s/%s/QCD_Pt_470to600%s'  %(srm,tag2,tagB), xs = 7.022e+01)
+mc.add('qcd_py6_pt_600to800'  , '%s/%s/QCD_Pt_600to800%s'  %(srm,tag3,tagB), xs = 1.555e+01)
+mc.add('qcd_py6_pt_800to1000' , '%s/%s/QCD_Pt_800to1000%s' %(srm,tag3,tagB), xs = 1.844e+00)
+#mc.add('qcd_py6_pt_1000to1400', '%s/%s'                    %(srm,tag3)     , xs = 3.321e-01)#requires special handling
+mc.add('qcd_py6_pt_1400to1800', '%s/%s/QCD_Pt_1400to1800%s'%(srm,tag4,tagB), xs = 1.087e-02)
+mc.add('qcd_py6_pt_1800'      , '%s/%s/QCD_Pt_1800%s'      %(srm,tag4,tagB), xs = 3.575e-04)
+            
 #PY 8 QCD
 tag1 = "bbetchar/ICF/automated/2010_10_06_02_22_48"
 tag2 = "Tune1_7TeV_pythia8.Fall10-START38_V12-v1.GEN-SIM-RECO"
+
 mc.add('qcd_py8_pt0to15'     , '%s/%s/QCD_Pt_0to15_%s/")'     %(srm,tag1,tag2), xs = 2.119e+12 )
 mc.add('qcd_py8_pt15to30'    , '%s/%s/QCD_Pt_15to30_%s/")'    %(srm,tag1,tag2), xs = 7.883e+08 )
 mc.add('qcd_py8_pt30to50'    , '%s/%s/QCD_Pt_30to50_%s/")'    %(srm,tag1,tag2), xs = 5.033e+07 )
