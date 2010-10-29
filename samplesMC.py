@@ -22,7 +22,7 @@ mc.add('qcd_py6_pt_300to470'  , '%s/%s/QCD_Pt_300to470%s'  %(srm,tag2,tagB), xs 
 mc.add('qcd_py6_pt_470to600'  , '%s/%s/QCD_Pt_470to600%s'  %(srm,tag2,tagB), xs = 7.022e+01)
 mc.add('qcd_py6_pt_600to800'  , '%s/%s/QCD_Pt_600to800%s'  %(srm,tag3,tagB), xs = 1.555e+01)
 mc.add('qcd_py6_pt_800to1000' , '%s/%s/QCD_Pt_800to1000%s' %(srm,tag3,tagB), xs = 1.844e+00)
-#mc.add('qcd_py6_pt_1000to1400', '%s/%s'                    %(srm,tag3)     , xs = 3.321e-01)#requires special handling
+mc.add('qcd_py6_pt_1000to1400', '%s/%s'                    %(srm,tag3)     , xs = 3.321e-01)
 mc.add('qcd_py6_pt_1400to1800', '%s/%s/QCD_Pt_1400to1800%s'%(srm,tag4,tagB), xs = 1.087e-02)
 mc.add('qcd_py6_pt_1800'      , '%s/%s/QCD_Pt_1800%s'      %(srm,tag4,tagB), xs = 3.575e-04)
             
