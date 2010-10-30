@@ -342,7 +342,7 @@ def printSkimResults(org) :
         d = numDict(index)
         for name in sorted(nEventsIn.keys()) :
             eff = 0.0
-            denom = nEventsIn[name]["fail"]+nEventsIn[name]["pass"]
+            denom = nEventsIn[name]["pass"]
             if denom > 0.0 : eff = d[name]["pass"] / denom
 
             #format output
