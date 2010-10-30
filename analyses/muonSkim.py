@@ -24,10 +24,14 @@ class muonSkim(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify        
         return [
-            specify(name = "Mu.Run2010A-Sep17ReReco_v2.RECO.Robin"),
-            specify(name = "Mu.Run2010B-PromptReco-v2.RECO.Arlo1"),
-            specify(name = "Mu.Run2010B-PromptReco-v2.RECO.Arlo2"),
-            specify(name = "Mu.Run2010B-PromptReco-v2.RECO.Martyn"),
+            #specify(name = "Mu.Run2010A-Sep17ReReco_v2.RECO.Robin"),
+            #specify(name = "Mu.Run2010B-PromptReco-v2.RECO.Arlo1"),
+            #specify(name = "Mu.Run2010B-PromptReco-v2.RECO.Arlo2"),
+            #specify(name = "Mu.Run2010B-PromptReco-v2.RECO.Martyn"),
+            specify(name = "v12_qcd_py6_pt30"),
+            specify(name = "v12_qcd_py6_pt80"),
+            specify(name = "v12_qcd_py6_pt170"),
+            specify(name = "v12_qcd_py6_pt300"),
             ]
 
     def listOfSampleDictionaries(self) :
