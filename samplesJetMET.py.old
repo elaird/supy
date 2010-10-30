@@ -17,24 +17,14 @@ jetmet.add("Run2010A_JM_skim",
 jetmet.add("Run2010A_JMT_skim",
            'utils.fileListFromDisk(location = "/vols/cms02/elaird1/12_skims/JetMETTau.Run2010A-Sep17ReReco_v2.RECO.RAW.Henning/")', lumi = 0.172) #/pb
 
-##deprecated; use the above instead
-##jetmet.add("Run2010B_MJ_skim",
-##           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/13_skims/MultiJet.Run2010B-PromptReco-v2.RECO.Burt/")', lumi = 3.467) #/pb
-##jetmet.add("Run2010B_J_skim",
-##           'utils.fileListFromDisk(location = "/vols/cms02/elaird1/12_skims/Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt/")', lumi = 3.897) #/pb
-##
-
 #38X ORIGINALS
+jetmet.add("MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Bryn",     '%s/bm409//ICF/automated/2010_10_29_17_39_47/")'%srm,    lumi = 99999.9 )
 jetmet.add("MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Burt2",    '%s/bbetchar//ICF/automated/2010_10_22_17_46_53/")'%srm, lumi = 99999.9 )
 jetmet.add("MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Burt",     '%s/bbetchar//ICF/automated/2010_10_18_00_39_32/")'%srm, lumi = 99999.9 )
 jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt2",         '%s/bbetchar//ICF/automated/2010_10_18_00_34_11/")'%srm, lumi = 99999.9 )
 jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.RAW.Burt",          '%s/bbetchar//ICF/automated/2010_10_12_09_56_12/")'%srm, lumi = 99999.9 )
 jetmet.add("JetMET.Run2010A-Sep17ReReco_v2.RECO.RAW.Burt",      '%s/bbetchar//ICF/automated/2010_10_12_10_01_47/")'%srm, lumi = 99999.9 )
 jetmet.add("JetMETTau.Run2010A-Sep17ReReco_v2.RECO.RAW.Henning",'%s/henning//ICF/automated/2010_10_14_11_50_11/")'%srm,  lumi = 99999.9 )
-
-#deprecated; use the above instead
-#jetmet.add("Jet.Run2010B-PromptReco-v2.RECO.Burt3",             '%s/bbetchar//ICF/automated/2010_10_18_00_21_23/")'%srm, lumi = 99999.9 )
-#jetmet.add("MultiJet.Run2010B-PromptReco-v2.RECO.Burt",         '%s/bbetchar//ICF/automated/2010_10_18_00_30_19/")'%srm, lumi = 99999.9 )
 
 #36X SKIM
 jetmet.add("JetMET_skim", 'utils.fileListFromDisk(location="/vols/cms02/elaird1/06_skims/data2/")', lumi = 2.601 ) #/pb
