@@ -10,7 +10,7 @@ class hadronicSkim(analysis.analysis) :
 
     def listOfSteps(self,params) :
         stepList=[ steps.progressPrinter(2,300),
-                   steps.hltFilterList(["HLT_HT100U","HLT_HT120U","HLT_HT140U"]),
+                   steps.hltFilterList(["HLT_HT100U","HLT_HT120U","HLT_HT140U","HLT_HT150U"]),
                    steps.techBitFilter([0],True),
                    steps.physicsDeclared(),
                    steps.vertexRequirementFilter(),
@@ -28,7 +28,7 @@ class hadronicSkim(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         return [
-            specify(name = "MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Burt2"),
+            specify(name = "MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Bryn"),
             ]
 
     def listOfSampleDictionaries(self) :
