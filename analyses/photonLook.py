@@ -181,6 +181,8 @@ class photonLook(analysis.analysis) :
             
             steps.variablePtGreaterFilter(params["thresholds"]["mhtJustBeforeAlphaT"],"%sSumP4%s"%_jet,"GeV"),
             steps.histogrammer("%sAlphaT%s"%_jet, 4, 0.0, 0.55*4, title=";#alpha_{T};events / bin"),
+            steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
+                               funcString="lambda x:len(x)"),
             ]
         if params["thresholds"]["applyAlphaTCut"] :
             outList+=[
@@ -443,9 +445,10 @@ class photonLook(analysis.analysis) :
                 org.scale()
 
             #self.makeStandardPlots(org, tag)
+            self.makeIndividualPlots(org, tag)
             #self.makePurityPlots(org, tag)
             #self.makeEfficiencyPlots(org, tag)
-        self.makeMultiModePlots()
+        #self.makeMultiModePlots()
 
     def makeStandardPlots(self, org, tag) :
         #plot all
@@ -472,9 +475,21 @@ class photonLook(analysis.analysis) :
                              #             "xcak5JetAlphaTRoughPat",
                              #             "xcak5JetAlphaTWithPhoton1PtRatherThanMhtPat",
                              #             ],
-                             
                              )
         pl.plotAll()
+            
+    def makeIndividualPlots(self, org, tag) :
+        #plot all
+        pl = plotter.plotter(org,
+                             psFileName = self.psFileName(tag),
+                             showStatBox = False,
+                             doLog = False,
+                             anMode = True,
+                             )
+        pl.individualPlots([("xcak5JetAlphaTPat",  "variablePtGreaterFilter", "xcak5JetSumP4Pat.pt()>=140.0 GeV"),
+                            ("xcak5JetIndicesPat", "variablePtGreaterFilter", "xcak5JetSumP4Pat.pt()>=140.0 GeV"),
+                            ])
+
             
     def makeEfficiencyPlots(self, org, tag) :
         def sampleIndex(org, name) :
