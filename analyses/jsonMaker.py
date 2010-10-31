@@ -16,7 +16,7 @@ class jsonMaker(analysis.analysis) :
 
     def listOfSamples(self,params) :
         return [
-            samples.specify(name = "Photon.Run2010_skim"),
+            samples.specify(name = "Run2010B_MJ_skim3"),
             ]
                 
     def listOfSampleDictionaries(self) :
