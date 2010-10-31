@@ -81,7 +81,6 @@ class hadronicLook(analysis.analysis) :
         outList=[
             steps.progressPrinter(),
             steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
-
             steps.jetPtSelector(_jet,100.0,0),
             steps.jetPtSelector(_jet,100.0,1),
             steps.jetEtaSelector(_jet,2.5,0),
@@ -133,14 +132,14 @@ class hadronicLook(analysis.analysis) :
             #signal selection
             #steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
-
+        
             #steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - %s)/(MHT+HT);events / bin"%_met),
             #steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
-
+        
             steps.histogrammer("mhtOverMet", 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
             steps.variableLessFilter(1.25,"mhtOverMet"),
             steps.deadEcalFilter(jets = _jet, extraName = lowPtName, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
-
+        
             ##steps.variableGreaterFilter(0.53,"%sAlphaTMet%s"%_jet),
             
             #steps.skimmer(),
@@ -164,7 +163,7 @@ class hadronicLook(analysis.analysis) :
             #                deltaPhiStarExtraName = lowPtName,                            
             #                ),
             
-            ]
+          ]
         return outList
 
     def listOfSampleDictionaries(self) :
@@ -172,7 +171,8 @@ class hadronicLook(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify
-        data = [                                                
+        data = [
+            specify(name = "Run2010B_MJ_skim3",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim2",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
@@ -306,7 +306,8 @@ class hadronicLook(analysis.analysis) :
                                  samplesForRatios = ("2010 Data","standard_model"),
                                  sampleLabelsForRatios = ("data","s.m."),
                                  #whiteList = ["xcak5JetAlphaTPat","xcak5JetAlphaTZoomPat"],
-                                 #compactOutput = True
+                                 #compactOutput = True,
+                                 blackList = ["lumiHisto","xsHisto","nJobsHisto"]
                                  )
             pl.plotAll()
 
