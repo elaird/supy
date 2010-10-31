@@ -62,8 +62,8 @@ def makeAlphaTFunc(alphaTValue) :
     alphaTFunc.SetNpx(300)
     return alphaTFunc
 ##############################
-def adjustPad(pad) :
-    r.gPad.SetRightMargin(0.15)
+def adjustPad(pad, anMode) :
+    if not anMode : r.gPad.SetRightMargin(0.15)
     r.gPad.SetTicky()
     r.gPad.SetTickx()
 ##############################
@@ -75,6 +75,7 @@ class plotter(object) :
                  sampleLabelsForRatios = ("",""),
                  showStatBox = True,
                  doLog = True,
+                 anMode = False,
                  drawYx = False,
                  doMetFit = False,
                  doColzFor2D = True,
@@ -86,7 +87,7 @@ class plotter(object) :
                  whiteList = []
                  ) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios",
-                     "doLog","drawYx","doMetFit","doColzFor2D","nLinesMax","compactOutput",
+                     "doLog","anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","compactOutput",
                      "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox" ] :
             setattr(self,item,eval(item))
 
@@ -94,7 +95,7 @@ class plotter(object) :
         self.blackList.append("counts")
         self.plotRatios = self.samplesForRatios!=("","")        
         self.psOptions = "Landscape"
-        self.canvas = r.TCanvas()
+        self.canvas = r.TCanvas("canvas", "canvas", 500, 500) if self.anMode else r.TCanvas()
 
     def plotAll(self) :
         print utils.hyphens
@@ -125,6 +126,40 @@ class plotter(object) :
 
         self.printCanvas("]")
         self.makePdf()
+        print utils.hyphens
+
+
+    def printOnePage(self, name, tight = False) :
+        fileName = "%s_%s.eps"%(self.psFileName.replace(".ps",""),name)
+        self.canvas.Print(fileName)
+
+        if not tight : #make pdf
+            os.system("epstopdf "+fileName)
+            os.system("rm       "+fileName)            
+        else : #make pdf with tight bounding box
+            epsiFile = fileName.replace(".eps",".epsi")
+            os.system("ps2epsi "+fileName+" "+epsiFile)
+            os.system("epstopdf "+epsiFile)
+            os.system("rm       "+epsiFile)
+
+        print "The output file \"%s\" has been written."%fileName.replace(".eps",".pdf")
+
+    def individualPlots(self, plotNames) :
+        print utils.hyphens
+        setupStyle()
+
+        def histos(plotName) :
+            for selection in self.someOrganizer.selections :
+                if (selection.name, selection.title) != plotName[1:] : continue
+                if plotName[0] not in selection : continue
+                return selection[plotName[0]]
+
+        for plotName in plotNames :
+            h = histos(plotName)
+            if h==None : continue
+            stuff = self.onePlotFunction(h, plotName, individual = True)
+            self.printOnePage(plotName[0], tight = self.anMode)
+
         print utils.hyphens
 
     def printCalculables(self) :
@@ -313,11 +348,7 @@ class plotter(object) :
 
     def plotEachHisto(self,histos,dimension) :
         stuffToKeep=[]
-        x1=0.86
-        x2=1.00
-        y1=0.60
-        y2=0.10
-        legend=r.TLegend(x1,y1,x2,y2)
+        legend = r.TLegend(0.86, 0.60, 1.00, 0.10) if not self.anMode else r.TLegend(0.65, 0.65, 0.85, 0.85)
         stuffToKeep.append(legend)
 
         count = 0
@@ -363,7 +394,7 @@ class plotter(object) :
                     ratio.SetMaximum(2.0)
                     ratio.GetYaxis().SetTitle(numLabel+"/"+denomLabel)
                     self.canvas.cd(2)
-                    adjustPad(r.gPad)
+                    adjustPad(r.gPad, self.anMode)
                     r.gPad.SetGridy()
                     ratio.SetStats(False)
                     ratio.GetXaxis().SetLabelSize(0.0)
@@ -386,7 +417,7 @@ class plotter(object) :
             ratios.append(ratio)
         return ratios
 
-    def onePlotFunction(self,histos,plotName) :
+    def onePlotFunction(self, histos, plotName, individual = False) :
         dimension = dimensionOfHisto(histos)
         self.prepareCanvas(histos,dimension)
         self.setRanges(histos,dimension)
@@ -395,14 +426,16 @@ class plotter(object) :
         if self.plotRatios and dimension==1 :
             ratios = self.plotRatio(histos,dimension)
         self.canvas.cd(0)
-        if count>0 :
+        if count>0 and not individual :
             self.printCanvas()
+        if individual :
+            return stuffToKeep
 
     def plot1D(self,histo,count,stuffToKeep) :
         if self.shiftUnderOverFlows and histo.GetName() not in self.dontShiftList :
             shiftUnderAndOverflows(histo)
 
-        adjustPad(r.gPad)
+        adjustPad(r.gPad, self.anMode)
         if count==0 :
             histo.SetStats(self.showStatBox)
             histo.Draw()
