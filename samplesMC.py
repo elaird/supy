@@ -45,14 +45,14 @@ mc.add('qcd_py8_pt1000to1400', '%s/%s/QCD_Pt_1000to1400_%s/")'%(srm,tag1,tag2), 
 mc.add('qcd_py8_pt1400to1800', '%s/%s/QCD_Pt_1400to1800_%s/")'%(srm,tag1,tag2), xs = 1.180e-02 )
 mc.add('qcd_py8_pt1800'      , '%s/%s/QCD_Pt_1800_%s/")'      %(srm,tag1,tag2), xs = 3.802e-04 )
 
-#PY6 mu-enriched QCD
-tag1 = "/bbetchar//ICF/automated/2010_10_29_20_17_55/"
-mc.add('qcd_py6_mu_pt20to30'  , '%s/%s/QCD_Mu_Pt20to30.Summer10-START36_V9_S09-v1.GEN-SIM-RECO/'  %(srm,tag1), xs = None)
-mc.add('qcd_py6_mu_pt30to50'  , '%s/%s/QCD_Mu_Pt30to50.Summer10-START36_V9_S09-v1.GEN-SIM-RECO/'  %(srm,tag1), xs = None)
-mc.add('qcd_py6_mu_pt50to80'  , '%s/%s/QCD_Mu_Pt50to80.Summer10-START36_V9_S09-v1.GEN-SIM-RECO/'  %(srm,tag1), xs = None)
-mc.add('qcd_py6_mu_pt80to120' , '%s/%s/QCD_Mu_Pt80to120.Summer10-START36_V9_S09-v1.GEN-SIM-RECO/' %(srm,tag1), xs = None)
-mc.add('qcd_py6_mu_pt120to170', '%s/%s/QCD_Mu_Pt120to170.Summer10-START36_V9_S09-v1.GEN-SIM-RECO/'%(srm,tag1), xs = None)
-mc.add('qcd_py6_mu_pt170toInf', '%s/%s/QCD_Mu_Pt170toInf.Summer10-START36_V9_S09-v1.GEN-SIM-RECO/'%(srm,tag1), xs = None)
+##PY6 mu-enriched QCD
+#tag1 = "/bbetchar//ICF/automated/2010_10_29_20_17_55/"
+#mc.add('qcd_py6_mu_pt20to30'  , '%s/%s/QCD_Mu_Pt20to30.Summer10-START36_V9_S09-v1.GEN-SIM-RECO/'  %(srm,tag1), xs = None)
+#mc.add('qcd_py6_mu_pt30to50'  , '%s/%s/QCD_Mu_Pt30to50.Summer10-START36_V9_S09-v1.GEN-SIM-RECO/'  %(srm,tag1), xs = None)
+#mc.add('qcd_py6_mu_pt50to80'  , '%s/%s/QCD_Mu_Pt50to80.Summer10-START36_V9_S09-v1.GEN-SIM-RECO/'  %(srm,tag1), xs = None)
+#mc.add('qcd_py6_mu_pt80to120' , '%s/%s/QCD_Mu_Pt80to120.Summer10-START36_V9_S09-v1.GEN-SIM-RECO/' %(srm,tag1), xs = None)
+#mc.add('qcd_py6_mu_pt120to170', '%s/%s/QCD_Mu_Pt120to170.Summer10-START36_V9_S09-v1.GEN-SIM-RECO/'%(srm,tag1), xs = None)
+#mc.add('qcd_py6_mu_pt170toInf', '%s/%s/QCD_Mu_Pt170toInf.Summer10-START36_V9_S09-v1.GEN-SIM-RECO/'%(srm,tag1), xs = None)
        
 ###############
 ##V12 samples##
