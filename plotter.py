@@ -438,6 +438,7 @@ class plotter(object) :
         adjustPad(r.gPad, self.anMode)
         if count==0 :
             histo.SetStats(self.showStatBox)
+            histo.GetYaxis().SetTitleOffset(1.25)
             histo.Draw()
             if self.doLog : r.gPad.SetLogy()
         else :
