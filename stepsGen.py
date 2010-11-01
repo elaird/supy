@@ -254,8 +254,8 @@ class genSHatHistogrammer(analysisStep) :
 #####################################
 class photonEfficiencyPlots(analysisStep) :
 
-    def __init__(self, label, ptCut, etaCut, isoCut, jets, photons) :
-        for item in ["label","ptCut","etaCut","isoCut","jets", "photons"] :
+    def __init__(self, label, ptCut, etaCut, isoCut, deltaRCut, jets, photons) :
+        for item in ["label","ptCut","etaCut","isoCut","deltaRCut","jets", "photons"] :
             setattr(self,item,eval(item))
         self.jetHt         = "%sSumEt%s"  %self.jets
         self.photonHt      = "%sSumEt%s"  %self.photons
@@ -263,8 +263,11 @@ class photonEfficiencyPlots(analysisStep) :
         self.jetIndices    = "%sIndices%s"%self.jets
         self.photonIndices = "%sIndices%s"%self.photons
 
-        self.minDeltaRToJet = "%s%sMinDeltaRToJet%s%s"% (self.photons[0], self.photons[1], self.jets[0], self.jets[1])
-        self.moreName = "pT>%g GeV; |eta|<%g; iso<%g"%(self.ptCut, self.etaCut, self.isoCut)
+        self.moreName = ""
+        if self.ptCut!=None     : self.moreName += "pT>%g GeV; "%self.ptCut
+        if self.etaCut!=None    : self.moreName += "|eta|<%g; "%self.etaCut
+        if self.isoCut!=None    : self.moreName += "iso<%g; "%self.isoCut
+        if self.deltaRCut!=None : self.moreName += "deltaR>%g; "%self.deltaRCut
 
     def uponAcceptance (self, eventVars) :
         genP4s = eventVars["genP4"]
@@ -280,9 +283,13 @@ class photonEfficiencyPlots(analysisStep) :
             if pt<self.ptCut or self.etaCut<abs(eta) : continue
 
             if eventVars["category"+self.label][genIndex]=="otherMother" : continue
+
+            deltaR = eventVars["genMinDeltaRPhotonOtherStatus3Photon"]
+            if self.deltaRCut!=None and deltaR==None : continue
+            if self.deltaRCut!=None and deltaR < self.deltaRCut : continue
             
             iso = eventVars["genIsolation"+self.label][genIndex]
-            if self.isoCut < iso : continue
+            if self.isoCut!=None and self.isoCut < iso : continue
 
             n+=1
             self.book(eventVars).fill(iso,"photonIso"+self.label, 100, 0.0,  100.0, title = ";gen photon isolation [5 GeV cut-off] (GeV);photons / bin")
@@ -302,7 +309,6 @@ class photonEfficiencyPlots(analysisStep) :
             self.book(eventVars).fill(jetHt,            "jetHt"+self.label,             100,  0.0, 1000.0, title = ";H_{T} [jets] (GeV) [gen photon satisfies cuts];photons / bin")
             self.book(eventVars).fill(nJets + nPhotons, "nJetsPlusnPhotons"+self.label,  10, -0.5, 9.5,    title = ";nJets+nPhotons [gen photon satisfies cuts];photons / bin")
             self.book(eventVars).fill(jetHt + photonHt, "jetHtPlusPhotonHt"+self.label, 100,  0.0, 1000.0, title = ";H_{T} [jets+photons] (GeV) [gen photon satisfies cuts];photons / bin")
-            deltaR = eventVars["genMinDeltaRPhotonOtherStatus3Photon"]
             if deltaR!=None : 
                 self.book(eventVars).fill(deltaR, "getMinDeltaRPhotonOtherStatus3Photon"+self.label,50, 0.0, 5.0,
                                           title = ";#DeltaR between st.3 photon and nearest daughterless st.3 particle; events / bin")
