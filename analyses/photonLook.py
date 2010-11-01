@@ -18,10 +18,10 @@ class photonLook(analysis.analysis) :
         #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,     ]))
 
         thresholds = {}
-        fields =                                 ["jetPtMin","jet1PtMin","jet2PtMin", "ht","mhtJustBeforeAlphaT","applyAlphaTCut","applyTrigger","photonPt","genPhotonPtMin"] 
-        thresholds["signal"]  = dict(zip(fields, [   50.0,       100.0,    100.0,    350.0,       140.0,                     True,          True,   100.0,         110.0    ]))
-        #thresholds["relaxed"] = dict(zip(fields, [   36.0,        72.0,     72.0,    250.0,       100.0,                     True,          True,    80.0,          90.0    ]))
-        #thresholds["markus"]  = dict(zip(fields, [   30.0,        30.0,     None,     None,       140.0,                    False,         False,    100.0,         110.0    ]))
+        fields =                                 ["jetPtMin","jet1PtMin","jet2PtMin","htLower","htUpper","mht","applyAlphaTCut","applyTrigger","photonPt","genPhotonPtMin"]
+        thresholds["signal"]  = dict(zip(fields, [   50.0,       100.0,    100.0,      350.0,    None,   140.0,      True,           True,        100.0,         110.0    ]))
+        ####thresholds["relaxed"] = dict(zip(fields, [   36.0,        72.0,     72.0,    250.0,       None, 100.0,     True,           True,    80.0,          90.0    ]))
+        #thresholds["relaxed"]  = dict(zip(fields, [  50.0,        50.0,     50.0,      250.0,   350.0,   140.0,      True,         False,        100.0,         110.0    ]))
 
         return { "objects": objects,
                  "thresholds": thresholds,
@@ -39,8 +39,9 @@ class photonLook(analysis.analysis) :
                                              ("photonEGM-10-006-Tight","photonIDEGM_10_006_TightPat"),#7
 
                                              ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [7:8] ),
-                 "zMode" :            dict([ ("zMode",True), ("",False) ]                              [1:2] ),
-                 "skimString" : ["","_phskim","_markusSkim"] [1],
+                 "zMode" :            dict([ ("zMode",True), ("",False) ]                              [:] ),
+                 #"skimString" : ["","_phskim","_markusSkim"] [2],
+                 "skimString" : ["","_markusSkim"]           [1],
                  "jetId" :  ["JetIDloose","JetIDtight"]      [0],
                  "etRatherThanPt" : [True,False]             [0],
                  }
@@ -129,7 +130,8 @@ class photonLook(analysis.analysis) :
             #steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
             ]
 
-        if params["thresholds"]["ht"]!=None : outList+=[steps.variableGreaterFilter(params["thresholds"]["ht"],"%sSumEt%s"%_jet, suffix = "GeV")]
+        if params["thresholds"]["htLower"]!=None : outList+=[steps.variableGreaterFilter(params["thresholds"]["htLower"],"%sSumEt%s"%_jet, suffix = "GeV")]
+        if params["thresholds"]["htUpper"]!=None : outList+=[steps.variableLessFilter   (params["thresholds"]["htUpper"],"%sSumEt%s"%_jet, suffix = "GeV")]
 
         outList+=[
             #bad jet, electron, muon, vetoes
@@ -142,7 +144,8 @@ class photonLook(analysis.analysis) :
         if not params["zMode"] :
             outList+=[
                 steps.passFilter("photonEfficiencyPlots1"),
-                steps.photonEfficiencyPlots(label = "Status1Photon", ptCut = params["thresholds"]["genPhotonPtMin"], etaCut = 1.4, isoCut = 5.0, jets = _jet, photons = _photon),
+                steps.photonEfficiencyPlots(label = "Status1Photon", ptCut = params["thresholds"]["genPhotonPtMin"],
+                                            etaCut = 1.4, isoCut = 5.0, deltaRCut = 1.1, jets = _jet, photons = _photon),
                 
                 steps.photonPtSelector(_photon, params["thresholds"]["photonPt"], 0),
                 steps.photonEtaSelector(_photon, 1.45, 0),
@@ -151,7 +154,8 @@ class photonLook(analysis.analysis) :
                 steps.multiplicityFilter("%sIndices%s"%_photon, nMin = 1, nMax = 1),
 
                 steps.passFilter("photonEfficiencyPlots2"),
-                steps.photonEfficiencyPlots(label = "Status1Photon", ptCut = params["thresholds"]["genPhotonPtMin"], etaCut = 1.4, isoCut = 5.0, jets = _jet, photons = _photon),
+                steps.photonEfficiencyPlots(label = "Status1Photon", ptCut = params["thresholds"]["genPhotonPtMin"],
+                                            etaCut = 1.4, isoCut = 5.0, deltaRCut = 1.1, jets = _jet, photons = _photon),                                            
                 ]
         else :
             outList+=[
@@ -181,7 +185,7 @@ class photonLook(analysis.analysis) :
             
             steps.photon1PtOverHtHistogrammer(jets = _jet, photons = _photon, etRatherThanPt = _etRatherThanPt),
             
-            steps.variablePtGreaterFilter(params["thresholds"]["mhtJustBeforeAlphaT"],"%sSumP4%s"%_jet,"GeV"),
+            steps.variablePtGreaterFilter(params["thresholds"]["mht"],"%sSumP4%s"%_jet,"GeV"),
             steps.histogrammer("%sAlphaT%s"%_jet, 4, 0.0, 0.55*4, title=";#alpha_{T};events / bin"),
             steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
                                funcString="lambda x:len(x)"),
@@ -266,7 +270,15 @@ class photonLook(analysis.analysis) :
             specify(name = "Run2010A_JMT_skim_phskim",                  color = r.kBlack),
             ]
         data["_markusSkim"] = [
-            specify(name = "Ph.Data_markusSkim",        nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            #specify(name = "Ph.Data_markusSkim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+
+            #specify(name = "Run2010B_MJ_skim3_markusSkim", nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_MJ_skim2_markusSkim", nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_MJ_skim_markusSkim",  nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_J_skim2_markusSkim",  nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_J_skim_markusSkim",   nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010A_JM_skim_markusSkim",  nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010A_JMT_skim_markusSkim", nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             ]
 
         qcd_py6 = {}
@@ -348,7 +360,6 @@ class photonLook(analysis.analysis) :
 
         ewk_mg = {}
         ewk_mg[""] = [                                                     
-            #specify(name = "z_inv_mg_v12",              nFilesMax = -1, color = r.kMagenta ),
             specify(name = "z_jets_mg_v12",             nFilesMax = -1, color = r.kYellow-3),
             specify(name = "w_jets_mg_v12",             nFilesMax = -1, color = 28         ),
             ]
@@ -360,7 +371,7 @@ class photonLook(analysis.analysis) :
         ewk_mg["_markusSkim"] = []
 
         zinv_mg = {}
-        for item in ["","_phskim"] :
+        for item in ["","_phskim","_markusSkim"] :
             zinv_mg[item] = [specify(name = "z_inv_mg_v12_skim", nFilesMax = -1, color = r.kMagenta )]
 
         outList = []
@@ -429,12 +440,12 @@ class photonLook(analysis.analysis) :
         org.mergeSamples(targetSpec = {"name":"MG TT+EWK", "color":r.kOrange}, sources = [item+self.skimStringHack for item in ["z_jets_mg_v12", "w_jets_mg_v12", "tt_tauola_mg_v12"]])
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
 
-        if self.skimStringHack=="_markusSkim" :
-            org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, sources = ["Ph.Data_markusSkim"])
-        else :
-            org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20},
-                             sources = [item+self.skimStringHack for item in ["Run2010B_MJ_skim","Run2010B_MJ_skim2","Run2010B_J_skim",
-                                                                              "Run2010B_J_skim2","Run2010A_JM_skim","Run2010A_JMT_skim"]])
+        #if self.skimStringHack=="_markusSkim" :
+        #    org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, sources = ["Ph.Data_markusSkim"])
+        #else :
+        org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20},
+                         sources = [item+self.skimStringHack for item in ["Run2010B_MJ_skim","Run2010B_MJ_skim2","Run2010B_J_skim",
+                                                                          "Run2010B_J_skim2","Run2010A_JM_skim","Run2010A_JMT_skim"]])
             
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
@@ -446,15 +457,16 @@ class photonLook(analysis.analysis) :
             org = organizer.organizer( self.sampleSpecs(tag) )
             self.mergeSamples(org, tag)
             if "zMode" in tag :
-                org.scale(1.0)
+                org.scale(15.087)
+                print "WARNING: HARD-CODED LUMI FOR Z MODE!"
             else :
                 org.scale()
 
-            self.makeStandardPlots(org, tag)
-            self.makeIndividualPlots(org, tag)
+            #self.makeStandardPlots(org, tag)
+            #self.makeIndividualPlots(org, tag)
             #self.makePurityPlots(org, tag)
             #self.makeEfficiencyPlots(org, tag)
-        #self.makeMultiModePlots()
+        self.makeMultiModePlots()
 
     def makeStandardPlots(self, org, tag) :
         #plot all
@@ -643,27 +655,35 @@ class photonLook(analysis.analysis) :
 
         plotName = ("xcak5JetAlphaTPat", "variablePtGreaterFilter", "xcak5JetSumP4Pat.pt()>=140.0 GeV")
         samples = ["z_inv_mg_v12_skim", "g_jets_mg_v12", "2010 Data"]
+        sampleNames = ["Z -> #nu #bar{#nu}", " #gamma + jets", "Data"]
         styles  = [28,                   29,             20]
         d = histoDict(plotName, samples)
 
-        canvas = r.TCanvas()
+        canvas = r.TCanvas("canvas","canvas",500,500)
         canvas.SetTickx()
         canvas.SetTicky()
-        
+
+        legend = r.TLegend(0.65, 0.65, 0.85, 0.85)
+        legend.SetFillStyle(0)
+        legend.SetBorderSize(0)
+
         first = True
         for iSample,sample in enumerate(samples) :
             histo = d[sample]
             histo.SetMarkerStyle(styles[iSample])
             histo.SetStats(False)
             histo.Scale( 1.0/histo.Integral(0,histo.GetNbinsX()+1) )
+            legend.AddEntry(histo,sampleNames[iSample],"pl")
             if first :
                 histo.Draw()
                 histo.GetYaxis().SetRangeUser(0.0,1.0)
                 histo.GetYaxis().SetTitle("fraction of events / bin")
+                histo.GetYaxis().SetTitleOffset(1.25)
             else :
                 histo.Draw("same")
             first = False
 
+        legend.Draw()
         eps = "alphaTCompare.eps"
         canvas.Print(eps)
         os.system("epstopdf "+eps)
