@@ -3,7 +3,7 @@ import samples
 photon = samples.SampleHolder()
 srm = 'utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user'
 
-#photon data
+#original photon-triggered data
 photon.add("EG.Run2010A-Sep17ReReco_v2.RECO",             '%s/mjarvis//ICF/automated/2010_10_13_14_25_09/")'%srm, lumi = 99999.9 )
 photon.add("Photon.Run2010B-PromptReco-v2.RECO.Alex",     '%s/as1604//ICF/automated/2010_10_26_15_38_03/")'%srm,  lumi = 99999.9 )
 photon.add("Photon.Run2010B-PromptReco-v2.RECO.Martyn",   '%s/mjarvis//ICF/automated/2010_10_22_16_06_53/")'%srm, lumi = 99999.9 )
@@ -11,6 +11,16 @@ photon.add("Photon.Run2010B-PromptReco-v2.RECO.Robin",    '%s/rnandi//ICF/automa
 
 #skims from photonSkim.py (1 very loose photon>80 GeV)
 photon.add("Ph.Data_markusSkim", 'utils.fileListFromDisk(location=  "/vols/cms02/elaird1/11_skims/18_photon_dataset/")', lumi = 13.48) #/pb
+
+dir = "/vols/cms02/elaird1/11_skims/21_onePhotonGt80_jetDataset_skim"
+photon.add("Run2010A_JMT_skim_markusSkim", 'utils.fileListFromDisk(location = "%s/Run2010A_JMT_skim_*_skim.root", isDirectory = False)'%dir,lumi = 1.720000e-01)
+photon.add("Run2010A_JM_skim_markusSkim",  'utils.fileListFromDisk(location = "%s/Run2010A_JM_skim_*_skim.root", isDirectory = False)'%dir, lumi = 2.889000e+00)
+photon.add("Run2010B_J_skim_markusSkim",   'utils.fileListFromDisk(location = "%s/Run2010B_J_skim_*_skim.root", isDirectory = False)'%dir,  lumi = 3.897000e+00)
+photon.add("Run2010B_J_skim2_markusSkim",  'utils.fileListFromDisk(location = "%s/Run2010B_J_skim2_*_skim.root", isDirectory = False)'%dir, lumi = 5.107000e-01)
+photon.add("Run2010B_MJ_skim_markusSkim",  'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim_*_skim.root", isDirectory = False)'%dir, lumi = 3.467000e+00)
+photon.add("Run2010B_MJ_skim2_markusSkim", 'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim2_*_skim.root", isDirectory = False)'%dir,lumi = 4.150800e+00)
+photon.add("Run2010B_MJ_skim3_markusSkim", 'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim3_*_skim.root", isDirectory = False)'%dir,lumi = 6.807000e+00)
+
 dir = "/vols/cms02/elaird1/11_skims/19_onePhotonGt80_skim/"
 photon.add("v12_g_jets_mg_pt100_200_markusSkim", 'utils.fileListFromDisk(location = "%s/v12_g_jets_mg_pt100_200_*_skim.root", isDirectory = False)'%dir,
            xs = 8.003540e-02 * 4.414520e+03)
