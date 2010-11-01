@@ -299,14 +299,16 @@ class plotter(object) :
             if not histo : continue
             if dimension==1 :
                 for iBinX in range(histo.GetNbinsX()+2) :
-                    value = histo.GetBinContent(iBinX)
-                    if value>0.0 :
-                        if value<globalMin : globalMin = value
-                        if value>globalMax : globalMax = value
+                    content = histo.GetBinContent(iBinX)
+                    error   = histo.GetBinError(iBinX)
+                    valueUp   = content + error
+                    valueDown = content - error
+                    if valueUp>0.0   and valueUp>globalMax   : globalMax = valueUp
+                    if valueDown>0.0 and valueDown<globalMin : globalMin = valueDown
             if dimension==2 :
                 for iBinX in range(histo.GetNbinsX()+2) :
                     for iBinY in range(histo.GetNbinsY()+2) :
-                        value=histo.GetBinContent(iBinX,iBinY)
+                        value = histo.GetBinContent(iBinX,iBinY)
                         if value>0.0 :
                             if value<globalMin : globalMin = value
                             if value>globalMax : globalMax = value                            
@@ -349,6 +351,9 @@ class plotter(object) :
     def plotEachHisto(self,histos,dimension) :
         stuffToKeep=[]
         legend = r.TLegend(0.86, 0.60, 1.00, 0.10) if not self.anMode else r.TLegend(0.65, 0.65, 0.85, 0.85)
+        if self.anMode :
+            legend.SetFillStyle(0)
+            legend.SetBorderSize(0)
         stuffToKeep.append(legend)
 
         count = 0
