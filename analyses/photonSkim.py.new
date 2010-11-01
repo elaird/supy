@@ -23,15 +23,13 @@ class photonSkim(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify        
         return [
-            specify(name = "v12_qcd_mg_ht_50_100"),      
-            specify(name = "v12_qcd_mg_ht_100_250"),     
-            specify(name = "v12_qcd_mg_ht_250_500"),     
-            specify(name = "v12_qcd_mg_ht_500_1000"),    
-            specify(name = "v12_qcd_mg_ht_1000_inf"),    
-
-            specify(name = "v12_g_jets_mg_pt40_100"),    
-            specify(name = "v12_g_jets_mg_pt100_200"),   
-            specify(name = "v12_g_jets_mg_pt200"),       
+            specify(name = "Run2010B_MJ_skim3"),
+            specify(name = "Run2010B_MJ_skim2"),
+            specify(name = "Run2010B_MJ_skim"),
+            specify(name = "Run2010B_J_skim2"),
+            specify(name = "Run2010B_J_skim"),
+            specify(name = "Run2010A_JM_skim"),
+            specify(name = "Run2010A_JMT_skim"),
             ]
 
     def listOfSampleDictionaries(self) :
