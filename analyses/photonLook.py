@@ -20,8 +20,8 @@ class photonLook(analysis.analysis) :
         thresholds = {}
         fields =                                 ["jetPtMin","jet1PtMin","jet2PtMin", "ht","mhtJustBeforeAlphaT","applyAlphaTCut","applyTrigger","photonPt","genPhotonPtMin"] 
         thresholds["signal"]  = dict(zip(fields, [   50.0,       100.0,    100.0,    350.0,       140.0,                     True,          True,   100.0,         110.0    ]))
-       #thresholds["relaxed"] = dict(zip(fields, [   36.0,        72.0,     72.0,    250.0,       100.0,                     True,          True,    80.0,          90.0    ]))
-       #thresholds["markus"]  = dict(zip(fields, [   30.0,        30.0,     None,     None,       140.0,                    False,         False,    80.0,          90.0    ]))
+        #thresholds["relaxed"] = dict(zip(fields, [   36.0,        72.0,     72.0,    250.0,       100.0,                     True,          True,    80.0,          90.0    ]))
+        #thresholds["markus"]  = dict(zip(fields, [   30.0,        30.0,     None,     None,       140.0,                    False,         False,    100.0,         110.0    ]))
 
         return { "objects": objects,
                  "thresholds": thresholds,
@@ -39,7 +39,7 @@ class photonLook(analysis.analysis) :
                                              ("photonEGM-10-006-Tight","photonIDEGM_10_006_TightPat"),#7
 
                                              ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [7:8] ),
-                 "zMode" :            dict([ ("zMode",True), ("",False) ]                              [:] ),
+                 "zMode" :            dict([ ("zMode",True), ("",False) ]                              [1:2] ),
                  "skimString" : ["","_phskim","_markusSkim"] [1],
                  "jetId" :  ["JetIDloose","JetIDtight"]      [0],
                  "etRatherThanPt" : [True,False]             [0],
@@ -146,6 +146,8 @@ class photonLook(analysis.analysis) :
                 
                 steps.photonPtSelector(_photon, params["thresholds"]["photonPt"], 0),
                 steps.photonEtaSelector(_photon, 1.45, 0),
+                steps.photonDeltaRGreaterSelector(jets = _jet, photons = _photon, minDeltaR = 1.0, photonIndex = 0),
+                
                 steps.multiplicityFilter("%sIndices%s"%_photon, nMin = 1, nMax = 1),
 
                 steps.passFilter("photonEfficiencyPlots2"),
@@ -342,6 +344,8 @@ class photonLook(analysis.analysis) :
             specify(name = "tt_tauola_mg_v12_phskim",   nFilesMax = -1, color = r.kOrange  ),
             ]
 
+        ttbar_mg["_markusSkim"] = []
+
         ewk_mg = {}
         ewk_mg[""] = [                                                     
             #specify(name = "z_inv_mg_v12",              nFilesMax = -1, color = r.kMagenta ),
@@ -352,6 +356,8 @@ class photonLook(analysis.analysis) :
             specify(name = "z_jets_mg_v12_phskim",      nFilesMax = -1, color = r.kYellow-3),
             specify(name = "w_jets_mg_v12_phskim",      nFilesMax = -1, color = 28         ),
             ]
+
+        ewk_mg["_markusSkim"] = []
 
         zinv_mg = {}
         for item in ["","_phskim"] :
@@ -367,8 +373,8 @@ class photonLook(analysis.analysis) :
             outList += g_jets_mg [params["skimString"]]
             
             outList += data      [params["skimString"]]
-            outList += ewk_mg    [params["skimString"]]
-            outList += ttbar_mg  [params["skimString"]]
+            #outList += ewk_mg    [params["skimString"]]
+            #outList += ttbar_mg  [params["skimString"]]
         else :
             outList += zinv_mg   [params["skimString"]]
             
@@ -444,7 +450,7 @@ class photonLook(analysis.analysis) :
             else :
                 org.scale()
 
-            #self.makeStandardPlots(org, tag)
+            self.makeStandardPlots(org, tag)
             self.makeIndividualPlots(org, tag)
             #self.makePurityPlots(org, tag)
             #self.makeEfficiencyPlots(org, tag)
