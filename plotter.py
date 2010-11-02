@@ -35,11 +35,11 @@ def dimensionOfHisto(histos) :
         if not histo : continue
         className=histo.ClassName()
         if className == "TProfile" :
-            dimensions.append("2")
+            dimensions.append("1")
             continue
         if len(className)<3 or className[0:2]!="TH" : continue
         dimensions.append(className[2])
-
+        
     dimensions=set(dimensions)
     assert len(dimensions)==1,"histograms have different dimensions"
     return int(list(dimensions)[0])
