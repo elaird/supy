@@ -116,7 +116,8 @@ class wrappedChain(dict) :
             raise Exception("Not Implemented!")
 
         def name(self) :
-            return self.__class__.__name__
+            if not hasattr(self,"fixes") : self.fixes = ("","")
+            return self.fixes[0] + self.__class__.__name__ + self.fixes[1]
 
         def setAddress(self) :
             pass
