@@ -21,7 +21,7 @@ class organizer(object) :
                 if key in ["nJobsHisto"] : continue
                 elif key in ["lumiHisto","xsHisto"] :
                     map(  lambda hs: hs[0].Scale(  1.0  /hs[1]['nJobs']),       filter(lambda hs: hs[0],                   zip(self[key],samples)) )
-                else: map(lambda hs: hs[0].Scale(hs[1]["xs"]/hs[1]['nEvents']), filter(lambda hs: hs[0] and "xs" in hs[1], zip(self[key],samples)) )
+                else: map(lambda hs: hs[0].Scale(hs[1]["xs"]/hs[1]['nEvents']), filter(lambda hs: hs[0] and hs[1]["nEvents"] and "xs" in hs[1], zip(self[key],samples)) )
 
         def yields(self) : return tuple(map(lambda h: (h.GetBinContent(2),h.GetBinError(2)) if h else None, self["counts"]))
 
@@ -162,6 +162,18 @@ class organizer(object) :
                     if axis: axis.SetTitle("%s / %s pb^{-1}"%(axis.GetTitle(),str(self.lumi)))
         self.scaled = True
 
+    def normalize(self) :
+        for org in self.alternateConfigurations : org.normalize()
+        for sel in self.selections :
+            for key,hists in sel.iteritems() :
+                if key in ["lumiHisto","xsHisto","nJobsHisto","nEventsHisto","counts"] : continue
+                for i,h in enumerate(hists):
+                    if not h: continue
+                    dim = int(h.ClassName()[2])
+                    axis = h.GetYaxis() if dim==1 else h.GetZaxis() if dim==2 else None
+                    if axis: axis.SetTitle("normalized to 1")
+                    h.Scale(1.0/h.Integral())
+        self.scaled = True
 
     def indicesOfSelectionsWithKey(self,key) :
         return filter( lambda i: key in self.selections[i], range(len(self.selections)))
