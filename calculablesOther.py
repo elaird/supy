@@ -65,7 +65,7 @@ class vertexIndices(wrappedChain.calculable) :
         self.sumPtMin = sumPtMin
         self.moreName = ""
         if self.sumPtMin!=None :
-            moreName += "sumPt >=%.1f"%sumPtMin
+            self.moreName += "sumPt >=%.1f"%sumPtMin
         self.moreName += "; pass ID"
         
     def update(self,ignored) :
