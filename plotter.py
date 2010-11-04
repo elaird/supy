@@ -317,10 +317,10 @@ class plotter(object) :
         globalMax,globalMin = self.getExtremes(histos,dimension)
                     
         for histo in histos :
-            if not histo : continue        
+            if not histo or histo.GetName()[-len("_dependence"):] == "_dependence" : continue        
             if self.doLog :
-                histo.SetMaximum(2.0*globalMax)
                 histo.SetMinimum(0.5*globalMin)
+                histo.SetMaximum(2.0*globalMax)
             else :
                 histo.SetMaximum(1.1*globalMax)
                 histo.SetMinimum(0.0)
