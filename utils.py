@@ -390,3 +390,24 @@ def partialSumP4Centroid(partials) :
     Cy = oneOverSixA * sum([ (p[i].y()+p[i+1].y())*(p[i].x()*p[i+1].y() - p[i+1].x()*p[i].y()) for i in range(len(partials))])
     return r.LorentzV(Cx,Cy,0,0)
 #####################################
+def dependence(TH2, name="", minimum=0.1, maximum=10) :
+    if not TH2: return None
+    TH2.GetDirectory().cd()
+    dep = TH2.Clone(name if name else TH2.GetName()+"_dependence")
+    dep.GetZaxis().SetTitle("dependence")
+    norm = TH2.Integral()
+    projX = TH2.ProjectionX()
+    projY = TH2.ProjectionY()
+    for iX in range(1,TH2.GetNbinsX()+1) :
+        for iY in range(1,TH2.GetNbinsY()+1) :
+            X = projX.GetBinContent(iX)
+            Y = projY.GetBinContent(iY)
+            bin = TH2.GetBin(iX,iY)
+            XY = TH2.GetBinContent(bin)
+            dep.SetBinContent(bin, min(maximum,max(minimum,norm*XY/X/Y)) if XY else 0)
+            dep.SetBinError(bin,0) 
+    dep.SetMinimum(minimum)
+    dep.SetMaximum(maximum)
+    
+    return dep
+#####################################
