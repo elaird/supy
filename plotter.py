@@ -422,7 +422,7 @@ class plotter(object) :
             ratios.append(ratio)
         return ratios
 
-    def onePlotFunction(self, histos, plotName, newSampleNames = None, individual = False) :
+    def onePlotFunction(self, histos, plotName, newSampleNames = {}, individual = False) :
         dimension = dimensionOfHisto(histos)
         self.prepareCanvas(histos,dimension)
         self.setRanges(histos,dimension)
@@ -430,7 +430,7 @@ class plotter(object) :
         if individual : 
             count,stuffToKeep = self.plotEachHisto(histos, dimension, newTitle = plotName[-1], newSampleNames = newSampleNames)
         else :
-            count,stuffToKeep = self.plotEachHisto(histos, dimension, newTitle = None, newSampleNames = newSampleNames)
+            count,stuffToKeep = self.plotEachHisto(histos, dimension)
             
         if self.plotRatios and dimension==1 :
             ratios = self.plotRatio(histos,dimension)
