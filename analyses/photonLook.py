@@ -450,7 +450,7 @@ class photonLook(analysis.analysis) :
         #    org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, sources = ["Ph.Data_markusSkim"])
         #else :
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20},
-                         sources = [item+self.skimStringHack for item in ["Run2010B_MJ_skim","Run2010B_MJ_skim2","Run2010B_J_skim",
+                         sources = [item+self.skimStringHack for item in ["Run2010B_MJ_skim","Run2010B_MJ_skim2","Run2010B_MJ_skim3","Run2010B_J_skim",
                                                                           "Run2010B_J_skim2","Run2010A_JM_skim","Run2010A_JMT_skim"]])
             
     def conclude(self) :
@@ -478,8 +478,8 @@ class photonLook(analysis.analysis) :
         #plot all
         pl = plotter.plotter(org,
                              psFileName = self.psFileName(tag),
-                             #samplesForRatios = ("2010 Data","standard_model"),
-                             #sampleLabelsForRatios = ("data","s.m."),
+                             samplesForRatios = ("2010 Data","standard_model"),
+                             sampleLabelsForRatios = ("data","s.m."),
                              #samplesForRatios = ("2010 Data","MG QCD+G"),
                              #sampleLabelsForRatios = ("data","MG"),
                              blackList = ["lumiHisto","xsHisto","nJobsHisto",
