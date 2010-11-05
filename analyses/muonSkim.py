@@ -28,10 +28,11 @@ class muonSkim(analysis.analysis) :
             #specify(name = "Mu.Run2010B-PromptReco-v2.RECO.Arlo1"),
             #specify(name = "Mu.Run2010B-PromptReco-v2.RECO.Arlo2"),
             #specify(name = "Mu.Run2010B-PromptReco-v2.RECO.Martyn"),
-            specify(name = "v12_qcd_py6_pt30"),
-            specify(name = "v12_qcd_py6_pt80"),
-            specify(name = "v12_qcd_py6_pt170"),
-            specify(name = "v12_qcd_py6_pt300"),
+            #specify(name = "v12_qcd_py6_pt30"),
+            #specify(name = "v12_qcd_py6_pt80"),
+            #specify(name = "v12_qcd_py6_pt170"),
+            #specify(name = "v12_qcd_py6_pt300"),
+            specify(name = "Run2010B_MJ_skim3"),
             ]
 
     def listOfSampleDictionaries(self) :
