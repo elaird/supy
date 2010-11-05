@@ -39,7 +39,7 @@ class photonLook(analysis.analysis) :
                                              ("photonEGM-10-006-Tight","photonIDEGM_10_006_TightPat"),#7
 
                                              ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [7:8] ),
-                 "zMode" :            dict([ ("zMode",True), ("",False) ]                              [:] ),
+                 "zMode" :            dict([ ("zMode",True), ("",False) ]                              [1:2] ),
                  #"skimString" : ["","_phskim","_markusSkim"] [2],
                  "skimString" : ["","_markusSkim"]           [1],
                  "jetId" :  ["JetIDloose","JetIDtight"]      [0],
@@ -71,7 +71,7 @@ class photonLook(analysis.analysis) :
                                     electron = _electron, electronDR = 0.5
                                     ),
                  calculables.jetIndices( _jet, _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
-                 #calculables.jetIndices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
+                 calculables.jetIndices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
                  calculables.muonIndices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
                  calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
                  calculables.photonIndicesPat(  ptMin = 25, flagName = params["photonId"]),
@@ -89,9 +89,11 @@ class photonLook(analysis.analysis) :
                  #calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
                  + [ calculables.jetSumP4(_jet),
-                     calculables.jetSumP4PlusPhotons(_jet, extraName = "", photon = _photon),
+                     calculables.jetSumP4(_jet, extraName = lowPtName),
+                     #calculables.jetSumP4PlusPhotons(_jet, extraName = "", photon = _photon),
                      calculables.deltaPhiStar(_jet, extraName = ""),
-                     calculables.deltaPhiStarIncludingPhotons(_jet, photons = _photon, extraName = ""),
+                     calculables.deltaPhiStar(_jet, extraName = lowPtName),
+                     #calculables.deltaPhiStarIncludingPhotons(_jet, photons = _photon, extraName = ""),
                      calculables.deltaPseudoJet(_jet, _etRatherThanPt),
                      calculables.alphaTWithPhoton1PtRatherThanMht(_jet, photons = _photon, etRatherThanPt = _etRatherThanPt),
                      calculables.alphaT(_jet, _etRatherThanPt),
@@ -203,11 +205,15 @@ class photonLook(analysis.analysis) :
 
             steps.passFilter("purityPlots2"),
             steps.photonPurityPlots("Status1Photon", _jet, _photon),
-            
-            #steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - [PFMET+photon])/(MHT+HT);events / bin"),
-            steps.histogrammer("mhtIncludingPhotonsOverMet", 100, 0.0, 2.0, title = ";MHT [including photon] / PFMET;events / bin"),
-            #steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
-            steps.deadEcalFilterIncludingPhotons(jets = _jet, extraName = "", photons = _photon, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
+
+            #steps.histogrammer("mhtOverMet", 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
+            #steps.variableLessFilter(1.25,"mhtOverMet"),
+            steps.deadEcalFilter(jets = _jet, extraName = lowPtName, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
+        
+            ###steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - [PFMET+photon])/(MHT+HT);events / bin"),
+            ##steps.histogrammer("mhtIncludingPhotonsOverMet", 100, 0.0, 2.0, title = ";MHT [including photon] / PFMET;events / bin"),
+            ###steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
+            ##steps.deadEcalFilterIncludingPhotons(jets = _jet, extraName = "", photons = _photon, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
             
             #steps.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
             
@@ -461,12 +467,12 @@ class photonLook(analysis.analysis) :
                 print "WARNING: HARD-CODED LUMI FOR Z MODE!"
             else :
                 org.scale()
-
-            #self.makeStandardPlots(org, tag)
+                
+            self.makeStandardPlots(org, tag)
             #self.makeIndividualPlots(org, tag)
             #self.makePurityPlots(org, tag)
             #self.makeEfficiencyPlots(org, tag)
-        self.makeMultiModePlots()
+        #self.makeMultiModePlots()
 
     def makeStandardPlots(self, org, tag) :
         #plot all
@@ -504,9 +510,15 @@ class photonLook(analysis.analysis) :
                              doLog = False,
                              anMode = True,
                              )
-        pl.individualPlots([("xcak5JetAlphaTPat",  "variablePtGreaterFilter", "xcak5JetSumP4Pat.pt()>=140.0 GeV"),
-                            ("xcak5JetIndicesPat", "variablePtGreaterFilter", "xcak5JetSumP4Pat.pt()>=140.0 GeV"),
-                            ])
+        pl.individualPlots([("xcak5JetAlphaTPat",  "variablePtGreaterFilter", "xcak5JetSumP4Pat.pt()>=140.0 GeV", ";#alpha_{T};events / bin / 15 pb^{-1}"),
+                            ("xcak5JetIndicesPat", "variablePtGreaterFilter", "xcak5JetSumP4Pat.pt()>=140.0 GeV", ";N_{jets};events / bin / 15 pb^{-1}"),
+                            ],
+                           newSampleNames = {"qcd_mg_v12": "Madgraph QCD",
+                                             "g_jets_mg_v12": "Madgraph #gamma + jets",
+                                             "2010 Data": "Data",
+                                             "standard_model": "Standard Model",
+                                             },
+                           )
 
             
     def makeEfficiencyPlots(self, org, tag) :
