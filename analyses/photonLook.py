@@ -40,7 +40,6 @@ class photonLook(analysis.analysis) :
 
                                              ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [7:8] ),
                  "zMode" :            dict([ ("zMode",True), ("",False) ]                              [1:2] ),
-                 #"skimString" : ["","_phskim","_markusSkim"] [2],
                  "skimString" : ["","_markusSkim"]           [1],
                  "jetId" :  ["JetIDloose","JetIDtight"]      [0],
                  "etRatherThanPt" : [True,False]             [0],
@@ -121,7 +120,7 @@ class photonLook(analysis.analysis) :
 
         if params["thresholds"]["jet1PtMin"]!=None : outList+=[steps.jetPtSelector(_jet, params["thresholds"]["jet1PtMin"], 0)]
         if params["thresholds"]["jet2PtMin"]!=None : outList+=[steps.jetPtSelector(_jet, params["thresholds"]["jet2PtMin"], 1)]
-        if params["thresholds"]["applyTrigger"]    : outList+=[steps.lowestUnPrescaledTrigger(["HLT_HT100U","HLT_HT120U","HLT_HT140U","HLT_HT150U"])]
+        if params["thresholds"]["applyTrigger"]    : outList+=[steps.lowestUnPrescaledTrigger(["HLT_HT100U","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"])]
 
         outList+=[
             steps.vertexRequirementFilter(),
@@ -256,6 +255,7 @@ class photonLook(analysis.analysis) :
         
         data = {}
         data[""] = [
+            specify(name = "Run2010B_MJ_skim3",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim2",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
@@ -278,7 +278,7 @@ class photonLook(analysis.analysis) :
         data["_markusSkim"] = [
             #specify(name = "Ph.Data_markusSkim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
 
-            #specify(name = "Run2010B_MJ_skim3_markusSkim", nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "Run2010B_MJ_skim3_markusSkim", nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim2_markusSkim", nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim_markusSkim",  nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_J_skim2_markusSkim",  nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
@@ -385,7 +385,7 @@ class photonLook(analysis.analysis) :
         if not params["zMode"] :
             #outList+=qcd_py6[params["skimString"]]
             #outList+=g_jets_py6[params["skimString"]]
-        
+            
             outList += qcd_mg    [params["skimString"]]
             outList += g_jets_mg [params["skimString"]]
             
