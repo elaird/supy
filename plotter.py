@@ -144,20 +144,20 @@ class plotter(object) :
 
         print "The output file \"%s\" has been written."%fileName.replace(".eps",".pdf")
 
-    def individualPlots(self, plotNames) :
+    def individualPlots(self, plotNames, newSampleNames) :
         print utils.hyphens
         setupStyle()
 
         def histos(plotName) :
             for selection in self.someOrganizer.selections :
-                if (selection.name, selection.title) != plotName[1:] : continue
+                if (selection.name, selection.title) != plotName[1:3] : continue
                 if plotName[0] not in selection : continue
                 return selection[plotName[0]]
 
         for plotName in plotNames :
             h = histos(plotName)
             if h==None : continue
-            stuff = self.onePlotFunction(h, plotName, individual = True)
+            stuff = self.onePlotFunction(h, plotName, newSampleNames, individual = True)
             self.printOnePage(plotName[0], tight = self.anMode)
 
         print utils.hyphens
@@ -347,9 +347,9 @@ class plotter(object) :
                 else :      my+=1
             self.canvas.Divide(mx,my)
 
-    def plotEachHisto(self,histos,dimension) :
+    def plotEachHisto(self, histos, dimension, newTitle = None, newSampleNames = {}) :
         stuffToKeep=[]
-        legend = r.TLegend(0.86, 0.60, 1.00, 0.10) if not self.anMode else r.TLegend(0.65, 0.65, 0.85, 0.85)
+        legend = r.TLegend(0.86, 0.60, 1.00, 0.10) if not self.anMode else r.TLegend(0.55, 0.55, 0.85, 0.85)
         if self.anMode :
             legend.SetFillStyle(0)
             legend.SetBorderSize(0)
@@ -360,14 +360,15 @@ class plotter(object) :
             if not histo : continue
             if not histo.GetEntries() : continue
 
-            sampleName=sample["name"]
+            if newTitle!=None : histo.SetTitle(newTitle)
+            sampleName = sample["name"]
             if "color" in sample :
                 histo.SetLineColor(sample["color"])
                 histo.SetMarkerColor(sample["color"])
             if "markerStyle" in sample :
                 histo.SetMarkerStyle(sample["markerStyle"])
             
-            legend.AddEntry(histo,sampleName,"l")
+            legend.AddEntry(histo, newSampleNames[sampleName] if sampleName in newSampleNames else sampleName, "l")
 
             if dimension==1   : self.plot1D(histo,count,stuffToKeep)
             elif dimension==2 : self.plot2D(histo,count,sampleName,stuffToKeep)
@@ -421,12 +422,16 @@ class plotter(object) :
             ratios.append(ratio)
         return ratios
 
-    def onePlotFunction(self, histos, plotName, individual = False) :
+    def onePlotFunction(self, histos, plotName, newSampleNames = None, individual = False) :
         dimension = dimensionOfHisto(histos)
         self.prepareCanvas(histos,dimension)
         self.setRanges(histos,dimension)
 
-        count,stuffToKeep = self.plotEachHisto(histos,dimension)
+        if individual : 
+            count,stuffToKeep = self.plotEachHisto(histos, dimension, newTitle = plotName[-1], newSampleNames = newSampleNames)
+        else :
+            count,stuffToKeep = self.plotEachHisto(histos, dimension, newTitle = None, newSampleNames = newSampleNames)
+            
         if self.plotRatios and dimension==1 :
             ratios = self.plotRatio(histos,dimension)
         self.canvas.cd(0)
