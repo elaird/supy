@@ -172,6 +172,7 @@ class hadronicLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [
+            specify(name = "Run2010B_MJ_skim4",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim3",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim2",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
