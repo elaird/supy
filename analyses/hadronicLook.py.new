@@ -153,18 +153,18 @@ class hadronicLook(analysis.analysis) :
             #steps.htMhtPrinter(_jet),
             #steps.alphaTPrinter(_jet,_etRatherThanPt),
             #steps.genParticlePrinter(minPt=10.0,minStatus=3),
-
-            steps.pickEventSpecMaker(""),
-            steps.displayer(jets = _jet,
-                            muons = _muon,
-                            met       = params["objects"]["met"],
-                            electrons = params["objects"]["electron"],
-                            photons   = params["objects"]["photon"],                            
-                            recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
-                            scale = 400.0,#GeV
-                            etRatherThanPt = _etRatherThanPt,
-                            deltaPhiStarExtraName = lowPtName,                            
-                            ),
+            #       
+            #steps.pickEventSpecMaker(""),
+            #steps.displayer(jets = _jet,
+            #                muons = _muon,
+            #                met       = params["objects"]["met"],
+            #                electrons = params["objects"]["electron"],
+            #                photons   = params["objects"]["photon"],                            
+            #                recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
+            #                scale = 400.0,#GeV
+            #                etRatherThanPt = _etRatherThanPt,
+            #                deltaPhiStarExtraName = lowPtName,                            
+            #                ),
             
           ]
         return outList
@@ -243,22 +243,22 @@ class hadronicLook(analysis.analysis) :
             ]                                                   
 
         outList = []
-        #if params["mcSoup"]=="py6" :
-        #    outList+=qcd_py6
-        #    outList+=g_jets_py6
-        #    
-        #if params["mcSoup"]=="py8" :
-        #    outList+=qcd_py8
-        #    outList+=g_jets_py6#no py8 available
-        #    
-        #if params["mcSoup"]=="mg":
-        #    outList+=qcd_mg
-        #    outList+=g_jets_mg
+        if params["mcSoup"]=="py6" :
+            outList+=qcd_py6
+            outList+=g_jets_py6
+            
+        if params["mcSoup"]=="py8" :
+            outList+=qcd_py8
+            outList+=g_jets_py6#no py8 available
+            
+        if params["mcSoup"]=="mg":
+            outList+=qcd_mg
+            outList+=g_jets_mg
         
         outList+=data
-        #outList+=ttbar_mg
-        #outList+=ewk
-        #outList+=susy
+        outList+=ttbar_mg
+        outList+=ewk
+        outList+=susy
 
         ##uncomment for short tests
         #for i in range(len(outList)):
