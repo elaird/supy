@@ -32,7 +32,8 @@ class muonSkim(analysis.analysis) :
             #specify(name = "v12_qcd_py6_pt80"),
             #specify(name = "v12_qcd_py6_pt170"),
             #specify(name = "v12_qcd_py6_pt300"),
-            specify(name = "Run2010B_MJ_skim3"),
+            #specify(name = "Run2010B_MJ_skim3"),
+            specify(name = "Run2010B_MJ_skim4"),
             ]
 
     def listOfSampleDictionaries(self) :
