@@ -375,7 +375,7 @@ class displayer(analysisStep) :
     def __init__(self,jets = ("",""), met = "", muons = "", electrons = "", photons = "",
                  recHits = "", recHitPtThreshold = -1.0, scale = 200.0,
                  etRatherThanPt = False, doGenParticles = False, doEtaPhiPlot = True,
-                 hotTpThreshold = -1.0, deltaPhiStarExtraName = "", tipToTail = False) :
+                 hotTpThreshold = 63.5, deltaPhiStarExtraName = "", tipToTail = False) :
 
         self.moreName = "(see below)"
 
@@ -409,6 +409,10 @@ class displayer(analysisStep) :
         self.ellipse = r.TEllipse()
         self.ellipse.SetFillStyle(0)
 
+        self.deadBox = r.TBox()
+        self.deadBox.SetFillColor(r.kBlack)
+        self.deadBox.SetLineColor(r.kBlack)
+
         self.coldBox = r.TBox()
         self.coldBox.SetFillColor(r.kOrange-6)
         self.coldBox.SetLineColor(r.kOrange-6)
@@ -437,9 +441,6 @@ class displayer(analysisStep) :
         self.metLlHisto=r.TH2D("metLlHisto",";log ( likelihood / likelihood0 ) / N varied jets;#slashE_{T};tries / bin",100,-20.0+epsilon,0.0+epsilon,100,0.0,300.0)
         self.mhtLlHisto.SetDirectory(0)
         self.metLlHisto.SetDirectory(0)
-
-        self.etaPhiPlot = r.TH2D("etaPhi",";#eta;#phi;",1, -3.0, 3.0, 1, -r.TMath.Pi(), r.TMath.Pi() )
-        self.etaPhiPlot.SetStats(False)
 
     def endFunc(self,chain,otherChainDict,nEvents,xs) :
         self.outputFile.Write()
@@ -726,7 +727,6 @@ class displayer(analysisStep) :
         pad=r.TPad("etaPhiPad","etaPhiPad",
                    0.01 + 2.0*self.radius, 0.34 + self.radius,
                    0.94                  , 1.27 - self.radius)
-
         pad.cd()
         pad.SetRightMargin(0.01)
         pad.SetTickx()
@@ -734,20 +734,27 @@ class displayer(analysisStep) :
         pad.SetGridx()
         pad.SetGridy()
 
-        self.etaPhiPlot.Draw()
+        etaPhiPlot = r.TH2D("etaPhi",";#eta;#phi;",1, -3.0, 3.0, 1, -r.TMath.Pi(), r.TMath.Pi() )
+        etaPhiPlot.SetStats(False)
+        etaPhiPlot.Draw()
 
-        def drawBox(fourVector) :
-            value = 0.087/2
+        def drawBox(fourVector, nBadXtals, maxStatus) :
+            value = (0.087/2) * nBadXtals / 25
             args = (fourVector.eta()-value, fourVector.phi()-value, fourVector.eta()+value, fourVector.phi()+value)
-            if fourVector.Et()>=self.hotTpThreshold :
+            if maxStatus==14 :
+                self.deadBox.DrawBox(*args)
+            elif fourVector.Et()>=self.hotTpThreshold :
                 self.hotBox.DrawBox(*args)
             else :
                 self.coldBox.DrawBox(*args)
                 
         #draw dead ECAL regions
-        for iRegion,region in enumerate(eventVars["ecalDeadTowerTrigPrimP4"]) :
-            if eventVars["ecalDeadTowerNBadXtals"].at(iRegion)<5 : continue
-            drawBox(region)
+        nRegions = eventVars["ecalDeadTowerTrigPrimP4"].size()
+        for iRegion in range(nRegions) :
+            drawBox(fourVector = eventVars["ecalDeadTowerTrigPrimP4"].at(iRegion),
+                    nBadXtals  = eventVars["ecalDeadTowerNBadXtals"].at(iRegion),
+                    maxStatus  = eventVars["ecalDeadTowerMaxStatus"].at(iRegion),
+                    )
         
         if self.doGenParticles :
             self.drawGenParticles(eventVars,r.kMagenta, lineWidth = 1, arrowSize = -1.0, statusList = [1], pdgIdList = [22],
@@ -759,17 +766,19 @@ class displayer(analysisStep) :
             index = d["DeltaPhiStarJetIndex"]
             title = "#Delta#phi * = %6.4f"%d["DeltaPhiStar"]
             title+= "#semicolon index = %d"%index
-            self.etaPhiPlot.SetTitle(title)
+            etaPhiPlot.SetTitle(title)
             badJet = eventVars["%sCorrectedP4%s"%self.jets].at(index)
             self.drawCircle(badJet, r.kBlack, lineWidth = 1, circleRadius = 0.5)
 
-        legend = r.TLegend(0.6,0.92,1.0,1.0)
+        legend = r.TLegend(0.55,0.9,1.0,1.0)
         legend.SetFillStyle(0)
-        legend.AddEntry(self.coldBox,"dead ECAL cells","f")
-        legend.AddEntry(self.hotBox,"dead ECAL cells with TP ET>%4.1f"%self.hotTpThreshold,"f")
-        legend.AddEntry(self.ellipse,"\"bad\" jet","l")
+        legend.SetBorderSize(0)
+        legend.AddEntry(self.deadBox,"dead ECAL cells","f")
+        legend.AddEntry(self.coldBox,"dead ECAL cells with TP link","f")
+        legend.AddEntry(self.hotBox, "dead ECAL cells with TP ET>%4.1f GeV"%self.hotTpThreshold,"f")
+        legend.AddEntry(self.ellipse,"bad jet","l")
         legend.Draw()
-        stuffToKeep.extend([pad, legend])
+        stuffToKeep.extend([pad, etaPhiPlot, legend])
         self.canvas.cd()
         pad.Draw()
         return stuffToKeep
