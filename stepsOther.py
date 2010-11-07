@@ -457,11 +457,24 @@ class displayer(analysisStep) :
         self.text.SetTextSize(0.02)
         self.text.SetTextFont(80)
         self.text.SetTextColor(color)
-        x=0.1
-        self.text.DrawText(x,0.80,"Run   %#10d"%eventVars["run"])
-        self.text.DrawText(x,0.78,"Ls    %#10d"%eventVars["lumiSection"])
-        self.text.DrawText(x,0.76,"Event %#10d"%eventVars["event"])
+        x=0.05
+        self.text.DrawText(x,0.90,"Run   %#10d"%eventVars["run"])
+        self.text.DrawText(x,0.88,"Ls    %#10d"%eventVars["lumiSection"])
+        self.text.DrawText(x,0.86,"Event %#10d"%eventVars["event"])
         #self.text.DrawText(x,0.74,"Bx    %#10d"%eventVars["bunch"])
+        
+    def drawVerticesInfo(self,eventVars,color) :
+        self.text.SetTextSize(0.02)
+        self.text.SetTextFont(80)
+        self.text.SetTextColor(color)
+        x = 0.3
+        y = 0.90
+        self.text.DrawText(x, y      ,"Vertices")
+        self.text.DrawText(x, y - 0.02,"ID  i   Z(cm)  sumPt(GeV)")
+        self.text.DrawText(x, y - 0.04,"-------------------------")
+        for i in range(eventVars["vertexNdof"].size()) :
+            out = "%2s %2d  %6.2f    %5.0f"%("*" if i in eventVars["vertexIndices"] else "-", i, eventVars["vertexPosition"].at(i).z(), eventVars["vertexSumPt"].at(i))
+            self.text.DrawText(x, y - 0.02*(i+3), out)
         
     def drawSkeleton(self,color) :
         #self.canvas.cd(2)
@@ -910,8 +923,8 @@ class displayer(analysisStep) :
         self.canvas.Clear()
 
         g1=self.drawSkeleton(r.kYellow+1)
-        self.drawEventInfo(eventVars,r.kBlack)
-
+        self.drawEventInfo(eventVars, r.kBlack)
+        self.drawVerticesInfo(eventVars, r.kBlack)
         defArrowSize=0.5*self.arrow.GetDefaultArrowSize()
         defWidth=1
         #                                  color      , width   , arrow size
