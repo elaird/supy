@@ -20,6 +20,7 @@ photon.add("Run2010B_J_skim2_markusSkim",  'utils.fileListFromDisk(location = "%
 photon.add("Run2010B_MJ_skim_markusSkim",  'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim_*_skim.root", isDirectory = False)'%dir, lumi = 3.467000e+00)
 photon.add("Run2010B_MJ_skim2_markusSkim", 'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim2_*_skim.root", isDirectory = False)'%dir,lumi = 4.150800e+00)
 photon.add("Run2010B_MJ_skim3_markusSkim", 'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim3_*_skim.root", isDirectory = False)'%dir,lumi = 6.807000e+00)
+photon.add("Run2010B_MJ_4_markusSkim",     'utils.fileListFromDisk(location = "%s/MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Robin_*_skim.root", isDirectory = False)'%dir,lumi = 12.832)
 
 dir = "/vols/cms02/elaird1/11_skims/19_onePhotonGt80_skim/"
 photon.add("v12_g_jets_mg_pt100_200_markusSkim", 'utils.fileListFromDisk(location = "%s/v12_g_jets_mg_pt100_200_*_skim.root", isDirectory = False)'%dir,
