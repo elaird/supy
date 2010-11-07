@@ -384,6 +384,7 @@ class displayer(analysisStep) :
                      "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "tipToTail"] :
             setattr(self,item,eval(item))
 
+        self.jetRadius = 0.7 if "ak7Jet" in self.jets[0] else 0.5
         self.genJets = self.jets
         self.genMet  = self.met.replace("P4","GenMetP4")
         self.deltaHtName = "%sDeltaPseudoJetEt%s"%self.jets if etRatherThanPt else "%sDeltaPseudoJetPt%s"%self.jets
@@ -468,6 +469,7 @@ class displayer(analysisStep) :
         
         self.ellipse.SetLineColor(color)
         self.ellipse.SetLineWidth(1)
+        self.ellipse.SetLineStyle(1)
         self.ellipse.DrawEllipse(self.x0,self.y0,self.radius,self.radius,0.0,360.0,0.0,"")
 
         self.line.SetLineColor(color)
@@ -496,9 +498,10 @@ class displayer(analysisStep) :
         self.arrow.SetFillColor(color)
         self.arrow.DrawArrow(x0,y0,x1,y1)
         
-    def drawCircle(self, p4, color, lineWidth, circleRadius) :
+    def drawCircle(self, p4, color, lineWidth, circleRadius, lineStyle = 1) :
         self.ellipse.SetLineColor(color)
         self.ellipse.SetLineWidth(lineWidth)
+        self.ellipse.SetLineStyle(lineStyle)
         self.ellipse.DrawEllipse(p4.eta(), p4.phi(), circleRadius, circleRadius, 0.0, 360.0, 0.0, "")
         
     def drawGenJets (self,eventVars,color,lineWidth,arrowSize) :
@@ -738,6 +741,13 @@ class displayer(analysisStep) :
         etaPhiPlot.SetStats(False)
         etaPhiPlot.Draw()
 
+        ebEe = 1.479
+        self.line.SetLineColor(r.kBlack)
+        self.line.DrawLine(-ebEe, etaPhiPlot.GetYaxis().GetXmin(), -ebEe, etaPhiPlot.GetYaxis().GetXmax() )
+        self.line.DrawLine( ebEe, etaPhiPlot.GetYaxis().GetXmin(),  ebEe, etaPhiPlot.GetYaxis().GetXmax() )
+        suspiciousJetColor = r.kBlack
+        suspiciousJetStyle = 2
+        
         def drawBox(fourVector, nBadXtals, maxStatus) :
             value = (0.087/2) * nBadXtals / 25
             args = (fourVector.eta()-value, fourVector.phi()-value, fourVector.eta()+value, fourVector.phi()+value)
@@ -763,12 +773,21 @@ class displayer(analysisStep) :
                                   motherList = [22], label = "status 1 photon w/photon as mother", circleRadius = 0.15)
         else :
             d = eventVars["%sDeltaPhiStar%s%s"%(self.jets[0],self.jets[1],self.deltaPhiStarExtraName)]
-            index = d["DeltaPhiStarJetIndex"]
+            suspiciousJetIndex = d["DeltaPhiStarJetIndex"]
             title = "#Delta#phi * = %6.4f"%d["DeltaPhiStar"]
-            title+= "#semicolon index = %d"%index
+            title+= "#semicolon index = %d"%suspiciousJetIndex
             etaPhiPlot.SetTitle(title)
-            badJet = eventVars["%sCorrectedP4%s"%self.jets].at(index)
-            self.drawCircle(badJet, r.kBlack, lineWidth = 1, circleRadius = 0.5)
+
+            jets = eventVars["%sCorrectedP4%s"%self.jets]
+            for index in range(jets.size()) :
+                jet = jets.at(index)
+                if index in eventVars["%sIndices%s"%self.jets] :
+                    self.drawCircle(jet, r.kBlue, lineWidth = 1, circleRadius = self.jetRadius)
+                else :
+                    self.drawCircle(jet, r.kCyan, lineWidth = 1, circleRadius = self.jetRadius)
+                if index==suspiciousJetIndex :
+                    self.drawCircle(jet, suspiciousJetColor, lineWidth = 1, circleRadius = self.jetRadius - 0.04, lineStyle = suspiciousJetStyle)
+                    
 
         legend = r.TLegend(0.55,0.9,1.0,1.0)
         legend.SetFillStyle(0)
@@ -776,7 +795,9 @@ class displayer(analysisStep) :
         legend.AddEntry(self.deadBox,"dead ECAL cells","f")
         legend.AddEntry(self.coldBox,"dead ECAL cells with TP link","f")
         legend.AddEntry(self.hotBox, "dead ECAL cells with TP ET>%4.1f GeV"%self.hotTpThreshold,"f")
-        legend.AddEntry(self.ellipse,"bad jet","l")
+        self.ellipse.SetLineColor(suspiciousJetColor)
+        self.ellipse.SetLineStyle(suspiciousJetStyle)
+        legend.AddEntry(self.ellipse,"suspicious jet","l")
         legend.Draw()
         stuffToKeep.extend([pad, etaPhiPlot, legend])
         self.canvas.cd()
