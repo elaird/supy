@@ -19,9 +19,9 @@ class photonLook(analysis.analysis) :
 
         thresholds = {}
         fields =                                 ["jetPtMin","jet1PtMin","jet2PtMin","htLower","htUpper","mht","applyAlphaTCut","applyTrigger","photonPt","genPhotonPtMin"]
-        thresholds["signal"]  = dict(zip(fields, [   50.0,       100.0,    100.0,      350.0,    None,   140.0,      True,           True,        100.0,         110.0    ]))
+        #thresholds["signal"]  = dict(zip(fields, [   50.0,       100.0,    100.0,      350.0,    None,   140.0,      True,           True,        100.0,         110.0    ]))
         ####thresholds["relaxed"] = dict(zip(fields, [   36.0,        72.0,     72.0,    250.0,       None, 100.0,     True,           True,    80.0,          90.0    ]))
-        #thresholds["relaxed"]  = dict(zip(fields, [  50.0,        50.0,     50.0,      250.0,   350.0,   140.0,      True,         False,        100.0,         110.0    ]))
+        thresholds["relaxed"]  = dict(zip(fields, [  50.0,        50.0,     50.0,      250.0,   350.0,   140.0,      True,         False,        100.0,         110.0    ]))
 
         return { "objects": objects,
                  "thresholds": thresholds,
@@ -277,7 +277,7 @@ class photonLook(analysis.analysis) :
             ]
         data["_markusSkim"] = [
             #specify(name = "Ph.Data_markusSkim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-
+            specify(name = "Run2010B_MJ_4_markusSkim",     nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim3_markusSkim", nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim2_markusSkim", nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim_markusSkim",  nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
@@ -450,8 +450,8 @@ class photonLook(analysis.analysis) :
         #    org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, sources = ["Ph.Data_markusSkim"])
         #else :
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20},
-                         sources = [item+self.skimStringHack for item in ["Run2010B_MJ_skim","Run2010B_MJ_skim2","Run2010B_MJ_skim3","Run2010B_J_skim",
-                                                                          "Run2010B_J_skim2","Run2010A_JM_skim","Run2010A_JMT_skim"]])
+                         sources = [item+self.skimStringHack for item in ["Run2010B_MJ_skim","Run2010B_MJ_skim2","Run2010B_MJ_skim3","Run2010B_MJ_4",
+                                                                          "Run2010B_J_skim","Run2010B_J_skim2","Run2010A_JM_skim","Run2010A_JMT_skim"]])
             
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :

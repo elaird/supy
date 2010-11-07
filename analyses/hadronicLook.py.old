@@ -18,7 +18,7 @@ class hadronicLook(analysis.analysis) :
         #objects["caloAK7"] = dict(zip(fields, [("xcak7Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
         #objects["jptAK5"]  = dict(zip(fields, [("xcak5JetJPT","Pat"),"metP4TC",     ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo",     True ,        50.0]))
         objects["pfAK5"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,        50.0]))
-
+        
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
                  "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ] [0:1] ),
@@ -68,6 +68,8 @@ class hadronicLook(analysis.analysis) :
                      calculables.mhtOverMet(_jet, _met, _etRatherThanPt),
                      #calculables.mhtMinusMetOverMeff(_jet, _met, _etRatherThanPt),
                     #calculables.mhtMinusMetOverMeff(_jet, "metP4PF", _etRatherThanPt),
+                     calculables.vertexID(),
+                     calculables.vertexIndices(),
                      ]
 
     def listOfSteps(self,params) :
@@ -151,17 +153,18 @@ class hadronicLook(analysis.analysis) :
             #steps.htMhtPrinter(_jet),
             #steps.alphaTPrinter(_jet,_etRatherThanPt),
             #steps.genParticlePrinter(minPt=10.0,minStatus=3),
-            
-            #steps.displayer(jets = _jet,
-            #                muons = _muon,
-            #                met       = params["objects"]["met"],
-            #                electrons = params["objects"]["electron"],
-            #                photons   = params["objects"]["photon"],                            
-            #                recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
-            #                scale = 400.0,#GeV
-            #                etRatherThanPt = _etRatherThanPt,
-            #                deltaPhiStarExtraName = lowPtName,                            
-            #                ),
+
+            steps.pickEventSpecMaker(""),
+            steps.displayer(jets = _jet,
+                            muons = _muon,
+                            met       = params["objects"]["met"],
+                            electrons = params["objects"]["electron"],
+                            photons   = params["objects"]["photon"],                            
+                            recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
+                            scale = 400.0,#GeV
+                            etRatherThanPt = _etRatherThanPt,
+                            deltaPhiStarExtraName = lowPtName,                            
+                            ),
             
           ]
         return outList
@@ -240,22 +243,22 @@ class hadronicLook(analysis.analysis) :
             ]                                                   
 
         outList = []
-        if params["mcSoup"]=="py6" :
-            outList+=qcd_py6
-            outList+=g_jets_py6
-            
-        if params["mcSoup"]=="py8" :
-            outList+=qcd_py8
-            outList+=g_jets_py6#no py8 available
-            
-        if params["mcSoup"]=="mg":
-            outList+=qcd_mg
-            outList+=g_jets_mg
+        #if params["mcSoup"]=="py6" :
+        #    outList+=qcd_py6
+        #    outList+=g_jets_py6
+        #    
+        #if params["mcSoup"]=="py8" :
+        #    outList+=qcd_py8
+        #    outList+=g_jets_py6#no py8 available
+        #    
+        #if params["mcSoup"]=="mg":
+        #    outList+=qcd_mg
+        #    outList+=g_jets_mg
         
         outList+=data
-        outList+=ttbar_mg
-        outList+=ewk
-        outList+=susy
+        #outList+=ttbar_mg
+        #outList+=ewk
+        #outList+=susy
 
         ##uncomment for short tests
         #for i in range(len(outList)):
