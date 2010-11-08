@@ -23,7 +23,8 @@ class photonSkim(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify        
         return [
-            specify(name = "Run2010B_MJ_skim4"),
+            specify(name ="MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Robin"),            
+            #specify(name = "Run2010B_MJ_skim4"),
             #specify(name = "Run2010B_MJ_skim3"),
             #specify(name = "Run2010B_MJ_skim2"),
             #specify(name = "Run2010B_MJ_skim"),
