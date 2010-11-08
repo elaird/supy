@@ -1,10 +1,10 @@
 #HCAL dead channels
+
 # snapshot made in in CMSSW_3_8_4_patch3
-# from /castor/cern.ch/cms/store/relval/CMSSW_3_8_4/MinimumBias/RECO/GR_R_38X_V13_RelVal_col_10-v1/0000/043C99EA-60C2-DF11-B6C3-0018F3D0970C.root
-# with global tag 'GR_R_38X_V13::All'
+# from /castor/cern.ch/cms/store/data/Run2010B/MultiJet/RECO/PromptReco-v2/000/149/294/08FCCA78-05E5-DF11-8925-0030487CD6B4.root
+# with global tag 'GR10_P_V11::All'
 
 # eta     phi	  status
- 1.174   2.661	   128
--1.609  -2.574	    32
- 2.901  -0.436	    64
- 2.920  -0.436	    64
+ 1.174   2.661	   64
+-1.609  -2.574	   32
+ 2.920  -0.436	   64
