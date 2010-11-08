@@ -422,6 +422,10 @@ class displayer(analysisStep) :
         self.hotBox.SetFillColor(r.kRed)
         self.hotBox.SetLineColor(r.kRed)
         
+        self.hcalBox = r.TBox()
+        self.hcalBox.SetFillColor(r.kGreen)
+        self.hcalBox.SetLineColor(r.kGreen)
+        
         self.line = r.TLine()
         self.arrow = r.TArrow()
         self.radius = 0.3
@@ -761,7 +765,7 @@ class displayer(analysisStep) :
         suspiciousJetColor = r.kBlack
         suspiciousJetStyle = 2
         
-        def drawBox(fourVector, nBadXtals, maxStatus) :
+        def drawEcalBox(fourVector, nBadXtals, maxStatus) :
             value = (0.087/2) * nBadXtals / 25
             args = (fourVector.eta()-value, fourVector.phi()-value, fourVector.eta()+value, fourVector.phi()+value)
             if maxStatus==14 :
@@ -771,14 +775,24 @@ class displayer(analysisStep) :
             else :
                 self.coldBox.DrawBox(*args)
                 
+        def drawHcalBox(fourVector) :
+            value = 0.087/2
+            args = (fourVector.eta()-value, fourVector.phi()-value, fourVector.eta()+value, fourVector.phi()+value)
+            self.hcalBox.DrawBox(*args)
+                
         #draw dead ECAL regions
         nRegions = eventVars["ecalDeadTowerTrigPrimP4"].size()
         for iRegion in range(nRegions) :
-            drawBox(fourVector = eventVars["ecalDeadTowerTrigPrimP4"].at(iRegion),
-                    nBadXtals  = eventVars["ecalDeadTowerNBadXtals"].at(iRegion),
-                    maxStatus  = eventVars["ecalDeadTowerMaxStatus"].at(iRegion),
-                    )
-        
+            drawEcalBox(fourVector = eventVars["ecalDeadTowerTrigPrimP4"].at(iRegion),
+                        nBadXtals  = eventVars["ecalDeadTowerNBadXtals"].at(iRegion),
+                        maxStatus  = eventVars["ecalDeadTowerMaxStatus"].at(iRegion),
+                        )
+
+        #draw masked HCAL regions
+        nBadHcalChannels = eventVars["hcalDeadChannelP4"].size()
+        for iChannel in range(nBadHcalChannels) :
+            drawHcalBox(fourVector = eventVars["hcalDeadChannelP4"].at(iChannel))
+
         if self.doGenParticles :
             self.drawGenParticles(eventVars,r.kMagenta, lineWidth = 1, arrowSize = -1.0, statusList = [1], pdgIdList = [22],
                                   motherList = [1,2,3,4,5,6,-1,-2,-3,-4,-5,-6], label = "status 1 photon w/quark as mother", circleRadius = 0.15)
@@ -808,6 +822,7 @@ class displayer(analysisStep) :
         legend.AddEntry(self.deadBox,"dead ECAL cells","f")
         legend.AddEntry(self.coldBox,"dead ECAL cells with TP link","f")
         legend.AddEntry(self.hotBox, "dead ECAL cells with TP ET>%4.1f GeV"%self.hotTpThreshold,"f")
+        legend.AddEntry(self.hcalBox,"masked HCAL cells","f")
         self.ellipse.SetLineColor(suspiciousJetColor)
         self.ellipse.SetLineStyle(suspiciousJetStyle)
         legend.AddEntry(self.ellipse,"suspicious jet","l")
