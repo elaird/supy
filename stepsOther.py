@@ -564,8 +564,8 @@ class displayer(analysisStep) :
             setattr(self,legString,True)
             someLine = self.line.DrawLine(0.0,0.0,0.0,0.0)
             self.legend.AddEntry(someLine,"clean jets (%s%s)"%jets,"l")
-            
-        p4s = eventVars['%sCorrectedP4%s'%self.jets]
+
+        p4s = eventVars['%sCorrectedP4%s'%jets]
         if self.tipToTail :
             phiOrder = eventVars["%sIndicesPhi%s"%self.jets]
             partials = eventVars["%sPartialSumP4%s"%self.jets]
@@ -574,7 +574,7 @@ class displayer(analysisStep) :
                 self.drawP4( p4s.at(phiOrder[i]), color, lineWidth, 0.3*arrowSize, partials[i]-mean)
             return
 
-        cleanJetIndices = eventVars["%sIndices%s"%self.jets]
+        cleanJetIndices = eventVars["%sIndices%s"%jets]
         for iJet in cleanJetIndices :
             self.drawP4(p4s.at(iJet),color,lineWidth,arrowSize)
             
@@ -962,22 +962,23 @@ class displayer(analysisStep) :
             self.drawCleanJets      (eventVars,
                                      self.jets,r.kBlue    , defWidth, defArrowSize)
             #self.drawCleanJets      (eventVars,
-            #                         (self.jets[0]+"JPT","Pat"),896,defWidth, defArrowSize*3/4.0)
+            #                         (self.jets[0].replace("xc","")+"JPT","Pat"),896,defWidth, defArrowSize*3/4.0)
             #self.drawCleanJets      (eventVars,
-            #                         (self.jets[0]+"PF","Pat"), 38,defWidth, defArrowSize*1/2.0)
+            #                         (self.jets[0].replace("xc","")+"PF","Pat"), 38,defWidth, defArrowSize*1/2.0)
+
             self.drawIgnoredJets    (eventVars,r.kCyan    , defWidth, defArrowSize*1/6.0)
             #self.drawOtherJets      (eventVars,r.kBlack  )
             self.drawHt             (eventVars,r.kBlue+3  , defWidth, defArrowSize*1/6.0)
             self.drawNJetDeltaHt    (eventVars,r.kBlue-9  , defWidth, defArrowSize*1/6.0)
             self.drawMht            (eventVars,r.kRed     , defWidth, defArrowSize*3/6.0)
             self.drawMet            (eventVars,r.kGreen   , defWidth, defArrowSize*2/6.0)
-
+            
             if self.doLeptons :
                 self.drawMuons      (eventVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
                 self.drawElectrons  (eventVars,r.kOrange+7, defWidth, defArrowSize*2.5/6.0)
                 self.drawPhotons    (eventVars,r.kOrange  , defWidth, defArrowSize*1.8/6.0)
                 #self.drawTaus       (eventVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
-
+            
             self.drawCleanedRecHits (eventVars,r.kOrange-6, defWidth, defArrowSize*2/6.0)
 
         self.legend.Draw("same")
