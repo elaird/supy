@@ -15,7 +15,7 @@ class chain_access(wrappedChain.calculable) :
 
 class crock(wrappedChain.calculable) :
     def update(self,localEntry) : self.value = {}
-
+##############################
 class deadEcalRegionsFromFile(wrappedChain.calculable) :
     def __init__(self) :
         self.trigPrims = r.std.vector(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double')))()
@@ -35,7 +35,28 @@ class deadEcalRegionsFromFile(wrappedChain.calculable) :
         self.value={}
         self.value["trigPrims"] = self.trigPrims
         self.value["nBadXtals"] = self.nBadXtals
-##############################                        
+##############################
+class deadHcalChannelsFromFile(wrappedChain.calculable) :
+    def __init__(self) :
+        self.p4s = r.std.vector(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double')))()
+        self.status = r.std.vector("int")()
+        inFile = open("hcalDeadChannels.txt")
+        for line in inFile :
+            if line[0]=="#" : continue
+            fieldList = line.split()
+            if not len(fieldList) : continue
+            eta    = float(fieldList[0])
+            phi    = float(fieldList[1])
+            status = int(fieldList[2])
+            self.p4s.push_back(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0, eta, phi, 0.0))
+            self.status.push_back(status)
+        inFile.close()
+
+    def update(self,ignored) :
+        self.value={}
+        self.value["p4"] = self.p4s
+        self.value["status"] = self.status
+##############################
 class ecalDeadTowerTrigPrimP4(wrappedChain.calculable) :
     def update(self,ignored) : self.value = self.source["deadEcalRegionsFromFile"]["trigPrims"]
         
@@ -45,6 +66,12 @@ class ecalDeadTowerNBadXtals(wrappedChain.calculable) :
 class ecalDeadTowerIsBarrel(wrappedChain.calculable) :
     def update(self,ignored) : self.value = map( self.isBarrel, self.source["ecalDeadTowerTrigPrimP4"] )
     def isBarrel(self, p4) : return abs(p4.eta()) < 1.48
+##############################                        
+class hcalDeadChannelP4(wrappedChain.calculable) :
+    def update(self,ignored) : self.value = self.source["deadHcalChannelsFromFile"]["p4"]
+
+class hcalDeadChannelStatus(wrappedChain.calculable) :
+    def update(self,ignored) : self.value = self.source["deadHcalChannelsFromFile"]["status"]
 ##############################                        
 class vertexID(wrappedChain.calculable) :
     def __init__(self, minNdof = 5.0, maxAbsZ = 24.0, maxD0 = 2.0 ) :
