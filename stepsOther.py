@@ -1087,6 +1087,26 @@ class deadEcalFilter(analysisStep) :
                 return False
         return True
 #####################################
+class deadHcalFilter(analysisStep) :
+    def __init__(self, jets = None, extraName = "", dR = None, dPhiStarCut = None, nXtalThreshold = None) :
+        for item in ["jets","dR","dPhiStarCut"] :
+            setattr(self,item,eval(item))
+        self.dps = "%sDeltaPhiStar%s%s"%(self.jets[0],self.jets[1],extraName)
+        self.badJet = r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0,0.0,0.0,0.0)
+        self.moreName = "%s%s; dR>%5.3f when deltaPhiStar<%5.3f"%(self.jets[0], self.jets[1], self.dR, self.dPhiStarCut)
+        
+    def select(self, eventVars) :
+        d = eventVars[self.dps]
+        index = d["DeltaPhiStarJetIndex"]
+        if d["DeltaPhiStar"]>self.dPhiStarCut :
+            return True
+        jet = eventVars["%sCorrectedP4%s"%self.jets].at(index)
+        self.badJet.SetCoordinates(jet.pt(),jet.eta(),jet.phi(),jet.E())
+        for channel in eventVars["hcalDeadChannelP4"] :
+            if r.Math.VectorUtil.DeltaR(self.badJet,channel) < self.dR :
+                return False
+        return True
+#####################################
 class deadEcalFilterIncludingPhotons(analysisStep) :
     def __init__(self, jets = None, extraName = "", photons = None, dR = None, dPhiStarCut = None, nXtalThreshold = None) :
         for item in ["jets","photons","dR","dPhiStarCut","nXtalThreshold"] :
