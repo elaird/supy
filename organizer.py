@@ -72,8 +72,8 @@ class organizer(object) :
                 subdirs = map(lambda d,names: d.Get(names[0]), dirs,subdirNames)
                 assert subdirLens == [1]*len(dirs), \
                        "Organizer can only interpret a single subdirectory in any given directory.\n%s"%str(subdirNames)
-                assert len(set(map(lambda sd: (sd.GetName(),sd.GetTitle()), subdirs)))==1, \
-                       "Subdirectory names,titles must be identical. %s"%str(set(nameTitles))
+                nameTitles = set(map(lambda sd: (sd.GetName(),sd.GetTitle()), subdirs))
+                assert len(nameTitles)==1,"Subdirectory names,titles must be identical. %s"%str(nameTitles)
             else: subdirs = [None]*len(dirs)
             
             selections.append( self.selection(self.samples,dirs,keys) )
