@@ -1006,21 +1006,14 @@ class counter(analysisStep) :
         self.book(eventVars).fill(0.0,"countsHisto_"+self.label,1,-0.5,0.5,";dummy axis;number of events")
 #####################################
 class pickEventSpecMaker(analysisStep) :
-
-    #https://twiki.cern.ch/twiki/bin/view/CMS/PickEvents
-    def __init__(self,dataSetName) :
-        self.dataSetName = dataSetName
+    #https://twiki.cern.ch/twiki/bin/viewauth/CMS/WorkBookPickEvents
 
     def setup(self,chain,fileDir,name,outputDir) :
         self.outputFileName = outputDir+"/"+name+"_pickEvents.txt"
         self.outputFile = open(self.outputFileName,"w")
         
     def uponAcceptance(self,eventVars) :
-        line=""
-        line+="%14d"%eventVars["run"]
-        line+="%14d"%eventVars["event"]
-        line+="%14d"%eventVars["lumiSection"]
-        line+="   "+self.dataSetName+"\n"
+        line="%14d:%6d:%14d\n"%(eventVars["run"], eventVars["lumiSection"], eventVars["event"])
         self.outputFile.write(line) #slow: faster to buffer output, write less frequently
 
     def endFunc(self,chain,otherChainDict,nEvents,xs) :
