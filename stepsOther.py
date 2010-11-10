@@ -662,7 +662,7 @@ class displayer(analysisStep) :
             phiOrder = eventVars["%sIndicesPhi%s"%self.jets]
             partials = eventVars["%sPartialSumP4%s"%self.jets]
             mean = eventVars["%sPartialSumP4Centroid%s"%self.jets]
-            if sump4 : self.drawP4(-sump4,color,lineWidth,arrowSize, partials[-1]-mean)
+            if sump4 : self.drawP4(coords, -sump4,color,lineWidth,arrowSize, partials[-1]-mean)
             return
         if sump4 : self.drawP4(coords, -sump4, color, lineWidth, arrowSize)
             
