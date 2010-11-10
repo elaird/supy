@@ -39,19 +39,28 @@ def makeCodeString(iTry,nOps,nItems) :
     for code in codeList : outString+=str(code)
     return outString
 #####################################
+def canvas(name) :
+    c = r.TCanvas(name,name, 260*2, 200*2)
+    c.SetTopMargin(0.0)
+    c.SetBottomMargin(0.0)
+    c.SetRightMargin(0.0)
+    c.SetLeftMargin(0.0)
+    return c
+#####################################
 def psFromRoot(listOfInFileNames,outFileName,beQuiet) :
     if len(listOfInFileNames)==0 : return
-    
-    dummyCanvas=r.TCanvas("display","display",500,500)
-    dummyCanvas.Print(outFileName+"[")
+
+    options = ""
+    dummyCanvas = canvas("display")
+    dummyCanvas.Print(outFileName+"[", options)
     for inFileName in listOfInFileNames :
         inFile=r.TFile(inFileName)
         keys=inFile.GetListOfKeys()
         for key in keys :
             someObject=inFile.Get(key.GetName())
             if someObject.ClassName()!="TCanvas" : print "Warning: found an object which is not a TCanvas in the display root file"
-            someObject.Print(outFileName)
-    dummyCanvas.Print(outFileName+"]")
+            someObject.Print(outFileName, options)
+    dummyCanvas.Print(outFileName+"]", options)
     pdfFileName=outFileName.replace(".ps",".pdf")
     os.system("ps2pdf "+outFileName+" "+pdfFileName)
     os.system("gzip -f "+outFileName)
