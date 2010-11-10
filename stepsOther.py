@@ -375,13 +375,15 @@ class displayer(analysisStep) :
     def __init__(self,jets = ("",""), met = "", muons = "", electrons = "", photons = "",
                  recHits = "", recHitPtThreshold = -1.0, scale = 200.0,
                  etRatherThanPt = False, doGenParticles = False, doEtaPhiPlot = True,
-                 hotTpThreshold = 63.5, deltaPhiStarExtraName = "", tipToTail = False) :
+                 hotTpThreshold = 63.5, deltaPhiStarExtraName = "", printOtherJetAlgoQuantities = False,
+                 tipToTail = False) :
 
         self.moreName = "(see below)"
 
         for item in ["scale","jets","met","muons","electrons","photons",
                      "recHits","recHitPtThreshold","doGenParticles",
-                     "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "tipToTail"] :
+                     "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName","printOtherJetAlgoQuantities",
+                     "tipToTail"] :
             setattr(self,item,eval(item))
 
         self.jetRadius = 0.7 if "ak7Jet" in self.jets[0] else 0.5
@@ -457,26 +459,86 @@ class displayer(analysisStep) :
             utils.psFromRoot([self.outputFileName],psFileName,self.quietMode)
         del self.canvas
 
-    def prepareText(self, params) :
+    def prepareText(self, params, coords) :
         self.text.SetTextSize(params["size"])
         self.text.SetTextFont(params["font"])
         self.text.SetTextColor(params["color"])
+        self.textSlope = params["slope"]
+
+        self.textX = coords["x"]
+        self.textY = coords["y"]
+        self.textCounter = 0
+
+    def printText(self, message) :
+        self.text.DrawText(self.textX, self.textY - self.textCounter * self.textSlope, message)
+        self.textCounter += 1
+
+    def printEvent(self, eventVars, params, coords) :
+        self.prepareText(params, coords)
+        for message in ["Run   %#10d"%eventVars["run"],
+                        "Ls    %#10d"%eventVars["lumiSection"],
+                        "Event %#10d"%eventVars["event"]
+                        ] :
+            self.printText(message)
         
-    def printEvent(self, eventVars, params, x, y) :
-        self.prepareText(params)
-        self.text.DrawText(x, y,                     "Run   %#10d"%eventVars["run"])
-        self.text.DrawText(x, y-1.0*params["slope"], "Ls    %#10d"%eventVars["lumiSection"])
-        self.text.DrawText(x, y-2.0*params["slope"], "Event %#10d"%eventVars["event"])
-        
-    def printVertices(self, eventVars, params, x, y) :
-        self.prepareText(params)
-        s = params["slope"]
-        self.text.DrawText(x, y        , "Vertices")
-        self.text.DrawText(x, y - 1.0*s, "ID  i   Z(cm)  sumPt(GeV)")
-        self.text.DrawText(x, y - 2.0*s, "-------------------------")
-        for i in range(eventVars["vertexNdof"].size()) :
+    def printVertices(self, eventVars, params, coords, nMax) :
+        self.prepareText(params, coords)
+        self.printText("Vertices")
+        self.printText("ID  i   Z(cm)  sumPt(GeV)")
+        self.printText("-------------------------")
+
+        nVertices = eventVars["vertexNdof"].size()
+        for i in range(nVertices) :
+            if nMax<=i :
+                self.printText("[%d more not listed]"%(nVertices-nMax))
+                break
+            
             out = "%2s %2d  %6.2f    %5.0f"%("*" if i in eventVars["vertexIndices"] else "-", i, eventVars["vertexPosition"].at(i).z(), eventVars["vertexSumPt"].at(i))
-            self.text.DrawText(x, y - s*(i+3), out)
+            self.printText(out)
+
+    def printJets(self, eventVars, params, coords, jets, nMax) :
+        self.prepareText(params, coords)
+        jets2 = (jets[0].replace("xc",""),jets[1])
+        isPf = "PF" in jets[0]
+        p4Vector         = eventVars['%sCorrectedP4%s'     %jets2]
+        corrFactorVector = eventVars['%sCorrFactor%s'      %jets2]
+
+        if not isPf :
+            jetEmfVector  = eventVars['%sEmEnergyFraction%s'%jets2]
+            jetFHpdVector = eventVars['%sJetIDFHPD%s'       %jets2]
+            jetN90Vector  = eventVars['%sJetIDN90Hits%s'    %jets2]
+
+        jetIndices = eventVars["%sIndices%s"%jets]
+        jetIndicesOther = eventVars["%sIndicesOther%s"%jets]
+
+        self.printText(jets[0]+jets[1])
+        self.printText("ID i  upT  cpT  eta  phi%s"%("   EMF  fHPD N90" if not isPf else ""))
+        self.printText("------------------------%s"%("----------------" if not isPf else ""))
+
+        nJets = p4Vector.size()
+        for iJet in range(nJets) :
+            if nMax<=iJet :
+                self.printText("[%d more not listed]"%(nJets-nMax))
+                break
+            jet=p4Vector[iJet]
+
+            outString = "%2s"% ("-" if iJet in jetIndicesOther else "*" if iJet in jetIndices else " ")
+            outString+="%2d %4.0f %4.0f %4.1f %4.1f"%(iJet, jet.pt()/corrFactorVector[iJet], jet.pt(), jet.eta(), jet.phi())
+
+            if not isPf :
+                outString+=" %5.2f %5.2f %3d"%(jetEmfVector[iJet], jetFHpdVector[iJet], jetN90Vector[iJet])
+            self.printText(outString)
+
+    def printKinematicVariables(self, eventVars, params, coords, jets) :
+        self.prepareText(params, coords)
+        l = [eventVars["%s%s%s"%(jets[0], "SumEt",  jets[1])],
+             eventVars["%s%s%s"%(jets[0], "SumP4",  jets[1])].pt() if eventVars["%s%s%s"%(jets[0], "SumP4",  jets[1])] else 0,
+             eventVars["%s%s%s"%(jets[0], "AlphaT", jets[1])],
+             ]
+        label = "[%s%s]"%jets
+        self.printText("  HT  MHT alphaT %s"%label)
+        self.printText("-----------------%s"%("-"*len(label)))
+        self.printText("%4.0f %4.0f %6.3f"%tuple(l))
         
     def drawSkeleton(self, coords, color) :
         r.gPad.AbsCoordinates(False)
@@ -932,7 +994,7 @@ class displayer(analysisStep) :
         pad.Draw()
         return [pad,legend]
 
-    def drawEventText(self, eventVars, corners) :
+    def printEventText(self, eventVars, corners) :
         pad = r.TPad("textPad", "textPad", corners["x1"], corners["y1"], corners["x2"], corners["y2"])
         pad.cd()
 
@@ -942,8 +1004,16 @@ class displayer(analysisStep) :
         defaults["color"] = r.kBlack
         defaults["slope"] = 0.02
         
-        self.printEvent(   eventVars, params = defaults, x = 0.05, y = 0.98)
-        self.printVertices(eventVars, params = defaults, x = 0.45, y = 0.98)
+        self.printEvent(   eventVars, params = defaults, coords = {"x":0.05, "y":0.98})
+        self.printVertices(eventVars, params = defaults, coords = {"x":0.45, "y":0.98}, nMax = 3)
+
+        self.printJets(              eventVars, params = defaults, coords = {"x":0.05, "y":0.84}, jets = self.jets, nMax = 5)
+        self.printKinematicVariables(eventVars, params = defaults, coords = {"x":0.05, "y":0.64}, jets = self.jets)
+
+        if self.printOtherJetAlgoQuantities :
+            jetsOtherAlgo = (self.jets[0]+"PF" if "PF" not in self.jets[0] else self.jets[0].replace("PF",""), self.jets[1])
+            self.printJets(              eventVars, params = defaults, coords = {"x":0.05, "y":0.56}, jets = jetsOtherAlgo, nMax = 5)
+            self.printKinematicVariables(eventVars, params = defaults, coords = {"x":0.05, "y":0.36}, jets = jetsOtherAlgo)
 
         self.canvas.cd()
         pad.Draw()
@@ -976,11 +1046,11 @@ class displayer(analysisStep) :
                                                "y2":0.55})
             #g4 = self.drawMhtLlPlot(eventVars, r.kBlack, corners = {"x1":0.63, "y1":0.63, "x2":0.95, "y2":0.95})
 
-        t = self.drawEventText(eventVars,
-                               corners = {"x1":rhoPhiPadXSize + 0.12,
-                                          "y1":0.0,
-                                          "x2":1.0,
-                                          "y2":1.0})
+        t = self.printEventText(eventVars,
+                                corners = {"x1":rhoPhiPadXSize + 0.12,
+                                           "y1":0.0,
+                                           "x2":1.0,
+                                           "y2":1.0})
         
         someDir=r.gDirectory
         self.outputFile.cd()
