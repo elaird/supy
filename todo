@@ -17,7 +17,6 @@ Other
 --------
 * improve genpthat hack
 * move ratio marker
-* investigate underflows
 
 * support old formats
 * cross section in database
@@ -36,7 +35,6 @@ Other
 
 * displayer cleans up
 * modes for displayer
-* fix circle
 * label HT
 
 * profile
