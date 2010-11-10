@@ -394,6 +394,9 @@ class displayer(analysisStep) :
         self.doLeptons=True
         self.helper=r.displayHelper()
 
+        self.legendDict = collections.defaultdict(int)
+        self.legendList = []
+
     def switchGenOn(self) :
         self.doGen=True
 
@@ -403,9 +406,10 @@ class displayer(analysisStep) :
         os.system("mkdir -p "+outputDir)
         self.outputFile=r.TFile(self.outputFileName,"RECREATE")
         someDir.cd()
-        
-        self.canvas=r.TCanvas("canvas","canvas",500,500)
-        self.canvasIndex=0
+
+        self.canvas = utils.canvas("canvas")
+        self.canvas.SetFixedAspectRatio()
+        self.canvasIndex = 0
 
         self.ellipse = r.TEllipse()
         self.ellipse.SetFillStyle(0)
@@ -428,12 +432,8 @@ class displayer(analysisStep) :
         
         self.line = r.TLine()
         self.arrow = r.TArrow()
-        self.radius = 0.3
-        self.x0 = self.radius
-        self.y0 = self.radius+0.05
         self.text = r.TText()
         self.latex = r.TLatex()
-        self.legend = r.TLegend(0.01+2.0*self.radius,self.radius,0.95,0.05)
 
         self.alphaFuncs=[
             self.makeAlphaTFunc(0.55,r.kBlack),
@@ -457,53 +457,49 @@ class displayer(analysisStep) :
             utils.psFromRoot([self.outputFileName],psFileName,self.quietMode)
         del self.canvas
 
-    def drawEventInfo(self,eventVars,color) :
-        self.text.SetTextSize(0.02)
-        self.text.SetTextFont(80)
-        self.text.SetTextColor(color)
-        x=0.05
-        self.text.DrawText(x,0.90,"Run   %#10d"%eventVars["run"])
-        self.text.DrawText(x,0.88,"Ls    %#10d"%eventVars["lumiSection"])
-        self.text.DrawText(x,0.86,"Event %#10d"%eventVars["event"])
-        #self.text.DrawText(x,0.74,"Bx    %#10d"%eventVars["bunch"])
+    def prepareText(self, params) :
+        self.text.SetTextSize(params["size"])
+        self.text.SetTextFont(params["font"])
+        self.text.SetTextColor(params["color"])
         
-    def drawVerticesInfo(self,eventVars,color) :
-        self.text.SetTextSize(0.02)
-        self.text.SetTextFont(80)
-        self.text.SetTextColor(color)
-        x = 0.3
-        y = 0.90
-        self.text.DrawText(x, y      ,"Vertices")
-        self.text.DrawText(x, y - 0.02,"ID  i   Z(cm)  sumPt(GeV)")
-        self.text.DrawText(x, y - 0.04,"-------------------------")
+    def printEvent(self, eventVars, params, x, y) :
+        self.prepareText(params)
+        self.text.DrawText(x, y,                     "Run   %#10d"%eventVars["run"])
+        self.text.DrawText(x, y-1.0*params["slope"], "Ls    %#10d"%eventVars["lumiSection"])
+        self.text.DrawText(x, y-2.0*params["slope"], "Event %#10d"%eventVars["event"])
+        
+    def printVertices(self, eventVars, params, x, y) :
+        self.prepareText(params)
+        s = params["slope"]
+        self.text.DrawText(x, y        , "Vertices")
+        self.text.DrawText(x, y - 1.0*s, "ID  i   Z(cm)  sumPt(GeV)")
+        self.text.DrawText(x, y - 2.0*s, "-------------------------")
         for i in range(eventVars["vertexNdof"].size()) :
             out = "%2s %2d  %6.2f    %5.0f"%("*" if i in eventVars["vertexIndices"] else "-", i, eventVars["vertexPosition"].at(i).z(), eventVars["vertexSumPt"].at(i))
-            self.text.DrawText(x, y - 0.02*(i+3), out)
+            self.text.DrawText(x, y - s*(i+3), out)
         
-    def drawSkeleton(self,color) :
-        #self.canvas.cd(2)
+    def drawSkeleton(self, coords, color) :
         r.gPad.AbsCoordinates(False)
         
         self.ellipse.SetLineColor(color)
         self.ellipse.SetLineWidth(1)
         self.ellipse.SetLineStyle(1)
-        self.ellipse.DrawEllipse(self.x0,self.y0,self.radius,self.radius,0.0,360.0,0.0,"")
+        self.ellipse.DrawEllipse(coords["x0"], coords["y0"], coords["radius"], coords["radius"], 0.0, 360.0, 0.0, "")
 
         self.line.SetLineColor(color)
-        self.line.DrawLine(self.x0-self.radius,self.y0            ,self.x0+self.radius,self.y0            )
-        self.line.DrawLine(self.x0            ,self.y0-self.radius,self.x0            ,self.y0+self.radius)
+        self.line.DrawLine(coords["x0"]-coords["radius"], coords["y0"]                 , coords["x0"]+coords["radius"], coords["y0"]                 )
+        self.line.DrawLine(coords["x0"]                 , coords["y0"]-coords["radius"], coords["x0"]                 , coords["y0"]+coords["radius"])
 
-        self.latex.SetTextSize(0.04)
+    def drawScale(self, color, size, scale, point) :
+        self.latex.SetTextSize(size)
         self.latex.SetTextColor(color)
-        self.latex.DrawLatex(0.6,0.01,"radius = "+str(self.scale)+" GeV p_{T}")
+        self.latex.DrawLatex(point["x"], point["y"],"radius = "+str(scale)+" GeV p_{T}")
 
-        return []
-
-    def drawP4(self,p4,color,lineWidth,arrowSize, p4Initial = None) :
-        x0 = self.x0+p4Initial.px()*self.radius/self.scale if p4Initial else self.x0
-        y0 = self.y0+p4Initial.py()*self.radius/self.scale if p4Initial else self.y0
-        x1 = x0+p4.px()*self.radius/self.scale
-        y1 = y0+p4.py()*self.radius/self.scale
+    def drawP4(self, c, p4, color, lineWidth, arrowSize, p4Initial = None) :
+        x0 = c["x0"]+p4Initial.px()*c["radius"]/c["scale"] if p4Initial else c["x0"]
+        y0 = c["y0"]+p4Initial.py()*c["radius"]/c["scale"] if p4Initial else c["y0"]
+        x1 = x0+p4.px()*c["radius"]/c["scale"]
+        y1 = y0+p4.py()*c["radius"]/c["scale"]
 
         #self.line.SetLineColor(color)
         #self.line.SetLineWidth(lineWidth)
@@ -520,13 +516,14 @@ class displayer(analysisStep) :
         self.ellipse.SetLineWidth(lineWidth)
         self.ellipse.SetLineStyle(lineStyle)
         self.ellipse.DrawEllipse(p4.eta(), p4.phi(), circleRadius, circleRadius, 0.0, 360.0, 0.0, "")
-        
-    def drawGenJets (self,eventVars,color,lineWidth,arrowSize) :
-        self.line.SetLineColor(color)
-        if not hasattr(self,"genJetEntryInLegend") :
-            self.genJetEntryInLegend=True
-            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"GEN jets (%s%s)"%self.genJets,"l")
+
+    def legendFunc(self, color, name, desc) :
+        if not self.legendDict[name] :
+            self.legendDict[name] = True
+            self.legendList.append( (color, desc, "l") )
+
+    def drawGenJets(self, eventVars, coords, color, lineWidth, arrowSize) :
+        self.legendFunc(color, name = "genJet", desc = "GEN jets (%s%s)"%self.genJets)
 
         genJets = "%sGenJetP4%s"%self.genJets
         if genJets[:2] == "xc": genJets = genJets[2:]
@@ -536,34 +533,25 @@ class displayer(analysisStep) :
             partials = utils.partialSumP4(p4s, phiOrder)
             mean = utils.partialSumP4Centroid(partials)
             for i in range(len(phiOrder)) :
-                self.drawP4( p4s.at(phiOrder[i]), color, lineWidth, 0.3*arrowSize, partials[i]-mean)
+                self.drawP4( coords, p4s.at(phiOrder[i]), color, lineWidth, 0.3*arrowSize, partials[i]-mean)
             return
         for jet in p4s :
-            self.drawP4(jet,color,lineWidth,arrowSize)
+            self.drawP4(coords, jet, color, lineWidth, arrowSize)
             
-    def drawGenParticles (self, eventVars, color, lineWidth, arrowSize, statusList = None, pdgIdList = None, motherList = None, label = "", circleRadius = None) :
-        self.line.SetLineColor(color)
-        if not hasattr(self,"genParticleEntryInLegend"+label) :
-            setattr(self,"genParticleEntryInLegend"+label,True)
-            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,label,"l")
+    def drawGenParticles(self, eventVars, coords, color, lineWidth, arrowSize, statusList = None, pdgIdList = None, motherList = None, label = "", circleRadius = None) :
+        self.legendFunc(color, name = "genParticle"+label, desc = label)
 
         for iParticle,particle in enumerate(eventVars["genP4"]) :
             if statusList!=None and eventVars["genStatus"].at(iParticle) not in statusList : continue
             if pdgIdList!=None and eventVars["genPdgId"].at(iParticle) not in pdgIdList : continue
             if motherList!=None and eventVars["genMotherPdgId"][iParticle] not in motherList : continue
             if circleRadius==None :
-                self.drawP4(particle,color,lineWidth,arrowSize)
+                self.drawP4(coords, particle, color, lineWidth, arrowSize)
             else :
-                self.drawCircle(particle,color,lineWidth,circleRadius)
+                self.drawCircle(particle, color, lineWidth, circleRadius)
             
-    def drawCleanJets (self,eventVars,jets,color,lineWidth,arrowSize) :
-        self.line.SetLineColor(color)
-        legString = "%scleanJetEntryInLegend%s"%jets
-        if not hasattr(self,legString) :
-            setattr(self,legString,True)
-            someLine = self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"clean jets (%s%s)"%jets,"l")
+    def drawCleanJets(self, eventVars, coords, jets, color, lineWidth, arrowSize) :
+        self.legendFunc(color, name = "%scleanJet%s"%jets, desc = "clean jets (%s%s)"%jets)
 
         p4s = eventVars['%sCorrectedP4%s'%jets]
         if self.tipToTail :
@@ -571,31 +559,23 @@ class displayer(analysisStep) :
             partials = eventVars["%sPartialSumP4%s"%self.jets]
             mean = utils.partialSumP4Centroid(partials)
             for i in range(len(phiOrder)) :
-                self.drawP4( p4s.at(phiOrder[i]), color, lineWidth, 0.3*arrowSize, partials[i]-mean)
+                self.drawP4( coords, p4s.at(phiOrder[i]), color, lineWidth, 0.3*arrowSize, partials[i]-mean)
             return
 
         cleanJetIndices = eventVars["%sIndices%s"%jets]
         for iJet in cleanJetIndices :
-            self.drawP4(p4s.at(iJet),color,lineWidth,arrowSize)
+            self.drawP4(coords, p4s.at(iJet), color, lineWidth, arrowSize)
             
-    def drawOtherJets (self,eventVars,color,lineWidth,arrowSize) :
-        self.line.SetLineColor(color)
-        if not hasattr(self,"otherJetEntryInLegend") :
-            self.otherJetEntryInLegend=True
-            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"\"other\" jets","l")
+    def drawOtherJets(self, eventVars, coords, color, lineWidth, arrowSize) :
+        self.legendFunc(color, name = "%sotherJet%s"%self.jets, desc = "\"other\" jets (%s%s)"%self.jets)
 
         p4Vector = eventVars["%sCorrectedP4%s"%self.jets]
         otherJetIndices = eventVars["%sIndicesOther%s"%self.jets]
         for index in otherJetIndices :
-            self.drawP4(p4Vector.at(index),color,lineWidth,arrowSize)
+            self.drawP4(coords, p4Vector.at(index), color, lineWidth, arrowSize)
             
-    def drawIgnoredJets (self,eventVars,color,lineWidth,arrowSize) :
-        self.line.SetLineColor(color)
-        if (not hasattr(self,"ignoredJetEntryInLegend")) :
-            self.ignoredJetEntryInLegend=True
-            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"ignored jets (%s%s)"%self.jets,"l")
+    def drawIgnoredJets(self, eventVars, coords, color, lineWidth, arrowSize) :
+        self.legendFunc(color, name = "%signoredJet%s"%self.jets, desc = "ignored jets (%s%s)"%self.jets)
 
         p4s = eventVars["%sCorrectedP4%s"%self.jets]
         ignoredJetIndices = set(range(len(p4s))) \
@@ -607,17 +587,13 @@ class displayer(analysisStep) :
             goodPartials = eventVars["%sPartialSumP4%s"%self.jets]
             offset = goodPartials[-1] - eventVars["%sPartialSumP4Centroid%s"%self.jets]
             for i in range(len(phiOrder)) :
-                self.drawP4( p4s.at(phiOrder[i]), color,lineWidth,arrowSize, partials[i]+offset)
+                self.drawP4( coords, p4s.at(phiOrder[i]), color, lineWidth, arrowSize, partials[i]+offset)
             return
         for iJet in ignoredJetIndices :
-            self.drawP4(p4s.at(iJet),color,lineWidth,arrowSize)
+            self.drawP4(coords, p4s.at(iJet), color, lineWidth, arrowSize)
             
-    def drawMht (self,eventVars,color,lineWidth,arrowSize) :
-        self.line.SetLineColor(color)
-        if not hasattr(self,"mhtEntryInLegend") :
-            self.mhtEntryInLegend=True
-            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"MHT (%s%s)"%self.jets,"l")
+    def drawMht(self, eventVars, coords, color, lineWidth, arrowSize) :
+        self.legendFunc(color, name = "%smht%s"%self.jets, desc = "MHT (%s%s)"%self.jets)
 
         sump4 = eventVars["%sSumP4%s"%self.jets]
         if self.tipToTail :
@@ -626,98 +602,60 @@ class displayer(analysisStep) :
             mean = eventVars["%sPartialSumP4Centroid%s"%self.jets]
             if sump4 : self.drawP4(-sump4,color,lineWidth,arrowSize, partials[-1]-mean)
             return
-        if sump4 : self.drawP4(-sump4,color,lineWidth,arrowSize)
+        if sump4 : self.drawP4(coords, -sump4, color, lineWidth, arrowSize)
             
-    def drawHt (self,eventVars,color,lineWidth,arrowSize) :
-        self.line.SetLineColor(color)
-        if not hasattr(self,"htEntryInLegend") :
-            self.htEntryInLegend=True
-            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"H_{T} (%s%s)"%self.jets,"l")
+    def drawHt(self, eventVars, coords, color, lineWidth, arrowSize) :
+        self.legendFunc(color, name = "%sht%s"%self.jets, desc = "H_{T} (%s%s)"%self.jets)
 
         ht = eventVars["%sSumPt%s"%self.jets]
             
-        y=self.y0-self.radius-0.05
-        l=ht*self.radius/self.scale
+        y = coords["y0"]-coords["radius"]-0.05
+        l = ht*coords["radius"]/coords["scale"]
         self.line.SetLineColor(color)
-        self.line.DrawLine(self.x0-l/2.0,y,self.x0+l/2.0,y)
+        self.line.DrawLine(coords["x0"]-l/2.0, y, coords["x0"]+l/2.0, y)
         
-    def drawNJetDeltaHt (self,eventVars,color,lineWidth,arrowSize) :
-        self.line.SetLineColor(color)
-        if not hasattr(self,"deltaHtEntryInLegend") :
-            self.deltaHtEntryInLegend=True
-            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"#DeltaH_{T} (%s%s)"%self.jets,"l")
+    def drawNJetDeltaHt(self, eventVars, coords, color, lineWidth, arrowSize) :
+        self.legendFunc(color, name = "%sdeltaHt%s"%self.jets, desc = "#DeltaH_{T} (%s%s)"%self.jets)
 
-        y=self.y0-self.radius-0.03
-        l=eventVars[self.deltaHtName]*self.radius/self.scale
+        y = coords["y0"]-coords["radius"]-0.03
+        l=eventVars[self.deltaHtName]*coords["radius"]/coords["scale"]
         self.line.SetLineColor(color)
-        self.line.DrawLine(self.x0-l/2.0,y,self.x0+l/2.0,y)
+        self.line.DrawLine(coords["x0"]-l/2.0, y, coords["x0"]+l/2.0, y)
 
-    def drawMet (self,eventVars,color,lineWidth,arrowSize) :
-        self.line.SetLineColor(color)
-        if (not hasattr(self,"metEntryInLegend")) :
-            self.metEntryInLegend=True
-            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"MET (%s)"%self.met,"l")
-
-        self.drawP4(eventVars[self.met],color,lineWidth,arrowSize)
+    def drawMet(self, eventVars, coords, color, lineWidth, arrowSize) :
+        self.legendFunc(color, name = "met%s"%self.met, desc = "MET (%s)"%self.met)
+        self.drawP4(coords, eventVars[self.met], color, lineWidth, arrowSize)
             
-    def drawGenMet (self,eventVars,color,lineWidth,arrowSize) :
-        self.line.SetLineColor(color)
-        if not hasattr(self,"genMetEntryInLegend") :
-            self.genMetEntryInLegend=True
-            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"GEN MET (%s)"%self.genMet,"l")
-
-        self.drawP4(eventVars[self.genMet],color,lineWidth,arrowSize)
+    def drawGenMet(self, eventVars, coords, color, lineWidth, arrowSize) :
+        self.legendFunc(color, name = "genMet", desc = "GEN MET (%s)"%self.genMet)
+        self.drawP4(coords, eventVars[self.genMet], color, lineWidth, arrowSize)
             
-    def drawMuons (self,eventVars,color,lineWidth,arrowSize) :
-        self.line.SetLineColor(color)
-        if not hasattr(self,"muonEntryInLegend") :
-            self.muonEntryInLegend=True
-            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"muons (%s%s)"%self.muons,"l")
+    def drawMuons(self, eventVars, coords, color, lineWidth, arrowSize) :
+        self.legendFunc(color, name = "%smuon%s"%self.muons, desc = "muons (%s%s)"%self.muons)
         p4Vector=eventVars["%sP4%s"%self.muons]
         for i in range(len(p4Vector)) :
-            self.drawP4(p4Vector.at(i),color,lineWidth,arrowSize)
+            self.drawP4(coords, p4Vector.at(i), color, lineWidth, arrowSize)
             
-    def drawElectrons (self,eventVars,color,lineWidth,arrowSize) :
-        self.line.SetLineColor(color)
-        if not hasattr(self,"electronEntryInLegend") :
-            self.electronEntryInLegend=True
-            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"electrons (%s%s)"%self.electrons,"l")
+    def drawElectrons(self, eventVars, coords, color, lineWidth, arrowSize) :
+        self.legendFunc(color, name = "%selectron%s"%self.electrons, desc = "electrons (%s%s)"%self.electrons)
         p4Vector=eventVars["%sP4%s"%self.electrons]
         for i in range(len(p4Vector)) :
-            self.drawP4(p4Vector.at(i),color,lineWidth,arrowSize)
+            self.drawP4(coords, p4Vector.at(i), color, lineWidth, arrowSize)
             
-    def drawPhotons (self,eventVars,color,lineWidth,arrowSize) :
-        self.line.SetLineColor(color)
-        if not hasattr(self,"photonEntryInLegend") :
-            self.photonEntryInLegend=True
-            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"photons (%s%s)"%self.photons,"l")
+    def drawPhotons(self, eventVars, coords, color, lineWidth, arrowSize) :
+        self.legendFunc(color, name = "%sphoton%s"%self.photons, desc = "photons (%s%s)"%self.photons)
         p4Vector=eventVars["%sP4%s"%self.photons]
         for i in range(len(p4Vector)) :
-            self.drawP4(p4Vector.at(i),color,lineWidth,arrowSize)
+            self.drawP4(coords, p4Vector.at(i), color, lineWidth, arrowSize)
             
-    def drawTaus (self,eventVars,color,lineWidth,arrowSize) :
-        self.line.SetLineColor(color)
-        if not hasattr(self,"tauEntryInLegend") :
-            self.tauEntryInLegend=True
-            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"taus ("+self.tauSuffix+")","l")
+    def drawTaus(self, eventVars, coords, color, lineWidth, arrowSize) :
+        self.legendFunc(color, name = "%stau%s"%self.taus, desc = "taus (%s%s)"%self.taus)
         p4Vector=eventVars[self.tauCollection+'P4'+self.tauSuffix]
         for i in range(len(p4Vector)) :
-            self.drawP4(p4Vector.at(i),color,lineWidth,arrowSize)
+            self.drawP4(coords, p4Vector.at(i), color, lineWidth, arrowSize)
             
-    def drawCleanedRecHits (self,eventVars,color,lineWidth,arrowSize) :
-        self.line.SetLineColor(color)
-        if not hasattr(self,"cleanedRecHitEntryInLegend") :
-            self.cleanedRecHitEntryInLegend=True
-            someLine=self.line.DrawLine(0.0,0.0,0.0,0.0)
-            self.legend.AddEntry(someLine,"cleaned RecHits (%s)"%self.recHits,"l")
+    def drawCleanedRecHits(self, eventVars, coords, color, lineWidth, arrowSize) :
+        self.legendFunc(color, name = "cleanedRecHits%s"%self.recHits, desc = "cleaned RecHits (%s)"%self.recHits)
 
         subDetectors=[]
         if self.recHits=="Calo" :
@@ -731,7 +669,7 @@ class displayer(analysisStep) :
                 if varName not in eventVars : continue
                 for hit in eventVars[varName] :
                     if hit.pt()<self.recHitPtThreshold : continue
-                    self.drawP4(hit,color,lineWidth,arrowSize)
+                    self.drawP4(coords, hit, color, lineWidth, arrowSize)
             
     def makeAlphaTFunc(self,alphaTValue,color) :
         alphaTFunc=r.TF1(("alphaTCurve ( %#5.3g"%alphaTValue)+" )",
@@ -742,17 +680,11 @@ class displayer(analysisStep) :
         alphaTFunc.SetNpx(300)
         return alphaTFunc
 
-    def drawEtaPhiPlot (self, eventVars) :
-        stuffToKeep=[]
-        pad=r.TPad("etaPhiPad","etaPhiPad",
-                   0.01 + 2.0*self.radius, 0.34 + self.radius,
-                   0.94                  , 1.27 - self.radius)
+    def drawEtaPhiPlot (self, eventVars, corners) :
+        pad=r.TPad("etaPhiPad", "etaPhiPad", corners["x1"], corners["y1"], corners["x2"], corners["y2"])
         pad.cd()
-        pad.SetRightMargin(0.01)
         pad.SetTickx()
         pad.SetTicky()
-        pad.SetGridx()
-        pad.SetGridy()
 
         etaPhiPlot = r.TH2D("etaPhi",";#eta;#phi;",1, -3.0, 3.0, 1, -r.TMath.Pi(), r.TMath.Pi() )
         etaPhiPlot.SetStats(False)
@@ -827,23 +759,22 @@ class displayer(analysisStep) :
         self.ellipse.SetLineStyle(suspiciousJetStyle)
         legend.AddEntry(self.ellipse,"suspicious jet","l")
         legend.Draw()
-        stuffToKeep.extend([pad, etaPhiPlot, legend])
+
         self.canvas.cd()
         pad.Draw()
-        return stuffToKeep
+        return [pad, etaPhiPlot, legend]
 
-    def drawAlphaPlot (self, eventVars, color, showAlphaTMet = False) :
-        stuffToKeep=[]
-        pad=r.TPad("alphaTpad","alphaTpad",
-                   0.01 + 2.0*self.radius, 0.01 + self.radius,
-                   0.94,                   0.94 - self.radius)
+    def drawAlphaPlot (self, eventVars, color, showAlphaTMet, corners) :
+        pad = r.TPad("alphaTpad", "alphaTpad", corners["x1"], corners["y1"], corners["x2"], corners["y2"])
         pad.cd()
-        pad.SetRightMargin(0.01)
+        pad.SetTickx()
+        pad.SetTicky()
+
         title = ";"
         if showAlphaTMet :
             title +="#color[%d]{MET/H_{T}}              "%r.kGreen
         title+= "#color[%d]{MHT/H_{T}};#DeltaH_{T}/H_{T}"%r.kBlue
-        alphaTHisto = r.TH2D("alphaTHisto",title,100,0.0,1.0,100,0.0,0.7)
+        alphaTHisto = r.TH2D("alphaTHisto",title,100,0.0,1.0,100,0.0,1.0)
         alphaTMetHisto = alphaTHisto.Clone("alphaTMetHisto")
 
         mht = eventVars["%sSumP4%s"%self.jets].pt() if eventVars["%sSumP4%s"%self.jets] else 0
@@ -856,7 +787,7 @@ class displayer(analysisStep) :
         if ht : alphaTHisto.Fill(mht/ht,deltaHt/ht)
         alphaTHisto.SetStats(False)
         alphaTHisto.SetMarkerStyle(29)
-        alphaTHisto.GetYaxis().SetTitleOffset(1.25)
+        #alphaTHisto.GetYaxis().SetTitleOffset(1.25)
         alphaTHisto.SetMarkerColor(r.kBlue)
         alphaTHisto.Draw("p")
 
@@ -868,7 +799,8 @@ class displayer(analysisStep) :
             alphaTMetHisto.SetMarkerColor(r.kGreen)
             alphaTMetHisto.Draw("psame")
 
-        legend=r.TLegend(0.1,0.9,0.6,0.6)
+        legend = r.TLegend(0.1, 0.55, 1.0, 0.85)
+        legend.SetBorderSize(0)
         legend.SetFillStyle(0)
         
         for func in self.alphaFuncs :
@@ -879,18 +811,17 @@ class displayer(analysisStep) :
         if showAlphaTMet :
             legend.AddEntry(alphaTMetHisto,"this event ( %#5.3g )"%alphaTMet,"p")
         legend.Draw()
-        stuffToKeep.extend([pad,alphaTHisto,alphaTMetHisto,legend])
         self.canvas.cd()
         pad.Draw()
-        return stuffToKeep
+        return [pad,alphaTHisto,alphaTMetHisto,legend]
 
     def fillHisto(self,histo,lls,mhts) :
         for i in range(len(mhts)) :
             histo.Fill(lls[i],mhts[i])
         
-    def drawMhtLlPlot (self,eventVars,color) :
+    def drawMhtLlPlot (self, eventVars, color, corners) :
         stuffToKeep=[]
-        pad=r.TPad("pad","pad",self.x0+0.37*self.radius,0.63,0.95,0.95)
+        pad = r.TPad("mhtLlPad","mhtLlPad", corners["x1"], corners["y1"], corners["x2"], corners["y2"])
         pad.cd()
         pad.SetLeftMargin(0.3)
         pad.SetRightMargin(0.15)
@@ -933,63 +864,124 @@ class displayer(analysisStep) :
         self.canvas.cd()
         pad.Draw()
         return stuffToKeep
-        
-    def uponAcceptance (self,eventVars) :
-        self.canvas.Clear()
 
-        g1=self.drawSkeleton(r.kYellow+1)
-        self.drawEventInfo(eventVars, r.kBlack)
-        self.drawVerticesInfo(eventVars, r.kBlack)
+    def drawRhoPhiPlot(self, eventVars, coords, corners) :
+        pad = r.TPad("rhoPhiPad", "rhoPhiPad", corners["x1"], corners["y1"], corners["x2"], corners["y2"])
+        pad.cd()
+
+        skeletonColor = r.kYellow+1
+        self.drawSkeleton(coords, skeletonColor)
+        self.drawScale(color = skeletonColor, size = 0.03, scale = coords["scale"], point = {"x":0.0, "y":coords["radius"]+coords["y0"]+0.03})
+
         defArrowSize=0.5*self.arrow.GetDefaultArrowSize()
         defWidth=1
         #                                  color      , width   , arrow size
         if self.doGen :
             if self.doGenParticles :
-                self.drawGenParticles(eventVars,r.kBlack  , defWidth, defArrowSize,       label = "all GEN particles")
-                self.drawGenParticles(eventVars,r.kBlue   , defWidth, defArrowSize*4/6.0, statusList = [1], label = "status 1")
-                self.drawGenParticles(eventVars,r.kGreen  , defWidth, defArrowSize*2/6.0, statusList = [1], pdgIdList = [22], label = "status 1 photon")
-                self.drawGenParticles(eventVars,r.kMagenta, defWidth, defArrowSize*1/6.0, statusList = [1], pdgIdList = [22],
+                self.drawGenParticles(eventVars, coords,r.kBlack  , defWidth, defArrowSize,       label = "all GEN particles")
+                self.drawGenParticles(eventVars, coords,r.kBlue   , defWidth, defArrowSize*4/6.0, statusList = [1], label = "status 1")
+                self.drawGenParticles(eventVars, coords,r.kGreen  , defWidth, defArrowSize*2/6.0, statusList = [1], pdgIdList = [22], label = "status 1 photon")
+                self.drawGenParticles(eventVars, coords,r.kMagenta, defWidth, defArrowSize*1/6.0, statusList = [1], pdgIdList = [22],
                                       motherList = [1,2,3,4,5,6,-1,-2,-3,-4,-5,-6], label = "status 1 photon w/quark as mother")
-                self.drawGenParticles(eventVars,r.kOrange, defWidth, defArrowSize*1/6.0, statusList = [1], pdgIdList = [22],
+                self.drawGenParticles(eventVars, coords,r.kOrange, defWidth, defArrowSize*1/6.0, statusList = [1], pdgIdList = [22],
                                       motherList = [22], label = "status 1 photon w/photon as mother")
             else :
-                self.drawGenJets    (eventVars,r.kBlack   , defWidth, defArrowSize)
-                self.drawGenMet     (eventVars,r.kMagenta , defWidth, defArrowSize*2/6.0)
+                self.drawGenJets    (eventVars, coords,r.kBlack   , defWidth, defArrowSize)
+                self.drawGenMet     (eventVars, coords,r.kMagenta , defWidth, defArrowSize*2/6.0)
             
         if self.doReco : 
             #self.drawP4(eventVars["%sLongP4%s"%self.jets],r.kGray,defWidth,defArrowSize*1/100.0)
             #self.drawP4(-eventVars["%sLongP4%s"%self.jets],r.kGray,defWidth,defArrowSize*1/100.0)
-            self.drawCleanJets      (eventVars,
-                                     self.jets,r.kBlue    , defWidth, defArrowSize)
-            #self.drawCleanJets      (eventVars,
+            self.drawCleanJets      (eventVars, coords, self.jets, r.kBlue    , defWidth, defArrowSize)
+                                     
+            #self.drawCleanJets      (eventVars, coords,
             #                         (self.jets[0].replace("xc","")+"JPT","Pat"),896,defWidth, defArrowSize*3/4.0)
-            #self.drawCleanJets      (eventVars,
+            #self.drawCleanJets      (eventVars, coords,
             #                         (self.jets[0].replace("xc","")+"PF","Pat"), 38,defWidth, defArrowSize*1/2.0)
-
-            self.drawIgnoredJets    (eventVars,r.kCyan    , defWidth, defArrowSize*1/6.0)
-            #self.drawOtherJets      (eventVars,r.kBlack  )
-            self.drawHt             (eventVars,r.kBlue+3  , defWidth, defArrowSize*1/6.0)
-            self.drawNJetDeltaHt    (eventVars,r.kBlue-9  , defWidth, defArrowSize*1/6.0)
-            self.drawMht            (eventVars,r.kRed     , defWidth, defArrowSize*3/6.0)
-            self.drawMet            (eventVars,r.kGreen   , defWidth, defArrowSize*2/6.0)
+        
+            self.drawIgnoredJets    (eventVars, coords,r.kCyan    , defWidth, defArrowSize*1/6.0)
+            #self.drawOtherJets      (eventVars, coords,r.kBlack  )
+            self.drawHt             (eventVars, coords,r.kBlue+3  , defWidth, defArrowSize*1/6.0)
+            self.drawNJetDeltaHt    (eventVars, coords,r.kBlue-9  , defWidth, defArrowSize*1/6.0)
+            self.drawMht            (eventVars, coords,r.kRed     , defWidth, defArrowSize*3/6.0)
+            self.drawMet            (eventVars, coords,r.kGreen   , defWidth, defArrowSize*2/6.0)
             
             if self.doLeptons :
-                self.drawMuons      (eventVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
-                self.drawElectrons  (eventVars,r.kOrange+7, defWidth, defArrowSize*2.5/6.0)
-                self.drawPhotons    (eventVars,r.kOrange  , defWidth, defArrowSize*1.8/6.0)
-                #self.drawTaus       (eventVars,r.kYellow  , defWidth, defArrowSize*2/6.0)
+                self.drawMuons      (eventVars, coords,r.kYellow  , defWidth, defArrowSize*2/6.0)
+                self.drawElectrons  (eventVars, coords,r.kOrange+7, defWidth, defArrowSize*2.5/6.0)
+                self.drawPhotons    (eventVars, coords,r.kOrange  , defWidth, defArrowSize*1.8/6.0)
+                #self.drawTaus       (eventVars, coords,r.kYellow  , defWidth, defArrowSize*2/6.0)
             
-            self.drawCleanedRecHits (eventVars,r.kOrange-6, defWidth, defArrowSize*2/6.0)
+            self.drawCleanedRecHits (eventVars, coords,r.kOrange-6, defWidth, defArrowSize*2/6.0)
 
-        self.legend.Draw("same")
-        r.gStyle.SetOptStat(110011)
+        self.canvas.cd()
+        pad.Draw()
+        return [pad]
 
+    def drawLegend(self, corners) :
+        pad = r.TPad("legendPad", "legendPad", corners["x1"], corners["y1"], corners["x2"], corners["y2"])
+        pad.cd()
+        
+        legend = r.TLegend(0.0, 0.0, 1.0, 1.0)
+        for item in self.legendList :
+            self.line.SetLineColor(item[0])
+            someLine = self.line.DrawLine(0.0,0.0,0.0,0.0)
+            legend.AddEntry(someLine, item[1], item[2])
+        legend.Draw("same")
+        self.canvas.cd()
+        pad.Draw()
+        return [pad,legend]
+
+    def drawEventText(self, eventVars, corners) :
+        pad = r.TPad("textPad", "textPad", corners["x1"], corners["y1"], corners["x2"], corners["y2"])
+        pad.cd()
+
+        defaults = {}
+        defaults["size"] = 0.04
+        defaults["font"] = 80
+        defaults["color"] = r.kBlack
+        defaults["slope"] = 0.02
+        
+        self.printEvent(   eventVars, params = defaults, x = 0.05, y = 0.98)
+        self.printVertices(eventVars, params = defaults, x = 0.45, y = 0.98)
+
+        self.canvas.cd()
+        pad.Draw()
+        return [pad]
+
+    def uponAcceptance(self, eventVars) :
+        self.canvas.Clear()
+
+        rhoPhiPadYSize = 0.50*self.canvas.GetAspectRatio()
+        rhoPhiPadXSize = 0.50
+        radius = 0.4
+        g1 = self.drawRhoPhiPlot(eventVars,
+                                 coords = {"scale":400.0, "radius":radius, "x0":radius, "y0":radius+0.05},
+                                 corners = {"x1":0.0, "y1":0.0, "x2":rhoPhiPadXSize, "y2":rhoPhiPadYSize},
+                                 )
+        l = self.drawLegend(corners = {"x1":0.0, "y1":rhoPhiPadYSize, "x2":1.0-rhoPhiPadYSize, "y2":1.0})
+
+        r.gStyle.SetOptStat(110011)        
         if self.doGenParticles or self.doEtaPhiPlot :
-            gg = self.drawEtaPhiPlot(eventVars)
+            gg = self.drawEtaPhiPlot(eventVars, corners = {"x1":rhoPhiPadXSize - 0.18,
+                                                           "y1":rhoPhiPadYSize - 0.08*self.canvas.GetAspectRatio(),
+                                                           "x2":rhoPhiPadXSize + 0.12,
+                                                           "y2":rhoPhiPadYSize + 0.22*self.canvas.GetAspectRatio()})
+        
         if self.doReco :
-            g3 = self.drawAlphaPlot(eventVars,r.kBlack, showAlphaTMet = True)
-            #g4 = self.drawMhtLlPlot(eventVars,r.kBlack)
+            g3 = self.drawAlphaPlot(eventVars, r.kBlack, showAlphaTMet = True,
+                                    corners = {"x1":rhoPhiPadXSize - 0.08,
+                                               "y1":0.0,
+                                               "x2":rhoPhiPadXSize + 0.12,
+                                               "y2":0.55})
+            #g4 = self.drawMhtLlPlot(eventVars, r.kBlack, corners = {"x1":0.63, "y1":0.63, "x2":0.95, "y2":0.95})
 
+        t = self.drawEventText(eventVars,
+                               corners = {"x1":rhoPhiPadXSize + 0.12,
+                                          "y1":0.0,
+                                          "x2":1.0,
+                                          "y2":1.0})
+        
         someDir=r.gDirectory
         self.outputFile.cd()
         self.canvas.Write("canvas_%d"%self.canvasIndex)
