@@ -144,21 +144,27 @@ class plotter(object) :
 
         print "The output file \"%s\" has been written."%fileName.replace(".eps",".pdf")
 
-    def individualPlots(self, plotNames, newSampleNames) :
+    def individualPlots(self, plotSpecs, newSampleNames) :
         print utils.hyphens
         setupStyle()
 
-        def histos(plotName) :
+        def histos(p) :
+            for item in ["selName", "selDesc", "plotName"] :
+                if item not in p : return
+            
             for selection in self.someOrganizer.selections :
-                if (selection.name, selection.title) != plotName[1:3] : continue
-                if plotName[0] not in selection : continue
-                return selection[plotName[0]]
+                if (selection.name, selection.title) != (p["selName"], p["selDesc"]) : continue
+                if p["plotName"] not in selection : continue
+                return selection[p["plotName"]]
 
-        for plotName in plotNames :
-            h = histos(plotName)
+        for spec in plotSpecs :
+            h = histos(spec)
+            if "reBinFactor" in spec :
+                for histo in h :
+                    histo.Rebin(spec["reBinFactor"])
             if h==None : continue
-            stuff = self.onePlotFunction(h, plotName, newSampleNames, individual = True)
-            self.printOnePage(plotName[0], tight = self.anMode)
+            stuff = self.onePlotFunction(h, spec["newTitle"] if "newTitle" in spec else None, newSampleNames, individual = True)
+            self.printOnePage(spec["plotName"], tight = self.anMode)
 
         print utils.hyphens
 
@@ -422,13 +428,13 @@ class plotter(object) :
             ratios.append(ratio)
         return ratios
 
-    def onePlotFunction(self, histos, plotName, newSampleNames = {}, individual = False) :
+    def onePlotFunction(self, histos, newTitle = None, newSampleNames = {}, individual = False) :
         dimension = dimensionOfHisto(histos)
         self.prepareCanvas(histos,dimension)
         self.setRanges(histos,dimension)
 
         if individual : 
-            count,stuffToKeep = self.plotEachHisto(histos, dimension, newTitle = plotName[-1], newSampleNames = newSampleNames)
+            count,stuffToKeep = self.plotEachHisto(histos, dimension, newTitle = newTitle, newSampleNames = newSampleNames)
         else :
             count,stuffToKeep = self.plotEachHisto(histos, dimension)
             
