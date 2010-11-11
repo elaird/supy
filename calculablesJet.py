@@ -5,44 +5,32 @@ import calculables,utils
 def xcStrip(collection) :
     return (collection[0].lstrip("xc"),collection[1])
 ##############################
-class jetIndicesModified(wrappedChain.calculable) :
-    def name(self) : return "%sIndicesModified%s"%self.cs
-
+class IndicesModified(wrappedChain.calculable) :
     def __init__(self, collection = None) :
-        self.cs = collection
-        self.indices = "%sIndices%s"%self.cs
-        self.xcP4 = "%sCorrectedP4%s"%self.cs
-        self.p4 = self.xcP4[2:]
-        self.moreName = "%s differs from %s"%(self.p4,self.xcP4)
-
-    def differentP4(self,i) : return self.source[self.p4][i] != self.source[self.xcP4][i]
-        
+        self.fixes = collection
+        self.stash(["Indices","CorrectedP4"])
+        self.treeP4 = self.CorrectedP4[2:]
+        self.moreName = "%s differs from %s"%(self.treeP4,self.CorrectedP4)
+    def differentP4(self,i) : return self.source[self.treeP4][i] != self.source[self.CorrectedP4][i]
     def update(self,ignored) :
-        self.value = filter(self.differentP4, self.source[self.indices])
+        self.value = filter(self.differentP4, self.source[self.Indices])
 ##############################
-class jetIndicesKilled(wrappedChain.calculable) :
-    def name(self) : return "%sIndicesKilled%s"%self.cs
-    
+class IndicesKilled(wrappedChain.calculable) :
     def __init__(self, collection = None) :
-        self.cs = collection
-        self.moreName = "removed from consideration; gamma,e match or jetkill study"
-
+        self.fixes = collection
     def update(self,ignored) : self.value = set()
 ##############################
-class jetIndicesOther(calculables.indicesOther) :
+class IndicesOther(calculables.indicesOther) :
     def __init__(self, collection = None) :
-        super(jetIndicesOther, self).__init__(collection)
+        super(IndicesOther, self).__init__(collection)
         self.moreName = "pass ptMin; fail jetID or etaMax"
 ##############################
-class jetIndices(wrappedChain.calculable) :
-    def name(self) : return self.indices
-    
+class Indices(wrappedChain.calculable) :
     def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None, extraName = ""):
+        self.fixes = (collection[0],collection[1]+extraName)
+        self.stash(["IndicesOther","IndicesKilled"])
+        self.stash(["CorrectedP4"],collection)
         self.extraName = extraName
-        self.indices = "%sIndices%s%s"      % (collection[0],collection[1],extraName)
-        self.other = "%sIndicesOther%s%s"   % (collection[0],collection[1],extraName)
-        self.killed = "%sIndicesKilled%s%s" % (collection[0],collection[1],extraName)
-        self.p4s = '%sCorrectedP4%s' % collection
         self.pt2Min = ptMin*ptMin
         self.etaMax = etaMax
         self.flag = None if not flagName else \
@@ -52,10 +40,10 @@ class jetIndices(wrappedChain.calculable) :
 
     def update(self,ignored) :
         self.value = []
-        other  = self.source[self.other]  if self.extraName=="" else []
-        killed = self.source[self.killed] if self.extraName=="" else []
+        p4s    = self.source[self.CorrectedP4]
+        other  = self.source[self.IndicesOther]  if not self.extraName else []
+        killed = self.source[self.IndicesKilled] if not self.extraName else []
         jetIds = self.source[self.flag] if self.flag else p4s.size()*[1]
-        p4s    = self.source[self.p4s]
         pt2s    = []
 
         for i in range(p4s.size()) :
@@ -67,14 +55,20 @@ class jetIndices(wrappedChain.calculable) :
             else: other.append(i)
         self.value.sort( key = pt2s.__getitem__, reverse = True)
 ####################################
-class jetIndicesPhi(wrappedChain.calculable) :
-    def name(self) : return self.name_
+class IndicesPhi(wrappedChain.calculable) :
     def __init__(self,collection) :
-        self.name_ = "%sIndicesPhi%s"%collection
-        self.jets = "%sCorrectedP4%s"%collection
-        self.indices = "%sIndices%s"%collection
+        self.fixes = collection
+        self.stash(["CorrectedP4","Indices"])
     def update(self,ignored) :
-        self.value = utils.phiOrder(self.source[self.jets], self.source[self.indices])
+        self.value = utils.phiOrder(self.source[self.CorrectedP4], self.source[self.Indices])
+####################################
+class IndicesIgnored(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["CorrectedP4","Indices","IndicesOther"])
+        self.moreName = "jets not in Indices, IndicesOther"
+    def update(self,ignored) :
+        self.value = list(set(range(len(self.source[self.CorrectedP4]))) - set(self.source[self.Indices]) - set(self.source[self.IndicesOther]))
 ####################################
 class PFJetID(wrappedChain.calculable) :
     def name(self) : return self.idName
@@ -129,102 +123,175 @@ class PFJetIDtight(PFJetID) :
     def __init__(self, collection = None) :
         super(PFJetIDtight,self).__init__(collection,"tight")
 #############################
-class leadingJetPt(wrappedChain.calculable) :
-    def name(self) : return "%sLeadingPt%s"% self.cs
 
+
+
+
+
+
+####################################
+class LeadingPt(wrappedChain.calculable) :
     def __init__(self, collection = None) :
-        self.cs = collection
-        self.p4Name = '%sCorrectedP4%s' % self.cs
-        self.indicesName = "%sIndices%s" % self.cs
-
+        self.fixes = collection
+        self.stash(["CorrectedP4","Indices"])
     def update(self,ignored) :
-        p4s = self.source[self.p4Name]
-        indices = self.source[self.indicesName]
+        p4s = self.source[self.CorrectedP4]
+        indices = self.source[self.Indices]
         self.value = p4s.at(indices[0]).pt() if len(indices) else None
 ##############################
-class jetSumPt(wrappedChain.calculable) :
-    def name(self) : return "%sSumPt%s"% self.cs
-
-    def __init__(self, collection = None) :
-        self.cs = collection
-        self.p4Name = '%sCorrectedP4%s' % self.cs
-        self.indicesName = "%sIndices%s" % self.cs
-
+class Pt(wrappedChain.calculable) :
+    def __init__(self,collection=None) :
+        self.fixes = collection
+        self.stash(["CorrectedP4"])
     def update(self,ignored) :
-        p4s = self.source[self.p4Name]
-        indices = self.source[self.indicesName]
-        self.value = reduce( lambda x,i: x+p4s.at(i).pt(), indices , 0)
+        self.value = [p4.pt() for p4 in self.source[self.CorrectedP4]]
 ##############################
-class jetSumEt(wrappedChain.calculable) :
-    def name(self) : return "%sSumEt%s"% self.cs
-
+class SumPt(wrappedChain.calculable) :
     def __init__(self, collection = None) :
-        self.cs = collection
-        self.p4Name = '%sCorrectedP4%s' % self.cs
-        self.indicesName = "%sIndices%s" % self.cs
-
+        self.fixes = collection
+        self.stash(["Pt","Indices"])
     def update(self,ignored) :
-        p4s = self.source[self.p4Name]
-        indices = self.source[self.indicesName]
-        self.value = reduce( lambda x,i: x+p4s.at(i).Et(), indices , 0)
+        pts = self.source[self.Pt]
+        self.value = reduce( lambda x,i: x+pts[i], self.source[self.Indices] , 0)
 ##############################
-class jetSumP4(wrappedChain.calculable) :
-    def name(self) : return "%sSumP4%s%s" % (self.cs[0], self.cs[1], self.extraName)
-
+class SumPz(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["CorrectedP4","Indices"])
+    def update(self,ignored) :
+        p4s = self.CorrectedP4()
+        self.value = reduce( lambda x,i: x+abs(p4s.at(i).pz()), self.source[self.Indices], 0)
+##############################
+class SumEt(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["CorrectedP4","Indices"])
+    def update(self,ignored) :
+        p4s = self.source[self.CorrectedP4]
+        self.value = reduce( lambda x,i: x+p4s.at(i).Et(), self.source[self.Indices] , 0)
+##############################
+class SumP4(wrappedChain.calculable) :
     def __init__(self, collection = None, extraName = "") :
-        self.cs = collection
-        self.extraName = extraName
-        self.p4Name = '%sCorrectedP4%s' % self.cs
-        self.indicesName = "%sIndices%s%s" % (self.cs[0], self.cs[1], self.extraName)
-
+        self.fixes = (collection[0],collection[1]+extraName)
+        self.stash(["Indices"])
+        self.stash(['CorrectedP4'],collection)
     def update(self,ignored) :
-        p4s = self.source[self.p4Name]
-        indices = self.source[self.indicesName]
-        self.value = reduce( lambda x,i: x+p4s.at(i), indices[1:], p4s.at(indices[0]) ) if len(indices) else None
+        p4s = self.source[self.CorrectedP4]
+        indices = self.source[self.Indices]
+        self.value = reduce( lambda x,i: x+p4s.at(i), indices, r.LorentzV()) if len(indices) else None
+####################################
+class SumP4Ignored(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["CorrectedP4","IndicesIgnored"])
+    def update(self,ignored) :
+        p4s = self.source[self.CorrectedP4]
+        self.value = reduce( lambda x,i: x+p4s.at(i), self.source[self.IndicesIgnored], r.LorentzV())
+####################################
+class Mht(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["SumP4"])
+    def update(self,ignored) :
+        self.value = self.source[self.SumP4].pt()
+####################################
+class MhtIgnored(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["SumP4Ignored"])
+    def update(self,ignored) :
+        self.value = self.source[self.SumP4Ignored].pt()
+####################################
+class Meff(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["Mht","SumPt"])
+    def update(self,ignored) :
+        self.value = self.source[self.Mht]+self.source[self.SumPt]
+####################################
+class Boost(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["SumP4"])
+    def update(self,ignored) :
+        self.value = self.sources[self.SumP4].pz()
+####################################
+class RelativeBoost(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["Boost","SumPz"])
+    def update(self,ignored) :
+        self.value = self.source[self.Boost] / self.source[self.SumPz]
 ##############################
-class jetPartialSumP4(wrappedChain.calculable) :
-    def name(self) : return self.name_
-    def __init__(self,collection) :
-        self.name_ = "%sPartialSumP4%s"%collection
-        self.p4s = "%sCorrectedP4%s"%collection
-        self.indices = "%sIndicesPhi%s"%collection
+class LongP4(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["CorrectedP4","Indices"])
     def update(self,ignored) :
-        self.value = utils.partialSumP4(self.source[self.p4s], self.source[self.indices])
-class jetPartialSumP4Centroid(wrappedChain.calculable) :
-    def name(self) : return self.name_
-    def __init__(self,collection) :
-        self.name_ = "%sPartialSumP4Centroid%s"%collection
-        self.partials = "%sPartialSumP4%s"%collection
-    def update(self,ignored) :
-        self.value = utils.partialSumP4Centroid(self.source[self.partials])
-class jetPartialSumP4Area(wrappedChain.calculable) :
-    def name(self) : return self.name_
-    def __init__(self,collection) :
-        self.name_ = "%sPartialSumP4Area%s"%collection
-        self.partials = "%sPartialSumP4%s"%collection
-    def update(self,ignored) :
-        self.value = utils.partialSumP4Area(self.source[self.partials])
+        p4s = self.source[self.CorrectedP4]
+        self.value = reduce(lambda x,p4: max(x+p4,x-p4,key=lambda p:p.pt()), [p4s.at(i) for i in self.source[self.Indices]], r.LorentzV())
 ##############################
-class jetSumP4PlusPhotons(wrappedChain.calculable) :
-    def name(self) : return "%sSumP4PlusPhotons%s%s" % (self.cs[0], self.cs[1], self.extraName)
-
+class Stretch(wrappedChain.calculable) :
+    def __init__(self,collection=None) :
+        self.fixes = collection
+        self.stash(["LongP4","SumPt"])
+    def update(self,ignored) :
+        self.value = self.source[self.LongP4].pt() / self.source[self.SumPt]
+##############################
+class CosLongMht(wrappedChain.calculable) :
+    def __init__(self,collection=None) :
+        self.fixes = collection
+        self.stash(["SumP4","LongP4"])
+    def update(self,ignored) :
+        self.value = abs(math.cos(r.Math.VectorUtil.DeltaPhi(self.source[self.SumP4],self.source[self.LongP4])))
+##############################
+class CosDeltaPhiStar(wrappedChain.calculable) :
+    def __init__(self,collection=None) :
+        self.fixes = collection
+    def update(self,ignored) :
+        self.value = math.cos(self.source["%sDeltaPhiStar%s"%self.fixes])
+##############################
+class PartialSumP4(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["CorrectedP4","IndicesPhi"])
+    def update(self,ignored) :
+        self.value = utils.partialSumP4( self.source[self.CorrectedP4], self.source[self.IndicesPhi])
+class PartialSumP4Centroid(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["PartialSumP4"])
+    def update(self,ignored) :
+        self.value = utils.partialSumP4Centroid(self.source[self.PartialSumP4])
+class PartialSumP4Area(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["PartialSumP4"])
+    def update(self,ignored) :
+        self.value = utils.partialSumP4Area(self.source[self.PartialSumP4])
+class Pi(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["Meff","PartialSumP4Area"])
+    def update(self,ignored) :
+        self.value = 0.25 * self.source[self.Meff]**2 / self.source[self.PartialSumP4Area]
+##############################
+class SumP4PlusPhotons(wrappedChain.calculable) :
     def __init__(self, collection = None, extraName = "", photon = None) :
-        self.cs = collection
-        self.extraName = extraName
-        self.p4Name = '%sCorrectedP4%s' % self.cs
-        self.indicesName = "%sIndices%s%s" % (self.cs[0], self.cs[1], self.extraName)
-        self.photonP4Name = '%sP4%s' % photon
-        self.photonIndicesName = '%sIndices%s' % photon
+        self.fixes = (collection[0],collection[1]+extraName)
+        self.stash(["Indices"])
+        self.stash(["CorrectedP4"],collection)
+        self.photonP4 = '%sP4%s' % photon
+        self.photonIndices = '%sIndices%s' % photon
         
     def update(self,ignored) :
-        p4s = self.source[self.p4Name]
-        indices = self.source[self.indicesName]
+        p4s = self.source[self.CorrectedP4]
+        indices = self.source[self.Indices]
         self.value = reduce( lambda x,i: x+p4s.at(i), indices[1:], p4s.at(indices[0]) ) if len(indices) else None
-        photonIndices = self.source[self.photonIndicesName]
-        for i in photonIndices :
-            self.value += self.source[self.photonP4Name].at(i)
+        for i in self.source[self.photonIndices] :
+            self.value += self.source[self.photonP4].at(i)
 ##############################
-class deltaPseudoJet(wrappedChain.calculable) :
+class DeltaPseudoJet(wrappedChain.calculable) :
     def name(self) : return self.nameString
 
     def __init__(self, collection = None, etRatherThanPt = None) :
@@ -246,6 +313,22 @@ class deltaPseudoJet(wrappedChain.calculable) :
                 diff[i] += pt * (1|-(1&(i>>j)))
         
         self.value = min([abs(d) for d in diff])
+##############################
+class DeltaHtOverHt(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.deltaHt = "%sDeltaPseudoJetEt%s"%collection
+        self.Ht = "%sSumEt%s"%collection
+    def update(self,ignored) :
+        self.value = self.source[self.deltaHt]/self.source[self.Ht]
+##############################
+class MhtOverHt(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.mht = "%sMHT%s"%collection
+        self.Ht = "%sSumEt%s"%collection
+    def update(self,ignored) :
+        self.value = self.source[self.mht]/self.source[self.Ht]
 ##############################
 class alphaT(wrappedChain.calculable) :
     def name(self) : return "%sAlphaT%s" % self.cs
@@ -354,46 +437,31 @@ class jetDeltaX01(wrappedChain.calculable) :
         self.value["R"  ] = r.Math.VectorUtil.DeltaR(jet0,jet1)
         self.value["eta"] = jet0.eta()-jet1.eta()
 ##############################
-class deltaPhiStar(wrappedChain.calculable) :
-    def name(self) : return "%sDeltaPhiStar%s%s"%(self.cs[0], self.cs[1], self.extraName)
-
+class DeltaPhiStar(wrappedChain.calculable) :
     def __init__(self, collection = None, extraName = "") :
-        self.cs = collection
-        self.extraName = extraName
-        self.p4Name = '%sCorrectedP4%s' % self.cs
-        self.indicesName = '%sIndices%s%s' % (self.cs[0], self.cs[1], self.extraName)
-        self.sumP4Name = "%sSumP4%s%s" % (self.cs[0], self.cs[1], self.extraName)
-        
+        self.fixes = (collection[0],collection[1]+extraName)
+        self.stash(["CorrectedP4"],collection)
+        self.stash(["Indices","SumP4"])
+
     def update(self,ignored) :
-        self.value = None
-
-        indices = self.source[self.indicesName]
-        if not len(indices) : return
-        jets = self.source[self.p4Name]
-        sumP4 = self.source[self.sumP4Name]
-
         self.value = {}
         self.value["DeltaPhiStar"] = None
         self.value["DeltaPhiStarJetIndex"] = None
-        dPhi = []
-        for i in indices :
-            dPhi.append( (abs(r.Math.VectorUtil.DeltaPhi(jets.at(i),jets.at(i)-sumP4)),i) )
-        if len(dPhi) :
-            self.value["DeltaPhiStar"],self.value["DeltaPhiStarJetIndex"] = min(dPhi)
+
+        sumP4 = self.source[self.SumP4]
+        if not sumP4 : return
+        jets = self.source[self.CorrectedP4]
+
+        dPhi = [ (abs(r.Math.VectorUtil.DeltaPhi(jets.at(i),jets.at(i)-sumP4)),i) for i in self.source[self.Indices] ]
+        self.value["DeltaPhiStar"],self.value["DeltaPhiStarJetIndex"] = min(dPhi)
 ##############################
-class deltaPhiStarIncludingPhotons(wrappedChain.calculable) :
-    def name(self) : return "%sDeltaPhiStarIncludingPhotons%s%s"%(self.cs[0], self.cs[1], self.extraName)
-
+class DeltaPhiStarIncludingPhotons(wrappedChain.calculable) :
     def __init__(self, collection = None, photons = None, extraName = "") :
-        self.cs = collection
-        self.photons = photons
-        self.extraName = extraName
-        self.p4Name = '%sCorrectedP4%s' % self.cs
-        self.indicesName = '%sIndices%s%s' % (self.cs[0], self.cs[1], self.extraName)
-        self.sumP4Name = "%sSumP4PlusPhotons%s%s" % (self.cs[0], self.cs[1], self.extraName)        
-
-        self.photonP4Name = '%sP4%s' % photons
-        self.photonIndicesName = '%sIndices%s' % photons
+        self.fixes = (collection[0],collection[1]+extraName)
+        self.stash(["CorrectedP4"],collection)
+        self.stash(["Indices","SumP4PlusPhotons"])
+        self.photonP4 = '%sP4%s' % photons
+        self.photonIndices = '%sIndices%s' % photons
         
     def update(self,ignored) :
         self.value = {}
@@ -401,40 +469,81 @@ class deltaPhiStarIncludingPhotons(wrappedChain.calculable) :
         self.value["DeltaPhiStarJetIndex"] = None
         self.value["DeltaPhiStarPhotonIndex"] = None
 
-        sumP4 = self.source[self.sumP4Name]
-        if not sumP4 : return
-        
-        jets = self.source[self.p4Name]
-        photons = self.source[self.photonP4Name]
+        sumP4 = self.source[self.SumP4PlusPhotons]
+        if not sumP4 : return        
+        jets = self.source[self.CorrectedP4]
+        photons = self.source[self.photonP4]
 
-        dPhi = []
-        for i in self.source[self.indicesName] :
-            dPhi.append( (abs(r.Math.VectorUtil.DeltaPhi(jets.at(i),    jets.at(i)-sumP4)),   i, None) )
-        for i in self.source[self.photonIndicesName] :
-            dPhi.append( (abs(r.Math.VectorUtil.DeltaPhi(photons.at(i), photons.at(i)-sumP4)), None, i) )
+        dPhi = [ (abs(r.Math.VectorUtil.DeltaPhi(    jets.at(i),    jets.at(i)-sumP4)),    i, None) for i in self.source[self.Indices]] +\
+               [ (abs(r.Math.VectorUtil.DeltaPhi( photons.at(i), photons.at(i)-sumP4)), None,    i) for i in self.source[self.photonIndices]]
 
-        if len(dPhi) :
-            self.value["DeltaPhiStar"],self.value["DeltaPhiStarJetIndex"],self.value["DeltaPhiStarPhotonIndex"] = min(dPhi)
+        self.value["DeltaPhiStar"],self.value["DeltaPhiStarJetIndex"],self.value["DeltaPhiStarPhotonIndex"] = min(dPhi)
 ##############################
-class maxProjMHT(wrappedChain.calculable) :
-    def name(self) : return "%sMaxProjMHT%s"%self.cs
-
+class DeltaPhiMht(wrappedChain.calculable) :
     def __init__(self,collection = None) :
-        self.cs = collection
-        self.p4Name = '%sCorrectedP4%s' % self.cs
-        self.indicesName = '%sIndices%s' % self.cs
-        self.sumP4Name = "%sSumP4%s" % self.cs
-
+        self.fixes = collection
+        self.stash(["CorrectedP4","SumP4"])
     def update(self,ignored) :
-        self.value = None
-
-        indices = self.source[self.indicesName]
-        if not len(indices) : return
-        jets = self.source[self.p4Name]
-        sumP4 = self.source[self.sumP4Name]
-
-        self.value = -min( [ sumP4.pt() / math.sqrt(jets.at(i).pt()) * \
-                             math.cos(r.Math.VectorUtil.DeltaPhi(jets.at(i),sumP4)) for i in indices])
+        sumP4 = self.source[self.SumP4]
+        p4s = self.source[self.CorrectedP4]
+        self.value = map(r.Math.VectorUtil.DeltaPhi, [-sumP4]*len(p4s), p4s)
+##############################
+class MhtSensitivity(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["Pt","Mht","DeltaPhiMht"])
+    def sensitivity(self,pt,dphi) :
+        return math.sqrt(pt) / self.source[self.Mht] * math.cos(dphi)
+    def update(self,ignored) :
+        self.value = map(self.sensitivity, self.source[self.Pt], self.source[self.DeltaPhiMht])
+##############################
+class MhtProjection(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["Pt","Mht","DeltaPhiMht"])
+    def projection(pt,dphi) :
+        return self.source[self.Mht] / math.sqrt(pt) * math.cos(dphi)
+    def update(self,ignored) :
+        self.value = map(self.projection, self.source[self.Pt], self.source[self.DeltaPhiMht] )
+##############################
+class MaxAbsMhtSensitivity(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","MhtSensitivity"])
+    def update(self,ignored) :
+        indices = self.source[self.Indices]
+        sens = self.source[self.MhtSensitivity]
+        self.value = None if not indices else max([(abs(sens[i]),sens[i]) for i in indices])[1]
+##############################
+class MaxMhtSensitivity(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","MhtSensitivity"])
+    def update(self,ignored) :
+        indices = self.source[self.Indices]
+        sens = self.source[self.MhtSensitivity]
+        self.value = None if not indices else max([sens[i] for i in indices])
+###############################
+class MhtCombinedSensitivity(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","Pt","Mht","DeltaPhiMht"])
+    def update(self,ignored) :
+        mht = self.source[self.Mht]
+        indices = self.source[self.Indices]
+        pt = self.source[self.Pt]
+        dphi = self.source[self.DeltaPhiMht]
+        self.value = None if not indices else \
+                     math.sqrt( sum([ pt[i]*(math.cos(dphi[i]))**2 for i in indices]) ) / mht
+##############################
+class MaxProjMht(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","MhtProjection"])
+    def update(self,ignored) :
+        indices = self.source[self.Indices]
+        mhtProj = self.source[self.MhtProjection]
+        self.value = None if not indices else max([mhtProj[i] for i in indices])
 #####################################
 class mhtIncludingPhotonsOverMet(wrappedChain.calculable) :
 
@@ -486,11 +595,10 @@ class mhtMinusMetOverMeff(wrappedChain.calculable) :
         mht = self.source[self.mht].pt()
         self.value = (mht - self.source[self.met].pt())/(self.source[self.ht] + mht)
 #####################################
-class jetDeadEcalIndices(wrappedChain.calculable) :
-    def name(self) : return "%sDeadEcalIndices%s"%self.cs
-
+class DeadEcalIndices(wrappedChain.calculable) :
     def __init__(self,collection) :
-        self.cs = collection
+        self.fixes = collection
+        self.stash(["CorrectedP4"])
         self.moreName = "dR < 0.5"
 
     def deadEcalIndices(self,p4) :
@@ -501,7 +609,7 @@ class jetDeadEcalIndices(wrappedChain.calculable) :
         return indices
 
     def update(self,ignored) :
-        self.value = map( self.deadEcalIndices, self.source["%sCorrectedP4%s"%self.cs] )
+        self.value = map( self.deadEcalIndices, self.source[self.CorrectedP4] )
 
 class ecalDeadTowerMatchedJetIndices(wrappedChain.calculable) :
     def name(self) : return "ecalDeadTowerMatched%sIndices%s"%self.cs

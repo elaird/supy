@@ -35,7 +35,7 @@ class example(analysis.analysis) :
             steps.cleanJetHtMhtHistogrammer(jets, config["etRatherThanPt"]),
             #steps.variableGreaterFilter(25.0,jets[0]+"SumPt"+jets[1]),
             
-            steps.alphaHistogrammer(jets, config["etRatherThanPt"]),
+            steps.alphaHistogrammer(jets, etRatherThanPt = config["etRatherThanPt"]),
             #steps.skimmer("/tmp/%s/"%os.environ["USER"]),
             ]
         return outList
@@ -44,13 +44,13 @@ class example(analysis.analysis) :
         jets = config["jets"]
         minJetPt = config["minJetPt"]
         listOfCalculables = calculables.zeroArgs()
-        listOfCalculables += calculables.fromCollections("calculablesJet",[jets])
+        listOfCalculables += calculables.fromCollections(calculables.jet,[jets])
         listOfCalculables += [
-            calculables.jetIndices( jets, ptMin = minJetPt, etaMax = 3.0, flagName = "JetIDloose"),
-            calculables.jetSumP4( jets, mcScaleFactor = 1.0),
-            calculables.deltaPhiStar( jets, ptMin = 0.0),
-            calculables.alphaT        ( jets, config["etRatherThanPt"]),
-            calculables.deltaPseudoJet( jets, config["etRatherThanPt"]),
+            calculables.jet.Indices( jets, ptMin = minJetPt, etaMax = 3.0, flagName = "JetIDloose"),
+            calculables.jet.SumP4( jets),
+            calculables.jet.DeltaPhiStar( jets ),
+            calculables.jet.alphaT        ( jets, config["etRatherThanPt"]),
+            calculables.jet.DeltaPseudoJet( jets, config["etRatherThanPt"]),
             ]
         return listOfCalculables
 
