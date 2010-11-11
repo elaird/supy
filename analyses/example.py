@@ -49,7 +49,7 @@ class example(analysis.analysis) :
             calculables.jet.Indices( jets, ptMin = minJetPt, etaMax = 3.0, flagName = "JetIDloose"),
             calculables.jet.SumP4( jets),
             calculables.jet.DeltaPhiStar( jets ),
-            calculables.jet.alphaT        ( jets, config["etRatherThanPt"]),
+            calculables.jet.AlphaT        ( jets, config["etRatherThanPt"]),
             calculables.jet.DeltaPseudoJet( jets, config["etRatherThanPt"]),
             ]
         return listOfCalculables

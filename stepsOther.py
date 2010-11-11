@@ -843,8 +843,8 @@ class displayer(analysisStep) :
         met = eventVars[self.met].pt()
         ht  = eventVars["%sSumPt%s"%self.jets]
         deltaHt   = eventVars[self.deltaHtName]
-        alphaT    = eventVars["%sAlphaT%s"%self.jets]
-        alphaTMet = eventVars["%sAlphaTMet%s"%self.jets]
+        alphaT    = eventVars["%sAlphaTEt%s"%self.jets]    #hack: hard-coded Et
+        alphaTMet = eventVars["%sAlphaTMetEt%s"%self.jets] #hack: hard-coded Et
         
         if ht : alphaTHisto.Fill(mht/ht,deltaHt/ht)
         alphaTHisto.SetStats(False)

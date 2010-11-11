@@ -63,8 +63,8 @@ class hadronicLook(analysis.analysis) :
                      calculables.jet.SumP4(_jet, extraName = lowPtName),
                      calculables.jet.DeltaPhiStar(_jet, extraName = lowPtName),
                      calculables.jet.DeltaPseudoJet(_jet, _etRatherThanPt),
-                     calculables.jet.alphaT(_jet, _etRatherThanPt),
-                     calculables.jet.alphaTMet(_jet, _etRatherThanPt, _met),
+                     calculables.jet.AlphaT(_jet, _etRatherThanPt),
+                     calculables.jet.AlphaTMet(_jet, _etRatherThanPt, _met),
                      calculables.jet.mhtOverMet(_jet, _met, _etRatherThanPt),
                      #calculables.mhtMinusMetOverMeff(_jet, _met, _etRatherThanPt),
                      #calculables.mhtMinusMetOverMeff(_jet, "metP4PF", _etRatherThanPt),
@@ -133,7 +133,7 @@ class hadronicLook(analysis.analysis) :
             
             #signal selection
             #steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
-            steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
+            steps.variableGreaterFilter(0.55,"%sAlphaT%s%s"%(_jet[0],"Et" if _etRatherThanPt else "Pt",_jet[1])),
         
             #steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - %s)/(MHT+HT);events / bin"%_met),
             #steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
@@ -261,7 +261,7 @@ class hadronicLook(analysis.analysis) :
         outList+=susy
 
         #uncomment for short tests
-        outList=data
+        outList=qcd_py6
         for i in range(len(outList)):
             o = outList[i]
             outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)

@@ -220,20 +220,21 @@ class alphaHistogrammer(analysisStep) :
 
     def __init__(self, cs = None, deltaPhiStarExtraName = "", etRatherThanPt = None) :
         self.cs = cs
-        self.deltaPhiStar = "%sDeltaPhiStar%s%s"%(self.cs[0], self.cs[1], deltaPhiStarExtraName)
         self.letter = "E" if etRatherThanPt else "P"
-        self.deltaPseudoName = "%sDeltaPseudoJet%st%s" % (self.cs[0], self.letter, self.cs[1])
-        self.htName = "%sSum%st%s" % (self.cs[0], self.letter, self.cs[1])
-        self.moreName = "%s%s"%self.cs
+        self.fixes = (cs[0], self.letter+"t"+cs[1])
+        for var in ["Sum","DeltaPseudoJet","AlphaT"] : setattr(self,var,("%s"+var+"%s")%self.fixes)
+        self.DeltaPhiStar = "%sDeltaPhiStar%s%s"% (self.cs[0], cs[1], deltaPhiStarExtraName)
+        self.SumP4 = "%sSumP4%s" % cs
+        self.moreName = "%s%s" % cs
         
     def uponAcceptance (self,eventVars) :
         book = self.book(eventVars)
 
-        mht = eventVars["%sSumP4%s"%self.cs].pt()
-        ht  = eventVars[self.htName]
-        deltaHt = eventVars[self.deltaPseudoName]
-        alphaT = eventVars["%sAlphaT%s"%self.cs]
-        deltaPhiStar = eventVars[self.deltaPhiStar]["DeltaPhiStar"]
+        mht = eventVars[self.SumP4].pt()
+        ht  = eventVars[self.Sum]
+        deltaHt = eventVars[self.DeltaPseudoJet]
+        alphaT = eventVars[self.AlphaT]
+        deltaPhiStar = eventVars[self.DeltaPhiStar]["DeltaPhiStar"]
 
         #if diJetAlpha :
         #    book.fill( eventVars["%sDiJetAlpha%s"%self.cs], "%sdijet_alpha%s"%self.cs, 80,0.0,2.0,
@@ -274,12 +275,11 @@ class alphaMetHistogrammer(analysisStep) :
 
     def __init__(self, cs = None, deltaPhiStarExtraName = "", etRatherThanPt = None, metName = None) :
         self.cs = cs
-
+        self.letter = "E" if etRatherThanPt else "p"
+        fixes = (cs[0], self.letter+"t"+cs[1])
+        for var in ["Sum","AlphaT","AlphaTMet","DeltaPseudoJet"] : setattr(self,var,("%s" + var + "%s")%fixes)
         self.deltaPhiStar = "%sDeltaPhiStar%s%s"%(self.cs[0], self.cs[1], deltaPhiStarExtraName)
         self.etRatherThanPt = etRatherThanPt
-        self.letter = "E" if self.etRatherThanPt else "p"
-        self.deltaPseudoName = "%sDeltaPseudoJetPt%s" % self.cs if not self.etRatherThanPt else "%sDeltaPseudoJetEt%s" % self.cs
-        self.htName = "%sSumPt%s" % self.cs if not self.etRatherThanPt else "%sSumEt%s" % self.cs
         self.metName = metName
         self.moreName = "%s%s"%self.cs
         
@@ -288,10 +288,10 @@ class alphaMetHistogrammer(analysisStep) :
 
         if self.metName!=None :
             met = eventVars[self.metName].pt()
-        ht  = eventVars[self.htName]
-        deltaHt = eventVars[self.deltaPseudoName]
-        alphaT = eventVars["%sAlphaT%s"%self.cs]
-        alphaTMet = eventVars["%sAlphaTMet%s"%self.cs]
+        ht  = eventVars[self.Sum]
+        deltaHt = eventVars[self.DeltaPseudoJet]
+        alphaT = eventVars[self.AlphaT]
+        alphaTMet = eventVars[self.AlphaTMet]
         deltaPhiStar = eventVars[self.deltaPhiStar]["DeltaPhiStar"]
         
         if not alphaT : return
@@ -410,40 +410,6 @@ class deltaPhiHistogrammer(analysisStep) :
         book.fill( eventVars[self.var]["phi"], self.var, 50, -4.0, 4.0, title = ";"+self.var+";events / bin")
         book.fill( eventVars[self.var]["R"]  , self.var, 20, 0.0, 10.0, title = ";"+self.var+";events / bin")
         book.fill( eventVars[self.var]["eta"], self.var, 50, -10, 10.0, title = ";"+self.var+";events / bin")
-#####################################
-class alphatEtaDependence(analysisStep) :
-
-    def __init__(self,collection) :
-        self.cs = collection
-        self.alphaT = "%sAlphaT%s"%self.cs
-        self.ptBin = 20
-        self.iMax = 10
-
-    def uponAcceptance (self,eventVars) :
-        book = self.book(eventVars)
-        nJet= len(eventVars["%sIndices%s"%self.cs])
-        nJet = "2jet" if nJet==2 else "ge3jet"
-        alphaT = eventVars[self.alphaT]
-
-        iGamma = eventVars["photonIndicesPat"]
-        iZ = eventVars["genIndicesZ"]
-
-        p4 = None
-        if len(iZ) :
-            p4 = eventVars["genP4"].at(iZ[0])
-            label = "Z"
-        elif len(iGamma) == 1 :
-            p4 = eventVars["photonP4Pat"].at(iGamma[0])
-            label = "gamma"
-
-        if p4 :
-            absEta = abs(p4.eta())
-            iPt = math.floor(p4.pt()/self.ptBin)
-            book.fill( (alphaT,absEta), "%sAlphaT_%s_pt%02d"%(label,nJet,min(iPt,self.iMax)), (100,10), (0,0), (2,5),
-                       title = "%s %s;%s #alpha_{T};|#eta|;events / bin"%(label,self.ptLabel(iPt),nJet))
-
-    def ptLabel(self,ipt) :
-        return "pt %d-%d"%(self.ptBin*ipt,self.ptBin*(ipt+1)) if ipt<self.iMax else "pt>%d"%(self.iMax*self.ptBin)
 #####################################
 class uniquelyMatchedNonisoMuons(analysisStep) :
 
@@ -567,7 +533,7 @@ class longHistogrammer(analysisStep) :
         zspread = ev['%sSumPz%s'%self.jets]/ht
         coslongmht = ev["%sCosLongMHT%s"%self.jets]
         mht = ev["%sSumP4%s"%self.jets].pt()
-        alphaT = ev["%sAlphaT%s"%self.jets]
+        alphaT = ev["%sAlphaTEt%s"%self.jets] # hack: hardcoded Et
         area =  ev["%sPartialSumP4Area%s"%self.jets]
         
         book.fill( coslongmht, "coslongmht", 100,0,1, title=";coslongmht;event / bin")

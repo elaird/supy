@@ -151,17 +151,11 @@ class diJetAlphaPrinter(analysisStep) :
         print outString
 #####################################
 class alphaTPrinter(analysisStep) :
-
     def __init__(self,jets,etRatherThanPt) :
-        self.cs = jets
-        self.etRatherThanPt = etRatherThanPt
-        self.alphaTString = "%sAlphaT%s"%self.cs
-        self.deltaString  = "%sDeltaPseudoJetPt%s"%self.cs if not self.etRatherThanPt else "%sDeltaPseudoJetEt%s"%self.cs
-        
-    def uponAcceptance(self,eventVars) :
-        outString ="n-jet deltaHT %#6.3f"  %eventVars[self.deltaString]
-        outString+=";  n-jet alphaT %#6.3f"%eventVars[self.alphaTString]
-        print outString
+        fixes = (jets[0], ("Et" if etRatherThanPt else "Pt")+jets[1])
+        for var in ["AlphaT","DeltaPseudoJet"] : setattr(self,var,("%s"+var+"%s")%fixes)
+    def uponAcceptance(self,eV) :
+        print "n-jet deltaHT %#6.3f;  n-jet alphaT %#6.3f" % (ev[self.DeltaPseudoJet],ev[self.AlphaT])
 #####################################
 class particleP4Printer(analysisStep) :
 
