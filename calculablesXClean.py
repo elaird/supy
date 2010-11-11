@@ -61,21 +61,21 @@ class xcJet(wrappedChain.calculable) :
                 else: matches.append(objP4)
         return matches
 ##############################
-class indicesUnmatched(wrappedChain.calculable) :
-    def name(self) : return "%sIndicesUnmatched%s" % self.collection
-
+class IndicesUnmatched(wrappedChain.calculable) :
     def __init__(self, collection = None, xcjets=None, DR = 0) :
+        self.fixes = collection
+        self.stash(["P4","IndicesOther"])
         self.compareJets = ("%sCorrectedP4%s"%xcjets)[2:]
         self.moreName = "%sIndicesOther%s; no dR<%.1f match in %s"%(collection+(DR,self.compareJets))
         for item in ["collection","DR"]: setattr(self,item,eval(item))
 
     def noJetMatch(self, i) :
-        p4 = self.source["%sP4%s"%self.collection].at(i)
+        p4 = self.source[self.P4].at(i)
         for jet in self.source[self.compareJets]:
             if self.DR > r.Math.VectorUtil.DeltaR(p4,jet) :
                 return False
         return True
         
     def update(self,ignored) :
-        self.value = filter(self.noJetMatch, self.source["%sIndicesOther%s"%self.collection])
+        self.value = filter(self.noJetMatch, self.source[self.IndicesOther])
 ##############################

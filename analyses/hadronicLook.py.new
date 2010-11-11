@@ -56,8 +56,8 @@ class hadronicLook(analysis.analysis) :
                  calculables.muon.Indices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
                  calculables.electron.Indices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
                  calculables.photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
-                 calculables.xclean.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
-                 calculables.xclean.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
+                 calculables.xclean.IndicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
+                 calculables.xclean.IndicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
                  + [ calculables.jet.SumP4(_jet),
                      calculables.jet.SumP4(_jet, extraName = lowPtName),
