@@ -140,6 +140,7 @@ class photonLook(analysis.analysis) :
             steps.multiplicityFilter("%sIndices%s"%_electron, nMax = 0),
             steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
             steps.multiplicityFilter("%sIndicesOther%s"%_muon, nMax = 0),
+            #steps.multiplicityFilter("%sIndices%s"%_jet, nMin=params["nJetsMinMax"][0], nMax=params["nJetsMinMax"][1]),
             #steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             ]
         if not params["zMode"] :
@@ -204,7 +205,8 @@ class photonLook(analysis.analysis) :
 
             steps.passFilter("purityPlots2"),
             steps.photonPurityPlots("Status1Photon", _jet, _photon),
-
+            steps.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
+            
             #steps.histogrammer("mhtOverMet", 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
             #steps.variableLessFilter(1.25,"mhtOverMet"),
             steps.deadEcalFilter(jets = _jet, extraName = lowPtName, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
@@ -463,7 +465,7 @@ class photonLook(analysis.analysis) :
             org = organizer.organizer( self.sampleSpecs(tag) )
             self.mergeSamples(org, tag)
             if "zMode" in tag :
-                org.scale(15.087)
+                org.scale(34.7255)
                 print "WARNING: HARD-CODED LUMI FOR Z MODE!"
             else :
                 org.scale()
@@ -510,8 +512,8 @@ class photonLook(analysis.analysis) :
                              doLog = False,
                              anMode = True,
                              )
-        pl.individualPlots([("xcak5JetAlphaTPat",  "variablePtGreaterFilter", "xcak5JetSumP4Pat.pt()>=140.0 GeV", ";#alpha_{T};events / bin / 15 pb^{-1}"),
-                            ("xcak5JetIndicesPat", "variablePtGreaterFilter", "xcak5JetSumP4Pat.pt()>=140.0 GeV", ";N_{jets};events / bin / 15 pb^{-1}"),
+        pl.individualPlots([("xcak5JetAlphaTPat",  "variablePtGreaterFilter", "xcak5JetSumP4Pat.pt()>=140.0 GeV", ";#alpha_{T};events / bin / 35 pb^{-1}"),
+                            ("xcak5JetIndicesPat", "variablePtGreaterFilter", "xcak5JetSumP4Pat.pt()>=140.0 GeV", ";N_{jets};events / bin / 35 pb^{-1}"),
                             ],
                            newSampleNames = {"qcd_mg_v12": "Madgraph QCD",
                                              "g_jets_mg_v12": "Madgraph #gamma + jets",
