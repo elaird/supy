@@ -121,3 +121,9 @@ class wrappedChain(dict) :
 
         def setAddress(self) :
             pass
+
+        def stash(self,leafNames, fixes=None) :
+            Name = self.name()
+            for leaf in leafNames:
+                assert not hasattr(self,leaf), "%s already has attribute %s"%(Name,leaf)
+                setattr(self,leaf,("%s"+leaf+"%s")%(fixes if fixes else self.fixes))
