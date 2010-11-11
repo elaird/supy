@@ -19,7 +19,7 @@ class photonLook(analysis.analysis) :
 
         thresholds = {}
         fields =                                 ["jetPtMin","jet1PtMin","jet2PtMin","htLower","htUpper","mht","applyAlphaTCut","applyTrigger","photonPt","genPhotonPtMin"]
-        #thresholds["signal"]  = dict(zip(fields, [   50.0,       100.0,    100.0,      350.0,    None,   140.0,      True,           True,        100.0,         110.0    ]))
+        thresholds["signal"]  = dict(zip(fields, [   50.0,       100.0,    100.0,      350.0,    None,   140.0,      True,           True,        100.0,         110.0    ]))
         ####thresholds["relaxed"] = dict(zip(fields, [   36.0,        72.0,     72.0,    250.0,       None, 100.0,     True,           True,    80.0,          90.0    ]))
         thresholds["relaxed"]  = dict(zip(fields, [  50.0,        50.0,     50.0,      250.0,   350.0,   140.0,      True,         False,        100.0,         110.0    ]))
 
@@ -57,51 +57,51 @@ class photonLook(analysis.analysis) :
         _jetPtMin = params["thresholds"]["jetPtMin"]
 
         return calculables.zeroArgs() +\
-               calculables.fromCollections("calculablesJet",[_jet]) +\
-               calculables.fromCollections("calculablesMuon",[_muon]) +\
-               calculables.fromCollections("calculablesElectron",[_electron]) +\
-               calculables.fromCollections("calculablesPhoton",[_photon]) +\
-               [ calculables.xcJet( _jet,
-                                    gamma = _photon,
-                                    gammaDR = 0.5,
-                                    muon = _muon,
-                                    muonDR = 0.5,
-                                    correctForMuons = _correctForMuons,
-                                    electron = _electron, electronDR = 0.5
-                                    ),
-                 calculables.jetIndices( _jet, _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
-                 calculables.jetIndices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
-                 calculables.muonIndices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
-                 calculables.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
-                 calculables.photonIndicesPat(  ptMin = 25, flagName = params["photonId"]),
+               calculables.fromCollections(calculables.jet,[_jet]) +\
+               calculables.fromCollections(calculables.muon,[_muon]) +\
+               calculables.fromCollections(calculables.electron,[_electron]) +\
+               calculables.fromCollections(calculables.photon,[_photon]) +\
+               [ calculables.xclean.xcJet( _jet,
+                                           gamma = _photon,
+                                           gammaDR = 0.5,
+                                           muon = _muon,
+                                           muonDR = 0.5,
+                                           correctForMuons = _correctForMuons,
+                                           electron = _electron, electronDR = 0.5
+                                           ),
+                 calculables.jet.Indices( _jet, _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
+                 calculables.jet.Indices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
+                 calculables.muon.muonIndices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
+                 calculables.electron.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
+                 calculables.photon.photonIndicesPat(  ptMin = 25, flagName = params["photonId"]),
 
-                 calculables.genIndices( pdgs = [22], label = "Status3Photon", status = [3]),
-                 calculables.genMinDeltaRPhotonOther( label = "Status3Photon"),
+                 calculables.gen.genIndices( pdgs = [22], label = "Status3Photon", status = [3]),
+                 calculables.gen.genMinDeltaRPhotonOther( label = "Status3Photon"),
 
-                 calculables.genIndices( pdgs = [22], label = "Status1Photon", status = [1]),
-                 calculables.genIsolations(label = "Status1Photon", coneSize = 0.4),
-                 calculables.genPhotonCategory(label = "Status1Photon"),
+                 calculables.gen.genIndices( pdgs = [22], label = "Status1Photon", status = [1]),
+                 calculables.gen.genIsolations(label = "Status1Photon", coneSize = 0.4),
+                 calculables.gen.genPhotonCategory(label = "Status1Photon"),
 
-                 calculables.minDeltaRToJet(_photon, _jet),
+                 calculables.photon.minDeltaRToJet(_photon, _jet),
                  
                  #calculables.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
                  #calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
-                 + [ calculables.jetSumP4(_jet),
-                     calculables.jetSumP4(_jet, extraName = lowPtName),
-                     #calculables.jetSumP4PlusPhotons(_jet, extraName = "", photon = _photon),
-                     calculables.deltaPhiStar(_jet, extraName = ""),
-                     calculables.deltaPhiStar(_jet, extraName = lowPtName),
-                     #calculables.deltaPhiStarIncludingPhotons(_jet, photons = _photon, extraName = ""),
-                     calculables.deltaPseudoJet(_jet, _etRatherThanPt),
-                     calculables.alphaTWithPhoton1PtRatherThanMht(_jet, photons = _photon, etRatherThanPt = _etRatherThanPt),
-                     calculables.alphaT(_jet, _etRatherThanPt),
-                     calculables.alphaTMet(_jet, _etRatherThanPt, _met),
-                     calculables.metPlusPhoton(met = "metP4PF", photons = _photon, photonIndex = 0),
-                     calculables.mhtMinusMetOverMeff(_jet, "metPlusPhoton", _etRatherThanPt),
-                     calculables.mhtIncludingPhotonsOverMet(_jet, "metP4PF", _etRatherThanPt),
-                     calculables.vertexID(),
-                     calculables.vertexIndices(),
+                 + [ calculables.jet.SumP4(_jet),
+                     calculables.jet.SumP4(_jet, extraName = lowPtName),
+                     #calculables.jet.SumP4PlusPhotons(_jet, extraName = "", photon = _photon),
+                     calculables.jet.DeltaPhiStar(_jet, extraName = ""),
+                     calculables.jet.DeltaPhiStar(_jet, extraName = lowPtName),
+                     #calculables.jet.DeltaPhiStarIncludingPhotons(_jet, photons = _photon, extraName = ""),
+                     calculables.jet.DeltaPseudoJet(_jet, _etRatherThanPt),
+                     calculables.jet.AlphaTWithPhoton1PtRatherThanMht(_jet, photons = _photon, etRatherThanPt = _etRatherThanPt),
+                     calculables.jet.AlphaT(_jet, _etRatherThanPt),
+                     calculables.jet.AlphaTMet(_jet, _etRatherThanPt, _met),
+                     calculables.jet.metPlusPhoton(met = "metP4PF", photons = _photon, photonIndex = 0),
+                     calculables.jet.mhtMinusMetOverMeff(_jet, "metPlusPhoton", _etRatherThanPt),
+                     calculables.jet.mhtIncludingPhotonsOverMet(_jet, "metP4PF", _etRatherThanPt),
+                     calculables.other.vertexID(),
+                     calculables.other.vertexIndices(),
                      ]
 
     def listOfSteps(self,params) :
@@ -182,19 +182,19 @@ class photonLook(analysis.analysis) :
             steps.passFilter("kinematicPlots"),
             steps.alphaHistogrammer(_jet, deltaPhiStarExtraName = "", etRatherThanPt = _etRatherThanPt),
             steps.histogrammer("%sAlphaTWithPhoton1PtRatherThanMht%s"%_jet, 4, 0.0, 4*0.55, title = ";#alpha_{T} using photon p_{T} rather than MHT;events / bin"),
-            steps.histogrammer(("%sAlphaT%s"%_jet, "%sAlphaTWithPhoton1PtRatherThanMht%s"%_jet),
+            steps.histogrammer(("%sAlphaTEt%s"%_jet, "%sAlphaTWithPhoton1PtRatherThanMht%s"%_jet),
                                (25, 25), (0.50, 0.50), (1.0, 1.0), title = ";#alpha_{T};#alpha_{T} using photon p_{T} rather than MHT;events / bin"),
             
             steps.photon1PtOverHtHistogrammer(jets = _jet, photons = _photon, etRatherThanPt = _etRatherThanPt),
             
             steps.variablePtGreaterFilter(params["thresholds"]["mht"],"%sSumP4%s"%_jet,"GeV"),
-            steps.histogrammer("%sAlphaT%s"%_jet, 4, 0.0, 0.55*4, title=";#alpha_{T};events / bin"),
+            steps.histogrammer("%sAlphaTEt%s"%_jet, 4, 0.0, 0.55*4, title=";#alpha_{T};events / bin"),
             steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
                                funcString="lambda x:len(x)"),
             ]
         if params["thresholds"]["applyAlphaTCut"] :
             outList+=[
-                steps.variableGreaterFilter(0.55,"%sAlphaT%s"%_jet),
+                steps.variableGreaterFilter(0.55,"%sAlphaTEt%s"%_jet),
             ]
         outList+=[
             steps.photon1PtOverHtHistogrammer(jets = _jet, photons = _photon, etRatherThanPt = _etRatherThanPt),            
@@ -269,14 +269,6 @@ class photonLook(analysis.analysis) :
            #specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
            #specify(name = "2010_data_photons_high_met",nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             ]
-        data["_phskim"] = [
-            specify(name = "Run2010B_MJ_skim2_phskim",                  color = r.kBlack),
-            specify(name = "Run2010B_MJ_skim_phskim",                   color = r.kBlack),
-            specify(name = "Run2010B_J_skim2_phskim",                   color = r.kBlack),
-            specify(name = "Run2010B_J_skim_phskim",                    color = r.kBlack),
-            specify(name = "Run2010A_JM_skim_phskim",                   color = r.kBlack),
-            specify(name = "Run2010A_JMT_skim_phskim",                  color = r.kBlack),
-            ]
         data["_markusSkim"] = [
             #specify(name = "Ph.Data_markusSkim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_4_markusSkim",     nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
@@ -299,21 +291,12 @@ class photonLook(analysis.analysis) :
           ##specify(name = "v12_qcd_py6_pt800",         nFilesMax = -1, color = r.kBlue    ),
           ##specify(name = "v12_qcd_py6_pt1400",        nFilesMax = -1, color = r.kBlue    ),
             ]
-        qcd_py6["_phskim"] = [
-            specify(name = "v12_qcd_py6_pt80_phskim", color = r.kBlue),
-            specify(name = "v12_qcd_py6_pt170_phskim",color = r.kBlue),
-            specify(name = "v12_qcd_py6_pt300_phskim",color = r.kBlue),
-            ]
 
         g_jets_py6 = {}
         g_jets_py6[""] = [                                              
             specify(name = "v12_g_jets_py6_pt30",       nFilesMax = -1, nEventsMax = 1000000, color = r.kGreen),
             specify(name = "v12_g_jets_py6_pt80",       nFilesMax = -1, nEventsMax =  100000, color = r.kGreen),
             specify(name = "v12_g_jets_py6_pt170",      nFilesMax = -1, nEventsMax =  100000, color = r.kGreen),
-            ]
-        g_jets_py6["_phskim"] = [
-            specify(name = "v12_g_jets_py6_pt80_phskim",  color = r.kGreen),
-            specify(name = "v12_g_jets_py6_pt170_phskim", color = r.kGreen),
             ]
 
         qcd_mg = {}
@@ -323,13 +306,6 @@ class photonLook(analysis.analysis) :
             specify(name = "v12_qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
             specify(name = "v12_qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
             specify(name = "v12_qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
-            ]
-        qcd_mg["_phskim"] = [
-           #specify(name = "v12_qcd_mg_ht_50_100_phskim",    color = r.kBlue) ,
-           #specify(name = "v12_qcd_mg_ht_100_250_phskim",   color = r.kBlue) ,
-            specify(name = "v12_qcd_mg_ht_250_500_phskim",   color = r.kBlue) ,
-            specify(name = "v12_qcd_mg_ht_500_1000_phskim",  color = r.kBlue) ,
-            specify(name = "v12_qcd_mg_ht_1000_inf_phskim",  color = r.kBlue) ,
             ]
         qcd_mg["_markusSkim"] = [
            #specify(name = "v12_qcd_mg_ht_50_100_markusSkim",    color = r.kBlue) ,
@@ -345,11 +321,6 @@ class photonLook(analysis.analysis) :
             specify(name = "v12_g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
             specify(name = "v12_g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
             ]
-        g_jets_mg["_phskim"] = [
-            #specify(name = "v12_g_jets_mg_pt40_100_phskim",  color = r.kGreen),
-            #specify(name = "v12_g_jets_mg_pt100_200_phskim", color = r.kGreen),
-            specify(name = "v12_g_jets_mg_pt200_phskim",     color = r.kGreen),
-            ]
         g_jets_mg["_markusSkim"] = [
             specify(name = "v12_g_jets_mg_pt40_100_markusSkim",  color = r.kGreen),
             specify(name = "v12_g_jets_mg_pt100_200_markusSkim", color = r.kGreen),
@@ -360,10 +331,6 @@ class photonLook(analysis.analysis) :
         ttbar_mg[""] = [                                                
             specify(name = "tt_tauola_mg_v12",          nFilesMax =  3, color = r.kOrange  ),
             ]
-        ttbar_mg["_phskim"] = [
-            specify(name = "tt_tauola_mg_v12_phskim",   nFilesMax = -1, color = r.kOrange  ),
-            ]
-
         ttbar_mg["_markusSkim"] = []
 
         ewk_mg = {}
@@ -371,15 +338,10 @@ class photonLook(analysis.analysis) :
             specify(name = "z_jets_mg_v12",             nFilesMax = -1, color = r.kYellow-3),
             specify(name = "w_jets_mg_v12",             nFilesMax = -1, color = 28         ),
             ]
-        ewk_mg["_phskim"] = [
-            specify(name = "z_jets_mg_v12_phskim",      nFilesMax = -1, color = r.kYellow-3),
-            specify(name = "w_jets_mg_v12_phskim",      nFilesMax = -1, color = 28         ),
-            ]
-
         ewk_mg["_markusSkim"] = []
 
         zinv_mg = {}
-        for item in ["","_phskim","_markusSkim"] :
+        for item in ["","_markusSkim"] :
             zinv_mg[item] = [specify(name = "z_inv_mg_v12_skim", nFilesMax = -1, color = r.kMagenta )]
 
         outList = []
