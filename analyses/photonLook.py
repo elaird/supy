@@ -84,8 +84,8 @@ class photonLook(analysis.analysis) :
 
                  calculables.photon.minDeltaRToJet(_photon, _jet),
                  
-                 #calculables.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
-                 #calculables.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
+                 calculables.xclean.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
+                 calculables.xclean.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
                  + [ calculables.jet.SumP4(_jet),
                      calculables.jet.SumP4(_jet, extraName = lowPtName),
@@ -135,11 +135,14 @@ class photonLook(analysis.analysis) :
         if params["thresholds"]["htUpper"]!=None : outList+=[steps.variableLessFilter   (params["thresholds"]["htUpper"],"%sSumEt%s"%_jet, suffix = "GeV")]
 
         outList+=[
-            #bad jet, electron, muon, vetoes
+            #bad-jet, electron, muon, vetoes
             steps.multiplicityFilter("%sIndicesOther%s"%_jet, nMax = 0),
             steps.multiplicityFilter("%sIndices%s"%_electron, nMax = 0),
             steps.multiplicityFilter("%sIndices%s"%_muon, nMax = 0),
             steps.multiplicityFilter("%sIndicesOther%s"%_muon, nMax = 0),
+            steps.multiplicityFilter("%sIndicesUnmatched%s"%_electron, nMax = 0),
+            steps.multiplicityFilter("%sIndicesUnmatched%s"%_photon,   nMax = 0),
+            steps.uniquelyMatchedNonisoMuons(_jet),
             #steps.multiplicityFilter("%sIndices%s"%_jet, nMin=params["nJetsMinMax"][0], nMax=params["nJetsMinMax"][1]),
             #steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             ]
@@ -191,6 +194,8 @@ class photonLook(analysis.analysis) :
             steps.histogrammer("%sAlphaTEt%s"%_jet, 4, 0.0, 0.55*4, title=";#alpha_{T};events / bin"),
             steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
                                funcString="lambda x:len(x)"),
+            steps.passFilter("singlePhotonPlots2"),
+            steps.singlePhotonHistogrammer(_photon, _jet),
             ]
         if params["thresholds"]["applyAlphaTCut"] :
             outList+=[
@@ -200,7 +205,7 @@ class photonLook(analysis.analysis) :
             steps.photon1PtOverHtHistogrammer(jets = _jet, photons = _photon, etRatherThanPt = _etRatherThanPt),            
             steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
                                funcString="lambda x:len(x)"),
-            steps.passFilter("singlePhotonPlots2"),
+            steps.passFilter("singlePhotonPlots3"),
             steps.singlePhotonHistogrammer(_photon, _jet),
 
             steps.passFilter("purityPlots2"),
@@ -433,7 +438,7 @@ class photonLook(analysis.analysis) :
                 org.scale()
                 
             self.makeStandardPlots(org, tag)
-            #self.makeIndividualPlots(org, tag)
+            self.makeIndividualPlots(org, tag)
             #self.makePurityPlots(org, tag)
             #self.makeEfficiencyPlots(org, tag)
         #self.makeMultiModePlots()
@@ -474,9 +479,22 @@ class photonLook(analysis.analysis) :
                              doLog = False,
                              anMode = True,
                              )
-        pl.individualPlots([("xcak5JetAlphaTPat",  "variablePtGreaterFilter", "xcak5JetSumP4Pat.pt()>=140.0 GeV", ";#alpha_{T};events / bin / 35 pb^{-1}"),
-                            ("xcak5JetIndicesPat", "variablePtGreaterFilter", "xcak5JetSumP4Pat.pt()>=140.0 GeV", ";N_{jets};events / bin / 35 pb^{-1}"),
-                            ],
+        pl.individualPlots(plotSpecs = [{"plotName":"xcak5JetAlphaTEtPat",
+                                         "selName" :"variablePtGreaterFilter",
+                                         "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
+                                         "newTitle":";#alpha_{T};events / bin / 35 pb^{-1}"},
+                                        
+                                        {"plotName":"xcak5JetIndicesPat",
+                                         "selName" :"variablePtGreaterFilter",
+                                         "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
+                                         "newTitle":";N_{jets};events / bin / 35 pb^{-1}"},
+                                        
+                                        {"plotName":"photonPat1MinDRToJet",
+                                         "selName" :"passFilter",
+                                         "selDesc" :"singlePhotonPlots2",
+                                         "newTitle":";#DeltaR(photon, nearest jet);events / bin / 35 pb^{-1}",
+                                         "reBinFactor":3},
+                                        ],
                            newSampleNames = {"qcd_mg_v12": "Madgraph QCD",
                                              "g_jets_mg_v12": "Madgraph #gamma + jets",
                                              "2010 Data": "Data",
