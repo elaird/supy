@@ -63,6 +63,22 @@ class jetPtVetoer(analysisStep) :
         if p4s.size() <= self.jetIndex : return True
         return p4s.at(self.jetIndex).pt() < self.jetPtThreshold
 #####################################
+class forwardJetVeto(analysisStep) :
+    def __init__(self,cs, ptAbove=None, etaAbove=None) :
+        self.cs = cs
+        self.pt = ptAbove
+        self.eta = etaAbove
+        self.indices= "%sIndices%s"%self.cs
+        self.jetP4s = "%sCorrectedP4%s"%self.cs
+        self.moreName = "%s%s with pt>%.1f and |eta|>%.2f"%(cs+(self.pt,self.eta))
+    def select(self,eventVars) :
+        indices = eventVars[self.indices]
+        p4s = eventVars[self.jetP4s]
+        for i in indices:
+            p4= p4s.at(i)
+            if p4.pt() > self.pt and abs(p4.eta()) > self.eta : return False
+        return True
+#####################################
 class leadingUnCorrJetPtSelector(analysisStep) :
 
     def __init__(self,jetCollectionsAndSuffixes,jetPtThreshold):
@@ -205,7 +221,7 @@ class alphaHistogrammer(analysisStep) :
     def __init__(self, cs = None, deltaPhiStarExtraName = "", etRatherThanPt = None) :
         self.cs = cs
         self.deltaPhiStar = "%sDeltaPhiStar%s%s"%(self.cs[0], self.cs[1], deltaPhiStarExtraName)
-        self.letter = "E" if etRatherThanPt else "p"
+        self.letter = "E" if etRatherThanPt else "P"
         self.deltaPseudoName = "%sDeltaPseudoJet%st%s" % (self.cs[0], self.letter, self.cs[1])
         self.htName = "%sSum%st%s" % (self.cs[0], self.letter, self.cs[1])
         self.moreName = "%s%s"%self.cs
@@ -519,3 +535,61 @@ class photon1PtOverHtHistogrammer(analysisStep) :
         book.fill( eventVars[self.photonP4][index].pt()/eventVars[self.ht], "photon1PtOverHt",
                    20, 0.0, 2.0, title = ";photon1 pT / HT [%s%s];events / bin"%self.jets)
 #####################################
+class sensitivityHistogrammer(analysisStep) :
+    def __init__(self, jets = None) :
+        self.jets = jets
+    def uponAcceptance(self,ev) :
+        indices = ev["%sIndices%s"%self.jets]
+        if not indices : return
+        book = self.book(ev)
+
+        maxAbsS = ev["%sMaxAbsMhtSensitivity%s"%self.jets]
+        maxS = ev["%sMaxMhtSensitivity%s"%self.jets]
+        combS = ev["%sMhtCombinedSensitivity%s"%self.jets]
+        sump4 = ev["%sSumP4%s"%self.jets]
+        mht = sump4.pt()
+        
+        book.fill(combS, "combinedMhtSensitivity", 100, 0, 5, title=";combined MHT Sensitivity;events / bin")
+        book.fill((mht,combS), "combinedMhtSensitivityVMhT", (100,100), (0,0), (500,5), title=";MHT;combined MHT Sensitivity;events / bin")
+        book.fill(maxS, "maxMhtSensitivity", 100, -2,2, title=";max MHT Sensitivity;events / bin")
+        book.fill((mht,maxS), "maxMhtSensitivityVMHT", (100,100), (0,-2),(500,2), title=";MhT;max MHT Sensitivity;events / bin")
+        book.fill(maxAbsS, "maxAbsSensitivity", 100, -2,2, title = ";maxAbsSensitivity;events / bin")
+        book.fill((mht,maxAbsS), "maxAbsSensitivityVMHT", (100,100), (0,-2),(500,2), title = ";MHT;maxAbsSensitivity;events / bin")
+#####################################
+class longHistogrammer(analysisStep) :
+    def __init__(self, jets = None) :
+        self.jets = jets
+    def uponAcceptance(self,ev) :
+        book = self.book(ev)
+        
+        stretch = ev["%sStretch%s"%self.jets]
+        ht = ev["%sSumPt%s"%self.jets]
+        zspread = ev['%sSumPz%s'%self.jets]/ht
+        coslongmht = ev["%sCosLongMHT%s"%self.jets]
+        mht = ev["%sSumP4%s"%self.jets].pt()
+        alphaT = ev["%sAlphaT%s"%self.jets]
+        area =  ev["%sPartialSumP4Area%s"%self.jets]
+        
+        book.fill( coslongmht, "coslongmht", 100,0,1, title=";coslongmht;event / bin")
+        book.fill( stretch, "Stretch", 100,0,1, title=";stretch;events / bin")
+        book.fill( zspread, "Zspread", 100,0,3, title=";zspread;events / bin")
+        book.fill( (stretch,ht), "Stretch_v_ht", (100,150), (0,0), (1,1500), title=";stretch;HT;event / bin")
+        book.fill( (stretch,mht/ht), "Stretch_v_mhtht", (100,100), (0,0), (1,1), title=";stretch;MHT/HT;event / bin")
+        book.fill( (stretch,zspread), "Stretch_v_zspread", (100,100), (0,0), (1,3), title=";stretch;zspread;event / bin")
+        book.fill( (stretch,mht), "Stretch_v_mht", (100,100), (0,0), (1,800), title=";stretch;MHT;event / bin")
+        book.fill( (stretch,coslongmht), "Stretch_v_coslongmht", (100,100),(0,0),(1,1), title=";stretch;coslongmht;event / bin")
+        book.fill( mht, "mht", 100,0,800, title=";mht;event / bin")
+        book.fill( (coslongmht,mht/ht), "mhtht_v_coslongmht", (100,100), (0,0), (1,1), title = ";coslongmht;mht/ht;events / bin")
+        book.fill( (coslongmht,mht), "mht_v_coslongmht", (100,100), (0,0), (1,800), title = ";coslongmht;mht;events / bin")
+        book.fill( (coslongmht,alphaT), "alphaT_v_coslongmht", (100,100), (0,0), (1,3), title = ";coslongmht;alphaT;events / bin")
+        book.fill( (stretch,alphaT), "alphaT_v_stretch", (100,100), (0,0), (1,3), title = ";stretch;alphaT;events / bin")
+        book.fill( area, "polygon_area", 100,0,100000, title=";jet Polygon Area (GeV^{2}); events / bin")
+        book.fill( (stretch,area), "stretch_v_polygon_area",(100,100),(0,0),(1,100000),title=";stretch;jet Polygon Area (GeV^{2}); events / bin")
+
+        
+        ("CosLongMHT" ,100,0,1)
+        ("Stretch"    ,100,0,1)
+        ("SumPzOverHt",100,0,5)
+        ("PartialSumP4AreaOverHt2",100,0,1)
+        ("MHT",100,0,800)
+        ("DeltaPseudoJetPt")
