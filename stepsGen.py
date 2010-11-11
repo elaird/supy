@@ -310,7 +310,7 @@ class photonEfficiencyPlots(analysisStep) :
             self.book(eventVars).fill(nJets + nPhotons, "nJetsPlusnPhotons"+self.label,  10, -0.5, 9.5,    title = ";nJets+nPhotons [gen photon satisfies cuts];photons / bin")
             self.book(eventVars).fill(jetHt + photonHt, "jetHtPlusPhotonHt"+self.label, 100,  0.0, 1000.0, title = ";H_{T} [jets+photons] (GeV) [gen photon satisfies cuts];photons / bin")
             if deltaR!=None : 
-                self.book(eventVars).fill(deltaR, "getMinDeltaRPhotonOtherStatus3Photon"+self.label,50, 0.0, 5.0,
+                self.book(eventVars).fill(deltaR, "getMinDeltaRPhotonOtherStatus3Photon"+self.label,60, 0.0, 6.0,
                                           title = ";#DeltaR between st.3 photon and nearest daughterless st.3 particle; events / bin")
         self.book(eventVars).fill(n,"nGenPhotons"+self.label, 10, -0.5, 9.5,title = ";N gen photons [gen photon satisfies cuts];photons / bin")
 #####################################

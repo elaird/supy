@@ -129,7 +129,7 @@ class singlePhotonHistogrammer(analysisStep) :
                       (10, 10), (-3.0, -r.TMath.Pi()), (3.0, r.TMath.Pi()), title=";photon%s #eta;photon%s #phi;events / bin"%(photonLabel,photonLabel))
 
             if iPhoton in minDeltaRToJet :
-                book.fill(minDeltaRToJet[iPhoton],  "%s%s%sMinDRToJet"%(self.cs+(photonLabel,)), 50, 0.0, 5.0, title=";photon%s #DeltaR to closest jet;events / bin"%photonLabel)
+                book.fill(minDeltaRToJet[iPhoton],  "%s%s%sMinDRToJet"%(self.cs+(photonLabel,)), 60, 0.0, 6.0, title=";photon%s #DeltaR to closest jet;events / bin"%photonLabel)
 
             if mht==None : continue
             book.fill((pt,mht), "%s%s%smhtVsPhotonPt"%(self.cs+(photonLabel,)),
