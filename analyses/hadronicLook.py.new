@@ -260,11 +260,10 @@ class hadronicLook(analysis.analysis) :
         outList+=ewk
         outList+=susy
 
-        #uncomment for short tests
-        outList=qcd_py6
-        for i in range(len(outList)):
-            o = outList[i]
-            outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
+        ##uncomment for short tests
+        #for i in range(len(outList)):
+        #    o = outList[i]
+        #    outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
         
         return outList
 
