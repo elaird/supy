@@ -332,6 +332,7 @@ class AlphaTWithPhoton1PtRatherThanMht(wrappedChain.calculable) :
     def name(self) : return "%sAlphaTWithPhoton1PtRatherThanMht%s" % self.cs
 
     def __init__(self, collection = None, photons = None, photonIndices = None, etRatherThanPt = None) :
+        self.cs = collection
         self.fixes = (collection[0], ("Et" if etRatherThanPt else "Pt") + collection[1])
         self.stash(["Sum","DeltaPseudoJet"])
         self.stash(["SumP4"],collection)
