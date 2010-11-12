@@ -41,3 +41,4 @@ from samplesMC import *
 from samplesJetMET import *
 from samplesMuon import *
 from samplesPhoton import *
+from samplesSignalSkim import *
