@@ -71,8 +71,8 @@ class photonLook(analysis.analysis) :
                                            ),
                  calculables.jet.Indices( _jet, _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
                  calculables.jet.Indices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
-                 calculables.muon.muonIndices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
-                 calculables.electron.electronIndices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
+                 calculables.muon.Indices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
+                 calculables.electron.Indices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
                  calculables.photon.photonIndicesPat(  ptMin = 25, flagName = params["photonId"]),
 
                  calculables.gen.genIndices( pdgs = [22], label = "Status3Photon", status = [3]),
@@ -84,8 +84,8 @@ class photonLook(analysis.analysis) :
 
                  calculables.photon.minDeltaRToJet(_photon, _jet),
                  
-                 calculables.xclean.indicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
-                 calculables.xclean.indicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
+                 calculables.xclean.IndicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
+                 calculables.xclean.IndicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
                  + [ calculables.jet.SumP4(_jet),
                      calculables.jet.SumP4(_jet, extraName = lowPtName),
