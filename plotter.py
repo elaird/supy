@@ -161,7 +161,7 @@ class plotter(object) :
             h = histos(spec)
             if "reBinFactor" in spec :
                 for histo in h :
-                    histo.Rebin(spec["reBinFactor"])
+                    if histo!=None : histo.Rebin(spec["reBinFactor"])
             if h==None : continue
             stuff = self.onePlotFunction(h, spec["newTitle"] if "newTitle" in spec else None, newSampleNames, individual = True)
             self.printOnePage(spec["plotName"], tight = self.anMode)
