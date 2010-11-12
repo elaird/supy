@@ -14,6 +14,10 @@ def opts() :
     if len(args)!=1 :
         parser.print_help()
         exit()
+
+    assert (options.jobId==None or options.batch==False), "options jobid and batch cannot be used simultaneously"
+    if options.batch :
+        assert (options.loop!=None and options.slices!=None), "when using --batch, use also --loop and --slices"
     return options,args[0]
 ############################################
 def globalSetup(listOfSourceFiles=[]) :
@@ -31,7 +35,14 @@ def globalSetup(listOfSourceFiles=[]) :
 
     sys.argv.pop()
 ############################################
-def importedClass() :
+def moduleName(arg) :
+    sys.path.extend([os.environ["PWD"],os.environ["PWD"]+"/analyses"])
+    while "//" in arg : arg = arg.replace("//","/")
+    module = arg.replace("analyses/","").replace(".py","")
+    return module
+############################################
+def importedClass(module) :
+    exec("import "+module)
     import analysis
     count = 0
     theClass = None
@@ -44,18 +55,7 @@ def importedClass() :
     assert count==1,arg+" needs exactly 1 class which inherits from analysis; it has "+str(count)
     return theClass
 ############################################
-def submitBatchJob(jobCmd,iJob,indexDict,scriptDir) :
-    os.system("mkdir -p "+scriptDir)
-    hostname=os.environ["HOSTNAME"]
-
-    subScript = None
-    jobScript = None
-    if hostname=="lx05.hep.ph.ic.ac.uk" or hostname=="lx06.hep.ph.ic.ac.uk" :
-        subScript="icSub.sh"
-        jobScript="icJob.sh"
-    assert subScript and jobScript,"hostname"+str(hostname)+"not recognized"
-    os.system("chmod +x "+subScript)
-
+def submitBatchJob(jobCmd, iJob, indexDict, scriptDir, subScript, jobScript) :
     jobScriptFileName  = scriptDir+"/job"+str(iJob)+"__"
     for key in ["iConfig","iSample","iSlice"] :
         jobScriptFileName +="_%s"%str(indexDict[key])
@@ -71,38 +71,26 @@ def submitBatchJob(jobCmd,iJob,indexDict,scriptDir) :
     #print subCmd
     os.system(subCmd)
 ############################################
-
-#get options and check them
-options,arg = opts()
-assert (options.jobId==None or options.batch==False), "options jobid and batch cannot be used simultaneously"
-if options.batch :
-    assert (options.loop!=None and options.slices!=None), "when using --batch, use also --loop and --slices"
-
-#set up ROOT and compile cpp source files
-globalSetup(listOfSourceFiles=["pragmas.h","helpers.C"])
-
-#construct the analysis
-sys.path.extend([os.environ["PWD"],os.environ["PWD"]+"/analyses"])
-while "//" in arg : arg = arg.replace("//","/")
-module = arg.replace("analyses/","").replace(".py","")
-exec("import "+module)
-someClass = importedClass()
-someInstance = someClass(options)
-
-if options.batch : #make one script per job and submit them to the queue
+def doBatch(someInstance) :
     argsAndOptions = sys.argv[1:]
     argsAndOptions.remove("--batch")
     baseCmd = "./supy "+" ".join(argsAndOptions)
+
+    scriptDir = someInstance.namedOutputDirectory()
+    os.system("mkdir -p "+scriptDir)
+
+    import batchConf
+    subScript,jobScript = batchConf.scripts(hostName = os.environ["HOSTNAME"])
+    os.system("chmod +x "+subScript)
+    
     for iJob,listOfIndices in enumerate( someInstance.jobs() ) :
-        submitBatchJob(baseCmd+" --jobid "+str(iJob), iJob, listOfIndices, scriptDir = someInstance.namedOutputDirectory())
+        submitBatchJob(baseCmd+" --jobid "+str(iJob), iJob, listOfIndices,
+                       scriptDir = scriptDir, subScript = subScript, jobScript = jobScript)
     print
     print "You may do this to monitor your jobs (exit with CTRL-C):"
     print "watch 'qstat | head -40; find %s | grep -c root'"%someInstance.namedOutputDirectory()
-elif options.loop!=None : #loop over the events
-    someInstance.loop()
-
-#merge output and conclude
-if options.jobId==None and not options.batch :
+############################################
+def finish(someInstance) :
     someInstance.mergeOutput()
     try:
         someInstance.conclude()
@@ -110,3 +98,23 @@ if options.jobId==None and not options.batch :
         print
         print foo
         #print "Have you looped?"
+############################################
+        
+#get options
+options,arg = opts()
+
+#set up ROOT and compile cpp source files
+globalSetup(listOfSourceFiles=["pragmas.h","helpers.C"])
+
+#construct the analysis
+someClass = importedClass(moduleName(arg))
+someInstance = someClass(options)
+
+if options.batch : #make one script per job and submit them to the queue
+    doBatch(someInstance)
+elif options.loop!=None : #loop over the events
+    someInstance.loop()
+
+#merge output and conclude
+if options.jobId==None and not options.batch :
+    finish(someInstance)
