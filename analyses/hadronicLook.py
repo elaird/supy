@@ -12,7 +12,7 @@ class hadronicLook(analysis.analysis) :
 
     def parameters(self) :
         objects = {}
-        fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets", "jetPtMin"] 
+        fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets", "jetPtMin"]
         #objects["caloAK5_pfMET"] = dict(zip(fields, [("xcak5Jet","Pat"), "metP4PF", ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
         objects["caloAK5"] = dict(zip(fields, [("xcak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
         #objects["caloAK7"] = dict(zip(fields, [("xcak7Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
