@@ -71,15 +71,10 @@ class IndicesIgnored(wrappedChain.calculable) :
         self.value = list(set(range(len(self.source[self.CorrectedP4]))) - set(self.source[self.Indices]) - set(self.source[self.IndicesOther]))
 ####################################
 class PFJetID(wrappedChain.calculable) :
-    def name(self) : return self.idName
-    
     # following http://indico.cern.ch/getFile.py/access?contribId=0&resId=0&materialId=slides&confId=97994
     def __init__(self, collection = None, level = None) :
-        self.cs = xcStrip(collection)
-        self.idName = "%sPFJetID%s%s" % (self.cs[0],level,self.cs[1])
-        self.p4Name = "%sCorrectedP4%s" % self.cs
-        for var in ["FneutralHad","FneutralEm","FchargedHad","FchargedEm","Ncharged","Nneutral"] :
-            setattr(self,var, ("%s"+var+"%s")%xcStrip(self.cs))
+        self.fixes = xcStrip(collection)
+        self.stash(["CorrectedP4","FneutralHad","FneutralEm","FchargedHad","FchargedEm","Ncharged","Nneutral"])
 
         i = ["loose","medium","tight"].index(level)
         self.fNhMax   = [0.99, 0.95, 0.90][i]
@@ -97,7 +92,7 @@ class PFJetID(wrappedChain.calculable) :
 
     def update(self,ignored) :
         self.value = map(self.passId, 
-                         self.source[self.p4Name],
+                         self.source[self.CorrectedP4],
                          self.source[self.FneutralHad],
                          self.source[self.FneutralEm],
                          self.source[self.FchargedHad],
@@ -241,8 +236,9 @@ class CosLongMht(wrappedChain.calculable) :
 class CosDeltaPhiStar(wrappedChain.calculable) :
     def __init__(self,collection=None) :
         self.fixes = collection
+        self.stash(["DeltaPhiStar"])
     def update(self,ignored) :
-        self.value = math.cos(self.source["%sDeltaPhiStar%s"%self.fixes])
+        self.value = math.cos(self.source[self.DeltaPhiStar])
 ##############################
 class PartialSumP4(wrappedChain.calculable) :
     def __init__(self,collection) :
@@ -305,18 +301,16 @@ class DeltaPseudoJet(wrappedChain.calculable) :
 class DeltaHtOverHt(wrappedChain.calculable) :
     def __init__(self,collection) :
         self.fixes = collection
-        self.deltaHt = "%sDeltaPseudoJetEt%s"%collection
-        self.Ht = "%sSumEt%s"%collection
+        self.stash(["DeltaPseudoJetEt","SumEt"])
     def update(self,ignored) :
-        self.value = self.source[self.deltaHt]/self.source[self.Ht]
+        self.value = self.source[self.DeltaPseudoJetEt]/self.source[self.SumEt]
 ##############################
 class MhtOverHt(wrappedChain.calculable) :
     def __init__(self,collection) :
         self.fixes = collection
-        self.mht = "%sMHT%s"%collection
-        self.Ht = "%sSumEt%s"%collection
+        self.stash(["Mht","SumEt"])
     def update(self,ignored) :
-        self.value = self.source[self.mht]/self.source[self.Ht]
+        self.value = self.source[self.Mht]/self.source[self.SumEt]
 ##############################
 class AlphaT(wrappedChain.calculable) :
     def __init__(self, collection = None, etRatherThanPt = None) :
