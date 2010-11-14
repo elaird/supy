@@ -22,13 +22,13 @@ class hadronicSkim(analysis.analysis) :
 
     def listOfCalculables(self,params) :
         return calculables.zeroArgs() +\
-               calculables.fromCollections("calculablesJet",jetAlgoList) +\
-               [calculables.jetIndices( jet, 30.0, etaMax = 3.0, flagName = "JetIDloose") for jet in jetAlgoList]
+               calculables.fromCollections(calculables.jet,jetAlgoList) +\
+               [calculables.jet.Indices( jet, 30.0, etaMax = 3.0, flagName = "JetIDloose") for jet in jetAlgoList]
     
     def listOfSamples(self,params) :
         from samples import specify
         return [
-            specify(name = "MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Robin"),
+            specify(name = "MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Burt3"),
             ]
 
     def listOfSampleDictionaries(self) :
