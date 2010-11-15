@@ -18,7 +18,7 @@ class hadronicLook(analysis.analysis) :
         #objects["caloAK7"] = dict(zip(fields, [("xcak7Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
         #objects["jptAK5"]  = dict(zip(fields, [("xcak5JetJPT","Pat"),"metP4TC",     ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo",     True ,        50.0]))
         objects["pfAK5"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,        50.0]))
-        
+
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
                  "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ] [0:1] ),
@@ -27,6 +27,18 @@ class hadronicLook(analysis.analysis) :
                  #"jesAbs":  [1.0,1.1,0.9]               [:],
                  #"jesRel":  0,
                  }
+
+    def togglePfJet(self, jets) :
+        return (jets[0].replace("PF",""), jets[1]) if "PF" in jets[0] else (jets[0].replace("Jet","JetPF"), jets[1])
+
+    def togglePfMet(self, met) :
+        return "metP4AK5TypeII" if met=="metP4PF" else "metP4PF"
+
+    def togglePfMuon(self, muon) :
+        return (muon[0], "Pat") if muon[1]=="PF" else (muon[0],"PF")
+
+    def togglePfElectron(self, electron) :
+        return (electron[0], "Pat") if electron[1]=="PF" else (electron[0],"PF")
 
     def listOfCalculables(self,params) :
         _jet = params["objects"]["jet"]
@@ -39,9 +51,9 @@ class hadronicLook(analysis.analysis) :
         _correctForMuons = not params["objects"]["muonsInJets"]
 
         return calculables.zeroArgs() +\
-               calculables.fromCollections(calculables.jet,[_jet]) +\
-               calculables.fromCollections(calculables.muon,[_muon]) +\
-               calculables.fromCollections(calculables.electron,[_electron]) +\
+               calculables.fromCollections(calculables.jet,[_jet, self.togglePfJet(_jet)]) +\
+               calculables.fromCollections(calculables.muon,[_muon, self.togglePfMuon(_muon)]) +\
+               calculables.fromCollections(calculables.electron,[_electron, self.togglePfElectron(_electron)]) +\
                calculables.fromCollections(calculables.photon,[_photon]) +\
                [ calculables.xclean.xcJet(_jet,
                                           gamma = _photon,
@@ -51,21 +63,37 @@ class hadronicLook(analysis.analysis) :
                                           correctForMuons = _correctForMuons,
                                           electron = _electron,
                                           electronDR = 0.5),
+                 #calculables.xclean.xcJet(self.togglePfJet(_jet),
+                 #                         gamma = _photon,
+                 #                         gammaDR = 0.5,
+                 #                         muon = self.togglePfMuon(_muon),
+                 #                         muonDR = 0.5,
+                 #                         correctForMuons = _correctForMuons,
+                 #                         electron = self.togglePfElectron(_electron),
+                 #                         electronDR = 0.5),
                  calculables.jet.Indices( _jet, _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
                  calculables.jet.Indices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
+                 #calculables.jet.Indices( self.togglePfJet(_jet), _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),                 
+
                  calculables.muon.Indices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
+                 #calculables.muon.Indices( self.togglePfMuon(_muon), ptMin = 10, combinedRelIsoMax = 0.15),
                  calculables.electron.Indices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
+                 #calculables.electron.Indices( self.togglePfElectron(_electron), ptMin = 20, simpleEleID = "95", useCombinedIso = True),
                  calculables.photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
                  calculables.xclean.IndicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
                  calculables.xclean.IndicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
                  ] \
                  + [ calculables.jet.SumP4(_jet),
+                     #calculables.jet.SumP4(self.togglePfJet(_jet)),
                      calculables.jet.SumP4(_jet, extraName = lowPtName),
                      calculables.jet.DeltaPhiStar(_jet, extraName = lowPtName),
                      calculables.jet.DeltaPseudoJet(_jet, _etRatherThanPt),
+                     #calculables.jet.DeltaPseudoJet(self.togglePfJet(_jet), _etRatherThanPt),
                      calculables.jet.AlphaT(_jet, _etRatherThanPt),
+                     #calculables.jet.AlphaT(self.togglePfJet(_jet), _etRatherThanPt),
                      calculables.jet.AlphaTMet(_jet, _etRatherThanPt, _met),
-                     calculables.jet.mhtOverMet(_jet, _met, _etRatherThanPt),
+                     calculables.jet.mhtOverMet(_jet, _met),
+                     #calculables.jet.mhtOverMet(self.togglePfJet(_jet), self.togglePfMet(_met)),
                      #calculables.mhtMinusMetOverMeff(_jet, _met, _etRatherThanPt),
                      #calculables.mhtMinusMetOverMeff(_jet, "metP4PF", _etRatherThanPt),
                      calculables.other.vertexID(),
@@ -106,71 +134,72 @@ class hadronicLook(analysis.analysis) :
         outList += steps.multiplicityPlotFilter("%sIndicesUnmatched%s"%_photon,   nMax = 0, xlabel = "N photons unmatched")
         outList += steps.multiplicityPlotFilter("%sIndices%s"%_jet, nMin=params["nJetsMinMax"][0], nMax=params["nJetsMinMax"][1], xlabel="number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts"%_jet)
         outList +=[steps.uniquelyMatchedNonisoMuons(_jet),
-            
-            steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
-            steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
-            
-            #many plots
-            steps.passFilter("singleJetPlots1"),
-            steps.singleJetHistogrammer(_jet),
-            steps.passFilter("jetSumPlots1"), 
-            steps.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
-            steps.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
-            steps.passFilter("kinematicPlots1"), 
-            steps.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = lowPtName, etRatherThanPt = _etRatherThanPt),
-            steps.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = lowPtName, etRatherThanPt = _etRatherThanPt, metName = _met),
-            
-            ###extrapolation region
-            ##steps.variableGreaterFilter(0.50,"%sAlphaT%s"%_jet),
-            ##
-            ###many plots (again)
-            ##steps.passFilter("singleJetPlots2"),
-            ##steps.cleanJetPtHistogrammer(_jet),
-            ##steps.passFilter("jetSumPlots2"), 
-            ##steps.cleanJetHtMhtHistogrammer(_jet),
-            ###steps.passFilter("kinematicPlots2"), 
-            ###steps.alphaHistogrammer(_jet),
-            
-            #signal selection
-            #steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
-            steps.variableGreaterFilter(0.55,"%sAlphaT%s%s"%(_jet[0],"Et" if _etRatherThanPt else "Pt",_jet[1])),
-        
-            #steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - %s)/(MHT+HT);events / bin"%_met),
-            #steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
-        
-            steps.histogrammer("mhtOverMet", 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
-            steps.variableLessFilter(1.25,"mhtOverMet"),
-            steps.deadEcalFilter(jets = _jet, extraName = lowPtName, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
-        
-            ##steps.variableGreaterFilter(0.53,"%sAlphaTMet%s"%_jet),
-            
-            #steps.skimmer(),
-            #steps.eventPrinter(),
-            #steps.jetPrinter(_jet),
-            #steps.particleP4Printer(_muon),
-            #steps.particleP4Printer(_photon),
-            #steps.recHitPrinter("clusterPF","Ecal"),
-            #steps.htMhtPrinter(_jet),
-            #steps.alphaTPrinter(_jet,_etRatherThanPt),
-            #steps.genParticlePrinter(minPt=10.0,minStatus=3),
-            #       
-            #steps.pickEventSpecMaker(""),
-            #steps.displayer(jets = _jet,
-            #                muons = _muon,
-            #                met       = params["objects"]["met"],
-            #                electrons = params["objects"]["electron"],
-            #                photons   = params["objects"]["photon"],                            
-            #                recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
-            #                scale = 400.0,#GeV
-            #                etRatherThanPt = _etRatherThanPt,
-            #                deltaPhiStarExtraName = lowPtName,                            
-            #                ),
-            
-          ]
+                   
+                   steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
+                   steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
+                   
+                   #many plots
+                   steps.passFilter("singleJetPlots1"),
+                   steps.singleJetHistogrammer(_jet),
+                   steps.passFilter("jetSumPlots1"), 
+                   steps.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
+                   steps.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
+                   steps.passFilter("kinematicPlots1"), 
+                   steps.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = lowPtName, etRatherThanPt = _etRatherThanPt),
+                   steps.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = lowPtName, etRatherThanPt = _etRatherThanPt, metName = _met),
+                   
+                   ###extrapolation region
+                   ##steps.variableGreaterFilter(0.50,"%sAlphaT%s"%_jet),
+                   ##
+                   ###many plots (again)
+                   ##steps.passFilter("singleJetPlots2"),
+                   ##steps.cleanJetPtHistogrammer(_jet),
+                   ##steps.passFilter("jetSumPlots2"), 
+                   ##steps.cleanJetHtMhtHistogrammer(_jet),
+                   ###steps.passFilter("kinematicPlots2"), 
+                   ###steps.alphaHistogrammer(_jet),
+                   
+                   #signal selection
+                   #steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
+                   steps.variableGreaterFilter(0.55,"%sAlphaT%s%s"%(_jet[0],"Et" if _etRatherThanPt else "Pt",_jet[1])),
+                   
+                   #steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - %s)/(MHT+HT);events / bin"%_met),
+                   #steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
+                   
+                   steps.histogrammer("%sMht%s_Over_%s"%(_jet[0],_jet[1],_met), 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
+                   steps.variableLessFilter(1.25,"%sMht%s_Over_%s"%(_jet[0],_jet[1],_met)),
+                   steps.deadEcalFilter(jets = _jet, extraName = lowPtName, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
+                   
+                   ##steps.variableGreaterFilter(0.53,"%sAlphaTMet%s"%_jet),
+                   
+                   #steps.skimmer(),
+                   #steps.cutBitHistogrammer(self.togglePfJet(_jet), self.togglePfMet(_met)),
+                   #steps.eventPrinter(),
+                   #steps.jetPrinter(_jet),
+                   #steps.particleP4Printer(_muon),
+                   #steps.particleP4Printer(_photon),
+                   #steps.recHitPrinter("clusterPF","Ecal"),
+                   #steps.htMhtPrinter(_jet),
+                   #steps.alphaTPrinter(_jet,_etRatherThanPt),
+                   #steps.genParticlePrinter(minPt=10.0,minStatus=3),
+                   #       
+                   #steps.pickEventSpecMaker(),
+                   #steps.displayer(jets = _jet,
+                   #                muons = _muon,
+                   #                met       = params["objects"]["met"],
+                   #                electrons = params["objects"]["electron"],
+                   #                photons   = params["objects"]["photon"],                            
+                   #                recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
+                   #                scale = 400.0,#GeV
+                   #                etRatherThanPt = _etRatherThanPt,
+                   #                deltaPhiStarExtraName = lowPtName,                            
+                   #                ),
+                   
+                   ]
         return outList
 
     def listOfSampleDictionaries(self) :
-        return [samples.mc, samples.jetmet]
+        return [samples.mc, samples.jetmet, samples.signalSkim]
 
     def listOfSamples(self,params) :
         from samples import specify
@@ -242,7 +271,30 @@ class hadronicLook(analysis.analysis) :
             specify(name = "lm1_v12",                   nFilesMax = -1, color = r.kRed+1   ),
             ]                                                   
 
+        caloSkims = [
+            specify(name = "2010_data_calo_skim",        nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "v12_qcd_py6_pt300_caloSkim", nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "tt_tauola_mg_v12_caloSkim",  nFilesMax =  3, color = r.kOrange  ),
+            specify(name = "w_jets_mg_v12_skim_caloSkim",nFilesMax = -1, color = 28         ),
+            specify(name = "z_inv_mg_v12_skim_caloSkim", nFilesMax = -1, color = r.kMagenta ),
+            ]
+        pfSkims = [
+            specify(name = "2010_data_pf_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(name = "v12_qcd_py6_pt300_pfSkim",   nFilesMax = -1, color = r.kBlue    ),
+            specify(name = "tt_tauola_mg_v12_pfSkim",    nFilesMax =  3, color = r.kOrange  ),
+            specify(name = "w_jets_mg_v12_skim_pfSkim",  nFilesMax = -1, color = 28         ),
+            specify(name = "z_inv_mg_v12_skim_pfSkim",   nFilesMax = -1, color = r.kMagenta ),
+            ]
+
         outList = []
+
+        #outList = caloSkims
+        #self.skimString = "_caloSkim"
+
+        #outList = pfSkims
+        #self.skimString = "_pfSkim"
+
+        self.skimString = ""
         if params["mcSoup"]=="py6" :
             outList+=qcd_py6
             outList+=g_jets_py6
@@ -287,6 +339,9 @@ class hadronicLook(analysis.analysis) :
             smSources.append("g_jets_mg_v12")
 
         smSources = ["tt_tauola_mg_v12", "z_inv_mg_v12_skim", "z_jets_mg_v12_skim", "w_jets_mg_v12_skim"]
+        for i in range(len(smSources)) :
+            smSources[i] = smSources[i]+self.skimString
+            
         if "pythia6"  in tag : py6(org, smSources)
         if "pythia8"  in tag : py8(org, smSources)
         if "madgraph" in tag : mg (org, smSources)
@@ -309,7 +364,7 @@ class hadronicLook(analysis.analysis) :
                                  psFileName = self.psFileName(tag),
                                  samplesForRatios = ("2010 Data","standard_model"),
                                  sampleLabelsForRatios = ("data","s.m."),
-                                 #whiteList = ["xcak5JetAlphaTPat","xcak5JetAlphaTZoomPat"],
+                                 #whiteList = ["cutBitHistogram"],
                                  #compactOutput = True,
                                  blackList = ["lumiHisto","xsHisto","nJobsHisto"]
                                  )
