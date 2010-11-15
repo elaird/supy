@@ -18,10 +18,12 @@ class photonLook(analysis.analysis) :
         #objects["pfAK5"]   = dict(zip(fields, [("ak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,     ]))
 
         thresholds = {}
-        fields =                                 ["jetPtMin","jet1PtMin","jet2PtMin","htLower","htUpper","mht","applyAlphaTCut","applyTrigger","photonPt","genPhotonPtMin"]
-        thresholds["signal"]  = dict(zip(fields, [   50.0,       100.0,    100.0,      350.0,    None,   140.0,      True,           True,        100.0,         110.0    ]))
-        ####thresholds["relaxed"] = dict(zip(fields, [   36.0,        72.0,     72.0,    250.0,       None, 100.0,     True,           True,    80.0,          90.0    ]))
-        thresholds["relaxed"]  = dict(zip(fields, [  50.0,        50.0,     50.0,      250.0,   350.0,   140.0,      True,         False,        100.0,         110.0    ]))
+        fields =                                    ["jetPtMin","jet1PtMin","jet2PtMin","htLower","htUpper","mht","applyAlphaTCut","applyTrigger","photonPt","genPhotonPtMin"]
+        thresholds["signal"]     = dict(zip(fields, [   50.0,       100.0,    100.0,      350.0,    None,   140.0,      True,           True,        100.0,         110.0    ]))
+        thresholds["relaxed"]    = dict(zip(fields, [   50.0,        50.0,     50.0,      250.0,   350.0,   140.0,      True,           True,        100.0,         110.0    ]))
+        #thresholds["HT_250_300"] = dict(zip(fields, [   35.9,        72.7,     72.7,      250.0,   300.0, , 100.0,      True,           True,         80.0,          90.0    ]))
+        #thresholds["HT_275_300"] = dict(zip(fields, [   39.3,        79.5,     79.5,      275.0,   300.0, , 100.0,      True,           True,         80.0,          90.0    ]))
+        #thresholds["HT_300_350"] = dict(zip(fields, [   42.9,        85.7,     85.7,      300.0,   350.0, , 100.0,      True,           True,         80.0,          90.0    ]))
 
         return { "objects": objects,
                  "thresholds": thresholds,
