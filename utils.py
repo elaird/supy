@@ -146,7 +146,7 @@ def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False) :
         print "File duplications, unresolved(%d), resolved(%d)" % (abandoned,resolved)
     return outList
 #####################################
-def fileListFromSrmLs(location, itemsToSkip = [], sizeThreshold = 0, pruneList = True, alwaysUseLastAttempt = False) :
+def fileListFromSrmLs(location, itemsToSkip = [], sizeThreshold = -1, pruneList = True, alwaysUseLastAttempt = False) :
     srmPrefix="srm://gfe02.grid.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN="
     dCachePrefix="dcap://gfe02.grid.hep.ph.ic.ac.uk:22128"
 
