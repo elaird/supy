@@ -487,6 +487,37 @@ class metVsMhtHistogrammer(analysisStep) :
         book.fill( (eventVars[self.mht].pt(), eventVars[self.met].pt()), "%sVs%s"%(self.mht,self.met),
                    (25, 25), (0.0, 0.0), (100.0, 100.0), title = ";MHT [%s] (GeV);MET [%s] (GeV);events / bin"%(self.mht,self.met))
 #####################################
+class cutBitHistogrammer(analysisStep) :
+    def __init__(self, jets = None, met = None) :
+        self.key = "cutBitHistogram"
+
+        self.jets = jets
+        self.met = met
+        self.ht         = "%sSumEt%s"%self.jets
+        self.alphaT     = "%sAlphaTEt%s"%self.jets
+        self.mhtOverMet = "%sMht%s_Over_%s"%(self.jets[0], self.jets[1], self.met)
+        
+    def uponAcceptance(self, eventVars) :
+        passHt         = eventVars[self.ht]!=None         and eventVars[self.ht]>350.0
+        passAlphaT     = eventVars[self.alphaT]!=None     and eventVars[self.alphaT]>0.55
+        passMhtOverMet = eventVars[self.mhtOverMet]!=None and eventVars[self.mhtOverMet]<1.25
+
+        value = (passHt<<0) | (passAlphaT<<1) | (passMhtOverMet<<2)
+        self.book(eventVars).fill(value, self.key, 8, -0.5, 7.5, title = ";HT-alphaT-MHT/MET[%s%s#semicolon %s];events/bin"%(self.jets[0], self.jets[1], self.met))
+
+    def binString(self, i) :
+        out  = ""
+        out += "h" if i&(1<<0) else "#slash{h}"
+        out += "a" if i&(1<<1) else "#slash{a}"
+        out += "m" if i&(1<<2) else "#slash{m}"
+        return out
+            
+    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+        for book in self.books.values() :
+            if self.key in book :
+                for i in range(8) :
+                    book[self.key].GetXaxis().SetBinLabel(i+1, self.binString(i))
+#####################################
 class photon1PtOverHtHistogrammer(analysisStep) :
     def __init__(self, jets = None, photons = None, etRatherThanPt = None) :
         self.jets = jets
