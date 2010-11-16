@@ -12,12 +12,12 @@ class hadronicLook(analysis.analysis) :
 
     def parameters(self) :
         objects = {}
-        fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets", "jetPtMin"]
-        #objects["caloAK5_pfMET"] = dict(zip(fields, [("xcak5Jet","Pat"), "metP4PF", ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
-        objects["caloAK5"] = dict(zip(fields, [("xcak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
+        fields =                                                [ "jet",            "met",            "muon",        "electron",        "photon","rechit","muonsInJets","jetPtMin"]
+        objects["caloAK5JetMet_recoLepPhot"] = dict(zip(fields, [("xcak5Jet","Pat"),"metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"),"Calo",  False,    50.0]))
+        objects["pfAK5JetMet_recoLepPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","Pat"),("electron","Pat"),("photon","Pat"),  "PF",   True,    50.0]))
+        #objects["pfAK5JetMetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",     ("muon","PF"),("electron","PF"), ("photon","Pat"),  "PF",   True,    50.0]))
         #objects["caloAK7"] = dict(zip(fields, [("xcak7Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
         #objects["jptAK5"]  = dict(zip(fields, [("xcak5JetJPT","Pat"),"metP4TC",     ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo",     True ,        50.0]))
-        objects["pfAK5"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,        50.0]))
 
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
@@ -50,11 +50,14 @@ class hadronicLook(analysis.analysis) :
         _met = params["objects"]["met"]
         _correctForMuons = not params["objects"]["muonsInJets"]
 
-        return calculables.zeroArgs() +\
-               calculables.fromCollections(calculables.jet,[_jet, self.togglePfJet(_jet)]) +\
-               calculables.fromCollections(calculables.muon,[_muon, self.togglePfMuon(_muon)]) +\
-               calculables.fromCollections(calculables.electron,[_electron, self.togglePfElectron(_electron)]) +\
-               calculables.fromCollections(calculables.photon,[_photon]) +\
+        outList  = calculables.zeroArgs()
+        outList += calculables.fromCollections(calculables.jet,[_jet]) +\
+                   calculables.fromCollections(calculables.muon,[_muon]) +\
+                   calculables.fromCollections(calculables.electron,[_electron])
+        #outList += calculables.fromCollections(calculables.jet,[_jet, self.togglePfJet(_jet)]) +\
+        #           calculables.fromCollections(calculables.muon,[_muon, self.togglePfMuon(_muon)]) +\
+        #           calculables.fromCollections(calculables.electron,[_electron, self.togglePfElectron(_electron)]) +\
+        return outList + calculables.fromCollections(calculables.photon,[_photon]) +\
                [ calculables.xclean.xcJet(_jet,
                                           gamma = _photon,
                                           gammaDR = 0.5,
@@ -77,7 +80,7 @@ class hadronicLook(analysis.analysis) :
 
                  calculables.muon.Indices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
                  #calculables.muon.Indices( self.togglePfMuon(_muon), ptMin = 10, combinedRelIsoMax = 0.15),
-                 calculables.electron.Indices( _electron, ptMin = 20, simpleEleID = "95", useCombinedIso = True),
+                 calculables.electron.Indices( _electron, ptMin = 10, simpleEleID = "95", useCombinedIso = True),
                  #calculables.electron.Indices( self.togglePfElectron(_electron), ptMin = 20, simpleEleID = "95", useCombinedIso = True),
                  calculables.photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
                  calculables.xclean.IndicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
@@ -114,14 +117,14 @@ class hadronicLook(analysis.analysis) :
             steps.jetPtSelector(_jet,100.0,0),
             steps.jetPtSelector(_jet,100.0,1),
             steps.jetEtaSelector(_jet,2.5,0),
-            steps.lowestUnPrescaledTrigger(["HLT_HT100U","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"]),
+            steps.lowestUnPrescaledTrigger(["HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"]),
             steps.vertexRequirementFilter(),
             steps.techBitFilter([0],True),
             steps.physicsDeclared(),
             steps.monsterEventFilter(),
             steps.hbheNoiseFilter(),
 
-            steps.hltPrescaleHistogrammer(["HLT_HT100U","HLT_HT120U","HLT_HT140U","HLT_HT150U_v1","HLT_HT150U_v3","HLT_HT160U_v1","HLT_HT160U_v3"]),
+            steps.hltPrescaleHistogrammer(["HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"]),
             #steps.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin",
             #                       funcString="lambda x:x.Et()"),
             ]
