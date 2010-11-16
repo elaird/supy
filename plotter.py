@@ -135,7 +135,7 @@ class plotter(object) :
 
         if not tight : #make pdf
             os.system("epstopdf "+fileName)
-            os.system("rm       "+fileName)            
+            os.system("rm       "+fileName)
         else : #make pdf with tight bounding box
             epsiFile = fileName.replace(".eps",".epsi")
             os.system("ps2epsi "+fileName+" "+epsiFile)
@@ -148,6 +148,23 @@ class plotter(object) :
         print utils.hyphens
         setupStyle()
 
+        def stamp() :
+            latex = r.TLatex()
+            latex.SetNDC()
+            size = 0.04
+            latex.SetTextSize(size)
+
+            latex.SetTextAlign(11) #align left, bottom
+            latex.DrawLatex(0.1, 0.91, "CMS Preliminary")
+            
+            y = 0.5
+            x = 0.75
+            slope = 1.1*size
+            latex.SetTextAlign(21) #align center, bottom
+            #latex.DrawLatex(x, y-0.0*slope,"CMS")
+            latex.DrawLatex(x, y-1.0*slope,"L = %.0f pb^{-1}"%self.someOrganizer.lumi)
+            latex.DrawLatex(x, y-2.0*slope, "#sqrt{s} = 7 TeV")
+            
         def histos(p) :
             for item in ["selName", "selDesc", "plotName"] :
                 if item not in p : return
@@ -164,6 +181,7 @@ class plotter(object) :
                     if histo!=None : histo.Rebin(spec["reBinFactor"])
             if h==None : continue
             stuff = self.onePlotFunction(h, spec["newTitle"] if "newTitle" in spec else None, newSampleNames, individual = True)
+            stamp()
             self.printOnePage(spec["plotName"], tight = self.anMode)
 
         print utils.hyphens
