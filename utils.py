@@ -420,3 +420,21 @@ def dependence(TH2, name="", minimum=1.0/4, maximum=4) :
     
     return dep
 #####################################
+def cmsStamp(lumi = None) :
+    latex = r.TLatex()
+    latex.SetNDC()
+    size = 0.04
+    latex.SetTextSize(size)
+    
+    latex.SetTextAlign(11) #align left, bottom
+    latex.DrawLatex(0.1, 0.91, "CMS Preliminary")
+    
+    y = 0.5
+    x = 0.75
+    slope = 1.1*size
+    latex.SetTextAlign(21) #align center, bottom
+    #latex.DrawLatex(x, y-0.0*slope,"CMS")
+    if lumi!=None :
+        latex.DrawLatex(x, y-1.0*slope,"L = %.0f pb^{-1}"%lumi)
+    latex.DrawLatex(x, y-2.0*slope, "#sqrt{s} = 7 TeV")
+#####################################
