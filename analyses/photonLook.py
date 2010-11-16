@@ -15,20 +15,20 @@ class photonLook(analysis.analysis) :
         objects = {}
         fields =                                             [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets"]
         objects["caloAK5Jet_recoLepPhot"] = dict(zip(fields, [("xcak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,    ]))
-        objects["pfAK5Jet_recoLepPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",     ("muon","Pat"),("electron","Pat"),("photon","Pat"),  "PF"  ,    True ,    ]))
+        #objects["pfAK5Jet_recoLepPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",     ("muon","Pat"),("electron","Pat"),("photon","Pat"),  "PF"  ,    True ,    ]))
         #objects["pfAK5JetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,    ]))
 
         thresholds = {}
         fields =                                    ["jetPtMin","jet1PtMin","jet2PtMin","htLower","htUpper","mht","applyAlphaTCut","applyTrigger","photonPt","genPhotonPtMin"]
         thresholds["signal"]     = dict(zip(fields, [   50.0,       100.0,    100.0,      350.0,    None,   140.0,      True,           True,        100.0,         110.0    ]))
-        thresholds["relaxed"]    = dict(zip(fields, [   50.0,        50.0,     50.0,      250.0,   350.0,   140.0,      True,           True,        100.0,         110.0    ]))
-        #thresholds["HT_250_300"] = dict(zip(fields, [   35.9,        72.7,     72.7,      250.0,   300.0, , 100.0,      True,           True,         80.0,          90.0    ]))
-        #thresholds["HT_275_300"] = dict(zip(fields, [   39.3,        79.5,     79.5,      275.0,   300.0, , 110.0,      True,           True,         80.0,          90.0    ]))
-        #thresholds["HT_300_350"] = dict(zip(fields, [   42.9,        85.7,     85.7,      300.0,   350.0, , 120.0,      True,           True,         80.0,          90.0    ]))
+        #thresholds["relaxed"]    = dict(zip(fields, [   50.0,        50.0,     50.0,      250.0,   350.0,   140.0,      True,           True,        100.0,         110.0    ]))
+        ##thresholds["HT_250_300"] = dict(zip(fields, [   35.9,        72.7,     72.7,      250.0,   300.0, , 100.0,      True,           True,         80.0,          90.0    ]))
+        ##thresholds["HT_275_300"] = dict(zip(fields, [   39.3,        79.5,     79.5,      275.0,   300.0, , 110.0,      True,           True,         80.0,          90.0    ]))
+        ##thresholds["HT_300_350"] = dict(zip(fields, [   42.9,        85.7,     85.7,      300.0,   350.0, , 120.0,      True,           True,         80.0,          90.0    ]))
 
         return { "objects": objects,
                  "thresholds": thresholds,
-                 "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [:] ),
+                 "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
                  "photonId" :         dict([ ("photonLoose","photonIDLooseFromTwikiPat"),             #0
                                              ("photonTight","photonIDTightFromTwikiPat"),             #1
 
@@ -377,32 +377,24 @@ class photonLook(analysis.analysis) :
 
     def mergeSamples(self, org, tag) :
         def py6(org, smSources, skimString) :
-            org.mergeSamples(targetSpec = {"name":"qcd_py6_v12", "color":r.kBlue},
-                             sources = ["v12_qcd_py6_pt%d%s"%(i,skimString) for i in [80,170,300] ])
+            org.mergeSamples(targetSpec = {"name":"qcd_py6_v12", "color":r.kBlue}, allWithPrefix = "v12_qcd_py6")
             smSources.append("qcd_py6_v12")
 
-            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen},
-                             sources = ["v12_g_jets_py6_pt%d%s"%(i,skimString) for i in [30,80,170] ])
+            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen}, allWithPrefix = "v12_g_jets_py6")
             smSources.append("g_jets_py6_v12")
 
         def py8(org, smSources, skimString) :
-            lowerPtList = [0,15,30,50,80,120,170,300,470,600,800,1000,1400,1800]
-            sources = ["qcd_py8_pt%dto%d"%(lowerPtList[i],lowerPtList[i+1]) for i in range(len(lowerPtList)-1)]
-            sources.append("qcd_py8_pt%d"%lowerPtList[-1])
-            org.mergeSamples(targetSpec = {"name":"qcd_py8", "color":r.kBlue}, sources = sources)
+            org.mergeSamples(targetSpec = {"name":"qcd_py8", "color":r.kBlue}, allWithPrefix = "qcd_py8")
             smSources.append("qcd_py8")
 
-            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen},
-                             sources = ["v12_g_jets_py6_pt%d"%i      for i in [30,80,170] ])
+            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen}, allWithPrefix = "g_jet_py6")
             smSources.append("g_jets_py6_v12")
 
         def mg(org, smSources, skimString) :
-            org.mergeSamples(targetSpec = {"name":"qcd_mg_v12", "color":r.kBlue},
-                             sources = ["v12_qcd_mg_ht_%s%s"%(bin,skimString) for bin in ["50_100","100_250","250_500","500_1000","1000_inf"] ])
+            org.mergeSamples(targetSpec = {"name":"qcd_mg_v12", "color":r.kBlue}, allWithPrefix = "v12_qcd_mg")
             smSources.append("qcd_mg_v12")
             
-            org.mergeSamples(targetSpec = {"name":"g_jets_mg_v12", "color":r.kGreen},
-                             sources = ["v12_g_jets_mg_pt%s%s"%(bin,skimString) for bin in ["40_100","100_200","200"] ])
+            org.mergeSamples(targetSpec = {"name":"g_jets_mg_v12", "color":r.kGreen}, allWithPrefix = "v12_g_jets_mg")
             smSources.append("g_jets_mg_v12")
 
         smSources = [item+self.skimStringHack for item in ["z_inv_mg_v12", "z_jets_mg_v12", "w_jets_mg_v12"]]
@@ -421,16 +413,14 @@ class photonLook(analysis.analysis) :
         #if self.skimStringHack=="_markusSkim" :
         #    org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, sources = ["Ph.Data_markusSkim"])
         #else :
-        org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20},
-                         sources = [item+self.skimStringHack for item in ["Run2010B_MJ_skim","Run2010B_MJ_skim2","Run2010B_MJ_skim3","Run2010B_MJ_4",
-                                                                          "Run2010B_J_skim","Run2010B_J_skim2","Run2010A_JM_skim","Run2010A_JMT_skim"]])
+        org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Run2010")
             
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
             ##for skimming only
             #org = organizer.organizer( self.sampleSpecs(tag) )
             #utils.printSkimResults(org)            
-
+            
             #organize
             org = organizer.organizer( self.sampleSpecs(tag) )
             self.mergeSamples(org, tag)
@@ -440,11 +430,11 @@ class photonLook(analysis.analysis) :
             else :
                 org.scale()
                 
-            self.makeStandardPlots(org, tag)
-            self.makeIndividualPlots(org, tag)
+            #self.makeStandardPlots(org, tag)
+            #self.makeIndividualPlots(org, tag)
             #self.makePurityPlots(org, tag)
             #self.makeEfficiencyPlots(org, tag)
-        #self.makeMultiModePlots()
+        #self.makeMultiModePlots(34.7255)
 
     def makeStandardPlots(self, org, tag) :
         #plot all
@@ -492,11 +482,11 @@ class photonLook(analysis.analysis) :
                                          "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
                                          "newTitle":";N_{jets};events / bin / 35 pb^{-1}"},
                                         
-                                        {"plotName":"photonPat1MinDRToJet",
-                                         "selName" :"passFilter",
-                                         "selDesc" :"singlePhotonPlots2",
-                                         "newTitle":";#DeltaR(photon, nearest jet);events / bin / 35 pb^{-1}",
-                                         "reBinFactor":3},
+                                        #{"plotName":"photonPat1MinDRToJet",
+                                        # "selName" :"passFilter",
+                                        # "selDesc" :"singlePhotonPlots2",
+                                        # "newTitle":";#DeltaR(photon, nearest jet);events / bin / 35 pb^{-1}",
+                                        # "reBinFactor":3},
                                         ],
                            newSampleNames = {"qcd_mg_v12": "Madgraph QCD",
                                              "g_jets_mg_v12": "Madgraph #gamma + jets",
@@ -611,7 +601,7 @@ class photonLook(analysis.analysis) :
                 os.system("epstopdf "+eps)
                 os.remove(eps)
 
-    def makeMultiModePlots(self) :
+    def makeMultiModePlots(self, lumi) :
         def org(tag) :
             org = organizer.organizer( self.sampleSpecs(tag) )
             self.mergeSamples(org, tag)
@@ -650,7 +640,7 @@ class photonLook(analysis.analysis) :
                     d[name] = item[1]
             return d
 
-        plotName = ("xcak5JetAlphaTPat", "variablePtGreaterFilter", "xcak5JetSumP4Pat.pt()>=140.0 GeV")
+        plotName = ("xcak5JetAlphaTEtPat", "variablePtGreaterFilter", "xcak5JetSumP4Pat.pt()>=140.0 GeV")
         samples = ["z_inv_mg_v12_skim", "g_jets_mg_v12", "2010 Data"]
         sampleNames = ["Z -> #nu #bar{#nu}", " #gamma + jets", "Data"]
         styles  = [28,                   29,             20]
@@ -681,6 +671,9 @@ class photonLook(analysis.analysis) :
             first = False
 
         legend.Draw()
+
+        utils.cmsStamp(lumi)
+        
         eps = "alphaTCompare.eps"
         canvas.Print(eps)
         os.system("epstopdf "+eps)
