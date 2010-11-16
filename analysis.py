@@ -93,6 +93,7 @@ class analysis(object) :
                 #write file list to disk
                 fileListCommand = key[1]
                 fileList = eval(fileListCommand)
+                assert len(fileList), "The command '%s' produced an empty list of files"%fileListCommand
                 for fileName in value :
                     outFile=open(os.path.expanduser(fileName),"w")
                     cPickle.dump(fileList,outFile)
