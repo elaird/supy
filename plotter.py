@@ -80,14 +80,15 @@ class plotter(object) :
                  doMetFit = False,
                  doColzFor2D = True,
                  compactOutput = False,
+                 noSci = False,
                  nLinesMax = 17,
                  shiftUnderOverFlows = True,
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
                  blackList = [],
                  whiteList = []
                  ) :
-        for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios",
-                     "doLog","anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","compactOutput",
+        for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog",
+                     "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","compactOutput", "noSci",
                      "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox" ] :
             setattr(self,item,eval(item))
 
@@ -293,7 +294,7 @@ class plotter(object) :
             y = 0.98 - 0.35*(i+0.5+absI/5)/self.nLinesMax
             text.DrawTextNDC(x, y, nametitle.format(letter, selection.name, selection.title ))
             text.DrawTextNDC(x, y-0.5, "%s: %s"%(letter,
-                                                  "".join([(utils.roundString(*k,width=8) if k else "-    ").rjust(11) for k in selection.yields()])))
+                                                  "".join([(utils.roundString(*k, width=8, noSci = self.noSci) if k else "-    ").rjust(11) for k in selection.yields()])))
         text.DrawTextNDC(x, 0.5, "   "+"".join([s["name"][:8].rjust(11) for s in self.someOrganizer.samples]))
         text.DrawTextNDC( 0.8,0.01,"events / %.3f pb^{-1}"% self.someOrganizer.lumi )
         self.printCanvas()
