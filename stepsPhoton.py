@@ -158,6 +158,8 @@ class singlePhotonHistogrammer(analysisStep) :
             hcTI = hollowConeTrackIsolations.at(iPhoton)
             sHH = sigmaIetaIetas.at(iPhoton)
 
+            cmbI = jEI + tbHI + hcTI
+            
             #ecalIso
             book.fill(jEI, "%s%s%sjurassicEcalIsolation"%(self.cs+(photonLabel,)),
                       50, 0.0, 10.0, title=";ECAL Isolation (GeV);events / bin")
@@ -185,6 +187,10 @@ class singlePhotonHistogrammer(analysisStep) :
             #book.fill((pt,hcTI), "%s%s%shollowConeTrackIsolationVsPt"%(self.cs+(photonLabel,)),
             #          (50, 50), (0.0, 0.0), (500.0, 10.0),
             #          title=";photon%s p_{T} (GeV);hollow cone track isolation;events / bin"%photonLabel)
+
+            #combIso
+            book.fill(cmbI, "%s%s%scombinedIsolation"%(self.cs+(photonLabel,)),
+                      50, 0.0, 10.0, title=";combined isolation (GeV);events / bin")
 
             #sHH
             if abs(photon.eta())<self.etaBE :
