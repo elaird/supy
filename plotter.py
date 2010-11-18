@@ -123,7 +123,7 @@ class plotter(object) :
             for plotName in sorted(selection.keys()) :
                 if self.useWhiteList and plotName not in self.whiteList : continue
                 if plotName in self.blackList : continue
-                self.onePlotFunction(selection[plotName],plotName)
+                self.onePlotFunction(selection[plotName])
 
         self.printCanvas("]")
         self.makePdf()
@@ -149,29 +149,47 @@ class plotter(object) :
         print utils.hyphens
         setupStyle()
 
-        def histos(p) :
+        def goods(spec) :
             for item in ["selName", "selDesc", "plotName"] :
-                if item not in p : return
+                if item not in spec : return
             
             for selection in self.someOrganizer.selections :
-                if (selection.name, selection.title) != (p["selName"], p["selDesc"]) : continue
-                if p["plotName"] not in selection : continue
-                return selection[p["plotName"]]
+                if (selection.name, selection.title) != (spec["selName"], spec["selDesc"]) : continue
+                if spec["plotName"] not in selection : continue
+                histos = selection[spec["plotName"]]
+                break
 
-        for spec in plotSpecs :
-            h = histos(spec)
-            if "onlyDumpToFile" in spec and spec["onlyDumpToFile"] :
-                f = r.TFile(spec["plotName"]+".root", "RECREATE")
-                for histo in h :
-                    histo.Write()
-                f.Close()
-                continue
-            
+            if "sampleWhiteList" not in spec :
+                return histos,None
+            else :
+                return histos,[not (sample["name"] in spec["sampleWhiteList"]) for sample in self.someOrganizer.samples]
+
+        def rebin(h, spec) :
             if "reBinFactor" in spec :
                 for histo in h :
                     if histo!=None : histo.Rebin(spec["reBinFactor"])
-            if h==None : continue
-            stuff = self.onePlotFunction(h, spec["newTitle"] if "newTitle" in spec else None, newSampleNames, individual = True)
+                
+        def setTitles(h, spec) :
+            if "newTitle" in spec :
+                for histo in h :
+                    histo.SetTitle(spec["newTitle"])
+
+            
+        for spec in plotSpecs :
+            histos,ignoreHistos = goods(spec)
+            if histos==None : continue
+            
+            if "onlyDumpToFile" in spec and spec["onlyDumpToFile"] :
+                f = r.TFile(spec["plotName"]+".root", "RECREATE")
+                for h in histos :
+                    h.Write()
+                f.Close()
+                continue
+
+            rebin(histos, spec)
+            setTitles(histos, spec)
+
+            stuff = self.onePlotFunction(histos, ignoreHistos, newSampleNames, individual = True)
             utils.cmsStamp(self.someOrganizer.lumi)
             self.printOnePage(spec["plotName"], tight = self.anMode)
 
@@ -307,11 +325,12 @@ class plotter(object) :
         self.printCanvas()
         self.canvas.Clear()
 
-    def getExtremes(self,histos,dimension) :
+    def getExtremes(self, dimension, histos, ignoreHistos) :
         globalMax = -1.0
         globalMin = 1.0e9
-        for histo in histos :
-            if not histo : continue
+
+        for histo,ignore in zip(histos,ignoreHistos) :
+            if ignore or (not histo) : continue
             if dimension==1 :
                 for iBinX in range(histo.GetNbinsX()+2) :
                     content = histo.GetBinContent(iBinX)
@@ -326,11 +345,9 @@ class plotter(object) :
                         if value>0.0 :
                             if value<globalMin : globalMin = value
                             if value>globalMax : globalMax = value                            
-        return globalMax,globalMin
+        return globalMin,globalMax
 
-    def setRanges(self,histos,dimension) :
-        globalMax,globalMin = self.getExtremes(histos,dimension)
-                    
+    def setRanges(self, histos, globalMin, globalMax) :
         for histo in histos :
             if not histo or histo.GetName()[-len("_dependence"):] == "_dependence" : continue        
             if self.doLog :
@@ -362,7 +379,7 @@ class plotter(object) :
                 else :      my+=1
             self.canvas.Divide(mx,my)
 
-    def plotEachHisto(self, histos, dimension, newTitle = None, newSampleNames = {}) :
+    def plotEachHisto(self, dimension, histos, ignoreHistos, newSampleNames = None) :
         stuffToKeep = []
         legend = r.TLegend(0.86, 0.60, 1.00, 0.10) if not self.anMode else r.TLegend(0.55, 0.55, 0.85, 0.85)
         stuffToKeep.append(legend)
@@ -371,11 +388,9 @@ class plotter(object) :
             legend.SetBorderSize(0)
 
         count = 0
-        for sample,histo in zip(self.someOrganizer.samples,histos) :
-            if not histo : continue
-            if not histo.GetEntries() : continue
+        for sample,histo,ignore in zip(self.someOrganizer.samples, histos, ignoreHistos) :
+            if ignore or (not histo) or (not histo.GetEntries()) : continue
 
-            if newTitle!=None : histo.SetTitle(newTitle)
             sampleName = sample["name"]
             if "color" in sample :
                 histo.SetLineColor(sample["color"])
@@ -383,7 +398,7 @@ class plotter(object) :
             if "markerStyle" in sample :
                 histo.SetMarkerStyle(sample["markerStyle"])
             
-            legend.AddEntry(histo, newSampleNames[sampleName] if sampleName in newSampleNames else sampleName, "lp")
+            legend.AddEntry(histo, newSampleNames[sampleName] if (newSampleNames!=None and sampleName in newSampleNames) else sampleName, "lp")
 
             if dimension==1   : self.plot1D(histo,count,stuffToKeep)
             elif dimension==2 : self.plot2D(histo,count,sampleName,stuffToKeep)
@@ -437,15 +452,17 @@ class plotter(object) :
             ratios.append(ratio)
         return ratios
 
-    def onePlotFunction(self, histos, newTitle = None, newSampleNames = {}, individual = False) :
+    def onePlotFunction(self, histos, ignoreHistos = None, newSampleNames = None, individual = False) :
         dimension = dimensionOfHisto(histos)
-        self.prepareCanvas(histos,dimension)
-        self.setRanges(histos,dimension)
+        self.prepareCanvas(histos, dimension)
+
+        if ignoreHistos==None : ignoreHistos = [False]*len(histos)
+        self.setRanges(histos, *self.getExtremes(dimension, histos, ignoreHistos))
 
         if individual : 
-            count,stuffToKeep = self.plotEachHisto(histos, dimension, newTitle = newTitle, newSampleNames = newSampleNames)
+            count,stuffToKeep = self.plotEachHisto(dimension, histos, ignoreHistos, newSampleNames = newSampleNames)
         else :
-            count,stuffToKeep = self.plotEachHisto(histos, dimension)
+            count,stuffToKeep = self.plotEachHisto(dimension, histos, ignoreHistos)
             
         if self.plotRatios and dimension==1 :
             ratios = self.plotRatio(histos,dimension)
