@@ -160,6 +160,13 @@ class plotter(object) :
 
         for spec in plotSpecs :
             h = histos(spec)
+            if "onlyDumpToFile" in spec and spec["onlyDumpToFile"] :
+                f = r.TFile(spec["plotName"]+".root", "RECREATE")
+                for histo in h :
+                    histo.Write()
+                f.Close()
+                continue
+            
             if "reBinFactor" in spec :
                 for histo in h :
                     if histo!=None : histo.Rebin(spec["reBinFactor"])
@@ -356,12 +363,12 @@ class plotter(object) :
             self.canvas.Divide(mx,my)
 
     def plotEachHisto(self, histos, dimension, newTitle = None, newSampleNames = {}) :
-        stuffToKeep=[]
+        stuffToKeep = []
         legend = r.TLegend(0.86, 0.60, 1.00, 0.10) if not self.anMode else r.TLegend(0.55, 0.55, 0.85, 0.85)
+        stuffToKeep.append(legend)
         if self.anMode :
             legend.SetFillStyle(0)
             legend.SetBorderSize(0)
-        stuffToKeep.append(legend)
 
         count = 0
         for sample,histo in zip(self.someOrganizer.samples,histos) :
@@ -376,7 +383,7 @@ class plotter(object) :
             if "markerStyle" in sample :
                 histo.SetMarkerStyle(sample["markerStyle"])
             
-            legend.AddEntry(histo, newSampleNames[sampleName] if sampleName in newSampleNames else sampleName, "l")
+            legend.AddEntry(histo, newSampleNames[sampleName] if sampleName in newSampleNames else sampleName, "lp")
 
             if dimension==1   : self.plot1D(histo,count,stuffToKeep)
             elif dimension==2 : self.plot2D(histo,count,sampleName,stuffToKeep)
