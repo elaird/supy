@@ -180,10 +180,12 @@ class plotter(object) :
             if histos==None : continue
             
             if "onlyDumpToFile" in spec and spec["onlyDumpToFile"] :
-                f = r.TFile(spec["plotName"]+".root", "RECREATE")
+                rootFileName = self.psFileName.replace(".ps","_%s.root"%spec["plotName"])
+                f = r.TFile(rootFileName, "RECREATE")
                 for h in histos :
                     h.Write()
                 f.Close()
+                print "The output file \"%s\" has been written."%rootFileName
                 continue
 
             rebin(histos, spec)
