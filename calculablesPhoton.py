@@ -85,7 +85,7 @@ class photonID(wrappedChain.calculable) :
         jei = {}; jeiLower = {}; tbhi = {}; tbhiLower = {}; hcti = {}; hctiLower = {};
         hoe = {}; shhBarrel = {}; shhEndcap = {}; ptVar = {}; etaBE = {}; moreName = {}
         for l in ["EmFromTwiki","LooseFromTwiki","TightFromTwiki",
-                  "AnalysisNote_10_268","EGM_10_006_Loose","EGM_10_006_Tight","TrkIsoSideBand","TrkIsoRelaxed","IsoSideBand","IsoRelaxed","NoIso"] :
+                  "AnalysisNote_10_268","EGM_10_006_Loose","EGM_10_006_Tight","TrkIsoSideBand","TrkIsoRelaxed","IsoSideBand","IsoRelaxed","NoIsoReq"] :
             jei [l]      = (4.2,  0.0060); jeiLower[l]  = None
             tbhi[l]      = (2.2,  0.0025); tbhiLower[l] = None
             hcti[l]      = None          ; hctiLower[l] = None
@@ -131,10 +131,10 @@ class photonID(wrappedChain.calculable) :
         hctiLower["TrkIsoSideBand"] = ( 2.0, 0.001)
         moreName ["TrkIsoSideBand"] = "side-band of trkIso"
 
-        jei      ["NoIso"] = (100.0, 0.0)
-        tbhi     ["NoIso"] = (100.0, 0.0)
-        hcti     ["NoIso"] = (100.0, 0.0)
-        moreName ["NoIso"] = "relaxed trkIso [ ,100]; hcalIso[ ,100]; ecalIso[ ,100]"
+        jei      ["NoIsoReq"] = (100.0, 0.0)
+        tbhi     ["NoIsoReq"] = (100.0, 0.0)
+        hcti     ["NoIsoReq"] = (100.0, 0.0)
+        moreName ["NoIsoReq"] = "relaxed trkIso [ ,100]; hcalIso[ ,100]; ecalIso[ ,100]"
 
         jei      ["IsoRelaxed"] = (8.2,  0.0060)
         tbhi     ["IsoRelaxed"] = (6.2,  0.0025)
@@ -223,9 +223,9 @@ class photonIDTrkIsoSideBand(photonID) :
     def __init__(self, collection = None) :
         super(photonIDTrkIsoSideBand,self).__init__(collection,"TrkIsoSideBand")
 ####################################
-class photonIDNoIso(photonID) :
+class photonIDNoIsoReq(photonID) :
     def __init__(self, collection = None) :
-        super(photonIDNoIso,self).__init__(collection,"NoIso")
+        super(photonIDNoIsoReq,self).__init__(collection,"NoIsoReq")
 ####################################
 class photonIDIsoRelaxed(photonID) :
     def __init__(self, collection = None) :
