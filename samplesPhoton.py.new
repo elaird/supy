@@ -9,6 +9,18 @@ photon.add("Photon.Run2010B-PromptReco-v2.RECO.Alex",     '%s/as1604//ICF/automa
 photon.add("Photon.Run2010B-PromptReco-v2.RECO.Martyn",   '%s/mjarvis//ICF/automated/2010_10_22_16_06_53/")'%srm, lumi = 99999.9 )
 photon.add("Photon.Run2010B-PromptReco-v2.RECO.Robin",    '%s/rnandi//ICF/automated/2010_10_13_14_47_32/")'%srm,  lumi = 99999.9 )
 
+#skims from photonSkim.py (1 even looser photon>80 GeV)
+dir = "/vols/cms02/elaird1/11_skims/24_oneNoIsoReqPhotonGt80_jetDataset_skim"
+photon.add("Run2010A_JMT_skim_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/Run2010A_JMT_skim_*_skim.root", isDirectory = False)'%dir,lumi = 1.720000e-01)
+photon.add("Run2010A_JM_skim_noIsoReqSkim",  'utils.fileListFromDisk(location = "%s/Run2010A_JM_skim_*_skim.root", isDirectory = False)'%dir, lumi = 2.889000e+00)
+photon.add("Run2010B_J_skim_noIsoReqSkim",   'utils.fileListFromDisk(location = "%s/Run2010B_J_skim_*_skim.root", isDirectory = False)'%dir,  lumi = 3.897000e+00)
+photon.add("Run2010B_J_skim2_noIsoReqSkim",  'utils.fileListFromDisk(location = "%s/Run2010B_J_skim2_*_skim.root", isDirectory = False)'%dir, lumi = 5.107000e-01)
+photon.add("Run2010B_MJ_skim_noIsoReqSkim",  'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim_*_skim.root", isDirectory = False)'%dir, lumi = 3.467000e+00)
+photon.add("Run2010B_MJ_skim2_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim2_*_skim.root", isDirectory = False)'%dir,lumi = 4.150800e+00)
+photon.add("Run2010B_MJ_skim3_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim3_*_skim.root", isDirectory = False)'%dir,lumi = 6.807000e+00)
+photon.add("Run2010B_MJ_skim4_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim4_*_skim.root", isDirectory = False)'%dir,lumi = 1.283200e+01)
+photon.add("Run2010B_MJ_skim5_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim5_*_skim.root", isDirectory = False)'%dir,lumi = 6.510000e-01)
+
 #skims from photonSkim.py (1 very loose photon>80 GeV)
 photon.add("Ph.Data_markusSkim", 'utils.fileListFromDisk(location=  "/vols/cms02/elaird1/11_skims/18_photon_dataset/")', lumi = 13.48) #/pb
 
