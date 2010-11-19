@@ -372,11 +372,10 @@ class bxFilter(analysisStep) :
 #####################################
 class displayer(analysisStep) :
     
-    def __init__(self,jets = ("",""), met = "", muons = "", electrons = "", photons = "",
-                 recHits = "", recHitPtThreshold = -1.0, scale = 200.0,
-                 etRatherThanPt = False, doGenParticles = False, doEtaPhiPlot = True,
-                 hotTpThreshold = 63.5, deltaPhiStarExtraName = "", printOtherJetAlgoQuantities = False,
-                 tipToTail = False) :
+    def __init__(self,jets = ("",""), met = "", muons = "", electrons = "", photons = "", recHits = "",
+                 recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False,
+                 doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "",
+                 printOtherJetAlgoQuantities = False, markusMode = False, tipToTail = False) :
 
         self.moreName = "(see below)"
 
@@ -484,8 +483,8 @@ class displayer(analysisStep) :
     def printVertices(self, eventVars, params, coords, nMax) :
         self.prepareText(params, coords)
         self.printText("Vertices")
-        self.printText("ID  i   Z(cm)  sumPt(GeV)")
-        self.printText("-------------------------")
+        self.printText("ID   Z(cm) sumPt(GeV)")
+        self.printText("---------------------")
 
         nVertices = eventVars["vertexNdof"].size()
         for i in range(nVertices) :
@@ -493,7 +492,7 @@ class displayer(analysisStep) :
                 self.printText("[%d more not listed]"%(nVertices-nMax))
                 break
             
-            out = "%2s %2d  %6.2f    %5.0f"%("*" if i in eventVars["vertexIndices"] else "-", i, eventVars["vertexPosition"].at(i).z(), eventVars["vertexSumPt"].at(i))
+            out = "%2s %6.2f  %5.0f"%("G " if i in eventVars["vertexIndices"] else "  ", eventVars["vertexPosition"].at(i).z(), eventVars["vertexSumPt"].at(i))
             self.printText(out)
 
     def printJets(self, eventVars, params, coords, jets, nMax) :
@@ -528,8 +527,8 @@ class displayer(analysisStep) :
         jetIndicesOther = eventVars["%sIndicesOther%s"%jets]
 
         self.printText(jets[0]+jets[1])
-        self.printText("LT i upT cpT  eta  phi%s"%("   EMF  fHPD N90" if not isPf else "  CHF  NHF  CEF  NEF CM"))
-        self.printText("----------------------%s"%("----------------" if not isPf else "-----------------------"))
+        self.printText("ID   pT  eta  phi%s"%("   EMF  fHPD N90" if not isPf else "  CHF  NHF  CEF  NEF CM"))
+        self.printText("-----------------%s"%("----------------" if not isPf else "-----------------------"))
 
         nJets = p4Vector.size()
         for iJet in range(nJets) :
@@ -538,8 +537,8 @@ class displayer(analysisStep) :
                 break
             jet=p4Vector[iJet]
 
-            outString = "%1s%1s"% ("*" if loose.at(iJet) else "-", "*" if tight.at(iJet) else "-")
-            outString+="%2d%4.0f%4.0f %4.1f %4.1f"%(iJet, jet.pt()/corrFactorVector[iJet], jet.pt(), jet.eta(), jet.phi())
+            outString = "%1s%1s"% ("L" if loose.at(iJet) else " ", "T" if tight.at(iJet) else " ")
+            outString+="%5.0f %4.1f %4.1f"%(jet.pt(), jet.eta(), jet.phi())
 
             if not isPf :
                 outString+=" %5.2f %5.2f %3d"%(jetEmfVector.at(iJet), jetFHpdVector.at(iJet), jetN90Vector.at(iJet))
@@ -547,16 +546,44 @@ class displayer(analysisStep) :
                 outString+=" %4.2f %4.2f %4.2f %4.2f%3d"%(chf.at(iJet), nhf.at(iJet), cef.at(iJet), nef.at(iJet), cm.at(iJet))
             self.printText(outString)
 
-    def printKinematicVariables(self, eventVars, params, coords, jets) :
+    def printKinematicVariables(self, eventVars, params, coords, jets, jets2) :
         self.prepareText(params, coords)
-        l = [eventVars["%s%s%s"%(jets[0], "SumEt",    jets[1])],
-             eventVars["%s%s%s"%(jets[0], "SumP4",    jets[1])].pt() if eventVars["%s%s%s"%(jets[0], "SumP4",  jets[1])] else 0,
-             eventVars["%s%s%s"%(jets[0], "AlphaTEt", jets[1])],
-             ]
+        
+        def go(j) :
+            l = [eventVars["%s%s%s"%(j[0], "SumEt",    j[1])],
+                 eventVars["%s%s%s"%(j[0], "SumP4",    j[1])].pt() if eventVars["%s%s%s"%(j[0], "SumP4",  j[1])] else 0,
+                 eventVars["%s%s%s"%(j[0], "AlphaTEt", j[1])],
+                 ]
+            self.printText("%14s %4.0f %4.0f %6.3f"%tuple([j[0]+j[1]]+l))
+
+        self.printText("jets             HT  MHT alphaT")
+        self.printText("-------------------------------")
+        
+        go(jets)
+        if jets2!=None :
+            go(jets2)
+        
+    def passBit(self, var) :
+        return " Y" if var else " N"
+
+    def printCutBits(self, eventVars, params, coords, jets, met) :
+        self.prepareText(params, coords)        
+        J2 = 90.0
+        HT = eventVars["%sSumEt%s"%jets]
+        aT = eventVars["%sAlphaTEt%s"%jets]
+        DE = 0.2
+        MM = eventVars["%sMht%s_Over_%s"%(jets[0], jets[1], met)]
+        
         label = "[%s%s]"%jets
-        self.printText("  HT  MHT alphaT %s"%label)
-        self.printText("-----------------%s"%("-"*len(label)))
-        self.printText("%4.0f %4.0f %6.3f"%tuple(l))
+        self.printText("J2 HT aT DE MM")
+        self.printText("--------------")
+        self.printText("%s %s %s %s %s"%(self.passBit(J2!=None and J2 > 100.0),
+                                         self.passBit(HT!=None and HT > 350.0),
+                                         self.passBit(aT!=None and aT > 0.550),
+                                         self.passBit(DE!=None and DE > 0.300),
+                                         self.passBit(MM!=None and MM < 1.250),
+                                         )
+                       )
         
     def drawSkeleton(self, coords, color) :
         r.gPad.AbsCoordinates(False)
@@ -1027,13 +1054,19 @@ class displayer(analysisStep) :
         self.printEvent(   eventVars, params = defaults, coords = {"x":x0, "y":0.98})
         self.printVertices(eventVars, params = defaults, coords = {"x":x1, "y":0.98}, nMax = 3)
 
-        self.printJets(              eventVars, params = defaults, coords = {"x":x0, "y":0.84}, jets = self.jets, nMax = 5)
-        self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":0.64}, jets = self.jets)
-
         if self.printOtherJetAlgoQuantities :
+            y0 = 0.44
             jetsOtherAlgo = (self.jets[0]+"PF" if "PF" not in self.jets[0] else self.jets[0].replace("PF",""), self.jets[1])
-            self.printJets(              eventVars, params = defaults, coords = {"x":x0, "y":0.56}, jets = jetsOtherAlgo, nMax = 5)
-            self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":0.36}, jets = jetsOtherAlgo)
+            metOtherAlgo  = "metP4AK5TypeII" if "PF" in self.met else "metP4PF"
+            self.printJets(          eventVars, params = defaults, coords = {"x":x0, "y":0.64}, jets = jetsOtherAlgo, nMax = 5)            
+        else :
+            y0 = 0.64            
+            jetsOtherAlgo = None
+            metOtherAlgo  = None
+        
+        self.printJets(              eventVars, params = defaults, coords = {"x":x0, "y":   0.84}, jets = self.jets, nMax = 5)
+        self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":y0     }, jets = self.jets, jets2 = jetsOtherAlgo)
+        #self.printCutBits(           eventVars, params = defaults, coords = {"x":x0, "y":y0-0.08}, jets = self.jets, jets2 = jetsOtherAlgo, met = self.met, met2 = metOtherAlgo)
 
         self.canvas.cd()
         pad.Draw()
