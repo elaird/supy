@@ -114,8 +114,8 @@ class hadronicLook(analysis.analysis) :
         outList=[
             steps.progressPrinter(),
             steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
-            steps.jetPtSelector(_jet,100.0,0),
-            steps.jetPtSelector(_jet,100.0,1),
+            steps.jetPtSelector(_jet, 100.0, 0),
+            steps.jetPtSelector(_jet, 100.0, 1),
             steps.jetEtaSelector(_jet,2.5,0),
             steps.lowestUnPrescaledTrigger(["HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"]),
             steps.vertexRequirementFilter(),
@@ -351,7 +351,7 @@ class hadronicLook(analysis.analysis) :
         if "madgraph" in tag : mg (org, smSources)
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="Run2010")
-        
+
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
             ##for skimming only
@@ -370,13 +370,7 @@ class hadronicLook(analysis.analysis) :
                                  sampleLabelsForRatios = ("data","s.m."),
                                  #whiteList = ["cutBitHistogram"],
                                  #compactOutput = True,
-                                 blackList = ["lumiHisto","xsHisto","nJobsHisto"]
+                                 #noSci = True,
+                                 blackList = ["lumiHisto","xsHisto","nJobsHisto"],
                                  )
             pl.plotAll()
-
-            #import statMan
-            #statMan.go(a.organizeHistograms(),
-            #           dataSampleName="JetMETTau.Run2010A",
-            #           mcSampleName="standard_model",
-            #           moneyPlotName="ak5JetPat_alphaT_vs_Ht_ge2jets",
-            #           xCut=0.51,yCut=330.0)
