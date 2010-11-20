@@ -40,7 +40,33 @@ class hadronicLook(analysis.analysis) :
     def togglePfElectron(self, electron) :
         return (electron[0], "Pat") if electron[1]=="PF" else (electron[0],"PF")
 
-    def listOfCalculables(self,params) :
+    def jetCalcList(self, jet, met, jetPtMin, jetIdFlag, etRatherThanPt, photon, muon, correctForMuons, electron) :
+        outList  = calculables.fromCollections(calculables.jet,[jet])
+        outList += [calculables.xclean.xcJet(jet,
+                                             applyResidualCorrections = False,
+                                             gamma = photon,
+                                             gammaDR = 0.5,
+                                             muon = muon,
+                                             muonDR = 0.5,
+                                             correctForMuons = correctForMuons,
+                                             electron = electron,
+                                             electronDR = 0.5),
+                    calculables.jet.ResidualCorrectionsFromFile(jet),
+                    calculables.jet.Indices( jet, jetPtMin,       etaMax = 3.0, flagName = jetIdFlag),
+                    calculables.jet.Indices( jet, lowPtThreshold, etaMax = 3.0, flagName = jetIdFlag, extraName = lowPtName),
+
+                    calculables.jet.SumP4(jet),
+                    calculables.jet.SumP4(jet, extraName = lowPtName),
+                    calculables.jet.DeltaPhiStar(jet, extraName = lowPtName),
+                    calculables.jet.DeltaPseudoJet(jet, etRatherThanPt),
+                    calculables.jet.AlphaT(jet, etRatherThanPt),
+                    calculables.jet.AlphaTMet(jet, etRatherThanPt, met),
+                    calculables.jet.mhtOverMet(jet, met),
+                    calculables.jet.deadEcalDR(jet, extraName = lowPtName, nXtalThreshold = 5),
+                    ]
+        return outList
+    
+    def listOfCalculables(self, params) :
         _jet = params["objects"]["jet"]
         _muon = params["objects"]["muon"]
         _electron = params["objects"]["electron"]
@@ -51,59 +77,21 @@ class hadronicLook(analysis.analysis) :
         _correctForMuons = not params["objects"]["muonsInJets"]
 
         outList  = calculables.zeroArgs()
-        outList += calculables.fromCollections(calculables.jet,[_jet, self.togglePfJet(_jet)]) +\
-                   calculables.fromCollections(calculables.muon,[_muon]) +\
+        outList += calculables.fromCollections(calculables.muon,[_muon]) +\
                    calculables.fromCollections(calculables.electron,[_electron]) +\
                    calculables.fromCollections(calculables.photon,[_photon])
         return outList +\
-               [ calculables.xclean.xcJet(_jet,
-                                          gamma = _photon,
-                                          gammaDR = 0.5,
-                                          muon = _muon,
-                                          muonDR = 0.5,
-                                          correctForMuons = _correctForMuons,
-                                          electron = _electron,
-                                          electronDR = 0.5),
-                 calculables.xclean.xcJet(self.togglePfJet(_jet),
-                                          gamma = _photon,
-                                          gammaDR = 0.5,
-                                          muon = _muon,
-                                          muonDR = 0.5,
-                                          correctForMuons = _correctForMuons,
-                                          electron = _electron,
-                                          electronDR = 0.5),
-                 calculables.jet.Indices( _jet, _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
-                 calculables.jet.Indices( self.togglePfJet(_jet), _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),                 
-                 calculables.jet.Indices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
-                 calculables.jet.Indices( self.togglePfJet(_jet), lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
-
-                 calculables.muon.Indices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
+               [ calculables.muon.Indices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
                  calculables.electron.Indices( _electron, ptMin = 10, simpleEleID = "95", useCombinedIso = True),
                  calculables.photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
                  calculables.xclean.IndicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
-                 calculables.xclean.IndicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
-                 ] \
-                 + [ calculables.jet.SumP4(_jet),
-                     calculables.jet.SumP4(_jet, extraName = lowPtName),
-                     calculables.jet.DeltaPhiStar(_jet, extraName = lowPtName),
-                     calculables.jet.DeltaPseudoJet(_jet, _etRatherThanPt),
-                     calculables.jet.AlphaT(_jet, _etRatherThanPt),
-                     calculables.jet.AlphaTMet(_jet, _etRatherThanPt, _met),
-                     calculables.jet.mhtOverMet(_jet, _met),
-                     calculables.jet.deadEcalDR(_jet, extraName = lowPtName, nXtalThreshold = 5),
-
-                     calculables.jet.SumP4(self.togglePfJet(_jet)),
-                     calculables.jet.SumP4(self.togglePfJet(_jet), extraName = lowPtName),
-                     calculables.jet.DeltaPhiStar(self.togglePfJet(_jet), extraName = lowPtName),
-                     calculables.jet.DeltaPseudoJet(self.togglePfJet(_jet), _etRatherThanPt),
-                     calculables.jet.AlphaT(self.togglePfJet(_jet), _etRatherThanPt),
-                     calculables.jet.mhtOverMet(self.togglePfJet(_jet), self.togglePfMet(_met)),
-                     calculables.jet.deadEcalDR(self.togglePfJet(_jet), extraName = lowPtName, nXtalThreshold = 5),
-                     
-                     calculables.other.vertexID(),
-                     calculables.other.vertexIndices(),
-                     ]
-
+                 calculables.xclean.IndicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5),
+                 calculables.other.vertexID(),
+                 calculables.other.vertexIndices(),
+                 ] +\
+                 self.jetCalcList(                 _jet,                   _met,  _jetPtMin, params["jetId"], _etRatherThanPt, _photon, _muon,     _correctForMuons, _electron) +\
+                 self.jetCalcList(self.togglePfJet(_jet), self.togglePfMet(_met), _jetPtMin, params["jetId"], _etRatherThanPt, _photon, _muon, not _correctForMuons, _electron)
+    
     def listOfSteps(self,params) :
         _jet  = params["objects"]["jet"]
         _electron = params["objects"]["electron"]
@@ -182,6 +170,8 @@ class hadronicLook(analysis.analysis) :
                    #                etRatherThanPt = _etRatherThanPt,
                    #                deltaPhiStarExtraName = lowPtName,
                    #                printOtherJetAlgoQuantities = True,
+                   #                jetsOtherAlgo = self.togglePfJet(_jet),
+                   #                metOtherAlgo  = self.togglePfMet(_met),
                    #                markusMode = True,
                    #                ),
                    
