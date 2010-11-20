@@ -580,14 +580,21 @@ class displayer(analysisStep) :
             MM = eventVars["%sMht%s_Over_%s"%(j[0], j[1], m)]
             DE = eventVars["%sDeltaPhiStar%s%s"%(j[0], j[1], self.deltaPhiStarExtraName)]["DeltaPhiStar"]>0.5 or \
                  eventVars["%sDeadEcalDR%s%s"  %(j[0], j[1], self.deltaPhiStarExtraName)]                >0.3
+
+            all = (J2!=None and J2 > 100.0) and \
+                  (HT!=None and HT > 350.0) and \
+                  (aT!=None and aT > 0.550) and \
+                  (DE!=None and DE        ) and \
+                  (MM!=None and MM < 1.250)
             
-            self.printText("%14s  %s %s %s %s %s"%(j[0]+j[1],
-                                                   self.passBit(J2!=None and J2 > 100.0),
-                                                   self.passBit(HT!=None and HT > 350.0),
-                                                   self.passBit(aT!=None and aT > 0.550),
-                                                   self.passBit(DE!=None and DE),
-                                                   self.passBit(MM!=None and MM < 1.250),
-                                                   )
+            self.printText("%14s  %s %s %s %s %s  %s"%(j[0]+j[1],
+                                                       self.passBit(J2!=None and J2 > 100.0),
+                                                       self.passBit(HT!=None and HT > 350.0),
+                                                       self.passBit(aT!=None and aT > 0.550),
+                                                       self.passBit(DE!=None and DE),
+                                                       self.passBit(MM!=None and MM < 1.250),
+                                                       "candidate" if all else "",
+                                                       )
                            )
 
         self.printText("jet collection  J2 HT aT DE MM")
