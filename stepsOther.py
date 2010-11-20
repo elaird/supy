@@ -375,14 +375,13 @@ class displayer(analysisStep) :
     def __init__(self,jets = ("",""), met = "", muons = "", electrons = "", photons = "", recHits = "",
                  recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False,
                  doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "",
-                 printOtherJetAlgoQuantities = False, markusMode = False, tipToTail = False) :
+                 printOtherJetAlgoQuantities = False, jetsOtherAlgo = None, metOtherAlgo = None, markusMode = False, tipToTail = False) :
 
         self.moreName = "(see below)"
 
-        for item in ["scale","jets","met","muons","electrons","photons",
-                     "recHits","recHitPtThreshold","doGenParticles",
+        for item in ["scale","jets","met","muons","electrons","photons","recHits","recHitPtThreshold","doGenParticles",
                      "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName","printOtherJetAlgoQuantities",
-                     "tipToTail"] :
+                     "jetsOtherAlgo", "metOtherAlgo", "tipToTail"] :
             setattr(self,item,eval(item))
 
         self.jetRadius = 0.7 if "ak7Jet" in self.jets[0] else 0.5
@@ -502,8 +501,7 @@ class displayer(analysisStep) :
         self.prepareText(params, coords)
         jets2 = (jets[0].replace("xc",""),jets[1])
         isPf = "PF" in jets[0]
-        p4Vector         = eventVars['%sCorrectedP4%s'     %jets2]
-        corrFactorVector = eventVars['%sCorrFactor%s'      %jets2]
+        p4Vector         = eventVars['%sCorrectedP4%s'     %jets]
 
         if not isPf :
             jetEmfVector  = eventVars['%sEmEnergyFraction%s'%jets2]
@@ -1088,17 +1086,16 @@ class displayer(analysisStep) :
 
         if self.printOtherJetAlgoQuantities :
             y0 = 0.44
-            jetsOtherAlgo = (self.jets[0]+"PF" if "PF" not in self.jets[0] else self.jets[0].replace("PF",""), self.jets[1])
-            metOtherAlgo  = "metP4AK5TypeII" if "PF" in self.met else "metP4PF"
-            self.printJets(          eventVars, params = defaults, coords = {"x":x0, "y":0.64}, jets = jetsOtherAlgo, nMax = 5)            
+            self.printJets(          eventVars, params = defaults, coords = {"x":x0, "y":0.64}, jets = self.jetsOtherAlgo, nMax = 5)
         else :
             y0 = 0.64            
             jetsOtherAlgo = None
             metOtherAlgo  = None
         
         self.printJets(              eventVars, params = defaults, coords = {"x":x0, "y":   0.84}, jets = self.jets, nMax = 5)
-        self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":y0     }, jets = self.jets, jets2 = jetsOtherAlgo)
-        self.printCutBits(           eventVars, params = defaults, coords = {"x":x0, "y":y0-0.10}, jets = self.jets, jets2 = jetsOtherAlgo, met = self.met, met2 = metOtherAlgo)
+        self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":y0     }, jets = self.jets, jets2 = self.jetsOtherAlgo)
+        self.printCutBits(           eventVars, params = defaults, coords = {"x":x0, "y":y0-0.10}, jets = self.jets, jets2 = self.jetsOtherAlgo,
+                                     met = self.met, met2 = self.metOtherAlgo)
 
         self.canvas.cd()
         pad.Draw()
@@ -1132,7 +1129,7 @@ class displayer(analysisStep) :
             #g4 = self.drawMhtLlPlot(eventVars, r.kBlack, corners = {"x1":0.63, "y1":0.63, "x2":0.95, "y2":0.95})
 
         t = self.printEventText(eventVars,
-                                corners = {"x1":rhoPhiPadXSize + 0.12,
+                                corners = {"x1":rhoPhiPadXSize + 0.11,
                                            "y1":0.0,
                                            "x2":1.0,
                                            "y2":1.0})
