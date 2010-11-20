@@ -568,23 +568,24 @@ class displayer(analysisStep) :
             go(jets2)
         
     def passBit(self, var) :
-        return " Y" if var else " N"
+        return " p" if var else " f"
 
     def printCutBits(self, eventVars, params, coords, jets, jets2, met, met2) :
         self.prepareText(params, coords)
 
         def go(j, m) :
-            J2 = 90.0
+            J2 = None if len(eventVars["%sIndices%s"%j])<2 else eventVars['%sCorrectedP4%s'%j].at(eventVars["%sIndices%s"%j][1]).pt()
             HT = eventVars["%sSumEt%s"%j]
             aT = eventVars["%sAlphaTEt%s"%j]
-            DE = 0.2
             MM = eventVars["%sMht%s_Over_%s"%(j[0], j[1], m)]
+            DE = eventVars["%sDeltaPhiStar%s%s"%(j[0], j[1], self.deltaPhiStarExtraName)]["DeltaPhiStar"]>0.5 or \
+                 eventVars["%sDeadEcalDR%s%s"  %(j[0], j[1], self.deltaPhiStarExtraName)]                >0.3
             
             self.printText("%14s  %s %s %s %s %s"%(j[0]+j[1],
                                                    self.passBit(J2!=None and J2 > 100.0),
                                                    self.passBit(HT!=None and HT > 350.0),
                                                    self.passBit(aT!=None and aT > 0.550),
-                                                   self.passBit(DE!=None and DE > 0.300),
+                                                   self.passBit(DE!=None and DE),
                                                    self.passBit(MM!=None and MM < 1.250),
                                                    )
                            )
@@ -1200,25 +1201,15 @@ class duplicateEventCheck(analysisStep) :
         runLs.add(event)
 #####################################
 class deadEcalFilter(analysisStep) :
-    def __init__(self, jets = None, extraName = "", dR = None, dPhiStarCut = None, nXtalThreshold = None) :
-        for item in ["jets","dR","dPhiStarCut","nXtalThreshold"] :
+    def __init__(self, jets = None, extraName = "", dR = None, dPhiStarCut = None) :
+        for item in ["jets","extraName","dR","dPhiStarCut"] :
             setattr(self,item,eval(item))
-        self.dps = "%sDeltaPhiStar%s%s"%(self.jets[0],self.jets[1],extraName)
-        self.badJet = r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0,0.0,0.0,0.0)
-        self.moreName = "%s%s; dR>%5.3f when deltaPhiStar<%5.3f and nXtal>%d"%(self.jets[0], self.jets[1], self.dR, self.dPhiStarCut, self.nXtalThreshold)
+        self.dps = "%sDeltaPhiStar%s%s"%(self.jets[0], self.jets[1], self.extraName)
+        self.deadEcalDR = "%sDeadEcalDR%s%s"%(self.jets[0], self.jets[1], self.extraName)
+        self.moreName = "%s%s; dR>%5.3f when deltaPhiStar<%5.3f"%(self.jets[0], self.jets[1], self.dR, self.dPhiStarCut)
         
     def select(self, eventVars) :
-        d = eventVars[self.dps]
-        index = d["DeltaPhiStarJetIndex"]
-        if d["DeltaPhiStar"]>self.dPhiStarCut :
-            return True
-        jet = eventVars["%sCorrectedP4%s"%self.jets].at(index)
-        self.badJet.SetCoordinates(jet.pt(),jet.eta(),jet.phi(),jet.E())
-        for iRegion,region in enumerate(eventVars["ecalDeadTowerTrigPrimP4"]) :
-            if eventVars["ecalDeadTowerNBadXtals"].at(iRegion)<self.nXtalThreshold : continue
-            if r.Math.VectorUtil.DeltaR(self.badJet,region) < self.dR :
-                return False
-        return True
+        return (eventVars[self.dps]["DeltaPhiStar"]>self.dPhiStarCut or eventVars[self.deadEcalDR]>self.dR)
 #####################################
 class deadHcalFilter(analysisStep) :
     def __init__(self, jets = None, extraName = "", dR = None, dPhiStarCut = None, nXtalThreshold = None) :
