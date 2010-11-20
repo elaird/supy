@@ -560,7 +560,7 @@ class displayer(analysisStep) :
                  ]
             self.printText("%14s %4.0f %4.0f %6.3f %4.2f"%tuple([j[0]+j[1]]+l))
 
-        self.printText("jets             HT  MHT alphaT Dphi*")
+        self.printText("jet collection   HT  MHT alphaT Dphi*")
         self.printText("-------------------------------------")
         
         go(jets)
@@ -570,24 +570,31 @@ class displayer(analysisStep) :
     def passBit(self, var) :
         return " Y" if var else " N"
 
-    def printCutBits(self, eventVars, params, coords, jets, met) :
-        self.prepareText(params, coords)        
-        J2 = 90.0
-        HT = eventVars["%sSumEt%s"%jets]
-        aT = eventVars["%sAlphaTEt%s"%jets]
-        DE = 0.2
-        MM = eventVars["%sMht%s_Over_%s"%(jets[0], jets[1], met)]
-        
-        label = "[%s%s]"%jets
-        self.printText("J2 HT aT DE MM")
-        self.printText("--------------")
-        self.printText("%s %s %s %s %s"%(self.passBit(J2!=None and J2 > 100.0),
-                                         self.passBit(HT!=None and HT > 350.0),
-                                         self.passBit(aT!=None and aT > 0.550),
-                                         self.passBit(DE!=None and DE > 0.300),
-                                         self.passBit(MM!=None and MM < 1.250),
-                                         )
-                       )
+    def printCutBits(self, eventVars, params, coords, jets, jets2, met, met2) :
+        self.prepareText(params, coords)
+
+        def go(j, m) :
+            J2 = 90.0
+            HT = eventVars["%sSumEt%s"%j]
+            aT = eventVars["%sAlphaTEt%s"%j]
+            DE = 0.2
+            MM = eventVars["%sMht%s_Over_%s"%(j[0], j[1], m)]
+            
+            self.printText("%14s  %s %s %s %s %s"%(j[0]+j[1],
+                                                   self.passBit(J2!=None and J2 > 100.0),
+                                                   self.passBit(HT!=None and HT > 350.0),
+                                                   self.passBit(aT!=None and aT > 0.550),
+                                                   self.passBit(DE!=None and DE > 0.300),
+                                                   self.passBit(MM!=None and MM < 1.250),
+                                                   )
+                           )
+
+        self.printText("jet collection  J2 HT aT DE MM")
+        self.printText("------------------------------")
+
+        go(jets, met)
+        if jets2!=None and met2!=None :
+            go(jets2, met2)
         
     def drawSkeleton(self, coords, color) :
         r.gPad.AbsCoordinates(False)
@@ -1083,7 +1090,7 @@ class displayer(analysisStep) :
         
         self.printJets(              eventVars, params = defaults, coords = {"x":x0, "y":   0.84}, jets = self.jets, nMax = 5)
         self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":y0     }, jets = self.jets, jets2 = jetsOtherAlgo)
-        #self.printCutBits(           eventVars, params = defaults, coords = {"x":x0, "y":y0-0.08}, jets = self.jets, jets2 = jetsOtherAlgo, met = self.met, met2 = metOtherAlgo)
+        self.printCutBits(           eventVars, params = defaults, coords = {"x":x0, "y":y0-0.10}, jets = self.jets, jets2 = jetsOtherAlgo, met = self.met, met2 = metOtherAlgo)
 
         self.canvas.cd()
         pad.Draw()
