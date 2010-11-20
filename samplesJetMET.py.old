@@ -44,6 +44,7 @@ jetmet.add("2010_data_pf_skim", 'utils.fileListFromDisk(location = "/vols/cms02/
 #jetmet.add("2010_data_pf_skim",   'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/22_hadronicLook/pfAK5/")', lumi = 999999.9 ) #/pb
 jetmet.add("tanjas7", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/22_hadronicLook/tanjas7.root", isDirectory = False)', lumi = 34.724)
 jetmet.add("tanjas14", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/22_hadronicLook/tanjas14.root", isDirectory = False)', lumi = 34.724)
+jetmet.add("markus38", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/25_markus38/markus38_0_skim.root", isDirectory = False)', lumi = 34.724)
 jetmet.add("2010_data_photons_high_met",  'utils.fileListFromDisk(location="/vols/cms02/elaird1/11_skims/08_photons_high_met/")', lumi = 6.68 )
 jetmet.add("Tanja_sync",
            'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/Jet.Run2010B-PromptReco-v2.RECO.Burt2/Jet.Run2010B-PromptReco-v2.RECO.Burt2_[6-9]_skim.root", isDirectory = False)', lumi = 9999999.9) #/pb
