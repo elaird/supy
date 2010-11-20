@@ -605,4 +605,28 @@ class deadEcalDR(wrappedChain.calculable) :
             if self.source["ecalDeadTowerNBadXtals"].at(iRegion)<self.nXtalThreshold : continue
             dRs.append(r.Math.VectorUtil.DeltaR(self.badJet,region))
         self.value = min(dRs) if len(dRs) else None
+##############################
+class ResidualCorrectionsFromFile(wrappedChain.calculable) :
+    def __init__(self, jets = None) :
+        self.fixes = jets
+
+        fileDict = {}
+        fileDict[(    "ak5Jet","Pat")] = "Spring10DataV2_L2L3Residual_AK5Calo.txt"
+        fileDict[(  "xcak5Jet","Pat")] = "Spring10DataV2_L2L3Residual_AK5Calo.txt"
+        fileDict[(  "ak5JetPF","Pat")] = "Spring10DataV2_L2L3Residual_AK5PF.txt"
+        fileDict[("xcak5JetPF","Pat")] = "Spring10DataV2_L2L3Residual_AK5PF.txt"
+        assert jets in fileDict,"residual corrections file for %s%s not found"%jets
+
+        self.etaLo  = []
+        self.factor = []
+        inFile = open(fileDict[jets])
+        for line in inFile :
+            if "{" in line : continue
+            fieldList = line.split()
+            self.etaLo.append(float(fieldList[0]))
+            self.factor.append(float(fieldList[5]))
+        inFile.close()
+
+    def update(self, ignored) :
+        self.value = {"etaLo":self.etaLo, "factor":self.factor}
 #####################################
