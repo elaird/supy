@@ -390,13 +390,16 @@ class displayer(analysisStep) :
         self.genMet  = self.met.replace("P4","GenMetP4")
         self.deltaHtName = "%sDeltaPseudoJetEt%s"%self.jets if etRatherThanPt else "%sDeltaPseudoJetPt%s"%self.jets
         
-        self.doGen=False
+        self.doGen = False
         self.doReco = not self.doGenParticles
-        self.doLeptons=True
-        self.helper=r.displayHelper()
+        self.doLeptons = True
+        self.helper = r.displayHelper()
 
+        self.titleSizeFactor = 1.0
+        
         self.legendDict = collections.defaultdict(int)
         self.legendList = []
+        
 
     def switchGenOn(self) :
         self.doGen=True
@@ -550,14 +553,15 @@ class displayer(analysisStep) :
         self.prepareText(params, coords)
         
         def go(j) :
-            l = [eventVars["%s%s%s"%(j[0], "SumEt",    j[1])],
-                 eventVars["%s%s%s"%(j[0], "SumP4",    j[1])].pt() if eventVars["%s%s%s"%(j[0], "SumP4",  j[1])] else 0,
-                 eventVars["%s%s%s"%(j[0], "AlphaTEt", j[1])],
+            l = [eventVars["%s%s%s"  %(j[0], "SumEt",        j[1])],
+                 eventVars["%s%s%s"  %(j[0], "SumP4",        j[1])].pt() if eventVars["%s%s%s"%(j[0], "SumP4",  j[1])] else 0,
+                 eventVars["%s%s%s"  %(j[0], "AlphaTEt",     j[1])],
+                 eventVars["%s%s%s%s"%(j[0], "DeltaPhiStar", j[1], self.deltaPhiStarExtraName)]["DeltaPhiStar"],
                  ]
-            self.printText("%14s %4.0f %4.0f %6.3f"%tuple([j[0]+j[1]]+l))
+            self.printText("%14s %4.0f %4.0f %6.3f %4.2f"%tuple([j[0]+j[1]]+l))
 
-        self.printText("jets             HT  MHT alphaT")
-        self.printText("-------------------------------")
+        self.printText("jets             HT  MHT alphaT Dphi*")
+        self.printText("-------------------------------------")
         
         go(jets)
         if jets2!=None :
@@ -779,7 +783,7 @@ class displayer(analysisStep) :
                     self.drawP4(coords, hit, color, lineWidth, arrowSize)
             
     def makeAlphaTFunc(self,alphaTValue,color) :
-        alphaTFunc=r.TF1(("alphaTCurve ( %#5.3g"%alphaTValue)+" )",
+        alphaTFunc=r.TF1("#alpha_{T} = %#4.2g"%alphaTValue,
                          "1.0-2.0*("+str(alphaTValue)+")*sqrt(1.0-x*x)",
                          0.0,1.0)
         alphaTFunc.SetLineColor(color)
@@ -840,9 +844,9 @@ class displayer(analysisStep) :
         else :
             d = eventVars["%sDeltaPhiStar%s%s"%(self.jets[0],self.jets[1],self.deltaPhiStarExtraName)]
             suspiciousJetIndex = d["DeltaPhiStarJetIndex"]
-            title = "#Delta#phi * = %6.4f"%d["DeltaPhiStar"]
-            title+= "#semicolon index = %d"%suspiciousJetIndex
-            etaPhiPlot.SetTitle(title)
+            #title = "#Delta#phi * = %6.4f"%d["DeltaPhiStar"]
+            #title+= "#semicolon index = %d"%suspiciousJetIndex
+            etaPhiPlot.SetTitle("")
 
             jets = eventVars["%sCorrectedP4%s"%self.jets]
             for index in range(jets.size()) :
@@ -855,21 +859,26 @@ class displayer(analysisStep) :
                     self.drawCircle(jet, suspiciousJetColor, lineWidth = 1, circleRadius = self.jetRadius - 0.04, lineStyle = suspiciousJetStyle)
                     
 
-        legend = r.TLegend(0.55,0.9,1.0,1.0)
-        legend.SetFillStyle(0)
-        legend.SetBorderSize(0)
-        legend.AddEntry(self.deadBox,"dead ECAL cells","f")
-        legend.AddEntry(self.coldBox,"dead ECAL cells with TP link","f")
-        legend.AddEntry(self.hotBox, "dead ECAL cells with TP ET>%4.1f GeV"%self.hotTpThreshold,"f")
-        legend.AddEntry(self.hcalBox,"masked HCAL cells","f")
+        legend1 = r.TLegend(0.02, 0.9, 0.72, 1.0)
+        legend1.SetFillStyle(0)
+        legend1.SetBorderSize(0)
+        legend1.AddEntry(self.deadBox,"dead ECAL cells","f")
+        legend1.AddEntry(self.coldBox,"dead ECAL cells w/TP link","f")
+        legend1.AddEntry(self.hotBox, "dead ECAL cells w/TP ET>%4.1f GeV"%self.hotTpThreshold,"f")
+        legend1.Draw()
+
+        legend2 = r.TLegend(0.58, 0.933, 0.98, 1.0)
+        legend2.SetFillStyle(0)
+        legend2.SetBorderSize(0)
+        legend2.AddEntry(self.hcalBox,"masked HCAL cells","f")
         self.ellipse.SetLineColor(suspiciousJetColor)
         self.ellipse.SetLineStyle(suspiciousJetStyle)
-        legend.AddEntry(self.ellipse,"suspicious jet","l")
-        legend.Draw()
+        legend2.AddEntry(self.ellipse,"jet determining #Delta#phi*","l")
+        legend2.Draw()
 
         self.canvas.cd()
         pad.Draw()
-        return [pad, etaPhiPlot, legend]
+        return [pad, etaPhiPlot, legend1, legend2]
 
     def drawAlphaPlot (self, eventVars, color, showAlphaTMet, corners) :
         pad = r.TPad("alphaTpad", "alphaTpad", corners["x1"], corners["y1"], corners["x2"], corners["y2"])
@@ -879,8 +888,8 @@ class displayer(analysisStep) :
 
         title = ";"
         if showAlphaTMet :
-            title +="#color[%d]{MET/H_{T}}              "%r.kGreen
-        title+= "#color[%d]{MHT/H_{T}};#DeltaH_{T}/H_{T}"%r.kBlue
+            title +="#color[%d]{MET/HT}              "%r.kGreen
+        title+= "#color[%d]{MHT/HT};#DeltaHT/HT"%r.kBlue
         alphaTHisto = r.TH2D("alphaTHisto",title,100,0.0,1.0,100,0.0,1.0)
         alphaTMetHisto = alphaTHisto.Clone("alphaTMetHisto")
 
@@ -894,8 +903,10 @@ class displayer(analysisStep) :
         if ht : alphaTHisto.Fill(mht/ht,deltaHt/ht)
         alphaTHisto.SetStats(False)
         alphaTHisto.SetMarkerStyle(29)
-        #alphaTHisto.GetYaxis().SetTitleOffset(1.25)
+        alphaTHisto.GetYaxis().SetTitleOffset(1.15)
         alphaTHisto.SetMarkerColor(r.kBlue)
+        alphaTHisto.GetXaxis().SetTitleSize(self.titleSizeFactor*alphaTHisto.GetXaxis().GetTitleSize())
+        alphaTHisto.GetYaxis().SetTitleSize(self.titleSizeFactor*alphaTHisto.GetYaxis().GetTitleSize())
         alphaTHisto.Draw("p")
 
         if showAlphaTMet :
@@ -906,21 +917,27 @@ class displayer(analysisStep) :
             alphaTMetHisto.SetMarkerColor(r.kGreen)
             alphaTMetHisto.Draw("psame")
 
-        legend = r.TLegend(0.1, 0.55, 1.0, 0.85)
-        legend.SetBorderSize(0)
-        legend.SetFillStyle(0)
+        legend1 = r.TLegend(0.1, 0.6, 1.0, 0.9)
+        legend1.SetBorderSize(0)
+        legend1.SetFillStyle(0)
         
         for func in self.alphaFuncs :
             func.Draw("same")
-            legend.AddEntry(func,func.GetName(),"l")
+            legend1.AddEntry(func,func.GetName(),"l")
 
-        legend.AddEntry(alphaTHisto,"this event ( %#5.3g )"%alphaT,"p")
-        if showAlphaTMet :
-            legend.AddEntry(alphaTMetHisto,"this event ( %#5.3g )"%alphaTMet,"p")
-        legend.Draw()
+        legend1.Draw()
+
+        #legend2 = r.TLegend(0.1, 0.4, 1.0, 0.6)
+        #legend2.SetBorderSize(0)
+        #legend2.SetFillStyle(0)
+        #legend2.AddEntry(alphaTHisto,"this event","p")
+        #if showAlphaTMet :
+        #    legend2.AddEntry(alphaTMetHisto,"this event","p")
+        #legend2.Draw()
+        
         self.canvas.cd()
         pad.Draw()
-        return [pad,alphaTHisto,alphaTMetHisto,legend]
+        return [pad, alphaTHisto, alphaTMetHisto, legend1]
 
     def fillHisto(self,histo,lls,mhts) :
         for i in range(len(mhts)) :
