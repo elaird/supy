@@ -381,7 +381,7 @@ class displayer(analysisStep) :
 
         for item in ["scale","jets","met","muons","electrons","photons","recHits","recHitPtThreshold","doGenParticles",
                      "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName","printOtherJetAlgoQuantities",
-                     "jetsOtherAlgo", "metOtherAlgo", "tipToTail"] :
+                     "jetsOtherAlgo", "metOtherAlgo", "markusMode","tipToTail"] :
             setattr(self,item,eval(item))
 
         self.jetRadius = 0.7 if "ak7Jet" in self.jets[0] else 0.5
@@ -1115,17 +1115,19 @@ class displayer(analysisStep) :
 
         r.gStyle.SetOptStat(110011)        
         if self.doGenParticles or self.doEtaPhiPlot :
-            gg = self.drawEtaPhiPlot(eventVars, corners = {"x1":rhoPhiPadXSize - 0.18,
-                                                           "y1":rhoPhiPadYSize - 0.08*self.canvas.GetAspectRatio(),
-                                                           "x2":rhoPhiPadXSize + 0.12,
-                                                           "y2":rhoPhiPadYSize + 0.22*self.canvas.GetAspectRatio()})
+            if not self.markusMode :
+                gg = self.drawEtaPhiPlot(eventVars, corners = {"x1":rhoPhiPadXSize - 0.18,
+                                                               "y1":rhoPhiPadYSize - 0.08*self.canvas.GetAspectRatio(),
+                                                               "x2":rhoPhiPadXSize + 0.12,
+                                                               "y2":rhoPhiPadYSize + 0.22*self.canvas.GetAspectRatio()})
         
         if self.doReco :
-            g3 = self.drawAlphaPlot(eventVars, r.kBlack, showAlphaTMet = True,
-                                    corners = {"x1":rhoPhiPadXSize - 0.08,
-                                               "y1":0.0,
-                                               "x2":rhoPhiPadXSize + 0.12,
-                                               "y2":0.55})
+            if not self.markusMode :
+                g3 = self.drawAlphaPlot(eventVars, r.kBlack, showAlphaTMet = True,
+                                        corners = {"x1":rhoPhiPadXSize - 0.08,
+                                                   "y1":0.0,
+                                                   "x2":rhoPhiPadXSize + 0.12,
+                                                   "y2":0.55})
             #g4 = self.drawMhtLlPlot(eventVars, r.kBlack, corners = {"x1":0.63, "y1":0.63, "x2":0.95, "y2":0.95})
 
         t = self.printEventText(eventVars,
