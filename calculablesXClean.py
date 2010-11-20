@@ -1,11 +1,11 @@
 from wrappedChain import *
-import copy
+import copy,bisect
 import ROOT as r
 ##############################
 class xcJet(wrappedChain.calculable) :
     def name(self) : return "%sCorrectedP4%s"%self.xcjets
 
-    def __init__(self,xcjets = None,
+    def __init__(self,xcjets = None, applyResidualCorrections = None,
                  gamma    = None, gammaDR    = 0,
                  electron = None, electronDR = 0,
                  muon     = None, muonDR     = 0,
@@ -15,16 +15,26 @@ class xcJet(wrappedChain.calculable) :
         self.value = r.std.vector('LorentzV')()
         self.jetP4Source = ("%sCorrectedP4%s"%xcjets)[2:]
         self.xcjets = xcjets
+        self.applyResidualCorrections = applyResidualCorrections
         self.other = dict( [ (i,(eval(i),eval(i+"DR"))) for i in ["gamma","electron","muon"]] )
         self.correctForMuons = correctForMuons
         self.jesAbs = jesAbs
         self.jesRel = jesRel
-        
+        self.resCorr = ("%sResidualCorrectionsFromFile%s"%self.xcjets)
         self.moreName = "; ".join(["%s%sDR<%.2f"%(v[0]+(v[1],)) for v in filter(lambda v: v[0], self.other.values())])
         if jesAbs!=1.0 or jesRel!=0.0:
             self.moreName2 += "jes corr: %.2f*(1+%.2f|eta|)"%(jesAbs,jesRel)
-    
-    def jes(self,p4) : return p4 * (self.jesAbs*(1+self.jesRel*abs(p4.eta())))
+
+    def resFactor(self, p4) :
+        if self.applyResidualCorrections :
+            index = bisect.bisect(self.source[self.resCorr]["etaLo"], p4.eta())-1
+            if index<0 : index = 0
+            resFactor = self.source[self.resCorr]["factor"][index]
+            return resFactor
+        else :
+            return 1.0
+        
+    def jes(self, p4) : return p4 * self.jesAbs*(1+self.jesRel*abs(p4.eta())) * self.resFactor(p4)
 
     def update(self,ignored) :
         jetP4s = self.source[self.jetP4Source]
