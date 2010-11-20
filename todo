@@ -1,7 +1,6 @@
 Critical
 ---------
 support nSamples depending upon config
-don't correct JPT or PF jets for muons
 
 Processing
 -----------
@@ -22,8 +21,6 @@ Other
 * cross section in database
 * 2D ratios
 
-* check for expired grid cert / empty srmls
-
 * organize files in cvs
 * named arguments everywhere
 * update example ntuples
@@ -35,7 +32,6 @@ Other
 
 * displayer cleans up
 * modes for displayer
-* label HT
 
 * profile
 * logfiles
