@@ -374,14 +374,14 @@ class displayer(analysisStep) :
     
     def __init__(self,jets = ("",""), met = "", muons = "", electrons = "", photons = "", recHits = "",
                  recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False,
-                 doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "",
+                 doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "", deltaPhiStarCut = None,
                  printOtherJetAlgoQuantities = False, jetsOtherAlgo = None, metOtherAlgo = None, markusMode = False, tipToTail = False) :
 
         self.moreName = "(see below)"
 
         for item in ["scale","jets","met","muons","electrons","photons","recHits","recHitPtThreshold","doGenParticles",
-                     "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName","printOtherJetAlgoQuantities",
-                     "jetsOtherAlgo", "metOtherAlgo", "markusMode","tipToTail"] :
+                     "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "deltaPhiStarCut",
+                     "printOtherJetAlgoQuantities", "jetsOtherAlgo", "metOtherAlgo", "markusMode","tipToTail"] :
             setattr(self,item,eval(item))
 
         self.jetRadius = 0.7 if "ak7Jet" in self.jets[0] else 0.5
@@ -391,8 +391,18 @@ class displayer(analysisStep) :
         
         self.doGen = False
         self.doReco = not self.doGenParticles
-        self.doLeptons = True
+        self.doLeptons = not self.markusMode
         self.helper = r.displayHelper()
+
+        self.markusReName = {
+            "clean jets (xcak5JetPat)": "clean jets (AK5 Calo)",
+            "ignored jets (xcak5JetPat)": "ignored jets (AK5 Calo)",
+            "MHT (xcak5JetPat)": "MHT",
+            "MET (metP4AK5TypeII)": "CaloMET Type II",
+            "xcak5JetPat": "AK5 Calo Jets",
+            "xcak5JetPFPat": "AK5 PF Jets",
+            }
+         
 
         self.titleSizeFactor = 1.0
         
@@ -527,9 +537,9 @@ class displayer(analysisStep) :
         jetIndices = eventVars["%sIndices%s"%jets]
         jetIndicesOther = eventVars["%sIndicesOther%s"%jets]
 
-        self.printText(jets[0]+jets[1])
-        self.printText("ID   pT  eta  phi%s"%("   EMF  fHPD N90" if not isPf else "  CHF  NHF  CEF  NEF CM"))
-        self.printText("-----------------%s"%("----------------" if not isPf else "-----------------------"))
+        self.printText(self.renamedDesc(jets[0]+jets[1]))
+        self.printText("ID   pT  eta  phi%s"%("   EMF  fHPD N90" if not isPf else "   CHF  NHF  CEF  NEF CM"))
+        self.printText("-----------------%s"%("----------------" if not isPf else "------------------------"))
 
         nJets = p4Vector.size()
         for iJet in range(nJets) :
@@ -544,7 +554,7 @@ class displayer(analysisStep) :
             if not isPf :
                 outString+=" %5.2f %5.2f %3d"%(jetEmfVector.at(iJet), jetFHpdVector.at(iJet), jetN90Vector.at(iJet))
             else :
-                outString+=" %4.2f %4.2f %4.2f %4.2f%3d"%(chf.at(iJet), nhf.at(iJet), cef.at(iJet), nef.at(iJet), cm.at(iJet))
+                outString+=" %5.3f %4.2f %4.2f %4.2f%3d"%(chf.at(iJet), nhf.at(iJet), cef.at(iJet), nef.at(iJet), cm.at(iJet))
             self.printText(outString)
 
     def printKinematicVariables(self, eventVars, params, coords, jets, jets2) :
@@ -556,7 +566,7 @@ class displayer(analysisStep) :
                  eventVars["%s%s%s"  %(j[0], "AlphaTEt",     j[1])],
                  eventVars["%s%s%s%s"%(j[0], "DeltaPhiStar", j[1], self.deltaPhiStarExtraName)]["DeltaPhiStar"],
                  ]
-            self.printText("%14s %4.0f %4.0f %6.3f %4.2f"%tuple([j[0]+j[1]]+l))
+            self.printText("%14s %4.0f %4.0f %6.3f %4.2f"%tuple([self.renamedDesc(j[0]+j[1])]+l))
 
         self.printText("jet collection   HT  MHT alphaT Dphi*")
         self.printText("-------------------------------------")
@@ -585,7 +595,7 @@ class displayer(analysisStep) :
                   (DE!=None and DE        ) and \
                   (MM!=None and MM < 1.250)
             
-            self.printText("%14s  %s %s %s %s %s  %s"%(j[0]+j[1],
+            self.printText("%14s  %s %s %s %s %s  %s"%(self.renamedDesc(j[0]+j[1]),
                                                        self.passBit(J2!=None and J2 > 100.0),
                                                        self.passBit(HT!=None and HT > 350.0),
                                                        self.passBit(aT!=None and aT > 0.550),
@@ -641,10 +651,15 @@ class displayer(analysisStep) :
         self.ellipse.SetLineStyle(lineStyle)
         self.ellipse.DrawEllipse(p4.eta(), p4.phi(), circleRadius, circleRadius, 0.0, 360.0, 0.0, "")
 
+    def renamedDesc(self, desc) :
+        if not self.markusMode : return desc
+        elif desc in self.markusReName : return self.markusReName[desc]
+        else : return desc
+        
     def legendFunc(self, color, name, desc) :
         if not self.legendDict[name] :
             self.legendDict[name] = True
-            self.legendList.append( (color, desc, "l") )
+            self.legendList.append( (color, self.renamedDesc(desc), "l") )
 
     def drawGenJets(self, eventVars, coords, color, lineWidth, arrowSize) :
         self.legendFunc(color, name = "genJet", desc = "GEN jets (%s%s)"%self.genJets)
@@ -818,7 +833,7 @@ class displayer(analysisStep) :
         self.line.SetLineColor(r.kBlack)
         self.line.DrawLine(-ebEe, etaPhiPlot.GetYaxis().GetXmin(), -ebEe, etaPhiPlot.GetYaxis().GetXmax() )
         self.line.DrawLine( ebEe, etaPhiPlot.GetYaxis().GetXmin(),  ebEe, etaPhiPlot.GetYaxis().GetXmax() )
-        suspiciousJetColor = r.kBlack
+        suspiciousJetColor = r.kRed
         suspiciousJetStyle = 2
         
         def drawEcalBox(fourVector, nBadXtals, maxStatus) :
@@ -857,10 +872,12 @@ class displayer(analysisStep) :
         else :
             d = eventVars["%sDeltaPhiStar%s%s"%(self.jets[0],self.jets[1],self.deltaPhiStarExtraName)]
             suspiciousJetIndex = d["DeltaPhiStarJetIndex"]
+            deltaPhiStar = d["DeltaPhiStar"]
             #title = "#Delta#phi * = %6.4f"%d["DeltaPhiStar"]
             #title+= "#semicolon index = %d"%suspiciousJetIndex
             etaPhiPlot.SetTitle("")
 
+            suspiciousJetLegendEntry = False
             jets = eventVars["%sCorrectedP4%s"%self.jets]
             for index in range(jets.size()) :
                 jet = jets.at(index)
@@ -868,8 +885,9 @@ class displayer(analysisStep) :
                     self.drawCircle(jet, r.kBlue, lineWidth = 1, circleRadius = self.jetRadius)
                 else :
                     self.drawCircle(jet, r.kCyan, lineWidth = 1, circleRadius = self.jetRadius)
-                if index==suspiciousJetIndex :
+                if index==suspiciousJetIndex and deltaPhiStar<self.deltaPhiStarCut :
                     self.drawCircle(jet, suspiciousJetColor, lineWidth = 1, circleRadius = self.jetRadius - 0.04, lineStyle = suspiciousJetStyle)
+                    suspiciousJetLegendEntry = True
                     
 
         legend1 = r.TLegend(0.02, 0.9, 0.72, 1.0)
@@ -886,7 +904,8 @@ class displayer(analysisStep) :
         legend2.AddEntry(self.hcalBox,"masked HCAL cells","f")
         self.ellipse.SetLineColor(suspiciousJetColor)
         self.ellipse.SetLineStyle(suspiciousJetStyle)
-        legend2.AddEntry(self.ellipse,"jet determining #Delta#phi*","l")
+        if suspiciousJetLegendEntry :
+            legend2.AddEntry(self.ellipse,"jet with min. #Delta#phi* < %3.1f"%self.deltaPhiStarCut,"l")
         legend2.Draw()
 
         self.canvas.cd()
@@ -1038,8 +1057,9 @@ class displayer(analysisStep) :
         
             self.drawIgnoredJets    (eventVars, coords,r.kCyan    , defWidth, defArrowSize*1/6.0)
             #self.drawOtherJets      (eventVars, coords,r.kBlack  )
-            self.drawHt             (eventVars, coords,r.kBlue+3  , defWidth, defArrowSize*1/6.0)
-            self.drawNJetDeltaHt    (eventVars, coords,r.kBlue-9  , defWidth, defArrowSize*1/6.0)
+            if not self.markusMode :
+                self.drawHt         (eventVars, coords,r.kBlue+3  , defWidth, defArrowSize*1/6.0)
+                self.drawNJetDeltaHt(eventVars, coords,r.kBlue-9  , defWidth, defArrowSize*1/6.0)
             self.drawMht            (eventVars, coords,r.kRed     , defWidth, defArrowSize*3/6.0)
             self.drawMet            (eventVars, coords,r.kGreen   , defWidth, defArrowSize*2/6.0)
             
@@ -1115,12 +1135,11 @@ class displayer(analysisStep) :
 
         r.gStyle.SetOptStat(110011)        
         if self.doGenParticles or self.doEtaPhiPlot :
-            if not self.markusMode :
-                gg = self.drawEtaPhiPlot(eventVars, corners = {"x1":rhoPhiPadXSize - 0.18,
-                                                               "y1":rhoPhiPadYSize - 0.08*self.canvas.GetAspectRatio(),
-                                                               "x2":rhoPhiPadXSize + 0.12,
-                                                               "y2":rhoPhiPadYSize + 0.22*self.canvas.GetAspectRatio()})
-        
+            gg = self.drawEtaPhiPlot(eventVars, corners = {"x1":rhoPhiPadXSize - 0.18,
+                                                           "y1":rhoPhiPadYSize - 0.08*self.canvas.GetAspectRatio(),
+                                                           "x2":rhoPhiPadXSize + 0.12,
+                                                           "y2":rhoPhiPadYSize + 0.22*self.canvas.GetAspectRatio()})
+            
         if self.doReco :
             if not self.markusMode :
                 g3 = self.drawAlphaPlot(eventVars, r.kBlack, showAlphaTMet = True,
