@@ -103,6 +103,22 @@ class lowestUnPrescaledTrigger(analysisStep) :
             if eventVars["prescaled"][path]==1 : return eventVars["triggered"][path]
         return False
 #####################################
+class lowestUnPrescaledTriggerHistogrammer(analysisStep) :
+    def __init__(self, listOfPaths = []) :
+        self.listOfPaths = listOfPaths
+        self.key = "lowestUnPrescaledTrigger"
+        self.n = len(self.listOfPaths)
+        
+    def uponAcceptance(self, eventVars) :
+        i = self.listOfPaths.index(eventVars["lowestUnPrescaledTrigger"])
+        self.book(eventVars).fill( i, self.key, self.n, 0.0, self.n, title = ";lowest un-prescaled path;events / bin")
+
+    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+        for book in self.books.values() :
+            if self.key in book :
+                for iPath in range(self.n) :
+                    book[self.key].GetXaxis().SetBinLabel(iPath+1,self.listOfPaths[iPath])
+#####################################
 class hltFilter(analysisStep) :
 
     def __init__(self,hltPathName):
