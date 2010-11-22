@@ -5,7 +5,7 @@ import ROOT as r
 class xcJet(wrappedChain.calculable) :
     def name(self) : return "%sCorrectedP4%s"%self.xcjets
 
-    def __init__(self,xcjets = None, applyResidualCorrections = None,
+    def __init__(self,xcjets = None, applyResidualCorrectionsToData = None,
                  gamma    = None, gammaDR    = 0,
                  electron = None, electronDR = 0,
                  muon     = None, muonDR     = 0,
@@ -14,19 +14,18 @@ class xcJet(wrappedChain.calculable) :
                  jesRel = 0 ) :
         self.value = r.std.vector('LorentzV')()
         self.jetP4Source = ("%sCorrectedP4%s"%xcjets)[2:]
-        self.xcjets = xcjets
-        self.applyResidualCorrections = applyResidualCorrections
+
+        for item in ["xcjets", "applyResidualCorrectionsToData", "correctForMuons", "jesAbs", "jesRel"] :
+            setattr(self, item, eval(item))
+
         self.other = dict( [ (i,(eval(i),eval(i+"DR"))) for i in ["gamma","electron","muon"]] )
-        self.correctForMuons = correctForMuons
-        self.jesAbs = jesAbs
-        self.jesRel = jesRel
         self.resCorr = ("%sResidualCorrectionsFromFile%s"%self.xcjets)
         self.moreName = "; ".join(["%s%sDR<%.2f"%(v[0]+(v[1],)) for v in filter(lambda v: v[0], self.other.values())])
         if jesAbs!=1.0 or jesRel!=0.0:
             self.moreName2 += "jes corr: %.2f*(1+%.2f|eta|)"%(jesAbs,jesRel)
 
-    def resFactor(self, p4) :
-        if self.applyResidualCorrections :
+    def resFactor(self, isData, p4) :
+        if self.applyResidualCorrectionsToData and isData :
             index = bisect.bisect(self.source[self.resCorr]["etaLo"], p4.eta())-1
             if index<0 : index = 0
             resFactor = self.source[self.resCorr]["factor"][index]
@@ -34,16 +33,17 @@ class xcJet(wrappedChain.calculable) :
         else :
             return 1.0
         
-    def jes(self, p4) : return p4 * self.jesAbs*(1+self.jesRel*abs(p4.eta())) * self.resFactor(p4)
+    def jes(self, isData, p4) : return p4 * self.jesAbs*(1+self.jesRel*abs(p4.eta())) * self.resFactor(isData, p4)
 
     def update(self,ignored) :
         jetP4s = self.source[self.jetP4Source]
         killed = self.source["%sIndicesKilled%s"%self.xcjets]
         matchedMuons = []
 
+        isData = self.source["isRealData"]
         self.value.clear()
         for iJet in range(len(jetP4s)) :
-            self.value.push_back(self.jes(jetP4s[iJet]))
+            self.value.push_back(self.jes(isData, jetP4s[iJet]))
             
             if self.matchesIn("gamma",self.value[iJet]) \
             or self.matchesIn("electron",self.value[iJet]) :
