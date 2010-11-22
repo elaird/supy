@@ -611,6 +611,12 @@ class displayer(analysisStep) :
         go(jets, met)
         if jets2!=None and met2!=None :
             go(jets2, met2)
+
+
+    def printFlags(self, eventVars, params, coords,flags) :
+        self.prepareText(params, coords)
+        for f in flags:
+            if eventVars[f] : self.printText(f)
         
     def drawSkeleton(self, coords, color) :
         r.gPad.AbsCoordinates(False)
@@ -1116,6 +1122,10 @@ class displayer(analysisStep) :
         self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":y0     }, jets = self.jets, jets2 = self.jetsOtherAlgo)
         self.printCutBits(           eventVars, params = defaults, coords = {"x":x0, "y":y0-0.10}, jets = self.jets, jets2 = self.jetsOtherAlgo,
                                      met = self.met, met2 = self.metOtherAlgo)
+        self.printFlags(eventVars, params = defaults, coords = {"x":x0, "y":y0-0.20},
+                        flags = ['logErrorTooManyClusters','logErrorTooManySeeds',
+                                 "beamHaloCSCLooseHaloId","beamHaloCSCTightHaloId","beamHaloEcalLooseHaloId","beamHaloEcalTightHaloId",
+                                 "beamHaloGlobalLooseHaloId","beamHaloGlobalTightHaloId","beamHaloHcalLooseHaloId","beamHaloHcalTightHaloId" ])
 
         self.canvas.cd()
         pad.Draw()
