@@ -374,13 +374,13 @@ class displayer(analysisStep) :
     
     def __init__(self,jets = ("",""), met = "", muons = "", electrons = "", photons = "", recHits = "",
                  recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False,
-                 doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "", deltaPhiStarCut = None,
+                 doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "", deltaPhiStarCut = None, deltaPhiStarDR = None,
                  printOtherJetAlgoQuantities = False, jetsOtherAlgo = None, metOtherAlgo = None, markusMode = False, tipToTail = False) :
 
         self.moreName = "(see below)"
 
         for item in ["scale","jets","met","muons","electrons","photons","recHits","recHitPtThreshold","doGenParticles",
-                     "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "deltaPhiStarCut",
+                     "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "deltaPhiStarCut", "deltaPhiStarDR",
                      "printOtherJetAlgoQuantities", "jetsOtherAlgo", "metOtherAlgo", "markusMode","tipToTail"] :
             setattr(self,item,eval(item))
 
@@ -892,7 +892,7 @@ class displayer(analysisStep) :
                 else :
                     self.drawCircle(jet, r.kCyan, lineWidth = 1, circleRadius = self.jetRadius)
                 if index==suspiciousJetIndex and deltaPhiStar<self.deltaPhiStarCut :
-                    self.drawCircle(jet, suspiciousJetColor, lineWidth = 1, circleRadius = self.jetRadius - 0.04, lineStyle = suspiciousJetStyle)
+                    self.drawCircle(jet, suspiciousJetColor, lineWidth = 1, circleRadius = self.deltaPhiStarDR, lineStyle = suspiciousJetStyle)
                     suspiciousJetLegendEntry = True
                     
 
