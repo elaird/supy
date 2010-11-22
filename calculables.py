@@ -50,3 +50,4 @@ import calculablesElectron as electron
 import calculablesPhoton as photon
 import calculablesOther as other
 import calculablesXClean as xclean
+import calculablesCompatibility as compat
