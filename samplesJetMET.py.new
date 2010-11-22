@@ -50,3 +50,4 @@ jetmet.add("2010_data_photons_high_met",  'utils.fileListFromDisk(location="/vol
 jetmet.add("Tanja_sync",
            'utils.fileListFromDisk(location = "/vols/cms02/elaird1/10_skims/Jet.Run2010B-PromptReco-v2.RECO.Burt2/Jet.Run2010B-PromptReco-v2.RECO.Burt2_[6-9]_skim.root", isDirectory = False)', lumi = 9999999.9) #/pb
 
+jetmet.add('hennings38','utils.fileListFromDisk(location = "/vols/cms02/bbetchar/thirtyEight/")', lumi = 35.38)
