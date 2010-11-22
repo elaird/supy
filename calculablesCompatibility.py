@@ -76,3 +76,6 @@ class beamHaloHcalLooseHaloId(wrappedChain.calculable) :
 class beamHaloHcalTightHaloId(wrappedChain.calculable) :
     def update(self,ignored) : self.value = False
 ##############################
+class isRealData(wrappedChain.calculable) :
+    def update(self,ignored) : self.value = not ("genpthat" in self.source)
+##############################
