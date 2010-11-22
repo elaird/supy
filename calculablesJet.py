@@ -618,15 +618,17 @@ class ResidualCorrectionsFromFile(wrappedChain.calculable) :
         assert jets in fileDict,"residual corrections file for %s%s not found"%jets
 
         self.etaLo  = []
-        self.factor = []
+        self.etaHi  = []
+        self.p      = []
         inFile = open(fileDict[jets])
         for line in inFile :
             if "{" in line : continue
-            fieldList = line.split()
-            self.etaLo.append(float(fieldList[0]))
-            self.factor.append(float(fieldList[5]))
+            fields = line.split()
+            self.etaLo.append( float(fields[0]) )
+            self.etaHi.append( float(fields[1]) )
+            self.p.append( (float(fields[5]), float(fields[6]), float(fields[7])) )
         inFile.close()
 
     def update(self, ignored) :
-        self.value = {"etaLo":self.etaLo, "factor":self.factor}
+        self.value = {"etaLo":self.etaLo, "etaHi":self.etaHi, "p":self.p}
 #####################################

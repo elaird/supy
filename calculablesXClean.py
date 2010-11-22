@@ -1,5 +1,6 @@
 from wrappedChain import *
-import copy,bisect
+import utils
+import copy,bisect,math
 import ROOT as r
 ##############################
 class xcJet(wrappedChain.calculable) :
@@ -24,12 +25,23 @@ class xcJet(wrappedChain.calculable) :
         if jesAbs!=1.0 or jesRel!=0.0:
             self.moreName2 += "jes corr: %.2f*(1+%.2f|eta|)"%(jesAbs,jesRel)
 
+    def resPtFactor(self, index, pt) :
+        p = self.source[self.resCorr]["p"][index]
+        return p[0]-abs(p[1])*math.atan( math.log10( min(1.0, pt/p[2]) ) )
+    
     def resFactor(self, isData, p4) :
         if self.applyResidualCorrectionsToData and isData :
-            index = bisect.bisect(self.source[self.resCorr]["etaLo"], p4.eta())-1
-            if index<0 : index = 0
-            resFactor = self.source[self.resCorr]["factor"][index]
-            return resFactor
+            etaLo = self.source[self.resCorr]["etaLo"]
+            etaHi = self.source[self.resCorr]["etaHi"]
+            index = max(0, bisect.bisect(etaLo, p4.eta())-1)
+            if index==0 or index==len(etaLo)-1 : 
+                return self.resPtFactor(index, p4.pt())
+            else :
+                args = (p4.eta(),
+                        [(etaLo[i]+etaHi[i])/2.0      for i in range(index-1, index+2)],
+                        [self.resPtFactor(i, p4.pt()) for i in range(index-1, index+2)],
+                        )
+            return utils.quadraticInterpolation(*args)
         else :
             return 1.0
         
