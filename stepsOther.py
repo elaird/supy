@@ -613,7 +613,7 @@ class displayer(analysisStep) :
             go(jets2, met2)
 
 
-    def printFlags(self, eventVars, params, coords,flags) :
+    def printFlags(self, eventVars, params, coords, flags) :
         self.prepareText(params, coords)
         for f in flags:
             if eventVars[f] : self.printText(f)
