@@ -5,7 +5,8 @@ import ROOT as r
 
 lowPtThreshold = 30.0
 lowPtName = "lowPt"
-        
+triggerList = ["HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"]
+
 class hadronicLook(analysis.analysis) :
     def baseOutputDirectory(self) :
         return "/vols/cms02/%s/tmp/"%os.environ["USER"]
@@ -88,6 +89,7 @@ class hadronicLook(analysis.analysis) :
                  calculables.xclean.IndicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5),
                  calculables.other.vertexID(),
                  calculables.other.vertexIndices(),
+                 calculables.other.lowestUnPrescaledTrigger(triggerList),
                  ] +\
                  self.jetCalcList(                 _jet,                   _met,  _jetPtMin, params["jetId"], _etRatherThanPt, _photon, _muon,     _correctForMuons, _electron) +\
                  self.jetCalcList(self.togglePfJet(_jet), self.togglePfMet(_met), _jetPtMin, params["jetId"], _etRatherThanPt, _photon, _muon, not _correctForMuons, _electron)
@@ -106,14 +108,14 @@ class hadronicLook(analysis.analysis) :
             steps.jetPtSelector(_jet, 100.0, 0),
             steps.jetPtSelector(_jet, 100.0, 1),
             steps.jetEtaSelector(_jet,2.5,0),
-            steps.lowestUnPrescaledTrigger(["HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"]),
+            steps.lowestUnPrescaledTrigger(triggerList),
             steps.vertexRequirementFilter(),
             steps.techBitFilter([0],True),
             steps.physicsDeclared(),
             steps.monsterEventFilter(),
             steps.hbheNoiseFilter(),
-
-            steps.hltPrescaleHistogrammer(["HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"]),
+            
+            steps.hltPrescaleHistogrammer(triggerList),
             #steps.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin",
             #                       funcString="lambda x:x.Et()"),
             ]
@@ -131,6 +133,7 @@ class hadronicLook(analysis.analysis) :
                    steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
                    
                    #many plots
+                   steps.lowestUnPrescaledTriggerHistogrammer(triggerList),                   
                    steps.passFilter("singleJetPlots1"),
                    steps.singleJetHistogrammer(_jet),
                    steps.passFilter("jetSumPlots1"), 
@@ -169,6 +172,8 @@ class hadronicLook(analysis.analysis) :
                    #                scale = 400.0,#GeV
                    #                etRatherThanPt = _etRatherThanPt,
                    #                deltaPhiStarExtraName = lowPtName,
+                   #                deltaPhiStarCut = 0.5,
+                   #                deltaPhiStarDR = 0.3,
                    #                printOtherJetAlgoQuantities = True,
                    #                jetsOtherAlgo = self.togglePfJet(_jet),
                    #                metOtherAlgo  = self.togglePfMet(_met),
@@ -194,6 +199,7 @@ class hadronicLook(analysis.analysis) :
             specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "markus38",                  nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+          ##specify(name = "toms17",                    nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "2010_data_calo_skim",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),            
           ##specify(name = "2010_data_pf_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
@@ -346,7 +352,8 @@ class hadronicLook(analysis.analysis) :
                                  psFileName = self.psFileName(tag),
                                  samplesForRatios = ("2010 Data","standard_model"),
                                  sampleLabelsForRatios = ("data","s.m."),
-                                 #whiteList = ["cutBitHistogram"],
+                                 #whiteList = ["lowestUnPrescaledTrigger"],
+                                 #doLog = False,
                                  #compactOutput = True,
                                  #noSci = True,
                                  blackList = ["lumiHisto","xsHisto","nJobsHisto"],
