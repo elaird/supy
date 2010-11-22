@@ -8,23 +8,18 @@ from stepsGen import *
 from stepsXclean import *
 #####################################
 def adjustStepsForMc(inSteps) :
-    dummyBX=bxFilter([])
-    dummyPhysDecl=physicsDeclared()
-    dummyTechBit0=techBitFilter([0],True)
-    dummyDisplayer=displayer()
-    dummyHltFilter=hltFilter("")
-    dummyHbheNoiseFilter=hbheNoiseFilter()
     outSteps=[]
     for step in inSteps :
         disable = False
         #determine whether to disable
-        if type(step) in [hltFilter,       #temporary hack
-                          hltFilterList,   #temporary hack
-                          lowestUnPrescaledTrigger, #temporary hack
-                          hbheNoiseFilter, #temporary hack
+        if type(step) in [hltFilter,
+                          hltFilterList,
+                          lowestUnPrescaledTrigger,
+                          lowestUnPrescaledTriggerHistogrammer,
+                          hbheNoiseFilter,
                           bxFilter,
                           physicsDeclared] : disable = True
-        if step.moreName == dummyTechBit0.moreName : disable = True
+        if step.moreName == techBitFilter([0],True).moreName : disable = True
         outSteps.append(copy.deepcopy(step))
         if disable : outSteps[-1].disable()
 
