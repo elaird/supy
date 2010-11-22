@@ -438,3 +438,23 @@ def cmsStamp(lumi = None) :
         latex.DrawLatex(x, y-1.0*slope,"L = %.0f pb^{-1}"%lumi)
     latex.DrawLatex(x, y-2.0*slope, "#sqrt{s} = 7 TeV")
 #####################################
+def quadraticInterpolation(fZ, fX, fY) :
+    # http://cmslxr.fnal.gov/lxr/source/CondFormats/JetMETObjects/src/Utilities.cc?v=CMSSW_3_8_5#099
+    # Quadratic interpolation through the points (x[i],y[i]). First find the parabola that
+    # is defined by the points and then calculate the y(z).
+    D = [0.0]*4; a = [0.0]*3
+    D[0] = fX[0]*fX[1]*(fX[0]-fX[1])+fX[1]*fX[2]*(fX[1]-fX[2])+fX[2]*fX[0]*(fX[2]-fX[0])
+    D[3] = fY[0]*(fX[1]-fX[2])+fY[1]*(fX[2]-fX[0])+fY[2]*(fX[0]-fX[1])
+    D[2] = fY[0]*(pow(fX[2],2)-pow(fX[1],2))+fY[1]*(pow(fX[0],2)-pow(fX[2],2))+fY[2]*(pow(fX[1],2)-pow(fX[0],2))
+    D[1] = fY[0]*fX[1]*fX[2]*(fX[1]-fX[2])+fY[1]*fX[0]*fX[2]*(fX[2]-fX[0])+fY[2]*fX[0]*fX[1]*(fX[0]-fX[1])
+    if (D[0] != 0) :
+        a[0] = D[1]/D[0]
+        a[1] = D[2]/D[0]
+        a[2] = D[3]/D[0]
+    else :
+        a[0] = 0.0
+        a[1] = 0.0
+        a[2] = 0.0
+    return a[0]+fZ*(a[1]+fZ*a[2])
+
+#####################################
