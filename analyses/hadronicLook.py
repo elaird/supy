@@ -5,7 +5,7 @@ import ROOT as r
 
 lowPtThreshold = 30.0
 lowPtName = "lowPt"
-triggerList = ["HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"]
+triggerList = ["HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"] #required to be sorted
 
 class hadronicLook(analysis.analysis) :
     def baseOutputDirectory(self) :
