@@ -44,7 +44,7 @@ class hadronicLook(analysis.analysis) :
     def jetCalcList(self, jet, met, jetPtMin, jetIdFlag, etRatherThanPt, photon, muon, correctForMuons, electron) :
         outList  = calculables.fromCollections(calculables.jet,[jet])
         outList += [calculables.xclean.xcJet(jet,
-                                             applyResidualCorrections = False,
+                                             applyResidualCorrectionsToData = True,
                                              gamma = photon,
                                              gammaDR = 0.5,
                                              muon = muon,
@@ -199,6 +199,7 @@ class hadronicLook(analysis.analysis) :
             specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "markus38",                  nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+          ##specify(name = "hennings38",                nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "toms17",                    nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "2010_data_calo_skim",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),            
           ##specify(name = "2010_data_pf_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
@@ -275,7 +276,6 @@ class hadronicLook(analysis.analysis) :
             ]
 
         outList = []
-
         #outList = caloSkims
         #self.skimString = "_caloSkim"
 
