@@ -581,7 +581,7 @@ class displayer(analysisStep) :
     def printCutBits(self, eventVars, params, coords, jets, jets2, met, met2) :
         self.prepareText(params, coords)
 
-        def go(j, m) :
+        def go(j, m, i) :
             J2 = None if len(eventVars["%sIndices%s"%j])<2 else eventVars['%sCorrectedP4%s'%j].at(eventVars["%sIndices%s"%j][1]).pt()
             HT = eventVars["%sSumEt%s"%j]
             aT = eventVars["%sAlphaTEt%s"%j]
@@ -604,13 +604,21 @@ class displayer(analysisStep) :
                                                        "candidate" if all else "",
                                                        )
                            )
+            if all and not i :
+                self.text.SetTextSize(1.5*params["size"])
+                self.text.SetTextFont(params["font"])
+                self.text.SetTextColor(r.kBlue)
+                self.text.DrawText(0.1, 0.1, "passes final selection")
+                self.text.SetTextSize(params["size"])
+                self.text.SetTextFont(params["font"])
+                self.text.SetTextColor(params["color"])
 
         self.printText("jet collection  J2 HT aT DE MM")
         self.printText("------------------------------")
 
-        go(jets, met)
+        go(jets, met, 0)
         if jets2!=None and met2!=None :
-            go(jets2, met2)
+            go(jets2, met2, 1)
 
 
     def printFlags(self, eventVars, params, coords, flags) :
@@ -1111,14 +1119,14 @@ class displayer(analysisStep) :
         self.printVertices(eventVars, params = defaults, coords = {"x":x1, "y":0.98}, nMax = 3)
 
         if self.printOtherJetAlgoQuantities :
-            y0 = 0.44
-            self.printJets(          eventVars, params = defaults, coords = {"x":x0, "y":0.64}, jets = self.jetsOtherAlgo, nMax = 5)
+            y0 = 0.36
+            self.printJets(          eventVars, params = defaults, coords = {"x":x0, "y":0.60}, jets = self.jetsOtherAlgo, nMax = 7)
         else :
-            y0 = 0.64            
+            y0 = 0.60
             jetsOtherAlgo = None
             metOtherAlgo  = None
         
-        self.printJets(              eventVars, params = defaults, coords = {"x":x0, "y":   0.84}, jets = self.jets, nMax = 5)
+        self.printJets(              eventVars, params = defaults, coords = {"x":x0, "y":   0.84}, jets = self.jets, nMax = 7)
         self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":y0     }, jets = self.jets, jets2 = self.jetsOtherAlgo)
         self.printCutBits(           eventVars, params = defaults, coords = {"x":x0, "y":y0-0.10}, jets = self.jets, jets2 = self.jetsOtherAlgo,
                                      met = self.met, met2 = self.metOtherAlgo)
