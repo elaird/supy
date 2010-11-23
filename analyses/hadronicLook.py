@@ -3,98 +3,100 @@
 import os,analysis,steps,calculables,samples,organizer,plotter,utils
 import ROOT as r
 
-lowPtThreshold = 30.0
-lowPtName = "lowPt"
-triggerList = ["HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"] #required to be sorted
-
 class hadronicLook(analysis.analysis) :
     def baseOutputDirectory(self) :
         return "/vols/cms02/%s/tmp/"%os.environ["USER"]
 
     def parameters(self) :
         objects = {}
-        fields =                                                [ "jet",            "met",            "muon",        "electron",        "photon","rechit","muonsInJets","jetPtMin"]
-        objects["caloAK5JetMet_recoLepPhot"] = dict(zip(fields, [("xcak5Jet","Pat"),"metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"),"Calo",  False,    50.0]))
-        objects["pfAK5JetMet_recoLepPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","Pat"),("electron","Pat"),("photon","Pat"),  "PF",   True,    50.0]))
-        #objects["pfAK5JetMetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",     ("muon","PF"),("electron","PF"), ("photon","Pat"),  "PF",   True,    50.0]))
-        #objects["caloAK7"] = dict(zip(fields, [("xcak7Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,        50.0]))
-        #objects["jptAK5"]  = dict(zip(fields, [("xcak5JetJPT","Pat"),"metP4TC",     ("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo",     True ,        50.0]))
+        fields =                                                    [ "jet",            "met",            "muon",        "electron",        "photon",
+                                                                      "compJet",    "compMet",
+                                                                      "rechit", "muonsInJets", "jetPtMin"]
+        objects    ["caloAK5JetMet_recoLepPhot"] = dict(zip(fields, [("xcak5Jet","Pat"),"metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"),
+                                                                     ("xcak5JetPF","Pat"),"metP4PF",
+                                                                     "Calo",     False,         50.0]))
+        
+        objects    ["pfAK5JetMet_recoLepPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","Pat"),("electron","Pat"),("photon","Pat"),
+                                                                     ("xcak5Jet","Pat"),"metP4AK5TypeII",
+                                                                     "PF",        True,         50.0]))
+
+        #objects    ["pfAK5JetMetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","PF"),("electron","PF"), ("photon","Pat"),
+        #                                                             None, None,
+        #                                                             "PF",        True,         50.0]))
+        #objects    ["caloAK7JetMet_recoLepPhot"] = dict(zip(fields, [("xcak7Jet","Pat"),"metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"),
+        #                                                             None, None,
+        #                                                             "Calo" ,    False,         50.0]))
+        #objects    ["jptAK5JetMet_recoLepPhot"]  = dict(zip(fields, [("xcak5JetJPT","Pat"), "metP4TC",   ("muon","Pat"),("electron","Pat"),("photon","Pat"),
+        #                                                             None, None,
+        #                                                             "Calo",      True,         50.0]))
 
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
                  "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ] [0:1] ),
                  "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  "etRatherThanPt" : [True,False]        [0],
-                 #"jesAbs":  [1.0,1.1,0.9]               [:],
-                 #"jesRel":  0,
+                 "lowPtThreshold" : 30.0,
+                 "lowPtName" : "lowPt",
+                 "triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"),#required to be a sorted ntuple
                  }
 
-    def togglePfJet(self, jets) :
-        return (jets[0].replace("PF",""), jets[1]) if "PF" in jets[0] else (jets[0].replace("Jet","JetPF"), jets[1])
+    def calcListJet(self, obj, etRatherThanPt, jetIdFlag, lowPtThreshold, lowPtName) :
+        def list(jet, met, photon, muon, electron, muonsInJets, jetPtMin) :
+            outList = [
+                calculables.xclean.xcJet(jet,
+                                         applyResidualCorrectionsToData = True,
+                                         gamma = photon,
+                                         gammaDR = 0.5,
+                                         muon = muon,
+                                         muonDR = 0.5,
+                                         correctForMuons = not muonsInJets,
+                                         electron = electron,
+                                         electronDR = 0.5),
+                calculables.jet.ResidualCorrectionsFromFile(jet),
+                calculables.jet.Indices( jet, jetPtMin, etaMax = 3.0, flagName = jetIdFlag),
+                calculables.jet.Indices( jet, lowPtThreshold, etaMax = 3.0, flagName = jetIdFlag, extraName = lowPtName),
+                
+                calculables.jet.SumP4(jet),
+                calculables.jet.SumP4(jet, extraName = lowPtName),
+                calculables.jet.DeltaPhiStar(jet, extraName = lowPtName),
+                calculables.jet.DeltaPseudoJet(jet, etRatherThanPt),
+                calculables.jet.AlphaT(jet, etRatherThanPt),
+                calculables.jet.AlphaTMet(jet, etRatherThanPt, met),
+                calculables.jet.mhtOverMet(jet, met),
+                calculables.jet.deadEcalDR(jet, extraName = lowPtName, minNXtals = 10),
+                ]
+            return outList+calculables.fromCollections(calculables.jet, [jet])
 
-    def togglePfMet(self, met) :
-        return "metP4AK5TypeII" if met=="metP4PF" else "metP4PF"
-
-    def togglePfMuon(self, muon) :
-        return (muon[0], "Pat") if muon[1]=="PF" else (muon[0],"PF")
-
-    def togglePfElectron(self, electron) :
-        return (electron[0], "Pat") if electron[1]=="PF" else (electron[0],"PF")
-
-    def jetCalcList(self, jet, met, jetPtMin, jetIdFlag, etRatherThanPt, photon, muon, correctForMuons, electron) :
-        outList  = calculables.fromCollections(calculables.jet,[jet])
-        outList += [calculables.xclean.xcJet(jet,
-                                             applyResidualCorrectionsToData = True,
-                                             gamma = photon,
-                                             gammaDR = 0.5,
-                                             muon = muon,
-                                             muonDR = 0.5,
-                                             correctForMuons = correctForMuons,
-                                             electron = electron,
-                                             electronDR = 0.5),
-                    calculables.jet.ResidualCorrectionsFromFile(jet),
-                    calculables.jet.Indices( jet, jetPtMin,       etaMax = 3.0, flagName = jetIdFlag),
-                    calculables.jet.Indices( jet, lowPtThreshold, etaMax = 3.0, flagName = jetIdFlag, extraName = lowPtName),
-
-                    calculables.jet.SumP4(jet),
-                    calculables.jet.SumP4(jet, extraName = lowPtName),
-                    calculables.jet.DeltaPhiStar(jet, extraName = lowPtName),
-                    calculables.jet.DeltaPseudoJet(jet, etRatherThanPt),
-                    calculables.jet.AlphaT(jet, etRatherThanPt),
-                    calculables.jet.AlphaTMet(jet, etRatherThanPt, met),
-                    calculables.jet.mhtOverMet(jet, met),
-                    calculables.jet.deadEcalDR(jet, extraName = lowPtName, minNXtals = 10),
-                    ]
+        outList = list(obj["jet"], obj["met"], obj["photon"], obj["muon"], obj["electron"], obj["muonsInJets"], obj["jetPtMin"])
+        if obj["compJet"]!=None and obj["compMet"]!=None :
+            outList += list(obj["compJet"],obj["compMet"], obj["photon"], obj["muon"], obj["electron"], obj["muonsInJets"], obj["jetPtMin"])
         return outList
+
+    def calcListOther(self, obj, triggers) :
+        return [
+            calculables.xclean.IndicesUnmatched(collection = obj["photon"], xcjets = obj["jet"], DR = 0.5),
+            calculables.xclean.IndicesUnmatched(collection = obj["electron"], xcjets = obj["jet"], DR = 0.5),
+
+            calculables.muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
+            calculables.electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
+            calculables.photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
+            
+            calculables.other.vertexID(),
+            calculables.other.vertexIndices(),
+            calculables.other.lowestUnPrescaledTrigger(triggers),
+            ]
     
     def listOfCalculables(self, params) :
-        _jet = params["objects"]["jet"]
-        _muon = params["objects"]["muon"]
-        _electron = params["objects"]["electron"]
-        _photon = params["objects"]["photon"]
-        _jetPtMin = params["objects"]["jetPtMin"]
-        _etRatherThanPt = params["etRatherThanPt"]
-        _met = params["objects"]["met"]
-        _correctForMuons = not params["objects"]["muonsInJets"]
-
+        obj = params["objects"]
         outList  = calculables.zeroArgs()
-        outList += calculables.fromCollections(calculables.muon,[_muon]) +\
-                   calculables.fromCollections(calculables.electron,[_electron]) +\
-                   calculables.fromCollections(calculables.photon,[_photon])
-        return outList +\
-               [ calculables.muon.Indices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
-                 calculables.electron.Indices( _electron, ptMin = 10, simpleEleID = "95", useCombinedIso = True),
-                 calculables.photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
-                 calculables.xclean.IndicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
-                 calculables.xclean.IndicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5),
-                 calculables.other.vertexID(),
-                 calculables.other.vertexIndices(),
-                 calculables.other.lowestUnPrescaledTrigger(triggerList),
-                 ] +\
-                 self.jetCalcList(                 _jet,                   _met,  _jetPtMin, params["jetId"], _etRatherThanPt, _photon, _muon,     _correctForMuons, _electron) +\
-                 self.jetCalcList(self.togglePfJet(_jet), self.togglePfMet(_met), _jetPtMin, params["jetId"], _etRatherThanPt, _photon, _muon, not _correctForMuons, _electron)
+        outList += calculables.fromCollections(calculables.muon, [obj["muon"]])
+        outList += calculables.fromCollections(calculables.electron, [obj["electron"]])
+        outList += calculables.fromCollections(calculables.photon, [obj["photon"]])
+        outList += self.calcListOther(obj, params["triggerList"])
+        outList += self.calcListJet(obj, params["etRatherThanPt"], params["jetId"], params["lowPtThreshold"], params["lowPtName"])
+        return outList
     
-    def listOfSteps(self,params) :
+    def listOfSteps(self, params) :
         _jet  = params["objects"]["jet"]
         _electron = params["objects"]["electron"]
         _muon = params["objects"]["muon"]
@@ -108,14 +110,14 @@ class hadronicLook(analysis.analysis) :
             steps.jetPtSelector(_jet, 100.0, 0),
             steps.jetPtSelector(_jet, 100.0, 1),
             steps.jetEtaSelector(_jet,2.5,0),
-            steps.lowestUnPrescaledTrigger(triggerList),
+            steps.lowestUnPrescaledTrigger(params["triggerList"]),
             steps.vertexRequirementFilter(),
             steps.techBitFilter([0],True),
             steps.physicsDeclared(),
             steps.monsterEventFilter(),
             steps.hbheNoiseFilter(),
             
-            steps.hltPrescaleHistogrammer(triggerList),
+            steps.hltPrescaleHistogrammer(params["triggerList"]),
             #steps.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin",
             #                       funcString="lambda x:x.Et()"),
             ]
@@ -133,15 +135,15 @@ class hadronicLook(analysis.analysis) :
                    steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
                    
                    #many plots
-                   steps.lowestUnPrescaledTriggerHistogrammer(triggerList),                   
+                   steps.lowestUnPrescaledTriggerHistogrammer(params["triggerList"]),
                    steps.passFilter("singleJetPlots1"),
                    steps.singleJetHistogrammer(_jet),
                    steps.passFilter("jetSumPlots1"), 
                    steps.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
                    steps.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
                    steps.passFilter("kinematicPlots1"), 
-                   steps.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = lowPtName, etRatherThanPt = _etRatherThanPt),
-                   steps.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = lowPtName, etRatherThanPt = _etRatherThanPt, metName = _met),
+                   steps.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
+                   steps.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt, metName = _met),
                    
                    #signal selection
                    #steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
@@ -149,7 +151,7 @@ class hadronicLook(analysis.analysis) :
                    
                    steps.histogrammer("%sMht%s_Over_%s"%(_jet[0],_jet[1],_met), 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
                    steps.variableLessFilter(1.25,"%sMht%s_Over_%s"%(_jet[0],_jet[1],_met)),
-                   steps.deadEcalFilter(jets = _jet, extraName = lowPtName, dR = 0.3, dPhiStarCut = 0.5),
+                   steps.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
 
                    #steps.skimmer(),
                    #steps.cutBitHistogrammer(self.togglePfJet(_jet), self.togglePfMet(_met)),
@@ -171,12 +173,12 @@ class hadronicLook(analysis.analysis) :
                    #                recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
                    #                scale = 400.0,#GeV
                    #                etRatherThanPt = _etRatherThanPt,
-                   #                deltaPhiStarExtraName = lowPtName,
+                   #                deltaPhiStarExtraName = params["lowPtName"],
                    #                deltaPhiStarCut = 0.5,
                    #                deltaPhiStarDR = 0.3,
                    #                printOtherJetAlgoQuantities = True,
-                   #                jetsOtherAlgo = self.togglePfJet(_jet),
-                   #                metOtherAlgo  = self.togglePfMet(_met),
+                   #                jetsOtherAlgo = params["objects"]["compJet"],
+                   #                metOtherAlgo  = params["objects"]["compMet"],
                    #                markusMode = True,
                    #                ),
                    ]
@@ -188,6 +190,7 @@ class hadronicLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [
+            #specify(name = "MultiJet.Run2010B-Nov4ReReco_v1.RECO.Burt", nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim5",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim4",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim3",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
