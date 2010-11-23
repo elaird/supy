@@ -7,6 +7,7 @@ class xcJet(wrappedChain.calculable) :
     def name(self) : return "%sCorrectedP4%s"%self.xcjets
 
     def __init__(self,xcjets = None, applyResidualCorrectionsToData = None,
+                 applyResidualCorrectionBug = False,
                  gamma    = None, gammaDR    = 0,
                  electron = None, electronDR = 0,
                  muon     = None, muonDR     = 0,
@@ -16,7 +17,7 @@ class xcJet(wrappedChain.calculable) :
         self.value = r.std.vector('LorentzV')()
         self.jetP4Source = ("%sCorrectedP4%s"%xcjets)[2:]
 
-        for item in ["xcjets", "applyResidualCorrectionsToData", "correctForMuons", "jesAbs", "jesRel"] :
+        for item in ["xcjets", "applyResidualCorrectionsToData", "applyResidualCorrectionBug", "correctForMuons", "jesAbs", "jesRel"] :
             setattr(self, item, eval(item))
 
         self.other = dict( [ (i,(eval(i),eval(i+"DR"))) for i in ["gamma","electron","muon"]] )
@@ -25,8 +26,9 @@ class xcJet(wrappedChain.calculable) :
         if jesAbs!=1.0 or jesRel!=0.0:
             self.moreName2 += "jes corr: %.2f*(1+%.2f|eta|)"%(jesAbs,jesRel)
 
-    def resPtFactor(self, index, pt) :
+    def resPtFactor(self, index, pt, applyBug = False) :
         p = self.source[self.resCorr]["p"][index]
+        if applyBug : return p[0]
         return p[0]-abs(p[1])*math.atan( math.log10( min(1.0, pt/p[2]) ) )
     
     def resFactor(self, isData, p4) :
@@ -34,8 +36,8 @@ class xcJet(wrappedChain.calculable) :
             etaLo = self.source[self.resCorr]["etaLo"]
             etaHi = self.source[self.resCorr]["etaHi"]
             index = max(0, bisect.bisect(etaLo, p4.eta())-1)
-            if index==0 or index==len(etaLo)-1 : 
-                return self.resPtFactor(index, p4.pt())
+            if index==0 or index==len(etaLo)-1 or self.applyResidualCorrectionBug : 
+                return self.resPtFactor(index, p4.pt(), applyBug = self.applyResidualCorrectionBug)
             else :
                 args = (p4.eta(),
                         [(etaLo[i]+etaHi[i])/2.0      for i in range(index-1, index+2)],
