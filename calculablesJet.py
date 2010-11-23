@@ -589,12 +589,12 @@ class ecalDeadTowerMatchedJetIndices(wrappedChain.calculable) :
 class deadEcalDR(wrappedChain.calculable) :
     def name(self) : return "%sDeadEcalDR%s%s"%(self.jets[0], self.jets[1], self.extraName)
     
-    def __init__(self, jets = None, extraName = "", nXtalThreshold = None) :
-        for item in ["jets","extraName","nXtalThreshold"] :
+    def __init__(self, jets = None, extraName = "", minNXtals = None) :
+        for item in ["jets","extraName","minNXtals"] :
             setattr(self,item,eval(item))
         self.dps = "%sDeltaPhiStar%s%s"%(self.jets[0], self.jets[1], self.extraName)
         self.badJet = r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0,0.0,0.0,0.0)
-        self.moreName = "%s%s; nXtal>%d"%(self.jets[0], self.jets[1], self.nXtalThreshold)
+        self.moreName = "%s%s; nXtal>=%d"%(self.jets[0], self.jets[1], self.minNXtals)
         
     def update(self, ignored) :
         jet = self.source["%sCorrectedP4%s"%self.jets].at(self.source[self.dps]["DeltaPhiStarJetIndex"])
@@ -602,7 +602,7 @@ class deadEcalDR(wrappedChain.calculable) :
 
         dRs = []
         for iRegion,region in enumerate(self.source["ecalDeadTowerTrigPrimP4"]) :
-            if self.source["ecalDeadTowerNBadXtals"].at(iRegion)<self.nXtalThreshold : continue
+            if self.source["ecalDeadTowerNBadXtals"].at(iRegion)<self.minNXtals : continue
             dRs.append(r.Math.VectorUtil.DeltaR(self.badJet,region))
         self.value = min(dRs) if len(dRs) else None
 ##############################
