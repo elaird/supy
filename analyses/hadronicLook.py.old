@@ -12,21 +12,21 @@ class hadronicLook(analysis.analysis) :
         fields =                                                    [ "jet",            "met",            "muon",        "electron",        "photon",
                                                                       "compJet",    "compMet",
                                                                       "rechit", "muonsInJets", "jetPtMin"]
-        objects    ["caloAK5JetMet_recoLepPhot"] = dict(zip(fields, [("xcak5Jet","Pat"),"metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"),
-                                                                     ("xcak5JetPF","Pat"),"metP4PF",
-                                                                     "Calo",     False,         50.0]))
+        objects["caloAK5JetMet_recoLepPhot"] = dict(zip(fields, [("xcak5Jet","Pat"),"metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"),
+                                                                 ("xcak5JetPF","Pat"),"metP4PF",
+                                                                 "Calo",     False,         50.0]))
         
-        objects    ["pfAK5JetMet_recoLepPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","Pat"),("electron","Pat"),("photon","Pat"),
-                                                                     ("xcak5Jet","Pat"),"metP4AK5TypeII",
-                                                                     "PF",        True,         50.0]))
+        objects["pfAK5JetMet_recoLepPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","Pat"),("electron","Pat"),("photon","Pat"),
+                                                                 ("xcak5Jet","Pat"),"metP4AK5TypeII",
+                                                                 "PF",        True,         50.0]))
 
-        #objects    ["pfAK5JetMetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","PF"),("electron","PF"), ("photon","Pat"),
-        #                                                             None, None,
-        #                                                             "PF",        True,         50.0]))
-        #objects    ["caloAK7JetMet_recoLepPhot"] = dict(zip(fields, [("xcak7Jet","Pat"),"metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"),
-        #                                                             None, None,
-        #                                                             "Calo" ,    False,         50.0]))
-        #objects    ["jptAK5JetMet_recoLepPhot"]  = dict(zip(fields, [("xcak5JetJPT","Pat"), "metP4TC",   ("muon","Pat"),("electron","Pat"),("photon","Pat"),
+        #objects["pfAK5JetMetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","PF"),("electron","PF"), ("photon","Pat"),
+        #                                                         None, None,
+        #                                                         "PF",        True,         50.0]))
+        #objects["caloAK7JetMet_recoLepPhot"] = dict(zip(fields, [("xcak7Jet","Pat"),"metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"),
+        #                                                         None, None,
+        #                                                         "Calo" ,    False,         50.0]))
+        #objects["jptAK5JetMet_recoLepPhot"]  = dict(zip(fields, [("xcak5JetJPT","Pat"), "metP4TC",   ("muon","Pat"),("electron","Pat"),("photon","Pat"),
         #                                                             None, None,
         #                                                             "Calo",      True,         50.0]))
 
@@ -37,7 +37,7 @@ class hadronicLook(analysis.analysis) :
                  "etRatherThanPt" : [True,False]        [0],
                  "lowPtThreshold" : 30.0,
                  "lowPtName" : "lowPt",
-                 "triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"),#required to be a sorted ntuple
+                 "triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"),#required to be a sorted tuple
                  }
 
     def calcListJet(self, obj, etRatherThanPt, jetIdFlag, lowPtThreshold, lowPtName) :
