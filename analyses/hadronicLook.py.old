@@ -63,7 +63,7 @@ class hadronicLook(analysis.analysis) :
                     calculables.jet.AlphaT(jet, etRatherThanPt),
                     calculables.jet.AlphaTMet(jet, etRatherThanPt, met),
                     calculables.jet.mhtOverMet(jet, met),
-                    calculables.jet.deadEcalDR(jet, extraName = lowPtName, nXtalThreshold = 5),
+                    calculables.jet.deadEcalDR(jet, extraName = lowPtName, minNXtals = 10),
                     ]
         return outList
     
@@ -179,7 +179,6 @@ class hadronicLook(analysis.analysis) :
                    #                metOtherAlgo  = self.togglePfMet(_met),
                    #                markusMode = True,
                    #                ),
-                   
                    ]
         return outList
 
