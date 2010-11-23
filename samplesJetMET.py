@@ -3,8 +3,11 @@ import samples
 jetmet = samples.SampleHolder()
 srm = 'utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user'
 
-#NOV. 4 RE-RECO
-jetmet.add("MultiJet.Run2010B-Nov4ReReco_v1.RECO.Burt", '%s/bbetchar//ICF/automated/2010_11_21_18_35_30/")'%srm, lumi = 9999.9) #/pb
+#NOV.4 RE-RECO ORIGINALS
+jetmet.add("MultiJet.Run2010B-Nov4ReReco_v1.RECO.Burt", '%s/bbetchar//ICF/automated/2010_11_21_18_35_30/")'%srm, lumi = 27.907) #/pb
+jetmet.add("Jet.Run2010B-Nov4ReReco_v1/RECO.Burt",      '%s/bbetchar//ICF/automated/2010_11_20_02_58_06/")'%srm, lumi =  2.875) #/pb
+jetmet.add("JetMET.Run2010A-Nov4ReReco_v1.RECO.Burt",   '%s/bbetchar//ICF/automated/2010_11_20_02_53_00/")'%srm, lumi =  2.895) #/pb
+jetmet.add("JetMETTau.Run2010A-Nov4ReReco_v1.RECO",     '%s/bbetchar//ICF/automated/2010_11_20_02_46_12/")'%srm, lumi =  0.167) #/pb
 
 #38X SKIMS
 jetmet.add("Run2010B_MJ_skim5",
