@@ -115,7 +115,7 @@ def getCommandOutput2(command):
     #if err: raise RuntimeError, '%s failed w/ exit code %d' % (command, err)
     return data
 #####################################
-def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False) :
+def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = "") :
     import re
     from collections import defaultdict
     # CRAB old : filepathWithName_JOB_ATTEMPT.root
@@ -143,7 +143,7 @@ def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False) :
         else: abandoned += 1
 
     if abandoned>0 or resolved>0 :
-        print "File duplications, unresolved(%d), resolved(%d)" % (abandoned,resolved)
+        print "File duplications, unresolved(%d), resolved(%d) %s" % (abandoned, resolved, location)
     return outList
 #####################################
 def fileListFromSrmLs(location, itemsToSkip = [], sizeThreshold = -1, pruneList = True, alwaysUseLastAttempt = False) :
@@ -173,7 +173,7 @@ def fileListFromSrmLs(location, itemsToSkip = [], sizeThreshold = -1, pruneList 
             fileList.append(dCachePrefix+fileName)
             sizes.append(size)
 
-    if pruneList :   fileList=pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt)
+    if pruneList :   fileList=pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)
     return fileList
 #####################################    
 def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
