@@ -61,7 +61,7 @@ class hadronicSkim(analysis.analysis) :
         return [
             specify(name = "JetMETTau.Run2010A-Nov4ReReco_v1.RECO.Burt"),
             specify(name = "JetMET.Run2010A-Nov4ReReco_v1.RECO.Burt"),
-            specify(name = "Jet.Run2010B-Nov4ReReco_v1/RECO.Burt"),
+            specify(name = "Jet.Run2010B-Nov4ReReco_v1.RECO.Burt"),
             specify(name = "MultiJet.Run2010B-Nov4ReReco_v1.RECO.Burt"),
             ]
 
