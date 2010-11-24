@@ -611,10 +611,12 @@ class ResidualCorrectionsFromFile(wrappedChain.calculable) :
         self.fixes = jets
 
         fileDict = {}
-        fileDict[(    "ak5Jet","Pat")] = "Spring10DataV2_L2L3Residual_AK5Calo.txt"
-        fileDict[(  "xcak5Jet","Pat")] = "Spring10DataV2_L2L3Residual_AK5Calo.txt"
-        fileDict[(  "ak5JetPF","Pat")] = "Spring10DataV2_L2L3Residual_AK5PF.txt"
-        fileDict[("xcak5JetPF","Pat")] = "Spring10DataV2_L2L3Residual_AK5PF.txt"
+        fileDict[(     "ak5Jet","Pat")] = "Spring10DataV2_L2L3Residual_AK5Calo.txt"
+        fileDict[(   "xcak5Jet","Pat")] = "Spring10DataV2_L2L3Residual_AK5Calo.txt"
+        fileDict[(  "ak5JetJPT","Pat")] = "Spring10DataV2_L2L3Residual_AK5JPT.txt"
+        fileDict[("xcak5JetJPT","Pat")] = "Spring10DataV2_L2L3Residual_AK5JPT.txt"
+        fileDict[(   "ak5JetPF","Pat")] = "Spring10DataV2_L2L3Residual_AK5PF.txt"
+        fileDict[( "xcak5JetPF","Pat")] = "Spring10DataV2_L2L3Residual_AK5PF.txt"
         assert jets in fileDict,"residual corrections file for %s%s not found"%jets
 
         self.etaLo  = []
