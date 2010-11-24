@@ -41,7 +41,7 @@ class hadronicLook(analysis.analysis) :
                  }
 
     def calcListJet(self, obj, etRatherThanPt, jetIdFlag, lowPtThreshold, lowPtName) :
-        def list(jet, met, photon, muon, electron, muonsInJets, jetPtMin) :
+        def calcList(jet, met, photon, muon, electron, muonsInJets, jetPtMin) :
             outList = [
                 calculables.xclean.xcJet(jet,
                                          applyResidualCorrectionsToData = True,
@@ -67,9 +67,9 @@ class hadronicLook(analysis.analysis) :
                 ]
             return outList+calculables.fromCollections(calculables.jet, [jet])
 
-        outList = list(obj["jet"], obj["met"], obj["photon"], obj["muon"], obj["electron"], obj["muonsInJets"], obj["jetPtMin"])
+        outList = calcList(obj["jet"], obj["met"], obj["photon"], obj["muon"], obj["electron"], obj["muonsInJets"], obj["jetPtMin"])
         if obj["compJet"]!=None and obj["compMet"]!=None :
-            outList += list(obj["compJet"],obj["compMet"], obj["photon"], obj["muon"], obj["electron"], obj["muonsInJets"], obj["jetPtMin"])
+            outList += calcList(obj["compJet"],obj["compMet"], obj["photon"], obj["muon"], obj["electron"], obj["muonsInJets"], obj["jetPtMin"])
         return outList
 
     def calcListOther(self, obj, triggers) :
