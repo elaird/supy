@@ -4,7 +4,7 @@ import os,analysis,utils,calculables,steps,samples,organizer
 
 def nameList(t, name)  : return list(set([obj[name] for obj in dict(t).values()]))
 
-class hadronicSkim2(analysis.analysis) :
+class hadronicSkim(analysis.analysis) :
     def baseOutputDirectory(self) :
         return "/vols/cms02/%s/tmp/"%os.environ["USER"]
 
