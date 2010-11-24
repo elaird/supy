@@ -190,7 +190,7 @@ class singlePhotonHistogrammer(analysisStep) :
 
             #combIso
             book.fill(cmbI, "%s%s%scombinedIsolation"%(self.cs+(photonLabel,)),
-                      42, -1.0, 20.0, title=";combined isolation (GeV);events / bin")
+                      40, -10.0, 30.0, title=";combined isolation (GeV);events / bin")
 
             #sHH
             if abs(photon.eta())<self.etaBE :
