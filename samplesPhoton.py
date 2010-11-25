@@ -21,6 +21,34 @@ photon.add("Run2010B_MJ_skim3_noIsoReqSkim", 'utils.fileListFromDisk(location = 
 photon.add("Run2010B_MJ_skim4_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim4_*_skim.root", isDirectory = False)'%dir,lumi = 1.283200e+01)
 photon.add("Run2010B_MJ_skim5_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim5_*_skim.root", isDirectory = False)'%dir,lumi = 6.510000e-01)
 
+dir = "/vols/cms02/elaird1/11_skims/27_oneNoIsoReqPhotonGt80/"
+photon.add("Nov4_MJ_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/MultiJet.Run2010B-Nov4ReReco_v1.RECO.Burt_*_skim.root", isDirectory = False)'%dir,
+           lumi = 2.790700e+01)
+photon.add("Nov4_J_noIsoReqSkim",  'utils.fileListFromDisk(location = "%s/Jet.Run2010B-Nov4ReReco_v1.RECO.Burt_*_skim.root", isDirectory = False)'%dir,
+           lumi = 2.875000e+00)
+photon.add("Nov4_JM_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/JetMET.Run2010A-Nov4ReReco_v1.RECO.Burt_*_skim.root", isDirectory = False)'%dir,
+           lumi = 2.895000e+00)
+photon.add("Nov4_JMT_noIsoReqSkim",'utils.fileListFromDisk(location = "%s/JetMETTau.Run2010A-Nov4ReReco_v1.RECO.Burt_*_skim.root", isDirectory = False)'%dir,
+           lumi = 1.670000e-01)
+
+photon.add("v12_g_jets_mg_pt40_100_noIsoReqSkim",  'utils.fileListFromDisk(location = "%s/v12_g_jets_mg_pt40_100_*_skim.root", isDirectory = False)'%dir,
+           xs = 4.537900e-03 * 2.999740e+04)
+photon.add("v12_g_jets_mg_pt100_200_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/v12_g_jets_mg_pt100_200_*_skim.root", isDirectory = False)'%dir,
+           xs = 8.116814e-02 * 4.414520e+03)
+photon.add("v12_g_jets_mg_pt200_noIsoReqSkim",     'utils.fileListFromDisk(location = "%s/v12_g_jets_mg_pt200_*_skim.root", isDirectory = False)'%dir,
+           xs = 1.545809e-01 * 6.159500e+02)
+
+#photon.add("v12_qcd_mg_ht_50_100_noIsoReqSkim",    'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_50_100_*_skim.root", isDirectory = False)'%dir,
+#           xs = 0.000000e+00 * 3.810000e+07)
+photon.add("v12_qcd_mg_ht_100_250_noIsoReqSkim",   'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_100_250_*_skim.root", isDirectory = False)'%dir,
+           xs = 1.207488e-04 * 8.890000e+06)
+photon.add("v12_qcd_mg_ht_250_500_noIsoReqSkim",   'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_250_500_*_skim.root", isDirectory = False)'%dir,
+           xs = 4.684685e-03 * 2.171700e+05)
+photon.add("v12_qcd_mg_ht_500_1000_noIsoReqSkim",  'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_500_1000_*_skim.root", isDirectory = False)'%dir,
+           xs = 6.404507e-03 * 6.604000e+03)
+photon.add("v12_qcd_mg_ht_1000_inf_noIsoReqSkim",  'utils.fileListFromDisk(location = "%s/v12_qcd_mg_ht_1000_inf_*_skim.root", isDirectory = False)'%dir,
+           xs = 4.865820e-03 * 1.054100e+02)
+
 #skims from photonSkim.py (1 very loose photon>80 GeV)
 photon.add("Ph.Data_markusSkim", 'utils.fileListFromDisk(location=  "/vols/cms02/elaird1/11_skims/18_photon_dataset/")', lumi = 13.48) #/pb
 
