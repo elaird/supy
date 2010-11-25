@@ -4,7 +4,7 @@ import os,analysis,utils,calculables,steps,samples,organizer
 
 jetAlgoList=[("ak5Jet"+jetType,"Pat") for jetType in ["","PF","JPT"]]
 
-class hadronicSkim(analysis.analysis) :
+class hadronicSkimOld(analysis.analysis) :
     def baseOutputDirectory(self) :
         return "/vols/cms02/%s/tmp/"%os.environ["USER"]
 
