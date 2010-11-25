@@ -9,16 +9,16 @@ class hadronicLook(analysis.analysis) :
 
     def parameters(self) :
         objects = {}
-        fields =                                                    [ "jet",            "met",            "muon",        "electron",        "photon",
-                                                                      "compJet",    "compMet",
-                                                                      "rechit", "muonsInJets", "jetPtMin"]
+        fields =                                                [ "jet",            "met",            "muon",        "electron",        "photon",
+                                                                  "compJet",    "compMet",
+                                                                  "rechit", "muonsInJets", "jetPtMin", "jetId"]
         objects["caloAK5JetMet_recoLepPhot"] = dict(zip(fields, [("xcak5Jet","Pat"),"metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"),
                                                                  ("xcak5JetPF","Pat"),"metP4PF",
-                                                                 "Calo",     False,         50.0]))
+                                                                 "Calo",     False,         50.0,      "JetIDloose"]))
         
         objects["pfAK5JetMet_recoLepPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","Pat"),("electron","Pat"),("photon","Pat"),
                                                                  ("xcak5Jet","Pat"),"metP4AK5TypeII",
-                                                                 "PF",        True,         50.0]))
+                                                                 "PF",        True,         50.0,      "JetIDtight"]))
 
         #objects["pfAK5JetMetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","PF"),("electron","PF"), ("photon","Pat"),
         #                                                         None, None,
@@ -33,15 +33,14 @@ class hadronicLook(analysis.analysis) :
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
                  "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ] [0:1] ),
-                 "jetId" :  ["JetIDloose","JetIDtight"] [0],
                  "etRatherThanPt" : [True,False]        [0],
                  "lowPtThreshold" : 30.0,
                  "lowPtName" : "lowPt",
                  "triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"),#required to be a sorted tuple
                  }
 
-    def calcListJet(self, obj, etRatherThanPt, jetIdFlag, lowPtThreshold, lowPtName) :
-        def calcList(jet, met, photon, muon, electron, muonsInJets, jetPtMin) :
+    def calcListJet(self, obj, etRatherThanPt, lowPtThreshold, lowPtName) :
+        def calcList(jet, met, photon, muon, electron, muonsInJets, jetPtMin, jetIdFlag) :
             outList = [
                 calculables.xclean.xcJet(jet,
                                          applyResidualCorrectionsToData = True,
@@ -67,9 +66,9 @@ class hadronicLook(analysis.analysis) :
                 ]
             return outList+calculables.fromCollections(calculables.jet, [jet])
 
-        outList = calcList(obj["jet"], obj["met"], obj["photon"], obj["muon"], obj["electron"], obj["muonsInJets"], obj["jetPtMin"])
+        outList = calcList(obj["jet"], obj["met"], obj["photon"], obj["muon"], obj["electron"], obj["muonsInJets"], obj["jetPtMin"], obj["jetId"])
         if obj["compJet"]!=None and obj["compMet"]!=None :
-            outList += calcList(obj["compJet"],obj["compMet"], obj["photon"], obj["muon"], obj["electron"], obj["muonsInJets"], obj["jetPtMin"])
+            outList += calcList(obj["compJet"], obj["compMet"], obj["photon"], obj["muon"], obj["electron"], obj["muonsInJets"], obj["jetPtMin"], obj["jetId"])
         return outList
 
     def calcListOther(self, obj, triggers) :
@@ -93,7 +92,7 @@ class hadronicLook(analysis.analysis) :
         outList += calculables.fromCollections(calculables.electron, [obj["electron"]])
         outList += calculables.fromCollections(calculables.photon, [obj["photon"]])
         outList += self.calcListOther(obj, params["triggerList"])
-        outList += self.calcListJet(obj, params["etRatherThanPt"], params["jetId"], params["lowPtThreshold"], params["lowPtName"])
+        outList += self.calcListJet(obj, params["etRatherThanPt"], params["lowPtThreshold"], params["lowPtName"])
         return outList
     
     def listOfSteps(self, params) :
@@ -190,7 +189,6 @@ class hadronicLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [
-            #specify(name = "MultiJet.Run2010B-Nov4ReReco_v1.RECO.Burt", nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim5",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim4",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim3",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
