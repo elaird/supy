@@ -396,9 +396,13 @@ class displayer(analysisStep) :
 
         self.markusReName = {
             "clean jets (xcak5JetPat)": "clean jets (AK5 Calo)",
+            "clean jets (xcak5JetPFPat)": "clean jets (AK5 PF)",
             "ignored jets (xcak5JetPat)": "ignored jets (AK5 Calo)",
+            "ignored jets (xcak5JetPFPat)": "ignored jets (AK5 PF)",
             "MHT (xcak5JetPat)": "MHT",
+            "MHT (xcak5JetPFPat)": "MHT",
             "MET (metP4AK5TypeII)": "CaloMET Type II",
+            "MET (metP4PF)": "PF MET",
             "xcak5JetPat": "AK5 Calo Jets",
             "xcak5JetPFPat": "AK5 PF Jets",
             }
@@ -507,6 +511,55 @@ class displayer(analysisStep) :
             out = "%2s %6.2f  %5.0f"%("G " if i in eventVars["vertexIndices"] else "  ", eventVars["vertexPosition"].at(i).z(), eventVars["vertexSumPt"].at(i))
             self.printText(out)
 
+    def printPhotons(self, eventVars, params, coords, photons, nMax) :
+        self.prepareText(params, coords)
+        p4Vector = eventVars["%sP4%s"        %photons]
+        loose    = eventVars["%sIDLooseFromTwiki%s"%photons]
+        tight    = eventVars["%sIDTightFromTwiki%s"%photons]
+            
+        self.printText(self.renamedDesc(photons[0]+photons[1]))
+        self.printText("ID   pT  eta  phi")
+        self.printText("-----------------")
+
+        nPhotons = p4Vector.size()
+        for iPhoton in range(nPhotons) :
+            if nMax<=iPhoton :
+                self.printText("[%d more not listed]"%(nPhotons-nMax))
+                break
+            photon=p4Vector[iPhoton]
+
+            outString = "%1s%1s"% ("L" if loose[iPhoton] else " ", "T" if tight[iPhoton] else " ")
+            outString+="%5.0f %4.1f %4.1f"%(photon.pt(), photon.eta(), photon.phi())
+            self.printText(outString)
+
+    def printMuons(self, eventVars, params, coords, muons, nMax) :
+        self.prepareText(params, coords)
+        p4Vector = eventVars["%sP4%s"     %muons]
+        tight    = eventVars["%sIDtight%s"%muons]
+        iso      = eventVars["%sCombinedRelativeIso%s"%muons]
+        tr       = eventVars["%sIsTrackerMuon%s"%muons]
+        gl       = eventVars["%sIsGlobalMuon%s"%muons]
+        glpt     = eventVars["%sIDGlobalMuonPromptTight%s"%muons]
+        
+        self.printText(self.renamedDesc(muons[0]+muons[1]))
+        self.printText("ID   pT  eta  phi    iso tr gl glpt")
+        self.printText("-----------------------------------")
+
+        nMuons = p4Vector.size()
+        for iMuon in range(nMuons) :
+            if nMax<=iMuon :
+                self.printText("[%d more not listed]"%(nMuons-nMax))
+                break
+            muon=p4Vector[iMuon]
+
+            outString = "%1s%1s"% (" ","T" if tight[iMuon] else " ")
+            outString+="%5.0f %4.1f %4.1f %6.3f %2s %2s   %2s"%(muon.pt(), muon.eta(), muon.phi(), iso[iMuon],
+                                                                "p" if   tr[iMuon] else "f",
+                                                                "p" if   gl[iMuon] else "f",
+                                                                "p" if glpt[iMuon] else "f",
+                                                                )
+            self.printText(outString)
+
     def printJets(self, eventVars, params, coords, jets, nMax) :
         self.prepareText(params, coords)
         jets2 = (jets[0].replace("xc",""),jets[1])
@@ -534,9 +587,6 @@ class displayer(analysisStep) :
             loose = eventVars["%sPFJetIDloose%s"%jets2]
             tight = eventVars["%sPFJetIDtight%s"%jets2]
             
-        jetIndices = eventVars["%sIndices%s"%jets]
-        jetIndicesOther = eventVars["%sIndicesOther%s"%jets]
-
         self.printText(self.renamedDesc(jets[0]+jets[1]))
         self.printText("ID   pT  eta  phi%s"%("   EMF  fHPD N90" if not isPf else "   CHF  NHF  CEF  NEF CM"))
         self.printText("-----------------%s"%("----------------" if not isPf else "------------------------"))
@@ -557,7 +607,7 @@ class displayer(analysisStep) :
                 outString+=" %5.3f %4.2f %4.2f %4.2f%3d"%(chf.at(iJet), nhf.at(iJet), cef.at(iJet), nef.at(iJet), cm.at(iJet))
             self.printText(outString)
 
-    def printKinematicVariables(self, eventVars, params, coords, jets, jets2) :
+    def printKinematicVariables(self, eventVars, params, coords, jets, jets2, others) :
         self.prepareText(params, coords)
         
         def go(j) :
@@ -572,13 +622,13 @@ class displayer(analysisStep) :
         self.printText("-------------------------------------")
         
         go(jets)
-        if jets2!=None :
+        if jets2!=None and others :
             go(jets2)
         
     def passBit(self, var) :
         return " p" if var else " f"
 
-    def printCutBits(self, eventVars, params, coords, jets, jets2, met, met2) :
+    def printCutBits(self, eventVars, params, coords, jets, jets2, met, met2, others) :
         self.prepareText(params, coords)
 
         def go(j, m, i) :
@@ -617,9 +667,8 @@ class displayer(analysisStep) :
         self.printText("------------------------------")
 
         go(jets, met, 0)
-        if jets2!=None and met2!=None :
+        if jets2!=None and met2!=None and others :
             go(jets2, met2, 1)
-
 
     def printFlags(self, eventVars, params, coords, flags) :
         self.prepareText(params, coords)
@@ -1113,24 +1162,24 @@ class displayer(analysisStep) :
         defaults["color"] = r.kBlack
         defaults["slope"] = 0.02
 
+        y0 = 0.36 if self.printOtherJetAlgoQuantities else 0.60
         x0 = 0.015
         x1 = 0.45
         self.printEvent(   eventVars, params = defaults, coords = {"x":x0, "y":0.98})
         self.printVertices(eventVars, params = defaults, coords = {"x":x1, "y":0.98}, nMax = 3)
+        self.printJets(    eventVars, params = defaults, coords = {"x":x0, "y":   0.84}, jets = self.jets, nMax = 7)
 
         if self.printOtherJetAlgoQuantities :
-            y0 = 0.36
-            self.printJets(          eventVars, params = defaults, coords = {"x":x0, "y":0.60}, jets = self.jetsOtherAlgo, nMax = 7)
+            self.printJets(   eventVars, params = defaults, coords = {"x":x0, "y":0.60}, jets = self.jetsOtherAlgo, nMax = 7)
         else :
-            y0 = 0.60
-            jetsOtherAlgo = None
-            metOtherAlgo  = None
-        
-        self.printJets(              eventVars, params = defaults, coords = {"x":x0, "y":   0.84}, jets = self.jets, nMax = 7)
-        self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":y0     }, jets = self.jets, jets2 = self.jetsOtherAlgo)
+            self.printPhotons(eventVars, params = defaults, coords = {"x":x0, "y":y0-0.20}, photons = self.photons, nMax = 3)
+            self.printMuons(  eventVars, params = defaults, coords = {"x":x0, "y":y0-0.30}, muons = self.muons, nMax = 3)
+
+        self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":y0     }, jets = self.jets, jets2 = self.jetsOtherAlgo,
+                                     others = self.printOtherJetAlgoQuantities)
         self.printCutBits(           eventVars, params = defaults, coords = {"x":x0, "y":y0-0.10}, jets = self.jets, jets2 = self.jetsOtherAlgo,
-                                     met = self.met, met2 = self.metOtherAlgo)
-        self.printFlags(eventVars, params = defaults, coords = {"x":x0, "y":y0-0.20},
+                                     met = self.met, met2 = self.metOtherAlgo, others = self.printOtherJetAlgoQuantities)
+        self.printFlags(eventVars, params = defaults, coords = {"x":x0, "y":y0-0.34},
                         flags = ['logErrorTooManyClusters','logErrorTooManySeeds',
                                  "beamHaloCSCLooseHaloId","beamHaloCSCTightHaloId","beamHaloEcalLooseHaloId","beamHaloEcalTightHaloId",
                                  "beamHaloGlobalLooseHaloId","beamHaloGlobalTightHaloId","beamHaloHcalLooseHaloId","beamHaloHcalTightHaloId" ])
