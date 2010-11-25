@@ -3,6 +3,13 @@ import samples
 jetmet = samples.SampleHolder()
 srm = 'utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user'
 
+#NOV.4 RE-RECO SKIMS
+dir = "/vols/cms02/elaird1/16_skims/"
+jetmet.add("Nov4_MJ_skim",  'utils.fileListFromDisk(location = "%s/MultiJet.Run2010B-Nov4ReReco_v1.RECO.Burt_*_skim.root", isDirectory = False)'%dir, lumi = 2.790700e+01)
+jetmet.add("Nov4_J_skim",   'utils.fileListFromDisk(location = "%s/Jet.Run2010B-Nov4ReReco_v1.RECO.Burt_*_skim.root", isDirectory = False)'%dir,      lumi = 2.875000e+00)
+jetmet.add("Nov4_JM_skim",  'utils.fileListFromDisk(location = "%s/JetMET.Run2010A-Nov4ReReco_v1.RECO.Burt_*_skim.root", isDirectory = False)'%dir,   lumi = 2.895000e+00)
+jetmet.add("Nov4_JMT_skim", 'utils.fileListFromDisk(location = "%s/JetMETTau.Run2010A-Nov4ReReco_v1.RECO.Burt_*_skim.root", isDirectory = False)'%dir,lumi = 1.670000e-01)
+
 #NOV.4 RE-RECO ORIGINALS
 jetmet.add("MultiJet.Run2010B-Nov4ReReco_v1.RECO.Burt", '%s/bbetchar//ICF/automated/2010_11_21_18_35_30/")'%srm, lumi = 27.907) #/pb
 jetmet.add("Jet.Run2010B-Nov4ReReco_v1.RECO.Burt",      '%s/bbetchar//ICF/automated/2010_11_20_02_58_06/", alwaysUseLastAttempt = True)'%srm, lumi =  2.875) #/pb
