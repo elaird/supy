@@ -15,8 +15,12 @@ class jsonMaker(analysis.analysis) :
         return calculables.zeroArgs()
 
     def listOfSamples(self,params) :
+        from samples import specify        
         return [
-            samples.specify(name = "Run2010B_MJ_skim3"),
+            specify(name = "Nov4_MJ_skim" ),
+            specify(name = "Nov4_J_skim"  ),
+            specify(name = "Nov4_JM_skim" ),
+            specify(name = "Nov4_JMT_skim"),
             ]
                 
     def listOfSampleDictionaries(self) :
