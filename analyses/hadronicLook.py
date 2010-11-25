@@ -189,6 +189,11 @@ class hadronicLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [
+            #specify(name = "Nov4_MJ_skim" ,             nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            #specify(name = "Nov4_J_skim"  ,             nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            #specify(name = "Nov4_JM_skim" ,             nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            #specify(name = "Nov4_JMT_skim",             nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            
             specify(name = "Run2010B_MJ_skim5",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim4",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010B_MJ_skim3",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
@@ -198,6 +203,7 @@ class hadronicLook(analysis.analysis) :
             specify(name = "Run2010B_J_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+
           ##specify(name = "markus38",                  nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "hennings38",                nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "toms17",                    nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
@@ -335,6 +341,7 @@ class hadronicLook(analysis.analysis) :
         if "madgraph" in tag : mg (org, smSources)
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="Run2010")
+        org.mergeSamples(targetSpec = {"name":"Nov4 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="Nov4")
 
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
