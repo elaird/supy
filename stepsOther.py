@@ -532,6 +532,26 @@ class displayer(analysisStep) :
             outString+="%5.0f %4.1f %4.1f"%(photon.pt(), photon.eta(), photon.phi())
             self.printText(outString)
 
+    def printElectrons(self, eventVars, params, coords, electrons, nMax) :
+        self.prepareText(params, coords)
+        p4Vector = eventVars["%sP4%s"        %electrons]
+        ninetyFive = eventVars["%sID95%s"%electrons]
+     
+        self.printText(self.renamedDesc(electrons[0]+electrons[1]))
+        self.printText("ID   pT  eta  phi")
+        self.printText("-----------------")
+
+        nElectrons = p4Vector.size()
+        for iElectron in range(nElectrons) :
+            if nMax<=iElectron :
+                self.printText("[%d more not listed]"%(nElectrons-nMax))
+                break
+            electron=p4Vector[iElectron]
+
+            outString = "%2s"%("95" if ninetyFive[iElectron] else "  ")
+            outString+="%5.0f %4.1f %4.1f"%(electron.pt(), electron.eta(), electron.phi())
+            self.printText(outString)
+
     def printMuons(self, eventVars, params, coords, muons, nMax) :
         self.prepareText(params, coords)
         p4Vector = eventVars["%sP4%s"     %muons]
@@ -654,7 +674,7 @@ class displayer(analysisStep) :
                                                        "candidate" if all else "",
                                                        )
                            )
-            if all and not i :
+            if self.markusMode and all and not i :
                 self.text.SetTextSize(1.5*params["size"])
                 self.text.SetTextFont(params["font"])
                 self.text.SetTextColor(r.kBlue)
@@ -1172,8 +1192,9 @@ class displayer(analysisStep) :
         if self.printOtherJetAlgoQuantities :
             self.printJets(   eventVars, params = defaults, coords = {"x":x0, "y":0.60}, jets = self.jetsOtherAlgo, nMax = 7)
         else :
-            self.printPhotons(eventVars, params = defaults, coords = {"x":x0, "y":y0-0.20}, photons = self.photons, nMax = 3)
-            self.printMuons(  eventVars, params = defaults, coords = {"x":x0, "y":y0-0.30}, muons = self.muons, nMax = 3)
+            self.printPhotons(  eventVars, params = defaults, coords = {"x":x0,      "y":y0-0.20}, photons = self.photons, nMax = 3)
+            self.printElectrons(eventVars, params = defaults, coords = {"x":x0+0.50, "y":y0-0.20}, electrons = self.electrons, nMax = 3)
+            self.printMuons(    eventVars, params = defaults, coords = {"x":x0,      "y":y0-0.36}, muons = self.muons, nMax = 3)
 
         self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":y0     }, jets = self.jets, jets2 = self.jetsOtherAlgo,
                                      others = self.printOtherJetAlgoQuantities)
