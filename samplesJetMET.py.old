@@ -54,3 +54,6 @@ jetmet.add("tanjas14", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/1
 jetmet.add("markus38", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/25_markus38/markus38_0_skim.root", isDirectory = False)', lumi = 34.724)
 jetmet.add("toms17", 'utils.fileListFromDisk(location=  "/vols/cms02/elaird1/11_skims/26_tom17/toms17_0_skim.root", isDirectory = False)', lumi = 34.724)
 jetmet.add('hennings38','utils.fileListFromDisk(location = "/vols/cms02/bbetchar/thirtyEight/")', lumi = 35.38)
+jetmet.add('markusVeto','utils.fileListFromDisk(location = "/home/hep/elaird1/48_markus_veto_events/v1/events.root", isDirectory = False)', lumi = 35.38)
+jetmet.add("pfSkim_partialResCorr", 'utils.fileListFromDisk(location = "/home/hep/elaird1/pfSkim_partialResCorr_0_skim.root", isDirectory = False)', lumi = 35.38)
+jetmet.add("pfSkim_fullResCorr", 'utils.fileListFromDisk(location = "/home/hep/elaird1/pfSkim_fullResCorr_0_skim.root", isDirectory = False)', lumi = 35.38)
