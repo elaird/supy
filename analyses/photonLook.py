@@ -17,8 +17,8 @@ class photonLook(analysis.analysis) :
 
         thresholds = {}
         fields =                                    ["jetPtMin","jet1PtMin","jet2PtMin","htLower","htUpper","mht","applyAlphaTCut","applyTrigger","photonPt","genPhotonPtMin"]
-        #thresholds["signal"]     = dict(zip(fields, [   50.0,       100.0,    100.0,      350.0,    None,   140.0,      True,           True,        100.0,         110.0    ]))
-        thresholds["relaxed"]    = dict(zip(fields, [   50.0,        50.0,     50.0,      250.0,   350.0,   140.0,      True,           True,        100.0,         110.0    ]))
+        thresholds["signal"]     = dict(zip(fields, [   50.0,       100.0,    100.0,      350.0,    None,   140.0,      True,           True,        100.0,         110.0    ]))
+        #thresholds["relaxed"]    = dict(zip(fields, [   50.0,        50.0,     50.0,      250.0,   350.0,   140.0,      True,           True,        100.0,         110.0    ]))
         ##thresholds["HT_250_300"] = dict(zip(fields, [   35.9,        72.7,     72.7,      250.0,   300.0, , 100.0,      True,           True,         80.0,          90.0    ]))
         ##thresholds["HT_275_300"] = dict(zip(fields, [   39.3,        79.5,     79.5,      275.0,   300.0, , 110.0,      True,           True,         80.0,          90.0    ]))
         ##thresholds["HT_300_350"] = dict(zip(fields, [   42.9,        85.7,     85.7,      300.0,   350.0, , 120.0,      True,           True,         80.0,          90.0    ]))
@@ -39,7 +39,7 @@ class photonLook(analysis.analysis) :
                                              ("photonEGM-10-006-Loose","photonIDEGM_10_006_LoosePat"),#7
                                              ("photonEGM-10-006-Tight","photonIDEGM_10_006_TightPat"),#8
 
-                                             ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [6:7] ),
+                                             ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [8:9] ),
                  "zMode" :            dict([ ("zMode",True), ("",False) ]                              [1:2] ),
                  "jetId" :  ["JetIDloose","JetIDtight"]            [0],
                  "etRatherThanPt" : [True,False]                   [0],
@@ -59,6 +59,7 @@ class photonLook(analysis.analysis) :
                calculables.fromCollections(calculables.electron,[obj["electron"]]) +\
                calculables.fromCollections(calculables.photon,[obj["photon"]]) +\
                [ calculables.xclean.xcJet( obj["jet"],
+                                           applyResidualCorrectionsToData = True,
                                            gamma = obj["photon"],
                                            gammaDR = 0.5,
                                            muon = obj["muon"],
@@ -66,6 +67,7 @@ class photonLook(analysis.analysis) :
                                            correctForMuons = not obj["muonsInJets"],
                                            electron = obj["electron"], electronDR = 0.5
                                            ),
+                 calculables.jet.ResidualCorrectionsFromFile(obj["jet"]),
                  calculables.jet.Indices( obj["jet"], _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
                  calculables.jet.Indices( obj["jet"], params["lowPtThreshold"], etaMax = 3.0, flagName = params["jetId"], extraName = params["lowPtName"]),
                  calculables.muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
