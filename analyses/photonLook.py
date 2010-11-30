@@ -4,9 +4,6 @@ import os,copy
 import analysis,steps,calculables,samples,organizer,plotter,utils
 import ROOT as r
 
-lowPtThreshold = 30.0
-lowPtName = "lowPt"
-
 class photonLook(analysis.analysis) :
     def baseOutputDirectory(self) :
         return "/vols/cms02/%s/tmp/"%os.environ["USER"]
@@ -20,8 +17,8 @@ class photonLook(analysis.analysis) :
 
         thresholds = {}
         fields =                                    ["jetPtMin","jet1PtMin","jet2PtMin","htLower","htUpper","mht","applyAlphaTCut","applyTrigger","photonPt","genPhotonPtMin"]
-        thresholds["signal"]     = dict(zip(fields, [   50.0,       100.0,    100.0,      350.0,    None,   140.0,      True,           True,        100.0,         110.0    ]))
-        #thresholds["relaxed"]    = dict(zip(fields, [   50.0,        50.0,     50.0,      250.0,   350.0,   140.0,      True,           True,        100.0,         110.0    ]))
+        #thresholds["signal"]     = dict(zip(fields, [   50.0,       100.0,    100.0,      350.0,    None,   140.0,      True,           True,        100.0,         110.0    ]))
+        thresholds["relaxed"]    = dict(zip(fields, [   50.0,        50.0,     50.0,      250.0,   350.0,   140.0,      True,           True,        100.0,         110.0    ]))
         ##thresholds["HT_250_300"] = dict(zip(fields, [   35.9,        72.7,     72.7,      250.0,   300.0, , 100.0,      True,           True,         80.0,          90.0    ]))
         ##thresholds["HT_275_300"] = dict(zip(fields, [   39.3,        79.5,     79.5,      275.0,   300.0, , 110.0,      True,           True,         80.0,          90.0    ]))
         ##thresholds["HT_300_350"] = dict(zip(fields, [   42.9,        85.7,     85.7,      300.0,   350.0, , 120.0,      True,           True,         80.0,          90.0    ]))
@@ -37,45 +34,42 @@ class photonLook(analysis.analysis) :
 
                                              ("photonIsoSideband","photonIDIsoSideBandPat"),          #4
                                              ("photonIsoRelaxed","photonIDIsoRelaxedPat"),            #5
+                                             ("photonNoIsoReq","photonIDNoIsoReqPat"),                #6
                                              
-                                             ("photonEGM-10-006-Loose","photonIDEGM_10_006_LoosePat"),#6
-                                             ("photonEGM-10-006-Tight","photonIDEGM_10_006_TightPat"),#7
+                                             ("photonEGM-10-006-Loose","photonIDEGM_10_006_LoosePat"),#7
+                                             ("photonEGM-10-006-Tight","photonIDEGM_10_006_TightPat"),#8
 
-                                             ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [7:8] ),
+                                             ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [6:7] ),
                  "zMode" :            dict([ ("zMode",True), ("",False) ]                              [1:2] ),
-                 "skimString" : ["","_markusSkim"]           [1],
-                 "jetId" :  ["JetIDloose","JetIDtight"]      [0],
-                 "etRatherThanPt" : [True,False]             [0],
+                 "jetId" :  ["JetIDloose","JetIDtight"]            [0],
+                 "etRatherThanPt" : [True,False]                   [0],
+                 "lowPtThreshold": 30.0,
+                 "lowPtName":"lowPt",
+                 "triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"),#required to be a sorted tuple                 
                  }
 
-    def listOfCalculables(self,params) :
-        _jet = params["objects"]["jet"]
-        _muon = params["objects"]["muon"]
-        _electron = params["objects"]["electron"]
-        _photon = params["objects"]["photon"]
+    def listOfCalculables(self, params) :
+        obj = params["objects"]
         _etRatherThanPt = params["etRatherThanPt"]
-        _met = params["objects"]["met"]
-        _correctForMuons = not params["objects"]["muonsInJets"]
-
         _jetPtMin = params["thresholds"]["jetPtMin"]
 
         return calculables.zeroArgs() +\
-               calculables.fromCollections(calculables.jet,[_jet]) +\
-               calculables.fromCollections(calculables.muon,[_muon]) +\
-               calculables.fromCollections(calculables.electron,[_electron]) +\
-               calculables.fromCollections(calculables.photon,[_photon]) +\
-               [ calculables.xclean.xcJet( _jet,
-                                           gamma = _photon,
+               calculables.fromCollections(calculables.jet,[obj["jet"]]) +\
+               calculables.fromCollections(calculables.muon,[obj["muon"]]) +\
+               calculables.fromCollections(calculables.electron,[obj["electron"]]) +\
+               calculables.fromCollections(calculables.photon,[obj["photon"]]) +\
+               [ calculables.xclean.xcJet( obj["jet"],
+                                           gamma = obj["photon"],
                                            gammaDR = 0.5,
-                                           muon = _muon,
+                                           muon = obj["muon"],
                                            muonDR = 0.5,
-                                           correctForMuons = _correctForMuons,
-                                           electron = _electron, electronDR = 0.5
+                                           correctForMuons = not obj["muonsInJets"],
+                                           electron = obj["electron"], electronDR = 0.5
                                            ),
-                 calculables.jet.Indices( _jet, _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
-                 calculables.jet.Indices( _jet, lowPtThreshold, etaMax = 3.0, flagName = params["jetId"], extraName = lowPtName),
-                 calculables.muon.Indices( _muon, ptMin = 10, combinedRelIsoMax = 0.15),
-                 calculables.electron.Indices( _electron, ptMin = 10, simpleEleID = "95", useCombinedIso = True),
+                 calculables.jet.Indices( obj["jet"], _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
+                 calculables.jet.Indices( obj["jet"], params["lowPtThreshold"], etaMax = 3.0, flagName = params["jetId"], extraName = params["lowPtName"]),
+                 calculables.muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
+                 calculables.electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
                  calculables.photon.photonIndicesPat(  ptMin = 25, flagName = params["photonId"]),
 
                  calculables.gen.genIndices( pdgs = [22], label = "Status3Photon", status = [3]),
@@ -85,26 +79,26 @@ class photonLook(analysis.analysis) :
                  calculables.gen.genIsolations(label = "Status1Photon", coneSize = 0.4),
                  calculables.gen.genPhotonCategory(label = "Status1Photon"),
 
-                 calculables.photon.minDeltaRToJet(_photon, _jet),
+                 calculables.photon.minDeltaRToJet(obj["photon"], obj["jet"]),
                  
-                 calculables.xclean.IndicesUnmatched(collection = _photon, xcjets = _jet, DR = 0.5),
-                 calculables.xclean.IndicesUnmatched(collection = _electron, xcjets = _jet, DR = 0.5)
+                 calculables.xclean.IndicesUnmatched(collection = obj["photon"], xcjets = obj["jet"], DR = 0.5),
+                 calculables.xclean.IndicesUnmatched(collection = obj["electron"], xcjets = obj["jet"], DR = 0.5)
                  ] \
-                 + [ calculables.jet.SumP4(_jet),
-                     calculables.jet.SumP4(_jet, extraName = lowPtName),
-                     #calculables.jet.SumP4PlusPhotons(_jet, extraName = "", photon = _photon),
-                     calculables.jet.DeltaPhiStar(_jet, extraName = ""),
-                     calculables.jet.DeltaPhiStar(_jet, extraName = lowPtName),
-                     #calculables.jet.DeltaPhiStarIncludingPhotons(_jet, photons = _photon, extraName = ""),
-                     calculables.jet.DeltaPseudoJet(_jet, _etRatherThanPt),
-                     calculables.jet.AlphaTWithPhoton1PtRatherThanMht(_jet, photons = _photon, etRatherThanPt = _etRatherThanPt),
-                     calculables.jet.AlphaT(_jet, _etRatherThanPt),
-                     calculables.jet.AlphaTMet(_jet, _etRatherThanPt, _met),
-                     calculables.jet.metPlusPhoton(met = "metP4PF", photons = _photon, photonIndex = 0),
-                     calculables.jet.mhtMinusMetOverMeff(_jet, "metPlusPhoton", _etRatherThanPt),
-                     calculables.jet.mhtIncludingPhotonsOverMet(_jet, "metP4PF", _etRatherThanPt),
+                 + [ calculables.jet.SumP4(obj["jet"]),
+                     calculables.jet.SumP4(obj["jet"], extraName = params["lowPtName"]),
+                     #calculables.jet.SumP4PlusPhotons(obj["jet"], extraName = "", photon = obj["photon"]),
+                     calculables.jet.DeltaPhiStar(obj["jet"], extraName = ""),
+                     calculables.jet.DeltaPhiStar(obj["jet"], extraName = params["lowPtName"]),
+                     #calculables.jet.DeltaPhiStarIncludingPhotons(obj["jet"], photons = obj["photon"], extraName = ""),
+                     calculables.jet.DeltaPseudoJet(obj["jet"], _etRatherThanPt),
+                     calculables.jet.AlphaTWithPhoton1PtRatherThanMht(obj["jet"], photons = obj["photon"], etRatherThanPt = _etRatherThanPt),
+                     calculables.jet.AlphaT(obj["jet"], _etRatherThanPt),
+                     calculables.jet.AlphaTMet(obj["jet"], _etRatherThanPt, obj["met"]),
+                     calculables.jet.metPlusPhoton(met = "metP4PF", photons = obj["photon"], photonIndex = 0),
+                     calculables.jet.mhtIncludingPhotonsOverMet(obj["jet"], "metP4PF", _etRatherThanPt),
                      calculables.other.vertexID(),
                      calculables.other.vertexIndices(),
+                     calculables.jet.deadEcalDR(obj["jet"], extraName = params["lowPtName"], minNXtals = 10),
                      ]
 
     def listOfSteps(self,params) :
@@ -123,7 +117,7 @@ class photonLook(analysis.analysis) :
 
         if params["thresholds"]["jet1PtMin"]!=None : outList+=[steps.jetPtSelector(_jet, params["thresholds"]["jet1PtMin"], 0)]
         if params["thresholds"]["jet2PtMin"]!=None : outList+=[steps.jetPtSelector(_jet, params["thresholds"]["jet2PtMin"], 1)]
-        if params["thresholds"]["applyTrigger"]    : outList+=[steps.lowestUnPrescaledTrigger(["HLT_HT100U","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"])]
+        if params["thresholds"]["applyTrigger"]    : outList+=[steps.lowestUnPrescaledTrigger(params["triggerList"])]
 
         outList+=[
             steps.vertexRequirementFilter(),
@@ -217,11 +211,9 @@ class photonLook(analysis.analysis) :
             
             #steps.histogrammer("mhtOverMet", 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
             #steps.variableLessFilter(1.25,"mhtOverMet"),
-            steps.deadEcalFilter(jets = _jet, extraName = lowPtName, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
+            steps.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
         
-            ###steps.histogrammer("mhtMinusMetOverMeff", 100, -1.0, 1.0, title = ";(MHT - [PFMET+photon])/(MHT+HT);events / bin"),
             ##steps.histogrammer("mhtIncludingPhotonsOverMet", 100, 0.0, 2.0, title = ";MHT [including photon] / PFMET;events / bin"),
-            ###steps.variableLessFilter(0.15,"mhtMinusMetOverMeff"),
             ##steps.deadEcalFilterIncludingPhotons(jets = _jet, extraName = "", photons = _photon, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
             
             #steps.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
@@ -246,7 +238,7 @@ class photonLook(analysis.analysis) :
             #                scale = 400.0,#GeV
             #                etRatherThanPt = _etRatherThanPt,
             #                #doGenParticles = True,
-            #                #deltaPhiStarExtraName = lowPtName,
+            #                #deltaPhiStarExtraName = params["lowPtName"],
             #                #deltaPhiStarExtraName = "%s%s"%("","PlusPhotons"),                            
             #                ),
             
@@ -260,159 +252,93 @@ class photonLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
 
-        #horrible hack
-        self.skimStringHack = params["skimString"]
-        
-        data = {}
-        data[""] = [
-            specify(name = "Run2010B_MJ_skim3",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_MJ_skim2",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_MJ_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_J_skim2",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_J_skim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-           #specify(name = "2010_data_skim_calo",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-           #specify(name = "2010_data_skim_pf",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-           #specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-           #specify(name = "2010_data_photons_high_met",nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            ]
-        data["_markusSkim"] = [
-            #specify(name = "Ph.Data_markusSkim",           nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_MJ_4_markusSkim",     nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_MJ_skim3_markusSkim", nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_MJ_skim2_markusSkim", nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_MJ_skim_markusSkim",  nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_J_skim2_markusSkim",  nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010B_J_skim_markusSkim",   nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010A_JM_skim_markusSkim",  nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "Run2010A_JMT_skim_markusSkim", nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+        data = [
+            specify(name = "Run2010A_JMT_skim_noIsoReqSkim"),
+            specify(name = "Run2010A_JM_skim_noIsoReqSkim"),
+            specify(name = "Run2010B_J_skim_noIsoReqSkim"),
+            specify(name = "Run2010B_J_skim2_noIsoReqSkim"),
+            specify(name = "Run2010B_MJ_skim_noIsoReqSkim"),
+            specify(name = "Run2010B_MJ_skim2_noIsoReqSkim"),
+            specify(name = "Run2010B_MJ_skim3_noIsoReqSkim"),
+            specify(name = "Run2010B_MJ_skim4_noIsoReqSkim"),
+            specify(name = "Run2010B_MJ_skim5_noIsoReqSkim"),
+            
+            #specify(name = "Nov4_MJ_noIsoReqSkim"),
+            #specify(name = "Nov4_J_noIsoReqSkim"),
+            #specify(name = "Nov4_JM_noIsoReqSkim"),
+            #specify(name = "Nov4_JMT_noIsoReqSkim"),
             ]
 
-        qcd_py6 = {}
-        qcd_py6[""] = [                                                 
-          ##specify(name = "v12_qcd_py6_pt30",          nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "v12_qcd_py6_pt80",          nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "v12_qcd_py6_pt170",         nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "v12_qcd_py6_pt300",         nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "v12_qcd_py6_pt470",         nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "v12_qcd_py6_pt800",         nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "v12_qcd_py6_pt1400",        nFilesMax = -1, color = r.kBlue    ),
+        qcd_mg = [
+            #specify(name = "v12_qcd_mg_ht_50_100_noIsoReqSkim"),
+            specify(name = "v12_qcd_mg_ht_100_250_noIsoReqSkim"),
+            specify(name = "v12_qcd_mg_ht_250_500_noIsoReqSkim"),
+            specify(name = "v12_qcd_mg_ht_500_1000_noIsoReqSkim"),
+            specify(name = "v12_qcd_mg_ht_1000_inf_noIsoReqSkim"),
             ]
 
-        g_jets_py6 = {}
-        g_jets_py6[""] = [                                              
-            specify(name = "v12_g_jets_py6_pt30",       nFilesMax = -1, nEventsMax = 1000000, color = r.kGreen),
-            specify(name = "v12_g_jets_py6_pt80",       nFilesMax = -1, nEventsMax =  100000, color = r.kGreen),
-            specify(name = "v12_g_jets_py6_pt170",      nFilesMax = -1, nEventsMax =  100000, color = r.kGreen),
+        g_jets_mg = [
+            specify(name = "v12_g_jets_mg_pt40_100_noIsoReqSkim"),
+            specify(name = "v12_g_jets_mg_pt100_200_noIsoReqSkim"),
+            specify(name = "v12_g_jets_mg_pt200_noIsoReqSkim"),
             ]
 
-        qcd_mg = {}
-        qcd_mg[""] = [                                                  
+        qcd_mg_full = [
             specify(name = "v12_qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
             specify(name = "v12_qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
             specify(name = "v12_qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
             specify(name = "v12_qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
             specify(name = "v12_qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
             ]
-        qcd_mg["_markusSkim"] = [
-           #specify(name = "v12_qcd_mg_ht_50_100_markusSkim",    color = r.kBlue) ,
-            specify(name = "v12_qcd_mg_ht_100_250_markusSkim",   color = r.kBlue) ,
-            specify(name = "v12_qcd_mg_ht_250_500_markusSkim",   color = r.kBlue) ,
-            specify(name = "v12_qcd_mg_ht_500_1000_markusSkim",  color = r.kBlue) ,
-            specify(name = "v12_qcd_mg_ht_1000_inf_markusSkim",  color = r.kBlue) ,
-            ]
 
-        g_jets_mg = {}
-        g_jets_mg[""] = [                                               
+        g_jets_mg_full = [                                               
             specify(name = "v12_g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
             specify(name = "v12_g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
             specify(name = "v12_g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
             ]
-        g_jets_mg["_markusSkim"] = [
-            specify(name = "v12_g_jets_mg_pt40_100_markusSkim",  color = r.kGreen),
-            specify(name = "v12_g_jets_mg_pt100_200_markusSkim", color = r.kGreen),
-            specify(name = "v12_g_jets_mg_pt200_markusSkim",     color = r.kGreen),
-            ]
 
-        ttbar_mg = {}
-        ttbar_mg[""] = [                                                
+        ttbar_mg_full = [                                                
             specify(name = "tt_tauola_mg_v12",          nFilesMax =  3, color = r.kOrange  ),
             ]
-        ttbar_mg["_markusSkim"] = []
 
-        ewk_mg = {}
-        ewk_mg[""] = [                                                     
+        ewk_mg_full = [                                                     
             specify(name = "z_jets_mg_v12",             nFilesMax = -1, color = r.kYellow-3),
             specify(name = "w_jets_mg_v12",             nFilesMax = -1, color = 28         ),
             ]
-        ewk_mg["_markusSkim"] = []
 
-        zinv_mg = {}
-        for item in ["","_markusSkim"] :
-            zinv_mg[item] = [specify(name = "z_inv_mg_v12_skim", nFilesMax = -1, color = r.kMagenta )]
+        zinv_mg = [specify(name = "z_inv_mg_v12_skim", nFilesMax = -1, color = r.kMagenta )]
 
         outList = []
 
         if not params["zMode"] :
-            #outList+=qcd_py6[params["skimString"]]
-            #outList+=g_jets_py6[params["skimString"]]
-            
-            outList += qcd_mg    [params["skimString"]]
-            outList += g_jets_mg [params["skimString"]]
-            
-            outList += data      [params["skimString"]]
-            #outList += ewk_mg    [params["skimString"]]
-            #outList += ttbar_mg  [params["skimString"]]
+            outList += qcd_mg
+            outList += g_jets_mg
+            outList += data
+            #outList += ewk_mg
+            #outList += ttbar_mg
         else :
-            outList += zinv_mg   [params["skimString"]]
+            outList += zinv_mg
             
         ##uncomment for short tests
         #for i in range(len(outList)):
         #    o = outList[i]
-        #    #if "2010" in o.name: continue
         #    outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
         
         return outList
 
     def mergeSamples(self, org, tag) :
-        def py6(org, smSources, skimString) :
-            org.mergeSamples(targetSpec = {"name":"qcd_py6_v12", "color":r.kBlue}, allWithPrefix = "v12_qcd_py6")
-            smSources.append("qcd_py6_v12")
+        def go(org, outName, inPrefix, color) :
+            org.mergeSamples(targetSpec = {"name":outName, "color":color}, allWithPrefix = inPrefix)
+            return [outName]
 
-            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen}, allWithPrefix = "v12_g_jets_py6")
-            smSources.append("g_jets_py6_v12")
+        smSources = [item for item in ["z_inv_mg_v12", "z_jets_mg_v12", "w_jets_mg_v12"]]
 
-        def py8(org, smSources, skimString) :
-            org.mergeSamples(targetSpec = {"name":"qcd_py8", "color":r.kBlue}, allWithPrefix = "qcd_py8")
-            smSources.append("qcd_py8")
-
-            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen}, allWithPrefix = "g_jet_py6")
-            smSources.append("g_jets_py6_v12")
-
-        def mg(org, smSources, skimString) :
-            org.mergeSamples(targetSpec = {"name":"qcd_mg_v12", "color":r.kBlue}, allWithPrefix = "v12_qcd_mg")
-            smSources.append("qcd_mg_v12")
-            
-            org.mergeSamples(targetSpec = {"name":"g_jets_mg_v12", "color":r.kGreen}, allWithPrefix = "v12_g_jets_mg")
-            smSources.append("g_jets_mg_v12")
-
-        smSources = [item+self.skimStringHack for item in ["z_inv_mg_v12", "z_jets_mg_v12", "w_jets_mg_v12"]]
-        #if "pythia6"  in tag : py6(org, smSources, skimString)
-        #if "pythia8"  in tag : py8(org, smSources, skimString)
-        #if "madgraph" in tag : mg (org, smSources, skimString)
-        #py6(org, smSources, skimString)
-        #py8(org, smSources, skimString)
-        mg (org, smSources, self.skimStringHack)
-
+        smSources += go(org, outName = "qcd_mg_v12",     inPrefix = "v12_qcd_mg",     color = r.kBlue )
+        smSources += go(org, outName = "g_jets_mg_v12",  inPrefix = "v12_g_jets_mg",  color = r.kGreen)
+        
         #org.mergeSamples(targetSpec = {"name":"MG QCD+G", "color":r.kGreen}, sources = ["qcd_mg_v12","g_jets_mg_v12"])
-        #org.mergeSamples(targetSpec = {"name":"PY6 QCD+G", "color":r.kBlue}, sources = ["qcd_py6_v12","g_jets_py6_v12"])
-        org.mergeSamples(targetSpec = {"name":"MG TT+EWK", "color":r.kOrange}, sources = [item+self.skimStringHack for item in ["z_jets_mg_v12", "w_jets_mg_v12", "tt_tauola_mg_v12"]])
+        #org.mergeSamples(targetSpec = {"name":"MG TT+EWK", "color":r.kOrange}, sources = [item for item in ["z_jets_mg_v12", "w_jets_mg_v12", "tt_tauola_mg_v12"]])
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
-
-        #if self.skimStringHack=="_markusSkim" :
-        #    org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, sources = ["Ph.Data_markusSkim"])
-        #else :
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Run2010")
             
     def conclude(self) :
@@ -424,13 +350,14 @@ class photonLook(analysis.analysis) :
             #organize
             org = organizer.organizer( self.sampleSpecs(tag) )
             self.mergeSamples(org, tag)
+
             if "zMode" in tag :
                 org.scale(34.7255)
                 print "WARNING: HARD-CODED LUMI FOR Z MODE!"
             else :
                 org.scale()
                 
-            #self.makeStandardPlots(org, tag)
+            self.makeStandardPlots(org, tag)
             #self.makeIndividualPlots(org, tag)
             #self.makePurityPlots(org, tag)
             #self.makeEfficiencyPlots(org, tag)
@@ -472,21 +399,38 @@ class photonLook(analysis.analysis) :
                              doLog = False,
                              anMode = True,
                              )
-        pl.individualPlots(plotSpecs = [{"plotName":"xcak5JetAlphaTEtPat",
-                                         "selName" :"variablePtGreaterFilter",
-                                         "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
-                                         "newTitle":";#alpha_{T};events / bin / 35 pb^{-1}"},
-                                        
-                                        {"plotName":"xcak5JetIndicesPat",
-                                         "selName" :"variablePtGreaterFilter",
-                                         "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
-                                         "newTitle":";N_{jets};events / bin / 35 pb^{-1}"},
-                                        
-                                        #{"plotName":"photonPat1MinDRToJet",
+        pl.individualPlots(plotSpecs = [#{"plotName":"xcak5JetAlphaTEtPat",
+                                        # "selName" :"variablePtGreaterFilter",
+                                        # "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
+                                        # "newTitle":";#alpha_{T};events / bin / 35 pb^{-1}"},
+                                        #
+                                        #{"plotName":"xcak5JetIndicesPat",
+                                        # "selName" :"variablePtGreaterFilter",
+                                        # "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
+                                        # "newTitle":";N_{jets};events / bin / 35 pb^{-1}"},
+                                        #
+                                        ##{"plotName":"photonPat1MinDRToJet",
+                                        ## "selName" :"passFilter",
+                                        ## "selDesc" :"singlePhotonPlots2",
+                                        ## "newTitle":";#DeltaR(photon, nearest jet);events / bin / 35 pb^{-1}",
+                                        ## "reBinFactor":3},
+                                        #
+                                        #{"plotName":"photonPat1SeedTime",
                                         # "selName" :"passFilter",
                                         # "selDesc" :"singlePhotonPlots2",
-                                        # "newTitle":";#DeltaR(photon, nearest jet);events / bin / 35 pb^{-1}",
-                                        # "reBinFactor":3},
+                                        # "newTitle":";time of photon seed crystal hit (ns);events / bin / 35 pb^{-1}",
+                                        # "sampleWhiteList": ["2010 Data"]},
+                                        #
+                                        #{"plotName":"photonPat1sigmaIetaIetaBarrel",
+                                        # "selName" :"passFilter",
+                                        # "selDesc" :"singlePhotonPlots2",
+                                        # "newTitle":";#sigma_{i#eta i#eta};events / bin / 35 pb^{-1}"},
+                                        
+                                        {"plotName":"photonPat1combinedIsolation",
+                                         "selName" :"passFilter",
+                                         "selDesc" :"singlePhotonPlots2",
+                                         "onlyDumpToFile":True},
+
                                         ],
                            newSampleNames = {"qcd_mg_v12": "Madgraph QCD",
                                              "g_jets_mg_v12": "Madgraph #gamma + jets",
