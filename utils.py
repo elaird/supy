@@ -4,6 +4,10 @@ import ROOT as r
 #####################################
 hyphens="-"*95
 #####################################
+def compileSources(listOfSourceFiles) :
+    for sourceFile in listOfSourceFiles :
+        r.gROOT.LoadMacro(sourceFile+"+")
+#####################################
 def operateOnListUsingQueue(nCores,workerFunc,inList) :
     q = JoinableQueue()
     listOfProcesses=[]
