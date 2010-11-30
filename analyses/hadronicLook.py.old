@@ -79,6 +79,7 @@ class hadronicLook(analysis.analysis) :
             calculables.muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
             calculables.electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
             calculables.photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
+            #calculables.photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDTightFromTwikiPat"),
             
             calculables.other.vertexID(),
             calculables.other.vertexIndices(),
@@ -175,10 +176,10 @@ class hadronicLook(analysis.analysis) :
                    #                deltaPhiStarExtraName = params["lowPtName"],
                    #                deltaPhiStarCut = 0.5,
                    #                deltaPhiStarDR = 0.3,
-                   #                printOtherJetAlgoQuantities = True,
+                   #                printOtherJetAlgoQuantities = False,
                    #                jetsOtherAlgo = params["objects"]["compJet"],
                    #                metOtherAlgo  = params["objects"]["compMet"],
-                   #                markusMode = True,
+                   #                markusMode = False,
                    #                ),
                    ]
         return outList
@@ -204,9 +205,6 @@ class hadronicLook(analysis.analysis) :
             specify(name = "Run2010A_JM_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             specify(name = "Run2010A_JMT_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
 
-          ##specify(name = "markus38",                  nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-          ##specify(name = "hennings38",                nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-          ##specify(name = "toms17",                    nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "2010_data_calo_skim",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),            
           ##specify(name = "2010_data_pf_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
