@@ -17,7 +17,7 @@ class Indices(wrappedChain.calculable) :
         self.eID = ("%sID"+simpleEleID+"%s")% self.fixes
         self.eIso = ("%s"+isotype+"Iso"+simpleEleID+"%s") % self.fixes
         self.ptMin = ptMin
-        self.moreName = "pt>%.1f; simple%s; %sIso; no conversion cut" % (ptMin, simpleEleID, isotype)
+        self.moreName = "pt>%.1f; simple%s; %sIso; old samples have missing hits = 0" % (ptMin, simpleEleID, isotype)
 
     def update(self,ignored) :
         self.value = []
