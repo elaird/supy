@@ -32,10 +32,11 @@ class Indices(wrappedChain.calculable) :
             else: other.append(i)
 ##############################
 class ID(wrappedChain.calculable) :
-    def id(self, hoe, dphi, deta, sieie, p4) :
+    def id(self, hoe, dphi, deta, sieie, missingHits, dist, DcotTh, p4) :
         absEta = abs(p4.eta())
-        return hoe < self.Bhoe and dphi < self.Bdphi and deta < self.Bdeta and sieie < self.Bsieie if absEta < barrelEtaMax else \
-               hoe < self.Ehoe and dphi < self.Edphi and deta < self.Edeta and sieie < self.Esieie if absEta > endcapEtaMin else \
+        convRej = missingHits <= self.missingHits and (self.dist==None or dist < self.dist) and (self.DcotTh==None or DcotTh < self.DcotTh)
+        return convRej and hoe < self.Bhoe and dphi < self.Bdphi and deta < self.Bdeta and sieie < self.Bsieie if absEta < barrelEtaMax else \
+               convRej and hoe < self.Ehoe and dphi < self.Edphi and deta < self.Edeta and sieie < self.Esieie if absEta > endcapEtaMin else \
                None
 
     def update(self,ignored) :
@@ -44,21 +45,30 @@ class ID(wrappedChain.calculable) :
                          self.source[self.DeltaPhiSuperClusterTrackAtVtx],
                          self.source[self.DeltaEtaSuperClusterTrackAtVtx],
                          self.source[self.SigmaIetaIeta],
+                         self.source[self.ConversionMissingHits],
+                         self.source[self.ConversionDist],
+                         self.source[self.ConversionDCot],
                          self.source[self.P4])
 
     # https://twiki.cern.ch/twiki/bin/viewauth/CMS/SimpleCutBasedEleID
     def __init__(self,collection, eff) :
         self.fixes = collection
-        self.stash(["HcalOverEcal","DeltaPhiSuperClusterTrackAtVtx","DeltaEtaSuperClusterTrackAtVtx","SigmaIetaIeta","P4"])
+        self.stash(["HcalOverEcal","DeltaPhiSuperClusterTrackAtVtx","DeltaEtaSuperClusterTrackAtVtx","SigmaIetaIeta",
+                    "ConversionDist", "ConversionDCot", "ConversionMissingHits","P4"])
         i = ["95","90","85","80","70","60"].index(eff)
         self.Bsieie = [0.01,    0.01,    0.01,    0.01,    0.01,    0.01  ][i]
         self.Bdphi  = [0.80,    0.80,    0.06,    0.06,    0.03,    0.025 ][i]
         self.Bdeta  = [0.007,   0.007,   0.006,   0.004,   0.004,   0.004 ][i]
         self.Bhoe   = [0.15,    0.12,    0.04,    0.04,    0.025,   0.025 ][i]
-        self.Esieie = [0.03,   0.03,   0.03,   0.03,   0.03,   0.03  ][i]
-        self.Edphi  = [0.7,    0.7,    0.04,   0.03,   0.02,   0.02  ][i]
+        self.Esieie = [0.03,    0.03,    0.03,    0.03,    0.03,    0.03  ][i]
+        self.Edphi  = [0.7,     0.7,     0.04,    0.03,    0.02,    0.02  ][i]
         self.Edeta = 10.0 #[0.01,   0.009,  0.007,  0.007,  0.005,  0.005 ][i] # note on twiki not to apply these
-        self.Ehoe   = [0.07,   0.05,   0.025,  0.025,  0.025,  0.025 ][i]
+        self.Ehoe   = [0.07,    0.05,    0.025,   0.025,   0.025,   0.025 ][i]
+        #conversion rejection
+        self.missingHits = [1,  1,       1,       0,       0,       0     ][i]
+        self.dist   = [None,    0.02,    0.02,    0.02,    0.02,    0.02  ][i]
+        self.DcotTh = [None,    0.02,    0.02,    0.02,    0.02,    0.02  ][i]
+        
 class ID95(ID) :
     def __init__(self,collection) : super(ID95,self).__init__(collection,"95")
 class ID90(ID) :
@@ -83,10 +93,10 @@ class Iso(wrappedChain.calculable) :
         self.Btrk  = [0.15,   0.12,   0.09,   0.09,   0.05,   0.04 ][i]
         self.Becal = [2.00,   0.09,   0.08,   0.07,   0.06,   0.04 ][i]
         self.Bhcal = [0.12,   0.10,   0.10,   0.10,   0.03,   0.03 ][i]
-        self.Ec    = [0.1,    0.07,   0.06,    0.06,    0.03,    0.02  ][i]
-        self.Etrk  = [0.08,   0.05,   0.05,    0.04,    0.025,   0.025 ][i]
-        self.Eecal = [0.06,   0.06,   0.05,    0.05,    0.025,   0.02  ][i]
-        self.Ehcal = [0.05,   0.03,   0.025,   0.025,   0.02,    0.02  ][i]
+        self.Ec    = [0.1,    0.07,   0.06,   0.06,   0.03,   0.02 ][i]
+        self.Etrk  = [0.08,   0.05,   0.05,   0.04,   0.025,  0.025][i]
+        self.Eecal = [0.06,   0.06,   0.05,   0.05,   0.025,  0.02 ][i]
+        self.Ehcal = [0.05,   0.03,   0.025,  0.025,  0.02,   0.02 ][i]
         
     def cIso(self, iso, p4) :
         absEta = abs(p4.eta())
@@ -166,4 +176,11 @@ class EcalIsoRel(IsoRel) :
     def __init__(self, collection = None) : super(EcalIsoRel,self).__init__(collection, "Dr03EcalRecHitSumEt")
 class HcalIsoRel(IsoRel) :
     def __init__(self, collection = None) : super(HcalIsoRel,self).__init__(collection, "Dr03HcalTowerSumEt")
+##############################
+class ConversionMissingHits(wrappedChain.calculable) :
+    def __init__(self, collection) :
+        self.fixes = collection
+        self.stash(["HcalOverEcal"])
+    def update(self, ignored) :
+        self.value = [0]*len(self.source[self.HcalOverEcal])
 ##############################
