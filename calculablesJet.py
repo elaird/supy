@@ -597,14 +597,18 @@ class deadEcalDR(wrappedChain.calculable) :
         self.moreName = "%s%s; nXtal>=%d"%(self.jets[0], self.jets[1], self.minNXtals)
         
     def update(self, ignored) :
-        jet = self.source["%sCorrectedP4%s"%self.jets].at(self.source[self.dps]["DeltaPhiStarJetIndex"])
-        self.badJet.SetCoordinates(jet.pt(),jet.eta(),jet.phi(),jet.E())
+        index = self.source[self.dps]["DeltaPhiStarJetIndex"]
+        if index!=None :
+            jet = self.source["%sCorrectedP4%s"%self.jets].at(index)
+            self.badJet.SetCoordinates(jet.pt(),jet.eta(),jet.phi(),jet.E())
 
-        dRs = []
-        for iRegion,region in enumerate(self.source["ecalDeadTowerTrigPrimP4"]) :
-            if self.source["ecalDeadTowerNBadXtals"].at(iRegion)<self.minNXtals : continue
-            dRs.append(r.Math.VectorUtil.DeltaR(self.badJet,region))
-        self.value = min(dRs) if len(dRs) else None
+            dRs = []
+            for iRegion,region in enumerate(self.source["ecalDeadTowerTrigPrimP4"]) :
+                if self.source["ecalDeadTowerNBadXtals"].at(iRegion)<self.minNXtals : continue
+                dRs.append(r.Math.VectorUtil.DeltaR(self.badJet,region))
+            self.value = min(dRs) if len(dRs) else None
+        else :
+            self.value = None
 ##############################
 class ResidualCorrectionsFromFile(wrappedChain.calculable) :
     def __init__(self, jets = None) :
