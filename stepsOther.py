@@ -165,9 +165,11 @@ class skimmer(analysisStep) :
         if not self.quietMode : print "The skim file \""+self.outputFileName+"\" has been written."
 #####################################
 class hbheNoiseFilter(analysisStep) :
+    def __init__(self, invert = False) :
+        self.invert = invert
 
     def select (self,eventVars) :
-        return eventVars["hbheNoiseFilterResult"]
+        return eventVars["hbheNoiseFilterResult"]^self.invert
 #####################################
 class variableGreaterFilter(analysisStep) :
 
@@ -636,6 +638,8 @@ class displayer(analysisStep) :
                  eventVars["%s%s%s"  %(j[0], "AlphaTEt",     j[1])],
                  eventVars["%s%s%s%s"%(j[0], "DeltaPhiStar", j[1], self.deltaPhiStarExtraName)]["DeltaPhiStar"],
                  ]
+            for i in range(len(l)) :
+                if l[i]==None : l[i] = -1.0
             self.printText("%14s %4.0f %4.0f %6.3f %4.2f"%tuple([self.renamedDesc(j[0]+j[1])]+l))
 
         self.printText("jet collection   HT  MHT alphaT Dphi*")
