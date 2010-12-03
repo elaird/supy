@@ -462,3 +462,5 @@ def quadraticInterpolation(fZ, fX, fY) :
     return a[0]+fZ*(a[1]+fZ*a[2])
 
 #####################################
+def intFromBits(bits) :
+    return sum([j[1] * (1<<j[0]) for j in enumerate(reversed(bits))])
