@@ -1395,3 +1395,26 @@ class vertexHistogrammer(analysisStep) :
         book.fill( sum(map(sumpt.__getitem__,index[1:])), "vertexGt0SumPt", 100, 0, 400, title = ";secondary vertices #Sigma p_{T};events / bin")
         #book.fill( (sumpt[index[0]], sum(map(sumpt.__getitem__,index[1:]))), "vertexSumPt_0_all", (100,100), (0,0), (1200,400), title = ";primary vertex #Sigma p_{T};secondary vertices #Sigma p_{T};events / bin")
         #book.fill( (sump3[index[0]].rho(), sump3Secondaries.rho()), "vertexMPT_0_all", (100,100), (0,0), (400,200), title = ";primary vertex MPT;secondary verticies MPT;events / bin")
+
+#####################################
+class cutSorter(analysisStep) :
+    def __init__(self, listOfSteps, applySelections = True ) :
+        self.selectors = filter(lambda s: hasattr(s,"select") and type(s)!=passFilter, listOfSteps)
+        self.applySelections = applySelections
+        self.moreName = "Applied" if applySelections else "Not Applied"
+        self.bins = 1 << len(self.selectors)
+
+    def select(self,eventVars) :
+        selections = [s.select(eventVars) for s in self.selectors]
+        self.book(eventVars).fill( utils.intFromBits(selections), "cutSorterConfigurationCounts", 
+                                  self.bins, 0, self.bins, title = ";cutConfiguration;events / bin")
+        return (not self.applySelections) or all(selections)
+        
+    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+        for book in self.books.values() :
+            bins = len(self.selectors)
+            book.fill(1, "cutSorterNames", bins, 0, bins, title = ";cutName")
+            book.fill(1, "cutSorterMoreNames", bins, 0, bins, title = ";cutMoreName")
+            for i,sel in enumerate(self.selectors) :
+                book["cutSorterNames"].GetXaxis().SetBinLabel(i+1,sel.__class__.__name__)
+                book["cutSorterMoreNames"].GetXaxis().SetBinLabel(i+1,sel.moreName)
