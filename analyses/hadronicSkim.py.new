@@ -12,8 +12,8 @@ class hadronicSkim(analysis.analysis) :
         objects = {}
         fields =                           [ "jet",                "muon",       "muonsInJets", "jetPtMin"]
         objects["calo"] = dict(zip(fields, [("xcak5Jet","Pat"),   ("muon","Pat"),        False,      30.0 ]))
-        objects["jpt"]  = dict(zip(fields, [("xcak5JetJPT","Pat"),("muon","Pat"),        False,      30.0 ]))
-        objects["pf"]   = dict(zip(fields, [("xcak5JetPF","Pat"), ("muon","Pat"),        False,      30.0 ]))
+        objects["jpt"]  = dict(zip(fields, [("xcak5JetJPT","Pat"),("muon","Pat"),         True,      30.0 ]))
+        objects["pf"]   = dict(zip(fields, [("xcak5JetPF","Pat"), ("muon","Pat"),         True,      30.0 ]))
         return {"recoAlgos": tuple(objects.iteritems())}
 
     def listOfSteps(self, params) :
