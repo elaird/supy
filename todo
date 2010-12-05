@@ -27,6 +27,7 @@ Other
 * non-linear cutflow
 * histo sculpting
 
+* improve pickling/merging
 * multimode duplicate event checker
 
 * displayer cleans up
