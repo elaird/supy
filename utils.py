@@ -1,5 +1,5 @@
 from multiprocessing import Process,JoinableQueue
-import os,collections,array,math
+import os,collections,array,math,subprocess
 import ROOT as r
 #####################################
 hyphens="-"*95
@@ -112,12 +112,9 @@ def mergeRunLsDicts(runLsDict,outFileName,printHyphens=False) :
     print "The json file",outFileName,"has been written."
     if printHyphens : print hyphens
 #####################################        
-def getCommandOutput2(command):
-    child = os.popen(command)
-    data = child.read()
-    err = child.close()
-    #if err: raise RuntimeError, '%s failed w/ exit code %d' % (command, err)
-    return data
+def getCommandOutput(command):
+    stdout,stderr = subprocess.Popen(command, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE).communicate()
+    return stdout
 #####################################
 def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = "") :
     import re
@@ -160,8 +157,8 @@ def fileListFromSrmLs(location, itemsToSkip = [], sizeThreshold = -1, pruneList 
     output = []
     #print cmd
     while len(output) >= 1000*offset :
-        cmd="srmls --count 1000 --offset %d %s/%s 2>&1 | grep -v JAVA_OPTIONS"% (1000*offset,srmPrefix,location)
-        output += getCommandOutput2(cmd).split('\n')
+        cmd="srmls --count 1000 --offset %d %s/%s"% (1000*offset,srmPrefix,location)
+        output += getCommandOutput(cmd).split('\n')
         offset += 1
     for line in output :
         if ".root" not in line : continue
@@ -184,7 +181,7 @@ def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
     fileList=[]
     cmd="nsls -l "+location
     #print cmd
-    output=getCommandOutput2(cmd)
+    output=getCommandOutput(cmd)
     for line in output.split("\n") :
         if ".root" not in line : continue
         acceptFile=True
@@ -204,7 +201,7 @@ def fileListFromDisk(location, isDirectory = True, itemsToSkip = [], sizeThresho
     fileList=[]
     cmd="ls -l "+location
     #print cmd
-    output=getCommandOutput2(cmd)
+    output=getCommandOutput(cmd)
     for line in output.split("\n") :
         acceptFile=True
         fields=line.split()
