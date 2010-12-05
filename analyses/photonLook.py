@@ -255,20 +255,20 @@ class photonLook(analysis.analysis) :
         from samples import specify
 
         data = [
-            specify(name = "Run2010A_JMT_skim_noIsoReqSkim"),
-            specify(name = "Run2010A_JM_skim_noIsoReqSkim"),
-            specify(name = "Run2010B_J_skim_noIsoReqSkim"),
-            specify(name = "Run2010B_J_skim2_noIsoReqSkim"),
-            specify(name = "Run2010B_MJ_skim_noIsoReqSkim"),
-            specify(name = "Run2010B_MJ_skim2_noIsoReqSkim"),
-            specify(name = "Run2010B_MJ_skim3_noIsoReqSkim"),
-            specify(name = "Run2010B_MJ_skim4_noIsoReqSkim"),
-            specify(name = "Run2010B_MJ_skim5_noIsoReqSkim"),
+            #specify(name = "Run2010A_JMT_skim_noIsoReqSkim"),
+            #specify(name = "Run2010A_JM_skim_noIsoReqSkim"),
+            #specify(name = "Run2010B_J_skim_noIsoReqSkim"),
+            #specify(name = "Run2010B_J_skim2_noIsoReqSkim"),
+            #specify(name = "Run2010B_MJ_skim_noIsoReqSkim"),
+            #specify(name = "Run2010B_MJ_skim2_noIsoReqSkim"),
+            #specify(name = "Run2010B_MJ_skim3_noIsoReqSkim"),
+            #specify(name = "Run2010B_MJ_skim4_noIsoReqSkim"),
+            #specify(name = "Run2010B_MJ_skim5_noIsoReqSkim"),
             
-            #specify(name = "Nov4_MJ_noIsoReqSkim"),
-            #specify(name = "Nov4_J_noIsoReqSkim"),
-            #specify(name = "Nov4_JM_noIsoReqSkim"),
-            #specify(name = "Nov4_JMT_noIsoReqSkim"),
+            specify(name = "Nov4_MJ_noIsoReqSkim"),
+            specify(name = "Nov4_J_noIsoReqSkim"),
+            specify(name = "Nov4_JM_noIsoReqSkim"),
+            specify(name = "Nov4_JMT_noIsoReqSkim"),
             ]
 
         qcd_mg = [
@@ -333,7 +333,8 @@ class photonLook(analysis.analysis) :
             org.mergeSamples(targetSpec = {"name":outName, "color":color}, allWithPrefix = inPrefix)
             return [outName]
 
-        smSources = [item for item in ["z_inv_mg_v12", "z_jets_mg_v12", "w_jets_mg_v12"]]
+        smSources = []
+        #smSources = [item for item in ["z_inv_mg_v12", "z_jets_mg_v12", "w_jets_mg_v12"]]
 
         smSources += go(org, outName = "qcd_mg_v12",     inPrefix = "v12_qcd_mg",     color = r.kBlue )
         smSources += go(org, outName = "g_jets_mg_v12",  inPrefix = "v12_g_jets_mg",  color = r.kGreen)
@@ -342,6 +343,7 @@ class photonLook(analysis.analysis) :
         #org.mergeSamples(targetSpec = {"name":"MG TT+EWK", "color":r.kOrange}, sources = [item for item in ["z_jets_mg_v12", "w_jets_mg_v12", "tt_tauola_mg_v12"]])
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Run2010")
+        org.mergeSamples(targetSpec = {"name":"Nov4ReReco", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Nov4")
             
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
@@ -369,7 +371,8 @@ class photonLook(analysis.analysis) :
         #plot all
         pl = plotter.plotter(org,
                              psFileName = self.psFileName(tag),
-                             samplesForRatios = ("2010 Data","standard_model"),
+                             samplesForRatios = ("Nov4ReReco","standard_model"),
+                             #samplesForRatios = ("2010 Data","standard_model"),
                              sampleLabelsForRatios = ("data","s.m."),
                              #samplesForRatios = ("2010 Data","MG QCD+G"),
                              #sampleLabelsForRatios = ("data","MG"),
