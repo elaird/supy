@@ -25,11 +25,15 @@ dir = "/vols/cms02/elaird1/11_skims/27_oneNoIsoReqPhotonGt80/"
 photon.add("Nov4_MJ_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/MultiJet.Run2010B-Nov4ReReco_v1.RECO.Burt_*_skim.root", isDirectory = False)'%dir,
            lumi = 2.790700e+01)
 photon.add("Nov4_J_noIsoReqSkim",  'utils.fileListFromDisk(location = "%s/Jet.Run2010B-Nov4ReReco_v1.RECO.Burt_*_skim.root", isDirectory = False)'%dir,
-           lumi = 2.875000e+00)
+           lumi = 2.853000e+00)
+photon.add("Nov4_J2_noIsoReqSkim",  'utils.fileListFromDisk(location = "%s/Jet.Run2010B-Nov4ReReco_v1.RECO.Henning_*_skim.root", isDirectory = False)'%dir,
+           lumi = 2.181000e+00)
 photon.add("Nov4_JM_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/JetMET.Run2010A-Nov4ReReco_v1.RECO.Burt_*_skim.root", isDirectory = False)'%dir,
            lumi = 2.895000e+00)
 photon.add("Nov4_JMT_noIsoReqSkim",'utils.fileListFromDisk(location = "%s/JetMETTau.Run2010A-Nov4ReReco_v1.RECO.Burt_*_skim.root", isDirectory = False)'%dir,
            lumi = 1.670000e-01)
+photon.add("Nov4_JMT2_noIsoReqSkim",'utils.fileListFromDisk(location = "%s/JetMETTau.Run2010A-Nov4ReReco_v1.RECO.Henning_*_skim.root", isDirectory = False)'%dir,
+           lumi = 1.170000e-01)
 
 photon.add("v12_g_jets_mg_pt40_100_noIsoReqSkim",  'utils.fileListFromDisk(location = "%s/v12_g_jets_mg_pt40_100_*_skim.root", isDirectory = False)'%dir,
            xs = 4.537900e-03 * 2.999740e+04)
