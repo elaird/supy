@@ -19,8 +19,10 @@ class jsonMaker(analysis.analysis) :
         return [
             specify(name = "Nov4_MJ_skim" ),
             specify(name = "Nov4_J_skim"  ),
+            specify(name = "Nov4_J_skim2"),
             specify(name = "Nov4_JM_skim" ),
             specify(name = "Nov4_JMT_skim"),
+            specify(name = "Nov4_JMT_skim2"),
             ]
                 
     def listOfSampleDictionaries(self) :
