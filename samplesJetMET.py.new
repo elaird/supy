@@ -65,4 +65,5 @@ jetmet.add("pfSkim_fullResCorr", 'utils.fileListFromDisk(location = "/home/hep/e
 jetmet.add("bryns15", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/tmp//eventSkim//config/*_skim.root", isDirectory = False)', lumi = 35.38)
 jetmet.add("hbheNoise_calo", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/31_hbheNoise/hbheNoise_calo_0_skim.root", isDirectory = False)', lumi = 35.38)
 jetmet.add("hbheNoise_pf", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/31_hbheNoise/hbheNoise_pf_0_skim.root", isDirectory = False)', lumi = 35.38)
-jetmet.add("markus5_old", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/32_markus5/old/separate/")', lumi = 35.38)
+jetmet.add("markus5_old", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/32_markus5/old/markus5_old_0_skim.root", isDirectory = False)', lumi = 35.38)
+jetmet.add("markus5_new", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/32_markus5/new/markus5_new_0_skim.root", isDirectory = False)', lumi = 35.38)#Burt's 4 ReReco samples
