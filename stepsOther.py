@@ -526,7 +526,7 @@ class cutSorter(analysisStep) :
     def select(self,eventVars) :
         selections = [s.select(eventVars) for s in self.selectors]
         self.book(eventVars).fill( utils.intFromBits(selections), "cutSorterConfigurationCounts", 
-                                  self.bins, 0, self.bins, title = ";cutConfiguration;events / bin")
+                                  self.bins, -0.5, self.bins-0.5, title = ";cutConfiguration;events / bin")
         return (not self.applySelections) or all(selections)
         
     def endFunc(self,chain,otherChainDict,nEvents,xs) :
