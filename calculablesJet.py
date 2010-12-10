@@ -525,18 +525,6 @@ class mhtOverMet(wrappedChain.calculable) :
     def update(self, ignored) :
         self.value = self.source[self.mht].pt()/self.source[self.met].pt() if self.source[self.mht] else None
 #####################################
-class metPlusPhoton(wrappedChain.calculable) :
-            
-    def __init__(self, met, photons, photonIndex) :
-        self.met = met
-        self.photons = photons
-        self.photonIndex = photonIndex
-        self.moreName = "%s + %s%s[index[%d]]"%(self.met, self.photons[0], self.photons[1], self.photonIndex)
-        
-    def update(self, ignored) :
-        index = self.source["%sIndices%s"%self.photons][self.photonIndex]
-        self.value = self.source[self.met] + self.source["%sP4%s"%self.photons].at(index)
-#####################################
 class mhtMinusMetOverMeff(wrappedChain.calculable) :
 
     def __init__(self, jets, met, etRatherThanPt) :
@@ -637,4 +625,11 @@ class ResidualCorrectionsFromFile(wrappedChain.calculable) :
 
     def update(self, ignored) :
         self.value = {"etaLo":self.etaLo, "etaHi":self.etaHi, "p":self.p}
+#####################################
+class CorrectedP4(wrappedChain.calculable) :
+    def __init__(self, genJets = None) :
+        self.fixes = genJets
+        self.stash(["P4"])
+    def update(self, ignored) :
+        self.value = self.source[self.P4]
 #####################################
