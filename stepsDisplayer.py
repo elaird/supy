@@ -5,26 +5,25 @@ import utils
 #####################################
 class displayer(analysisStep) :
     
-    def __init__(self,jets = ("",""), met = "", muons = "", electrons = "", photons = "", recHits = "",
+    def __init__(self, jets = None, met = None, muons = None, electrons = None, photons = None, taus = None, recHits = None,
                  recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False,
                  doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "", deltaPhiStarCut = None, deltaPhiStarDR = None,
-                 printOtherJetAlgoQuantities = False, jetsOtherAlgo = None, metOtherAlgo = None, markusMode = False, tipToTail = False) :
+                 printOtherJetAlgoQuantities = False, jetsOtherAlgo = None, metOtherAlgo = None, ra1Mode = True, markusMode = False, tipToTail = False) :
 
         self.moreName = "(see below)"
 
-        for item in ["scale","jets","met","muons","electrons","photons","recHits","recHitPtThreshold","doGenParticles",
+        for item in ["scale","jets","met","muons","electrons","photons","taus","recHits","recHitPtThreshold","doGenParticles",
                      "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "deltaPhiStarCut", "deltaPhiStarDR",
-                     "printOtherJetAlgoQuantities", "jetsOtherAlgo", "metOtherAlgo", "markusMode","tipToTail"] :
+                     "printOtherJetAlgoQuantities", "jetsOtherAlgo", "metOtherAlgo", "ra1Mode", "markusMode","tipToTail"] :
             setattr(self,item,eval(item))
 
         self.jetRadius = 0.7 if "ak7Jet" in self.jets[0] else 0.5
         self.genJets = self.jets
-        self.genMet  = self.met.replace("P4","GenMetP4")
+        self.genMet  = self.met.replace("P4","GenMetP4") if self.met else self.met
         self.deltaHtName = "%sDeltaPseudoJetEt%s"%self.jets if etRatherThanPt else "%sDeltaPseudoJetPt%s"%self.jets
         
         self.doGen = False
         self.doReco = not self.doGenParticles
-        self.doLeptons = not self.markusMode
         self.helper = r.displayHelper()
 
         self.markusReName = {
@@ -48,7 +47,7 @@ class displayer(analysisStep) :
         
 
     def switchGenOn(self) :
-        self.doGen=True
+        self.doGen = True
 
     def setup(self,chain,fileDir,name,outputDir) :
         someDir=r.gDirectory
@@ -251,7 +250,7 @@ class displayer(analysisStep) :
                 break
             jet=p4Vector[iJet]
 
-            outString = "%1s%1s"% ("L" if loose.at(iJet) else " ", "T" if tight.at(iJet) else " ")
+            outString = "%1s%1s"% ("L" if loose[iJet] else " ", "T" if tight[iJet] else " ")
             outString+="%5.0f %4.1f %4.1f"%(jet.pt(), jet.eta(), jet.phi())
 
             if not isPf :
@@ -475,7 +474,7 @@ class displayer(analysisStep) :
         self.legendFunc(color, name = "%sdeltaHt%s"%self.jets, desc = "#DeltaH_{T} (%s%s)"%self.jets)
 
         y = coords["y0"]-coords["radius"]-0.03
-        l=eventVars[self.deltaHtName]*coords["radius"]/coords["scale"]
+        l = eventVars[self.deltaHtName]*coords["radius"]/coords["scale"]
         self.line.SetLineColor(color)
         self.line.DrawLine(coords["x0"]-l/2.0, y, coords["x0"]+l/2.0, y)
 
@@ -484,6 +483,7 @@ class displayer(analysisStep) :
         self.drawP4(coords, eventVars[self.met], color, lineWidth, arrowSize)
             
     def drawGenMet(self, eventVars, coords, color, lineWidth, arrowSize) :
+        if self.genMet==None : return
         self.legendFunc(color, name = "genMet", desc = "GEN MET (%s)"%self.genMet)
         self.drawP4(coords, eventVars[self.genMet], color, lineWidth, arrowSize)
             
@@ -568,19 +568,20 @@ class displayer(analysisStep) :
             value = 0.087/2
             args = (fourVector.eta()-value, fourVector.phi()-value, fourVector.eta()+value, fourVector.phi()+value)
             self.hcalBox.DrawBox(*args)
-                
-        #draw dead ECAL regions
-        nRegions = eventVars["ecalDeadTowerTrigPrimP4"].size()
-        for iRegion in range(nRegions) :
-            drawEcalBox(fourVector = eventVars["ecalDeadTowerTrigPrimP4"].at(iRegion),
-                        nBadXtals  = eventVars["ecalDeadTowerNBadXtals"].at(iRegion),
-                        maxStatus  = eventVars["ecalDeadTowerMaxStatus"].at(iRegion),
-                        )
 
-        #draw masked HCAL regions
-        nBadHcalChannels = eventVars["hcalDeadChannelP4"].size()
-        for iChannel in range(nBadHcalChannels) :
-            drawHcalBox(fourVector = eventVars["hcalDeadChannelP4"].at(iChannel))
+        if self.ra1Mode :
+            #draw dead ECAL regions
+            nRegions = eventVars["ecalDeadTowerTrigPrimP4"].size()
+            for iRegion in range(nRegions) :
+                drawEcalBox(fourVector = eventVars["ecalDeadTowerTrigPrimP4"].at(iRegion),
+                            nBadXtals  = eventVars["ecalDeadTowerNBadXtals"].at(iRegion),
+                            maxStatus  = eventVars["ecalDeadTowerMaxStatus"].at(iRegion),
+                            )
+
+            #draw masked HCAL regions
+            nBadHcalChannels = eventVars["hcalDeadChannelP4"].size()
+            for iChannel in range(nBadHcalChannels) :
+                drawHcalBox(fourVector = eventVars["hcalDeadChannelP4"].at(iChannel))
 
         if self.doGenParticles :
             self.drawGenParticles(eventVars,r.kMagenta, lineWidth = 1, arrowSize = -1.0, statusList = [1], pdgIdList = [22],
@@ -588,12 +589,11 @@ class displayer(analysisStep) :
             self.drawGenParticles(eventVars,r.kOrange, lineWidth = 1, arrowSize = -1.0, statusList = [1], pdgIdList = [22],
                                   motherList = [22], label = "status 1 photon w/photon as mother", circleRadius = 0.15)
         else :
-            d = eventVars["%sDeltaPhiStar%s%s"%(self.jets[0],self.jets[1],self.deltaPhiStarExtraName)]
-            suspiciousJetIndex = d["DeltaPhiStarJetIndex"]
-            deltaPhiStar = d["DeltaPhiStar"]
-            #title = "#Delta#phi * = %6.4f"%d["DeltaPhiStar"]
-            #title+= "#semicolon index = %d"%suspiciousJetIndex
             etaPhiPlot.SetTitle("")
+            if self.ra1Mode :
+                d = eventVars["%sDeltaPhiStar%s%s"%(self.jets[0],self.jets[1],self.deltaPhiStarExtraName)]
+                suspiciousJetIndex = d["DeltaPhiStarJetIndex"]
+                deltaPhiStar = d["DeltaPhiStar"]
 
             suspiciousJetLegendEntry = False
             jets = eventVars["%sCorrectedP4%s"%self.jets]
@@ -603,28 +603,30 @@ class displayer(analysisStep) :
                     self.drawCircle(jet, r.kBlue, lineWidth = 1, circleRadius = self.jetRadius)
                 else :
                     self.drawCircle(jet, r.kCyan, lineWidth = 1, circleRadius = self.jetRadius)
-                if index==suspiciousJetIndex and deltaPhiStar<self.deltaPhiStarCut :
+                if self.ra1Mode and index==suspiciousJetIndex and deltaPhiStar<self.deltaPhiStarCut :
                     self.drawCircle(jet, suspiciousJetColor, lineWidth = 1, circleRadius = self.deltaPhiStarDR, lineStyle = suspiciousJetStyle)
                     suspiciousJetLegendEntry = True
-                    
 
-        legend1 = r.TLegend(0.02, 0.9, 0.72, 1.0)
-        legend1.SetFillStyle(0)
-        legend1.SetBorderSize(0)
-        legend1.AddEntry(self.deadBox,"dead ECAL cells","f")
-        legend1.AddEntry(self.coldBox,"dead ECAL cells w/TP link","f")
-        legend1.AddEntry(self.hotBox, "dead ECAL cells w/TP ET>%4.1f GeV"%self.hotTpThreshold,"f")
-        legend1.Draw()
+            legend1 = r.TLegend(0.02, 0.9, 0.72, 1.0)
+            legend1.SetFillStyle(0)
+            legend1.SetBorderSize(0)
+            if self.ra1Mode : 
+                legend1.AddEntry(self.deadBox,"dead ECAL cells","f")
+                legend1.AddEntry(self.coldBox,"dead ECAL cells w/TP link","f")
+                legend1.AddEntry(self.hotBox, "dead ECAL cells w/TP ET>%4.1f GeV"%self.hotTpThreshold,"f")
+                legend1.Draw()
 
-        legend2 = r.TLegend(0.58, 0.933, 0.98, 1.0)
-        legend2.SetFillStyle(0)
-        legend2.SetBorderSize(0)
-        legend2.AddEntry(self.hcalBox,"masked HCAL cells","f")
-        self.ellipse.SetLineColor(suspiciousJetColor)
-        self.ellipse.SetLineStyle(suspiciousJetStyle)
-        if suspiciousJetLegendEntry :
-            legend2.AddEntry(self.ellipse,"jet with min. #Delta#phi* < %3.1f"%self.deltaPhiStarCut,"l")
-        legend2.Draw()
+            legend2 = r.TLegend(0.58, 0.933, 0.98, 1.0)
+            legend2.SetFillStyle(0)
+            legend2.SetBorderSize(0)
+
+            if self.ra1Mode : 
+                legend2.AddEntry(self.hcalBox,"masked HCAL cells","f")
+                self.ellipse.SetLineColor(suspiciousJetColor)
+                self.ellipse.SetLineStyle(suspiciousJetStyle)
+                if suspiciousJetLegendEntry :
+                    legend2.AddEntry(self.ellipse,"jet with min. #Delta#phi* < %3.1f"%self.deltaPhiStarCut,"l")
+                legend2.Draw()
 
         self.canvas.cd()
         pad.Draw()
@@ -775,19 +777,26 @@ class displayer(analysisStep) :
         
             self.drawIgnoredJets    (eventVars, coords,r.kCyan    , defWidth, defArrowSize*1/6.0)
             #self.drawOtherJets      (eventVars, coords,r.kBlack  )
-            if not self.markusMode :
+            if self.ra1Mode and not self.markusMode :
                 self.drawHt         (eventVars, coords,r.kBlue+3  , defWidth, defArrowSize*1/6.0)
                 self.drawNJetDeltaHt(eventVars, coords,r.kBlue-9  , defWidth, defArrowSize*1/6.0)
-            self.drawMht            (eventVars, coords,r.kRed     , defWidth, defArrowSize*3/6.0)
-            self.drawMet            (eventVars, coords,r.kGreen   , defWidth, defArrowSize*2/6.0)
+
+            if self.ra1Mode :
+                self.drawMht        (eventVars, coords,r.kRed     , defWidth, defArrowSize*3/6.0)
+            if self.met :
+                self.drawMet        (eventVars, coords,r.kGreen   , defWidth, defArrowSize*2/6.0)
             
-            if self.doLeptons :
+            if self.muons :
                 self.drawMuons      (eventVars, coords,r.kYellow  , defWidth, defArrowSize*2/6.0)
+            if self.electrons :
                 self.drawElectrons  (eventVars, coords,r.kOrange+7, defWidth, defArrowSize*2.5/6.0)
+            if self.photons :
                 self.drawPhotons    (eventVars, coords,r.kOrange  , defWidth, defArrowSize*1.8/6.0)
-                #self.drawTaus       (eventVars, coords,r.kYellow  , defWidth, defArrowSize*2/6.0)
+            if self.taus :
+                self.drawTaus       (eventVars, coords,r.kYellow  , defWidth, defArrowSize*2/6.0)
             
-            self.drawCleanedRecHits (eventVars, coords,r.kOrange-6, defWidth, defArrowSize*2/6.0)
+            if self.recHits :
+                self.drawCleanedRecHits (eventVars, coords,r.kOrange-6, defWidth, defArrowSize*2/6.0)
 
         self.canvas.cd()
         pad.Draw()
@@ -827,18 +836,22 @@ class displayer(analysisStep) :
         if self.printOtherJetAlgoQuantities :
             self.printJets(   eventVars, params = defaults, coords = {"x":x0, "y":0.60}, jets = self.jetsOtherAlgo, nMax = 7)
         else :
-            self.printPhotons(  eventVars, params = defaults, coords = {"x":x0,      "y":y0-0.20}, photons = self.photons, nMax = 3)
-            self.printElectrons(eventVars, params = defaults, coords = {"x":x0+0.50, "y":y0-0.20}, electrons = self.electrons, nMax = 3)
-            self.printMuons(    eventVars, params = defaults, coords = {"x":x0,      "y":y0-0.36}, muons = self.muons, nMax = 3)
+            if self.photons :
+                self.printPhotons(  eventVars, params = defaults, coords = {"x":x0,      "y":y0-0.20}, photons = self.photons, nMax = 3)
+            if self.electrons :
+                self.printElectrons(eventVars, params = defaults, coords = {"x":x0+0.50, "y":y0-0.20}, electrons = self.electrons, nMax = 3)
+            if self.muons :
+                self.printMuons(    eventVars, params = defaults, coords = {"x":x0,      "y":y0-0.36}, muons = self.muons, nMax = 3)
 
-        self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":y0     }, jets = self.jets, jets2 = self.jetsOtherAlgo,
-                                     others = self.printOtherJetAlgoQuantities)
-        self.printCutBits(           eventVars, params = defaults, coords = {"x":x0, "y":y0-0.10}, jets = self.jets, jets2 = self.jetsOtherAlgo,
-                                     met = self.met, met2 = self.metOtherAlgo, others = self.printOtherJetAlgoQuantities)
-        self.printFlags(eventVars, params = defaults, coords = {"x":x0, "y":y0-0.34},
-                        flags = ['logErrorTooManyClusters','logErrorTooManySeeds',
-                                 "beamHaloCSCLooseHaloId","beamHaloCSCTightHaloId","beamHaloEcalLooseHaloId","beamHaloEcalTightHaloId",
-                                 "beamHaloGlobalLooseHaloId","beamHaloGlobalTightHaloId","beamHaloHcalLooseHaloId","beamHaloHcalTightHaloId" ])
+        if self.ra1Mode :
+            self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":y0     }, jets = self.jets, jets2 = self.jetsOtherAlgo,
+                                         others = self.printOtherJetAlgoQuantities)
+            self.printCutBits(           eventVars, params = defaults, coords = {"x":x0, "y":y0-0.10}, jets = self.jets, jets2 = self.jetsOtherAlgo,
+                                         met = self.met, met2 = self.metOtherAlgo, others = self.printOtherJetAlgoQuantities)
+            self.printFlags(eventVars, params = defaults, coords = {"x":x0, "y":y0-0.34},
+                            flags = ['logErrorTooManyClusters','logErrorTooManySeeds',
+                                     "beamHaloCSCLooseHaloId","beamHaloCSCTightHaloId","beamHaloEcalLooseHaloId","beamHaloEcalTightHaloId",
+                                     "beamHaloGlobalLooseHaloId","beamHaloGlobalTightHaloId","beamHaloHcalLooseHaloId","beamHaloHcalTightHaloId" ])
 
         self.canvas.cd()
         pad.Draw()
@@ -851,7 +864,7 @@ class displayer(analysisStep) :
         rhoPhiPadXSize = 0.50
         radius = 0.4
         g1 = self.drawRhoPhiPlot(eventVars,
-                                 coords = {"scale":400.0, "radius":radius, "x0":radius, "y0":radius+0.05},
+                                 coords = {"scale":self.scale, "radius":radius, "x0":radius, "y0":radius+0.05},
                                  corners = {"x1":0.0, "y1":0.0, "x2":rhoPhiPadXSize, "y2":rhoPhiPadYSize},
                                  )
         l = self.drawLegend(corners = {"x1":0.0, "y1":rhoPhiPadYSize, "x2":1.0-rhoPhiPadYSize, "y2":1.0})
@@ -864,7 +877,7 @@ class displayer(analysisStep) :
                                                            "y2":rhoPhiPadYSize + 0.22*self.canvas.GetAspectRatio()})
             
         if self.doReco :
-            if not self.markusMode :
+            if self.ra1Mode and not self.markusMode :
                 g3 = self.drawAlphaPlot(eventVars, r.kBlack, showAlphaTMet = True,
                                         corners = {"x1":rhoPhiPadXSize - 0.08,
                                                    "y1":0.0,
