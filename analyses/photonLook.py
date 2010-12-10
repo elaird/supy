@@ -59,7 +59,7 @@ class photonLook(analysis.analysis) :
                calculables.fromCollections(calculables.electron,[obj["electron"]]) +\
                calculables.fromCollections(calculables.photon,[obj["photon"]]) +\
                [ calculables.xclean.xcJet( obj["jet"],
-                                           applyResidualCorrectionsToData = True,
+                                           #applyResidualCorrectionsToData = True,
                                            gamma = obj["photon"],
                                            gammaDR = 0.5,
                                            muon = obj["muon"],
@@ -71,7 +71,7 @@ class photonLook(analysis.analysis) :
                  calculables.jet.Indices( obj["jet"], _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
                  calculables.jet.Indices( obj["jet"], params["lowPtThreshold"], etaMax = 3.0, flagName = params["jetId"], extraName = params["lowPtName"]),
                  calculables.muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
-                 calculables.electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
+                 calculables.electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95NoConversionRejection", useCombinedIso = True),
                  calculables.photon.photonIndicesPat(  ptMin = 25, flagName = params["photonId"]),
 
                  calculables.gen.genIndices( pdgs = [22], label = "Status3Photon", status = [3]),
@@ -96,8 +96,8 @@ class photonLook(analysis.analysis) :
                      calculables.jet.AlphaTWithPhoton1PtRatherThanMht(obj["jet"], photons = obj["photon"], etRatherThanPt = _etRatherThanPt),
                      calculables.jet.AlphaT(obj["jet"], _etRatherThanPt),
                      calculables.jet.AlphaTMet(obj["jet"], _etRatherThanPt, obj["met"]),
-                     calculables.jet.metPlusPhoton(met = "metP4PF", photons = obj["photon"], photonIndex = 0),
-                     calculables.jet.mhtIncludingPhotonsOverMet(obj["jet"], "metP4PF", _etRatherThanPt),
+                     #calculables.jet.metPlusPhotons(met = obj["met"], photons = obj["photon"]),
+                     #calculables.jet.mhtOverMet(jet, met = "%sPlus%s%s"%(obj["met"], obj["photon"][0], obj["photon"][1])),
                      calculables.other.vertexID(),
                      calculables.other.vertexIndices(),
                      calculables.jet.deadEcalDR(obj["jet"], extraName = params["lowPtName"], minNXtals = 10),
@@ -190,7 +190,9 @@ class photonLook(analysis.analysis) :
             steps.photon1PtOverHtHistogrammer(jets = _jet, photons = _photon, etRatherThanPt = _etRatherThanPt),
             
             steps.variablePtGreaterFilter(params["thresholds"]["mht"],"%sSumP4%s"%_jet,"GeV"),
-            steps.histogrammer("%sAlphaTEt%s"%_jet, 4, 0.0, 0.55*4, title=";#alpha_{T};events / bin"),
+
+            steps.alphaHistogrammer(_jet, deltaPhiStarExtraName = "", etRatherThanPt = _etRatherThanPt),            
+            #steps.histogrammer("%sAlphaTEt%s"%_jet, 4, 0.0, 0.55*4, title=";#alpha_{T};events / bin"),
             steps.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
                                funcString="lambda x:len(x)"),
             steps.passFilter("singlePhotonPlots2"),
@@ -211,7 +213,7 @@ class photonLook(analysis.analysis) :
             steps.photonPurityPlots("Status1Photon", _jet, _photon),
             steps.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             
-            #steps.histogrammer("mhtOverMet", 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
+            #steps.histogrammer("mhtOverMet", 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met+"Plus%s%s"%_photon)),
             #steps.variableLessFilter(1.25,"mhtOverMet"),
             steps.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
         
@@ -255,20 +257,22 @@ class photonLook(analysis.analysis) :
         from samples import specify
 
         data = [
-            #specify(name = "Run2010A_JMT_skim_noIsoReqSkim"),
-            #specify(name = "Run2010A_JM_skim_noIsoReqSkim"),
-            #specify(name = "Run2010B_J_skim_noIsoReqSkim"),
-            #specify(name = "Run2010B_J_skim2_noIsoReqSkim"),
-            #specify(name = "Run2010B_MJ_skim_noIsoReqSkim"),
-            #specify(name = "Run2010B_MJ_skim2_noIsoReqSkim"),
-            #specify(name = "Run2010B_MJ_skim3_noIsoReqSkim"),
-            #specify(name = "Run2010B_MJ_skim4_noIsoReqSkim"),
+            #specify(name = "Nov4_MJ_noIsoReqSkim"),
+            #specify(name = "Nov4_J_noIsoReqSkim"),
+            #specify(name = "Nov4_J2_noIsoReqSkim"),
+            #specify(name = "Nov4_JM_noIsoReqSkim"),
+            #specify(name = "Nov4_JMT_noIsoReqSkim"),
+            #specify(name = "Nov4_JMT2_noIsoReqSkim"),
+
+            specify(name = "Run2010A_JMT_skim_noIsoReqSkim"),
+            specify(name = "Run2010A_JM_skim_noIsoReqSkim"),
+            specify(name = "Run2010B_J_skim_noIsoReqSkim"),
+            specify(name = "Run2010B_J_skim2_noIsoReqSkim"),
+            specify(name = "Run2010B_MJ_skim_noIsoReqSkim"),
+            specify(name = "Run2010B_MJ_skim2_noIsoReqSkim"),
+            specify(name = "Run2010B_MJ_skim3_noIsoReqSkim"),
+            specify(name = "Run2010B_MJ_skim4_noIsoReqSkim"),
             #specify(name = "Run2010B_MJ_skim5_noIsoReqSkim"),
-            
-            specify(name = "Nov4_MJ_noIsoReqSkim"),
-            specify(name = "Nov4_J_noIsoReqSkim"),
-            specify(name = "Nov4_JM_noIsoReqSkim"),
-            specify(name = "Nov4_JMT_noIsoReqSkim"),
             ]
 
         qcd_mg = [
@@ -343,7 +347,7 @@ class photonLook(analysis.analysis) :
         #org.mergeSamples(targetSpec = {"name":"MG TT+EWK", "color":r.kOrange}, sources = [item for item in ["z_jets_mg_v12", "w_jets_mg_v12", "tt_tauola_mg_v12"]])
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Run2010")
-        org.mergeSamples(targetSpec = {"name":"Nov4ReReco", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Nov4")
+        #org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Nov4")
             
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
@@ -371,8 +375,7 @@ class photonLook(analysis.analysis) :
         #plot all
         pl = plotter.plotter(org,
                              psFileName = self.psFileName(tag),
-                             samplesForRatios = ("Nov4ReReco","standard_model"),
-                             #samplesForRatios = ("2010 Data","standard_model"),
+                             samplesForRatios = ("2010 Data","standard_model"),
                              sampleLabelsForRatios = ("data","s.m."),
                              #samplesForRatios = ("2010 Data","MG QCD+G"),
                              #sampleLabelsForRatios = ("data","MG"),
@@ -404,7 +407,12 @@ class photonLook(analysis.analysis) :
                              doLog = False,
                              anMode = True,
                              )
-        pl.individualPlots(plotSpecs = [#{"plotName":"xcak5JetAlphaTEtPat",
+        pl.individualPlots(plotSpecs = [#{"plotName":"xcak5JetAlphaTFewBinsPat",
+                                        # "selName" :"variablePtGreaterFilter",
+                                        # "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
+                                        # "newTitle":";#alpha_{T};events / bin / 35 pb^{-1}"},
+                                        #
+                                        #{"plotName":"xcak5JetAlphaTRoughPat",
                                         # "selName" :"variablePtGreaterFilter",
                                         # "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
                                         # "newTitle":";#alpha_{T};events / bin / 35 pb^{-1}"},
@@ -414,11 +422,11 @@ class photonLook(analysis.analysis) :
                                         # "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
                                         # "newTitle":";N_{jets};events / bin / 35 pb^{-1}"},
                                         #
-                                        ##{"plotName":"photonPat1MinDRToJet",
-                                        ## "selName" :"passFilter",
-                                        ## "selDesc" :"singlePhotonPlots2",
-                                        ## "newTitle":";#DeltaR(photon, nearest jet);events / bin / 35 pb^{-1}",
-                                        ## "reBinFactor":3},
+                                        #{"plotName":"photonPat1MinDRToJet",
+                                        # "selName" :"passFilter",
+                                        # "selDesc" :"singlePhotonPlots2",
+                                        # "newTitle":";#DeltaR(photon, nearest jet);events / bin / 35 pb^{-1}",
+                                        # "reBinFactor":3},
                                         #
                                         #{"plotName":"photonPat1SeedTime",
                                         # "selName" :"passFilter",
@@ -431,10 +439,10 @@ class photonLook(analysis.analysis) :
                                         # "selDesc" :"singlePhotonPlots2",
                                         # "newTitle":";#sigma_{i#eta i#eta};events / bin / 35 pb^{-1}"},
                                         
-                                        {"plotName":"photonPat1combinedIsolation",
-                                         "selName" :"passFilter",
-                                         "selDesc" :"singlePhotonPlots2",
-                                         "onlyDumpToFile":True},
+                                        #{"plotName":"photonPat1combinedIsolation",
+                                        # "selName" :"passFilter",
+                                        # "selDesc" :"singlePhotonPlots2",
+                                        # "onlyDumpToFile":True},
 
                                         ],
                            newSampleNames = {"qcd_mg_v12": "Madgraph QCD",
