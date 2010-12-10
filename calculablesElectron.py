@@ -17,7 +17,7 @@ class Indices(wrappedChain.calculable) :
         self.eID = ("%sID"+simpleEleID+"%s")% self.fixes
         self.eIso = ("%s"+isotype+"Iso"+simpleEleID+"%s") % self.fixes
         self.ptMin = ptMin
-        self.moreName = "pt>%.1f; simple%s; %sIso; old samples have missing hits = 0" % (ptMin, simpleEleID, isotype)
+        self.moreName = "pt>%.1f; simple%s; %sIso" % (ptMin, simpleEleID, isotype)
 
     def update(self,ignored) :
         self.value = []
@@ -34,9 +34,10 @@ class Indices(wrappedChain.calculable) :
 class ID(wrappedChain.calculable) :
     def id(self, hoe, dphi, deta, sieie, missingHits, dist, DcotTh, p4) :
         absEta = abs(p4.eta())
-        convRej = missingHits <= self.missingHits and (self.dist==None or dist < self.dist) and (self.DcotTh==None or DcotTh < self.DcotTh)
-        return convRej and hoe < self.Bhoe and dphi < self.Bdphi and deta < self.Bdeta and sieie < self.Bsieie if absEta < barrelEtaMax else \
-               convRej and hoe < self.Ehoe and dphi < self.Edphi and deta < self.Edeta and sieie < self.Esieie if absEta > endcapEtaMin else \
+        notConv = missingHits <= self.missingHits and (self.dist==None or dist < self.dist) and (self.DcotTh==None or DcotTh < self.DcotTh)
+        notConv|= not self.rejectConversions
+        return notConv and hoe < self.Bhoe and dphi < self.Bdphi and deta < self.Bdeta and sieie < self.Bsieie if absEta < barrelEtaMax else \
+               notConv and hoe < self.Ehoe and dphi < self.Edphi and deta < self.Edeta and sieie < self.Esieie if absEta > endcapEtaMin else \
                None
 
     def update(self,ignored) :
@@ -51,11 +52,14 @@ class ID(wrappedChain.calculable) :
                          self.source[self.P4])
 
     # https://twiki.cern.ch/twiki/bin/viewauth/CMS/SimpleCutBasedEleID
-    def __init__(self,collection, eff) :
+    def __init__(self, collection, eff, rejectConversions = True) :
         self.fixes = collection
         self.stash(["HcalOverEcal","DeltaPhiSuperClusterTrackAtVtx","DeltaEtaSuperClusterTrackAtVtx","SigmaIetaIeta",
                     "ConversionDist", "ConversionDCot", "ConversionMissingHits","P4"])
         i = ["95","90","85","80","70","60"].index(eff)
+        self.rejectConversions = rejectConversions
+        if self.rejectConversions : self.moreName = "old samples have missing hits = 0"
+        
         self.Bsieie = [0.01,    0.01,    0.01,    0.01,    0.01,    0.01  ][i]
         self.Bdphi  = [0.80,    0.80,    0.06,    0.06,    0.03,    0.025 ][i]
         self.Bdeta  = [0.007,   0.007,   0.006,   0.004,   0.004,   0.004 ][i]
@@ -69,6 +73,8 @@ class ID(wrappedChain.calculable) :
         self.dist   = [None,    0.02,    0.02,    0.02,    0.02,    0.02  ][i]
         self.DcotTh = [None,    0.02,    0.02,    0.02,    0.02,    0.02  ][i]
         
+class ID95NoConversionRejection(ID) :
+    def __init__(self,collection) : super(ID95NoConversionRejection,self).__init__(collection,"95", rejectConversions = False)
 class ID95(ID) :
     def __init__(self,collection) : super(ID95,self).__init__(collection,"95")
 class ID90(ID) :
@@ -119,6 +125,8 @@ class Iso(wrappedChain.calculable) :
                          self.source[self.EcalIsoRel],
                          self.source[self.HcalIsoRel],
                          self.source[self.P4])
+class cIso95NoConversionRejection(Iso) :
+    def __init__(self,collection) : super(cIso95NoConversionRejection,self).__init__(collection,"95", True)
 class cIso95(Iso) :
     def __init__(self,collection) : super(cIso95,self).__init__(collection,"95", True)
 class cIso90(Iso) :
