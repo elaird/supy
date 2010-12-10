@@ -7,35 +7,47 @@ class photonIndicesOtherPat(calculables.indicesOther) :
         self.moreName = "pass ptMin; fail id/iso"
 ##############################
 class photonIndicesPat(wrappedChain.calculable) :
-
     def __init__(self, ptMin = None, flagName = None ):
         self.ptMin = ptMin
         self.flagName = flagName
         self.moreName = "pT>=%.1f GeV; %s"% (ptMin, flagName if flagName else "")
-
     def update(self,ignored) :
         p4s = self.source["photonP4Pat"]
         ids = self.source[self.flagName] if self.flagName else p4s.size()*[1]
         self.value = []
         other = self.source["photonIndicesOtherPat"]
-        
         for i in range(p4s.size()):
             if p4s.at(i).pt() < self.ptMin: continue
             elif ids[i] : self.value.append(i)
             else: other.append(i)
 ##############################
-class sumEt(wrappedChain.calculable) :
-    def name(self) : return "%sSumEt%s"% self.cs
-
+class SumP4(wrappedChain.calculable) :
     def __init__(self, collection = None) :
-        self.cs = collection
-        self.p4Name = '%sP4%s' % self.cs
-        self.indicesName = "%sIndices%s" % self.cs
-
-    def update(self,ignored) :
-        p4s = self.source[self.p4Name]
-        indices = self.source[self.indicesName]
+        self.fixes = collection
+        self.stash(["Indices","P4"])
+    def update(self, ignored) :
+        p4s = self.source[self.P4]
+        indices = self.source[self.Indices]
+        self.value = reduce( lambda x,i: x+p4s.at(i), indices, r.LorentzV()) if len(indices) else None
+##############################
+class SumEt(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","P4"])
+    def update(self, ignored) :
+        p4s = self.source[self.P4]
+        indices = self.source[self.Indices]
         self.value = reduce( lambda x,i: x+p4s.at(i).Et(), indices , 0)
+##############################
+class metPlusPhotons(wrappedChain.calculable) :
+    def name(self) :
+        return "%sPlus%s%s"%(self.met, self.photons[0], self.photons[1])
+    def __init__(self, met, photons) :
+        self.met = met
+        self.photons = photons
+        self.moreName = "%s + %s%s"%(self.met, self.photons[0], self.photons[1])
+    def update(self, ignored) :
+        self.value = self.source[self.met] + self.source["%sSumP4%s"%self.photons]
 ##############################
 class minDeltaRToJet(wrappedChain.calculable) :
     def name(self) : return "%s%sMinDeltaRToJet%s%s"% (self.photons[0], self.photons[1], self.jets[0], self.jets[1])
