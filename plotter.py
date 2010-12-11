@@ -16,20 +16,21 @@ def combineBinContentAndError(histo, binToContainCombo, binToBeKilled) :
     currentContent = histo.GetBinContent(binToContainCombo)
     currentError   = histo.GetBinError(binToContainCombo)
     
-    histo.SetBinContent(binToBeKilled,0.0)
+    histo.SetBinContent(binToBeKilled, 0.0)
     histo.SetBinContent(binToContainCombo, currentContent+xflows)
     
-    histo.SetBinError(binToBeKilled,0.0)
+    histo.SetBinError(binToBeKilled, 0.0)
     histo.SetBinError(binToContainCombo, math.sqrt(xflowError**2+currentError**2))
 ##############################
-def shiftUnderAndOverflows(histo) :
-    bins = histo.GetNbinsX()
-    entries = histo.GetEntries()
-    
-    combineBinContentAndError(histo, binToContainCombo = 1   , binToBeKilled = 0     )
-    combineBinContentAndError(histo, binToContainCombo = bins, binToBeKilled = bins+1)
-
-    histo.SetEntries(entries)
+def shiftUnderAndOverflows(dimension, histos, dontShiftList = []) :
+    if dimension!=1 : return
+    for histo in histos: 
+        if histo.GetName() in dontShiftList : continue
+        bins = histo.GetNbinsX()
+        entries = histo.GetEntries()
+        combineBinContentAndError(histo, binToContainCombo = 1   , binToBeKilled = 0     )
+        combineBinContentAndError(histo, binToContainCombo = bins, binToBeKilled = bins+1)
+        histo.SetEntries(entries)
 ##############################
 def dimensionOfHisto(histos) :
     dimensions=[]
@@ -461,6 +462,7 @@ class plotter(object) :
         self.prepareCanvas(histos, dimension)
 
         if ignoreHistos==None : ignoreHistos = [False]*len(histos)
+        if self.shiftUnderOverFlows : shiftUnderAndOverflows(dimension, histos, self.dontShiftList)
         self.setRanges(histos, *self.getExtremes(dimension, histos, ignoreHistos))
 
         if individual : 
@@ -476,10 +478,7 @@ class plotter(object) :
         if individual :
             return stuffToKeep
 
-    def plot1D(self,histo,count,stuffToKeep) :
-        if self.shiftUnderOverFlows and histo.GetName() not in self.dontShiftList :
-            shiftUnderAndOverflows(histo)
-
+    def plot1D(self, histo, count, stuffToKeep) :
         adjustPad(r.gPad, self.anMode)
         if count==0 :
             histo.SetStats(self.showStatBox)
