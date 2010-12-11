@@ -161,7 +161,7 @@ class photonLook(analysis.analysis) :
                 ]
         else :
             outList+=[
-                steps.multiplicityFilter("%sIndices%s"%_photon, nMax = 0),                
+                steps.multiplicityFilter("%sIndices%s"%_photon, nMax = 0),
                 ]
 
         outList+=[
