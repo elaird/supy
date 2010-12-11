@@ -70,6 +70,7 @@ class photonLook(analysis.analysis) :
                  calculables.jet.Indices( obj["jet"], _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
                  calculables.jet.Indices( obj["jet"], params["lowPtThreshold"], etaMax = 3.0, flagName = params["jetId"], extraName = params["lowPtName"]),
                  calculables.muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
+                 #calculables.electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
                  calculables.electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95NoConversionRejection", useCombinedIso = True),
                  calculables.photon.photonIndicesPat(  ptMin = 25, flagName = params["photonId"]),
 
@@ -87,16 +88,14 @@ class photonLook(analysis.analysis) :
                  ] \
                  + [ calculables.jet.SumP4(obj["jet"]),
                      calculables.jet.SumP4(obj["jet"], extraName = params["lowPtName"]),
-                     #calculables.jet.SumP4PlusPhotons(obj["jet"], extraName = "", photon = obj["photon"]),
                      calculables.jet.DeltaPhiStar(obj["jet"], extraName = ""),
                      calculables.jet.DeltaPhiStar(obj["jet"], extraName = params["lowPtName"]),
-                     #calculables.jet.DeltaPhiStarIncludingPhotons(obj["jet"], photons = obj["photon"], extraName = ""),
                      calculables.jet.DeltaPseudoJet(obj["jet"], _etRatherThanPt),
                      calculables.jet.AlphaTWithPhoton1PtRatherThanMht(obj["jet"], photons = obj["photon"], etRatherThanPt = _etRatherThanPt),
                      calculables.jet.AlphaT(obj["jet"], _etRatherThanPt),
                      calculables.jet.AlphaTMet(obj["jet"], _etRatherThanPt, obj["met"]),
-                     #calculables.jet.metPlusPhotons(met = obj["met"], photons = obj["photon"]),
-                     #calculables.jet.mhtOverMet(jet, met = "%sPlus%s%s"%(obj["met"], obj["photon"][0], obj["photon"][1])),
+                     calculables.jet.mhtOverMet(obj["jet"], met = "%sPlus%s%s"%(obj["met"], obj["photon"][0], obj["photon"][1])),
+                     calculables.photon.metPlusPhotons(met = obj["met"], photons = obj["photon"]),
                      calculables.other.vertexID(),
                      calculables.other.vertexIndices(),
                      calculables.jet.deadEcalDR(obj["jet"], extraName = params["lowPtName"], minNXtals = 10),
@@ -211,14 +210,12 @@ class photonLook(analysis.analysis) :
             steps.passFilter("purityPlots2"),
             steps.photonPurityPlots("Status1Photon", _jet, _photon),
             steps.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
-            
-            #steps.histogrammer("mhtOverMet", 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met+"Plus%s%s"%_photon)),
-            #steps.variableLessFilter(1.25,"mhtOverMet"),
+
+            #steps.histogrammer("%sMht%sOver%s" %(_jet[0], _jet[1], _met+"Plus%s%s"%_photon), 100, 0.0, 3.0,
+            #                   title = ";MHT %s%s / %s;events / bin"%(_jet[0], _jet[1], _met+"Plus%s%s"%_photon)),
+            #steps.variableLessFilter(1.25,"%sMht%sOver%s" %(_jet[0], _jet[1], _met+"Plus%s%s"%_photon)),
             steps.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
         
-            ##steps.histogrammer("mhtIncludingPhotonsOverMet", 100, 0.0, 2.0, title = ";MHT [including photon] / PFMET;events / bin"),
-            ##steps.deadEcalFilterIncludingPhotons(jets = _jet, extraName = "", photons = _photon, dR = 0.3, dPhiStarCut = 0.5, nXtalThreshold = 5),
-            
             #steps.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
             
             #steps.skimmer(),
