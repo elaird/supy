@@ -5,16 +5,17 @@ import utils
 #####################################
 class displayer(analysisStep) :
     
-    def __init__(self, jets = None, met = None, muons = None, electrons = None, photons = None, taus = None, recHits = None,
-                 recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False,
+    def __init__(self, jets = None, met = None, muons = None, electrons = None, photons = None, taus = None,
+                 recHits = None, recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False,
                  doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "", deltaPhiStarCut = None, deltaPhiStarDR = None,
-                 printOtherJetAlgoQuantities = False, jetsOtherAlgo = None, metOtherAlgo = None, ra1Mode = True, markusMode = False, tipToTail = False) :
+                 printOtherJetAlgoQuantities = False, jetsOtherAlgo = None, metOtherAlgo = None,
+                 ra1Mode = True, ra1CutBits = True, markusMode = False, tipToTail = False) :
 
         self.moreName = "(see below)"
 
         for item in ["scale","jets","met","muons","electrons","photons","taus","recHits","recHitPtThreshold","doGenParticles",
                      "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "deltaPhiStarCut", "deltaPhiStarDR",
-                     "printOtherJetAlgoQuantities", "jetsOtherAlgo", "metOtherAlgo", "ra1Mode", "markusMode","tipToTail"] :
+                     "printOtherJetAlgoQuantities", "jetsOtherAlgo", "metOtherAlgo", "ra1Mode", "ra1CutBits", "markusMode","tipToTail"] :
             setattr(self,item,eval(item))
 
         self.jetRadius = 0.7 if "ak7Jet" in self.jets[0] else 0.5
@@ -843,7 +844,8 @@ class displayer(analysisStep) :
         if self.ra1Mode :
             self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":y0     }, jets = self.jets, jets2 = self.jetsOtherAlgo,
                                          others = self.printOtherJetAlgoQuantities)
-            self.printCutBits(           eventVars, params = defaults, coords = {"x":x0, "y":y0-0.10}, jets = self.jets, jets2 = self.jetsOtherAlgo,
+            if self.ra1CutsBits :
+                self.printCutBits(       eventVars, params = defaults, coords = {"x":x0, "y":y0-0.10}, jets = self.jets, jets2 = self.jetsOtherAlgo,
                                          met = self.met, met2 = self.metOtherAlgo, others = self.printOtherJetAlgoQuantities)
             self.printFlags(eventVars, params = defaults, coords = {"x":x0, "y":y0-0.34},
                             flags = ['logErrorTooManyClusters','logErrorTooManySeeds',
