@@ -229,13 +229,13 @@ class photonLook(analysis.analysis) :
             #steps.genParticlePrinter(minPt = -1.0, minStatus = 3),
             #steps.genParticlePrinter(minPt=-10.0,minStatus=1),
             #
-            #steps.displayer(jets = _jet,
-            #                muons = _muon,
+            #steps.displayer(jets      = _jet,
+            #                muons     = _muon,
             #                met       = params["objects"]["met"],
             #                electrons = params["objects"]["electron"],
             #                photons   = params["objects"]["photon"],                            
             #                recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
-            #                scale = 400.0,#GeV
+            #                scale     = 400.0,#GeV
             #                etRatherThanPt = _etRatherThanPt,
             #                #doGenParticles = True,
             #                #deltaPhiStarExtraName = params["lowPtName"],
