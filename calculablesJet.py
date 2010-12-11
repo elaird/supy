@@ -504,18 +504,6 @@ class MaxProjMht(wrappedChain.calculable) :
         mhtProj = self.source[self.MhtProjection]
         self.value = None if not indices else max([mhtProj[i] for i in indices])
 #####################################
-class mhtIncludingPhotonsOverMet(wrappedChain.calculable) :
-
-    def __init__(self, jets, met, etRatherThanPt) :
-        self.jets = jets
-        self.met = met
-        self.etRatherThanPt = etRatherThanPt
-        self.moreName = "%s%s; %s; %s"%(self.jets[0], self.jets[1], self.met, "ET" if self.etRatherThanPt else "pT")
-        self.mht = "%sSumP4PlusPhotons%s"%self.jets
-        
-    def update(self, ignored) :
-        self.value = self.source[self.mht].pt()/self.source[self.met].pt()
-#####################################
 class MhtOverMet(wrappedChain.calculable) :
     def name(self) : return "%sMht%sOver%s" %(self.fixes[0], self.fixes[1], self.met)
 
