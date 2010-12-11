@@ -191,11 +191,12 @@ class MhtIgnored(wrappedChain.calculable) :
         self.value = self.source[self.SumP4Ignored].pt()
 ####################################
 class Meff(wrappedChain.calculable) :
-    def __init__(self,collection) :
-        self.fixes = collection
-        self.stash(["Mht","SumPt"])
+    def __init__(self, collection, etRatherThanPt = None) :
+        self.fixes = (collection[0], ("Et" if etRatherThanPt else "Pt") + collection[1])        
+        self.stash(["Mht"], collection)
+        self.stash(["Sum"])
     def update(self,ignored) :
-        self.value = self.source[self.Mht]+self.source[self.SumPt]
+        self.value = self.source[self.Mht]+self.source[self.Sum]
 ####################################
 class Boost(wrappedChain.calculable) :
     def __init__(self,collection) :
@@ -261,7 +262,8 @@ class PartialSumP4Area(wrappedChain.calculable) :
 class Pi(wrappedChain.calculable) :
     def __init__(self,collection) :
         self.fixes = collection
-        self.stash(["Meff","PartialSumP4Area"])
+        self.stash(["PartialSumP4Area"])
+        self.stash(["Meff"], (collection[0], "Pt"+collection[1]))
     def update(self,ignored) :
         self.value = 0.25 * self.source[self.Meff]**2 / self.source[self.PartialSumP4Area]
 ##############################
@@ -514,7 +516,7 @@ class mhtIncludingPhotonsOverMet(wrappedChain.calculable) :
     def update(self, ignored) :
         self.value = self.source[self.mht].pt()/self.source[self.met].pt()
 #####################################
-class mhtOverMet(wrappedChain.calculable) :
+class MhtOverMet(wrappedChain.calculable) :
     def name(self) : return "%sMht%sOver%s" %(self.fixes[0], self.fixes[1], self.met)
 
     def __init__(self, jets, met) :
@@ -525,19 +527,19 @@ class mhtOverMet(wrappedChain.calculable) :
     def update(self, ignored) :
         self.value = self.source[self.SumP4].pt()/self.source[self.met].pt() if self.source[self.SumP4] else None
 #####################################
-class mhtMinusMetOverMeff(wrappedChain.calculable) :
-
-    def __init__(self, jets, met, etRatherThanPt) :
-        self.jets = jets
+class MhtMinusMetOverMeff(wrappedChain.calculable) :
+    def name(self) : return "%sMhtMinus%sOverMeff%s"%(self.fixes[0], self.met, self.fixes[1])
+    
+    def __init__(self, jets, etRatherThanPt, met) :
+        var = "Et" if etRatherThanPt else "Pt"
+        self.fixes = (jets[0], var+jets[1])
         self.met = met
-        self.etRatherThanPt = etRatherThanPt
-        self.moreName = "%s%s; %s; %s"%(self.jets[0], self.jets[1], self.met, "ET" if self.etRatherThanPt else "pT")
-        self.mht = "%sSumP4%s"%self.jets
-        self.ht  = "%sSumEt%s"%self.jets if self.etRatherThanPt else "%sSumPt%s"%self.jets
+        self.stash(["Mht"], jets)
+        self.stash(["Meff"])
+        self.moreName = "%s%s; %s; %s"%(self.fixes[0], self.fixes[1], self.met, var)
         
     def update(self, ignored) :
-        mht = self.source[self.mht].pt()
-        self.value = (mht - self.source[self.met].pt())/(self.source[self.ht] + mht)
+        self.value = (self.source[self.Mht] - self.source[self.met].pt())/self.source[self.Meff]
 #####################################
 class DeadEcalIndices(wrappedChain.calculable) :
     def __init__(self,collection) :
