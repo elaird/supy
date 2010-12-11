@@ -94,7 +94,7 @@ class photonLook(analysis.analysis) :
                      calculables.jet.AlphaTWithPhoton1PtRatherThanMht(obj["jet"], photons = obj["photon"], etRatherThanPt = _etRatherThanPt),
                      calculables.jet.AlphaT(obj["jet"], _etRatherThanPt),
                      calculables.jet.AlphaTMet(obj["jet"], _etRatherThanPt, obj["met"]),
-                     calculables.jet.mhtOverMet(obj["jet"], met = "%sPlus%s%s"%(obj["met"], obj["photon"][0], obj["photon"][1])),
+                     calculables.jet.MhtOverMet(obj["jet"], met = "%sPlus%s%s"%(obj["met"], obj["photon"][0], obj["photon"][1])),
                      calculables.photon.metPlusPhotons(met = obj["met"], photons = obj["photon"]),
                      calculables.other.vertexID(),
                      calculables.other.vertexIndices(),
