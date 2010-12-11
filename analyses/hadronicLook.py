@@ -150,8 +150,8 @@ class hadronicLook(analysis.analysis) :
             #steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.variableGreaterFilter(0.55,"%sAlphaT%s%s"%(_jet[0],"Et" if _etRatherThanPt else "Pt",_jet[1])),
             #]), #end cutSorter
-            steps.histogrammer("%sMht%s_Over_%s"%(_jet[0],_jet[1],_met), 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
-            steps.variableLessFilter(1.25,"%sMht%s_Over_%s"%(_jet[0],_jet[1],_met)),
+            steps.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1],_met), 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
+            steps.variableLessFilter(1.25,"%sMht%sOver%s"%(_jet[0],_jet[1],_met)),
             steps.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
             
             #steps.skimmer(),

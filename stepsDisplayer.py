@@ -289,7 +289,7 @@ class displayer(analysisStep) :
             J2 = None if len(eventVars["%sIndices%s"%j])<2 else eventVars['%sCorrectedP4%s'%j].at(eventVars["%sIndices%s"%j][1]).pt()
             HT = eventVars["%sSumEt%s"%j]
             aT = eventVars["%sAlphaTEt%s"%j]
-            MM = eventVars["%sMht%s_Over_%s"%(j[0], j[1], m)]
+            MM = eventVars["%sMht%sOver%s"%(j[0], j[1], m)]
             DE = eventVars["%sDeltaPhiStar%s%s"%(j[0], j[1], self.deltaPhiStarExtraName)]["DeltaPhiStar"]>0.5 or \
                  eventVars["%sDeadEcalDR%s%s"  %(j[0], j[1], self.deltaPhiStarExtraName)]                >0.3
 
