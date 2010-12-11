@@ -515,15 +515,15 @@ class mhtIncludingPhotonsOverMet(wrappedChain.calculable) :
         self.value = self.source[self.mht].pt()/self.source[self.met].pt()
 #####################################
 class mhtOverMet(wrappedChain.calculable) :
-    def name(self) : return "%sMht%s_Over_%s" %(self.jets[0],self.jets[1],self.met)
+    def name(self) : return "%sMht%sOver%s" %(self.fixes[0], self.fixes[1], self.met)
 
     def __init__(self, jets, met) :
-        self.jets = jets
         self.met = met
-        self.mht = "%sSumP4%s"%self.jets
+        self.fixes = jets
+        self.stash(["SumP4"])
         
     def update(self, ignored) :
-        self.value = self.source[self.mht].pt()/self.source[self.met].pt() if self.source[self.mht] else None
+        self.value = self.source[self.SumP4].pt()/self.source[self.met].pt() if self.source[self.SumP4] else None
 #####################################
 class mhtMinusMetOverMeff(wrappedChain.calculable) :
 
