@@ -67,7 +67,6 @@ class photonLook(analysis.analysis) :
                                            correctForMuons = not obj["muonsInJets"],
                                            electron = obj["electron"], electronDR = 0.5
                                            ),
-                 calculables.jet.ResidualCorrectionsFromFile(obj["jet"]),
                  calculables.jet.Indices( obj["jet"], _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
                  calculables.jet.Indices( obj["jet"], params["lowPtThreshold"], etaMax = 3.0, flagName = params["jetId"], extraName = params["lowPtName"]),
                  calculables.muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),

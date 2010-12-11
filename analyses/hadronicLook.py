@@ -51,7 +51,6 @@ class hadronicLook(analysis.analysis) :
                                          correctForMuons = not muonsInJets,
                                          electron = electron,
                                          electronDR = 0.5),
-                calculables.jet.ResidualCorrectionsFromFile(jet),
                 calculables.jet.Indices( jet, jetPtMin, etaMax = 3.0, flagName = jetIdFlag),
                 calculables.jet.Indices( jet, lowPtThreshold, etaMax = 3.0, flagName = jetIdFlag, extraName = lowPtName),
                 
