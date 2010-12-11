@@ -601,7 +601,9 @@ class deadEcalDR(wrappedChain.calculable) :
 class ResidualCorrectionsFromFile(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
+        self.buildLists(self.fileName(collection))
 
+    def fileName(self, collection) :
         fileDict = {}
         fileDict[(     "ak5Jet","Pat")] = "Spring10DataV2_L2L3Residual_AK5Calo.txt"
         fileDict[(   "xcak5Jet","Pat")] = "Spring10DataV2_L2L3Residual_AK5Calo.txt"
@@ -609,12 +611,18 @@ class ResidualCorrectionsFromFile(wrappedChain.calculable) :
         fileDict[("xcak5JetJPT","Pat")] = "Spring10DataV2_L2L3Residual_AK5JPT.txt"
         fileDict[(   "ak5JetPF","Pat")] = "Spring10DataV2_L2L3Residual_AK5PF.txt"
         fileDict[( "xcak5JetPF","Pat")] = "Spring10DataV2_L2L3Residual_AK5PF.txt"
-        assert collection in fileDict,"residual corrections file for %s%s not found"%collection
 
+        fileDict[("ak5JetPFGenJet","Pat")] = None
+        assert collection in fileDict,"residual corrections file for %s%s not found"%collection
+        return fileDict[collection]
+    
+    def buildLists(self, fileName) :
         self.etaLo  = []
         self.etaHi  = []
         self.p      = []
-        inFile = open(fileDict[collection])
+
+        if not fileName : return
+        inFile = open(fileName)
         for line in inFile :
             if "{" in line : continue
             fields = line.split()
