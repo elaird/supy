@@ -785,15 +785,12 @@ class displayer(analysisStep) :
                 self.drawMht        (eventVars, coords,r.kRed     , defWidth, defArrowSize*3/6.0)
             if self.met :
                 self.drawMet        (eventVars, coords,r.kGreen   , defWidth, defArrowSize*2/6.0)
-            
-            if self.muons :
-                self.drawMuons      (eventVars, coords,r.kYellow  , defWidth, defArrowSize*2/6.0)
-            if self.electrons :
-                self.drawElectrons  (eventVars, coords,r.kOrange+7, defWidth, defArrowSize*2.5/6.0)
-            if self.photons :
-                self.drawPhotons    (eventVars, coords,r.kOrange  , defWidth, defArrowSize*1.8/6.0)
-            if self.taus :
-                self.drawTaus       (eventVars, coords,r.kYellow  , defWidth, defArrowSize*2/6.0)
+
+            if not self.markusMode :
+                if self.muons :     self.drawMuons    (eventVars, coords,r.kYellow  , defWidth, defArrowSize*2/6.0)
+                if self.electrons : self.drawElectrons(eventVars, coords,r.kOrange+7, defWidth, defArrowSize*2.5/6.0)
+                if self.photons :   self.drawPhotons  (eventVars, coords,r.kOrange  , defWidth, defArrowSize*1.8/6.0)
+                if self.taus :      self.drawTaus     (eventVars, coords,r.kYellow  , defWidth, defArrowSize*2/6.0)
             
             if self.recHits :
                 self.drawCleanedRecHits (eventVars, coords,r.kOrange-6, defWidth, defArrowSize*2/6.0)
