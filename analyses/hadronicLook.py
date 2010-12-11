@@ -60,7 +60,7 @@ class hadronicLook(analysis.analysis) :
                 calculables.jet.DeltaPseudoJet(jet, etRatherThanPt),
                 calculables.jet.AlphaT(jet, etRatherThanPt),
                 calculables.jet.AlphaTMet(jet, etRatherThanPt, met),
-                calculables.jet.mhtOverMet(jet, met),
+                calculables.jet.MhtOverMet(jet, met),
                 calculables.jet.deadEcalDR(jet, extraName = lowPtName, minNXtals = 10),
                 ]
             return outList+calculables.fromCollections(calculables.jet, [jet])
@@ -102,6 +102,7 @@ class hadronicLook(analysis.analysis) :
         _photon = params["objects"]["photon"]
         _met  = params["objects"]["met"]
         _etRatherThanPt = params["etRatherThanPt"]
+        _et = "Et" if _etRatherThanPt else "Pt"
 
         return [
             steps.progressPrinter(),
@@ -131,8 +132,8 @@ class hadronicLook(analysis.analysis) :
             )+[
             steps.uniquelyMatchedNonisoMuons(_jet), 
                
-            steps.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s %s_{T}s;events / bin"%(_jet[0],_jet[1],"p" if not _etRatherThanPt else "E")),
-            steps.variableGreaterFilter(350.0,"%sSumEt%s"%_jet, suffix = "GeV"),
+            steps.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 1500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
+            steps.variableGreaterFilter(350.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
             
             #many plots
             steps.lowestUnPrescaledTriggerHistogrammer(params["triggerList"]),
@@ -144,7 +145,7 @@ class hadronicLook(analysis.analysis) :
             steps.passFilter("kinematicPlots1"), 
             steps.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
             steps.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt, metName = _met),
-            
+
             #signal selection
             #steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.variableGreaterFilter(0.55,"%sAlphaT%s%s"%(_jet[0],"Et" if _etRatherThanPt else "Pt",_jet[1])),
