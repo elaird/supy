@@ -19,7 +19,7 @@ mc.add('qcd_py6_pt_50to80'    , '%s/%s/QCD_Pt_50to80%s")'    %(srm,tag1,tagB), x
 mc.add('qcd_py6_pt_80to120'   , '%s/%s/QCD_Pt_80to120%s")'   %(srm,tag1,tagB), xs = 7.843e+05)
 mc.add('qcd_py6_pt_120to170'  , '%s/%s/QCD_Pt_120to170%s")'  %(srm,tag1,tagB), xs = 1.151e+05)
 mc.add('qcd_py6_pt_170to300'  , '%s/%s/QCD_Pt_170to300%s")'  %(srm,tag1,tagB), xs = 2.426e+04)
-mc.add('qcd_py6_pt_300to470'  , '%s/%s/QCD_Pt_300to470%s")'  %(srm,tag2,tagB), xs = 1.168e+03)
+mc.add('qcd_py6_pt_300to470'  , '%s/%s/QCD_Pt_300to470%s", alwaysUseLastAttempt = True)'%(srm,tag2,tagB), xs = 1.168e+03)
 mc.add('qcd_py6_pt_470to600'  , '%s/%s/QCD_Pt_470to600%s")'  %(srm,tag2,tagB), xs = 7.022e+01)
 mc.add('qcd_py6_pt_600to800'  , '%s/%s/QCD_Pt_600to800%s")'  %(srm,tag3,tagC), xs = 1.555e+01)
 mc.add('qcd_py6_pt_800to1000' , '%s/%s/QCD_Pt_800to1000%s")' %(srm,tag3,tagB), xs = 1.844e+00)
