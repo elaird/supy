@@ -201,15 +201,23 @@ class hadronicLook(analysis.analysis) :
           ##specify(name = "2010_data_pf_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             ]                                                       
-        qcd_py6 = [                                                 
-          ##specify(name = "v12_qcd_py6_pt30",          nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "v12_qcd_py6_pt80",          nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "v12_qcd_py6_pt170",         nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "v12_qcd_py6_pt300",         nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "v12_qcd_py6_pt470",         nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "v12_qcd_py6_pt800",         nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "v12_qcd_py6_pt1400",        nFilesMax = -1, color = r.kBlue    ),
-            ]                                                       
+        qcd_py6 = [
+            #specify(name = "qcd_py6_pt_0to5"      ),
+            #specify(name = "qcd_py6_pt_5to15"     ),
+            #specify(name = "qcd_py6_pt_15to30"    ),
+            #specify(name = "qcd_py6_pt_30to50"    ),
+            #specify(name = "qcd_py6_pt_50to80"    ),
+            specify(name = "qcd_py6_pt_80to120"   ),
+            specify(name = "qcd_py6_pt_120to170"  ),
+            specify(name = "qcd_py6_pt_170to300"  ),
+            specify(name = "qcd_py6_pt_300to470"  ),
+            specify(name = "qcd_py6_pt_470to600"  ),
+            specify(name = "qcd_py6_pt_600to800"  ),
+            specify(name = "qcd_py6_pt_800to1000" ),
+            specify(name = "qcd_py6_pt_1000to1400"),
+            specify(name = "qcd_py6_pt_1400to1800"),
+            specify(name = "qcd_py6_pt_1800"      ),
+            ]
         g_jets_py6 = [                                              
             specify(name = "v12_g_jets_py6_pt30",       nFilesMax = -1, nEventsMax = 1000000, color = r.kGreen),
             specify(name = "v12_g_jets_py6_pt80",       nFilesMax = -1, nEventsMax =  100000, color = r.kGreen),
@@ -305,9 +313,9 @@ class hadronicLook(analysis.analysis) :
 
     def mergeSamples(self, org, tag) :
         def py6(org, smSources) :
-            org.mergeSamples(targetSpec = {"name":"qcd_py6_v12", "color":r.kBlue}, allWithPrefix="v12_qcd_py6")
+            org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
             org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen}, allWithPrefix="v12_g_jets_py6")
-            smSources.append("qcd_py6_v12")
+            smSources.append("qcd_py6")
             smSources.append("g_jets_py6_v12")
 
         def py8(org, smSources) :
@@ -352,6 +360,7 @@ class hadronicLook(analysis.analysis) :
                                  #doLog = False,
                                  #compactOutput = True,
                                  #noSci = True,
+                                 #pegMinimum = 0.1,
                                  blackList = ["lumiHisto","xsHisto","nJobsHisto"],
                                  )
             pl.plotAll()
