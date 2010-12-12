@@ -24,7 +24,8 @@ def combineBinContentAndError(histo, binToContainCombo, binToBeKilled) :
 ##############################
 def shiftUnderAndOverflows(dimension, histos, dontShiftList = []) :
     if dimension!=1 : return
-    for histo in histos: 
+    for histo in histos:
+        if not histo : continue
         if histo.GetName() in dontShiftList : continue
         bins = histo.GetNbinsX()
         entries = histo.GetEntries()
@@ -78,6 +79,7 @@ class plotter(object) :
                  sampleLabelsForRatios = ("",""),
                  showStatBox = True,
                  doLog = True,
+                 pegMinimum = None,
                  anMode = False,
                  drawYx = False,
                  doMetFit = False,
@@ -91,8 +93,8 @@ class plotter(object) :
                  whiteList = []
                  ) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog",
-                     "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","compactOutput", "noSci",
-                     "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox" ] :
+                     "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","compactOutput",
+                     "noSci", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox" ] :
             setattr(self,item,eval(item))
 
         self.useWhiteList = len(self.whiteList)>0
@@ -356,7 +358,7 @@ class plotter(object) :
         for histo in histos :
             if not histo or histo.GetName()[-len("_dependence"):] == "_dependence" : continue        
             if self.doLog :
-                histo.SetMinimum(0.5*globalMin)
+                histo.SetMinimum(0.5*globalMin) if self.pegMinimum==None else histo.SetMinimum(self.pegMinimum)
                 histo.SetMaximum(2.0*globalMax)
             else :
                 histo.SetMaximum(1.1*globalMax)
