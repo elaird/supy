@@ -625,9 +625,16 @@ class ResidualCorrectionsFromFile(wrappedChain.calculable) :
         self.value = {"etaLo":self.etaLo, "etaHi":self.etaHi, "p":self.p}
 #####################################
 class CorrectedP4(wrappedChain.calculable) :
-    def __init__(self, genJets = None) :
+    def __init__(self, genJets = None) : #purposefully not called collection
         self.fixes = genJets
         self.stash(["P4"])
+    def update(self, ignored) :
+        self.value = self.source[self.P4]
+#####################################
+class P4(wrappedChain.calculable) :
+    def __init__(self, genJets = None) : #purposefully not called collection
+        self.fixes = genJets
+        self.stash(["P4"], ("gen%sJets"%(self.fixes[0].replace("Jet","").replace("PF","").replace("JPT","")), "") )
     def update(self, ignored) :
         self.value = self.source[self.P4]
 #####################################
