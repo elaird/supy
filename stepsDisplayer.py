@@ -8,14 +8,14 @@ class displayer(analysisStep) :
     def __init__(self, jets = None, met = None, muons = None, electrons = None, photons = None, taus = None,
                  recHits = None, recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False,
                  doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "", deltaPhiStarCut = None, deltaPhiStarDR = None,
-                 printOtherJetAlgoQuantities = False, jetsOtherAlgo = None, metOtherAlgo = None,
+                 printOtherJetAlgoQuantities = False, jetsOtherAlgo = None, metOtherAlgo = None, printEventText = True,
                  ra1Mode = True, ra1CutBits = True, markusMode = False, tipToTail = False) :
 
         self.moreName = "(see below)"
 
         for item in ["scale","jets","met","muons","electrons","photons","taus","recHits","recHitPtThreshold","doGenParticles",
                      "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "deltaPhiStarCut", "deltaPhiStarDR",
-                     "printOtherJetAlgoQuantities", "jetsOtherAlgo", "metOtherAlgo", "ra1Mode", "ra1CutBits", "markusMode","tipToTail"] :
+                     "printOtherJetAlgoQuantities", "jetsOtherAlgo", "metOtherAlgo", "printEventText", "ra1Mode", "ra1CutBits", "markusMode","tipToTail"] :
             setattr(self,item,eval(item))
 
         self.jetRadius = 0.7 if "ak7Jet" in self.jets[0] else 0.5
@@ -814,7 +814,7 @@ class displayer(analysisStep) :
         pad.Draw()
         return [pad,legend]
 
-    def printEventText(self, eventVars, corners) :
+    def printAllText(self, eventVars, corners) :
         pad = r.TPad("textPad", "textPad", corners["x1"], corners["y1"], corners["x2"], corners["y2"])
         pad.cd()
 
@@ -884,12 +884,13 @@ class displayer(analysisStep) :
                                                    "y2":0.55})
             #g4 = self.drawMhtLlPlot(eventVars, r.kBlack, corners = {"x1":0.63, "y1":0.63, "x2":0.95, "y2":0.95})
 
-        t = self.printEventText(eventVars,
-                                corners = {"x1":rhoPhiPadXSize + 0.11,
-                                           "y1":0.0,
-                                           "x2":1.0,
-                                           "y2":1.0})
-        
+        if self.printEventText :
+            t = self.printAllText(eventVars,
+                                  corners = {"x1":rhoPhiPadXSize + 0.11,
+                                             "y1":0.0,
+                                             "x2":1.0,
+                                             "y2":1.0})
+            
         someDir=r.gDirectory
         self.outputFile.cd()
         self.canvas.Write("canvas_%d"%self.canvasIndex)
