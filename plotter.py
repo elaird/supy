@@ -7,6 +7,11 @@ def setupStyle() :
     r.gStyle.SetPalette(1)
     r.gStyle.SetOptStat(1111111)
 ##############################
+def setupTdrStyle() :
+    r.gROOT.ProcessLine(".L tdrstyle.C")
+    r.setTDRStyle()
+    #r.tdrStyle.SetPadRightMargin(0.06)#tweak
+##############################
 def combineBinContentAndError(histo, binToContainCombo, binToBeKilled) :
     xflows     = histo.GetBinContent(binToBeKilled)
     xflowError = histo.GetBinError(binToBeKilled)
@@ -67,9 +72,10 @@ def makeAlphaTFunc(alphaTValue) :
     return alphaTFunc
 ##############################
 def adjustPad(pad, anMode) :
-    if not anMode : r.gPad.SetRightMargin(0.15)
-    r.gPad.SetTicky()
-    r.gPad.SetTickx()
+    if not anMode :
+        r.gPad.SetRightMargin(0.15)
+        r.gPad.SetTicky()
+        r.gPad.SetTickx()
 ##############################
 class plotter(object) :
     def __init__(self,
@@ -151,9 +157,6 @@ class plotter(object) :
         print "The output file \"%s\" has been written."%fileName.replace(".eps",".pdf")
 
     def individualPlots(self, plotSpecs, newSampleNames) :
-        print utils.hyphens
-        setupStyle()
-
         def goods(spec) :
             for item in ["selName", "selDesc", "plotName"] :
                 if item not in spec : return
@@ -169,6 +172,17 @@ class plotter(object) :
             else :
                 return histos,[not (sample["name"] in spec["sampleWhiteList"]) for sample in self.someOrganizer.samples]
 
+        def onlyDumpToFile(histos, spec) :
+            if "onlyDumpToFile" in spec and spec["onlyDumpToFile"] :
+                rootFileName = self.psFileName.replace(".ps","_%s.root"%spec["plotName"])
+                f = r.TFile(rootFileName, "RECREATE")
+                for h in histos :
+                    h.Write()
+                f.Close()
+                print "The output file \"%s\" has been written."%rootFileName
+                return True
+            return False
+
         def rebin(h, spec) :
             if "reBinFactor" in spec :
                 for histo in h :
@@ -179,27 +193,25 @@ class plotter(object) :
                 for histo in h :
                     histo.SetTitle(spec["newTitle"])
 
-            
+        def stylize(h) :
+            for histo in h :
+                histo.UseCurrentStyle()
+
+        print utils.hyphens
+        setupTdrStyle()
+
         for spec in plotSpecs :
             histos,ignoreHistos = goods(spec)
             if histos==None : continue
             
-            if "onlyDumpToFile" in spec and spec["onlyDumpToFile"] :
-                rootFileName = self.psFileName.replace(".ps","_%s.root"%spec["plotName"])
-                f = r.TFile(rootFileName, "RECREATE")
-                for h in histos :
-                    h.Write()
-                f.Close()
-                print "The output file \"%s\" has been written."%rootFileName
-                continue
-
+            if onlyDumpToFile(histos, spec) : continue
             rebin(histos, spec)
             setTitles(histos, spec)
-
+            stylize(histos)
+            
             stuff = self.onePlotFunction(histos, ignoreHistos, newSampleNames, individual = True)
             utils.cmsStamp(self.someOrganizer.lumi)
             self.printOnePage(spec["plotName"], tight = self.anMode)
-
         print utils.hyphens
 
     def printCalculables(self) :
@@ -378,6 +390,7 @@ class plotter(object) :
                 self.canvas.cd(1)
             else :
                 self.canvas.Divide(1,1)
+                if self.anMode : self.canvas.UseCurrentStyle()
         else :
             mx=1
             my=1
@@ -484,7 +497,7 @@ class plotter(object) :
         adjustPad(r.gPad, self.anMode)
         if count==0 :
             histo.SetStats(self.showStatBox)
-            histo.GetYaxis().SetTitleOffset(1.25)
+            if not self.anMode : histo.GetYaxis().SetTitleOffset(1.25)
             histo.Draw()
             if self.doLog : r.gPad.SetLogy()
         else :
