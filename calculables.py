@@ -1,6 +1,6 @@
 from wrappedChain import *
 from inspect import isclass,ismodule,getargspec
-
+import configuration
 ##############################
 class indicesOther(wrappedChain.calculable) :
     def name(self) : return self.indicesOther
@@ -14,7 +14,6 @@ class indicesOther(wrappedChain.calculable) :
         if not dict.__getitem__(self.source,self.indices).updated :
             self.source[self.indices]
 ##############################
-
 def zeroArgs() :
     """Returns a list of instances of all zero argument calculables."""
 
@@ -30,7 +29,7 @@ def zeroArgs() :
                     zeroArg.append(calc())
             except: zeroArg.append(calc())
     return zeroArg
-
+##############################
 def fromCollections(module,collections) :
     """Returns a list of instances of all calculables in module taking only the collection as arg."""
 
@@ -42,12 +41,7 @@ def fromCollections(module,collections) :
         if "collection" in args and len(args) is 2:
             for col in collections : calcs.append(calc(col))
     return calcs
-
-import calculablesGen as gen
-import calculablesJet as jet
-import calculablesMuon as muon
-import calculablesElectron as electron
-import calculablesPhoton as photon
-import calculablesOther as other
-import calculablesXClean as xclean
-import calculablesCompatibility as compat
+##############################
+for module,name in configuration.calculablesFiles() :
+    exec("import calculables%s as %s"%(module, name))
+##############################

@@ -1,5 +1,5 @@
 def calculablesFiles() :
-    return ["Gen","Jet","Muon","Electron","Photon","Other","XClean","Compatibility"]
+    return [("Gen","gen"), ("Jet","jet"), ("Muon","muon"), ("Electron","electron"), ("Photon","photon"), ("Other","other"), ("XClean","xclean"), ("Compatibility","compat")]
 
 def samplesFiles() :
     return ["MC", "JetMET", "Muon", "Photon", "SignalSkim"]
