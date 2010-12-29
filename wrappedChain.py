@@ -15,7 +15,7 @@ class wrappedChain(dict) :
             nameB = branch.GetName()
             nameL = (lambda nL: nameB if nL=="_" else nL )(branch.GetListOfLeaves().At(0).GetName())
             if nameL in leavesToBlackList : continue
-            dict.__setitem__(self, nameL, self.__branchNode( nameL, nameB, chain , useSetBranchAddress) )
+            dict.__setitem__(self, nameL, self.__branchNode( nameL, nameB, chain, useSetBranchAddress) )
 
         names = [c.name() for c in calculables]
         if len(names)!=len(set(names)) :
@@ -76,21 +76,33 @@ class wrappedChain(dict) :
     class __branchNode(object) :
         """Internal wrapper for branch nodes."""
         def __init__(self, nameL, nameB, chain, useSetBranchAddress) :
-            self.value = copy.deepcopy(getattr(chain,nameL))
+            def className(nameL, nameB, chain) :
+                return chain.GetBranch(nameB).GetLeaf(nameL).Class().GetName()
+
+            def address(nameL, nameB, chain, useSetBranchAddress) :
+                if not useSetBranchAddress : return None
+                leaf = getattr(chain, nameL)
+
+                if type(leaf)==int or type(leaf)==long : return array.array('l',[0])
+                elif type(leaf)==float :
+                    leafClassName = className(nameL, nameB, chain)
+                    if leafClassName=="TLeafF" : return array.array('f',[0.0])
+                    if leafClassName=="TLeafD" : return array.array('d',[0.0])
+                    assert False,"leaf %s %s %s %s is not supported"%(nameB, nameL, str(type(leaf)), leafClassName)
+                elif str(type(leaf))=="<type 'ROOT.PyUIntBuffer'>"   : return array.array('i',[0]*256)
+                elif str(type(leaf))=="<type 'ROOT.PyDoubleBuffer'>" : return array.array('d',[0]*256)
+                elif str(type(leaf))=="<type 'ROOT.PyFloatBuffer'>"  : return array.array('f',[0]*256)
+                else :
+                    self.value = copy.deepcopy(leaf)
+                    return r.AddressOf(self.value)
+
+            self.value = None
             self.updated = False
             self.nameL = nameL
             self.nameB = nameB
             self.chain = chain
             self.branch = None
-            self.address = None if not useSetBranchAddress else \
-                           array.array('l',[0]) if type(self.value) == int else \
-                           array.array('l',[0]) if type(self.value) == long else \
-                           array.array('d',[0.0]) if type(self.value) == float else \
-                           array.array('i',[0]*256) if str(type(self.value)) == "<type 'ROOT.PyUIntBuffer'>" else \
-                           array.array('d',[0]*256) if str(type(self.value)) == "<type 'ROOT.PyDoubleBuffer'>" else \
-                           array.array('f',[0]*256) if str(type(self.value)) == "<type 'ROOT.PyFloatBuffer'>" else \
-                           r.AddressOf( self.value ) 
-
+            self.address = address(nameL, nameB, chain, useSetBranchAddress)
             self.valIsArrayZero = type(self.address) == array.array and len(self.address) == 1
             if type(self.address) == array.array and len(self.address)>1 :
                 self.value = self.address
