@@ -1,3 +1,12 @@
+def calculablesFiles() :
+    return ["Gen","Jet","Muon","Electron","Photon","Other","XClean","Compatibility"]
+
+def samplesFiles() :
+    return ["MC", "JetMET", "Muon", "Photon", "SignalSkim"]
+
+def stepsFiles() :
+    return ["Other", "Jet", "Trigger", "Photon", "Print", "Gen", "Xclean", "Displayer"]
+
 def sourceFiles() :
     return ["pragmas.h","helpers.C"]
 
