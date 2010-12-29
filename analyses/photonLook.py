@@ -329,8 +329,8 @@ class photonLook(analysis.analysis) :
         return outList
 
     def mergeSamples(self, org, tag) :
-        def go(org, outName, inPrefix, color) :
-            org.mergeSamples(targetSpec = {"name":outName, "color":color}, allWithPrefix = inPrefix)
+        def go(org, outName, inPrefix, color, markerStyle = 1) :
+            org.mergeSamples(targetSpec = {"name":outName, "color":color, "markerStyle":markerStyle}, allWithPrefix = inPrefix)
             return [outName]
 
         smSources = []
@@ -341,7 +341,7 @@ class photonLook(analysis.analysis) :
         
         #org.mergeSamples(targetSpec = {"name":"MG QCD+G", "color":r.kGreen}, sources = ["qcd_mg_v12","g_jets_mg_v12"])
         #org.mergeSamples(targetSpec = {"name":"MG TT+EWK", "color":r.kOrange}, sources = [item for item in ["z_jets_mg_v12", "w_jets_mg_v12", "tt_tauola_mg_v12"]])
-        org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
+        org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3, "markerStyle":1}, sources = smSources, keepSources = True)
         org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Run2010")
         #org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Nov4")
             
@@ -403,21 +403,21 @@ class photonLook(analysis.analysis) :
                              doLog = False,
                              anMode = True,
                              )
-        pl.individualPlots(plotSpecs = [#{"plotName":"xcak5JetAlphaTFewBinsPat",
-                                        # "selName" :"variablePtGreaterFilter",
-                                        # "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
-                                        # "newTitle":";#alpha_{T};events / bin / 35 pb^{-1}"},
-                                        #
+        pl.individualPlots(plotSpecs = [{"plotName":"xcak5JetAlphaTFewBinsPat",
+                                         "selName" :"variablePtGreaterFilter",
+                                         "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
+                                         "newTitle":";#alpha_{T};events / bin / 35 pb^{-1}"},
+                                        
                                         #{"plotName":"xcak5JetAlphaTRoughPat",
                                         # "selName" :"variablePtGreaterFilter",
                                         # "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
                                         # "newTitle":";#alpha_{T};events / bin / 35 pb^{-1}"},
-                                        #
-                                        #{"plotName":"xcak5JetIndicesPat",
-                                        # "selName" :"variablePtGreaterFilter",
-                                        # "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
-                                        # "newTitle":";N_{jets};events / bin / 35 pb^{-1}"},
-                                        #
+                                        
+                                        {"plotName":"xcak5JetIndicesPat",
+                                         "selName" :"variablePtGreaterFilter",
+                                         "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
+                                         "newTitle":";N_{jets};events / bin / 35 pb^{-1}"},
+                                        
                                         #{"plotName":"photonPat1MinDRToJet",
                                         # "selName" :"passFilter",
                                         # "selDesc" :"singlePhotonPlots2",
@@ -446,6 +446,7 @@ class photonLook(analysis.analysis) :
                                              "2010 Data": "Data",
                                              "standard_model": "Standard Model",
                                              },
+                           preliminary = False,
                            )
 
             
