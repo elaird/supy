@@ -1,4 +1,4 @@
-import collections
+import collections, configuration
 
 def specify(name = None, nFilesMax = -1, nEventsMax = -1, color = 1, markerStyle = 1 ) :
     samplespec = collections.namedtuple("samplespec", "name nFilesMax nEventsMax color markerStyle")
@@ -37,8 +37,5 @@ class SampleHolder(dict) :
 
         self.overlappingSamples.append( self.overlapping(listOfSamples, useRejectionMethod ) )
 
-from samplesMC import *
-from samplesJetMET import *
-from samplesMuon import *
-from samplesPhoton import *
-from samplesSignalSkim import *
+for module in configuration.samplesFiles() :
+    exec("from samples%s import *"%module)

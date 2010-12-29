@@ -1,12 +1,7 @@
+import configuration
 #####################################
-from stepsOther import *
-from stepsJet import *
-from stepsTrigger import *
-from stepsPhoton import *
-from stepsPrint import *
-from stepsGen import *
-from stepsXclean import *
-from stepsDisplayer import *
+for module in configuration.stepsFiles() :
+    exec("from steps%s import *"%module)
 #####################################
 def adjustStepsForMc(inSteps) :
     outSteps=[]
