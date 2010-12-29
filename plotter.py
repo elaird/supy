@@ -10,7 +10,9 @@ def setupStyle() :
 def setupTdrStyle() :
     r.gROOT.ProcessLine(".L tdrstyle.C")
     r.setTDRStyle()
-    #r.tdrStyle.SetPadRightMargin(0.06)#tweak
+    #tweaks
+    r.tdrStyle.SetPadRightMargin(0.06)
+    r.tdrStyle.SetErrorX(r.TStyle().GetErrorX())
 ##############################
 def combineBinContentAndError(histo, binToContainCombo, binToBeKilled) :
     xflows     = histo.GetBinContent(binToBeKilled)
@@ -156,7 +158,7 @@ class plotter(object) :
 
         print "The output file \"%s\" has been written."%fileName.replace(".eps",".pdf")
 
-    def individualPlots(self, plotSpecs, newSampleNames) :
+    def individualPlots(self, plotSpecs, newSampleNames, preliminary = True) :
         def goods(spec) :
             for item in ["selName", "selDesc", "plotName"] :
                 if item not in spec : return
@@ -210,7 +212,7 @@ class plotter(object) :
             stylize(histos)
             
             stuff = self.onePlotFunction(histos, ignoreHistos, newSampleNames, individual = True)
-            utils.cmsStamp(self.someOrganizer.lumi)
+            utils.cmsStamp(lumi = self.someOrganizer.lumi, preliminary = preliminary)
             self.printOnePage(spec["plotName"], tight = self.anMode)
         print utils.hyphens
 
