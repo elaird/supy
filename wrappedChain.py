@@ -30,6 +30,7 @@ class wrappedChain(dict) :
             dict.__getitem__(self, name).updated = False
 
     def activeKeys(self) : return self.__activeNodes.keys()
+    def activeKeyIsLeaf(self) : return [self.__activeNodes[key].isLeaf() for key in self.__activeNodes.keys()]
     def activeKeyTypes(self) : return [str(type(self.__activeNodes[key].value)).split("'")[1].replace("wrappedChain.","") for key in self.__activeNodes.keys()]
 
     def entries(self, nEntries = -1 ) :
@@ -115,7 +116,10 @@ class wrappedChain(dict) :
             self.branch.GetEntry(localEntry)
             if      not self.address : self.value = getattr(self.chain, self.nameL)
             elif self.valIsArrayZero : self.value = self.address[0]
-                
+
+        def isLeaf(self) :
+            return True
+
     class calculable(object) :
         """Inherit wrappedChain.calculable and define update(self,localEntry) for a calculable node"""
 
@@ -139,6 +143,9 @@ class wrappedChain(dict) :
             for leaf in leafNames:
                 assert not hasattr(self,leaf), "%s already has attribute %s"%(Name,leaf)
                 setattr(self,leaf,("%s"+leaf+"%s")%(fixes if fixes else self.fixes))
+
+        def isLeaf(self) :
+            return False
 
         def isFake(self) :
             return False
