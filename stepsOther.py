@@ -361,7 +361,7 @@ class runHistogrammer(analysisStep) :
         printList=[]
         for key in sorted(self.runDict) :
             printList.append( (key,self.runDict[key]) )
-        print self.name(),printList
+        print self.name1(),printList
 #####################################
 class bxFilter(analysisStep) :
 
