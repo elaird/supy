@@ -6,6 +6,8 @@ class NumberOfMatches(wrappedChain.calculable) :
         self.fixes = collection
         self.stash(["IsTrackerMuon"])
         self.moreName = "WARNING: dummy value always = 2"
+    def isFake(self) :
+        return True
     def update(self,ignored) :
         self.value = [2] * self.source[self.IsTrackerMuon].size()
 ##############################
@@ -14,6 +16,8 @@ class NumberOfValidPixelHits(wrappedChain.calculable) :
         self.fixes = collection
         self.stash(["IsTrackerMuon"])
         self.moreName = "WARNING: dummy value always = 1"
+    def isFake(self) :
+        return True
     def update(self,ignored) :
         self.value = [1]*self.source[self.IsTrackerMuon].size()
 ##############################

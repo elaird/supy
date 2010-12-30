@@ -189,6 +189,8 @@ class ConversionMissingHits(wrappedChain.calculable) :
     def __init__(self, collection) :
         self.fixes = collection
         self.stash(["HcalOverEcal"])
+    def isFake(self) :
+        return True
     def update(self, ignored) :
         self.value = [0]*len(self.source[self.HcalOverEcal])
 ##############################
