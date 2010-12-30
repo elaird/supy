@@ -139,3 +139,6 @@ class wrappedChain(dict) :
             for leaf in leafNames:
                 assert not hasattr(self,leaf), "%s already has attribute %s"%(Name,leaf)
                 setattr(self,leaf,("%s"+leaf+"%s")%(fixes if fixes else self.fixes))
+
+        def isFake(self) :
+            return False

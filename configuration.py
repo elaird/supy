@@ -1,6 +1,9 @@
 def maxArrayLength() :
     return 256
 
+def fakeString() :
+    return ";FAKE"
+
 def calculablesFiles() :
     return ["Gen", "Jet", "Muon", "Electron", "Photon", "Other", "XClean", "Compatibility"]
 

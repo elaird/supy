@@ -177,9 +177,10 @@ class analysisLooper :
         self.listOfCalculablesUsed = []
         for calc in self.calculables :
             if calc.name() not in activeKeys : continue
-            self.listOfCalculablesUsed.append( (calc.name(), "%s%s" % \
-                                                (calc.moreName if hasattr(calc,"moreName") else "",\
-                                                 calc.moreName2 if hasattr(calc,"moreName2") else "") ) )
+            self.listOfCalculablesUsed.append( (calc.name(), "%s%s%s" % \
+                                                    (calc.moreName if hasattr(calc,"moreName") else "",\
+                                                     calc.moreName2 if hasattr(calc,"moreName2") else "",\
+                                                     configuration.fakeString() if calc.isFake() else "") ) )
         self.listOfCalculablesUsed.sort()
 
     def makeListOfLeavesUsed(self,activeKeysTypes) :
