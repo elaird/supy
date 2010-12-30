@@ -23,7 +23,6 @@ class displayer(analysisStep) :
         self.genMet  = self.met.replace("P4","GenMetP4") if self.met else self.met
         self.deltaHtName = "%sDeltaPseudoJetEt%s"%self.jets if etRatherThanPt else "%sDeltaPseudoJetPt%s"%self.jets
         
-        self.doGen = False
         self.doReco = not self.doGenParticles
         self.helper = r.displayHelper()
 
@@ -46,10 +45,6 @@ class displayer(analysisStep) :
         self.legendDict = collections.defaultdict(int)
         self.legendList = []
         
-
-    def switchGenOn(self) :
-        self.doGen = True
-
     def setup(self,chain,fileDir,name,outputDir) :
         someDir=r.gDirectory
         self.outputFileName=outputDir+"/"+name+"_displays.root"
@@ -753,7 +748,7 @@ class displayer(analysisStep) :
         defArrowSize=0.5*self.arrow.GetDefaultArrowSize()
         defWidth=1
         #                                  color      , width   , arrow size
-        if self.doGen :
+        if not eventVars["isRealData"] :
             if self.doGenParticles :
                 self.drawGenParticles(eventVars, coords,r.kBlack  , defWidth, defArrowSize,       label = "all GEN particles")
                 self.drawGenParticles(eventVars, coords,r.kBlue   , defWidth, defArrowSize*4/6.0, statusList = [1], label = "status 1")
