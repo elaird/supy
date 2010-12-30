@@ -42,7 +42,7 @@ class hadronicLook(analysis.analysis) :
     def calcListJet(self, obj, etRatherThanPt, lowPtThreshold, lowPtName) :
         def calcList(jet, met, photon, muon, electron, muonsInJets, jetPtMin, jetIdFlag) :
             outList = [
-                calculables.xclean.xcJet(jet,
+                calculables.XClean.xcJet(jet,
                                          applyResidualCorrectionsToData = True,
                                          gamma = photon,
                                          gammaDR = 0.5,
@@ -51,19 +51,19 @@ class hadronicLook(analysis.analysis) :
                                          correctForMuons = not muonsInJets,
                                          electron = electron,
                                          electronDR = 0.5),
-                calculables.jet.Indices( jet, jetPtMin, etaMax = 3.0, flagName = jetIdFlag),
-                calculables.jet.Indices( jet, lowPtThreshold, etaMax = 3.0, flagName = jetIdFlag, extraName = lowPtName),
+                calculables.Jet.Indices( jet, jetPtMin, etaMax = 3.0, flagName = jetIdFlag),
+                calculables.Jet.Indices( jet, lowPtThreshold, etaMax = 3.0, flagName = jetIdFlag, extraName = lowPtName),
                 
-                calculables.jet.SumP4(jet),
-                calculables.jet.SumP4(jet, extraName = lowPtName),
-                calculables.jet.DeltaPhiStar(jet, extraName = lowPtName),
-                calculables.jet.DeltaPseudoJet(jet, etRatherThanPt),
-                calculables.jet.AlphaT(jet, etRatherThanPt),
-                calculables.jet.AlphaTMet(jet, etRatherThanPt, met),
-                calculables.jet.MhtOverMet(jet, met),
-                calculables.jet.deadEcalDR(jet, extraName = lowPtName, minNXtals = 10),
+                calculables.Jet.SumP4(jet),
+                calculables.Jet.SumP4(jet, extraName = lowPtName),
+                calculables.Jet.DeltaPhiStar(jet, extraName = lowPtName),
+                calculables.Jet.DeltaPseudoJet(jet, etRatherThanPt),
+                calculables.Jet.AlphaT(jet, etRatherThanPt),
+                calculables.Jet.AlphaTMet(jet, etRatherThanPt, met),
+                calculables.Jet.MhtOverMet(jet, met),
+                calculables.Jet.deadEcalDR(jet, extraName = lowPtName, minNXtals = 10),
                 ]
-            return outList+calculables.fromCollections(calculables.jet, [jet])
+            return outList+calculables.fromCollections(calculables.Jet, [jet])
 
         outList = calcList(obj["jet"], obj["met"], obj["photon"], obj["muon"], obj["electron"], obj["muonsInJets"], obj["jetPtMin"], obj["jetId"])
         if obj["compJet"]!=None and obj["compMet"]!=None :
@@ -72,25 +72,25 @@ class hadronicLook(analysis.analysis) :
 
     def calcListOther(self, obj, triggers) :
         return [
-            calculables.xclean.IndicesUnmatched(collection = obj["photon"], xcjets = obj["jet"], DR = 0.5),
-            calculables.xclean.IndicesUnmatched(collection = obj["electron"], xcjets = obj["jet"], DR = 0.5),
+            calculables.XClean.IndicesUnmatched(collection = obj["photon"], xcjets = obj["jet"], DR = 0.5),
+            calculables.XClean.IndicesUnmatched(collection = obj["electron"], xcjets = obj["jet"], DR = 0.5),
 
-            calculables.muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
-            calculables.electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
-            calculables.photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
-            #calculables.photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDTightFromTwikiPat"),
+            calculables.Muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
+            calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
+            calculables.Photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
+            #calculables.Photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDTightFromTwikiPat"),
             
-            calculables.other.vertexID(),
-            calculables.other.vertexIndices(),
-            calculables.other.lowestUnPrescaledTrigger(triggers),
+            calculables.Other.vertexID(),
+            calculables.Other.vertexIndices(),
+            calculables.Other.lowestUnPrescaledTrigger(triggers),
             ]
     
     def listOfCalculables(self, params) :
         obj = params["objects"]
         outList  = calculables.zeroArgs()
-        outList += calculables.fromCollections(calculables.muon, [obj["muon"]])
-        outList += calculables.fromCollections(calculables.electron, [obj["electron"]])
-        outList += calculables.fromCollections(calculables.photon, [obj["photon"]])
+        outList += calculables.fromCollections(calculables.Muon, [obj["muon"]])
+        outList += calculables.fromCollections(calculables.Electron, [obj["electron"]])
+        outList += calculables.fromCollections(calculables.Photon, [obj["photon"]])
         outList += self.calcListOther(obj, params["triggerList"])
         outList += self.calcListJet(obj, params["etRatherThanPt"], params["lowPtThreshold"], params["lowPtName"])
         return outList
@@ -105,83 +105,83 @@ class hadronicLook(analysis.analysis) :
         _et = "Et" if _etRatherThanPt else "Pt"
 
         return [
-            steps.progressPrinter(),
-            steps.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
-            steps.jetPtSelector(_jet, 100.0, 0),
-            steps.jetPtSelector(_jet, 100.0, 1),
-            steps.jetEtaSelector(_jet,2.5,0),
-            steps.lowestUnPrescaledTrigger(params["triggerList"]),
-            steps.vertexRequirementFilter(),
-            steps.techBitFilter([0],True),
-            steps.physicsDeclared(),
-            steps.monsterEventFilter(),
-            #steps.cutSorter([
-            steps.hbheNoiseFilter(),
+            steps.Print.progressPrinter(),
+            steps.Other.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
+            steps.Jet.jetPtSelector(_jet, 100.0, 0),
+            steps.Jet.jetPtSelector(_jet, 100.0, 1),
+            steps.Jet.jetEtaSelector(_jet,2.5,0),
+            steps.Trigger.lowestUnPrescaledTrigger(params["triggerList"]),
+            steps.Other.vertexRequirementFilter(),
+            steps.Trigger.techBitFilter([0],True),
+            steps.Trigger.physicsDeclared(),
+            steps.Other.monsterEventFilter(),
+            #steps.Other.cutSorter([
+            steps.Other.hbheNoiseFilter(),
             
-            steps.hltPrescaleHistogrammer(params["triggerList"]),
+            steps.Trigger.hltPrescaleHistogrammer(params["triggerList"]),
             #steps.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin", funcString="lambda x:x.Et()"),
             ]+(
-            steps.multiplicityPlotFilter("%sIndices%s"%_electron,          nMax = 0, xlabel = "N electrons") +
-            steps.multiplicityPlotFilter("%sIndices%s"%_muon,              nMax = 0, xlabel = "N muons") +
-            steps.multiplicityPlotFilter("%sIndices%s"%_photon,            nMax = 0, xlabel = "N photons") +
-            steps.multiplicityPlotFilter("%sIndicesOther%s"%_jet,          nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID or #eta"%_jet) +
-            steps.multiplicityPlotFilter("%sIndicesOther%s"%_muon,         nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID or #eta"%_muon) +
-            steps.multiplicityPlotFilter("%sIndicesUnmatched%s"%_electron, nMax = 0, xlabel = "N electrons unmatched") +
-            steps.multiplicityPlotFilter("%sIndicesUnmatched%s"%_photon,   nMax = 0, xlabel = "N photons unmatched") +
-            steps.multiplicityPlotFilter("%sIndices%s"%_jet, nMin=params["nJetsMinMax"][0], nMax=params["nJetsMinMax"][1], xlabel="number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts"%_jet)
+            steps.Other.multiplicityPlotFilter("%sIndices%s"%_electron,          nMax = 0, xlabel = "N electrons") +
+            steps.Other.multiplicityPlotFilter("%sIndices%s"%_muon,              nMax = 0, xlabel = "N muons") +
+            steps.Other.multiplicityPlotFilter("%sIndices%s"%_photon,            nMax = 0, xlabel = "N photons") +
+            steps.Other.multiplicityPlotFilter("%sIndicesOther%s"%_jet,          nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID or #eta"%_jet) +
+            steps.Other.multiplicityPlotFilter("%sIndicesOther%s"%_muon,         nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID or #eta"%_muon) +
+            steps.Other.multiplicityPlotFilter("%sIndicesUnmatched%s"%_electron, nMax = 0, xlabel = "N electrons unmatched") +
+            steps.Other.multiplicityPlotFilter("%sIndicesUnmatched%s"%_photon,   nMax = 0, xlabel = "N photons unmatched") +
+            steps.Other.multiplicityPlotFilter("%sIndices%s"%_jet, nMin=params["nJetsMinMax"][0], nMax=params["nJetsMinMax"][1], xlabel="number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts"%_jet)
             )+[
-            steps.uniquelyMatchedNonisoMuons(_jet), 
+            steps.Jet.uniquelyMatchedNonisoMuons(_jet), 
                
-            steps.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 1500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
-            steps.variableGreaterFilter(350.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
+            steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 1500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
+            steps.Other.variableGreaterFilter(350.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
             
             #many plots
-            steps.lowestUnPrescaledTriggerHistogrammer(params["triggerList"]),
-            steps.passFilter("singleJetPlots1"),
-            steps.singleJetHistogrammer(_jet),
-            steps.passFilter("jetSumPlots1"), 
-            steps.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
-            steps.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
-            steps.passFilter("kinematicPlots1"), 
-            steps.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
-            steps.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt, metName = _met),
+            steps.Trigger.lowestUnPrescaledTriggerHistogrammer(params["triggerList"]),
+            steps.Other.passFilter("singleJetPlots1"),
+            steps.Jet.singleJetHistogrammer(_jet),
+            steps.Other.passFilter("jetSumPlots1"), 
+            steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
+            steps.Other.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
+            steps.Other.passFilter("kinematicPlots1"), 
+            steps.Jet.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
+            steps.Jet.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt, metName = _met),
 
             #signal selection
-            #steps.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
-            steps.variableGreaterFilter(0.55,"%sAlphaT%s%s"%(_jet[0],"Et" if _etRatherThanPt else "Pt",_jet[1])),
+            #steps.Other.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
+            steps.Other.variableGreaterFilter(0.55,"%sAlphaT%s%s"%(_jet[0],"Et" if _etRatherThanPt else "Pt",_jet[1])),
             #]), #end cutSorter
-            steps.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1],_met), 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
-            steps.variableLessFilter(1.25,"%sMht%sOver%s"%(_jet[0],_jet[1],_met)),
-            steps.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
+            steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1],_met), 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
+            steps.Other.variableLessFilter(1.25,"%sMht%sOver%s"%(_jet[0],_jet[1],_met)),
+            steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
             
-            #steps.skimmer(),
-            #steps.cutBitHistogrammer(self.togglePfJet(_jet), self.togglePfMet(_met)),
-            #steps.eventPrinter(),
-            #steps.jetPrinter(_jet),
-            #steps.particleP4Printer(_muon),
-            #steps.particleP4Printer(_photon),
-            #steps.recHitPrinter("clusterPF","Ecal"),
-            #steps.htMhtPrinter(_jet),
-            #steps.alphaTPrinter(_jet,_etRatherThanPt),
-            #steps.genParticlePrinter(minPt=10.0,minStatus=3),
+            #steps.Other.skimmer(),
+            #steps.Other.cutBitHistogrammer(self.togglePfJet(_jet), self.togglePfMet(_met)),
+            #steps.Print.eventPrinter(),
+            #steps.Print.jetPrinter(_jet),
+            #steps.Print.particleP4Printer(_muon),
+            #steps.Print.particleP4Printer(_photon),
+            #steps.Print.recHitPrinter("clusterPF","Ecal"),
+            #steps.Print.htMhtPrinter(_jet),
+            #steps.Print.alphaTPrinter(_jet,_etRatherThanPt),
+            #steps.Print.genParticlePrinter(minPt=10.0,minStatus=3),
             #       
-            #steps.pickEventSpecMaker(),
-            #steps.displayer(jets = _jet,
-            #                muons = _muon,
-            #                met       = params["objects"]["met"],
-            #                electrons = params["objects"]["electron"],
-            #                photons   = params["objects"]["photon"],                            
-            #                recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
-            #                scale = 400.0,#GeV
-            #                etRatherThanPt = _etRatherThanPt,
-            #                deltaPhiStarExtraName = params["lowPtName"],
-            #                deltaPhiStarCut = 0.5,
-            #                deltaPhiStarDR = 0.3,
-            #                printOtherJetAlgoQuantities = False,
-            #                jetsOtherAlgo = params["objects"]["compJet"],
-            #                metOtherAlgo  = params["objects"]["compMet"],
-            #                markusMode = False,
-            #                ),
+            #steps.Other.pickEventSpecMaker(),
+            #steps.Displayer.displayer(jets = _jet,
+            #                          muons = _muon,
+            #                          met       = params["objects"]["met"],
+            #                          electrons = params["objects"]["electron"],
+            #                          photons   = params["objects"]["photon"],                            
+            #                          recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
+            #                          scale = 400.0,#GeV
+            #                          etRatherThanPt = _etRatherThanPt,
+            #                          deltaPhiStarExtraName = params["lowPtName"],
+            #                          deltaPhiStarCut = 0.5,
+            #                          deltaPhiStarDR = 0.3,
+            #                          printOtherJetAlgoQuantities = False,
+            #                          jetsOtherAlgo = params["objects"]["compJet"],
+            #                          metOtherAlgo  = params["objects"]["compMet"],
+            #                          markusMode = False,
+            #                          ),
             ]
     
     def listOfSampleDictionaries(self) :
