@@ -4,7 +4,7 @@ from collections import defaultdict
 
 class wrappedChain(dict) : 
 
-    def __init__(self, chain, calculables = [], useSetBranchAddress = True, leavesToBlackList = [], preferredCalcs = []) :
+    def __init__(self, chain, calculables = [], useSetBranchAddress = True, leavesToBlackList = [], preferredCalcs = [], maxArrayLength = 256) :
         """Set up the nodes"""
         self.__activeNodes = defaultdict(int)
         self.__activeNodeList = []
@@ -15,7 +15,7 @@ class wrappedChain(dict) :
             nameB = branch.GetName()
             nameL = (lambda nL: nameB if nL=="_" else nL )(branch.GetListOfLeaves().At(0).GetName())
             if nameL in leavesToBlackList : continue
-            dict.__setitem__(self, nameL, self.__branchNode( nameL, nameB, chain, useSetBranchAddress) )
+            dict.__setitem__(self, nameL, self.__branchNode( nameL, nameB, chain, useSetBranchAddress, maxArrayLength) )
 
         names = [c.name() for c in calculables]
         if len(names)!=len(set(names)) :
@@ -75,11 +75,11 @@ class wrappedChain(dict) :
 
     class __branchNode(object) :
         """Internal wrapper for branch nodes."""
-        def __init__(self, nameL, nameB, chain, useSetBranchAddress) :
+        def __init__(self, nameL, nameB, chain, useSetBranchAddress, maxArrayLength) :
             def className(nameL, nameB, chain) :
                 return chain.GetBranch(nameB).GetLeaf(nameL).Class().GetName()
 
-            def address(nameL, nameB, chain, useSetBranchAddress) :
+            def address(nameL, nameB, chain, useSetBranchAddress, maxArrayLength) :
                 if not useSetBranchAddress : return None
                 leaf = getattr(chain, nameL)
 
@@ -89,9 +89,9 @@ class wrappedChain(dict) :
                     if leafClassName=="TLeafF" : return array.array('f',[0.0])
                     if leafClassName=="TLeafD" : return array.array('d',[0.0])
                     assert False,"leaf %s %s %s %s is not supported"%(nameB, nameL, str(type(leaf)), leafClassName)
-                elif str(type(leaf))=="<type 'ROOT.PyUIntBuffer'>"   : return array.array('i',[0]*256)
-                elif str(type(leaf))=="<type 'ROOT.PyDoubleBuffer'>" : return array.array('d',[0]*256)
-                elif str(type(leaf))=="<type 'ROOT.PyFloatBuffer'>"  : return array.array('f',[0]*256)
+                elif str(type(leaf))=="<type 'ROOT.PyUIntBuffer'>"   : return array.array('i',[0]*maxArrayLength)
+                elif str(type(leaf))=="<type 'ROOT.PyDoubleBuffer'>" : return array.array('d',[0]*maxArrayLength)
+                elif str(type(leaf))=="<type 'ROOT.PyFloatBuffer'>"  : return array.array('f',[0]*maxArrayLength)
                 else :
                     self.value = copy.deepcopy(leaf)
                     return r.AddressOf(self.value)
@@ -102,7 +102,7 @@ class wrappedChain(dict) :
             self.nameB = nameB
             self.chain = chain
             self.branch = None
-            self.address = address(nameL, nameB, chain, useSetBranchAddress)
+            self.address = address(nameL, nameB, chain, useSetBranchAddress, maxArrayLength)
             self.valIsArrayZero = type(self.address) == array.array and len(self.address) == 1
             if type(self.address) == array.array and len(self.address)>1 :
                 self.value = self.address

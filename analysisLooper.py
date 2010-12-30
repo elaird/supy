@@ -1,5 +1,5 @@
 import copy,array,os
-import wrappedChain,utils,steps
+import wrappedChain,utils,steps,configuration
 from autoBook import autoBook
 import ROOT as r
 #####################################
@@ -47,7 +47,8 @@ class analysisLooper :
         chainWrapper = wrappedChain.wrappedChain(self.inputChain,
                                                  calculables = self.calculables,
                                                  useSetBranchAddress = useSetBranchAddress,
-                                                 leavesToBlackList = self.leavesToBlackList
+                                                 leavesToBlackList = self.leavesToBlackList,
+                                                 maxArrayLength = configuration.maxArrayLength(),
                                                  )
         map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
         for step in self.steps :
