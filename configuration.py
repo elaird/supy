@@ -16,11 +16,11 @@ def stepsFiles() :
 def stepsToDisableForData() :
     return ["genMotherHistogrammer", "photonPurityPlots", "photonEfficiencyPlots"]
 
-def histogramsToDisableForData() :
-    return ["genpthat"]
-
 def stepsToDisableForMc() :
     return ["hltFilter", "hltFilterList", "lowestUnPrescaledTrigger", "lowestUnPrescaledTriggerHistogrammer", "hbheNoiseFilter", "bxFilter", "physicsDeclared", "techBitFilter"]
+
+def histogramsToDisableForData() :
+    return ["genpthat"]
 
 def histogramsToDisableForMc() :
     return []
