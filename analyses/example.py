@@ -44,13 +44,13 @@ class example(analysis.analysis) :
         jets = config["jets"]
         minJetPt = config["minJetPt"]
         listOfCalculables = calculables.zeroArgs()
-        listOfCalculables += calculables.fromCollections(calculables.jet,[jets])
+        listOfCalculables += calculables.fromCollections(calculables.Jet,[jets])
         listOfCalculables += [
-            calculables.jet.Indices( jets, ptMin = minJetPt, etaMax = 3.0, flagName = "JetIDloose"),
-            calculables.jet.SumP4( jets),
-            calculables.jet.DeltaPhiStar( jets ),
-            calculables.jet.AlphaT        ( jets, config["etRatherThanPt"]),
-            calculables.jet.DeltaPseudoJet( jets, config["etRatherThanPt"]),
+            calculables.Jet.Indices( jets, ptMin = minJetPt, etaMax = 3.0, flagName = "JetIDloose"),
+            calculables.Jet.SumP4( jets),
+            calculables.Jet.DeltaPhiStar( jets ),
+            calculables.Jet.AlphaT        ( jets, config["etRatherThanPt"]),
+            calculables.Jet.DeltaPseudoJet( jets, config["etRatherThanPt"]),
             ]
         return listOfCalculables
 
