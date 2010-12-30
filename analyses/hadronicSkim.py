@@ -18,19 +18,19 @@ class hadronicSkim(analysis.analysis) :
 
     def listOfSteps(self, params) :
         stepList = [
-            steps.progressPrinter(2,300),
-            steps.techBitFilter([0],True),
-            steps.physicsDeclared(),
-            steps.vertexRequirementFilter(),
-            steps.monsterEventFilter(),
-            steps.htSelector(nameList(params["recoAlgos"], "jet"), 350.0),
-            steps.skimmer(),
+            steps.Print.progressPrinter(2,300),
+            steps.Trigger.techBitFilter([0],True),
+            steps.Trigger.physicsDeclared(),
+            steps.Other.vertexRequirementFilter(),
+            steps.Other.monsterEventFilter(),
+            steps.Jet.htSelector(nameList(params["recoAlgos"], "jet"), 350.0),
+            steps.Other.skimmer(),
             ]
         return stepList
 
     def calcListJet(self, obj) :
         outList = [
-            calculables.xclean.xcJet(obj["jet"],
+            calculables.XClean.xcJet(obj["jet"],
                                      applyResidualCorrectionsToData = True,
                                      gamma = None,
                                      gammaDR = 0.5,
@@ -39,17 +39,16 @@ class hadronicSkim(analysis.analysis) :
                                      correctForMuons = not obj["muonsInJets"],
                                      electron = None,
                                      electronDR = 0.5),
-            calculables.jet.ResidualCorrectionsFromFile(obj["jet"]),
-            calculables.jet.Indices( obj["jet"], obj["jetPtMin"], etaMax = 3.0, flagName = "JetIDloose"),
+            calculables.Jet.Indices( obj["jet"], obj["jetPtMin"], etaMax = 3.0, flagName = "JetIDloose"),
             ]
-        return outList+calculables.fromCollections(calculables.jet, [obj["jet"]])
+        return outList+calculables.fromCollections(calculables.Jet, [obj["jet"]])
     
     def listOfCalculables(self, params) :
         outList = calculables.zeroArgs()
 
         for muon in nameList(params["recoAlgos"],"muon") :
-            outList += calculables.fromCollections(calculables.muon, [muon])
-            outList += [calculables.muon.Indices(muon, ptMin = 10, combinedRelIsoMax = 0.15)]
+            outList += calculables.fromCollections(calculables.Muon, [muon])
+            outList += [calculables.Muon.Indices(muon, ptMin = 10, combinedRelIsoMax = 0.15)]
             
         for obj in dict(params["recoAlgos"]).values() :
             outList += self.calcListJet(obj)
