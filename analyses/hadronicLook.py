@@ -163,7 +163,7 @@ class hadronicLook(analysis.analysis) :
             #steps.Print.recHitPrinter("clusterPF","Ecal"),
             #steps.Print.htMhtPrinter(_jet),
             #steps.Print.alphaTPrinter(_jet,_etRatherThanPt),
-            #steps.Print.genParticlePrinter(minPt=10.0,minStatus=3),
+            #steps.Gen.genParticlePrinter(minPt=10.0,minStatus=3),
             #       
             #steps.Other.pickEventSpecMaker(),
             #steps.Displayer.displayer(jets = _jet,
