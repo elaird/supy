@@ -243,7 +243,7 @@ class analysis(object) :
                 if sampleName==looper.name :
                     looperIndexDict[ptHatLowerThreshold]=iLooper
                 for step in looper.steps :
-                    if utils.className(step) == "skimmer" :
+                    if step.name() == "skimmer" :
                         print "WARNING: you are skimming inclusive samples.  The skims of all but the highest bin will be exclusive.  Use utils.printSkimResults()."
 
         ptHatLowerThresholdsAndSampleNames.sort()
@@ -350,11 +350,11 @@ def mergeFunc(looper,listOfSlices) :
             looper.steps[i].nPass +=stepDataList[i]["nPass" ]
             looper.steps[i].nFail +=stepDataList[i]["nFail" ]
 
-            if utils.className(looper.steps[i]) == "displayer" :
+            if looper.steps[i].name() == "displayer" :
                 displayFileDict[i].append(stepDataList[i]["outputFileName"])
-            if utils.className(looper.steps[i]) == "skimmer" :
+            if looper.steps[i].name() == "skimmer" :
                 skimmerFileDict[i].append(stepDataList[i]["outputFileName"])
-            if utils.className(looper.steps[i]) == "jsonMaker" : 
+            if looper.steps[i].name() == "jsonMaker" : 
                 runLsDict[i].append(stepDataList[i]["runLsDict"])
                 jsonFileDict[i].append(stepDataList[i]["outputFileName"])
 

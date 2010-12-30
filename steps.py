@@ -9,9 +9,8 @@ def adjustSteps(inSteps, dataOrMc = None) :
     histoBlackList = getattr(configuration, "histogramsToDisableFor%s"%dataOrMc)()
     for step in inSteps :
         disable = False
-        name = utils.className(step)
-        if name in blackList : disable = True
-        if name == "histogrammer" :
+        if step.name() in blackList : disable = True
+        if step.name() == "histogrammer" :
             for item in histoBlackList :
                 if item in step.var : disable = True
         outSteps.append(copy.deepcopy(step))
