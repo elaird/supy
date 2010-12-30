@@ -15,10 +15,12 @@ Document
 Other
 --------
 * move ratio marker
-
-* support old formats
-* cross section in database
 * 2D ratios
+
+* cross section in database
+
+* report on fake calculables
+* check that calc/leaf mismatches are declared fake
 
 * organize files in cvs
 * named arguments everywhere
@@ -37,7 +39,5 @@ Other
 * logfiles
 
 * fix extra tree functionality in skimmer
-
-* tdrPlotter
 
 * handle subdirectories of input file directories
