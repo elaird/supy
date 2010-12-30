@@ -459,7 +459,10 @@ def quadraticInterpolation(fZ, fX, fY) :
         a[1] = 0.0
         a[2] = 0.0
     return a[0]+fZ*(a[1]+fZ*a[2])
-
 #####################################
 def intFromBits(bits) :
     return sum([j[1] * (1<<j[0]) for j in enumerate(reversed(bits))])
+#####################################
+def className(x) :
+    return x.__class__.__name__
+#####################################
