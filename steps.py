@@ -1,7 +1,7 @@
-import configuration
+import copy,configuration,utils
 #####################################
 for module in configuration.stepsFiles() :
-    exec("from steps%s import *"%module)
+    exec("import steps%s as %s"%(module,module))
 #####################################
 def adjustSteps(inSteps, dataOrMc = None) :
     outSteps = []
@@ -9,7 +9,7 @@ def adjustSteps(inSteps, dataOrMc = None) :
     histoBlackList = getattr(configuration, "histogramsToDisableFor%s"%dataOrMc)()
     for step in inSteps :
         disable = False
-        name = step.__class__.__name__
+        name = utils.className(step)
         if name in blackList : disable = True
         if name == "histogrammer" :
             for item in histoBlackList :
