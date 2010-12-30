@@ -68,12 +68,12 @@ class analysisLooper :
             self.nEventsOriginal = self.steps[0].nTotal
             self.nEvents = self.steps[0].nPass
 
-        
         activeKeys = chainWrapper.activeKeys()
+        activeKeyIsLeaf = chainWrapper.activeKeyIsLeaf()
         activeKeyTypes = chainWrapper.activeKeyTypes()
 
-        self.makeListOfCalculablesUsed(activeKeys)
-        self.makeListOfLeavesUsed( zip(activeKeys,activeKeyTypes) )
+        self.makeListOfCalculablesUsed(activeKeys, activeKeyIsLeaf)
+        self.makeListOfLeavesUsed(activeKeys, activeKeyIsLeaf, activeKeyTypes)
 
         self.printStats()
         self.endSteps()
@@ -173,22 +173,22 @@ class analysisLooper :
             self.quietMode=True
         self.parentName=parentName
 
-    def makeListOfCalculablesUsed(self,activeKeys) :
+    def makeListOfCalculablesUsed(self, activeKeys, activeKeyIsLeaf) :
         self.listOfCalculablesUsed = []
         for calc in self.calculables :
             if calc.name() not in activeKeys : continue
+            if activeKeyIsLeaf[activeKeys.index(calc.name())] : continue
             self.listOfCalculablesUsed.append( (calc.name(), "%s%s%s" % \
                                                     (calc.moreName if hasattr(calc,"moreName") else "",\
                                                      calc.moreName2 if hasattr(calc,"moreName2") else "",\
                                                      configuration.fakeString() if calc.isFake() else "") ) )
         self.listOfCalculablesUsed.sort()
 
-    def makeListOfLeavesUsed(self,activeKeysTypes) :
+    def makeListOfLeavesUsed(self, activeKeys, activeKeyIsLeaf, activeKeyTypes) :
         self.listOfLeavesUsed = []
-        listOfCalcNames = [calc.name() for calc in self.calculables]
-        for key in activeKeysTypes :
-            if key[0] in listOfCalcNames : continue
-            self.listOfLeavesUsed.append(key)
+        for key,isLeaf,keyType in zip(activeKeys, activeKeyIsLeaf, activeKeyTypes) :
+            if not isLeaf : continue
+            self.listOfLeavesUsed.append((key, keyType))
         self.listOfLeavesUsed.sort()
                                    
     def printStats(self) :
