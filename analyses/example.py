@@ -19,24 +19,24 @@ class example(analysis.analysis) :
         minJetPt = config["minJetPt"]
         
         outList=[
-            steps.progressPrinter(),
-            steps.techBitFilter([0],True),
-            steps.physicsDeclared(),
-            steps.vertexRequirementFilter(),
-            steps.monsterEventFilter(),
+            steps.Print.progressPrinter(),
+            steps.Trigger.techBitFilter([0],True),
+            steps.Trigger.physicsDeclared(),
+            steps.Other.vertexRequirementFilter(),
+            steps.Other.monsterEventFilter(),
             
-            steps.jetPtSelector(jets,minJetPt,0),#leading corrected jet
-            steps.jetPtSelector(jets,minJetPt,1),#next corrected jet
-            #steps.jetPtVetoer( jets,minJetPt,2),#next corrected jet
-            steps.multiplicityFilter("%sIndicesOther%s"%jets, nMax = 0),
-            steps.multiplicityFilter("%sIndices%s"%jets, nMin = 2),
+            steps.Jet.jetPtSelector(jets,minJetPt,0),#leading corrected jet
+            steps.Jet.jetPtSelector(jets,minJetPt,1),#next corrected jet
+            #steps.Jet.jetPtVetoer( jets,minJetPt,2),#next corrected jet
+            steps.Other.multiplicityFilter("%sIndicesOther%s"%jets, nMax = 0),
+            steps.Other.multiplicityFilter("%sIndices%s"%jets, nMin = 2),
             
-            steps.singleJetHistogrammer(jets,1), 
-            steps.cleanJetHtMhtHistogrammer(jets, config["etRatherThanPt"]),
-            #steps.variableGreaterFilter(25.0,jets[0]+"SumPt"+jets[1]),
+            steps.Jet.singleJetHistogrammer(jets,1), 
+            steps.Jet.cleanJetHtMhtHistogrammer(jets, config["etRatherThanPt"]),
+            #steps.Other.variableGreaterFilter(25.0,jets[0]+"SumPt"+jets[1]),
             
-            steps.alphaHistogrammer(jets, etRatherThanPt = config["etRatherThanPt"]),
-            #steps.skimmer("/tmp/%s/"%os.environ["USER"]),
+            steps.Jet.alphaHistogrammer(jets, etRatherThanPt = config["etRatherThanPt"]),
+            #steps.Other.skimmer(),
             ]
         return outList
     
