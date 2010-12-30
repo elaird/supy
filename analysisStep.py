@@ -28,7 +28,10 @@ class analysisStep(object) :
         return passed
     
     def name(self) :
-        return self.__class__.__name__.ljust(self.docWidth)+self.moreName.ljust(self.moreWidth)
+        return self.__class__.__name__
+
+    def name1(self) :
+        return self.name().ljust(self.docWidth)+self.moreName.ljust(self.moreWidth)
 
     def name2(self) :
         return "" if self.moreName2=="" else "\n"+"".ljust(self.docWidth)+self.moreName2.ljust(self.moreWidth)
@@ -53,7 +56,7 @@ class analysisStep(object) :
 
         statString = "" if not hasattr(self,"select") else \
                      "  %s %s" % ( passString.rjust(self.integerWidth), ("("+failString+")").rjust(self.integerWidth+2) )
-        print "%s%s%s" % (self.name(),self.name2(),statString)
+        print "%s%s%s" % (self.name1(),self.name2(),statString)
 
     def book(self,eventVars) :
         if not self.needToConsiderPtHatThresholds :
