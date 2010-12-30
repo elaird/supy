@@ -207,6 +207,7 @@ class HcalTowSumEtConeDR04(wrappedChain.calculable) :
         self.collection = collection
         self.var1 = "%sHcalDepth1TowSumEtConeDR04%s"%collection
         self.var2 = "%sHcalDepth2TowSumEtConeDR04%s"%collection
+    def isFake(self) : return True
     def update(self, ignored) :
         size = len(self.source[self.var1])
         self.value = [self.source[self.var1].at(i)+self.source[self.var2].at(i) for i in range(size)]
@@ -216,6 +217,7 @@ class SeedTime(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.collection = collection
         self.p4s = "%sP4%s"%self.collection
+    def isFake(self) : return True
     def update(self, ignored) :
         self.value = [-100.0]*len(self.source[self.p4s])
 ####################################
