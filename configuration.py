@@ -1,5 +1,7 @@
+def maxArrayLength() : return 512
+
 def calculablesFiles() :
-    return [("Gen","gen"), ("Jet","jet"), ("Muon","muon"), ("Electron","electron"), ("Photon","photon"), ("Other","other"), ("XClean","xclean"), ("Compatibility","compat")]
+    return ["Gen", "Jet", "Muon", "Electron", "Photon", "Other", "XClean", "Compatibility"]
 
 def samplesFiles() :
     return ["MC", "JetMET", "Muon", "Photon", "SignalSkim"]

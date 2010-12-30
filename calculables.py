@@ -42,6 +42,6 @@ def fromCollections(module,collections) :
             for col in collections : calcs.append(calc(col))
     return calcs
 ##############################
-for module,name in configuration.calculablesFiles() :
-    exec("import calculables%s as %s"%(module, name))
+for module in configuration.calculablesFiles() :
+    exec("import calculables%s as %s"%(module, module))
 ##############################
