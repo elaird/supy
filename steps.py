@@ -3,38 +3,23 @@ import configuration
 for module in configuration.stepsFiles() :
     exec("from steps%s import *"%module)
 #####################################
-def adjustStepsForMc(inSteps) :
-    outSteps=[]
+def adjustSteps(inSteps, dataOrMc = None) :
+    outSteps = []
+    blackList = getattr(configuration, "stepsToDisableFor%s"%dataOrMc)()
+    histoBlackList = getattr(configuration, "histogramsToDisableFor%s"%dataOrMc)()
     for step in inSteps :
         disable = False
-        #determine whether to disable
-        if type(step) in [hltFilter,
-                          hltFilterList,
-                          lowestUnPrescaledTrigger,
-                          lowestUnPrescaledTriggerHistogrammer,
-                          hbheNoiseFilter,
-                          bxFilter,
-                          physicsDeclared] : disable = True
-        if step.moreName == techBitFilter([0],True).moreName : disable = True
+        name = step.__class__.__name__
+        if name in blackList : disable = True
+        if name == "histogrammer" :
+            for item in histoBlackList :
+                if item in step.var : disable = True
         outSteps.append(copy.deepcopy(step))
         if disable : outSteps[-1].disable()
-
-        #turn on gen stuff
-        if type(step) == displayer : outSteps[-1].switchGenOn()
     return outSteps
 #####################################
-def adjustStepsForData(inSteps) :
-    outSteps=[]
-    for step in inSteps :
-        disable = False
-        #determine whether to disable
-        if type(step) == histogrammer and "genpthat" in step.var : disable = True
-        if type(step) == genMotherHistogrammer : disable = True
-        if type(step) == photonPurityPlots : disable = True
-        if type(step) == photonEfficiencyPlots : disable = True
-        outSteps.append(copy.deepcopy(step))
-        if disable : outSteps[-1].disable()        
-    return outSteps
+def adjustStepsForData(inSteps) : return adjustSteps(inSteps, "Data")
+def adjustStepsForMc(inSteps)   : return adjustSteps(inSteps, "Mc")
 #####################################
 def insertPtHatFilter(inSteps,value) :
     inSteps.insert(0,ptHatFilter(value))
