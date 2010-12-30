@@ -1,4 +1,5 @@
-def maxArrayLength() : return 512
+def maxArrayLength() :
+    return 256
 
 def calculablesFiles() :
     return ["Gen", "Jet", "Muon", "Electron", "Photon", "Other", "XClean", "Compatibility"]
