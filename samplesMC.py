@@ -187,6 +187,10 @@ mc.add("lm11_v12",'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM11.Spring10-S
 mc.add("lm12_v12",'%s/bainbrid/ICF/automated/2010_07_12_17_52_54/LM12.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 4.414   )
 mc.add("lm13_v12",'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM13.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 6.899   )
 
+mc.add("scan_tanbeta3_tanja1",'%s/trommers//ICF/automated/2010_12_03_15_28_38/")'%srm, xs = 100000.0 ) #dummy xs
+mc.add("scan_tanbeta3_tanja2",'%s/trommers//ICF/automated/2010_12_17_20_09_06/")'%srm, xs = 100000.0 ) #dummy xs
+mc.add("scan_tanbeta3_burt1", '%s/bbetchar//ICF/automated/2010_11_10_19_34_17/")'%srm, xs = 100000.0 ) #dummy xs
+
 #MG EWK SKIMS
 mc.add("w_jets_mg_v12_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/14_skims/WJets-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")',
        xs = 4.462162e-03 * 3.131400e+04)
