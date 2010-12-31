@@ -104,7 +104,8 @@ class genParticleCounter(wrappedChain.calculable) :
     def name(self) : return "GenParticleCategoryCounts"
 
     def __init__(self) :
-        self.pdgToCategory={}
+        self.value = {}
+        self.pdgToCategory = {}
         #copied from PDG
         self.initPdgToCategory(1000001,1000004,"squarkL")#left-handed
         self.initPdgToCategory(1000005,1000006,"squarkA")#ambiguous
@@ -168,21 +169,15 @@ class genParticleCounter(wrappedChain.calculable) :
 
         if not self.source["genHandleValid"] : return
         #print dir(self.source)
-        nParticles=len(self.source["genPdgId"])
+        nParticles = len(self.source["genPdgId"])
         for iParticle in range(nParticles) :
             #consider only status 3 particles
             if self.source["genStatus"].at(iParticle)!=3 : continue
             #which are SUSY particles
             if not self.isSusy(self.source["genPdgId"].at(iParticle)) : continue
-            #which have mothers
-            if not self.source["genHasMother"].at(iParticle) : continue
-            #which are stored
-            if not self.source["genMotherStored"].at(iParticle) : continue
-            motherIndex=self.source["genMother"].at(iParticle)
-            if (motherIndex<0) : continue
-            #and are not SUSY particles
-            if self.isSusy(self.source["genPdgId"].at(motherIndex)) : continue
+            #whose mothers are not SUSY particles
+            if self.isSusy(self.source["genMotherPdgId"].at(iParticle)) : continue
         
-            pdgId=self.source["genPdgId"].at(iParticle)
+            pdgId = self.source["genPdgId"].at(iParticle)
             self.incrementCategory(pdgId)
 ##############################
