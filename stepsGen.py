@@ -27,7 +27,7 @@ class susyScanPointPrinter(analysisStep) :
                             "susyScanM12",
                             "susyScanMu",
                             "susyScanRun",
-                            "susyScanTanBeta"
+                            "susyScantanbeta"
                             ]
         
     def uponAcceptance (self,eventVars) :
@@ -84,18 +84,18 @@ class genParticleCountHistogrammer(analysisStep) :
         self.maxCountsPerCategory=2 #0 ... this number counted explicitly; otherwise overflows
 
         #Lo and Hi are both sampled in scan
-        self.m0Lo=0.0
-        self.m0Hi=4000.0
-        self.m0StepSize=50.0
-        self.nBinsM0=int(1+(m0Hi-m0Lo)/m0StepSize)
+        self.m0Lo = 0.0
+        self.m0Hi = 4000.0
+        self.m0StepSize = 50.0
+        self.nBinsM0 = int(1+(self.m0Hi-self.m0Lo)/self.m0StepSize)
 
-        self.m12Lo=100.0
-        self.m12Hi=600.0
-        self.m12StepSize=20.0
-        self.nBinsM12=int(1+(m12Hi-m12Lo)/m12StepSize)
+        self.m12Lo = 100.0
+        self.m12Hi = 600.0
+        self.m12StepSize = 20.0
+        self.nBinsM12 = int(1+(self.m12Hi-self.m12Lo)/self.m12StepSize)
 
-        self.histoBaseName="genParticleCounter"
-        self.madeLabelHisto=False
+        self.histoBaseName = "genParticleCounter"
+        self.madeLabelHisto = False
 
     def makeCodeString(self,eventVars) :
         codeString=""
@@ -106,15 +106,15 @@ class genParticleCountHistogrammer(analysisStep) :
         return codeString
     
     def uponAcceptance (self,eventVars) :
-        if abs(eventVars["susyScanTanBeta"]-self.tanBeta)>self.tanBetaThreshold : return
+        if abs(eventVars["susyScantanbeta"]-self.tanBeta)>self.tanBetaThreshold : return
 
         #make histo with labels
         if not self.madeLabelHisto :
-            nCategories=len(eventVars["GenParticleCategoryCounts"])
-            labelHistoName=self.histoBaseName+"CategoryLabels"
-            self.book(eventVars).fill(-1.0,labelHistoName,
-                                      nCategories,-0.5,nCategories-0.5,
-                                      ";categories")
+            nCategories = len(eventVars["GenParticleCategoryCounts"])
+            labelHistoName = self.histoBaseName+"CategoryLabels"
+            self.book(eventVars).fill(-1.0, labelHistoName,
+                                       nCategories, -0.5, nCategories-0.5,
+                                       title = ";categories")
             for book in self.books.values() :
                 if labelHistoName not in book : continue
 
@@ -135,22 +135,22 @@ class genParticleCountHistogrammer(analysisStep) :
                                    (self.nBinsM0, self.nBinsM12),
                                    (self.m0Lo-self.m0StepSize/2.0, self.m12Lo-self.m12StepSize/2.0),
                                    (self.m0Hi+self.m0StepSize/2.0, self.m12Hi+self.m12StepSize/2.0),
-                                   self.histoBaseName+codeString+";m_{0} (GeV);m_{1/2} (GeV)",
+                                   title = self.histoBaseName+codeString+";m_{0} (GeV);m_{1/2} (GeV)",
                                    )
 
         self.book(eventVars).fill( (m0, m12), self.histoBaseName+"nEvents",
                                    (self.nBinsM0, self.nBinsM12),
                                    (self.m0Lo-self.m0StepSize/2.0, self.m12Lo-self.m12StepSize/2.0),
                                    (self.m0Hi+self.m0StepSize/2.0, self.m12Hi+self.m12StepSize/2.0),
-                                   self.histoBaseName+"nEvents;m_{0} (GeV);m_{1/2} (GeV)",
+                                   title = self.histoBaseName+"nEvents;m_{0} (GeV);m_{1/2} (GeV)",
                                    )
 
         self.book(eventVars).fill( (m0, m12), self.histoBaseName+"XS",
                                    (self.nBinsM0, self.nBinsM12),
                                    (self.m0Lo-self.m0StepSize/2.0, self.m12Lo-self.m12StepSize/2.0),
                                    (self.m0Hi+self.m0StepSize/2.0, self.m12Hi+self.m12StepSize/2.0),
-                                   xs,
-                                   self.histoBaseName+"XS;m_{0} (GeV);m_{1/2} (GeV)",
+                                   w = xs,
+                                   title = self.histoBaseName+"XS;m_{0} (GeV);m_{1/2} (GeV)",
                                    )
 #####################################
 class genParticlePrinter(analysisStep) :
