@@ -79,20 +79,24 @@ class genJetPrinter(analysisStep) :
 class genParticleCountHistogrammer(analysisStep) :
 
     def __init__(self,tanBeta) :
+        def nBins(lo, hi, stepSize) :
+            return int(1+(hi-lo)/stepSize)
+
         self.tanBetaThreshold=0.1
         self.tanBeta=tanBeta
         self.maxCountsPerCategory=2 #0 ... this number counted explicitly; otherwise overflows
 
+        #https://twiki.cern.ch/twiki/bin/view/CMS/SUSY38XSUSYScan#mSUGRA_Scans
         #Lo and Hi are both sampled in scan
-        self.m0Lo = 0.0
-        self.m0Hi = 4000.0
-        self.m0StepSize = 50.0
-        self.nBinsM0 = int(1+(self.m0Hi-self.m0Lo)/self.m0StepSize)
+        self.m0Lo =  10.0
+        self.m0Hi = 500.0
+        self.m0StepSize = 10.0
+        self.nBinsM0 = nBins(self.m0Lo, self.m0Hi, self.m0StepSize)
 
         self.m12Lo = 100.0
-        self.m12Hi = 600.0
-        self.m12StepSize = 20.0
-        self.nBinsM12 = int(1+(self.m12Hi-self.m12Lo)/self.m12StepSize)
+        self.m12Hi = 350.0
+        self.m12StepSize = 10.0
+        self.nBinsM12 = nBins(self.m12Lo, self.m12Hi, self.m12StepSize)
 
         self.histoBaseName = "genParticleCounter"
         self.madeLabelHisto = False
