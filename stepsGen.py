@@ -78,13 +78,13 @@ class genJetPrinter(analysisStep) :
 #####################################
 class genParticleCountHistogrammer(analysisStep) :
 
-    def __init__(self,tanBeta) :
+    def __init__(self, tanBeta) :
         def nBins(lo, hi, stepSize) :
             return int(1+(hi-lo)/stepSize)
 
-        self.tanBetaThreshold=0.1
-        self.tanBeta=tanBeta
-        self.maxCountsPerCategory=2 #0 ... this number counted explicitly; otherwise overflows
+        self.tanBetaThreshold = 0.1
+        self.tanBeta = tanBeta
+        self.maxCountsPerCategory = 2 #0 ... this number counted explicitly; otherwise overflows
 
         #https://twiki.cern.ch/twiki/bin/view/CMS/SUSY38XSUSYScan#mSUGRA_Scans
         #Lo and Hi are both sampled in scan
@@ -98,15 +98,17 @@ class genParticleCountHistogrammer(analysisStep) :
         self.m12StepSize = 10.0
         self.nBinsM12 = nBins(self.m12Lo, self.m12Hi, self.m12StepSize)
 
-        self.histoBaseName = "genParticleCounter"
+        self.bins = (self.nBinsM0, self.nBinsM12)
+        self.lo = (self.m0Lo-self.m0StepSize/2.0, self.m12Lo-self.m12StepSize/2.0)
+        self.hi = (self.m0Hi+self.m0StepSize/2.0, self.m12Hi+self.m12StepSize/2.0)
+
         self.madeLabelHisto = False
+        self.histoBaseName = "genParticleCounter"
 
     def makeCodeString(self,eventVars) :
-        codeString=""
+        codeString = ""
         for category,count in eventVars["GenParticleCategoryCounts"].iteritems() :
-            if count>self.maxCountsPerCategory :
-                count=self.maxCountsPerCategory+1
-            codeString+=str(count)
+            codeString += str(min(count, self.maxCountsPerCategory+1))
         return codeString
     
     def uponAcceptance (self,eventVars) :
@@ -114,48 +116,37 @@ class genParticleCountHistogrammer(analysisStep) :
 
         #make histo with labels
         if not self.madeLabelHisto :
-            nCategories = len(eventVars["GenParticleCategoryCounts"])
-            labelHistoName = self.histoBaseName+"CategoryLabels"
-            self.book(eventVars).fill(-1.0, labelHistoName,
-                                       nCategories, -0.5, nCategories-0.5,
-                                       title = ";categories")
-            for book in self.books.values() :
-                if labelHistoName not in book : continue
-
-                categories=eventVars["GenParticleCategoryCounts"].keys()
-                for iCategory in range(len(categories)) :
-                    book[labelHistoName].GetXaxis().SetBinLabel(iCategory+1,categories[iCategory])
-                    book[labelHistoName].SetBinContent(iCategory+1,self.maxCountsPerCategory)
-            self.madeLabelHisto=True
+            self.makeLabelHisto(eventVars)
+            self.madeLabelHisto = True
 
         #get scan point info
-        xs=eventVars["susyScanCrossSection"]
-        m0=eventVars["susyScanM0"]
-        m12=eventVars["susyScanM12"]
+        xs = eventVars["susyScanCrossSection"]
+        m0 = eventVars["susyScanM0"]
+        m12 = eventVars["susyScanM12"]
 
         #fill histos
-        codeString=self.makeCodeString(eventVars)
-        self.book(eventVars).fill( (m0, m12), self.histoBaseName+codeString,
-                                   (self.nBinsM0, self.nBinsM12),
-                                   (self.m0Lo-self.m0StepSize/2.0, self.m12Lo-self.m12StepSize/2.0),
-                                   (self.m0Hi+self.m0StepSize/2.0, self.m12Hi+self.m12StepSize/2.0),
-                                   title = self.histoBaseName+codeString+";m_{0} (GeV);m_{1/2} (GeV)",
-                                   )
+        codeString = self.makeCodeString(eventVars)
+        self.book(eventVars).fill( (m0, m12), self.histoBaseName+codeString, self.bins, self.lo, self.hi,
+                                   title = self.histoBaseName+codeString+";m_{0} (GeV);m_{1/2} (GeV)")
 
-        self.book(eventVars).fill( (m0, m12), self.histoBaseName+"nEvents",
-                                   (self.nBinsM0, self.nBinsM12),
-                                   (self.m0Lo-self.m0StepSize/2.0, self.m12Lo-self.m12StepSize/2.0),
-                                   (self.m0Hi+self.m0StepSize/2.0, self.m12Hi+self.m12StepSize/2.0),
-                                   title = self.histoBaseName+"nEvents;m_{0} (GeV);m_{1/2} (GeV)",
-                                   )
+        self.book(eventVars).fill( (m0, m12), self.histoBaseName+"nEvents", self.bins, self.lo, self.hi,
+                                   title = self.histoBaseName+"nEvents;m_{0} (GeV);m_{1/2} (GeV)")
 
-        self.book(eventVars).fill( (m0, m12), self.histoBaseName+"XS",
-                                   (self.nBinsM0, self.nBinsM12),
-                                   (self.m0Lo-self.m0StepSize/2.0, self.m12Lo-self.m12StepSize/2.0),
-                                   (self.m0Hi+self.m0StepSize/2.0, self.m12Hi+self.m12StepSize/2.0),
-                                   w = xs,
-                                   title = self.histoBaseName+"XS;m_{0} (GeV);m_{1/2} (GeV)",
-                                   )
+        self.book(eventVars).fill( (m0, m12), self.histoBaseName+"XS", self.bins, self.lo, self.hi,
+                                   w = xs, title = self.histoBaseName+"XS;m_{0} (GeV);m_{1/2} (GeV)")
+
+    def makeLabelHisto(self, eventVars) :
+        nCategories = len(eventVars["GenParticleCategoryCounts"])
+        labelHistoName = self.histoBaseName+"CategoryLabels"
+        
+        self.book(eventVars).fill(-1.0, labelHistoName, nCategories, -0.5, nCategories-0.5, title = ";categories")
+        for book in self.books.values() :
+            if labelHistoName not in book : continue
+            for iCategory,category in enumerate(eventVars["GenParticleCategoryCounts"].keys()) :
+                bin = iCategory+1
+                book[labelHistoName].GetXaxis().SetBinLabel(bin, category)
+                book[labelHistoName].SetBinContent(bin, self.maxCountsPerCategory)
+            book[labelHistoName].SetBinContent(0, 0.0)
 #####################################
 class genParticlePrinter(analysisStep) :
 
@@ -366,7 +357,7 @@ class photonPurityPlots(analysisStep) :
                                       len(self.bin), -0.5, len(self.bin)-0.5,
                                       title = ";photon category when nMatch = %s;photons / bin"%label)
 
-    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+    def endFunc(self, otherChainDict) :
         for book in self.books.values() :
             for key,histo in book.iteritems() :
                 if "photonCategory" in histo.GetName() :
@@ -443,7 +434,7 @@ class genMotherHistogrammer(analysisStep) :
                                           )
                 if motherId==2 : self.fillSpecialHistos(eventVars, iParticle)
 
-    def endFunc(self, chain, otherChainDict, nEvents, xs) :
+    def endFunc(self, otherChainDict) :
         for book in self.books.values() :
             if self.keyAll in book :
                 for iParticle in range(len(self.binLabels)) :
