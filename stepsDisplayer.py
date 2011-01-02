@@ -92,14 +92,14 @@ class displayer(analysisStep) :
         self.mhtLlHisto.SetDirectory(0)
         self.metLlHisto.SetDirectory(0)
 
-    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+    def endFunc(self, otherChainDict) :
         self.outputFile.Write()
         self.outputFile.Close()
         #if not self.quietMode : print "The display file \""+self.outputFileName+"\" has been written."
         if not self.splitMode :
             if not self.quietMode : print utils.hyphens
-            psFileName=self.outputFileName.replace(".root",".ps")
-            utils.psFromRoot([self.outputFileName],psFileName,self.quietMode)
+            psFileName = self.outputFileName.replace(".root",".ps")
+            utils.psFromRoot([self.outputFileName], psFileName, self.quietMode)
         del self.canvas
 
     def prepareText(self, params, coords) :

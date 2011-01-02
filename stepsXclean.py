@@ -27,7 +27,7 @@ class vetoCounts(analysisStep) :
                         book.fill( (i,j), "VetoCountsCoincident", (self.nBins,self.nBins), (0,0), (self.nBins,self.nBins),
                                    title="Coincident Vetoes;;;events / bin")
 
-    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+    def endFunc(self, otherChainDict) :
         for book in self.books.values() :
             for hist in book.values():
                 if "VetoCounts" not in hist.GetName(): continue
@@ -58,7 +58,7 @@ class vetoLists(analysisStep) :
         for key in self.keys :
             if self.vetos[key] : self.lists[key].append(runLumiEvent)
         
-    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+    def endFunc(self, otherChainDict) :
         for key in self.lists :
             file = open("%sVetos.txt"%key,"w")
             for RLE in sorted(self.lists[key]) : print >>file, "%d, %d, %d"%RLE

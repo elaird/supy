@@ -144,7 +144,7 @@ class skimmer(analysisStep) :
         for key in self.arrayDictionary :
             self.arrayDictionary[key][0]=eventVars["crock"][key]
         
-    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+    def endFunc(self, otherChainDict) :
         if not self.quietMode : print utils.hyphens
 
         self.outputFile.cd(self.fileDir)                          #cd to file
@@ -392,7 +392,7 @@ class pickEventSpecMaker(analysisStep) :
         line="%14d:%6d:%14d\n"%(eventVars["run"], eventVars["lumiSection"], eventVars["event"])
         self.outputFile.write(line) #slow: faster to buffer output, write less frequently
 
-    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+    def endFunc(self, otherChainDict) :
         print utils.hyphens
         self.outputFile.close()
         print "The pick events spec. file \""+self.outputFileName+"\" has been written."
@@ -418,7 +418,7 @@ class jsonMaker(analysisStep) :
     def uponAcceptance(self,eventVars) :
         self.runLsDict[eventVars["run"]].append(eventVars["lumiSection"])
     
-    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+    def endFunc(self, otherChainDict) :
         if self.splitMode : return
         if not self.quietMode : print utils.hyphens
         sillyDict={}
@@ -529,7 +529,7 @@ class cutSorter(analysisStep) :
                                   self.bins, -0.5, self.bins-0.5, title = ";cutConfiguration;events / bin")
         return (not self.applySelections) or all(selections)
         
-    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+    def endFunc(self, otherChainDict) :
         for book in self.books.values() :
             bins = len(self.selectors)
             book.fill(1, "cutSorterNames", bins, 0, bins, title = ";cutName")

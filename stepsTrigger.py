@@ -88,7 +88,7 @@ class triggerCounts(analysisStep) :
             outHisto.GetXaxis().SetBinLabel(iItem+1, item[0])
         return outHisto
         
-    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+    def endFunc(self, otherChainDict) :
         for book in self.books.values() :
             if self.key in book :
                 book[self.key] = self.prunedHisto(book[self.key])
@@ -113,7 +113,7 @@ class lowestUnPrescaledTriggerHistogrammer(analysisStep) :
         i = self.listOfPaths.index(eventVars["lowestUnPrescaledTrigger"])
         self.book(eventVars).fill( i, self.key, self.n, 0.0, self.n, title = ";lowest un-prescaled path;events / bin")
 
-    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+    def endFunc(self, otherChainDict) :
         for book in self.books.values() :
             if self.key in book :
                 for iPath in range(self.n) :
@@ -154,7 +154,7 @@ class hltPrescaleHistogrammer(analysisStep) :
             self.book(eventVars).fill( (iPath,math.log10(value)), self.key, (self.nBinsX,100), (-0.5,-0.5), (self.nBinsX-0.5,4,5),
                                        title="hltPrescaleHisto;;log_{10}(prescale value);events / bin")
 
-    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+    def endFunc(self, otherChainDict) :
         for book in self.books.values() :
             if self.key in book :
                 for iPath in range(self.nBinsX) :
@@ -189,7 +189,7 @@ class hltTurnOnHistogrammer(analysisStep) :
         for t in types :
             self.book(eventVars).fill( value, t[0], self.bmm[0],self.bmm[1],self.bmm[2], title = t[1] )
         
-#     def endFunc(self,chain,otherChainDict,nEvents,xs) :
+#     def endFunc(self, otherChainDict) :
 #         for book in self.books.values() :
 #             tag = self.tagTitle[0]
 #             probe = self.probeTitle[0]

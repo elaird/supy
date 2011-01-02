@@ -512,7 +512,7 @@ class cutBitHistogrammer(analysisStep) :
         out += "m" if i&(1<<2) else "#slash{m}"
         return out
             
-    def endFunc(self,chain,otherChainDict,nEvents,xs) :
+    def endFunc(self, otherChainDict) :
         for book in self.books.values() :
             if self.key in book :
                 for i in range(8) :
