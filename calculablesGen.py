@@ -177,7 +177,6 @@ class genParticleCounter(wrappedChain.calculable) :
             if not self.isSusy(self.source["genPdgId"].at(iParticle)) : continue
             #whose mothers are not SUSY particles
             if self.isSusy(self.source["genMotherPdgId"].at(iParticle)) : continue
-        
-            pdgId = self.source["genPdgId"].at(iParticle)
-            self.incrementCategory(pdgId)
+
+            self.incrementCategory(self.source["genPdgId"].at(iParticle))
 ##############################
