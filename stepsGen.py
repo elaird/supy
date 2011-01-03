@@ -103,51 +103,39 @@ class genParticleCountHistogrammer(analysisStep) :
         self.lo = (self.m0Lo-self.m0StepSize/2.0, self.m12Lo-self.m12StepSize/2.0)
         self.hi = (self.m0Hi+self.m0StepSize/2.0, self.m12Hi+self.m12StepSize/2.0)
 
-        self.madeLabelHisto = False
         self.histoBaseName = "genParticleCounter"
 
     def makeCodeString(self,eventVars) :
         codeString = ""
         for category,count in eventVars["GenParticleCategoryCounts"].iteritems() :
-            codeString += str(min(count, self.maxCountsPerCategory+1))
+            codeString += "_%s=%d"%(category, min(count, self.maxCountsPerCategory+1))
         return codeString
     
     def uponAcceptance (self,eventVars) :
         if abs(eventVars["susyScantanbeta"]-self.tanBeta)>self.tanBetaThreshold : return
 
-        #make histo with labels
-        if not self.madeLabelHisto :
-            self.makeLabelHisto(eventVars)
-            self.madeLabelHisto = True
-
-        #get scan point info
         xs = eventVars["susyScanCrossSection"]
         m0 = eventVars["susyScanM0"]
         m12 = eventVars["susyScanM12"]
+        #genMet = eventVars["metGenMetP4PF"].pt()
+        codeString = self.makeCodeString(eventVars)        
 
-        #fill histos
-        codeString = self.makeCodeString(eventVars)
+        #self.book(eventVars).fill( genMet, "GenMet", 40, 0.0, 800.0, title = ";gen. MET (GeV); events / bin")
+
         self.book(eventVars).fill( (m0, m12), self.histoBaseName+codeString, self.bins, self.lo, self.hi,
                                    title = self.histoBaseName+codeString+";m_{0} (GeV);m_{1/2} (GeV)")
+
+        #self.book(eventVars).fill( (m0, m12), self.histoBaseName+codeString+"GenMet", self.bins, self.lo, self.hi,
+        #                           w = genMet, title = self.histoBaseName+codeString+"GenMet;m_{0} (GeV);m_{1/2} (GeV)")
+        #
+        #self.book(eventVars).fill( (m0, m12), self.histoBaseName+"GenMet", self.bins, self.lo, self.hi,
+        #                           w = genMet, title = self.histoBaseName+"GenMet;m_{0} (GeV);m_{1/2} (GeV)")
 
         self.book(eventVars).fill( (m0, m12), self.histoBaseName+"nEvents", self.bins, self.lo, self.hi,
                                    title = self.histoBaseName+"nEvents;m_{0} (GeV);m_{1/2} (GeV)")
 
         self.book(eventVars).fill( (m0, m12), self.histoBaseName+"XS", self.bins, self.lo, self.hi,
                                    w = xs, title = self.histoBaseName+"XS;m_{0} (GeV);m_{1/2} (GeV)")
-
-    def makeLabelHisto(self, eventVars) :
-        nCategories = len(eventVars["GenParticleCategoryCounts"])
-        labelHistoName = self.histoBaseName+"CategoryLabels"
-        
-        self.book(eventVars).fill(-1.0, labelHistoName, nCategories, -0.5, nCategories-0.5, title = ";categories")
-        for book in self.books.values() :
-            if labelHistoName not in book : continue
-            for iCategory,category in enumerate(eventVars["GenParticleCategoryCounts"].keys()) :
-                bin = iCategory+1
-                book[labelHistoName].GetXaxis().SetBinLabel(bin, category)
-                book[labelHistoName].SetBinContent(bin, self.maxCountsPerCategory)
-            book[labelHistoName].SetBinContent(0, 0.0)
 #####################################
 class genParticlePrinter(analysisStep) :
 
@@ -162,7 +150,7 @@ class genParticlePrinter(analysisStep) :
 
         self.sumP4.SetCoordinates(0.0,0.0,0.0,0.0)
 
-        mothers=set(eventVars["genMother"])
+        mothers=set(eventVars["genMotherIndex"])
         print "mothers: ",mothers
         print "---------------------------------------------------------------------------"
         print " i  st    mo         id            name        E        pt       eta    phi"
@@ -183,7 +171,7 @@ class genParticlePrinter(analysisStep) :
             outString=""
             outString+="%#2d"%iGen
             outString+=" %#3d"%status
-            outString+="  %#4d"%eventVars["genMother"][iGen]
+            outString+="  %#4d"%eventVars["genMotherIndex"][iGen]
             outString+=" %#10d"%pdgId
             if pdgLookupExists : outString+=" "+pdgLookup.pdgid_to_name(pdgId).rjust(15)
             else :                 outString+="".rjust(16)
