@@ -123,10 +123,10 @@ class genParticleCounter(wrappedChain.calculable) :
         self.initPdgToCategory(1000037,1000037,"chi+")
         self.initPdgToCategory(1000039,1000039,"gravitino")
 
-        self.combineCategories(["squarkL","squarkR","squarkA"],"squark")
-        self.combineCategories(["slepton","chi0","chi+","gravitino"],"other name")
+        self.combineCategories(["squarkL","squarkR","squarkA"], "squark")
+        self.combineCategories(["slepton","chi0","chi+","gravitino"], "otherName")
 
-        self.badCategoryName="no name"
+        self.badCategoryName = "noName"
         self.categories=list(set(self.pdgToCategory.values()))
         self.categories.append(self.badCategoryName)
         self.categories.sort()
