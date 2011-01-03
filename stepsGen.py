@@ -84,6 +84,7 @@ class genParticleCountHistogrammer(analysisStep) :
 
         self.tanBetaThreshold = 0.1
         self.tanBeta = tanBeta
+        self.moreName = "tanBeta=%g"%self.tanBeta
         self.maxCountsPerCategory = 2 #0 ... this number counted explicitly; otherwise overflows
 
         #https://twiki.cern.ch/twiki/bin/view/CMS/SUSY38XSUSYScan#mSUGRA_Scans
