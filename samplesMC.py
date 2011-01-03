@@ -191,6 +191,7 @@ mc.add("scan_tanbeta3_tanja1",'%s/trommers//ICF/automated/2010_12_03_15_28_38/")
 mc.add("scan_tanbeta3_tanja2",'%s/trommers//ICF/automated/2010_12_17_20_09_06/")'%srm, xs = 100000.0 ) #dummy xs
 dead = str(["_43_1_vfJ", "_109_1_K7V", "_648_1_SNq", "_19_1_P2A", '_106_1_5y9', '_107_1_xWu', '_116_1_GYJ', '_157_1_P2J', '_163_1_zG0', '_171_1_mkQ', '_173_1_gew', '_177_1_8Ew', '_191_1_Kdf', '_226_1_21E', '_266_1_ygR', '_295_1_BNB', '_311_1_Thz', '_319_1_UoK', '_328_2_Pn2', '_333_1_6tK', '_369_1_NG4', '_378_1_Nhp', '_413_1_IrU', '_42_1_h0i', '_446_1_5vP', '_449_1_a7D', '_487_1_VjZ', '_509_1_SiQ', '_547_1_hG9', '_559_1_Jjs', '_579_1_GaN', '_599_1_7Fs', '_644_1_1Zq', '_67_1_glp']).replace("'",'"')
 mc.add("scan_tanbeta3_burt1", '%s/bbetchar//ICF/automated/2010_11_10_19_34_17/", itemsToSkip = %s)'%(srm, dead), xs = 100000.0 ) #dummy xs
+mc.add("scan_tanbeta3_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/33_m12_200/")', xs = 450000.0 ) #hard-coded to match nEvents 
 
 #MG EWK SKIMS
 mc.add("w_jets_mg_v12_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/14_skims/WJets-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")',
