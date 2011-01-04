@@ -106,7 +106,11 @@ class genParticleCounter(wrappedChain.calculable) :
     def __init__(self) :
         self.value = {}
         self.pdgToCategory = {}
+
         #copied from PDG
+        self.initPdgToCategory( 1, 6,"quark")
+        self.initPdgToCategory(21,21,"gluon")
+
         self.initPdgToCategory(1000001,1000004,"squarkL")#left-handed
         self.initPdgToCategory(1000005,1000006,"squarkA")#ambiguous
         self.initPdgToCategory(1000011,1000016,"slepton")
@@ -124,10 +128,10 @@ class genParticleCounter(wrappedChain.calculable) :
         self.initPdgToCategory(1000039,1000039,"gravitino")
 
         self.combineCategories(["squarkL","squarkR","squarkA"], "squark")
-        self.combineCategories(["slepton","chi0","chi+","gravitino"], "otherName")
+        self.combineCategories(["slepton","chi0","chi+","gravitino"], "otherSusy")
 
         self.badCategoryName = "noName"
-        self.categories=list(set(self.pdgToCategory.values()))
+        self.categories = list(set(self.pdgToCategory.values()))
         self.categories.append(self.badCategoryName)
         self.categories.sort()
         #self.printDict(self.pdgToCategory)
@@ -166,10 +170,10 @@ class genParticleCounter(wrappedChain.calculable) :
 
     def update(self,ignored) :
         self.zeroCategoryCounts()
-
         if not self.source["genHandleValid"] : return
-        #print dir(self.source)
         nParticles = len(self.source["genPdgId"])
+
+        #Susy counts
         for iParticle in range(nParticles) :
             #consider only status 3 particles
             if self.source["genStatus"].at(iParticle)!=3 : continue
@@ -178,5 +182,15 @@ class genParticleCounter(wrappedChain.calculable) :
             #whose mothers are not SUSY particles
             if self.isSusy(self.source["genMotherPdgId"].at(iParticle)) : continue
 
+            self.incrementCategory(self.source["genPdgId"].at(iParticle))
+
+        #initial state counts
+        for iParticle in range(nParticles) :
+            #consider only status 3 particles
+            if self.source["genStatus"].at(iParticle)!=3 : continue
+            #whose mothers are protons
+            if self.source["genMotherPdgId"].at(iParticle)!=2212 : continue
+            #whose mothers have index 0 or 1
+            if self.source["genMotherIndex"].at(iParticle) not in [0,1] : continue
             self.incrementCategory(self.source["genPdgId"].at(iParticle))
 ##############################
