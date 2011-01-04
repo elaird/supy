@@ -17,7 +17,7 @@ class scanLook(analysis.analysis) :
             #steps.Gen.susyScanPointPrinter(),
             steps.Other.passFilter("scanPlots"),
             steps.Gen.genParticleCountHistogrammer(tanBeta = 3.0),
-            #steps.Gen.genParticlePrinter(minPt=10.0,minStatus=3),
+            #steps.Gen.genParticlePrinter(minPt = -10.0, minStatus = 3),
             ]
     
     def listOfSampleDictionaries(self) :
@@ -77,26 +77,37 @@ class scanLook(analysis.analysis) :
                 h = selection[key][0]
                 if out==None : out = h.Clone("out")
                 else : out.Add(h)
-            print "%s: %s"%(nameReqs, str(keys(selection, nameReqs)) )
+            print "%s: %s"%(nameReqs, str(keys(selection, nameReqs)).replace("genParticleCounter_","") )
             return out
             
         def printRatio(selection, canvas = None, psFileName = None,
                        numNameReqs = None, nameDen = None, xsHisto = None,
-                       title = None, zTitle = None, zLimits = None ) :
+                       title = None, zTitle = None, zLimits = None, yLimitsForProjX = None ) :
             h1 = matchingHistosSummed(selection, numNameReqs)
             h2 = selection[nameDen][0]
 
             h = h1.Clone("out")
             h.Reset()
+            h.SetStats(False)
             h.Divide(h1, h2)
             if xsHisto!=None : h.Multiply(xsHisto)
             if title!=None : h.SetTitle(title)
             if zTitle!=None : h.GetZaxis().SetTitle(zTitle)
             if zLimits!=None : h.GetZaxis().SetRangeUser(*zLimits)
-                
-            h.SetStats(False)
-            h.Draw("colz")
+
+            if yLimitsForProjX!=None :
+                g = h.ProjectionX("outProjX", h.GetYaxis().FindBin(yLimitsForProjX[0]), h.GetYaxis().FindBin(yLimitsForProjX[1]) )
+                if zLimits!=None : g.GetYaxis().SetRangeUser(*zLimits)
+                g.GetYaxis().SetTitle(h.GetZaxis().GetTitle())
+                g.SetTitle(g.GetTitle()+"#semicolon   m_{1/2} in [%g,%g] GeV"%yLimitsForProjX)
+                g.SetStats(False)
+                g.Draw()
+            else :
+                h.Draw("colz")
+
             canvas.Print(psFileName)
+            if yLimitsForProjX!=None :
+                g.Delete()
             return h
             
         def loopHistos(org, canvas, psFileName) :
@@ -105,29 +116,52 @@ class scanLook(analysis.analysis) :
 
                 xsHisto = printRatio(selection, canvas = canvas, psFileName = psFileName,
                                      numNameReqs = ["genParticleCounterXS"], nameDen = "genParticleCounternEvents",
-                                     title = "XS", zTitle = "#sigma (pb)" )
+                                     title = "XS", zTitle = "#sigma (pb)",
+                                     yLimitsForProjX = (200.0, 200.0)
+                                     )
 
-                #fractions
-                printRatio(selection, canvas = canvas, psFileName = psFileName,
-                           numNameReqs = ["squark=2"], nameDen = "genParticleCounternEvents",
-                           title = "squark-squark", zTitle = "fraction", zLimits = (0.0, 1.0) )
-                printRatio(selection, canvas = canvas, psFileName = psFileName,
-                           numNameReqs = ["gluino=2"], nameDen = "genParticleCounternEvents",
-                           title = "gluino-gluino", zTitle = "fraction", zLimits = (0.0, 1.0) )
-                printRatio(selection, canvas = canvas, psFileName = psFileName,
-                           numNameReqs = ["gluino=1", "squark=1"], nameDen = "genParticleCounternEvents",
-                           title = "squark-gluino", zTitle = "fraction", zLimits = (0.0, 1.0) )
+                finalOnly = False
+                initialOnly = True
+                
+                if finalOnly :
+                    #fractions
+                    printRatio(selection, canvas = canvas, psFileName = psFileName,
+                               numNameReqs = ["squark=2"], nameDen = "genParticleCounternEvents",
+                               title = "squark-squark", zTitle = "fraction", zLimits = (0.0, 1.0) )
+                    printRatio(selection, canvas = canvas, psFileName = psFileName,
+                               numNameReqs = ["gluino=2"], nameDen = "genParticleCounternEvents",
+                               title = "gluino-gluino", zTitle = "fraction", zLimits = (0.0, 1.0) )
+                    printRatio(selection, canvas = canvas, psFileName = psFileName,
+                               numNameReqs = ["gluino=1", "squark=1"], nameDen = "genParticleCounternEvents",
+                               title = "squark-gluino", zTitle = "fraction", zLimits = (0.0, 1.0) )
+                    #cross sections
+                    printRatio(selection, canvas = canvas, psFileName = psFileName,
+                               numNameReqs = ["squark=2"], nameDen = "genParticleCounternEvents",
+                               title = "squark-squark", zTitle = "#sigma (pb)", xsHisto = xsHisto )
+                    printRatio(selection, canvas = canvas, psFileName = psFileName,
+                               numNameReqs = ["gluino=2"], nameDen = "genParticleCounternEvents",
+                               title = "gluino-gluino", zTitle = "#sigma (pb)", xsHisto = xsHisto )
+                    printRatio(selection, canvas = canvas, psFileName = psFileName,
+                               numNameReqs = ["gluino=1", "squark=1"], nameDen = "genParticleCounternEvents",
+                               title = "squark-gluino", zTitle = "#sigma (pb)", xsHisto = xsHisto )
 
-                #cross sections
-                printRatio(selection, canvas = canvas, psFileName = psFileName,
-                           numNameReqs = ["squark=2"], nameDen = "genParticleCounternEvents",
-                           title = "squark-squark", zTitle = "#sigma (pb)", xsHisto = xsHisto )
-                printRatio(selection, canvas = canvas, psFileName = psFileName,
-                           numNameReqs = ["gluino=2"], nameDen = "genParticleCounternEvents",
-                           title = "gluino-gluino", zTitle = "#sigma (pb)", xsHisto = xsHisto )
-                printRatio(selection, canvas = canvas, psFileName = psFileName,
-                           numNameReqs = ["gluino=1", "squark=1"], nameDen = "genParticleCounternEvents",
-                           title = "squark-gluino", zTitle = "#sigma (pb)", xsHisto = xsHisto )
+                if initialOnly :
+                    #fractions
+                    printRatio(selection, canvas = canvas, psFileName = psFileName,
+                               numNameReqs = ["_quark=2"], nameDen = "genParticleCounternEvents",
+                               title = "initial quark-quark", zTitle = "fraction", zLimits = (0.0, 1.0),
+                               yLimitsForProjX = (200.0, 200.0)
+                               )
+                    printRatio(selection, canvas = canvas, psFileName = psFileName,
+                               numNameReqs = ["gluon=2"], nameDen = "genParticleCounternEvents",
+                               title = "intial gluon-gluon", zTitle = "fraction", zLimits = (0.0, 1.0),
+                               yLimitsForProjX = (200.0, 200.0)
+                               )
+                    printRatio(selection, canvas = canvas, psFileName = psFileName,
+                               numNameReqs = ["gluon=1", "_quark=1"], nameDen = "genParticleCounternEvents",
+                               title = "initial quark-gluon", zTitle = "fraction", zLimits = (0.0, 1.0),
+                               yLimitsForProjX = (200.0, 200.0)
+                               )
                            
         keep = []
         canvas = r.TCanvas()
