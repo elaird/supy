@@ -142,6 +142,9 @@ class scanLook(analysis.analysis) :
                                numNameReqs = ["gluino=1", "squark=1"], nameDen = "genParticleCounternEvents",
                                title = "squark-gluino", zTitle = "fraction", zLimits = (0.0, 1.0) )
                     printRatio(selection, canvas = canvas, psFileName = psFileName,
+                               numNameReqs = ["otherSusy=1", "squark=1"], nameDen = "genParticleCounternEvents",
+                               title = "squark-other", zTitle = "fraction", zLimits = (0.0, 1.0) )
+                    printRatio(selection, canvas = canvas, psFileName = psFileName,
                                numNameReqs = ["gluino=0", "squark=0"], nameDen = "genParticleCounternEvents",
                                title = "no squark, no qluino", zTitle = "fraction", zLimits = (0.0, 1.0) )
                     #cross sections
@@ -154,6 +157,9 @@ class scanLook(analysis.analysis) :
                     printRatio(selection, canvas = canvas, psFileName = psFileName,
                                numNameReqs = ["gluino=1", "squark=1"], nameDen = "genParticleCounternEvents",
                                title = "squark-gluino", zTitle = "#sigma (pb)", xsHisto = xsHisto )
+                    printRatio(selection, canvas = canvas, psFileName = psFileName,
+                               numNameReqs = ["otherSusy=1", "squark=1"], nameDen = "genParticleCounternEvents",
+                               title = "squark-other", zTitle = "#sigma (pb)", xsHisto = xsHisto )
                     printRatio(selection, canvas = canvas, psFileName = psFileName,
                                numNameReqs = ["gluino=0", "squark=0"], nameDen = "genParticleCounternEvents",
                                title = "no squark, no qluino", zTitle = "#sigma (pb)", xsHisto = xsHisto)
