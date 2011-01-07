@@ -366,7 +366,7 @@ def mergeFunc(looper,listOfSlices) :
     looperPrint(looper)
 
     cmd = "hadd -f "+looper.outputPlotFileName+" "+" ".join(plotFileNameList)
-    hAddOut = utils.getCommandOutput(cmd)
+    hAddOut = utils.getCommandOutput(cmd)["stdout"]
 
     for line in hAddOut.split("\n") :
         if 'Source file' in line or \

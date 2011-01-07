@@ -113,8 +113,9 @@ def mergeRunLsDicts(runLsDict,outFileName,printHyphens=False) :
     if printHyphens : print hyphens
 #####################################        
 def getCommandOutput(command):
-    stdout,stderr = subprocess.Popen(command, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE).communicate()
-    return stdout
+    p = subprocess.Popen(command, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    stdout,stderr = p.communicate()
+    return {"stdout":stdout, "stderr":stderr, "returncode":p.returncode}
 #####################################
 def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = "") :
     import re
@@ -158,7 +159,7 @@ def fileListFromSrmLs(location, itemsToSkip = [], sizeThreshold = -1, pruneList 
     #print cmd
     while len(output) >= 1000*offset :
         cmd="srmls --count 1000 --offset %d %s/%s"% (1000*offset,srmPrefix,location)
-        output += getCommandOutput(cmd).split('\n')
+        output += getCommandOutput(cmd)["stdout"].split('\n')
         offset += 1
     for line in output :
         if ".root" not in line : continue
@@ -181,7 +182,7 @@ def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
     fileList=[]
     cmd="nsls -l "+location
     #print cmd
-    output=getCommandOutput(cmd)
+    output = getCommandOutput(cmd)["stdout"]
     for line in output.split("\n") :
         if ".root" not in line : continue
         acceptFile=True
@@ -201,7 +202,7 @@ def fileListFromDisk(location, isDirectory = True, itemsToSkip = [], sizeThresho
     fileList=[]
     cmd="ls -l "+location
     #print cmd
-    output=getCommandOutput(cmd)
+    output = getCommandOutput(cmd)["stdout"]
     for line in output.split("\n") :
         acceptFile=True
         fields=line.split()
