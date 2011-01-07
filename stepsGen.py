@@ -76,6 +76,14 @@ class genJetPrinter(analysisStep) :
             print outString
         print
 #####################################
+class ParticleCountFilter(analysisStep) :
+    def __init__(self, reqDict) :
+        self.reqDict = reqDict
+    def select (self,eventVars) :
+        for key,value in self.reqDict.iteritems() :
+            if eventVars["GenParticleCategoryCounts"][key]!=value : return False
+        return True
+#####################################
 class genParticleCountHistogrammer(analysisStep) :
 
     def __init__(self, tanBeta) :
@@ -151,6 +159,7 @@ class genParticlePrinter(analysisStep) :
         self.sumP4.SetCoordinates(0.0,0.0,0.0,0.0)
 
         mothers=set(eventVars["genMotherIndex"])
+        print "pthat: ",eventVars["genpthat"]
         print "mothers: ",mothers
         print "---------------------------------------------------------------------------"
         print " i  st    mo         id            name        E        pt       eta    phi"
