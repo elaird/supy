@@ -155,10 +155,9 @@ class genParticleCounter(wrappedChain.calculable) :
         for key in self.categories :
             self.value[key]=0
 
-    def isSusy(self,pdgId) :
-        reducedPdgId=abs(pdgId)/1000000
-        #if (reducedPdgId==2) : print "isSusy(",pdgId,"):",reducedPdgId,reducedPdgId==1 or reducedPdgId==2
-        return reducedPdgId==1 or reducedPdgId==2
+    def isSusy(self, pdgId) :
+        reducedPdgId = abs(pdgId)/1000000
+        return reducedPdgId==1 or reducedPdgId==2 or (pdgId in [25,32,33,34,35,36,37])
 
     def incrementCategory(self,pdgId) :
         if pdgId in self.pdgToCategory:
@@ -181,7 +180,6 @@ class genParticleCounter(wrappedChain.calculable) :
             if not self.isSusy(self.source["genPdgId"].at(iParticle)) : continue
             #whose mothers are not SUSY particles
             if self.isSusy(self.source["genMotherPdgId"].at(iParticle)) : continue
-
             self.incrementCategory(self.source["genPdgId"].at(iParticle))
 
         #initial state counts
