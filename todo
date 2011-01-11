@@ -26,18 +26,31 @@ Other
 * named arguments everywhere
 * update example ntuples
 
-* non-linear cutflow
-* histo sculpting
+* generic batch mode
 
 * improve pickling/merging
 * multimode duplicate event checker
-
 * displayer cleans up
-* modes for displayer
 
 * profile
 * logfiles
 
+* non-linear cutflow
 * fix extra tree functionality in skimmer
-
 * handle subdirectories of input file directories
+
+* jets factors and rewriting jets
+* cut flow study infrastructure
+* dependence tools
+* dependence shotgun
+
+* config parameter interface
+* config sample interface, effective lumi argument, test mode
+* multi-site samples handles
+
+* activeKey funcs
+* protect against samples collisions
+
+* light/lite ntuple mode
+* stage-out
+
