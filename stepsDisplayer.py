@@ -904,6 +904,8 @@ class displayer(analysisStep) :
                     someObject = inFile.Get(key.GetName())
                     if someObject.ClassName()!="TCanvas" : print "Warning: found an object which is not a TCanvas in the display root file"
                     someObject.Print(outFileName, options)
+                inFile.Close()
+                os.remove(inFileName)                    
             dummyCanvas.Print(outFileName+"]", options)
             pdfFileName = outFileName.replace(".ps",".pdf")
             os.system("ps2pdf "+outFileName+" "+pdfFileName)
