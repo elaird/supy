@@ -434,10 +434,52 @@ class jsonMaker(analysisStep) :
         return ["outputFileName", "runLsDict"]
 
     def mergeFunc(self, productList, someLooper) :
-        fileNames = [p["outputFileName"] for p in productList]
+        def mergedDict(runLsDicts) :
+            #merge results into one dictionary
+            out = collections.defaultdict(list)
+            for d in runLsDicts :
+                for run,lsList in d.iteritems() :
+                    out[run].extend(lsList)
+            return out
+
+        def trimmedList(run, lsList) :
+            #check for duplicates
+            out = list(set(lsList))
+            nDuplicates = len(lsList)-len(out)
+            if nDuplicates!=0 :
+                for ls in out :
+                    lsList.remove(ls)
+                lsList.sort()
+                print "In run %d, these lumi sections appear multiple times in the lumiTree: %s"%(run, str(lsList))
+            return sorted(out)
+
+        def aJson(inDict) :
+            #make a json
+            outDict = {}
+            for run,lsList in inDict.iteritems() :
+                trimList = trimmedList(run, lsList)
+
+                newList = []
+                lowerBound = trimList[0]
+                for iLs in range(len(trimList)-1) :
+                    thisLs = trimList[iLs  ]
+                    nextLs = trimList[iLs+1]
+                    if nextLs!=thisLs+1 :
+                        newList.append([lowerBound, thisLs])
+                        lowerBound = nextLs
+                    if iLs==len(trimList)-2 :
+                        newList.append([lowerBound, nextLs])
+                outDict[str(run)] = newList
+            return str(outDict).replace("'",'"')
+
+        outFileName = [p["outputFileName"] for p in productList][0]
         runLsDicts = [p["runLsDict"] for p in productList]
-        if len(fileNames) :
-            utils.mergeRunLsDicts(runLsDicts, fileNames[0], printHyphens = True)
+        
+        outFile = open(outFileName,"w")
+        outFile.write(aJson(mergedDict(runLsDicts)))
+        outFile.close()
+        print "The json file %s has been written."%outFileName
+        print utils.hyphens
 #####################################
 class duplicateEventCheck(analysisStep) :
     def __init__(self) :

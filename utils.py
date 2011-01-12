@@ -50,66 +50,6 @@ def canvas(name) :
     c.SetRightMargin(0.0)
     c.SetLeftMargin(0.0)
     return c
-#####################################
-def psFromRoot(listOfInFileNames,outFileName,beQuiet) :
-    if len(listOfInFileNames)==0 : return
-
-    options = ""
-    dummyCanvas = canvas("display")
-    dummyCanvas.Print(outFileName+"[", options)
-    for inFileName in listOfInFileNames :
-        inFile=r.TFile(inFileName)
-        keys=inFile.GetListOfKeys()
-        for key in keys :
-            someObject=inFile.Get(key.GetName())
-            if someObject.ClassName()!="TCanvas" : print "Warning: found an object which is not a TCanvas in the display root file"
-            someObject.Print(outFileName, options)
-    dummyCanvas.Print(outFileName+"]", options)
-    pdfFileName=outFileName.replace(".ps",".pdf")
-    os.system("ps2pdf "+outFileName+" "+pdfFileName)
-    os.system("gzip -f "+outFileName)
-    if not beQuiet : print "The display file \""+pdfFileName+"\" has been written."    
-#####################################
-def mergeRunLsDicts(runLsDicts, outFileName, printHyphens = False) :
-    if not len(runLsDicts) : return
-
-    #merge results into one dictionary
-    mergedDict = collections.defaultdict(list)
-    for d in runLsDicts :
-        for run,lsList in d.iteritems() :
-            mergedDict[run].extend(lsList)
-
-    #make a json
-    outDict={}
-    for run,lsList in mergedDict.iteritems() :
-        #check for duplicates            
-        trimmedList=list(set(lsList))
-        nDuplicates=len(lsList)-len(trimmedList)
-        if nDuplicates!=0 :
-            for ls in trimmedList :
-                lsList.remove(ls)
-            lsList.sort()
-            print "In run",run,", these lumi sections appear multiple times in the lumiTree:",lsList
-        trimmedList.sort()
-
-        #make the json
-        newList=[]
-        lowerBound=trimmedList[0]
-        for iLs in range(len(trimmedList)-1) :
-            thisLs=trimmedList[iLs  ]
-            nextLs=trimmedList[iLs+1]
-            if nextLs!=thisLs+1 :
-                newList.append([lowerBound,thisLs])
-                lowerBound=nextLs
-            if iLs==len(trimmedList)-2 :
-                newList.append([lowerBound,nextLs])
-        outDict[str(run)]=newList
-
-    outFile=open(outFileName,"w")
-    outFile.write(str(outDict).replace("'",'"'))
-    outFile.close()
-    print "The json file",outFileName,"has been written."
-    if printHyphens : print hyphens
 #####################################        
 def getCommandOutput(command):
     p = subprocess.Popen(command, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
