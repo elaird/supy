@@ -28,9 +28,8 @@ Other
 
 * generic batch mode
 
-* clean up split mode
+* make prettier oldName in analysis.py
 * multimode duplicate event checker
-* displayer cleans up
 
 * profile
 * logfiles
@@ -53,4 +52,4 @@ Other
 
 * light/lite ntuple mode
 * stage-out
-
+* prune gen MET
