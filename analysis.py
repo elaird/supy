@@ -129,10 +129,12 @@ class analysis(object) :
             someFile.close()
 
             oldName = looper.name
-            looper.name = childName(looper.name,job["iSlice"])
-            looper.outputPlotFileName=self.outputPlotFileName(self._configurations[job["iConfig"]],looper.name)
+            looper.name = childName(looper.name, job["iSlice"])
+            looper.outputPlotFileName = self.outputPlotFileName(self._configurations[job["iConfig"]], looper.name)
             looper.setOutputFileNames()
-            looper.doSplitMode(oldName,self._loop)
+
+            looper.parentName = oldName
+            looper.setQuietMode(self._loop)
             listOfLoopers.append(looper)
 
         if self._jobId!=None :

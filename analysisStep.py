@@ -3,17 +3,16 @@ from bisect import bisect
 class analysisStep(object) :
     """generic analysis step"""
 
-    integerWidth=10
-    docWidth=30
-    moreWidth=40
-    moreName=""
-    moreName2=""
+    integerWidth = 10
+    docWidth = 30
+    moreWidth = 40
+    moreName = ""
+    moreName2 = ""
 
-    ignoreInAccounting=False
-    disabled=False
-    quietMode=False
-    splitMode=False
-    needToConsiderPtHatThresholds=False
+    ignoreInAccounting = False
+    disabled = False
+    quietMode = False
+    needToConsiderPtHatThresholds = False
     
     def go(self,eventVars) :
         if self.disabled :
@@ -58,9 +57,6 @@ class analysisStep(object) :
         
     def makeQuiet(self) :
         self.quietMode=True
-        
-    def setSplitMode(self) :
-        self.splitMode=True
         
     def printStatistics(self) :
         passString="-" if self.disabled else str(self.nPass)

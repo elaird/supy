@@ -430,11 +430,6 @@ class jsonMaker(analysisStep) :
     def uponAcceptance(self,eventVars) :
         self.runLsDict[eventVars["run"]].append(eventVars["lumiSection"])
     
-    def endFunc(self, otherChainDict) :
-        if self.splitMode : return
-        if not self.quietMode : print utils.hyphens
-        utils.mergeRunLsDicts([self.runLsDict], self.outputFileName)
-
     def varsToPickle(self) :
         return ["outputFileName", "runLsDict"]
 

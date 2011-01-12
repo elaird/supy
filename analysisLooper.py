@@ -27,7 +27,6 @@ class analysisLooper :
         self.ptHatThresholds=[]
         
         self.parentName = self.name
-        self.splitMode = False
         self.quietMode = False
         self.setOutputFileNames()
 
@@ -73,7 +72,7 @@ class analysisLooper :
         self.printStats()
         self.endSteps()
         self.writeHistos()
-        if self.splitMode : self.pickleStepAndCalculableData()
+        self.pickleStepAndCalculableData()
         if not self.quietMode : print utils.hyphens
         
         #free up memory (http://wlav.web.cern.ch/wlav/pyroot/memory.html)
@@ -151,7 +150,6 @@ class analysisLooper :
                 books = self.setupBooks(current)
             step.books = books
             if self.quietMode : step.makeQuiet()
-            if self.splitMode : step.setSplitMode()
             step.isSelector = hasattr(step,"select")            
             assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.__class__.__name__            
             if step.name() == "skimmer" : returnValue = False
@@ -162,11 +160,9 @@ class analysisLooper :
         r.gROOT.cd()
         return returnValue
 
-    def doSplitMode(self,parentName,nWorkers) :
-        self.splitMode=True
+    def setQuietMode(self, nWorkers) :
         if nWorkers!=None and nWorkers>1 :
-            self.quietMode=True
-        self.parentName=parentName
+            self.quietMode = True
 
     def makeListsOfLeavesAndCalcsUsed(self, activeKeys) :
         self.listOfLeavesUsed = []
