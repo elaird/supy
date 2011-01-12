@@ -7,9 +7,9 @@ class eventSkim(analysis.analysis) :
         return "/vols/cms02/%s/tmp/"%os.environ["USER"]
 
     def listOfSteps(self,params) :
-        stepList=[ steps.progressPrinter(2,300),
-                   steps.runLsEventFilter("/home/hep/elaird1/markus5.txt"),
-                   steps.skimmer(),
+        stepList=[ steps.Print.progressPrinter(2,300),
+                   steps.Other.runLsEventFilter("/home/hep/elaird1/colin.txt"),
+                   steps.Other.skimmer(),
                    ]
         return stepList
 
