@@ -5,6 +5,7 @@ class deadEcalRegionsFromFile(wrappedChain.calculable) :
     def __init__(self) :
         self.trigPrims = r.std.vector(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double')))()
         self.nBadXtals = r.std.vector("int")()
+        self.maxStatus = r.std.vector("int")()
         inFile=open("deadRegionList.txt")
         for line in inFile :
             if line[0]=="#" : continue
@@ -14,12 +15,14 @@ class deadEcalRegionsFromFile(wrappedChain.calculable) :
             nBad = int(fieldList[4])
             self.trigPrims.push_back(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0,eta,phi,0.0))
             self.nBadXtals.push_back(nBad)
+            self.maxStatus.push_back(14)
         inFile.close()
 
     def update(self,ignored) :
         self.value={}
         self.value["trigPrims"] = self.trigPrims
         self.value["nBadXtals"] = self.nBadXtals
+        self.value["maxStatus"] = self.maxStatus
 ##############################
 class deadHcalChannelsFromFile(wrappedChain.calculable) :
     def __init__(self) :
@@ -48,6 +51,9 @@ class ecalDeadTowerTrigPrimP4(wrappedChain.calculable) :
 class ecalDeadTowerNBadXtals(wrappedChain.calculable) :
     def isFake(self) : return True
     def update(self,ignored) : self.value = self.source["deadEcalRegionsFromFile"]["nBadXtals"]
+class ecalDeadTowerMaxStatus(wrappedChain.calculable) :
+    def isFake(self) : return True
+    def update(self,ignored) : self.value = self.source["deadEcalRegionsFromFile"]["maxStatus"]
 ##############################
 class hcalDeadChannelP4(wrappedChain.calculable) :
     def isFake(self) : return True
