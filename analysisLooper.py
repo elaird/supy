@@ -1,4 +1,4 @@
-import copy,array,os
+import copy,array,os,cPickle
 import wrappedChain,utils,steps,configuration
 from autoBook import autoBook
 import ROOT as r
@@ -184,6 +184,13 @@ class analysisLooper :
         
         self.listOfLeavesUsed.sort()
         self.listOfCalculablesUsed.sort()
+
+    def printIt(self) :
+        print utils.hyphens
+        print self.name
+        self.quietMode = False
+        self.printStats()
+        print utils.hyphens
         
     def printStats(self) :
         if not self.quietMode :
@@ -273,10 +280,8 @@ class analysisLooper :
         
         outputFile.Close()
         if not zombie :
-            if not self.quietMode :            
+            if not self.quietMode :
                 print "The output file \""+self.outputPlotFileName+"\" has been written."
-            #else :
-            #    print self.steps[-1].nPass,"/",self.steps[0].nTotal,"events were selected"
 
     def endSteps(self) :
         for step in self.steps :
@@ -284,18 +289,17 @@ class analysisLooper :
                 step.endFunc(self.otherChainDict)
 
     def pickleStepAndCalculableData(self) :
-        keepList=["nTotal","nPass","nFail"]                 #used by all steps
-        keepList.extend(["outputFileName","runLsDict"])     #for displayer,skimmer,jsonMaker
-        keepList.extend(["__doc__","moreName","moreName2"]) #not strictly needed; only for debugging
-        outListSteps=[]
-        for step in self.steps :
-            outListSteps.append( {} )
-            for item in keepList :
-                if hasattr(step,item): outListSteps[-1][item]=getattr(step,item)
-
-        import os,cPickle
-        outFileName=os.path.expanduser(self.outputStepAndCalculableDataFileName)
-        outFile=open(outFileName,"w")
-        cPickle.dump([outListSteps,self.listOfCalculablesUsed,self.listOfLeavesUsed],outFile)
+        def listToDump() :
+            out = []
+            for step in self.steps :
+                d = {}
+                for item in set(step.varsToPickle()+["nTotal","nPass","nFail"]+["__doc__","moreName","moreName2"]) : #last list not needed; simply for debugging
+                    d[item] = getattr(step, item)
+                out.append(d)
+            return out
+            
+        outFileName = os.path.expanduser(self.outputStepAndCalculableDataFileName)
+        outFile = open(outFileName,"w")
+        cPickle.dump([listToDump(), self.listOfCalculablesUsed, self.listOfLeavesUsed], outFile)
         outFile.close()
 #####################################
