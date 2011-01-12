@@ -28,7 +28,7 @@ Other
 
 * generic batch mode
 
-* improve pickling/merging
+* clean up split mode
 * multimode duplicate event checker
 * displayer cleans up
 
@@ -43,6 +43,7 @@ Other
 * cut flow study infrastructure
 * dependence tools
 * dependence shotgun
+* consider uncertainty on zero
 
 * config parameter interface
 * config sample interface, effective lumi argument, test mode
