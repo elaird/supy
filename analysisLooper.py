@@ -68,12 +68,7 @@ class analysisLooper :
             self.nEventsOriginal = self.steps[0].nTotal
             self.nEvents = self.steps[0].nPass
 
-        activeKeys = chainWrapper.activeKeys()
-        activeKeyIsLeaf = chainWrapper.activeKeyIsLeaf()
-        activeKeyTypes = chainWrapper.activeKeyTypes()
-
-        self.makeListOfCalculablesUsed(activeKeys, activeKeyIsLeaf)
-        self.makeListOfLeavesUsed(activeKeys, activeKeyIsLeaf, activeKeyTypes)
+        self.makeListsOfLeavesAndCalcsUsed( chainWrapper.activeKeys() )
 
         self.printStats()
         self.endSteps()
@@ -173,24 +168,23 @@ class analysisLooper :
             self.quietMode=True
         self.parentName=parentName
 
-    def makeListOfCalculablesUsed(self, activeKeys, activeKeyIsLeaf) :
-        self.listOfCalculablesUsed = []
-        for calc in self.calculables :
-            if calc.name() not in activeKeys : continue
-            if activeKeyIsLeaf[activeKeys.index(calc.name())] : continue
-            self.listOfCalculablesUsed.append( (calc.name(), "%s%s%s" % \
-                                                    (calc.moreName if hasattr(calc,"moreName") else "",\
-                                                     calc.moreName2 if hasattr(calc,"moreName2") else "",\
-                                                     configuration.fakeString() if calc.isFake() else "") ) )
-        self.listOfCalculablesUsed.sort()
-
-    def makeListOfLeavesUsed(self, activeKeys, activeKeyIsLeaf, activeKeyTypes) :
+    def makeListsOfLeavesAndCalcsUsed(self, activeKeys) :
         self.listOfLeavesUsed = []
-        for key,isLeaf,keyType in zip(activeKeys, activeKeyIsLeaf, activeKeyTypes) :
-            if not isLeaf : continue
-            self.listOfLeavesUsed.append((key, keyType))
+        self.listOfCalculablesUsed = []        
+        for key,isLeaf,keyType in activeKeys :
+            if isLeaf :
+                self.listOfLeavesUsed.append((key, keyType))
+            else :
+                for calc in self.calculables :
+                    if calc.name()!=key : continue
+                    self.listOfCalculablesUsed.append( (calc.name(), "%s%s%s" % \
+                                                        (calc.moreName if hasattr(calc,"moreName") else "",\
+                                                         calc.moreName2 if hasattr(calc,"moreName2") else "",\
+                                                         configuration.fakeString() if calc.isFake() else "") ) )
+        
         self.listOfLeavesUsed.sort()
-                                   
+        self.listOfCalculablesUsed.sort()
+        
     def printStats(self) :
         if not self.quietMode :
             if self.printNodesUsed :

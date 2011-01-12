@@ -29,9 +29,7 @@ class wrappedChain(dict) :
             dict.__getitem__(self, name).source = self
             dict.__getitem__(self, name).updated = False
 
-    def activeKeys(self) : return self.__activeNodes.keys()
-    def activeKeyIsLeaf(self) : return [self.__activeNodes[key].isLeaf() for key in self.__activeNodes.keys()]
-    def activeKeyTypes(self) : return [str(type(self.__activeNodes[key].value)).split("'")[1].replace("wrappedChain.","") for key in self.__activeNodes.keys()]
+    def activeKeys(self) : return [( key, node.isLeaf(), str(type(node.value)).split("'")[1].replace("wrappedChain.","") ) for key,node in self.__activeNodes.iteritems()]
 
     def entries(self, nEntries = -1 ) :
         """Generate the access dictionary (self) for each entry in TTree."""
