@@ -1,5 +1,6 @@
 import ROOT as r
 import copy,re
+import configuration
 
 class organizer(object) :
     """Organize selection and histograms.
@@ -37,8 +38,8 @@ class organizer(object) :
         self.lumi = 1.0
         self.alternateConfigurations = [] if configurationId else \
                                        [organizer(sampleSpecs,i) for i in range(1,len(sampleSpecs[0]["outputFileNames"]))]
-        self.calculables = self.__nameTitlesIn("Calculables")
-        self.leaves = self.__nameTitlesIn("Leaves")
+
+        self.calculables = self.__nameTitlesIn()
             
     def __inititialSelectionsList(self) :
         """Scan samples in parallel to ensure consistency and build list of selection dicts"""
@@ -178,10 +179,28 @@ class organizer(object) :
     def indicesOfSelectionsWithKey(self,key) :
         return filter( lambda i: key in self.selections[i], range(len(self.selections)))
             
-    def __nameTitlesIn(self,directory) :
-        return reduce( lambda x,y: x|y ,
-                       [set([ (key.GetName(),key.GetTitle() if key.GetTitle()!=key.GetName() else "")
-                              for key in dir.GetListOfKeys()])
-                        for dir in filter(lambda x: x, [ s['dir'].Get(directory) for s in self.samples])],
-                       set())
+    def __nameTitlesIn(self) :
+        def things(dir, isLeaf) :
+            def code(isLeaf, title) :
+                if isLeaf : return "leaf"
+                if title[-len(configuration.fakeString()):]==configuration.fakeString() : return "fake"
+                else : return  "calc"
+            return [(key.GetName(),key.GetTitle() if key.GetTitle()!=key.GetName() else "", code(isLeaf, key.GetTitle())) for key in dir.GetListOfKeys()] if dir else []
 
+        def calcs(sample) :
+            l = []
+            l += things(sample['dir'].Get("Calculables"), isLeaf = False)
+            l += things(sample['dir'].Get("Leaves"), isLeaf = True)
+            return l
+        
+        allCalcs = sorted(list(reduce( lambda x,y: x|y, [set(calcs(sample)) for sample in self.samples])))
+
+        stuff = []
+        for sample in self.samples :
+            theseCalcs = calcs(sample)
+            thisStuff = []
+            for c in allCalcs :
+                category = "absent" if c not in theseCalcs else c[2]
+                thisStuff.append( (c[0], c[1], category) )
+            stuff.append(thisStuff)
+        return stuff
