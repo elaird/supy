@@ -5,7 +5,7 @@ class NumberOfMatches(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
         self.stash(["IsTrackerMuon"])
-        self.moreName = "WARNING: dummy value always = 2"
+        self.moreName = "hard-coded to 2"
     def isFake(self) :
         return True
     def update(self,ignored) :
@@ -15,7 +15,7 @@ class NumberOfValidPixelHits(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
         self.stash(["IsTrackerMuon"])
-        self.moreName = "WARNING: dummy value always = 1"
+        self.moreName = "hard-coded to 1"
     def isFake(self) :
         return True
     def update(self,ignored) :

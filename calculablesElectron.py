@@ -58,7 +58,6 @@ class ID(wrappedChain.calculable) :
                     "ConversionDist", "ConversionDCot", "ConversionMissingHits","P4"])
         i = ["95","90","85","80","70","60"].index(eff)
         self.rejectConversions = rejectConversions
-        if self.rejectConversions : self.moreName = "old samples have missing hits = 0"
         
         self.Bsieie = [0.01,    0.01,    0.01,    0.01,    0.01,    0.01  ][i]
         self.Bdphi  = [0.80,    0.80,    0.06,    0.06,    0.03,    0.025 ][i]
@@ -189,6 +188,7 @@ class ConversionMissingHits(wrappedChain.calculable) :
     def __init__(self, collection) :
         self.fixes = collection
         self.stash(["HcalOverEcal"])
+        self.moreName = "hard-coded to 0"
     def isFake(self) :
         return True
     def update(self, ignored) :

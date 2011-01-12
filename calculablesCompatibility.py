@@ -46,55 +46,70 @@ class deadHcalChannelsFromFile(wrappedChain.calculable) :
         self.value["status"] = self.status
 ##############################
 class ecalDeadTowerTrigPrimP4(wrappedChain.calculable) :
+    def __init__(self) : self.moreName = "from text file"
     def isFake(self) : return True
     def update(self,ignored) : self.value = self.source["deadEcalRegionsFromFile"]["trigPrims"]
 class ecalDeadTowerNBadXtals(wrappedChain.calculable) :
+    def __init__(self) : self.moreName = "from text file"
     def isFake(self) : return True
     def update(self,ignored) : self.value = self.source["deadEcalRegionsFromFile"]["nBadXtals"]
 class ecalDeadTowerMaxStatus(wrappedChain.calculable) :
+    def __init__(self) : self.moreName = "hard-coded to 14"
     def isFake(self) : return True
     def update(self,ignored) : self.value = self.source["deadEcalRegionsFromFile"]["maxStatus"]
 ##############################
 class hcalDeadChannelP4(wrappedChain.calculable) :
+    def __init__(self) : self.moreName = "from text file"
     def isFake(self) : return True
     def update(self,ignored) : self.value = self.source["deadHcalChannelsFromFile"]["p4"]
 class hcalDeadChannelStatus(wrappedChain.calculable) :
+    def __init__(self) : self.moreName = "from text file"
     def isFake(self) : return True
     def update(self,ignored) : self.value = self.source["deadHcalChannelsFromFile"]["status"]
 ##############################
 class logErrorTooManyClusters(wrappedChain.calculable) :
+    def __init__(self) : self.moreName = "hard-coded to False"
     def isFake(self) : return True
     def update(self,ignored) : self.value = False
 class logErrorTooManySeeds(wrappedChain.calculable) :
+    def __init__(self) : self.moreName = "hard-coded to False"
     def isFake(self) : return True
     def update(self,ignored) : self.value = False
 ##############################
 class beamHaloCSCLooseHaloId(wrappedChain.calculable) :
+    def __init__(self) : self.moreName = "hard-coded to True"
     def isFake(self) : return True
     def update(self,ignored) : self.value = False
 class beamHaloCSCTightHaloId(wrappedChain.calculable) :
+    def __init__(self) : self.moreName = "hard-coded to True"    
     def isFake(self) : return True
     def update(self,ignored) : self.value = False
 class beamHaloEcalLooseHaloId(wrappedChain.calculable) :
+    def __init__(self) : self.moreName = "hard-coded to True"
     def isFake(self) : return True
     def update(self,ignored) : self.value = False
 class beamHaloEcalTightHaloId(wrappedChain.calculable) :
+    def __init__(self) : self.moreName = "hard-coded to True"
     def isFake(self) : return True
     def update(self,ignored) : self.value = False
 class beamHaloGlobalLooseHaloId(wrappedChain.calculable) :
+    def __init__(self) : self.moreName = "hard-coded to True"
     def isFake(self) : return True
     def update(self,ignored) : self.value = False
 class beamHaloGlobalTightHaloId(wrappedChain.calculable) :
+    def __init__(self) : self.moreName = "hard-coded to True"
     def isFake(self) : return True
     def update(self,ignored) : self.value = False
 class beamHaloHcalLooseHaloId(wrappedChain.calculable) :
+    def __init__(self) : self.moreName = "hard-coded to True"
     def isFake(self) : return True
     def update(self,ignored) : self.value = False
 class beamHaloHcalTightHaloId(wrappedChain.calculable) :
+    def __init__(self) : self.moreName = "hard-coded to True"
     def isFake(self) : return True
     def update(self,ignored) : self.value = False
 ##############################
 class isRealData(wrappedChain.calculable) :
-    def isFake(self) : return True    
+    def __init__(self) : self.moreName = "absence of genpthat"
     def update(self,ignored) : self.value = not ("genpthat" in self.source)
 ##############################
