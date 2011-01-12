@@ -1,6 +1,6 @@
 import ROOT as r
-import os,math,string
-import utils
+import os,math,string,collections
+import utils,configuration
 ##############################
 def setupStyle() :
     r.gROOT.SetStyle("Plain")
@@ -117,12 +117,16 @@ class plotter(object) :
 
         self.printCanvas("[")
 
-        text2 = self.printTimeStamp()
-        text3 = self.printNEventsIn()
+        text1 = self.printTimeStamp()
+        text2 = self.printNEventsIn()
         self.printCanvas()
         self.canvas.Clear()
 
-        text1 = self.printCalculables()
+        text3 = self.printCalculables(selectImperfect = False)
+        self.printCanvas()
+        self.canvas.Clear()
+    
+        text4 = self.printCalculables(selectImperfect = True)
         self.printCanvas()
         self.canvas.Clear()
     
@@ -216,25 +220,73 @@ class plotter(object) :
             self.printOnePage(spec["plotName"], tight = self.anMode)
         print utils.hyphens
 
-    def printCalculables(self) :
+    def printCalculables(self, selectImperfect) :
         text = r.TText()
         text.SetNDC()
         text.SetTextFont(102)
         text.SetTextSize(0.55*text.GetTextSize())
 
-        calcs = filter(lambda x:x[1]!="",list(self.someOrganizer.calculables) )
+        def theCalcs(selectImperfect) :
+            def theCounts() :
+                out = {}
+                for category in ["leaf","calc","fake","absent"] :
+                    out[category] = collections.defaultdict(int)
+
+                for l in lists :
+                    for calc in l :
+                        out[calc[2]][calc[0]]+=1
+                return out
+
+            def statString(counts, name) :
+                out = ""
+                for item in ["leaf","calc","fake"] :
+                    out += "%4d  "%counts[item][name]
+                return out
+
+            def allCalcs(lists) :
+                out = []
+                for l in lists :
+                    for calc in l :
+                        out.append(calc)
+                return list(set(out))
+                
+            def imperfect(lists) :
+                d = theCounts()
+                out = []
+                for calc in allCalcs(lists) :
+                    n = calc[0]
+                    fake = d["fake"][n]>0
+                    homogeneous = d["leaf"][n]==0 or d["calc"][n]==0
+
+                    if fake and calc[2]=="fake" :
+                        out.append( (calc[0], calc[1][:-len(configuration.fakeString())], statString(d, calc[0])) )
+                    elif not homogeneous and calc[2]=="calc" :
+                        out.append( (calc[0], calc[1], statString(d, calc[0])) )
+                return list(set(out))
+
+            def genuine(lists) :
+                out = []
+                for l in lists :
+                    for calc in l :
+                        if calc[1]!="" and calc[2]=="calc" :
+                            out.append( (calc[0], calc[1], "") )
+                return list(set(out)) #the list of genuine calculables which have a moreName
+
+            lists = [l for l in self.someOrganizer.calculables]
+            if not selectImperfect : return genuine(lists)
+            else : return imperfect(lists)
+                
+        calcs = theCalcs(selectImperfect)
         if not len(calcs) : return text
-        length = max([len(calc[0]) for calc in calcs])
+        length0 = max([len(calc[0]) for calc in calcs])
+        length1 = max([len(calc[1]) for calc in calcs])
         calcs.sort()
-        calcs.insert(0,("",""))
-        calcs.insert(0,("Calculables",""))
-        nCalcs = len(calcs)
-        for i in  range(nCalcs):
+        calcs.insert(0, ("","",""))
+        calcs.insert(0, ("Calculables", "(imperfect)" if selectImperfect else "", "leaf  calc  fake" if selectImperfect else ""))
+        for i,calc in enumerate(calcs) :
             x = 0.02
             y = 0.98 - 0.6*(i+0.5)/self.nLinesMax
-            name,title = calcs[i]
-            name = name.rjust(length+2)
-            text.DrawTextNDC(x, y, "%s   %s"%(name,title) )
+            text.DrawTextNDC(x, y, "%s   %s   %s"%(calc[0].rjust(length0+2), calc[1].ljust(length1+2), calc[2]) )
         return text
         
     def printTimeStamp(self) :
