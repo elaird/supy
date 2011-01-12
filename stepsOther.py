@@ -78,6 +78,9 @@ class skimmer(analysisStep) :
         self.alsoWriteExtraTree=False #hard-code until this functionality is fixed
         self.outputTreeExtraIsSetup=False
 
+    def requiresNoSetBranchAddress(self) :
+        return True
+
     def setup(self,chain,fileDir,name,outputDir) :
         self.fileDir = fileDir
         self.outputFileName=outputDir+"/"+name+"_skim.root"
