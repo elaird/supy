@@ -419,7 +419,6 @@ class genMotherHistogrammer(analysisStep) :
                 self.book(eventVars).fill(yValue, self.keyAllHighPt,
                                           nBinsY, -0.5, nBinsY-0.5,
                                           title = ";mother [when GEN photon p_{T}> %.1f (GeV)];photons / bin"%self.specialPtThreshold, xAxisLabels = self.binLabels)
-                                          )
                 if motherId==2 : self.fillSpecialHistos(eventVars, iParticle)
 #####################################
 class zHistogrammer(analysisStep) :
