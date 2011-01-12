@@ -69,7 +69,6 @@ class analysisLooper :
 
         self.makeListsOfLeavesAndCalcsUsed( chainWrapper.activeKeys() )
 
-        self.printStats()
         self.endSteps()
         self.writeHistos()
         self.pickleStepAndCalculableData()
@@ -181,36 +180,32 @@ class analysisLooper :
         self.listOfLeavesUsed.sort()
         self.listOfCalculablesUsed.sort()
 
-    def printIt(self) :
+    def printStats(self) :
         print utils.hyphens
         print self.name
-        self.quietMode = False
-        self.printStats()
+        
+        if self.printNodesUsed :
+            print utils.hyphens
+            print "Leaves accessed:"
+            print str([x[0] for x in self.listOfLeavesUsed]).replace("'","")
+            print utils.hyphens
+            print "Calculables accessed:"
+            print str([x[0] for x in self.listOfCalculablesUsed]).replace("'","")
+
+        print utils.hyphens
+        print "Calculables' configuration:"
+        for calc in filter( lambda x: x[1]!="", self.listOfCalculablesUsed) :
+            print "%s\t\t%s"%calc
+                
+        #print step statistics
+        if not len(self.steps) : return
+        print utils.hyphens
+        width = self.steps[0].integerWidth
+        print "Steps:%s" % ("nPass ".rjust(width) + "(nFail)".rjust(width+2)).rjust(len(utils.hyphens)-len("Steps:"))
+        for step in self.steps :
+            step.printStatistics()
         print utils.hyphens
         
-    def printStats(self) :
-        if not self.quietMode :
-            if self.printNodesUsed :
-            	print utils.hyphens
-            	print "Leaves accessed:"
-            	print str([x[0] for x in self.listOfLeavesUsed]).replace("'","")
-            	print utils.hyphens
-                print "Calculables accessed:"
-                print str([x[0] for x in self.listOfCalculablesUsed]).replace("'","")
-
-            print utils.hyphens
-            print "Calculables' configuration:"
-            for calc in filter( lambda x: x[1]!="", self.listOfCalculablesUsed) :
-                print "%s\t\t%s"%calc
-                
-            #print step statistics
-            if not len(self.steps) : return
-            print utils.hyphens
-            width = self.steps[0].integerWidth
-            print "Steps:%s" % ("nPass ".rjust(width) + "(nFail)".rjust(width+2)).rjust(len(utils.hyphens)-len("Steps:"))
-            for step in self.steps :
-                step.printStatistics()
-
     def writeAllObjects(self) :
         objectList = r.gDirectory.GetList()
         for object in objectList :

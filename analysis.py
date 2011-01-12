@@ -334,7 +334,7 @@ def mergeFunc(looper,listOfSlices) :
         looper.listOfLeavesUsed.extend(listOfLeavesUsed)
         looper.listOfLeavesUsed = list(set(looper.listOfLeavesUsed))
 
-    looper.printIt()
+    looper.printStats()
 
     cmd = "hadd -f "+looper.outputPlotFileName+" "+" ".join(plotFileNameList)
     hAddOut = utils.getCommandOutput(cmd)["stdout"]
