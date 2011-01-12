@@ -48,7 +48,6 @@ Other
 * config sample interface, effective lumi argument, test mode
 * multi-site samples handles
 
-* activeKey funcs
 * protect against samples collisions
 
 * light/lite ntuple mode
