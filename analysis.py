@@ -295,33 +295,7 @@ class analysis(object) :
         utils.operateOnListUsingQueue(nCores,mergeWorker,workList)
         os.remove(self.jobsFile())
 #############################################
-def looperPrint(looper) :
-    print utils.hyphens
-    print looper.name
-    looper.quietMode=False
-    looper.printStats()
-    print utils.hyphens
-#############################################
-def reportSkimFiles(skimmerFileDict,someLooper) :
-    for skimmerIndex,skimFileNames in skimmerFileDict.iteritems() :
-        print "The",len(skimFileNames),"skim files have been written."
-        print "( e.g.",skimFileNames[0],")"
-        print utils.hyphens
-#############################################
-def mergeDisplays(displayFileDict,someLooper) :
-    if len(displayFileDict)>0 :
-        outputFileName=displayFileDict.values()[0][0].replace(someLooper.name,someLooper.parentName).replace(".root",".ps")
-        utils.psFromRoot(displayFileDict.values()[0],outputFileName,beQuiet=False)
-        print utils.hyphens
-#############################################
 def mergeFunc(looper,listOfSlices) :
-
-    #these map step index to list of output file names
-    displayFileDict = collections.defaultdict(list)
-    skimmerFileDict = collections.defaultdict(list)
-    jsonFileDict    = collections.defaultdict(list)
-    #these map step index to list of run-ls dicts
-    runLsDict       = collections.defaultdict(list)
 
     plotFileNameList = []
     stepAndCalculableDataFileNameList = []
@@ -334,14 +308,16 @@ def mergeFunc(looper,listOfSlices) :
     #empty lists for this looper
     looper.listOfCalculablesUsed = []
     looper.listOfLeavesUsed      = []
+
+    products = [[] for step in looper.steps]
     
     for iSlice in listOfSlices :
         plotFileNameList.append( looper.outputPlotFileName.replace( looper.name, childName(looper.name,iSlice) ) )
 
         #read in the step and calculable data
         stepAndCalculableDataFileName = looper.outputStepAndCalculableDataFileName.replace( looper.name, childName(looper.name,iSlice) )
-        stepAndCalculableDataFile=open(stepAndCalculableDataFileName)
-        stepDataList,listOfCalculablesUsed,listOfLeavesUsed=cPickle.load(stepAndCalculableDataFile)
+        stepAndCalculableDataFile = open(stepAndCalculableDataFileName)
+        stepDataList,listOfCalculablesUsed,listOfLeavesUsed = cPickle.load(stepAndCalculableDataFile)
         stepAndCalculableDataFile.close()
         stepAndCalculableDataFileNameList.append(stepAndCalculableDataFileName)
 
@@ -349,21 +325,14 @@ def mergeFunc(looper,listOfSlices) :
             looper.steps[i].nTotal+=stepDataList[i]["nTotal"]
             looper.steps[i].nPass +=stepDataList[i]["nPass" ]
             looper.steps[i].nFail +=stepDataList[i]["nFail" ]
-
-            if looper.steps[i].name() == "displayer" :
-                displayFileDict[i].append(stepDataList[i]["outputFileName"])
-            if looper.steps[i].name() == "skimmer" :
-                skimmerFileDict[i].append(stepDataList[i]["outputFileName"])
-            if looper.steps[i].name() == "jsonMaker" : 
-                runLsDict[i].append(stepDataList[i]["runLsDict"])
-                jsonFileDict[i].append(stepDataList[i]["outputFileName"])
+            products[i].append(stepDataList[i])
 
         looper.listOfCalculablesUsed.extend(listOfCalculablesUsed)
         looper.listOfCalculablesUsed = list(set(looper.listOfCalculablesUsed))
         looper.listOfLeavesUsed.extend(listOfLeavesUsed)
         looper.listOfLeavesUsed = list(set(looper.listOfLeavesUsed))
 
-    looperPrint(looper)
+    looper.printIt()
 
     cmd = "hadd -f "+looper.outputPlotFileName+" "+" ".join(plotFileNameList)
     hAddOut = utils.getCommandOutput(cmd)["stdout"]
@@ -377,12 +346,9 @@ def mergeFunc(looper,listOfSlices) :
             
     print utils.hyphens
 
-    mergeDisplays(displayFileDict, looper)
-    reportSkimFiles(skimmerFileDict, looper)
-
-    if len(jsonFileDict.values())>0 and len(jsonFileDict.values()[0])>0 :
-        utils.mergeRunLsDicts(runLsDict, jsonFileDict.values()[0][0], printHyphens = True)
-
+    for step,productList in zip(looper.steps, products) :
+        if hasattr(step, "mergeFunc") : step.mergeFunc(productList, looper)
+        
     #clean up
     for fileName in plotFileNameList :
         os.remove(fileName)

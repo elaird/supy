@@ -70,15 +70,14 @@ def psFromRoot(listOfInFileNames,outFileName,beQuiet) :
     os.system("gzip -f "+outFileName)
     if not beQuiet : print "The display file \""+pdfFileName+"\" has been written."    
 #####################################
-def mergeRunLsDicts(runLsDict,outFileName,printHyphens=False) :
-    if len(runLsDict)==0 : return
+def mergeRunLsDicts(runLsDicts, outFileName, printHyphens = False) :
+    if not len(runLsDicts) : return
 
     #merge results into one dictionary
-    mergedDict=collections.defaultdict(list)
-    for item in runLsDict.values():
-        for someDict in item :
-            for run,lsList in someDict.iteritems() :
-                mergedDict[run].extend(lsList)
+    mergedDict = collections.defaultdict(list)
+    for d in runLsDicts :
+        for run,lsList in d.iteritems() :
+            mergedDict[run].extend(lsList)
 
     #make a json
     outDict={}

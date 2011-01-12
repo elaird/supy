@@ -163,6 +163,14 @@ class skimmer(analysisStep) :
         
         self.outputFile.Close()
         if not self.quietMode : print "The skim file \""+self.outputFileName+"\" has been written."
+
+    def varsToPickle(self) :
+        return ["outputFileName"]
+
+    def mergeFunc(self, productList, someLooper) :
+        print "The %d skim files have been written."%len(productList)
+        print "( e.g. %s )"%productList[0]["outputFileName"]
+        print utils.hyphens
 #####################################
 class hbheNoiseFilter(analysisStep) :
     def __init__(self, invert = False) :
@@ -396,6 +404,10 @@ class pickEventSpecMaker(analysisStep) :
         print utils.hyphens
         self.outputFile.close()
         print "The pick events spec. file \""+self.outputFileName+"\" has been written."
+
+    def varsToPickle(self) :
+        return ["outputFileName"]
+    
 #####################################
 class bxHistogrammer(analysisStep) :
 
@@ -421,12 +433,18 @@ class jsonMaker(analysisStep) :
     def endFunc(self, otherChainDict) :
         if self.splitMode : return
         if not self.quietMode : print utils.hyphens
-        sillyDict={}
-        sillyDict[1]=[self.runLsDict]
-        utils.mergeRunLsDicts(sillyDict,self.outputFileName)
+        utils.mergeRunLsDicts([self.runLsDict], self.outputFileName)
+
+    def varsToPickle(self) :
+        return ["outputFileName", "runLsDict"]
+
+    def mergeFunc(self, productList, someLooper) :
+        fileNames = [p["outputFileName"] for p in productList]
+        runLsDicts = [p["runLsDict"] for p in productList]
+        if len(fileNames) :
+            utils.mergeRunLsDicts(runLsDicts, fileNames[0], printHyphens = True)
 #####################################
 class duplicateEventCheck(analysisStep) :
-
     def __init__(self) :
         self.events = collections.defaultdict(set)
 
