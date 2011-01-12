@@ -892,8 +892,26 @@ class displayer(analysisStep) :
         return ["outputFileName"]
 
     def mergeFunc(self, productList, someLooper) :
+        def psFromRoot(listOfInFileNames, outFileName) :
+            if not len(listOfInFileNames) : return
+            options = ""
+            dummyCanvas = utils.canvas("display")
+            dummyCanvas.Print(outFileName+"[", options)
+            for inFileName in listOfInFileNames :
+                inFile = r.TFile(inFileName)
+                keys = inFile.GetListOfKeys()
+                for key in keys :
+                    someObject = inFile.Get(key.GetName())
+                    if someObject.ClassName()!="TCanvas" : print "Warning: found an object which is not a TCanvas in the display root file"
+                    someObject.Print(outFileName, options)
+            dummyCanvas.Print(outFileName+"]", options)
+            pdfFileName = outFileName.replace(".ps",".pdf")
+            os.system("ps2pdf "+outFileName+" "+pdfFileName)
+            os.system("gzip -f "+outFileName)
+            print "The display file \""+pdfFileName+"\" has been written."    
+        
         if not len(productList) : return
         listOfFileNames = [p["outputFileName"] for p in productList]
         outputFileName = listOfFileNames[0].replace(someLooper.name, someLooper.parentName).replace(".root", ".ps")
-        utils.psFromRoot(listOfFileNames, outputFileName, beQuiet = False)
+        psFromRoot(listOfFileNames, outputFileName)
         print utils.hyphens
