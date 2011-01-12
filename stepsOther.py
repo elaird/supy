@@ -587,8 +587,5 @@ class cutSorter(analysisStep) :
     def endFunc(self, otherChainDict) :
         for book in self.books.values() :
             bins = len(self.selectors)
-            book.fill(1, "cutSorterNames", bins, 0, bins, title = ";cutName")
-            book.fill(1, "cutSorterMoreNames", bins, 0, bins, title = ";cutMoreName")
-            for i,sel in enumerate(self.selectors) :
-                book["cutSorterNames"].GetXaxis().SetBinLabel(i+1,sel.__class__.__name__)
-                book["cutSorterMoreNames"].GetXaxis().SetBinLabel(i+1,sel.moreName)
+            book.fill(1, "cutSorterNames", bins, 0, bins, title = ";cutName", xAxisLabels = [sel.__class__.__name__ for sel in self.selectors])
+            book.fill(1, "cutSorterMoreNames", bins, 0, bins, title = ";cutMoreName", xAxisLabels = [sel.moreName for sel in self.selectors])

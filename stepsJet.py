@@ -496,6 +496,7 @@ class cutBitHistogrammer(analysisStep) :
         self.ht         = "%sSumEt%s"%self.jets
         self.alphaT     = "%sAlphaTEt%s"%self.jets
         self.mhtOverMet = "%sMht%s_Over_%s"%(self.jets[0], self.jets[1], self.met)
+        self.binLabels = [self.binString(i) for i in range(8)]
         
     def uponAcceptance(self, eventVars) :
         passHt         = eventVars[self.ht]!=None         and eventVars[self.ht]>350.0
@@ -503,7 +504,8 @@ class cutBitHistogrammer(analysisStep) :
         passMhtOverMet = eventVars[self.mhtOverMet]!=None and eventVars[self.mhtOverMet]<1.25
 
         value = (passHt<<0) | (passAlphaT<<1) | (passMhtOverMet<<2)
-        self.book(eventVars).fill(value, self.key, 8, -0.5, 7.5, title = ";HT-alphaT-MHT/MET[%s%s#semicolon %s];events/bin"%(self.jets[0], self.jets[1], self.met))
+        self.book(eventVars).fill(value, self.key, 8, -0.5, 7.5,
+                                  title = ";HT-alphaT-MHT/MET[%s%s#semicolon %s];events/bin"%(self.jets[0], self.jets[1], self.met), xAxisLabels = self.binLabels)
 
     def binString(self, i) :
         out  = ""
@@ -511,12 +513,6 @@ class cutBitHistogrammer(analysisStep) :
         out += "a" if i&(1<<1) else "#slash{a}"
         out += "m" if i&(1<<2) else "#slash{m}"
         return out
-            
-    def endFunc(self, otherChainDict) :
-        for book in self.books.values() :
-            if self.key in book :
-                for i in range(8) :
-                    book[self.key].GetXaxis().SetBinLabel(i+1, self.binString(i))
 #####################################
 class photon1PtOverHtHistogrammer(analysisStep) :
     def __init__(self, jets = None, photons = None, etRatherThanPt = None) :

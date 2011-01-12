@@ -21,21 +21,11 @@ class vetoCounts(analysisStep) :
         book = self.book(eventVars)
         for i,key in enumerate(self.keys) :
             if self.vetos[key]:
-                book.fill( i, "VetoCounts", self.nBins, 0, self.nBins, title="Vetos;;events / bin")
+                book.fill( i, "VetoCounts", self.nBins, 0, self.nBins, title="Vetos;;events / bin", xAxisLabels = self.keys)
                 for j,key2 in enumerate(self.keys) :
                     if self.vetos[key2]:
                         book.fill( (i,j), "VetoCountsCoincident", (self.nBins,self.nBins), (0,0), (self.nBins,self.nBins),
-                                   title="Coincident Vetoes;;;events / bin")
-
-    def endFunc(self, otherChainDict) :
-        for book in self.books.values() :
-            for hist in book.values():
-                if "VetoCounts" not in hist.GetName(): continue
-                for i in range(hist.GetNbinsX()) :
-                    hist.GetXaxis().SetBinLabel(i+1,self.keys[i])
-                    if hist.GetNbinsY() > 1: 
-                        hist.GetYaxis().SetBinLabel(i+1,self.keys[i])
-                    
+                                   title="Coincident Vetoes;;;events / bin", xAxisLabels = self.keys, yAxisLabels = self.keys)
 #####################################
 class vetoLists(analysisStep) :
     def __init__(self, objects) :
