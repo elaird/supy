@@ -50,28 +50,17 @@ class analysisLooper :
                                                  maxArrayLength = configuration.maxArrayLength(),
                                                  )
         map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
-        for step in self.steps :
-            step.nPass = 0
-            step.nFail = 0
-            step.nTotal = 0
-            for book in step.books.values() :
-                if "counts" not in book : continue
-                counts = book["counts"]
-                step.nPass += int(counts.GetBinContent(2))
-                step.nFail += int(counts.GetBinContent(1))
-                step.nTotal += int(counts.Integral())
 
         #set data member to number actually used
         self.nEvents = 1+chainWrapper.entry if hasattr(chainWrapper,"entry") else 0
         if len(self.steps)>0 and self.steps[0].ignoreInAccounting :
-            self.nEventsOriginal = self.steps[0].nTotal
-            self.nEvents = self.steps[0].nPass
+            self.nEvents = self.steps[0].nPass()
 
         self.makeListsOfLeavesAndCalcsUsed( chainWrapper.activeKeys() )
 
         self.endSteps()
-        self.writeHistos()
         self.pickleStepAndCalculableData()
+        self.writeHistos()
         if not self.quietMode : print utils.hyphens
         
         #free up memory (http://wlav.web.cern.ch/wlav/pyroot/memory.html)
@@ -138,8 +127,8 @@ class analysisLooper :
             books[iThreshold+1] = autoBook(directory)
         return books
 
-    def setupSteps(self) :
-        returnValue=True
+    def setupSteps(self, booksOnly = False) :
+        returnValue = True
         r.gROOT.cd()
         current = r.gDirectory
         books = self.setupBooks(current)
@@ -148,6 +137,7 @@ class analysisLooper :
                 current = current.mkdir(step.__class__.__name__)
                 books = self.setupBooks(current)
             step.books = books
+            if booksOnly : continue
             if self.quietMode : step.makeQuiet()
             step.isSelector = hasattr(step,"select")            
             assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.__class__.__name__            
@@ -283,8 +273,13 @@ class analysisLooper :
             out = []
             for step in self.steps :
                 d = {}
-                for item in set(step.varsToPickle()+["nTotal","nPass","nFail"]+["__doc__","moreName","moreName2"]) : #last list not needed; simply for debugging
+                vars = set(step.varsToPickle())
+                items = ["nPass","nFail"]
+                assert not vars.intersection(set(items)), "Variables to be pickled cannot be called anything in %s."%str(items)
+                for item in vars :
                     d[item] = getattr(step, item)
+                for item in items :
+                    d[item] = getattr(step, item)()
                 out.append(d)
             return out
             
