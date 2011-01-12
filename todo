@@ -19,15 +19,14 @@ Other
 
 * cross section in database
 
-* report on fake calculables
-* check that calc/leaf mismatches are declared fake
-
 * organize files in cvs
 * named arguments everywhere
 * update example ntuples
 
 * generic batch mode
 
+* cutSorter endFunc
+* fix triggerCounts
 * make prettier oldName in analysis.py
 * multimode duplicate event checker
 
