@@ -347,7 +347,7 @@ def mergeFunc(looper,listOfSlices) :
     print utils.hyphens
 
     for step,productList in zip(looper.steps, products) :
-        if hasattr(step, "mergeFunc") : step.mergeFunc(productList, looper)
+        step.mergeFunc(productList, looper)
         
     #clean up
     for fileName in plotFileNameList :

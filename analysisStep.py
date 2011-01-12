@@ -26,7 +26,16 @@ class analysisStep(object) :
         passed = bool(self.select(eventVars))
         self.book(eventVars).fill(passed,"counts",2,0,2)
         return passed
-    
+
+    def setup(self, inputChain, fileDirectory, name, outputDir) :
+        return
+
+    def endFunc(self, otherChainDict) :
+        return
+
+    def mergeFunc(self, productList, someLooper) :
+        return
+
     def name(self) :
         return self.__class__.__name__
 
@@ -35,10 +44,10 @@ class analysisStep(object) :
 
     def name2(self) :
         return "" if self.moreName2=="" else "\n"+"".ljust(self.docWidth)+self.moreName2.ljust(self.moreWidth)
-
+    
     def varsToPickle(self) :
         return []
-
+    
     def disable(self) :
         self.disabled=True
         
@@ -46,7 +55,7 @@ class analysisStep(object) :
         self.nPass = 0
         self.nFail = 0
         self.ignoreInAccounting = True
-
+        
     def makeQuiet(self) :
         self.quietMode=True
         
