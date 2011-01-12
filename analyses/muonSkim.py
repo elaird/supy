@@ -9,17 +9,17 @@ class muonSkim(analysis.analysis) :
         return "/vols/cms02/%s/tmp/"%os.environ["USER"]
 
     def listOfSteps(self,params) :
-        stepList=[ steps.progressPrinter(),
-                   steps.multiplicityFilter("%sIndices%s"%muon, nMin = 1),
-                  #steps.objectEtaSelector(muon, etaThreshold = 2.5, index = 0, p4String = "P4"),
-                   steps.skimmer(),
+        stepList=[ steps.Print.progressPrinter(),
+                   steps.Other.multiplicityFilter("%sIndices%s"%muon, nMin = 1),
+                  #steps.Other.objectEtaSelector(muon, etaThreshold = 2.5, index = 0, p4String = "P4"),
+                   steps.Other.skimmer(),
                    ]
         return stepList
 
     def listOfCalculables(self,params) :
         return calculables.zeroArgs() +\
-               calculables.fromCollections("calculablesMuon",[muon]) +\
-               [calculables.muonIndices( muon, ptMin = 10, combinedRelIsoMax = 0.50)]
+               calculables.fromCollections(calculables.Muon,[muon]) +\
+               [calculables.Muon.Indices( muon, ptMin = 10, combinedRelIsoMax = 0.50)]
     
     def listOfSamples(self,params) :
         from samples import specify        
