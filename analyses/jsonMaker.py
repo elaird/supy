@@ -7,8 +7,8 @@ class jsonMaker(analysis.analysis) :
         return "/vols/cms02/%s/tmp/"%os.environ["USER"]
 
     def listOfSteps(self,params) :
-        return [ steps.progressPrinter(2,300),
-                 steps.jsonMaker(),
+        return [ steps.Print.progressPrinter(2,300),
+                 steps.Other.jsonMaker(),
                  ]
 
     def listOfCalculables(self,params) :
