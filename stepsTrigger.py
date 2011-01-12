@@ -111,13 +111,7 @@ class lowestUnPrescaledTriggerHistogrammer(analysisStep) :
         
     def uponAcceptance(self, eventVars) :
         i = self.listOfPaths.index(eventVars["lowestUnPrescaledTrigger"])
-        self.book(eventVars).fill( i, self.key, self.n, 0.0, self.n, title = ";lowest un-prescaled path;events / bin")
-
-    def endFunc(self, otherChainDict) :
-        for book in self.books.values() :
-            if self.key in book :
-                for iPath in range(self.n) :
-                    book[self.key].GetXaxis().SetBinLabel(iPath+1,self.listOfPaths[iPath])
+        self.book(eventVars).fill( i, self.key, self.n, 0.0, self.n, title = ";lowest un-prescaled path;events / bin", xAxisLabels = self.listOfPaths)
 #####################################
 class hltFilter(analysisStep) :
 
@@ -152,13 +146,7 @@ class hltPrescaleHistogrammer(analysisStep) :
             value = eventVars["prescaled"][self.listOfHltPaths[iPath]]
             if value<=0.0 : continue
             self.book(eventVars).fill( (iPath,math.log10(value)), self.key, (self.nBinsX,100), (-0.5,-0.5), (self.nBinsX-0.5,4,5),
-                                       title="hltPrescaleHisto;;log_{10}(prescale value);events / bin")
-
-    def endFunc(self, otherChainDict) :
-        for book in self.books.values() :
-            if self.key in book :
-                for iPath in range(self.nBinsX) :
-                    book[self.key].GetXaxis().SetBinLabel(iPath+1,self.listOfHltPaths[iPath])
+                                       title="hltPrescaleHisto;;log_{10}(prescale value);events / bin", xAxisLabels = self.listOfHltPaths)
 #####################################
 class hltTurnOnHistogrammer(analysisStep) :
 

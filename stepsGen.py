@@ -312,11 +312,7 @@ class photonPurityPlots(analysisStep) :
     def __init__(self, label, jetCs, photonCs) :
         for item in ["label","jetCs","photonCs"] :
             setattr(self,item,eval(item))
-
-        self.bin = {}
-        self.bin["photonMother"] = 0
-        self.bin["quarkMother"]  = 1
-        self.bin["otherMother"]  = 2
+        self.binLabels = ["photonMother", "quarkMother", "otherMother"]
         
     def uponAcceptance (self, eventVars) :
         genP4s   = eventVars["genP4"]
@@ -351,16 +347,9 @@ class photonPurityPlots(analysisStep) :
             self.book(eventVars).fill( ( recoPt, genP4s.at(index).pt() ), "genVsRecoPt%s"%label,
                                        (50,50), (0.0,0.0), (200.0,200.0),
                                        title = "nMatch = %s;RECO photon p_{T} (GeV);GEN photon p_{T} (GeV);photons / bin"%label)
-            self.book(eventVars).fill(self.bin[categories[index]],"photonCategory%s"%label,
-                                      len(self.bin), -0.5, len(self.bin)-0.5,
+            self.book(eventVars).fill(self.binLabels.index(categories[index]),"photonCategory%s"%label,
+                                      len(self.binLabels), -0.5, len(self.binLabels)-0.5,
                                       title = ";photon category when nMatch = %s;photons / bin"%label)
-
-    def endFunc(self, otherChainDict) :
-        for book in self.books.values() :
-            for key,histo in book.iteritems() :
-                if "photonCategory" in histo.GetName() :
-                    for label,iBin in self.bin.iteritems() :
-                        histo.GetXaxis().SetBinLabel(iBin+1,label)
 #####################################
 class genMotherHistogrammer(analysisStep) :
 
@@ -424,22 +413,14 @@ class genMotherHistogrammer(analysisStep) :
                 yValue = 0
             else :
                 yValue = self.binLabels.index(self.motherDict[motherId])
-            self.book(eventVars).fill((pt,yValue), self.keyAll, (50,nBinsY), (0.0,-0.5), (500.0, nBinsY-0.5), title = ";GEN photon p_{T} (GeV);mother;photons / bin")
+            self.book(eventVars).fill((pt,yValue), self.keyAll, (50,nBinsY), (0.0,-0.5), (500.0, nBinsY-0.5),
+                                      title = ";GEN photon p_{T} (GeV);mother;photons / bin", yAxisLabels = self.binLabels)
             if pt>self.specialPtThreshold :
                 self.book(eventVars).fill(yValue, self.keyAllHighPt,
                                           nBinsY, -0.5, nBinsY-0.5,
-                                          title = ";mother [when GEN photon p_{T}> %.1f (GeV)];photons / bin"%self.specialPtThreshold
+                                          title = ";mother [when GEN photon p_{T}> %.1f (GeV)];photons / bin"%self.specialPtThreshold, xAxisLabels = self.binLabels)
                                           )
                 if motherId==2 : self.fillSpecialHistos(eventVars, iParticle)
-
-    def endFunc(self, otherChainDict) :
-        for book in self.books.values() :
-            if self.keyAll in book :
-                for iParticle in range(len(self.binLabels)) :
-                    book[self.keyAll].GetYaxis().SetBinLabel(iParticle+1,self.binLabels[iParticle])
-            if self.keyAllHighPt in book :
-                for iParticle in range(len(self.binLabels)) :
-                    book[self.keyAllHighPt].GetXaxis().SetBinLabel(iParticle+1,self.binLabels[iParticle])
 #####################################
 class zHistogrammer(analysisStep) :
 
