@@ -841,7 +841,7 @@ class displayer(analysisStep) :
             if self.ra1Mode :
                 self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":y0     }, jets = self.jets, jets2 = self.jetsOtherAlgo,
                                          others = self.printOtherJetAlgoQuantities)
-                if self.ra1CutsBits :
+                if self.ra1CutBits :
                     self.printCutBits(       eventVars, params = defaults, coords = {"x":x0, "y":y0-0.10}, jets = self.jets, jets2 = self.jetsOtherAlgo,
                                          met = self.met, met2 = self.metOtherAlgo, others = self.printOtherJetAlgoQuantities)
                 self.printFlags(eventVars, params = defaults, coords = {"x":x0, "y":y0-0.34},
@@ -892,3 +892,13 @@ class displayer(analysisStep) :
         self.canvas.Write("canvas_%d"%self.canvasIndex)
         self.canvasIndex+=1
         someDir.cd()
+
+    def varsToPickle(self) :
+        return ["outputFileName"]
+
+    def mergeFunc(self, productList, someLooper) :
+        if not len(productList) : return
+        listOfFileNames = [p["outputFileName"] for p in productList]
+        outputFileName = listOfFileNames[0].replace(someLooper.name, someLooper.parentName).replace(".root", ".ps")
+        utils.psFromRoot(listOfFileNames, outputFileName, beQuiet = False)
+        print utils.hyphens
