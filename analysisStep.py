@@ -11,7 +11,6 @@ class analysisStep(object) :
 
     disabled = False
     quietMode = False
-    needToConsiderPtHatThresholds = False
     
     def go(self,eventVars) :
         if self.disabled :
