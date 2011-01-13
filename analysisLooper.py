@@ -21,10 +21,6 @@ class analysisLooper :
         self.steps = copy.deepcopy(steps)
         self.calculables = copy.deepcopy(calculables)
 
-        #these are needed to fill histograms properly in the case of overlapping MC ptHat samples
-        self.needToConsiderPtHatThresholds = False
-        self.ptHatThresholds=[]
-        
         self.parentName = self.name
         self.quietMode = False
         self.setOutputFileNames()
@@ -115,6 +111,7 @@ class analysisLooper :
         r.gROOT.cd()
         current = r.gDirectory
         book_ = autoBook(current)
+
         for step in self.steps :
             if hasattr(step,"select") :
                 current = current.mkdir(step.name())
@@ -127,8 +124,6 @@ class analysisLooper :
             if step.requiresNoSetBranchAddress() : returnValue = False
             step.setup(self.inputChain, self.fileDirectory, self.name, self.outputDir)
 
-            step.needToConsiderPtHatThresholds = self.needToConsiderPtHatThresholds
-            step.ptHatThresholds = self.ptHatThresholds
         r.gROOT.cd()
         self.steps[0].notifyOfOutputFile(self.outputPlotFileName)#inform the master of the name of this job's output file
         return returnValue
