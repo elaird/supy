@@ -200,11 +200,14 @@ class analysis(object) :
             if (not isMc) and (nEventsMax!=-1 or nFilesMax!=-1) :
                 print "Warning, not running over full data sample: wrong lumi?"
                 lumiWarn = True
-                
+
             if nFilesMax >= 0 : fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
             if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
-            adjustedListOfSteps = steps.adjustStepsForMc(listOfSteps) if isMc else \
-                                  steps.adjustStepsForData(listOfSteps)
+            adjustedListOfSteps = [steps.Master.master(finalOutputPlotFileName = self.outputPlotFileName(conf,sampleName),
+                                                       xs = sampleTuple.xs,
+                                                       lumi = sampleTuple.lumi,
+                                                       lumiWarn = lumiWarn)
+                                   ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
 
             sampleLoopers.append(analysisLooper(self.fileDirectory,
                                                 self.treeName,
@@ -216,9 +219,6 @@ class analysis(object) :
                                                 listOfCalculables,
                                                 sampleSpec,
                                                 fileListCommand,
-                                                sampleTuple.xs,
-                                                sampleTuple.lumi,
-                                                lumiWarn,
                                                 computeEntriesForReport,
                                                 self.printNodesUsed(),
                                                 )
@@ -262,7 +262,7 @@ class analysis(object) :
 
                 if useRejectionMethod :
                     loopers[thisLooperIndex].needToConsiderPtHatThresholds=False
-                    steps.insertPtHatFilter(loopers[thisLooperIndex].steps,nextPtHatLowerThreshold)
+                    loopers[thisLooperIndex].steps[0].activatePtHatFilter(nextPtHatLowerThreshold)
 
             #inform relevant loopers of the ptHat thresholds
             for index in looperIndexDict.values() :
@@ -297,60 +297,47 @@ class analysis(object) :
         utils.operateOnListUsingQueue(nCores,mergeWorker,workList)
         os.remove(self.jobsFile())
 #############################################
-def mergeFunc(looper,listOfSlices) :
+def mergeFunc(looper, listOfSlices) :
+    def cleanUp(l) :
+        for fileName in l :
+            os.remove(fileName)
+        
+    def stuff(iSlice) :
+        pDataFileName = looper.outputStepAndCalculableDataFileName.replace( looper.name, childName(looper.name,iSlice) )
+        pDataFile = open(pDataFileName)
+        dataList,calcsUsed,leavesUsed = cPickle.load(pDataFile)
+        pDataFile.close()
+        return dataList,calcsUsed,leavesUsed,pDataFileName
 
-    plotFileNameList = []
-    stepAndCalculableDataFileNameList = []
+    def products() :
+        prods = [[] for step in looper.steps]
+        calcs = []
+        leaves = []
+        
+        for iSlice in listOfSlices :
+            dataList,calcsUsed,leavesUsed,pDataFileName = stuff(iSlice)
+            cleanUpList.append(pDataFileName)
 
+            for step,data,product in zip(looper.steps, dataList, prods) :
+                prods.append(data)
+                if hasattr(step, "select") :
+                    step.increment(True,  w = data["nPass"])
+                    step.increment(False, w = data["nFail"])
+
+            calcs.extend(calcsUsed)
+            calcs = list(set(calcs))
+            leaves.extend(leavesUsed)
+            leaves = list(set(leaves))
+        return prods,calcs,leaves
+
+    cleanUpList = []
     looper.setupSteps(booksOnly = True)
     
     #empty lists for this looper
-    looper.listOfCalculablesUsed = []
-    looper.listOfLeavesUsed      = []
-
-    products = [[] ]*len(looper.steps)
-    counts   = [0.0]*len(looper.steps)
-    
-    for iSlice in listOfSlices :
-        plotFileNameList.append( looper.outputPlotFileName.replace( looper.name, childName(looper.name,iSlice) ) )
-
-        #read in the step and calculable data
-        stepAndCalculableDataFileName = looper.outputStepAndCalculableDataFileName.replace( looper.name, childName(looper.name,iSlice) )
-        stepAndCalculableDataFile = open(stepAndCalculableDataFileName)
-        stepDataList,listOfCalculablesUsed,listOfLeavesUsed = cPickle.load(stepAndCalculableDataFile)
-        stepAndCalculableDataFile.close()
-        stepAndCalculableDataFileNameList.append(stepAndCalculableDataFileName)
-
-        for step,data,product in zip(looper.steps, stepDataList, products) :
-            product.append(data)            
-            if hasattr(step, "select") :
-                step.increment(True,  w = data["nPass"])
-                step.increment(False, w = data["nFail"])
-
-        looper.listOfCalculablesUsed.extend(listOfCalculablesUsed)
-        looper.listOfCalculablesUsed = list(set(looper.listOfCalculablesUsed))
-        looper.listOfLeavesUsed.extend(listOfLeavesUsed)
-        looper.listOfLeavesUsed = list(set(looper.listOfLeavesUsed))
-
+    prods, looper.listOfCalculablesUsed, looper.listOfLeavesUsed = products()
     looper.printStats()
-
-    cmd = "hadd -f "+looper.outputPlotFileName+" "+" ".join(plotFileNameList)
-    hAddOut = utils.getCommandOutput(cmd)["stdout"]
-
-    for line in hAddOut.split("\n") :
-        if 'Source file' in line or \
-           'Target path' in line or \
-           'Found subdirectory' in line : continue
-        print line.replace("Target","The output")+" has been written."
-        break
-            
     print utils.hyphens
-
-    for step,productList in zip(looper.steps, products) :
+    for step,productList in zip(looper.steps, prods) :
         step.mergeFunc(productList, looper)
-        
-    #clean up
-    for fileName in plotFileNameList :
-        os.remove(fileName)
-    for fileName in stepAndCalculableDataFileNameList :
-        os.remove(fileName)
+
+    cleanUp(cleanUpList)
