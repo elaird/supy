@@ -48,7 +48,9 @@ class organizer(object) :
             assert len(sample["outputFileNames"]) > self.configurationId, \
                    "You cannot request a configurationId >= than the number of outputFileNames in the sample."
             sample['file'] = r.TFile(sample["outputFileNames"][self.configurationId])
+            assert(sample['file'] is not None)
             sample['dir'] = sample['file'].GetDirectory("/master")
+            assert(sample['dir'] is not None)
             def extract(histName,bin=1) :
                 hist = sample['dir'].Get(histName)
                 return hist.GetBinContent(bin) if hist and hist.GetEntries() else None
