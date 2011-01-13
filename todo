@@ -25,6 +25,7 @@ Other
 
 * generic batch mode
 
+* fix xs adjustment
 * cutSorter endFunc
 * fix triggerCounts
 * make prettier oldName in analysis.py
@@ -51,8 +52,13 @@ Other
 * global muons
 * handle float-based vectors
 * book() --> book
-* fix trigger counts step
 
 * light/lite ntuple mode
 * stage-out
 * prune gen MET
+
+* Test master=0 check
+* master must be a selector
+* un black-list leaf when using new root
+* check extra spike vars
+* non-blank page when there are no imperfect calculables
