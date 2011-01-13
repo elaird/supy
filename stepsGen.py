@@ -9,15 +9,6 @@ try:
 except ImportError:
     pass
 #####################################
-class ptHatFilter(analysisStep) :
-
-    def __init__(self,maxPtHat) :
-        self.maxPtHat=maxPtHat
-        self.moreName = "(pthat<%.1f)"%maxPtHat
-
-    def select (self,eventVars) :
-        return eventVars["genpthat"]<self.maxPtHat
-#####################################
 class susyScanPointPrinter(analysisStep) :
 
     def __init__(self) :
