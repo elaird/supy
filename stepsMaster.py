@@ -19,9 +19,8 @@ class master(analysisStep) :
     def setup(self, chain, fileDir, name, outputDir) :
         self.book().fill(0.0, "nJobsHisto", 1, -0.5, 0.5, title = ";dummy axis;N_{jobs}")        
         if self.xs   : self.book().fill(0.0, "xsHisto",   1, -0.5, 0.5, title = ";dummy axis;#sigma (pb)", w = self.xs)
-        if self.lumi : self.book().fill(0.0, "lumiHisto", 1, -0.5, 0.5,
-                                        title = ";dummy axis;integrated luminosity (pb^{-1})" if not self.lumiWarn else "WARNING: lumi value is probably wrong!",
-                                        w = self.lumi)
+        if self.lumi : self.book().fill(0.0, "lumiHisto", 1, -0.5, 0.5, title = "%s;dummy axis;integrated luminosity (pb^{-1})"%\
+                                        ("" if not self.lumiWarn else "WARNING: lumi value is probably wrong!"), w = self.lumi)
 
     def notifyOfOutputFile(self, outputPlotFileName) :
         self.outputPlotFileName = outputPlotFileName
@@ -45,6 +44,6 @@ class master(analysisStep) :
 
         files = [p["outputPlotFileName"] for p in listOfProducts]
         hAdd = utils.getCommandOutput("hadd -f %s %s"%(self.finalOutputPlotFileName, " ".join(files)))
-
+        
         printComment(hAdd["stdout"])
         cleanUp(hAdd["stderr"], files)
