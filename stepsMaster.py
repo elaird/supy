@@ -5,7 +5,7 @@ class master(analysisStep) :
     def __init__(self, finalOutputPlotFileName, xs, lumi, lumiWarn) :
         self.moreName = ""
         self.filterPtHat = False
-        for item in ["finalOutputPlotFileName", "xs","lumi","lumiWarn"] :
+        for item in ["finalOutputPlotFileName", "xs", "lumi", "lumiWarn"] :
             setattr(self, item, eval(item))
         
     def activatePtHatFilter(self, maxPtHat) :
