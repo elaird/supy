@@ -20,7 +20,3 @@ def adjustSteps(inSteps, dataOrMc = None) :
 def adjustStepsForData(inSteps) : return adjustSteps(inSteps, "Data")
 def adjustStepsForMc(inSteps)   : return adjustSteps(inSteps, "Mc")
 #####################################
-def insertPtHatFilter(inSteps,value) :
-    inSteps.insert(0,Gen.ptHatFilter(value))
-    inSteps[0].ignore()
-#####################################
