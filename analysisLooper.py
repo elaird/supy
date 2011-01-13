@@ -118,25 +118,16 @@ class analysisLooper :
         if not self.quietMode : print utils.hyphens
         r.gROOT.cd()
 
-    def setupBooks(self,directory) :
-        #set up books
-        books = {}
-        books[None] = autoBook(directory)
-        #make books for ptHat bins (keyed by lower threshold)
-        for iThreshold in range(len(self.ptHatThresholds)) :
-            books[iThreshold+1] = autoBook(directory)
-        return books
-
     def setupSteps(self, booksOnly = False) :
         returnValue = True
         r.gROOT.cd()
         current = r.gDirectory
-        books = self.setupBooks(current)
+        book_ = autoBook(current)
         for step in self.steps :
             if hasattr(step,"select") and not step.ignoreInAccounting :
                 current = current.mkdir(step.name())
-                books = self.setupBooks(current)
-            step.books = books
+                book_ = autoBook(current)
+            step.book_ = book_
             if booksOnly : continue
             if self.quietMode : step.makeQuiet()
             step.isSelector = hasattr(step,"select")            
@@ -199,8 +190,8 @@ class analysisLooper :
     def writeHistosFromBooks(self) :
         while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
         wroteSlash = False
-        for iStep,step in enumerate(self.steps) :
-            name = step.books[None]._autoBook__directory.GetName()
+        for step in self.steps :
+            name = step.book_._autoBook__directory.GetName()
             if '/' in name and not step.ignoreInAccounting :
                 if wroteSlash: continue
                 wroteSlash = True
@@ -208,11 +199,10 @@ class analysisLooper :
             elif not step.isSelector: continue
             else: r.gDirectory.mkdir(name,step.moreName+step.moreName2).cd()
             
-            for book in step.books.values() :
-                for item in book.fillOrder :
-                    object = book[item]
-                    object.Write()
-                    object.Delete()
+            for item in step.book_.fillOrder :
+                object = step.book_[item]
+                object.Write()
+                object.Delete()
         while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
                     
     def writeSpecialHistos(self) :

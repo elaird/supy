@@ -37,7 +37,7 @@ class analysisStep(object) :
     def disable(self) : self.disabled = True
     def makeQuiet(self) : self.quietMode = True
     def nFromCountsHisto(self, bin) :
-        if not self.books : return 0.0
+        if not self.book_ : return 0.0
         if "counts" not in self.book() : return 0.0
         if not self.book()["counts"] : return 0.0
         return self.book()["counts"].GetBinContent(bin)
@@ -53,6 +53,5 @@ class analysisStep(object) :
                      "  %s %s" % ( passString.rjust(self.integerWidth), ("("+failString+")").rjust(self.integerWidth+2) )
         print "%s%s%s" % (self.name1(),self.name2(),statString)
 
-    def book(self, eventVars = None) :
-        return self.books[None]
+    def book(self, eventVars = None) : return self.book_
 #####################################
