@@ -6,16 +6,15 @@ import ROOT as r
 class analysisLooper :
     """class to set up and loop over events"""
 
-    def __init__(self,fileDirectory,treeName,otherTreesToKeepWhenSkimming,leavesToBlackList,
-                 outputDir,outputPlotFileName,steps,calculables,
-                 sampleSpec,fileListCommand,xs,lumi,lumiWarn,
-                 computeEntriesForReport,printNodesUsed,inputFiles = None):
+    def __init__(self,fileDirectory,treeName,otherTreesToKeepWhenSkimming,
+                 leavesToBlackList,outputDir,outputPlotFileName,steps,calculables,
+                 sampleSpec,fileListCommand,computeEntriesForReport,printNodesUsed,inputFiles = None):
 
         for arg in ["name","nEventsMax","color","markerStyle"] :
             setattr(self,arg,getattr(sampleSpec,arg))
 
-        for arg in ["fileDirectory","treeName","otherTreesToKeepWhenSkimming","leavesToBlackList",
-                    "inputFiles","outputDir","fileListCommand","xs","lumi","lumiWarn",
+        for arg in ["fileDirectory","treeName","otherTreesToKeepWhenSkimming",
+                    "leavesToBlackList","inputFiles","outputDir","fileListCommand",
                     "computeEntriesForReport","printNodesUsed","outputPlotFileName"] :
             setattr(self,arg,eval(arg))
 
@@ -38,9 +37,9 @@ class analysisLooper :
         self.setupChains(self.inputFiles)
         useSetBranchAddress = self.setupSteps()
 
-        #check for illegally placed ignored steps
+        #check for illegally placed master steps
         for iStep,step in enumerate(self.steps) :
-            assert (not iStep) or (not step.ignoreInAccounting),"An Ignored step may only be the first step"
+            assert (not iStep) or (not step.name()=="master"),"The master step must occur first"
 
         #loop through entries
         chainWrapper = wrappedChain.wrappedChain(self.inputChain,
@@ -50,11 +49,6 @@ class analysisLooper :
                                                  maxArrayLength = configuration.maxArrayLength(),
                                                  )
         map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
-
-        #set data member to number actually used
-        self.nEvents = 1+chainWrapper.entry if hasattr(chainWrapper,"entry") else 0
-        if len(self.steps)>0 and self.steps[0].ignoreInAccounting :
-            self.nEvents = self.steps[0].nPass()
 
         self.makeListsOfLeavesAndCalcsUsed( chainWrapper.activeKeys() )
 
@@ -111,8 +105,6 @@ class analysisLooper :
         else :                            outString+=" (number not computed)"
 
         outString+=" events."
-        if self.xs!=None :   outString+=" (xs input =%6.4g"%self.xs+" pb)"
-        if self.lumi!=None : outString+=" (lumi input =%6.4g"%self.lumi+" / pb)"
             
         if not self.quietMode : print outString
         if not self.quietMode : print utils.hyphens
@@ -124,7 +116,7 @@ class analysisLooper :
         current = r.gDirectory
         book_ = autoBook(current)
         for step in self.steps :
-            if hasattr(step,"select") and not step.ignoreInAccounting :
+            if hasattr(step,"select") :
                 current = current.mkdir(step.name())
                 book_ = autoBook(current)
             step.book_ = book_
@@ -138,6 +130,7 @@ class analysisLooper :
             step.needToConsiderPtHatThresholds = self.needToConsiderPtHatThresholds
             step.ptHatThresholds = self.ptHatThresholds
         r.gROOT.cd()
+        self.steps[0].notifyOfOutputFile(self.outputPlotFileName)#inform the master of the name of this job's output file
         return returnValue
 
     def setQuietMode(self, nWorkers) :
@@ -192,10 +185,9 @@ class analysisLooper :
         wroteSlash = False
         for step in self.steps :
             name = step.book_._autoBook__directory.GetName()
-            if '/' in name and not step.ignoreInAccounting :
+            if '/' in name :
                 if wroteSlash: continue
                 wroteSlash = True
-            elif step.ignoreInAccounting: continue
             elif not step.isSelector: continue
             else: r.gDirectory.mkdir(name,step.moreName+step.moreName2).cd()
             
@@ -205,25 +197,6 @@ class analysisLooper :
                 object.Delete()
         while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
                     
-    def writeSpecialHistos(self) :
-        xsHisto=r.TH1D("xsHisto",";dummy axis;#sigma (pb)",1,-0.5,0.5)
-        if self.xs!=None : xsHisto.SetBinContent(1,self.xs)
-        xsHisto.Write()
-        
-        lumiHisto = r.TH1D("lumiHisto",";dummy axis;integrated luminosity (pb^{-1})",1,-0.5,0.5)
-        if self.lumiWarn   : lumiHisto.SetTitle("WARNING: lumi value is probably wrong!"+lumiHisto.GetTitle())
-        if self.lumi!=None : lumiHisto.SetBinContent(1,self.lumi)
-        lumiHisto.Write()
-
-        if len(self.steps) and not self.steps[0].ignoreInAccounting:
-            counts = r.TH1D("counts","",2,0,2)
-            counts.SetBinContent(2,self.nEvents)
-            counts.Write()
-        
-        nJobsHisto=r.TH1D("nJobsHisto",";dummy axis;N_{jobs}",1,-0.5,0.5)
-        nJobsHisto.SetBinContent(1,1)
-        nJobsHisto.Write()
-
     def writeNodesUsed(self) :
         while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
         r.gDirectory.mkdir("Leaves",".").cd()
@@ -240,7 +213,6 @@ class analysisLooper :
 
         self.writeNodesUsed()
         self.writeHistosFromBooks()
-        self.writeSpecialHistos()
         
         outputFile.Close()
         if not zombie :
