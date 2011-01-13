@@ -28,7 +28,6 @@ class organizer(object) :
 
 
     def __init__(self, sampleSpecs = [] , configurationId = 0 ) :
-        self.itemsToIgnore = ["Leaves","Calculables"]
         self.configurationId = configurationId
         r.gROOT.cd()
         r.gDirectory.mkdir("config%d"%self.configurationId)
@@ -48,7 +47,8 @@ class organizer(object) :
         for sample in self.samples :
             assert len(sample["outputFileNames"]) > self.configurationId, \
                    "You cannot request a configurationId >= than the number of outputFileNames in the sample."
-            sample['dir'] = r.TFile(sample["outputFileNames"][self.configurationId])
+            sample['file'] = r.TFile(sample["outputFileNames"][self.configurationId])
+            sample['dir'] = sample['file'].GetDirectory("/master")
             def extract(histName,bin=1) :
                 hist = sample['dir'].Get(histName)
                 return hist.GetBinContent(bin) if hist and hist.GetEntries() else None
@@ -63,10 +63,9 @@ class organizer(object) :
         dirs = [ s['dir'] for s in self.samples]
         while dirs[0] :
             keysets = [set([key.GetName() for key in dir.GetListOfKeys()]) for dir in dirs]
-            keys = reduce( lambda x,y: x|y ,keysets,set()) - set(self.itemsToIgnore)
+            keys = reduce( lambda x,y: x|y ,keysets,set())
 
-            subdirNames = map(lambda d,keys:  filter(lambda k: ( type(d.Get(k)) is r.TDirectoryFile and \
-                                                                 k not in self.itemsToIgnore)    , keys),  dirs,keysets)
+            subdirNames = map(lambda d,keys:  filter(lambda k: ( type(d.Get(k)) is r.TDirectoryFile)    , keys),  dirs,keysets)
             subdirLens = map(len,subdirNames)
             if sum(subdirLens) :
                 keys.remove(subdirNames[0][0])
@@ -189,8 +188,8 @@ class organizer(object) :
 
         def calcs(sample) :
             l = []
-            l += things(sample['dir'].Get("Calculables"), isLeaf = False)
-            l += things(sample['dir'].Get("Leaves"), isLeaf = True)
+            l += things(sample['file'].Get("Calculables"), isLeaf = False)
+            l += things(sample['file'].Get("Leaves"), isLeaf = True)
             return l
         
         allCalcs = sorted(list(reduce( lambda x,y: x|y, [set(calcs(sample)) for sample in self.samples])))
