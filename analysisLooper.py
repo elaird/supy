@@ -196,12 +196,6 @@ class analysisLooper :
             step.printStatistics()
         print utils.hyphens
         
-    def writeAllObjects(self) :
-        objectList = r.gDirectory.GetList()
-        for object in objectList :
-            object.Write()
-            object.Delete()
-
     def writeHistosFromBooks(self) :
         while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
         wroteSlash = False
@@ -254,7 +248,6 @@ class analysisLooper :
         outputFile = r.TFile(self.outputPlotFileName,"RECREATE")
         zombie = outputFile.IsZombie()
 
-        #self.writeAllObjects()
         self.writeNodesUsed()
         self.writeHistosFromBooks()
         self.writeSpecialHistos()

@@ -36,9 +36,13 @@ class analysisStep(object) :
     def requiresNoSetBranchAddress(self) : return False
     def disable(self) : self.disabled = True
     def makeQuiet(self) : self.quietMode = True
-    def nFromHisto(self, bin) : return self.book()["counts"].GetBinContent(bin) if "counts" in self.book() and self.book()["counts"] else 0.0
-    def nFail(self) :  return int(self.nFromHisto(1))
-    def nPass(self) :  return int(self.nFromHisto(2))
+    def nFromCountsHisto(self, bin) :
+        if not self.books : return 0.0
+        if "counts" not in self.book() : return 0.0
+        if not self.book()["counts"] : return 0.0
+        return self.book()["counts"].GetBinContent(bin)
+    def nFail(self) :  return int(self.nFromCountsHisto(1))
+    def nPass(self) :  return int(self.nFromCountsHisto(2))
     def ignore(self) : self.ignoreInAccounting = True
         
     def printStatistics(self) :

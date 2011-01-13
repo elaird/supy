@@ -303,11 +303,13 @@ def mergeFunc(looper,listOfSlices) :
     stepAndCalculableDataFileNameList = []
 
     looper.setupSteps(booksOnly = True)
+    
     #empty lists for this looper
     looper.listOfCalculablesUsed = []
     looper.listOfLeavesUsed      = []
 
-    products = [[] for step in looper.steps]
+    products = [[] ]*len(looper.steps)
+    counts   = [0.0]*len(looper.steps)
     
     for iSlice in listOfSlices :
         plotFileNameList.append( looper.outputPlotFileName.replace( looper.name, childName(looper.name,iSlice) ) )
@@ -320,9 +322,10 @@ def mergeFunc(looper,listOfSlices) :
         stepAndCalculableDataFileNameList.append(stepAndCalculableDataFileName)
 
         for step,data,product in zip(looper.steps, stepDataList, products) :
-            step.increment(True,  w = data["nPass"])
-            step.increment(False, w = data["nFail"])
-            product.append(data)
+            product.append(data)            
+            if hasattr(step, "select") :
+                step.increment(True,  w = data["nPass"])
+                step.increment(False, w = data["nFail"])
 
         looper.listOfCalculablesUsed.extend(listOfCalculablesUsed)
         looper.listOfCalculablesUsed = list(set(looper.listOfCalculablesUsed))
