@@ -588,7 +588,6 @@ class cutSorter(analysisStep) :
         return (not self.applySelections) or all(selections)
         
     def endFunc(self, otherChainDict) :
-        for book in self.books.values() :
-            bins = len(self.selectors)
-            book.fill(1, "cutSorterNames", bins, 0, bins, title = ";cutName", xAxisLabels = [sel.__class__.__name__ for sel in self.selectors])
-            book.fill(1, "cutSorterMoreNames", bins, 0, bins, title = ";cutMoreName", xAxisLabels = [sel.moreName for sel in self.selectors])
+        bins = len(self.selectors)
+        self.book().fill(1, "cutSorterNames", bins, 0, bins, title = ";cutName", xAxisLabels = [sel.__class__.__name__ for sel in self.selectors])
+        self.book().fill(1, "cutSorterMoreNames", bins, 0, bins, title = ";cutMoreName", xAxisLabels = [sel.moreName for sel in self.selectors])
