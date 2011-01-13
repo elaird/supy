@@ -318,8 +318,8 @@ def mergeFunc(looper, listOfSlices) :
             dataList,calcsUsed,leavesUsed,pDataFileName = stuff(iSlice)
             cleanUpList.append(pDataFileName)
 
-            for step,data,product in zip(looper.steps, dataList, prods) :
-                prods.append(data)
+            for step,data,prod in zip(looper.steps, dataList, prods) :
+                prod.append(data)
                 if hasattr(step, "select") :
                     step.increment(True,  w = data["nPass"])
                     step.increment(False, w = data["nFail"])
