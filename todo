@@ -46,8 +46,10 @@ Other
 * config parameter interface
 * config sample interface, effective lumi argument, test mode
 * multi-site samples handles
-
 * protect against samples collisions
+
+* global muons
+* handle float-based vectors
 
 * light/lite ntuple mode
 * stage-out
