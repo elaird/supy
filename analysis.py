@@ -322,8 +322,6 @@ def mergeFunc(looper, listOfSlices) :
 
     cleanUpList = []
     looper.setupSteps(booksOnly = True)
-    
-    #empty lists for this looper
     prods, looper.listOfCalculablesUsed, looper.listOfLeavesUsed = products()
     looper.printStats()
     print utils.hyphens
