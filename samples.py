@@ -6,7 +6,7 @@ def specify(name = None, nFilesMax = -1, nEventsMax = -1, color = 1, markerStyle
     
 class SampleHolder(dict) :
     sample = collections.namedtuple("sample", "filesCommand xs lumi ptHatMin")
-    overlapping = collections.namedtuple("overlappingSample", "samples useRejectionMethod")
+    overlapping = collections.namedtuple("overlappingSample", "samples")
 
     def __init__(self) :
         self.overlappingSamples = []
@@ -26,7 +26,7 @@ class SampleHolder(dict) :
 
         self[name] = self.sample(filesCommand, xs, lumi, ptHatMin)
 
-    def adjustOverlappingSamples( self, listOfSamples, useRejectionMethod = True ) :
+    def adjustOverlappingSamples( self, listOfSamples) :
         assert len(listOfSamples) == len(set(listOfSamples)), "Duplicate samples in: %s"%str(listOfSamples)
 
         for s in listOfSamples :
@@ -35,7 +35,7 @@ class SampleHolder(dict) :
             for otherOverlappingSamples in self.overlappingSamples :
                 assert s not in otherOverlappingSamples[0], "Sample in another unbinned group: %s"%s
 
-        self.overlappingSamples.append( self.overlapping(listOfSamples, useRejectionMethod ) )
+        self.overlappingSamples.append( self.overlapping(listOfSamples) )
 
 for module in configuration.samplesFiles() :
     exec("from samples%s import *"%module)

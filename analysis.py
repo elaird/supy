@@ -229,12 +229,10 @@ class analysis(object) :
             for sampleName in thing.samples :
                 if sampleName not in ptHatMinDict : continue
                 minPtHatsAndNames.append( (ptHatMinDict[sampleName],sampleName) )
-            self.manageInclusiveSamples(minPtHatsAndNames, thing.useRejectionMethod, sampleLoopers)
+            self.manageInclusiveSamples(minPtHatsAndNames, sampleLoopers)
         return sampleLoopers
 
-    def manageInclusiveSamples(self, ptHatLowerThresholdsAndSampleNames = [], useRejectionMethod = True, loopers = []) :
-        if not useRejectionMethod :
-            raise Exception("the other method of combining non-binned samples is not yet implemented")
+    def manageInclusiveSamples(self, ptHatLowerThresholdsAndSampleNames = [], loopers = []) :
         looperIndexDict={}
         for item in ptHatLowerThresholdsAndSampleNames :
             ptHatLowerThreshold=item[0]
@@ -258,17 +256,9 @@ class analysis(object) :
             if iItem<len(ptHatLowerThresholdsAndSampleNames)-1 :
                 nextPtHatLowerThreshold=ptHatLowerThresholdsAndSampleNames[iItem+1][0]
                 nextLooperIndex=looperIndexDict[nextPtHatLowerThreshold]
-                loopers[thisLooperIndex].xs-=loopers[nextLooperIndex].xs
+                #loopers[thisLooperIndex].xs-=loopers[nextLooperIndex].xs
+                loopers[thisLooperIndex].steps[0].activatePtHatFilter(nextPtHatLowerThreshold)
 
-                if useRejectionMethod :
-                    loopers[thisLooperIndex].needToConsiderPtHatThresholds=False
-                    loopers[thisLooperIndex].steps[0].activatePtHatFilter(nextPtHatLowerThreshold)
-
-            #inform relevant loopers of the ptHat thresholds
-            for index in looperIndexDict.values() :
-                loopers[index].ptHatThresholds.append(float(thisPtHatLowerThreshold))
-                if not useRejectionMethod :
-                    loopers[index].needToConsiderPtHatThresholds=True
         return
     
     def mergeOutput(self) :
