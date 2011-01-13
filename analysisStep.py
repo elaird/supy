@@ -9,7 +9,6 @@ class analysisStep(object) :
     moreName = ""
     moreName2 = ""
 
-    ignoreInAccounting = False
     disabled = False
     quietMode = False
     needToConsiderPtHatThresholds = False
@@ -43,7 +42,6 @@ class analysisStep(object) :
         return self.book()["counts"].GetBinContent(bin)
     def nFail(self) :  return int(self.nFromCountsHisto(1))
     def nPass(self) :  return int(self.nFromCountsHisto(2))
-    def ignore(self) : self.ignoreInAccounting = True
         
     def printStatistics(self) :
         passString="-" if self.disabled else str(self.nPass())
