@@ -50,6 +50,8 @@ Other
 
 * global muons
 * handle float-based vectors
+* book() --> book
+* fix trigger counts step
 
 * light/lite ntuple mode
 * stage-out
