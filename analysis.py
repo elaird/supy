@@ -204,7 +204,6 @@ class analysis(object) :
             if nFilesMax >= 0 : fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
             if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
             adjustedListOfSteps = [steps.Master.master(finalOutputPlotFileName = self.outputPlotFileName(conf,sampleName),
-                                                       xs = sampleTuple.xs,
                                                        lumi = sampleTuple.lumi,
                                                        lumiWarn = lumiWarn)
                                    ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
@@ -215,6 +214,7 @@ class analysis(object) :
                                                 self._leavesToBlackList,
                                                 self.outputDirectory(conf),
                                                 self.outputPlotFileName(conf,sampleName),
+                                                sampleTuple.xs,
                                                 adjustedListOfSteps,
                                                 listOfCalculables,
                                                 sampleSpec,
@@ -225,7 +225,7 @@ class analysis(object) :
                                  )
             
         for thing in mergedDict.overlappingSamples :
-            minPtHatsAndNames=[]
+            minPtHatsAndNames = []
             for sampleName in thing.samples :
                 if sampleName not in ptHatMinDict : continue
                 minPtHatsAndNames.append( (ptHatMinDict[sampleName],sampleName) )
@@ -233,31 +233,31 @@ class analysis(object) :
         return sampleLoopers
 
     def manageInclusiveSamples(self, ptHatLowerThresholdsAndSampleNames = [], loopers = []) :
-        looperIndexDict={}
-        for item in ptHatLowerThresholdsAndSampleNames :
-            ptHatLowerThreshold=item[0]
-            sampleName=item[1]
-
-            #find the associated looper
+        def findLooper(ptHatLowerThreshold, sampleName) :
+            out = None
             for iLooper,looper in enumerate(loopers) :
                 if sampleName==looper.name :
-                    looperIndexDict[ptHatLowerThreshold]=iLooper
+                    out = iLooper
                 for step in looper.steps :
-                    if step.name() == "skimmer" :
+                    if step.name()=="skimmer" :
                         print "WARNING: you are skimming inclusive samples.  The skims of all but the highest bin will be exclusive.  Use utils.printSkimResults()."
+            return out
+        
+        looperIndexDict = {}
+        for item in ptHatLowerThresholdsAndSampleNames :
+            looperIndexDict[item[0]] = findLooper(*item)
 
         ptHatLowerThresholdsAndSampleNames.sort()
         for iItem in range(len(ptHatLowerThresholdsAndSampleNames)) :
+            thisPtHatLowerThreshold = ptHatLowerThresholdsAndSampleNames[iItem][0]
+            thisLooperIndex = looperIndexDict[thisPtHatLowerThreshold]
 
-            thisPtHatLowerThreshold=ptHatLowerThresholdsAndSampleNames[iItem][0]
-            thisLooperIndex=looperIndexDict[thisPtHatLowerThreshold]
-
-            #adjust cross sections
+            #adjust cross sections and enable ptHatFilter in master step
             if iItem<len(ptHatLowerThresholdsAndSampleNames)-1 :
-                nextPtHatLowerThreshold=ptHatLowerThresholdsAndSampleNames[iItem+1][0]
-                nextLooperIndex=looperIndexDict[nextPtHatLowerThreshold]
-                #loopers[thisLooperIndex].xs-=loopers[nextLooperIndex].xs
-                loopers[thisLooperIndex].steps[0].activatePtHatFilter(nextPtHatLowerThreshold)
+                nextPtHatLowerThreshold = ptHatLowerThresholdsAndSampleNames[iItem+1][0]
+                nextLooperIndex = looperIndexDict[nextPtHatLowerThreshold]
+                loopers[thisLooperIndex].xs -= loopers[nextLooperIndex].xs
+                loopers[thisLooperIndex].steps[0].activatePtHatFilter(maxPtHat = nextPtHatLowerThreshold)
 
         return
     
