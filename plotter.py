@@ -277,12 +277,12 @@ class plotter(object) :
             else : return imperfect(lists)
                 
         calcs = theCalcs(selectImperfect)
-        if not len(calcs) : return text
-        length0 = max([len(calc[0]) for calc in calcs])
-        length1 = max([len(calc[1]) for calc in calcs])
         calcs.sort()
         calcs.insert(0, ("","",""))
         calcs.insert(0, ("Calculables", "(imperfect)" if selectImperfect else "", "leaf  calc  fake" if selectImperfect else ""))
+        length0 = max([len(calc[0]) for calc in calcs])
+        length1 = max([len(calc[1]) for calc in calcs])
+        if len(calcs)==2 : calcs.append( ("","NONE","") )
         for i,calc in enumerate(calcs) :
             x = 0.02
             y = 0.98 - 0.6*(i+0.5)/self.nLinesMax
