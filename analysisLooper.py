@@ -204,17 +204,10 @@ class analysisLooper :
         r.gDirectory.GetMother().cd()
 
     def writeHistos(self) :
-        if not self.quietMode : print utils.hyphens
         outputFile = r.TFile(self.outputPlotFileName,"RECREATE")
-        zombie = outputFile.IsZombie()
-
         self.writeNodesUsed()
         self.writeHistosFromBooks()
-        
         outputFile.Close()
-        if not zombie :
-            if not self.quietMode :
-                print "The output file \""+self.outputPlotFileName+"\" has been written."
 
     def endSteps(self) :
         for step in self.steps :
