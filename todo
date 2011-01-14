@@ -29,7 +29,7 @@ Other
 * migrate to new ROOT
 * un black-list leaf when using new root
 
-* global muons
+* consider threshold for adding muons to jets
 
 * analysis restructure
 * make prettier oldName in analysis.py
