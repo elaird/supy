@@ -31,6 +31,11 @@ class analysisStep(object) :
     def name1(self) : return self.name().ljust(self.docWidth)+self.moreName.ljust(self.moreWidth)
     def name2(self) : return "" if self.moreName2=="" else "\n"+"".ljust(self.docWidth)+self.moreName2.ljust(self.moreWidth)
     def varsToPickle(self) : return []
+
+    def setOutputFileStem(self, stem) : self._outputFileStem = stem
+    def outputSuffix(self) : return self.name()+".txt"
+    def outputFileName(self) : return "%s_%s"%(self._outputFileStem, self.outputSuffix())
+    
     def requiresNoSetBranchAddress(self) : return False
     def disable(self) : self.disabled = True
     def makeQuiet(self) : self.quietMode = True

@@ -330,7 +330,7 @@ def mergeFunc(looper, listOfSlices) :
         return prods,calcs,leaves
 
     cleanUpList = []
-    looper.setupSteps(booksOnly = True)
+    looper.setupSteps(minimal = True)
     prods, looper.listOfCalculablesUsed, looper.listOfLeavesUsed = products()
     looper.printStats()
     print utils.hyphens

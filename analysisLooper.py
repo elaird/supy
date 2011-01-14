@@ -108,18 +108,19 @@ class analysisLooper :
         if not self.quietMode : print utils.hyphens
         r.gROOT.cd()
 
-    def setupSteps(self, booksOnly = False) :
+    def setupSteps(self, minimal = False) :
         returnValue = True
         r.gROOT.cd()
         current = r.gDirectory
         book = autoBook(current)
 
         for step in self.steps :
+            step.setOutputFileStem("%s/%s"%(self.outputDir, self.name))
             if hasattr(step,"select") :
                 current = current.mkdir(step.name())
                 book = autoBook(current)
             step.book = book
-            if booksOnly : continue
+            if minimal : continue
             if self.quietMode : step.makeQuiet()
             step.isSelector = hasattr(step,"select")            
             assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.name()
