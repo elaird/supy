@@ -16,8 +16,8 @@ Other
 --------
 * jets factors and rewriting jets
 * cut flow study infrastructure
-* dependence tools
-* dependence shotgun
+* in/dependence tools
+* in/dependence shotgun
 * consider uncertainty on zero
 
 * config parameter interface
@@ -32,7 +32,6 @@ Other
 * migrate to new ROOT
 * un black-list leaf when using new root
 
-* cutSorter endFunc
 * make prettier oldName in analysis.py
 
 * generic batch mode
@@ -50,7 +49,6 @@ Other
 * check extra spike vars
 
 (low priority)
-* cross section in database
 * organize files in cvs
 * named arguments everywhere
 * update example ntuples
