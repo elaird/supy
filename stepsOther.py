@@ -216,6 +216,16 @@ class variablePtGreaterFilter(analysisStep) :
     def select (self,eventVars) :
         return eventVars[self.variable].pt()>=self.threshold
 #####################################
+class variablePtLessFilter(analysisStep) :
+
+    def __init__(self, threshold, variable, suffix = ""):
+        self.threshold = threshold
+        self.variable = variable
+        self.moreName = "%s.pt()<=%.1f %s" % (variable,threshold,suffix)
+
+    def select (self,eventVars) :
+        return eventVars[self.variable].pt()<=self.threshold
+#####################################
 class objectPtSelector(analysisStep) :
 
     def __init__(self, cs, ptThreshold, index, p4String):
