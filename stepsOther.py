@@ -409,30 +409,25 @@ class counter(analysisStep) :
 class pickEventSpecMaker(analysisStep) :
     #https://twiki.cern.ch/twiki/bin/viewauth/CMS/WorkBookPickEvents
 
-    def setup(self,chain,fileDir,name,outputDir) :
-        self.outputFileName = outputDir+"/"+name+"_pickEvents.txt"
-        self.outputFile = open(self.outputFileName,"w")
-        
-    def uponAcceptance(self,eventVars) :
-        line="%14d:%6d:%14d\n"%(eventVars["run"], eventVars["lumiSection"], eventVars["event"])
-        self.outputFile.write(line) #slow: faster to buffer output, write less frequently
-
-    def endFunc(self, otherChainDict) :
-        print utils.hyphens
-        self.outputFile.close()
-        print "The pick events spec. file \""+self.outputFileName+"\" has been written."
-
-    def varsToPickle(self) :
-        return ["outputFileName"]
-    
-#####################################
-class bxHistogrammer(analysisStep) :
-
     def __init__(self) :
-        self.nBx=3564+1 #one extra in case count from 1
+        self.events = []
+        
+    def outputSuffix(self) :
+        return "pickEvents.txt"
+    
+    def uponAcceptance(self, eventVars) :
+        self.events.append( (eventVars["run"], eventVars["lumiSection"], eventVars["event"]) )
+        
+    def varsToPickle(self) :
+        return ["events"]
 
-    def uponAcceptance(self,eventVars) :
-        self.book.fill(eventVars["bunch"],"bx",self.nBx,-0.5,0.5,";bx of event;events / bin")
+    def mergeFunc(self, productList, someLooper) :
+        out = open(self.outputFileName(), "w")
+        for events in [p["events"] for p in productList] :
+            for event in events :
+                out.write("%14d:%6d:%14d\n"%event)
+        out.close()
+        print "The pick events spec. file %s has been written."%self.outputFileName()
 #####################################
 class jsonMaker(analysisStep) :
 
