@@ -33,9 +33,7 @@ Other
 * un black-list leaf when using new root
 
 * cutSorter endFunc
-* fix triggerCounts
 * make prettier oldName in analysis.py
-* multimode duplicate event checker
 
 * generic batch mode
 * move ratio marker
