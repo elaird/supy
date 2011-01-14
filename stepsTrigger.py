@@ -1,6 +1,6 @@
 import ROOT as r
 from analysisStep import analysisStep
-import math
+import math,collections,os,utils
 #####################################
 class physicsDeclared(analysisStep) :
 
@@ -54,44 +54,43 @@ class triggerNameDump(analysisStep) :
             print pair.first
         return True
 #####################################
-class triggerCounts(analysisStep) :
+class Counts(analysisStep) :
 
-    def __init__(self, pathMatches = []) :
-        self.key = "triggerCounts"
-        self.pathMatches = pathMatches
-        self.pathMatches.append("HLTriggerFinalPath")
+    def __init__(self) :
+        self.counts = collections.defaultdict(int)
+        
+    def setup(self, chain, fileDir, name, outputDir) :
+        self.outputFileName = "%s/%s.txt"%(outputDir, name)
+        os.system("mkdir -p "+outputDir)
         
     def uponAcceptance(self, eventVars) :
         for pair in eventVars["triggered"] :
-            self.book(eventVars).fill( pair.first, self.key, 1, 1.0, -1.0, w = pair.second, title = ";;events / bin")
+            if pair.second : 
+                self.counts[pair.first] += 1
 
-    def prunedHisto(self, inHisto) :
-        list = []
-        max = inHisto.GetMaximum()
-        for iBin in range(0,inHisto.GetNbinsX()+2) :
-            content = inHisto.GetBinContent(iBin)
-            label = inHisto.GetXaxis().GetBinLabel(iBin)
-            for match in self.pathMatches :
-                if match in label :
-                    list.append( (label, content) )
+    def varsToPickle(self) :
+        return ["outputFileName", "counts"]
 
-        dir = inHisto.GetDirectory()
-        name = inHisto.GetName()
-        title = "%s;%s;%s"%(inHisto.GetTitle(), inHisto.GetXaxis().GetTitle(), inHisto.GetYaxis().GetTitle())
-        inHisto.Delete()
+    def mergeFunc(self, productList, someLooper) :
+        def mergedCounts(l) :
+            out = collections.defaultdict(int)
+            for d in l :
+                for key,value in d.iteritems() :
+                    out[key] += value
+            return out
 
-        outHisto = r.TH1D(name, title, len(list), 0.0, len(list))
-        outHisto.SetDirectory(dir)
-        
-        for iItem,item in enumerate(list) :
-            outHisto.Fill(iItem, item[1])
-            outHisto.GetXaxis().SetBinLabel(iItem+1, item[0])
-        return outHisto
-        
-    def endFunc(self, otherChainDict) :
-        for book in self.books.values() :
-            if self.key in book :
-                book[self.key] = self.prunedHisto(book[self.key])
+        outFileName = [p["outputFileName"] for p in productList][0]
+        counts = mergedCounts([p["counts"] for p in productList])
+
+        outFile = open(outFileName,"w")
+
+        maxNameLength = max([len(key) for key in counts.keys()])
+        maxCountLength = max([len(str(value)) for value in counts.values()])
+        for key in sorted(counts.keys()) :
+            outFile.write("%s    %s\n"%(key.ljust(maxNameLength), str(counts[key]).ljust(maxCountLength)))
+        outFile.close()
+        print "The trigger counts file %s has been written."%outFileName
+        print utils.hyphens
 #####################################
 class lowestUnPrescaledTrigger(analysisStep) :
     def __init__(self, sortedListOfPaths = []) :
