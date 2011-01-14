@@ -91,8 +91,8 @@ class Indices(wrappedChain.calculable) :
         for i in range(p4s.size()) :
             if p4s.at(i).pt() < self.ptMin : break
             if not isGlobal.at(i) : continue
-            if tight.at(i) :
-                if relIso.at(i) < self.relIsoMax :
+            if tight[i] :
+                if relIso[i] < self.relIsoMax :
                     self.value.append(i)
                 else: nonIso.append(i)
             else: other.append(i)
