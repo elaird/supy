@@ -211,6 +211,7 @@ class analysis(object) :
             if nFilesMax >= 0 : fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
             if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
             adjustedListOfSteps = [steps.Master.master(finalOutputPlotFileName = self.outputPlotFileName(conf,sampleName),
+                                                       xs = sampleTuple.xs,
                                                        lumi = sampleTuple.lumi,
                                                        lumiWarn = lumiWarn)
                                    ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
@@ -221,7 +222,6 @@ class analysis(object) :
                                                 self._leavesToBlackList,
                                                 self.outputDirectory(conf),
                                                 self.outputPlotFileName(conf,sampleName),
-                                                sampleTuple.xs,
                                                 adjustedListOfSteps,
                                                 listOfCalculables,
                                                 fileListCommand,
@@ -266,8 +266,7 @@ class analysis(object) :
             if iItem<len(ptHatLowerThresholdsAndSampleNames)-1 :
                 nextPtHatLowerThreshold = ptHatLowerThresholdsAndSampleNames[iItem+1][0]
                 nextLooperIndex = looperIndexDict[nextPtHatLowerThreshold]
-                loopers[thisLooperIndex].xs -= loopers[nextLooperIndex].xs
-                loopers[thisLooperIndex].steps[0].activatePtHatFilter(maxPtHat = nextPtHatLowerThreshold)
+                loopers[thisLooperIndex].steps[0].activatePtHatFilter(maxPtHat = nextPtHatLowerThreshold, lostXs = loopers[nextLooperIndex].steps[0].xs)
 
         return
     

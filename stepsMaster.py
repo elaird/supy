@@ -2,13 +2,14 @@ from analysisStep import analysisStep
 import utils,os
 #####################################
 class master(analysisStep) :
-    def __init__(self, finalOutputPlotFileName, lumi, lumiWarn) :
+    def __init__(self, finalOutputPlotFileName, xs, lumi, lumiWarn) :
         self.moreName = ""
         self.filterPtHat = False
-        for item in ["finalOutputPlotFileName", "lumi", "lumiWarn"] :
+        for item in ["finalOutputPlotFileName", "xs", "lumi", "lumiWarn"] :
             setattr(self, item, eval(item))
         
-    def activatePtHatFilter(self, maxPtHat) :
+    def activatePtHatFilter(self, maxPtHat, lostXs) :
+        self.xs -= lostXs
         self.filterPtHat = True
         self.maxPtHat = maxPtHat
         self.moreName += "(pthat<%.1f)"%self.maxPtHat
@@ -22,9 +23,8 @@ class master(analysisStep) :
         if self.lumi : self.book.fill(0.0, "lumiHisto", 1, -0.5, 0.5, title = "%s;dummy axis;integrated luminosity (pb^{-1})"%\
                                         ("" if not self.lumiWarn else "WARNING: lumi value is probably wrong!"), w = self.lumi)
 
-    def notify(self, outputPlotFileName, xs) :
-        for item in ["outputPlotFileName", "xs"] :
-            setattr(self, item, eval(item))
+    def notify(self, outputPlotFileName) :
+        self.outputPlotFileName = outputPlotFileName
         
     def varsToPickle(self) :
         return ["outputPlotFileName"]

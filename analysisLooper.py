@@ -7,13 +7,13 @@ class analysisLooper :
     """class to set up and loop over events"""
 
     def __init__(self, fileDirectory, treeName, otherTreesToKeepWhenSkimming, leavesToBlackList,
-                 outputDir, outputPlotFileName,xs, steps, calculables, fileListCommand,
+                 outputDir, outputPlotFileName, steps, calculables, fileListCommand,
                  computeEntriesForReport, printNodesUsed, sampleName, nEventsMax, color, markerStyle) :
 
         self.name = sampleName
 
         for arg in ["fileDirectory", "treeName", "otherTreesToKeepWhenSkimming", "leavesToBlackList",
-                    "outputDir", "outputPlotFileName", "xs", "fileListCommand", "nEventsMax", "color", "markerStyle",
+                    "outputDir", "outputPlotFileName", "fileListCommand", "nEventsMax", "color", "markerStyle",
                     "computeEntriesForReport","printNodesUsed"] :
             setattr(self,arg,eval(arg))
 
@@ -127,7 +127,7 @@ class analysisLooper :
             step.setup(self.inputChain, self.fileDirectory, self.name, self.outputDir)
 
         r.gROOT.cd()
-        self.steps[0].notify(self.outputPlotFileName, self.xs)#inform the master of the name of this job's output file and also the xs
+        self.steps[0].notify(self.outputPlotFileName)#inform the master of the name of this job's output file
         return returnValue
 
     def setQuietMode(self, nWorkers) :
