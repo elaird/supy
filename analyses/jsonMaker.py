@@ -16,14 +16,13 @@ class jsonMaker(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify        
-        return [
-            specify(name = "Nov4_MJ_skim" ),
-            specify(name = "Nov4_J_skim"  ),
-            specify(name = "Nov4_J_skim2"),
-            specify(name = "Nov4_JM_skim" ),
-            specify(name = "Nov4_JMT_skim"),
-            specify(name = "Nov4_JMT_skim2"),
-            ]
+        return specify(names = ["Nov4_MJ_skim",
+                                "Nov4_J_skim",
+                                "Nov4_J_skim2",
+                                "Nov4_JM_skim",
+                                "Nov4_JMT_skim",
+                                "Nov4_JMT_skim2",
+                                ] )
                 
     def listOfSampleDictionaries(self) :
         return [samples.jetmet, samples.muon, samples.photon]
