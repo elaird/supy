@@ -413,7 +413,7 @@ class pickEventSpecMaker(analysisStep) :
         self.events = []
         
     def outputSuffix(self) :
-        return "pickEvents.txt"
+        return "_pickEvents.txt"
     
     def uponAcceptance(self, eventVars) :
         self.events.append( (eventVars["run"], eventVars["lumiSection"], eventVars["event"]) )
@@ -435,16 +435,15 @@ class jsonMaker(analysisStep) :
         self.runLsDict=collections.defaultdict(list)
         self.moreName="see below"
 
-    def setup(self,chain,fileDir,name,outputDir) :
-        self.outputFileName=outputDir+"/"+name+".json"
-        os.system("mkdir -p "+outputDir)
-        
     def uponAcceptance(self,eventVars) :
         self.runLsDict[eventVars["run"]].append(eventVars["lumiSection"])
     
     def varsToPickle(self) :
-        return ["outputFileName", "runLsDict"]
+        return ["runLsDict"]
 
+    def outputSuffix(self) :
+        return ".json"
+    
     def mergeFunc(self, productList, someLooper) :
         def mergedDict(runLsDicts) :
             #merge results into one dictionary
@@ -484,13 +483,12 @@ class jsonMaker(analysisStep) :
                 outDict[str(run)] = newList
             return str(outDict).replace("'",'"')
 
-        outFileName = [p["outputFileName"] for p in productList][0]
         runLsDicts = [p["runLsDict"] for p in productList]
         
-        outFile = open(outFileName,"w")
+        outFile = open(self.outputFileName(),"w")
         outFile.write(aJson(mergedDict(runLsDicts)))
         outFile.close()
-        print "The json file %s has been written."%outFileName
+        print "The json file %s has been written."%self.outputFileName()
         print utils.hyphens
 #####################################
 class duplicateEventCheck(analysisStep) :
