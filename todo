@@ -32,6 +32,7 @@ Other
 * global muons
 * make prettier oldName in analysis.py
 
+* analysis restructure
 * generic batch mode
 * move ratio marker
 * 2D ratios
