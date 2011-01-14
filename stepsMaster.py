@@ -39,7 +39,7 @@ class master(analysisStep) :
                 break
 
         def cleanUp(stderr, files) :
-            assert not stderr, "hadd had a problem."
+            assert not stderr, "hadd had this stderr: %s"%stderr
             for fileName in files :
                 os.remove(fileName)
 
