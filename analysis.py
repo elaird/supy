@@ -32,9 +32,12 @@ class analysis(object) :
     def __init__(self, options) :
         self.name = self.__class__.__name__
 
-        for item in ["baseOutputDirectory","listOfSampleDictionaries",
-                     "mainTree","otherTreesToKeepWhenSkimming","leavesToBlackList","printNodesUsed"] :
+        for item in ["baseOutputDirectory", "mainTree", "otherTreesToKeepWhenSkimming",
+                     "leavesToBlackList", "printNodesUsed"] :
             setattr(self, "_"+item, getattr(self,item)() )
+            
+        self.sampleDict = samples.SampleHolder()
+        map(self.sampleDict.update,self.listOfSampleDictionaries())
 
         self.fileDirectory,self.treeName = self._mainTree
         self._configurations = listOfConfigurations(self.parameters())
@@ -180,51 +183,58 @@ class analysis(object) :
 
         selectors = filter(lambda s: hasattr(s,"select"), listOfSteps)
         assert len(selectors) == len(set(map(lambda s:(s.__class__.__name__,s.moreName,s.moreName2), selectors))),"Duplicate selectors are not allowed."
-        assert len(listOfSamples) == len(set(map(lambda s: s.name,listOfSamples))), "Duplicate sample names are not allowed."
+        names = sum( [s.names for s in listOfSamples], [])
+        assert len(names) == len(set(names)), "Duplicate sample names are not allowed."
 
         computeEntriesForReport = False #temporarily hard-coded
-        mergedDict = samples.SampleHolder()
-        map(mergedDict.update,self._listOfSampleDictionaries)
 
-        ptHatMinDict={}
+        def parseForEventNumber(ss,sampletuple) :
+            if not ss.effectiveLumi :
+                return ss.nFilesMax,ss.nEventsMax
+            else :
+                return ss.nFilesMax,ss.nEventsMax
+
+        ptHatMinDict = {}
         sampleLoopers = []
         for sampleSpec in listOfSamples :
-            sampleName = sampleSpec.name
-            sampleTuple = mergedDict[sampleName]
-            isMc = sampleTuple.lumi==None
-            fileListCommand=sampleTuple.filesCommand
-            nFilesMax=sampleSpec.nFilesMax
-            nEventsMax=sampleSpec.nEventsMax
+            for sampleName in sampleSpec.names :
+                sampleTuple = self.sampleDict[sampleName]
+                isMc = sampleTuple.lumi==None
+                fileListCommand = sampleTuple.filesCommand
+                nFilesMax,nEventsMax = parseForEventNumber(sampleSpec,sampleTuple)
+                
+                lumiWarn = False
+                if (not isMc) and (nEventsMax!=-1 or nFilesMax!=-1) :
+                    print "Warning, not running over full data sample: wrong lumi?"
+                    lumiWarn = True
 
-            lumiWarn = False
-            if (not isMc) and (nEventsMax!=-1 or nFilesMax!=-1) :
-                print "Warning, not running over full data sample: wrong lumi?"
-                lumiWarn = True
-
-            if nFilesMax >= 0 : fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
-            if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
-            adjustedListOfSteps = [steps.Master.master(finalOutputPlotFileName = self.outputPlotFileName(conf,sampleName),
-                                                       lumi = sampleTuple.lumi,
-                                                       lumiWarn = lumiWarn)
-                                   ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
-
-            sampleLoopers.append(analysisLooper(self.fileDirectory,
-                                                self.treeName,
-                                                self._otherTreesToKeepWhenSkimming,
-                                                self._leavesToBlackList,
-                                                self.outputDirectory(conf),
-                                                self.outputPlotFileName(conf,sampleName),
-                                                sampleTuple.xs,
-                                                adjustedListOfSteps,
-                                                listOfCalculables,
-                                                sampleSpec,
-                                                fileListCommand,
-                                                computeEntriesForReport,
-                                                self.printNodesUsed(),
-                                                )
-                                 )
+                if nFilesMax >= 0 : fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
+                if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
+                adjustedListOfSteps = [steps.Master.master(finalOutputPlotFileName = self.outputPlotFileName(conf,sampleName),
+                                                           lumi = sampleTuple.lumi,
+                                                           lumiWarn = lumiWarn)
+                                       ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
+                
+                sampleLoopers.append(analysisLooper(self.fileDirectory,
+                                                    self.treeName,
+                                                    self._otherTreesToKeepWhenSkimming,
+                                                    self._leavesToBlackList,
+                                                    self.outputDirectory(conf),
+                                                    self.outputPlotFileName(conf,sampleName),
+                                                    sampleTuple.xs,
+                                                    adjustedListOfSteps,
+                                                    listOfCalculables,
+                                                    fileListCommand,
+                                                    computeEntriesForReport,
+                                                    self.printNodesUsed(),
+                                                    sampleName,
+                                                    nEventsMax,
+                                                    sampleSpec.color,
+                                                    sampleSpec.markerStyle
+                                                    )
+                                     )
             
-        for thing in mergedDict.overlappingSamples :
+        for thing in self.sampleDict.overlappingSamples :
             minPtHatsAndNames = []
             for sampleName in thing.samples :
                 if sampleName not in ptHatMinDict : continue

@@ -190,93 +190,93 @@ class hadronicLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         data = [
-            specify(name = "Nov4_MJ_skim"  ),
-            specify(name = "Nov4_J_skim"   ),
-            specify(name = "Nov4_J_skim2"  ),
-            specify(name = "Nov4_JM_skim"  ),
-            specify(name = "Nov4_JMT_skim" ),
-            specify(name = "Nov4_JMT_skim2"),
+            specify(names = "Nov4_MJ_skim"  ),
+            specify(names = "Nov4_J_skim"   ),
+            specify(names = "Nov4_J_skim2"  ),
+            specify(names = "Nov4_JM_skim"  ),
+            specify(names = "Nov4_JMT_skim" ),
+            specify(names = "Nov4_JMT_skim2"),
             
           ##specify(name = "2010_data_calo_skim",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),            
           ##specify(name = "2010_data_pf_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
             ]                                                       
         qcd_py6 = [
-            #specify(name = "qcd_py6_pt_0to5"      ),
-            #specify(name = "qcd_py6_pt_5to15"     ),
-            #specify(name = "qcd_py6_pt_15to30"    ),
-            #specify(name = "qcd_py6_pt_30to50"    ),
-            #specify(name = "qcd_py6_pt_50to80"    ),
-            specify(name = "qcd_py6_pt_80to120"   ),
-            specify(name = "qcd_py6_pt_120to170"  ),
-            specify(name = "qcd_py6_pt_170to300"  ),
-            specify(name = "qcd_py6_pt_300to470"  ),
-            specify(name = "qcd_py6_pt_470to600"  ),
-            specify(name = "qcd_py6_pt_600to800"  ),
-            specify(name = "qcd_py6_pt_800to1000" ),
-            specify(name = "qcd_py6_pt_1000to1400"),
-            specify(name = "qcd_py6_pt_1400to1800"),
-            specify(name = "qcd_py6_pt_1800"      ),
+            #specify(names = "qcd_py6_pt_0to5"      ),
+            #specify(names = "qcd_py6_pt_5to15"     ),
+            #specify(names = "qcd_py6_pt_15to30"    ),
+            #specify(names = "qcd_py6_pt_30to50"    ),
+            #specify(names = "qcd_py6_pt_50to80"    ),
+            specify(names = "qcd_py6_pt_80to120"   ),
+            specify(names = "qcd_py6_pt_120to170"  ),
+            specify(names = "qcd_py6_pt_170to300"  ),
+            specify(names = "qcd_py6_pt_300to470"  ),
+            specify(names = "qcd_py6_pt_470to600"  ),
+            specify(names = "qcd_py6_pt_600to800"  ),
+            specify(names = "qcd_py6_pt_800to1000" ),
+            specify(names = "qcd_py6_pt_1000to1400"),
+            specify(names = "qcd_py6_pt_1400to1800"),
+            specify(names = "qcd_py6_pt_1800"      ),
             ]
         g_jets_py6 = [                                              
-            specify(name = "v12_g_jets_py6_pt30",       nFilesMax = -1, nEventsMax = 1000000, color = r.kGreen),
-            specify(name = "v12_g_jets_py6_pt80",       nFilesMax = -1, nEventsMax =  100000, color = r.kGreen),
-            specify(name = "v12_g_jets_py6_pt170",      nFilesMax = -1, nEventsMax =  100000, color = r.kGreen),
+            specify(names = "v12_g_jets_py6_pt30",       nFilesMax = -1, nEventsMax = 1000000, color = r.kGreen),
+            specify(names = "v12_g_jets_py6_pt80",       nFilesMax = -1, nEventsMax =  100000, color = r.kGreen),
+            specify(names = "v12_g_jets_py6_pt170",      nFilesMax = -1, nEventsMax =  100000, color = r.kGreen),
             ]                                                       
         qcd_py8 = [                                                 
-          ##specify(name = "qcd_py8_pt0to15",           nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py8_pt15to30",          nFilesMax = -1, color = r.kBlue    ),
-          ##specify(name = "qcd_py8_pt30to50",          nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt50to80",          nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt80to120",         nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt120to170",        nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt170to300",        nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt300to470",        nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt470to600",        nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt600to800",        nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt800to1000",       nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt1000to1400",      nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt1400to1800",      nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "qcd_py8_pt1800",            nFilesMax = -1, color = r.kBlue    ),
+          ##specify(names = "qcd_py8_pt0to15",           nFilesMax = -1, color = r.kBlue    ),
+          ##specify(names = "qcd_py8_pt15to30",          nFilesMax = -1, color = r.kBlue    ),
+          ##specify(names = "qcd_py8_pt30to50",          nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "qcd_py8_pt50to80",          nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "qcd_py8_pt80to120",         nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "qcd_py8_pt120to170",        nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "qcd_py8_pt170to300",        nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "qcd_py8_pt300to470",        nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "qcd_py8_pt470to600",        nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "qcd_py8_pt600to800",        nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "qcd_py8_pt800to1000",       nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "qcd_py8_pt1000to1400",      nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "qcd_py8_pt1400to1800",      nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "qcd_py8_pt1800",            nFilesMax = -1, color = r.kBlue    ),
             ]                                                       
         qcd_mg = [                                                  
-            specify(name = "v12_qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "v12_qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "v12_qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "v12_qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "v12_qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "v12_qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "v12_qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "v12_qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "v12_qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "v12_qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
             ]                                                       
         g_jets_mg = [                                               
-            specify(name = "v12_g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
-            specify(name = "v12_g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
-            specify(name = "v12_g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
+            specify(names = "v12_g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
+            specify(names = "v12_g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
+            specify(names = "v12_g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
             ]                                                       
         ttbar_mg = [                                                
-            specify(name = "tt_tauola_mg_v12",          nFilesMax =  3, color = r.kOrange  ),
+            specify(names = "tt_tauola_mg_v12",          nFilesMax =  3, color = r.kOrange  ),
             ]                                                       
         ewk = [                                                     
-            specify(name = "z_inv_mg_v12_skim",         nFilesMax = -1, color = r.kMagenta ),
-            specify(name = "z_jets_mg_v12_skim",        nFilesMax = -1, color = r.kYellow-3),
-            specify(name = "w_jets_mg_v12_skim",        nFilesMax = -1, color = 28         ),
+            specify(names = "z_inv_mg_v12_skim",         nFilesMax = -1, color = r.kMagenta ),
+            specify(names = "z_jets_mg_v12_skim",        nFilesMax = -1, color = r.kYellow-3),
+            specify(names = "w_jets_mg_v12_skim",        nFilesMax = -1, color = 28         ),
             ]                                                       
         susy = [                                                    
-            specify(name = "lm0_v12",                   nFilesMax = -1, color = r.kRed     ),
-            specify(name = "lm1_v12",                   nFilesMax = -1, color = r.kRed+1   ),
+            specify(names = "lm0_v12",                   nFilesMax = -1, color = r.kRed     ),
+            specify(names = "lm1_v12",                   nFilesMax = -1, color = r.kRed+1   ),
             ]                                                   
 
         caloSkims = [
-            specify(name = "2010_data_calo_skim",        nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "v12_qcd_py6_pt300_caloSkim", nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "tt_tauola_mg_v12_caloSkim",  nFilesMax =  3, color = r.kOrange  ),
-            specify(name = "w_jets_mg_v12_skim_caloSkim",nFilesMax = -1, color = 28         ),
-            specify(name = "z_inv_mg_v12_skim_caloSkim", nFilesMax = -1, color = r.kMagenta ),
+            specify(names = "2010_data_calo_skim",        nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(names = "v12_qcd_py6_pt300_caloSkim", nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "tt_tauola_mg_v12_caloSkim",  nFilesMax =  3, color = r.kOrange  ),
+            specify(names = "w_jets_mg_v12_skim_caloSkim",nFilesMax = -1, color = 28         ),
+            specify(names = "z_inv_mg_v12_skim_caloSkim", nFilesMax = -1, color = r.kMagenta ),
             ]
         pfSkims = [
-            specify(name = "2010_data_pf_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            specify(name = "v12_qcd_py6_pt300_pfSkim",   nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "tt_tauola_mg_v12_pfSkim",    nFilesMax =  3, color = r.kOrange  ),
-            specify(name = "w_jets_mg_v12_skim_pfSkim",  nFilesMax = -1, color = 28         ),
-            specify(name = "z_inv_mg_v12_skim_pfSkim",   nFilesMax = -1, color = r.kMagenta ),
+            specify(names = "2010_data_pf_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
+            specify(names = "v12_qcd_py6_pt300_pfSkim",   nFilesMax = -1, color = r.kBlue    ),
+            specify(names = "tt_tauola_mg_v12_pfSkim",    nFilesMax =  3, color = r.kOrange  ),
+            specify(names = "w_jets_mg_v12_skim_pfSkim",  nFilesMax = -1, color = 28         ),
+            specify(names = "z_inv_mg_v12_skim_pfSkim",   nFilesMax = -1, color = r.kMagenta ),
             ]
 
         outList = []
@@ -307,7 +307,7 @@ class hadronicLook(analysis.analysis) :
         ##uncomment for short tests
         #for i in range(len(outList)):
         #    o = outList[i]
-        #    outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
+        #    outList[i] = specify(names = o.names, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
 
         return outList
 
@@ -354,8 +354,8 @@ class hadronicLook(analysis.analysis) :
             #plot
             pl = plotter.plotter(org,
                                  psFileName = self.psFileName(tag),
-                                 samplesForRatios = ("2010 Data","standard_model"),
-                                 sampleLabelsForRatios = ("data","s.m."),
+                                 #samplesForRatios = ("2010 Data","standard_model"),
+                                 #sampleLabelsForRatios = ("data","s.m."),
                                  #whiteList = ["lowestUnPrescaledTrigger"],
                                  #doLog = False,
                                  #compactOutput = True,

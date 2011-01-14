@@ -7,14 +7,13 @@ class analysisLooper :
     """class to set up and loop over events"""
 
     def __init__(self, fileDirectory, treeName, otherTreesToKeepWhenSkimming, leavesToBlackList,
-                 outputDir, outputPlotFileName,xs, steps, calculables, sampleSpec, fileListCommand,
-                 computeEntriesForReport, printNodesUsed) :
+                 outputDir, outputPlotFileName,xs, steps, calculables, fileListCommand,
+                 computeEntriesForReport, printNodesUsed, sampleName, nEventsMax, color, markerStyle) :
 
-        for arg in ["name","nEventsMax","color","markerStyle"] :
-            setattr(self,arg,getattr(sampleSpec,arg))
+        self.name = sampleName
 
         for arg in ["fileDirectory", "treeName", "otherTreesToKeepWhenSkimming", "leavesToBlackList",
-                    "outputDir", "outputPlotFileName", "xs", "fileListCommand",
+                    "outputDir", "outputPlotFileName", "xs", "fileListCommand", "nEventsMax", "color", "markerStyle",
                     "computeEntriesForReport","printNodesUsed"] :
             setattr(self,arg,eval(arg))
 
