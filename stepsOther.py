@@ -490,13 +490,38 @@ class jsonMaker(analysisStep) :
 #####################################
 class duplicateEventCheck(analysisStep) :
     def __init__(self) :
-        self.events = collections.defaultdict(set)
+        self.events = collections.defaultdict(list)
 
     def uponAcceptance(self,ev) :
-        runLs = self.events[(ev["run"],ev["lumiSection"])]
-        event = ev["event"]
-        assert event not in runLs, "You have a duplicate event: run %d, lumiSection %d, event %d"%(ev["run"],ev["lumiSection"],event)
-        runLs.add(event)
+        self.events[(ev["run"], ev["lumiSection"])].append(ev["event"])
+
+    def varsToPickle(self) :
+        return ["events"]
+
+    def mergeFunc(self, productList, someLooper) :
+        def mergedEventDicts(l) :
+            out = collections.defaultdict(list)
+            for d in l :
+                for key,value in d.iteritems() :
+                    out[key] += value
+            return out
+
+        def duplicates(l) :
+            s = set(l)
+            for item in s :
+                l.remove(item)
+            return list(set(l))
+
+        anyDups = False
+        events = mergedEventDicts([p["events"] for p in productList])
+        for runLs in sorted(events.keys()) :
+            eventList = events[runLs]
+            d = duplicates(eventList)
+            if d :
+                print "DUPLICATE EVENTS FOUND in run %d ls %d: %s"%(runLs[0], runLs[1], d)
+                anyDups = True
+        if not anyDups :
+            print "No duplicate events were found."
 #####################################
 class deadEcalFilter(analysisStep) :
     def __init__(self, jets = None, extraName = "", dR = None, dPhiStarCut = None) :
