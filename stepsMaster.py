@@ -2,10 +2,10 @@ from analysisStep import analysisStep
 import utils,os
 #####################################
 class master(analysisStep) :
-    def __init__(self, finalOutputPlotFileName, xs, lumi, lumiWarn) :
+    def __init__(self, finalOutputPlotFileName, lumi, lumiWarn) :
         self.moreName = ""
         self.filterPtHat = False
-        for item in ["finalOutputPlotFileName", "xs", "lumi", "lumiWarn"] :
+        for item in ["finalOutputPlotFileName", "lumi", "lumiWarn"] :
             setattr(self, item, eval(item))
         
     def activatePtHatFilter(self, maxPtHat) :
@@ -16,14 +16,15 @@ class master(analysisStep) :
     def select (self,eventVars) :
         return (not self.filterPtHat) or eventVars["genpthat"]<self.maxPtHat
 
-    def setup(self, chain, fileDir, name, outputDir) :
+    def endFunc(self, otherChainDict) :
         self.book().fill(0.0, "nJobsHisto", 1, -0.5, 0.5, title = ";dummy axis;N_{jobs}")        
         if self.xs   : self.book().fill(0.0, "xsHisto",   1, -0.5, 0.5, title = ";dummy axis;#sigma (pb)", w = self.xs)
         if self.lumi : self.book().fill(0.0, "lumiHisto", 1, -0.5, 0.5, title = "%s;dummy axis;integrated luminosity (pb^{-1})"%\
                                         ("" if not self.lumiWarn else "WARNING: lumi value is probably wrong!"), w = self.lumi)
 
-    def notifyOfOutputFile(self, outputPlotFileName) :
-        self.outputPlotFileName = outputPlotFileName
+    def notify(self, outputPlotFileName, xs) :
+        for item in ["outputPlotFileName", "xs"] :
+            setattr(self, item, eval(item))
         
     def varsToPickle(self) :
         return ["outputPlotFileName"]

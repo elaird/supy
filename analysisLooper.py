@@ -6,18 +6,19 @@ import ROOT as r
 class analysisLooper :
     """class to set up and loop over events"""
 
-    def __init__(self,fileDirectory,treeName,otherTreesToKeepWhenSkimming,
-                 leavesToBlackList,outputDir,outputPlotFileName,steps,calculables,
-                 sampleSpec,fileListCommand,computeEntriesForReport,printNodesUsed,inputFiles = None):
+    def __init__(self, fileDirectory, treeName, otherTreesToKeepWhenSkimming, leavesToBlackList,
+                 outputDir, outputPlotFileName,xs, steps, calculables, sampleSpec, fileListCommand,
+                 computeEntriesForReport, printNodesUsed) :
 
         for arg in ["name","nEventsMax","color","markerStyle"] :
             setattr(self,arg,getattr(sampleSpec,arg))
 
-        for arg in ["fileDirectory","treeName","otherTreesToKeepWhenSkimming",
-                    "leavesToBlackList","inputFiles","outputDir","fileListCommand",
-                    "computeEntriesForReport","printNodesUsed","outputPlotFileName"] :
+        for arg in ["fileDirectory", "treeName", "otherTreesToKeepWhenSkimming", "leavesToBlackList",
+                    "outputDir", "outputPlotFileName", "xs", "fileListCommand",
+                    "computeEntriesForReport","printNodesUsed"] :
             setattr(self,arg,eval(arg))
 
+        self.inputFiles = None
         self.steps = copy.deepcopy(steps)
         self.calculables = copy.deepcopy(calculables)
 
@@ -127,7 +128,7 @@ class analysisLooper :
             step.setup(self.inputChain, self.fileDirectory, self.name, self.outputDir)
 
         r.gROOT.cd()
-        self.steps[0].notifyOfOutputFile(self.outputPlotFileName)#inform the master of the name of this job's output file
+        self.steps[0].notify(self.outputPlotFileName, self.xs)#inform the master of the name of this job's output file and also the xs
         return returnValue
 
     def setQuietMode(self, nWorkers) :
