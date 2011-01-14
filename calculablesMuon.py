@@ -75,7 +75,7 @@ class IndicesNonIso(calculables.indicesOther) :
 class Indices(wrappedChain.calculable) :
     def __init__(self, collection = None, ptMin = None, combinedRelIsoMax = None ) :
         self.fixes = collection
-        self.stash(["IndicesNonIso","IndicesOther","P4","IDtight","CombinedRelativeIso"])
+        self.stash(["IndicesNonIso","IndicesOther","P4","IDtight","CombinedRelativeIso","IsGlobalMuon"])
         self.ptMin = ptMin
         self.relIsoMax = combinedRelIsoMax
         self.moreName = "tight; pt>%.1f GeV; cmbRelIso<%.2f"%( ptMin, combinedRelIsoMax )
@@ -87,10 +87,12 @@ class Indices(wrappedChain.calculable) :
         p4s    = self.source[self.P4]
         tight  = self.source[self.IDtight]
         relIso = self.source[self.CombinedRelativeIso]
+        isGlobal = self.source[self.IsGlobalMuon]
         for i in range(p4s.size()) :
             if p4s.at(i).pt() < self.ptMin : break
-            if tight[i] :
-                if relIso[i] < self.relIsoMax :
+            if not isGlobal.at(i) : continue
+            if tight.at(i) :
+                if relIso.at(i) < self.relIsoMax :
                     self.value.append(i)
                 else: nonIso.append(i)
             else: other.append(i)
