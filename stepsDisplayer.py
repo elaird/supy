@@ -7,14 +7,14 @@ class displayer(analysisStep) :
     
     def __init__(self, jets = None, met = None, muons = None, electrons = None, photons = None, taus = None,
                  recHits = None, recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False,
-                 doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "", deltaPhiStarCut = None, deltaPhiStarDR = None,
+                 doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "", deltaPhiStarCut = None, deltaPhiStarDR = None, showAlphaTMet = True,
                  printOtherJetAlgoQuantities = False, jetsOtherAlgo = None, metOtherAlgo = None, printExtraText = True,
                  ra1Mode = True, ra1CutBits = True, markusMode = False, tipToTail = False) :
 
         self.moreName = "(see below)"
 
         for item in ["scale","jets","met","muons","electrons","photons","taus","recHits","recHitPtThreshold","doGenParticles",
-                     "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "deltaPhiStarCut", "deltaPhiStarDR",
+                     "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "deltaPhiStarCut", "deltaPhiStarDR", "showAlphaTMet",
                      "printOtherJetAlgoQuantities", "jetsOtherAlgo", "metOtherAlgo", "printExtraText", "ra1Mode", "ra1CutBits", "markusMode","tipToTail"] :
             setattr(self,item,eval(item))
 
@@ -24,7 +24,7 @@ class displayer(analysisStep) :
         self.deltaHtName = "%sDeltaPseudoJetEt%s"%self.jets if etRatherThanPt else "%sDeltaPseudoJetPt%s"%self.jets
         
         self.doReco = not self.doGenParticles
-        self.helper = r.displayHelper()
+        #self.helper = r.displayHelper()
 
         self.markusReName = {
             "clean jets (xcak5JetPat)": "clean jets (AK5 Calo)",
@@ -700,8 +700,8 @@ class displayer(analysisStep) :
         
         self.mhtLlHisto.Reset()
         self.metLlHisto.Reset()
-        self.helper.Fill(self.mhtLlHisto,lls,mhts,nVariedJets)
-        self.helper.Fill(self.metLlHisto,lls,mets,nVariedJets)
+        #self.helper.Fill(self.mhtLlHisto,lls,mhts,nVariedJets)
+        #self.helper.Fill(self.metLlHisto,lls,mets,nVariedJets)
 
         histo=self.metLlHisto
 
@@ -869,7 +869,7 @@ class displayer(analysisStep) :
             
         if self.doReco :
             if self.ra1Mode and not self.markusMode :
-                g3 = self.drawAlphaPlot(eventVars, r.kBlack, showAlphaTMet = True,
+                g3 = self.drawAlphaPlot(eventVars, r.kBlack, showAlphaTMet = self.showAlphaTMet,
                                         corners = {"x1":rhoPhiPadXSize - 0.08,
                                                    "y1":0.0,
                                                    "x2":rhoPhiPadXSize + 0.12,

@@ -26,7 +26,7 @@ def histogramsToDisableForMc() :
     return []
 
 def sourceFiles() :
-    return ["pragmas.h","helpers.C"]
+    return ["pragmas.h"]
 
 def batchScripts(hostName) :
     d = {"lx05.hep.ph.ic.ac.uk":("icSub.sh","icJob.sh"),
