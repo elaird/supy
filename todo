@@ -25,13 +25,11 @@ Other
 * multi-site samples handles
 * protect against samples collisions
 
-* global muons
-* book() --> book
-
 * handle float-based vectors
 * migrate to new ROOT
 * un black-list leaf when using new root
 
+* global muons
 * make prettier oldName in analysis.py
 
 * generic batch mode
