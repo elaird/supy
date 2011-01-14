@@ -32,14 +32,10 @@ Other
 * migrate to new ROOT
 * un black-list leaf when using new root
 
-* check skim report function
-* fix xs adjustment
 * cutSorter endFunc
 * fix triggerCounts
 * make prettier oldName in analysis.py
 * multimode duplicate event checker
-* Test master=0 check
-* master must be a selector
 
 * generic batch mode
 * move ratio marker
