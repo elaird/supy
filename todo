@@ -14,31 +14,6 @@ Document
 
 Other
 --------
-* move ratio marker
-* 2D ratios
-
-* cross section in database
-
-* organize files in cvs
-* named arguments everywhere
-* update example ntuples
-
-* generic batch mode
-
-* check skim report function
-* fix xs adjustment
-* cutSorter endFunc
-* fix triggerCounts
-* make prettier oldName in analysis.py
-* multimode duplicate event checker
-
-* profile
-* logfiles
-
-* non-linear cutflow
-* fix extra tree functionality in skimmer
-* handle subdirectories of input file directories
-
 * jets factors and rewriting jets
 * cut flow study infrastructure
 * dependence tools
@@ -51,14 +26,41 @@ Other
 * protect against samples collisions
 
 * global muons
-* handle float-based vectors
 * book() --> book
 
+* handle float-based vectors
+* migrate to new ROOT
+* un black-list leaf when using new root
+
+* check skim report function
+* fix xs adjustment
+* cutSorter endFunc
+* fix triggerCounts
+* make prettier oldName in analysis.py
+* multimode duplicate event checker
+* Test master=0 check
+* master must be a selector
+
+* generic batch mode
+* move ratio marker
+* 2D ratios
+* logfiles
+
+(ongoing)
+* profile
+
+(ntupler)
 * light/lite ntuple mode
 * stage-out
 * prune gen MET
-
-* Test master=0 check
-* master must be a selector
-* un black-list leaf when using new root
 * check extra spike vars
+
+(low priority)
+* cross section in database
+* organize files in cvs
+* named arguments everywhere
+* update example ntuples
+* non-linear cutflow
+* fix extra tree functionality in skimmer
+* handle subdirectories of input file directories
+
