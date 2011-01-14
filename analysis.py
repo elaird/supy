@@ -183,7 +183,7 @@ class analysis(object) :
 
         selectors = filter(lambda s: hasattr(s,"select"), listOfSteps)
         assert len(selectors) == len(set(map(lambda s:(s.__class__.__name__,s.moreName,s.moreName2), selectors))),"Duplicate selectors are not allowed."
-        names = sum( [s.names for s in listOfSamples], [])
+        names = [s.name for s in listOfSamples]
         assert len(names) == len(set(names)), "Duplicate sample names are not allowed."
 
         computeEntriesForReport = False #temporarily hard-coded
@@ -197,42 +197,42 @@ class analysis(object) :
         ptHatMinDict = {}
         sampleLoopers = []
         for sampleSpec in listOfSamples :
-            for sampleName in sampleSpec.names :
-                sampleTuple = self.sampleDict[sampleName]
-                isMc = sampleTuple.lumi==None
-                fileListCommand = sampleTuple.filesCommand
-                nFilesMax,nEventsMax = parseForEventNumber(sampleSpec,sampleTuple)
+            sampleName = sampleSpec.name
+            sampleTuple = self.sampleDict[sampleName]
+            isMc = sampleTuple.lumi==None
+            fileListCommand = sampleTuple.filesCommand
+            nFilesMax,nEventsMax = parseForEventNumber(sampleSpec,sampleTuple)
                 
-                lumiWarn = False
-                if (not isMc) and (nEventsMax!=-1 or nFilesMax!=-1) :
-                    print "Warning, not running over full data sample: wrong lumi?"
-                    lumiWarn = True
+            lumiWarn = False
+            if (not isMc) and (nEventsMax!=-1 or nFilesMax!=-1) :
+                print "Warning, not running over full data sample: wrong lumi?"
+                lumiWarn = True
 
-                if nFilesMax >= 0 : fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
-                if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
-                adjustedListOfSteps = [steps.Master.master(finalOutputPlotFileName = self.outputPlotFileName(conf,sampleName),
-                                                           lumi = sampleTuple.lumi,
-                                                           lumiWarn = lumiWarn)
-                                       ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
-                
-                sampleLoopers.append(analysisLooper(self.fileDirectory,
-                                                    self.treeName,
-                                                    self._otherTreesToKeepWhenSkimming,
-                                                    self._leavesToBlackList,
-                                                    self.outputDirectory(conf),
-                                                    self.outputPlotFileName(conf,sampleName),
-                                                    sampleTuple.xs,
-                                                    adjustedListOfSteps,
-                                                    listOfCalculables,
-                                                    fileListCommand,
-                                                    computeEntriesForReport,
-                                                    self.printNodesUsed(),
-                                                    sampleName,
-                                                    nEventsMax,
-                                                    sampleSpec.color,
-                                                    sampleSpec.markerStyle
-                                                    )
-                                     )
+            if nFilesMax >= 0 : fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
+            if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
+            adjustedListOfSteps = [steps.Master.master(finalOutputPlotFileName = self.outputPlotFileName(conf,sampleName),
+                                                       lumi = sampleTuple.lumi,
+                                                       lumiWarn = lumiWarn)
+                                   ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
+            
+            sampleLoopers.append(analysisLooper(self.fileDirectory,
+                                                self.treeName,
+                                                self._otherTreesToKeepWhenSkimming,
+                                                self._leavesToBlackList,
+                                                self.outputDirectory(conf),
+                                                self.outputPlotFileName(conf,sampleName),
+                                                sampleTuple.xs,
+                                                adjustedListOfSteps,
+                                                listOfCalculables,
+                                                fileListCommand,
+                                                computeEntriesForReport,
+                                                self.printNodesUsed(),
+                                                sampleName,
+                                                nEventsMax,
+                                                sampleSpec.color,
+                                                sampleSpec.markerStyle
+                                                )
+                                 )
             
         for thing in self.sampleDict.overlappingSamples :
             minPtHatsAndNames = []
