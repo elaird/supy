@@ -60,7 +60,7 @@ class Counts(analysisStep) :
         self.counts = collections.defaultdict(int)
         
     def setup(self, chain, fileDir, name, outputDir) :
-        self.outputFileName = "%s/%s.txt"%(outputDir, name)
+        self.outputFileName = "%s/%s_triggerCounts.txt"%(outputDir, name)
         os.system("mkdir -p "+outputDir)
         
     def uponAcceptance(self, eventVars) :
