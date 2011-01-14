@@ -189,18 +189,17 @@ class hadronicLook(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify
-        data = [
-            specify(names = "Nov4_MJ_skim"  ),
-            specify(names = "Nov4_J_skim"   ),
-            specify(names = "Nov4_J_skim2"  ),
-            specify(names = "Nov4_JM_skim"  ),
-            specify(names = "Nov4_JMT_skim" ),
-            specify(names = "Nov4_JMT_skim2"),
-            
+        data = specify( names = ["Nov4_MJ_skim"  ,
+                                 "Nov4_J_skim"   ,
+                                 "Nov4_J_skim2"  ,
+                                 "Nov4_JM_skim"  ,
+                                 "Nov4_JMT_skim" ,
+                                 "Nov4_JMT_skim2"] )
+        
           ##specify(name = "2010_data_calo_skim",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),            
           ##specify(name = "2010_data_pf_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
           ##specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-            ]                                                       
+
         qcd_py6 = [
             #specify(names = "qcd_py6_pt_0to5"      ),
             #specify(names = "qcd_py6_pt_5to15"     ),
@@ -287,27 +286,27 @@ class hadronicLook(analysis.analysis) :
         #self.skimString = "_pfSkim"
 
         self.skimString = ""
-        if params["mcSoup"]=="py6" :
-            outList+=qcd_py6
-            outList+=g_jets_py6
-            
-        if params["mcSoup"]=="py8" :
-            outList+=qcd_py8
-            outList+=g_jets_py6#no py8 available
-            
-        if params["mcSoup"]=="mg":
-            outList+=qcd_mg
-            outList+=g_jets_mg
-        
+        #if params["mcSoup"]=="py6" :
+        #    outList+=qcd_py6
+        #    outList+=g_jets_py6
+        #    
+        #if params["mcSoup"]=="py8" :
+        #    outList+=qcd_py8
+        #    outList+=g_jets_py6#no py8 available
+        #    
+        #if params["mcSoup"]=="mg":
+        #    outList+=qcd_mg
+        #    outList+=g_jets_mg
+        #
         outList+=data
-        outList+=ttbar_mg
-        outList+=ewk
-        outList+=susy
+        #outList+=ttbar_mg
+        #outList+=ewk
+        #outList+=susy
         
         ##uncomment for short tests
-        #for i in range(len(outList)):
-        #    o = outList[i]
-        #    outList[i] = specify(names = o.names, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
+        for i in range(len(outList)):
+            o = outList[i]
+            outList[i] = specify(names = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)[0]
 
         return outList
 
