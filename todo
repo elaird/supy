@@ -25,6 +25,7 @@ Other
 
 * generic batch mode
 
+* check skim report function
 * fix xs adjustment
 * cutSorter endFunc
 * fix triggerCounts
@@ -61,4 +62,3 @@ Other
 * master must be a selector
 * un black-list leaf when using new root
 * check extra spike vars
-* non-blank page when there are no imperfect calculables
