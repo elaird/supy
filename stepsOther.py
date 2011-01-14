@@ -515,8 +515,7 @@ class duplicateEventCheck(analysisStep) :
         anyDups = False
         events = mergedEventDicts([p["events"] for p in productList])
         for runLs in sorted(events.keys()) :
-            eventList = events[runLs]
-            d = duplicates(eventList)
+            d = duplicates(events[runLs])
             if d :
                 print "DUPLICATE EVENTS FOUND in run %d ls %d: %s"%(runLs[0], runLs[1], d)
                 anyDups = True
