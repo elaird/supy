@@ -30,9 +30,10 @@ Other
 * un black-list leaf when using new root
 
 * global muons
-* make prettier oldName in analysis.py
 
 * analysis restructure
+* make prettier oldName in analysis.py
+* consider arguments to analysisLooper
 * generic batch mode
 * move ratio marker
 * 2D ratios
