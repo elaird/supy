@@ -49,8 +49,6 @@ class photonSelectionHistogrammer(analysisStep) :
         self.moreName = "%s; match deltaR<%.1f; %s" % (nametag, matchDeltaRMax, "prompt" if prompt else "")
 
     def uponAcceptance(self,ev) :
-        book = self.book(ev)
-
         p4Reco = ev["photonP4Pat"]
         p4Gen = ev["genP4"]
                 
@@ -66,11 +64,11 @@ class photonSelectionHistogrammer(analysisStep) :
                     iRiGMatches.append( (ireco,igen) )
         # resolve multi matches
 
-        for gen in map( p4Gen.at, iGensZ) : book.fill( (abs(gen.eta()),gen.pt()), "%sGenZs"%self.nametag, self.bins2, self.low2, self.up2 )
-        for gen in map( p4Gen.at, iGens) : book.fill( (abs(gen.eta()),gen.pt()), "%sGenPhotons"%self.nametag, self.bins2, self.low2, self.up2 )
-        for reco in map( p4Reco.at, iRecos) : book.fill( (abs(reco.eta()),reco.pt()), "%sRecoPhotons"%self.nametag, self.bins2, self.low2, self.up2 )
+        for gen in map( p4Gen.at, iGensZ) : self.book.fill( (abs(gen.eta()),gen.pt()), "%sGenZs"%self.nametag, self.bins2, self.low2, self.up2 )
+        for gen in map( p4Gen.at, iGens) : self.book.fill( (abs(gen.eta()),gen.pt()), "%sGenPhotons"%self.nametag, self.bins2, self.low2, self.up2 )
+        for reco in map( p4Reco.at, iRecos) : self.book.fill( (abs(reco.eta()),reco.pt()), "%sRecoPhotons"%self.nametag, self.bins2, self.low2, self.up2 )
         for reco,gen in [ (p4Reco.at(rg[0]), p4Gen.at(rg[1])) for rg in iRiGMatches] :
-            book.fill( (abs(gen.eta()),gen.pt(),reco.pt()) , "%sMatchedPhotons"%self.nametag, self.bins3, self.low3, self.up3 )
+            self.book.fill( (abs(gen.eta()),gen.pt(),reco.pt()) , "%sMatchedPhotons"%self.nametag, self.bins3, self.low3, self.up3 )
 #####################################
 class singlePhotonHistogrammer(analysisStep) :
 
@@ -92,7 +90,6 @@ class singlePhotonHistogrammer(analysisStep) :
         self.minDeltaRToJet = "%s%sMinDeltaRToJet%s%s"% (self.cs[0], self.cs[1], self.jetCs[0], self.jetCs[1])
         
     def uponAcceptance (self,eventVars) :
-        book = self.book(eventVars)
         p4s = eventVars[self.p4sName]
         seedTimes = eventVars[self.seedTimes]
         cleanPhotonIndices = eventVars[self.photonIndicesName]
@@ -111,8 +108,8 @@ class singlePhotonHistogrammer(analysisStep) :
         hollowConeTrackIsolations = eventVars["%sTrkSumPtHollowConeDR04%s"%self.cs]
         sigmaIetaIetas            = eventVars["%sSigmaIetaIeta%s"%self.cs]
 
-        #book.fill( len(cleanPhotonIndices), "photonMultiplicity", 10, -0.5, 9.5,
-        #           title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%self.cs)
+        #self.book.fill( len(cleanPhotonIndices), "photonMultiplicity", 10, -0.5, 9.5,
+        #                title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%self.cs)
         
         for i,iPhoton in enumerate(cleanPhotonIndices) :
             photon = p4s.at(iPhoton)
@@ -121,35 +118,35 @@ class singlePhotonHistogrammer(analysisStep) :
             minDeltaRToJet = eventVars[self.minDeltaRToJet]
             
             photonLabel = str(i+1) if i <= self.maxIndex else "_ge%d"%(self.maxIndex+2)
-            book.fill(seedTimes[iPhoton], "%s%s%sSeedTime" %(self.cs+(photonLabel,)), 100,  -20.0, 20.0, title=";photon%s seed crystal time (ns);events / bin"%photonLabel)
-            book.fill(pt,                 "%s%s%sPt" %(self.cs+(photonLabel,)), 50,  0.0, 500.0, title=";photon%s p_{T} (GeV);events / bin"%photonLabel)
-            book.fill(photon.eta(),       "%s%s%seta"%(self.cs+(photonLabel,)), 20, -3.0,   3.0, title=";photon%s #eta;events / bin"%photonLabel)
-            book.fill(photon.phi(),       "%s%s%sphi"%(self.cs+(photonLabel,)), 20, -r.TMath.Pi(), r.TMath.Pi(), title=";photon%s #phi;events / bin"%photonLabel)
-            book.fill((photon.eta(), photon.phi()),  "%s%s%sPhiVsEta"%(self.cs+(photonLabel,)),
+            self.book.fill(seedTimes[iPhoton], "%s%s%sSeedTime" %(self.cs+(photonLabel,)), 100,  -20.0, 20.0, title=";photon%s seed crystal time (ns);events / bin"%photonLabel)
+            self.book.fill(pt,                 "%s%s%sPt" %(self.cs+(photonLabel,)), 50,  0.0, 500.0, title=";photon%s p_{T} (GeV);events / bin"%photonLabel)
+            self.book.fill(photon.eta(),       "%s%s%seta"%(self.cs+(photonLabel,)), 20, -3.0,   3.0, title=";photon%s #eta;events / bin"%photonLabel)
+            self.book.fill(photon.phi(),       "%s%s%sphi"%(self.cs+(photonLabel,)), 20, -r.TMath.Pi(), r.TMath.Pi(), title=";photon%s #phi;events / bin"%photonLabel)
+            self.book.fill((photon.eta(), photon.phi()),  "%s%s%sPhiVsEta"%(self.cs+(photonLabel,)),
                       (10, 10), (-3.0, -r.TMath.Pi()), (3.0, r.TMath.Pi()), title=";photon%s #eta;photon%s #phi;events / bin"%(photonLabel,photonLabel))
 
             if iPhoton in minDeltaRToJet :
-                book.fill(minDeltaRToJet[iPhoton],  "%s%s%sMinDRToJet"%(self.cs+(photonLabel,)), 60, 0.0, 6.0, title=";photon%s #DeltaR to closest jet;events / bin"%photonLabel)
+                self.book.fill(minDeltaRToJet[iPhoton],  "%s%s%sMinDRToJet"%(self.cs+(photonLabel,)), 60, 0.0, 6.0, title=";photon%s #DeltaR to closest jet;events / bin"%photonLabel)
 
             if mht==None : continue
-            book.fill((pt,mht), "%s%s%smhtVsPhotonPt"%(self.cs+(photonLabel,)),
-                      (50, 50), (0.0, 0.0), (500.0, 500.0),
-                      title=";photon%s p_{T} (GeV);MHT %s%s (GeV);events / bin"%(photonLabel,self.jetCs[0],self.jetCs[1])
-                      )
+            self.book.fill((pt,mht), "%s%s%smhtVsPhotonPt"%(self.cs+(photonLabel,)),
+                           (50, 50), (0.0, 0.0), (500.0, 500.0),
+                           title=";photon%s p_{T} (GeV);MHT %s%s (GeV);events / bin"%(photonLabel,self.jetCs[0],self.jetCs[1])
+                           )
 
-            book.fill(mht/pt, "%s%s%smhtOverPhotonPt"%(self.cs+(photonLabel,)),
-                      50, 0.0, 2.0, title=";MHT %s%s / photon%s p_{T};events / bin"%(self.jetCs[0],self.jetCs[1],photonLabel)
-                      )
+            self.book.fill(mht/pt, "%s%s%smhtOverPhotonPt"%(self.cs+(photonLabel,)),
+                           50, 0.0, 2.0, title=";MHT %s%s / photon%s p_{T};events / bin"%(self.jetCs[0],self.jetCs[1],photonLabel)
+                           )
+            
+            #self.book.fill(pt-mht, "%s%s%sphotonPtMinusMht"%(self.cs+(photonLabel,)),
+            #               100, -200.0, 200.0,
+            #               title=";photon%s p_{T} - %s%sMHT (GeV);events / bin"%(photonLabel,self.jetCs[0],self.jetCs[1])
+            #               )
 
-            #book.fill(pt-mht, "%s%s%sphotonPtMinusMht"%(self.cs+(photonLabel,)),
-            #          100, -200.0, 200.0,
-            #          title=";photon%s p_{T} - %s%sMHT (GeV);events / bin"%(photonLabel,self.jetCs[0],self.jetCs[1])
-            #          )
-
-            book.fill((pt-mht)/math.sqrt(ht+mht), "%s%s%sphotonPtMinusMhtOverMeff"%(self.cs+(photonLabel,)),
-                      100, -20.0, 20.0,
-                      title=";( photon%s p_{T} - MHT ) / sqrt( H_{T} + MHT )    [ %s%s ] ;events / bin"%(photonLabel,self.jetCs[0],self.jetCs[1])
-                      )
+            self.book.fill((pt-mht)/math.sqrt(ht+mht), "%s%s%sphotonPtMinusMhtOverMeff"%(self.cs+(photonLabel,)),
+                           100, -20.0, 20.0,
+                           title=";( photon%s p_{T} - MHT ) / sqrt( H_{T} + MHT )    [ %s%s ] ;events / bin"%(photonLabel,self.jetCs[0],self.jetCs[1])
+                           )
 
             #ID variables
             jEI = jurassicEcalIsolations.at(iPhoton)
@@ -161,48 +158,48 @@ class singlePhotonHistogrammer(analysisStep) :
             cmbI = jEI + tbHI + hcTI
             
             #ecalIso
-            book.fill(jEI, "%s%s%sjurassicEcalIsolation"%(self.cs+(photonLabel,)),
-                      50, 0.0, 10.0, title=";ECAL Isolation (GeV);events / bin")
-            #book.fill((pt,jEI), "%s%s%sjurassicEcalIsolationVsPt"%(self.cs+(photonLabel,)),
+            self.book.fill(jEI, "%s%s%sjurassicEcalIsolation"%(self.cs+(photonLabel,)),
+                           50, 0.0, 10.0, title=";ECAL Isolation (GeV);events / bin")
+            #self.book.fill((pt,jEI), "%s%s%sjurassicEcalIsolationVsPt"%(self.cs+(photonLabel,)),
             #          (50, 50), (0.0, 0.0), (500.0, 10.0),
             #          title=";photon%s p_{T} (GeV);Jurassic ECAL Isolation;events / bin"%photonLabel)
             
             #hcalIso
-            book.fill(tbHI, "%s%s%stowerBasedHcalIsolation"%(self.cs+(photonLabel,)),
-                      50, 0.0, 10.0, title=";Tower-based HCAL Isolation (GeV);events / bin")
-            #book.fill((pt,tbHI), "%s%s%stowerBasedHcalIsolationVsPt"%(self.cs+(photonLabel,)),
+            self.book.fill(tbHI, "%s%s%stowerBasedHcalIsolation"%(self.cs+(photonLabel,)),
+                           50, 0.0, 10.0, title=";Tower-based HCAL Isolation (GeV);events / bin")
+            #self.book.fill((pt,tbHI), "%s%s%stowerBasedHcalIsolationVsPt"%(self.cs+(photonLabel,)),
             #          (50, 50), (0.0, 0.0), (500.0, 10.0),
             #          title=";photon%s p_{T} (GeV);Tower-based HCAL Isolation;events / bin"%photonLabel)
 
             #hOverE
-            book.fill(hOE, "%s%s%shadronicOverEm"%(self.cs+(photonLabel,)),
-                      50, 0.0, 0.5, title=";Hadronic / EM;events / bin")
-            #book.fill((pt,hOE), "%s%s%shadronicOverEmVsPt"%(self.cs+(photonLabel,)),
+            self.book.fill(hOE, "%s%s%shadronicOverEm"%(self.cs+(photonLabel,)),
+                           50, 0.0, 0.5, title=";Hadronic / EM;events / bin")
+            #self.book.fill((pt,hOE), "%s%s%shadronicOverEmVsPt"%(self.cs+(photonLabel,)),
             #          (50, 50), (0.0, 0.0), (500.0, 1.0),
             #          title=";photon%s p_{T} (GeV);Hadronic / EM;events / bin"%photonLabel)
 
             #trkIso
-            book.fill(hcTI, "%s%s%shollowConeTrackIsolation"%(self.cs+(photonLabel,)),
-                      50, 0.0, 10.0, title=";hollow cone track isolation (GeV);events / bin")
-            #book.fill((pt,hcTI), "%s%s%shollowConeTrackIsolationVsPt"%(self.cs+(photonLabel,)),
+            self.book.fill(hcTI, "%s%s%shollowConeTrackIsolation"%(self.cs+(photonLabel,)),
+                           50, 0.0, 10.0, title=";hollow cone track isolation (GeV);events / bin")
+            #self.book.fill((pt,hcTI), "%s%s%shollowConeTrackIsolationVsPt"%(self.cs+(photonLabel,)),
             #          (50, 50), (0.0, 0.0), (500.0, 10.0),
             #          title=";photon%s p_{T} (GeV);hollow cone track isolation;events / bin"%photonLabel)
 
             #combIso
-            book.fill(cmbI, "%s%s%scombinedIsolation"%(self.cs+(photonLabel,)),
-                      40, -10.0, 30.0, title=";combined isolation (GeV);events / bin")
+            self.book.fill(cmbI, "%s%s%scombinedIsolation"%(self.cs+(photonLabel,)),
+                           40, -10.0, 30.0, title=";combined isolation (GeV);events / bin")
 
             #sHH
             if abs(photon.eta())<self.etaBE :
-                book.fill(sHH, "%s%s%ssigmaIetaIetaBarrel"%(self.cs+(photonLabel,)),
-                          50, 0.0, 0.05, title=";sigma i#eta i#eta [photon in barrel];events / bin")
-                #book.fill((pt,sHH), "%s%s%ssigmaIetaIetaBarrelVsPt"%(self.cs+(photonLabel,)),
+                self.book.fill(sHH, "%s%s%ssigmaIetaIetaBarrel"%(self.cs+(photonLabel,)),
+                               50, 0.0, 0.05, title=";sigma i#eta i#eta [photon in barrel];events / bin")
+                #self.book.fill((pt,sHH), "%s%s%ssigmaIetaIetaBarrelVsPt"%(self.cs+(photonLabel,)),
                 #          (50, 50), (0.0, 0.0), (500.0, 0.1),
                 #          title=";photon%s p_{T} (GeV) [photon in barrel];sigma i#eta i#eta;events / bin"%photonLabel)
             else :
-                book.fill(sHH, "%s%s%ssigmaIetaIetaEndcap"%(self.cs+(photonLabel,)),
-                          50, 0.0, 0.05, title=";sigma i#eta i#eta [photon in endcap];events / bin")
-                #book.fill((pt,sHH), "%s%s%ssigmaIetaIetaEndcapVsPt"%(self.cs+(photonLabel,)),
+                self.book.fill(sHH, "%s%s%ssigmaIetaIetaEndcap"%(self.cs+(photonLabel,)),
+                               50, 0.0, 0.05, title=";sigma i#eta i#eta [photon in endcap];events / bin")
+                #self.book.fill((pt,sHH), "%s%s%ssigmaIetaIetaEndcapVsPt"%(self.cs+(photonLabel,)),
                 #          (50, 50), (0.0, 0.0), (500.0, 0.1),
                 #          title=";photon%s p_{T} (GeV) [photon in endcap];sigma i#eta i#eta;events / bin"%photonLabel)
 #####################################

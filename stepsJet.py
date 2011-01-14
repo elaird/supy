@@ -167,16 +167,15 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
         ht =  eventVars[self.htName]
         mht = sumP4.pt()
         
-        book = self.book(eventVars)
-        book.fill(           ht,"%sHt%s"       %self.cs, 50, 0.0, 1500.0, title = ";H_{T} (GeV) from %s%s %s_{T}'s;events / bin"%(self.cs[0],self.cs[1],self.letter))
-        book.fill(          mht,"%sMht%s"      %self.cs, 50, 0.0,  700.0, title = ";#slash{H}_{T} (GeV) from %s%s;events / bin"%self.cs)
-        book.fill(       mht+ht,"%sHtPlusMht%s"%self.cs, 50, 0.0, 1500.0, title = ";H_{T} + #slash{H}_{T} (GeV) from %s%s %s_{T}'s;events / bin"%(self.cs[0],self.cs[1],self.letter))
-        book.fill( sumP4.mass(),"%sm%s"        %self.cs, 50, 0.0,  7.0e3, title = ";mass (GeV) of system of clean jets;events / bin")
-        book.fill( (ht,mht), "%smht_vs_ht%s"%self.cs, (50,50), (0.0,0.0), (1500.0,1500.0),
+        self.book.fill(           ht,"%sHt%s"       %self.cs, 50, 0.0, 1500.0, title = ";H_{T} (GeV) from %s%s %s_{T}'s;events / bin"%(self.cs[0],self.cs[1],self.letter))
+        self.book.fill(          mht,"%sMht%s"      %self.cs, 50, 0.0,  700.0, title = ";#slash{H}_{T} (GeV) from %s%s;events / bin"%self.cs)
+        self.book.fill(       mht+ht,"%sHtPlusMht%s"%self.cs, 50, 0.0, 1500.0, title = ";H_{T} + #slash{H}_{T} (GeV) from %s%s %s_{T}'s;events / bin"%(self.cs[0],self.cs[1],self.letter))
+        self.book.fill( sumP4.mass(),"%sm%s"        %self.cs, 50, 0.0,  7.0e3, title = ";mass (GeV) of system of clean jets;events / bin")
+        self.book.fill( (ht,mht), "%smht_vs_ht%s"%self.cs, (50,50), (0.0,0.0), (1500.0,1500.0),
                    title = "; H_{T} (GeV) from clean jets; #slash{H}_{T} (GeV) from clean jet %s_{T}'s;events / bin"%self.letter)
 
         value = mht / ht  if ht>0.0 else -1.0
-        book.fill(value, "%smHtOverHt%s"%self.cs, 50, 0.0, 1.1, title = "; MHT / H_{T} (GeV) from clean jet %s_{T}'s;events / bin"%self.letter )
+        self.book.fill(value, "%smHtOverHt%s"%self.cs, 50, 0.0, 1.1, title = "; MHT / H_{T} (GeV) from clean jet %s_{T}'s;events / bin"%self.letter )
 #####################################
 class singleJetHistogrammer(analysisStep) :
 
@@ -189,14 +188,13 @@ class singleJetHistogrammer(analysisStep) :
         self.p4sName = "%sCorrectedP4%s" % self.cs
 
     def uponAcceptance (self,eventVars) :
-        book = self.book(eventVars)
         p4s = eventVars[self.p4sName]
         cleanJetIndices = eventVars[self.indicesName]
         phi2mom = eventVars["%sPhi2Moment%s"%self.csbase]
         eta2mom = eventVars["%sEta2Moment%s"%self.csbase]
 
-        book.fill( len(cleanJetIndices), "jetMultiplicity", 10, -0.5, 9.5,
-                   title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%self.cs)
+        self.book.fill( len(cleanJetIndices), "jetMultiplicity", 10, -0.5, 9.5,
+                        title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%self.cs)
         
         for i,iJet in enumerate(cleanJetIndices) :
             jet = p4s.at(iJet)
@@ -207,14 +205,14 @@ class singleJetHistogrammer(analysisStep) :
             mom2Max = 0.1
             jetLabel = str(i+1) if i <= self.maxIndex else "_ge%d"%(self.maxIndex+2)
 
-            book.fill(eta2,  "%s%s%sEta2mom" %(self.cs+(jetLabel,)), 50,  0.0, mom2Max, title=";jet%s #sigma_{#eta}^{2};events / bin"%jetLabel)
-            book.fill(phi2,  "%s%s%sPhi2mom" %(self.cs+(jetLabel,)), 50,  0.0, mom2Max, title=";jet%s #sigma_{#phi}^{2};events / bin"%jetLabel)
-            book.fill(pt,  "%s%s%sPt" %(self.cs+(jetLabel,)), 50,  0.0, 500.0, title=";jet%s p_{T} (GeV);events / bin"%jetLabel)
-            book.fill(eta, "%s%s%seta"%(self.cs+(jetLabel,)), 50, -5.0,   5.0, title=";jet%s #eta;events / bin"%jetLabel)
+            self.book.fill(eta2,  "%s%s%sEta2mom" %(self.cs+(jetLabel,)), 50,  0.0, mom2Max, title=";jet%s #sigma_{#eta}^{2};events / bin"%jetLabel)
+            self.book.fill(phi2,  "%s%s%sPhi2mom" %(self.cs+(jetLabel,)), 50,  0.0, mom2Max, title=";jet%s #sigma_{#phi}^{2};events / bin"%jetLabel)
+            self.book.fill(pt,  "%s%s%sPt" %(self.cs+(jetLabel,)), 50,  0.0, 500.0, title=";jet%s p_{T} (GeV);events / bin"%jetLabel)
+            self.book.fill(eta, "%s%s%seta"%(self.cs+(jetLabel,)), 50, -5.0,   5.0, title=";jet%s #eta;events / bin"%jetLabel)
             if i>self.maxIndex: continue
             for j,jJet in list(enumerate(cleanJetIndices))[i+1:self.maxIndex+1] :
-                book.fill(abs(r.Math.VectorUtil.DeltaPhi(jet,p4s.at(jJet))), "%s%sdphi%d%d"%(self.cs+(i+1,j+1)), 50,0, r.TMath.Pi(),
-                          title = ";#Delta#phi_{jet%d,jet%d};events / bin"%(i+1,j+1))
+                self.book.fill(abs(r.Math.VectorUtil.DeltaPhi(jet,p4s.at(jJet))), "%s%sdphi%d%d"%(self.cs+(i+1,j+1)), 50,0, r.TMath.Pi(),
+                               title = ";#Delta#phi_{jet%d,jet%d};events / bin"%(i+1,j+1))
 #####################################
 class alphaHistogrammer(analysisStep) :
 
@@ -228,8 +226,6 @@ class alphaHistogrammer(analysisStep) :
         self.moreName = "%s%s" % cs
         
     def uponAcceptance (self,eventVars) :
-        book = self.book(eventVars)
-
         mht = eventVars[self.SumP4].pt()
         ht  = eventVars[self.Sum]
         deltaHt = eventVars[self.DeltaPseudoJet]
@@ -237,39 +233,39 @@ class alphaHistogrammer(analysisStep) :
         deltaPhiStar = eventVars[self.DeltaPhiStar]["DeltaPhiStar"]
 
         #if diJetAlpha :
-        #    book.fill( eventVars["%sDiJetAlpha%s"%self.cs], "%sdijet_alpha%s"%self.cs, 80,0.0,2.0,
+        #    self.book.fill( eventVars["%sDiJetAlpha%s"%self.cs], "%sdijet_alpha%s"%self.cs, 80,0.0,2.0,
         #               title = ";di-jet #alpha (using p_{T});events / bin")
 
         if not alphaT :
             return
 
-        book.fill( alphaT, "%sAlphaT%s"%self.cs, 80,0.0,2.0,
-                   title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
+        self.book.fill( alphaT, "%sAlphaT%s"%self.cs, 80,0.0,2.0,
+                        title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
 
-        book.fill( alphaT, "%sAlphaTRough%s"%self.cs, 40,0.0,2.0,
-                   title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
+        self.book.fill( alphaT, "%sAlphaTRough%s"%self.cs, 40,0.0,2.0,
+                        title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
 
-        book.fill( alphaT, "%sAlphaTZoom%s"%self.cs, 120, 0.48, 0.60,
-                   title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
+        self.book.fill( alphaT, "%sAlphaTZoom%s"%self.cs, 120, 0.48, 0.60,
+                        title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
 
-        book.fill( alphaT, "%sAlphaTFewBins%s"%self.cs, 4, 0.0, 0.55*4,
-                   title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
+        self.book.fill( alphaT, "%sAlphaTFewBins%s"%self.cs, 4, 0.0, 0.55*4,
+                        title = ";#alpha_{T} (using %s_{T});events / bin"%self.letter)
 
-        book.fill( deltaHt, "%sDeltaHt%s"%self.cs, 50,0.0,500,
-                   title = ";#Delta H_{T} (GeV);events / bin")
+        self.book.fill( deltaHt, "%sDeltaHt%s"%self.cs, 50,0.0,500,
+                        title = ";#Delta H_{T} (GeV);events / bin")
 
-        book.fill( deltaHt/ht, "%sDeltaHtOverHt%s"%self.cs, 50, 0.0, 1.1,
-                   title = ";#Delta H_{T}/H_{T};events / bin")
+        self.book.fill( deltaHt/ht, "%sDeltaHtOverHt%s"%self.cs, 50, 0.0, 1.1,
+                        title = ";#Delta H_{T}/H_{T};events / bin")
 
-        book.fill( (mht/ht,deltaHt/ht), "%s_deltaHtOverHt_vs_mHtOverHt_%s"%self.cs, (30,30), (0.0,0.0), (1.0,0.7),
-                   title = ";#slash(H_{T}) / H_{T};#Delta H_{T} of two pseudo-jets / H_{T};events / bin")
+        self.book.fill( (mht/ht,deltaHt/ht), "%s_deltaHtOverHt_vs_mHtOverHt_%s"%self.cs, (30,30), (0.0,0.0), (1.0,0.7),
+                        title = ";#slash(H_{T}) / H_{T};#Delta H_{T} of two pseudo-jets / H_{T};events / bin")
 
-        book.fill( (alphaT,ht), "%s_Ht_vs_alphaT_%s"%self.cs, (300,200), (0.0,0.0), (3.0,1000),
-                   title = ";#alpha_{T} (using %s_{T});H_{T};events / bin"%self.letter)
+        self.book.fill( (alphaT,ht), "%s_Ht_vs_alphaT_%s"%self.cs, (300,200), (0.0,0.0), (3.0,1000),
+                        title = ";#alpha_{T} (using %s_{T});H_{T};events / bin"%self.letter)
         
-        book.fill( (alphaT,deltaPhiStar),"%s_deltaPhiStar_vs_alphaT_%s"%self.cs,
-                   (500,50), (0.0,0.0),(1.0,r.TMath.Pi()),
-                   title=";#alpha_{T} (using %s_{T});#Delta#phi*;events / bin"%self.letter)
+        self.book.fill( (alphaT,deltaPhiStar),"%s_deltaPhiStar_vs_alphaT_%s"%self.cs,
+                        (500,50), (0.0,0.0),(1.0,r.TMath.Pi()),
+                        title=";#alpha_{T} (using %s_{T});#Delta#phi*;events / bin"%self.letter)
 #####################################
 class alphaMetHistogrammer(analysisStep) :
 
@@ -284,8 +280,6 @@ class alphaMetHistogrammer(analysisStep) :
         self.moreName = "%s%s"%self.cs
         
     def uponAcceptance (self,eventVars) :
-        book = self.book(eventVars)
-
         if self.metName!=None :
             met = eventVars[self.metName].pt()
         ht  = eventVars[self.Sum]
@@ -296,27 +290,27 @@ class alphaMetHistogrammer(analysisStep) :
         
         if not alphaT : return
 
-        book.fill( alphaTMet, "%sAlphaTMet%s"%self.cs, 80,0.0,2.0,
-                   title = ";#alpha_{T} (using jet %s_{T}#semicolon %s);events / bin"%(self.letter,self.metName))
+        self.book.fill( alphaTMet, "%sAlphaTMet%s"%self.cs, 80,0.0,2.0,
+                        title = ";#alpha_{T} (using jet %s_{T}#semicolon %s);events / bin"%(self.letter,self.metName))
         
-        book.fill( alphaTMet, "%sAlphaTMetZooom%s"%self.cs, 120, 0.48, 0.60,
-                   title = ";#alpha_{T} (using jet %s_{T}#semicolon %s);events / bin"%(self.letter,self.metName))
+        self.book.fill( alphaTMet, "%sAlphaTMetZooom%s"%self.cs, 120, 0.48, 0.60,
+                        title = ";#alpha_{T} (using jet %s_{T}#semicolon %s);events / bin"%(self.letter,self.metName))
 
-        book.fill( (met/ht,deltaHt/ht), "%s_deltaHtOverHt_vs_metOverHt_%s"%self.cs, (30,30), (0.0,0.0), (1.0,0.7),
-                   title = ";#slash(E_{T}) / H_{T};#Delta H_{T} of two pseudo-jets / H_{T};events / bin")
+        self.book.fill( (met/ht,deltaHt/ht), "%s_deltaHtOverHt_vs_metOverHt_%s"%self.cs, (30,30), (0.0,0.0), (1.0,0.7),
+                        title = ";#slash(E_{T}) / H_{T};#Delta H_{T} of two pseudo-jets / H_{T};events / bin")
 
-        book.fill( (alphaTMet,ht), "%s_Ht_vs_alphaTMet_%s"%self.cs, (300,200), (0.0,0.0), (3.0,1000),
-                   title = ";#alpha_{T} (using %s_{T}#semicolon %s);H_{T};events / bin"%(self.letter,self.metName))
+        self.book.fill( (alphaTMet,ht), "%s_Ht_vs_alphaTMet_%s"%self.cs, (300,200), (0.0,0.0), (3.0,1000),
+                        title = ";#alpha_{T} (using %s_{T}#semicolon %s);H_{T};events / bin"%(self.letter,self.metName))
         
-        book.fill( (alphaTMet,deltaPhiStar),"%s_deltaPhiStar_vs_alphaTMet_%s"%self.cs,
-                   (500,50), (0.0,0.0),(1.0,r.TMath.Pi()),
-                   title=";#alpha_{T} (using %s_{T}#semicolon %s);#Delta#phi*;events / bin"%(self.letter,self.metName))
+        self.book.fill( (alphaTMet,deltaPhiStar),"%s_deltaPhiStar_vs_alphaTMet_%s"%self.cs,
+                        (500,50), (0.0,0.0),(1.0,r.TMath.Pi()),
+                        title=";#alpha_{T} (using %s_{T}#semicolon %s);#Delta#phi*;events / bin"%(self.letter,self.metName))
 
-        book.fill( (alphaT,alphaTMet), "%s_alphaTMet_vs_alphaT_%s"%self.cs, (80,80), (0.0,0.0), (2.0,2.0),
-                   title = ";#alpha_{T};#alpha_{T} (from MET);events / bin")
+        self.book.fill( (alphaT,alphaTMet), "%s_alphaTMet_vs_alphaT_%s"%self.cs, (80,80), (0.0,0.0), (2.0,2.0),
+                        title = ";#alpha_{T};#alpha_{T} (from MET);events / bin")
         
-        book.fill( (alphaT,alphaTMet), "%s_alphaTMet_zoomvs_alphaT_%s"%self.cs, (60,60), (0.48,0.48), (0.60,0.60),
-                   title = ";#alpha_{T};#alpha_{T} (from MET);events / bin")
+        self.book.fill( (alphaT,alphaTMet), "%s_alphaTMet_zoomvs_alphaT_%s"%self.cs, (60,60), (0.48,0.48), (0.60,0.60),
+                        title = ";#alpha_{T};#alpha_{T} (from MET);events / bin")
 ######################################
 class leadingCorrJetFilter(analysisStep) :
 
@@ -338,8 +332,8 @@ class leadingCorrJetFilter(analysisStep) :
         if maxCorrPt<self.ptMin or abs(eta)>self.etaMax :
             return False
 
-        self.book(eventVars).fill(maxCorrPt,"%sMaxCorrJetPt%s"%self.cs, 50, 0.0,350.0, title = ";leading c. %s%s's c. p_{T} (GeV);events / bin"%self.cs)
-        self.book(eventVars).fill(eta      ,"%sMaxCorrJetEta%s"%self.cs, 50, -5.0, 5.0, title = ";leading c. %s%s's #eta;events / bin"%self.cs)
+        self.book.fill(maxCorrPt,"%sMaxCorrJetPt%s"%self.cs, 50, 0.0,350.0, title = ";leading c. %s%s's c. p_{T} (GeV);events / bin"%self.cs)
+        self.book.fill(eta      ,"%sMaxCorrJetEta%s"%self.cs, 50, -5.0, 5.0, title = ";leading c. %s%s's #eta;events / bin"%self.cs)
         return True
 ######################################
 class leadingUnCorrJetFilter(analysisStep) :
@@ -362,12 +356,12 @@ class leadingUnCorrJetFilter(analysisStep) :
             return False
 
         if self.extraHistos :
-            self.book(eventVars).fill(maxUnCorrPt,"%sMaxUnCorrJetPt%s"%self.cs, 50, 0.0,250.0, title = ";leading u.c. %s%s's u.c. p_{T} (GeV);events / bin"%self.cs)
+            self.book.fill(maxUnCorrPt,"%sMaxUnCorrJetPt%s"%self.cs, 50, 0.0,250.0, title = ";leading u.c. %s%s's u.c. p_{T} (GeV);events / bin"%self.cs)
             bigTuple = (self.cs[0],self.cs[1],self.cs[0],self.cs[1])
-            self.book(eventVars).fill( (eta,maxUnCorrPt), "%sMaxUnCorrJetPtVsEta%s"%self.cs, (50, 50), (-5.0, 0.0), (5.0,250.0),
+            self.book.fill( (eta,maxUnCorrPt), "%sMaxUnCorrJetPtVsEta%s"%self.cs, (50, 50), (-5.0, 0.0), (5.0,250.0),
                                        title = ";leading u.c. %s%s's #eta;leading u.c. %s%s's u.c. p_{T} (GeV);events / bin"%bigTuple)
 
-        self.book(eventVars).fill(eta        ,"%sMaxUnCorrJetEta%s"%self.cs, 50, -5.0, 5.0, title = ";leading u.c. %s%s's #eta;events / bin"%self.cs)
+        self.book.fill(eta        ,"%sMaxUnCorrJetEta%s"%self.cs, 50, -5.0, 5.0, title = ";leading u.c. %s%s's #eta;events / bin"%self.cs)
         return True
 #####################################
 class deltaPhiSelector(analysisStep) :
@@ -406,10 +400,9 @@ class deltaPhiHistogrammer(analysisStep) :
         self.var = "%sDeltaX01%s"%self.cs
 
     def uponAcceptance (self,eventVars) :
-        book = self.book(eventVars)
-        book.fill( eventVars[self.var]["phi"], self.var, 50, -4.0, 4.0, title = ";"+self.var+";events / bin")
-        book.fill( eventVars[self.var]["R"]  , self.var, 20, 0.0, 10.0, title = ";"+self.var+";events / bin")
-        book.fill( eventVars[self.var]["eta"], self.var, 50, -10, 10.0, title = ";"+self.var+";events / bin")
+        self.book.fill( eventVars[self.var]["phi"], self.var, 50, -4.0, 4.0, title = ";"+self.var+";events / bin")
+        self.book.fill( eventVars[self.var]["R"]  , self.var, 20, 0.0, 10.0, title = ";"+self.var+";events / bin")
+        self.book.fill( eventVars[self.var]["eta"], self.var, 50, -10, 10.0, title = ";"+self.var+";events / bin")
 #####################################
 class uniquelyMatchedNonisoMuons(analysisStep) :
 
@@ -427,8 +420,6 @@ class ecalDeadTowerHistogrammer(analysisStep) :
         self.thresholds = sorted(thresholds)
     
     def uponAcceptance(self,eventVars) :
-        book = self.book(eventVars)
-
         tpP4 = eventVars["ecalDeadTowerTrigPrimP4"]
         nBad = eventVars["ecalDeadTowerNBadXtals"]
         maxStatus = eventVars["ecalDeadTowerMaxStatus"]
@@ -445,16 +436,16 @@ class ecalDeadTowerHistogrammer(analysisStep) :
         matchedUnrecoverable = any(map(lambda m,r: m and not r, matched,recoverable))
         overThresh = sum(tpEtlost) > 10
         level = "Danger" if overThresh or matchedUnrecoverable else "Clean"
-        book.fill(mht, "mht%s"%level, 200, 0, 500 , title = "%s;MHT (GeV);events / bin"%level)
+        self.book.fill(mht, "mht%s"%level, 200, 0, 500 , title = "%s;MHT (GeV);events / bin"%level)
         
         for i in range(nBad.size()) :
             sub = "barrel" if isBarrel[i] else "endcap"
             p4 = tpP4.at(i)
-            book.fill( (p4.eta(),p4.phi()), "tpEtaPhi%d%s"%(maxStatus[i],sub), (100,100),(-4,-4),(4,4), title = "TP status%d, %s;#eta;#phi;events / bin"%(maxStatus[i],sub))
-            book.fill( (maxStatus[i],nBad[i]), "tpStatusNbad%s"%sub, (16, 30), (-0.5,-0.5), (15.5,29.5), title="%s;TP maxStatus;TP number bad xtals;TP / bin"%sub)
+            self.book.fill( (p4.eta(),p4.phi()), "tpEtaPhi%d%s"%(maxStatus[i],sub), (100,100),(-4,-4),(4,4), title = "TP status%d, %s;#eta;#phi;events / bin"%(maxStatus[i],sub))
+            self.book.fill( (maxStatus[i],nBad[i]), "tpStatusNbad%s"%sub, (16, 30), (-0.5,-0.5), (15.5,29.5), title="%s;TP maxStatus;TP number bad xtals;TP / bin"%sub)
 
             if recoverable[i] :
-                book.fill( tpEt[i], "tpEt%d%sMatched%d"%(nBad[i],sub,matched[i]) , 256, 0, 128, title = "%d bad,%s,matched%d;tp.Et;TPs / bin"%(nBad[i],sub,matched[i]))
+                self.book.fill( tpEt[i], "tpEt%d%sMatched%d"%(nBad[i],sub,matched[i]) , 256, 0, 128, title = "%d bad,%s,matched%d;tp.Et;TPs / bin"%(nBad[i],sub,matched[i]))
 
         #maxTpEt = max(tpEt)
         #maxTpEtlost = max(tpEtlost)
@@ -483,9 +474,8 @@ class metVsMhtHistogrammer(analysisStep) :
         self.met = met
     
     def uponAcceptance(self,eventVars) :
-        book = self.book(eventVars)
-        book.fill( (eventVars[self.mht].pt(), eventVars[self.met].pt()), "%sVs%s"%(self.mht,self.met),
-                   (25, 25), (0.0, 0.0), (100.0, 100.0), title = ";MHT [%s] (GeV);MET [%s] (GeV);events / bin"%(self.mht,self.met))
+        self.book.fill( (eventVars[self.mht].pt(), eventVars[self.met].pt()), "%sVs%s"%(self.mht,self.met),
+                        (25, 25), (0.0, 0.0), (100.0, 100.0), title = ";MHT [%s] (GeV);MET [%s] (GeV);events / bin"%(self.mht,self.met))
 #####################################
 class cutBitHistogrammer(analysisStep) :
     def __init__(self, jets = None, met = None) :
@@ -504,7 +494,7 @@ class cutBitHistogrammer(analysisStep) :
         passMhtOverMet = eventVars[self.mhtOverMet]!=None and eventVars[self.mhtOverMet]<1.25
 
         value = (passHt<<0) | (passAlphaT<<1) | (passMhtOverMet<<2)
-        self.book(eventVars).fill(value, self.key, 8, -0.5, 7.5,
+        self.book.fill(value, self.key, 8, -0.5, 7.5,
                                   title = ";HT-alphaT-MHT/MET[%s%s#semicolon %s];events/bin"%(self.jets[0], self.jets[1], self.met), xAxisLabels = self.binLabels)
 
     def binString(self, i) :
@@ -524,9 +514,8 @@ class photon1PtOverHtHistogrammer(analysisStep) :
     def uponAcceptance(self,eventVars) :
         if not len(eventVars[self.photonIndices]) : return
         index = eventVars[self.photonIndices][0]
-        book = self.book(eventVars)
-        book.fill( eventVars[self.photonP4][index].pt()/eventVars[self.ht], "photon1PtOverHt",
-                   20, 0.0, 2.0, title = ";photon1 pT / HT [%s%s];events / bin"%self.jets)
+        self.book.fill( eventVars[self.photonP4][index].pt()/eventVars[self.ht], "photon1PtOverHt",
+                        20, 0.0, 2.0, title = ";photon1 pT / HT [%s%s];events / bin"%self.jets)
 #####################################
 class sensitivityHistogrammer(analysisStep) :
     def __init__(self, jets = None) :
@@ -534,7 +523,6 @@ class sensitivityHistogrammer(analysisStep) :
     def uponAcceptance(self,ev) :
         indices = ev["%sIndices%s"%self.jets]
         if not indices : return
-        book = self.book(ev)
 
         maxAbsS = ev["%sMaxAbsMhtSensitivity%s"%self.jets]
         maxS = ev["%sMaxMhtSensitivity%s"%self.jets]
@@ -542,19 +530,17 @@ class sensitivityHistogrammer(analysisStep) :
         sump4 = ev["%sSumP4%s"%self.jets]
         mht = sump4.pt()
         
-        book.fill(combS, "combinedMhtSensitivity", 100, 0, 5, title=";combined MHT Sensitivity;events / bin")
-        book.fill((mht,combS), "combinedMhtSensitivityVMhT", (100,100), (0,0), (500,5), title=";MHT;combined MHT Sensitivity;events / bin")
-        book.fill(maxS, "maxMhtSensitivity", 100, -2,2, title=";max MHT Sensitivity;events / bin")
-        book.fill((mht,maxS), "maxMhtSensitivityVMHT", (100,100), (0,-2),(500,2), title=";MhT;max MHT Sensitivity;events / bin")
-        book.fill(maxAbsS, "maxAbsSensitivity", 100, -2,2, title = ";maxAbsSensitivity;events / bin")
-        book.fill((mht,maxAbsS), "maxAbsSensitivityVMHT", (100,100), (0,-2),(500,2), title = ";MHT;maxAbsSensitivity;events / bin")
+        self.book.fill(combS, "combinedMhtSensitivity", 100, 0, 5, title=";combined MHT Sensitivity;events / bin")
+        self.book.fill((mht,combS), "combinedMhtSensitivityVMhT", (100,100), (0,0), (500,5), title=";MHT;combined MHT Sensitivity;events / bin")
+        self.book.fill(maxS, "maxMhtSensitivity", 100, -2,2, title=";max MHT Sensitivity;events / bin")
+        self.book.fill((mht,maxS), "maxMhtSensitivityVMHT", (100,100), (0,-2),(500,2), title=";MhT;max MHT Sensitivity;events / bin")
+        self.book.fill(maxAbsS, "maxAbsSensitivity", 100, -2,2, title = ";maxAbsSensitivity;events / bin")
+        self.book.fill((mht,maxAbsS), "maxAbsSensitivityVMHT", (100,100), (0,-2),(500,2), title = ";MHT;maxAbsSensitivity;events / bin")
 #####################################
 class longHistogrammer(analysisStep) :
     def __init__(self, jets = None) :
         self.jets = jets
     def uponAcceptance(self,ev) :
-        book = self.book(ev)
-        
         stretch = ev["%sStretch%s"%self.jets]
         ht = ev["%sSumPt%s"%self.jets]
         zspread = ev['%sSumPz%s'%self.jets]/ht
@@ -563,21 +549,21 @@ class longHistogrammer(analysisStep) :
         alphaT = ev["%sAlphaTEt%s"%self.jets] # hack: hardcoded Et
         area =  ev["%sPartialSumP4Area%s"%self.jets]
         
-        book.fill( coslongmht, "coslongmht", 100,0,1, title=";coslongmht;event / bin")
-        book.fill( stretch, "Stretch", 100,0,1, title=";stretch;events / bin")
-        book.fill( zspread, "Zspread", 100,0,3, title=";zspread;events / bin")
-        book.fill( (stretch,ht), "Stretch_v_ht", (100,150), (0,0), (1,1500), title=";stretch;HT;event / bin")
-        book.fill( (stretch,mht/ht), "Stretch_v_mhtht", (100,100), (0,0), (1,1), title=";stretch;MHT/HT;event / bin")
-        book.fill( (stretch,zspread), "Stretch_v_zspread", (100,100), (0,0), (1,3), title=";stretch;zspread;event / bin")
-        book.fill( (stretch,mht), "Stretch_v_mht", (100,100), (0,0), (1,800), title=";stretch;MHT;event / bin")
-        book.fill( (stretch,coslongmht), "Stretch_v_coslongmht", (100,100),(0,0),(1,1), title=";stretch;coslongmht;event / bin")
-        book.fill( mht, "mht", 100,0,800, title=";mht;event / bin")
-        book.fill( (coslongmht,mht/ht), "mhtht_v_coslongmht", (100,100), (0,0), (1,1), title = ";coslongmht;mht/ht;events / bin")
-        book.fill( (coslongmht,mht), "mht_v_coslongmht", (100,100), (0,0), (1,800), title = ";coslongmht;mht;events / bin")
-        book.fill( (coslongmht,alphaT), "alphaT_v_coslongmht", (100,100), (0,0), (1,3), title = ";coslongmht;alphaT;events / bin")
-        book.fill( (stretch,alphaT), "alphaT_v_stretch", (100,100), (0,0), (1,3), title = ";stretch;alphaT;events / bin")
-        book.fill( area, "polygon_area", 100,0,100000, title=";jet Polygon Area (GeV^{2}); events / bin")
-        book.fill( (stretch,area), "stretch_v_polygon_area",(100,100),(0,0),(1,100000),title=";stretch;jet Polygon Area (GeV^{2}); events / bin")
+        self.book.fill( coslongmht, "coslongmht", 100,0,1, title=";coslongmht;event / bin")
+        self.book.fill( stretch, "Stretch", 100,0,1, title=";stretch;events / bin")
+        self.book.fill( zspread, "Zspread", 100,0,3, title=";zspread;events / bin")
+        self.book.fill( (stretch,ht), "Stretch_v_ht", (100,150), (0,0), (1,1500), title=";stretch;HT;event / bin")
+        self.book.fill( (stretch,mht/ht), "Stretch_v_mhtht", (100,100), (0,0), (1,1), title=";stretch;MHT/HT;event / bin")
+        self.book.fill( (stretch,zspread), "Stretch_v_zspread", (100,100), (0,0), (1,3), title=";stretch;zspread;event / bin")
+        self.book.fill( (stretch,mht), "Stretch_v_mht", (100,100), (0,0), (1,800), title=";stretch;MHT;event / bin")
+        self.book.fill( (stretch,coslongmht), "Stretch_v_coslongmht", (100,100),(0,0),(1,1), title=";stretch;coslongmht;event / bin")
+        self.book.fill( mht, "mht", 100,0,800, title=";mht;event / bin")
+        self.book.fill( (coslongmht,mht/ht), "mhtht_v_coslongmht", (100,100), (0,0), (1,1), title = ";coslongmht;mht/ht;events / bin")
+        self.book.fill( (coslongmht,mht), "mht_v_coslongmht", (100,100), (0,0), (1,800), title = ";coslongmht;mht;events / bin")
+        self.book.fill( (coslongmht,alphaT), "alphaT_v_coslongmht", (100,100), (0,0), (1,3), title = ";coslongmht;alphaT;events / bin")
+        self.book.fill( (stretch,alphaT), "alphaT_v_stretch", (100,100), (0,0), (1,3), title = ";stretch;alphaT;events / bin")
+        self.book.fill( area, "polygon_area", 100,0,100000, title=";jet Polygon Area (GeV^{2}); events / bin")
+        self.book.fill( (stretch,area), "stretch_v_polygon_area",(100,100),(0,0),(1,100000),title=";stretch;jet Polygon Area (GeV^{2}); events / bin")
 
         
         ("CosLongMHT" ,100,0,1)

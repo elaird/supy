@@ -17,9 +17,9 @@ class master(analysisStep) :
         return (not self.filterPtHat) or eventVars["genpthat"]<self.maxPtHat
 
     def endFunc(self, otherChainDict) :
-        self.book().fill(0.0, "nJobsHisto", 1, -0.5, 0.5, title = ";dummy axis;N_{jobs}")        
-        if self.xs   : self.book().fill(0.0, "xsHisto",   1, -0.5, 0.5, title = ";dummy axis;#sigma (pb)", w = self.xs)
-        if self.lumi : self.book().fill(0.0, "lumiHisto", 1, -0.5, 0.5, title = "%s;dummy axis;integrated luminosity (pb^{-1})"%\
+        self.book.fill(0.0, "nJobsHisto", 1, -0.5, 0.5, title = ";dummy axis;N_{jobs}")        
+        if self.xs   : self.book.fill(0.0, "xsHisto",   1, -0.5, 0.5, title = ";dummy axis;#sigma (pb)", w = self.xs)
+        if self.lumi : self.book.fill(0.0, "lumiHisto", 1, -0.5, 0.5, title = "%s;dummy axis;integrated luminosity (pb^{-1})"%\
                                         ("" if not self.lumiWarn else "WARNING: lumi value is probably wrong!"), w = self.lumi)
 
     def notify(self, outputPlotFileName, xs) :

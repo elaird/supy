@@ -21,7 +21,7 @@ class histogrammer(analysisStep) :
                 tuple(map(eventVars.__getitem__,self.var))
         if value is None or (not self.oneD and None in value) : return
 
-        self.book(eventVars).fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
+        self.book.fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
 #####################################
 class iterHistogrammer(histogrammer) :
 
@@ -34,7 +34,7 @@ class iterHistogrammer(histogrammer) :
                  tuple(map(eventVars.__getitem__,self.var))
         for value in values:
             if value is None or (not self.oneD and None in value) : continue
-            self.book(eventVars).fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
+            self.book.fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
 #####################################
 class passFilter(analysisStep) :
 
@@ -263,7 +263,7 @@ class objectPtVetoer(analysisStep) :
 
 #    def uponRejection(self,eventVars) :
 #        p4Vector=eventVars[self.objectCollection+self.objectP4String+self.objectSuffix]
-#        self.book(eventVars).fill(p4Vector[self.objectIndex].eta(),self.objectCollection+"Eta"+self.objectSuffix,100,-5.0,5.0,";#eta;events / bin")
+#        self.book.fill(p4Vector[self.objectIndex].eta(),self.objectCollection+"Eta"+self.objectSuffix,100,-5.0,5.0,";#eta;events / bin")
 #####################################
 class soloObjectPtSelector(analysisStep) :
 
@@ -295,7 +295,7 @@ class ptRatioHistogrammer(analysisStep) :
 
     def uponAcceptance (self,ev) :
         value = ev[self.numVar].pt() / ev[self.denVar].pt()
-        book = self.book(ev).fill(value,"ptRatio", 50, 0.0, 2.0, title = ";%s / %s;events / bin"%(self.numVar,self.denVar) )
+        self.book.fill(value,"ptRatio", 50, 0.0, 2.0, title = ";%s / %s;events / bin"%(self.numVar,self.denVar) )
 #####################################
 class vertexRequirementFilter(analysisStep) :
 
@@ -394,7 +394,7 @@ class counter(analysisStep) :
         self.moreName = '("%s")' % label
 
     def uponAcceptance(self,eventVars) :
-        self.book(eventVars).fill(0.0,"countsHisto_"+self.label,1,-0.5,0.5,";dummy axis;number of events")
+        self.book.fill(0.0,"countsHisto_"+self.label,1,-0.5,0.5,";dummy axis;number of events")
 #####################################
 class pickEventSpecMaker(analysisStep) :
     #https://twiki.cern.ch/twiki/bin/viewauth/CMS/WorkBookPickEvents
@@ -584,8 +584,6 @@ class deadEcalFilterIncludingPhotons(analysisStep) :
 #####################################
 class vertexHistogrammer(analysisStep) :
     def uponAcceptance(self,eV) :
-        book = self.book(eV)
-
         index = eV["vertexIndices"]
         sump3 = eV["vertexSumP3"]
         sumpt = eV["vertexSumPt"]
@@ -594,12 +592,12 @@ class vertexHistogrammer(analysisStep) :
         #coord = reduce(lambda v,u: (v[0]+u[0],v[1]+u[1],v[2]+u[2]), [(sump3[i].x(),sump3[i].y(),sump3[i].z()) for i in index][1:], (0,0,0))
         #sump3Secondaries = type(sump3[0])(coord[0],coord[1],coord[2])
 
-        book.fill( sumpt[index[0]], "vertex0SumPt", 40, 0, 1200, title = ";primary vertex #Sigma p_{T} (GeV); events / bin")
-        book.fill( sump3[index[0]].rho(), "vertex0MPT%d", 40, 0, 400, title = ";primary vertex MPT (GeV);events / bin")
+        self.book.fill( sumpt[index[0]], "vertex0SumPt", 40, 0, 1200, title = ";primary vertex #Sigma p_{T} (GeV); events / bin")
+        self.book.fill( sump3[index[0]].rho(), "vertex0MPT%d", 40, 0, 400, title = ";primary vertex MPT (GeV);events / bin")
 
-        book.fill( sum(map(sumpt.__getitem__,index[1:])), "vertexGt0SumPt", 100, 0, 400, title = ";secondary vertices #Sigma p_{T};events / bin")
-        #book.fill( (sumpt[index[0]], sum(map(sumpt.__getitem__,index[1:]))), "vertexSumPt_0_all", (100,100), (0,0), (1200,400), title = ";primary vertex #Sigma p_{T};secondary vertices #Sigma p_{T};events / bin")
-        #book.fill( (sump3[index[0]].rho(), sump3Secondaries.rho()), "vertexMPT_0_all", (100,100), (0,0), (400,200), title = ";primary vertex MPT;secondary verticies MPT;events / bin")
+        self.book.fill( sum(map(sumpt.__getitem__,index[1:])), "vertexGt0SumPt", 100, 0, 400, title = ";secondary vertices #Sigma p_{T};events / bin")
+        #self.book.fill( (sumpt[index[0]], sum(map(sumpt.__getitem__,index[1:]))), "vertexSumPt_0_all", (100,100), (0,0), (1200,400), title = ";primary vertex #Sigma p_{T};secondary vertices #Sigma p_{T};events / bin")
+        #self.book.fill( (sump3[index[0]].rho(), sump3Secondaries.rho()), "vertexMPT_0_all", (100,100), (0,0), (400,200), title = ";primary vertex MPT;secondary verticies MPT;events / bin")
 
 #####################################
 class cutSorter(analysisStep) :
@@ -611,11 +609,11 @@ class cutSorter(analysisStep) :
 
     def select(self,eventVars) :
         selections = [s.select(eventVars) for s in self.selectors]
-        self.book(eventVars).fill( utils.intFromBits(selections), "cutSorterConfigurationCounts", 
+        self.book.fill( utils.intFromBits(selections), "cutSorterConfigurationCounts", 
                                   self.bins, -0.5, self.bins-0.5, title = ";cutConfiguration;events / bin")
         return (not self.applySelections) or all(selections)
         
     def endFunc(self, otherChainDict) :
         bins = len(self.selectors)
-        self.book().fill(1, "cutSorterNames", bins, 0, bins, title = ";cutName", xAxisLabels = [sel.__class__.__name__ for sel in self.selectors])
-        self.book().fill(1, "cutSorterMoreNames", bins, 0, bins, title = ";cutMoreName", xAxisLabels = [sel.moreName for sel in self.selectors])
+        self.book.fill(1, "cutSorterNames", bins, 0, bins, title = ";cutName", xAxisLabels = [sel.__class__.__name__ for sel in self.selectors])
+        self.book.fill(1, "cutSorterMoreNames", bins, 0, bins, title = ";cutMoreName", xAxisLabels = [sel.moreName for sel in self.selectors])

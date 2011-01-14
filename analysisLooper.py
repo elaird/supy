@@ -113,13 +113,13 @@ class analysisLooper :
         returnValue = True
         r.gROOT.cd()
         current = r.gDirectory
-        book_ = autoBook(current)
+        book = autoBook(current)
 
         for step in self.steps :
             if hasattr(step,"select") :
                 current = current.mkdir(step.name())
-                book_ = autoBook(current)
-            step.book_ = book_
+                book = autoBook(current)
+            step.book = book
             if booksOnly : continue
             if self.quietMode : step.makeQuiet()
             step.isSelector = hasattr(step,"select")            
@@ -182,15 +182,15 @@ class analysisLooper :
         while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
         wroteSlash = False
         for step in self.steps :
-            name = step.book_._autoBook__directory.GetName()
+            name = step.book._autoBook__directory.GetName()
             if '/' in name :
                 if wroteSlash: continue
                 wroteSlash = True
             elif not step.isSelector: continue
             else: r.gDirectory.mkdir(name,step.moreName+step.moreName2).cd()
             
-            for item in step.book_.fillOrder :
-                object = step.book_[item]
+            for item in step.book.fillOrder :
+                object = step.book[item]
                 object.Write()
                 object.Delete()
         while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()

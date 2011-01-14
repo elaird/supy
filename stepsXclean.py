@@ -18,14 +18,13 @@ class vetoCounts(analysisStep) :
         self.vetos["any"] = False
         self.vetos["any"] = any(self.vetos.values())
         
-        book = self.book(eventVars)
         for i,key in enumerate(self.keys) :
             if self.vetos[key]:
-                book.fill( i, "VetoCounts", self.nBins, 0, self.nBins, title="Vetos;;events / bin", xAxisLabels = self.keys)
+                self.book.fill( i, "VetoCounts", self.nBins, 0, self.nBins, title="Vetos;;events / bin", xAxisLabels = self.keys)
                 for j,key2 in enumerate(self.keys) :
                     if self.vetos[key2]:
-                        book.fill( (i,j), "VetoCountsCoincident", (self.nBins,self.nBins), (0,0), (self.nBins,self.nBins),
-                                   title="Coincident Vetoes;;;events / bin", xAxisLabels = self.keys, yAxisLabels = self.keys)
+                        self.book.fill( (i,j), "VetoCountsCoincident", (self.nBins,self.nBins), (0,0), (self.nBins,self.nBins),
+                                        title="Coincident Vetoes;;;events / bin", xAxisLabels = self.keys, yAxisLabels = self.keys)
 #####################################
 class vetoLists(analysisStep) :
     def __init__(self, objects) :
@@ -73,7 +72,6 @@ class ecalDepositValidator(analysisStep):
         return sumPt
 
     def uponAcceptance(self,eventVars) :
-        book = self.book(eventVars)
         jetP4sAndCorrs = zip(eventVars[self.jetP4s],eventVars[self.jetCorrs])
         for object in self.objects:
             p4s = eventVars["%sP4%s"%object]
@@ -81,11 +79,11 @@ class ecalDepositValidator(analysisStep):
                 p4 = p4s[i]
                 pt = p4.pt()
                 jetPt = self.matchedJetSumPt(p4,jetP4sAndCorrs)
-                book.fill( (jetPt,pt), "jetPtMatchOther%s%s"%object, (100,100), (0,0),(500,500),
-                           title="jet matching of failed %s%s;#sum pT of matched uncorr. jets;pT of failed %s%s;events / bin"%(object+object)  )
+                self.book.fill( (jetPt,pt), "jetPtMatchOther%s%s"%object, (100,100), (0,0),(500,500),
+                                title="jet matching of failed %s%s;#sum pT of matched uncorr. jets;pT of failed %s%s;events / bin"%(object+object)  )
                 if pt>500 or jetPt>500:
-                    book.fill( pt/jetPt, "jetPtMatchOther%s%sOverflow"%object, 100, 0, 1.1,
-                               title="Overflow: jet matching of failed %s%s; pT_{failed %s%s} / #sum pT_{matched uncorr. jets};events / bin"%(object+object)  )
+                    self.book.fill( pt/jetPt, "jetPtMatchOther%s%sOverflow"%object, 100, 0, 1.1,
+                                    title="Overflow: jet matching of failed %s%s; pT_{failed %s%s} / #sum pT_{matched uncorr. jets};events / bin"%(object+object)  )
 
 #####################################
 class jetModHistogrammer(analysisStep) :
@@ -97,14 +95,13 @@ class jetModHistogrammer(analysisStep) :
         
 
     def uponAcceptance(self,eventVars) :
-        book = self.book(eventVars)
         p4s = eventVars[self.p4s]
         xcp4s = eventVars[self.xcp4s]
         for i in eventVars[self.indices] :
             xcpt = xcp4s[i].pt()
             diffpt = xcpt - p4s[i].pt()
-            book.fill( (xcpt,diffpt), "jetPtMod%s%s"%self.jets, (100,100),(0,0),(500,500),
-                       title = "%s%s w/muons;%s%s pt;muon pt;events / bin"%(self.jets+self.jets))
+            self.book.fill( (xcpt,diffpt), "jetPtMod%s%s"%self.jets, (100,100),(0,0),(500,500),
+                            title = "%s%s w/muons;%s%s pt;muon pt;events / bin"%(self.jets+self.jets))
             if xcpt > 500:
-                book.fill( diffpt/xcpt, "jetPtMod%s%sOverflow"%self.jets, 100,0,1,
-                           title = "Overflow: %s%s w/muons;pT_{muon}/pT_{%s%s}"%(self.jets+self.jets))
+                self.book.fill( diffpt/xcpt, "jetPtMod%s%sOverflow"%self.jets, 100,0,1,
+                                title = "Overflow: %s%s w/muons;pT_{muon}/pT_{%s%s}"%(self.jets+self.jets))

@@ -23,7 +23,7 @@ class analysisStep(object) :
         passed = bool(self.select(eventVars))
         self.increment(passed)
         return passed
-    def increment(self, passed, w = 1) : self.book().fill(passed, "counts", 2, 0, 2, w = w)
+    def increment(self, passed, w = 1) : self.book.fill(passed, "counts", 2, 0, 2, w = w)
     def setup(self, inputChain, fileDirectory, name, outputDir) : return
     def endFunc(self, otherChainDict) : return
     def mergeFunc(self, productList, someLooper) : return
@@ -35,10 +35,10 @@ class analysisStep(object) :
     def disable(self) : self.disabled = True
     def makeQuiet(self) : self.quietMode = True
     def nFromCountsHisto(self, bin) :
-        if not self.book_ : return 0.0
-        if "counts" not in self.book() : return 0.0
-        if not self.book()["counts"] : return 0.0
-        return self.book()["counts"].GetBinContent(bin)
+        if not self.book : return 0.0
+        if "counts" not in self.book : return 0.0
+        if not self.book["counts"] : return 0.0
+        return self.book["counts"].GetBinContent(bin)
     def nFail(self) :  return int(self.nFromCountsHisto(1))
     def nPass(self) :  return int(self.nFromCountsHisto(2))
         
@@ -49,6 +49,4 @@ class analysisStep(object) :
         statString = "" if not hasattr(self,"select") else \
                      "  %s %s" % ( passString.rjust(self.integerWidth), ("("+failString+")").rjust(self.integerWidth+2) )
         print "%s%s%s" % (self.name1(),self.name2(),statString)
-
-    def book(self, eventVars = None) : return self.book_
 #####################################

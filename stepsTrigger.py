@@ -110,7 +110,7 @@ class lowestUnPrescaledTriggerHistogrammer(analysisStep) :
         
     def uponAcceptance(self, eventVars) :
         i = self.listOfPaths.index(eventVars["lowestUnPrescaledTrigger"])
-        self.book(eventVars).fill( i, self.key, self.n, 0.0, self.n, title = ";lowest un-prescaled path;events / bin", xAxisLabels = self.listOfPaths)
+        self.book.fill( i, self.key, self.n, 0.0, self.n, title = ";lowest un-prescaled path;events / bin", xAxisLabels = self.listOfPaths)
 #####################################
 class hltFilter(analysisStep) :
 
@@ -144,8 +144,8 @@ class hltPrescaleHistogrammer(analysisStep) :
         for iPath in range(len(self.listOfHltPaths)) :
             value = eventVars["prescaled"][self.listOfHltPaths[iPath]]
             if value<=0.0 : continue
-            self.book(eventVars).fill( (iPath,math.log10(value)), self.key, (self.nBinsX,100), (-0.5,-0.5), (self.nBinsX-0.5,4,5),
-                                       title="hltPrescaleHisto;;log_{10}(prescale value);events / bin", xAxisLabels = self.listOfHltPaths)
+            self.book.fill( (iPath,math.log10(value)), self.key, (self.nBinsX,100), (-0.5,-0.5), (self.nBinsX-0.5,4,5),
+                            title="hltPrescaleHisto;;log_{10}(prescale value);events / bin", xAxisLabels = self.listOfHltPaths)
 #####################################
 class hltTurnOnHistogrammer(analysisStep) :
 
@@ -174,21 +174,7 @@ class hltTurnOnHistogrammer(analysisStep) :
         value = eventVars[self.var]
         if value==None : return
         for t in types :
-            self.book(eventVars).fill( value, t[0], self.bmm[0],self.bmm[1],self.bmm[2], title = t[1] )
-        
-#     def endFunc(self, otherChainDict) :
-#         for book in self.books.values() :
-#             tag = self.tagTitle[0]
-#             probe = self.probeTitle[0]
-#             efficiency = "%s-%s-%s"%(self.probeTrigger,str(self.tagTriggers),self.var)
-
-#             if not (tag in book and \
-#                     probe in book) : continue
-            
-#             book[efficiency] = book[probe].Clone(efficiency)
-#             book[efficiency].SetTitle("Efficiency;%s;n%s / n%s"%(self.var,self.probeTrigger,str(self.tagTriggers)))
-#             book[efficiency].Divide(book[tag])
-#             book[efficiency].SetBit(r.TH1.kIsAverage)
+            self.book.fill( value, t[0], self.bmm[0],self.bmm[1],self.bmm[2], title = t[1] )
 #####################################
 class jetMetTriggerHistogrammer(analysisStep) :
 
@@ -216,12 +202,12 @@ class jetMetTriggerHistogrammer(analysisStep) :
         offlineJetPt = eventVars[self.offlineJetsP4String].at(0).pt() if nOfflineJets else 0.0
         offlineMht   = eventVars[self.offlineSumP4String].pt() if eventVars[self.offlineSumP4String] else 0.0
         
-        self.book(eventVars).fill( (triggerJetPt,triggerMet), "TriggerMet_vs_TriggerJetPt", (100,100), (0.0,0.0), (200.0,100.0),
-                                   title=";leading un-corr. %s p_{T} (GeV);%s p_{T} (GeV);events / bin"%(self.triggerJets,self.triggerMet))
+        self.book.fill( (triggerJetPt,triggerMet), "TriggerMet_vs_TriggerJetPt", (100,100), (0.0,0.0), (200.0,100.0),
+                        title=";leading un-corr. %s p_{T} (GeV);%s p_{T} (GeV);events / bin"%(self.triggerJets,self.triggerMet))
         
-        self.book(eventVars).fill( (offlineMht,triggerMet),   "TriggerMet_vs_OfflineMht",   (100,100), (0.0,0.0), (400.0,100.0),
-                                   title=";%s MHT (GeV);%s (GeV);events / bin"%(self.offlineMht,self.triggerMet))
+        self.book.fill( (offlineMht,triggerMet),   "TriggerMet_vs_OfflineMht",   (100,100), (0.0,0.0), (400.0,100.0),
+                        title=";%s MHT (GeV);%s (GeV);events / bin"%(self.offlineMht,self.triggerMet))
 
-        self.book(eventVars).fill( (triggerJetPt,offlineJetPt), "OfflineJetPt_vs_TriggerJetPt", (100,100), (0.0,0.0), (200.0,200.0),
-                                   title=";leading un-corr. %s p_{T} (GeV);%s p_{T} (GeV);events / bin"%(self.triggerJets,self.offlineJets))
+        self.book.fill( (triggerJetPt,offlineJetPt), "OfflineJetPt_vs_TriggerJetPt", (100,100), (0.0,0.0), (200.0,200.0),
+                        title=";leading un-corr. %s p_{T} (GeV);%s p_{T} (GeV);events / bin"%(self.triggerJets,self.offlineJets))
 #####################################
