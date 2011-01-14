@@ -81,11 +81,16 @@ class skimmer(analysisStep) :
     def requiresNoSetBranchAddress(self) :
         return True
 
-    def setup(self,chain,fileDir,name,outputDir) :
+    def setup(self, chain, fileDir, name, outputDir) :
         self.fileDir = fileDir
-        self.outputFileName=outputDir+"/"+name+"_skim.root"
+        self.outputFileName = "%s/%s_skim.root"%(outputDir, name)
         os.system("mkdir -p "+outputDir)
-        self.outputFile=r.TFile(self.outputFileName,"RECREATE")
+        self.outputFile = r.TFile(self.outputFileName,"RECREATE")
+
+        self.setupMainChain(chain, fileDir)
+        self.initExtraTree()
+
+    def setupMainChain(self, chain, fileDir) :
         self.outputFile.mkdir(self.fileDir)
         self.outputFile.cd(self.fileDir)
         if chain and chain.GetEntry(0)>0 :
@@ -96,6 +101,17 @@ class skimmer(analysisStep) :
         self.outputTree.SetDirectory(r.gDirectory)#put output tree in correct place
         chain.CopyAddresses(self.outputTree)      #associate branch addresses
 
+    def writeOtherChains(self, otherChainDict) :
+        for (dirName,treeName),chain in otherChainDict.iteritems() :
+            self.outputFile.mkdir(dirName).cd()
+            if chain and chain.GetEntry(0)>0 :
+                outChain = chain.CloneTree()
+                if outChain :
+                    outChain.SetName(treeName)
+                    outChain.SetDirectory(r.gDirectory)
+                    outChain.Write()
+
+    def initExtraTree(self) :
         if self.alsoWriteExtraTree :
             raise Exception("at the moment, adding the extra tree with the skimmer is broken")
             self.arrayDictionary={}
@@ -106,6 +122,7 @@ class skimmer(analysisStep) :
             self.outputTreeExtra=r.TTree(extraName,extraName)
             self.outputTreeExtra.SetDirectory(r.gDirectory)
         r.gROOT.cd()
+
 
     def select(self,eventVars) :
         #read all the data for this event
@@ -148,24 +165,11 @@ class skimmer(analysisStep) :
             self.arrayDictionary[key][0]=eventVars["crock"][key]
         
     def endFunc(self, otherChainDict) :
-        if not self.quietMode : print utils.hyphens
-
         self.outputFile.cd(self.fileDir)                          #cd to file
         if self.outputTree :         self.outputTree.Write()      #write main tree
         if self.alsoWriteExtraTree : self.outputTreeExtra.Write() #write a tree with "extra" variables
-
-        #store other chains
-        for (dirName,treeName),chain in otherChainDict.iteritems() :
-            self.outputFile.mkdir(dirName).cd()
-            if chain and chain.GetEntry(0)>0 :
-                outChain=chain.CloneTree()
-                if outChain :
-                    outChain.SetName(treeName)
-                    outChain.SetDirectory(r.gDirectory)
-                    outChain.Write()
-        
+        self.writeOtherChains(otherChainDict)
         self.outputFile.Close()
-        if not self.quietMode : print "The skim file \""+self.outputFileName+"\" has been written."
 
     def varsToPickle(self) :
         return ["outputFileName"]
