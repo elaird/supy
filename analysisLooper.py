@@ -42,6 +42,8 @@ class analysisLooper :
             if step.name()=="master" :
                 assert not iStep,"The master step must occur first."
                 assert hasattr(step,"select"), "The master step must be a selector."
+            else :
+                assert iStep,"The master step must occur first."
 
         #loop through entries
         chainWrapper = wrappedChain.wrappedChain(self.inputChain,
