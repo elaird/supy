@@ -59,17 +59,16 @@ class Counts(analysisStep) :
     def __init__(self) :
         self.counts = collections.defaultdict(int)
         
-    def setup(self, chain, fileDir, name, outputDir) :
-        self.outputFileName = "%s/%s_triggerCounts.txt"%(outputDir, name)
-        os.system("mkdir -p "+outputDir)
-        
     def uponAcceptance(self, eventVars) :
         for pair in eventVars["triggered"] :
             if pair.second : 
                 self.counts[pair.first] += 1
 
+    def outputSuffix(self) :
+        return "_triggerCounts.txt"
+
     def varsToPickle(self) :
-        return ["outputFileName", "counts"]
+        return ["counts"]
 
     def mergeFunc(self, productList, someLooper) :
         def mergedCounts(l) :
@@ -79,17 +78,15 @@ class Counts(analysisStep) :
                     out[key] += value
             return out
 
-        outFileName = [p["outputFileName"] for p in productList][0]
         counts = mergedCounts([p["counts"] for p in productList])
-
-        outFile = open(outFileName,"w")
+        outFile = open(self.outputFileName(),"w")
 
         maxNameLength = max([len(key) for key in counts.keys()])
         maxCountLength = max([len(str(value)) for value in counts.values()])
         for key in sorted(counts.keys()) :
             outFile.write("%s    %s\n"%(key.ljust(maxNameLength), str(counts[key]).ljust(maxCountLength)))
         outFile.close()
-        print "The trigger counts file %s has been written."%outFileName
+        print "The trigger counts file %s has been written."%self.outputFileName()
         print utils.hyphens
 #####################################
 class lowestUnPrescaledTrigger(analysisStep) :
