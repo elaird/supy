@@ -2,10 +2,10 @@ from analysisStep import analysisStep
 import utils,os
 #####################################
 class master(analysisStep) :
-    def __init__(self, finalOutputPlotFileName, xs, lumi, lumiWarn) :
+    def __init__(self, xs, lumi, lumiWarn) :
         self.moreName = ""
         self.filterPtHat = False
-        for item in ["finalOutputPlotFileName", "xs", "lumi", "lumiWarn"] :
+        for item in ["xs", "lumi", "lumiWarn"] :
             setattr(self, item, eval(item))
         
     def activatePtHatFilter(self, maxPtHat, lostXs) :
@@ -23,12 +23,9 @@ class master(analysisStep) :
         if self.lumi : self.book.fill(0.0, "lumiHisto", 1, -0.5, 0.5, title = "%s;dummy axis;integrated luminosity (pb^{-1})"%\
                                         ("" if not self.lumiWarn else "WARNING: lumi value is probably wrong!"), w = self.lumi)
 
-    def notify(self, outputPlotFileName) :
-        self.outputPlotFileName = outputPlotFileName
-        
-    def varsToPickle(self) :
-        return ["outputPlotFileName"]
-
+    def outputSuffix(self) :
+        return "_plots.root"
+    
     def mergeFunc(self, listOfProducts, someLooper) :
         def printComment(lines) :
             for line in lines.split("\n") :
@@ -43,8 +40,8 @@ class master(analysisStep) :
             for fileName in files :
                 os.remove(fileName)
 
-        files = [p["outputPlotFileName"] for p in listOfProducts]
-        hAdd = utils.getCommandOutput("hadd -f %s %s"%(self.finalOutputPlotFileName, " ".join(files)))
+        files = [p["outputFileName"] for p in listOfProducts]
+        hAdd = utils.getCommandOutput("hadd -f %s %s"%(self.outputFileName(), " ".join(files)))
         
         printComment(hAdd["stdout"])
         cleanUp(hAdd["stderr"], files)

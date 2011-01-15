@@ -67,7 +67,6 @@ class analysis(object) :
     def namedOutputDirectory(self) : return os.path.expanduser(self.baseOutputDirectory())+"/"+self.name
     def jobsFile(self) : return "%s/%s.jobs" % (self.namedOutputDirectory(),self.name)
     def outputDirectory(self, conf) : return "%s/%s/config%s" % (self.namedOutputDirectory(), conf["tag"], conf["codeString"])
-    def outputPlotFileName(self,conf,sampleName) : return "%s/%s_plots.root" % ( self.outputDirectory(conf), sampleName )
     def psFileName(self,tag="") : return "%s/%s%s.ps" % (self.namedOutputDirectory(), self.name, "_"+tag if len(tag) else "")
 
     def baseOutputDirectory(self) :      raise Exception("NotImplemented", "Implement a member function %s"%"baseOutputDirectory(self)")
@@ -110,7 +109,7 @@ class analysis(object) :
             os.system("mkdir -p "+self.outputDirectory(self._configurations[job["iConfig"]]))
             for looper in self._listsOfLoopers[job["iConfig"]] :
                 tuple = (looper.name, looper.fileListCommand)
-                fileNames[tuple].add(looper.inputFileListFileName)
+                fileNames[tuple].add(looper.inputFileListFileName())
 
         #make lists from the sets
         for key,value in fileNames.iteritems() :
@@ -127,14 +126,13 @@ class analysis(object) :
             os.system("mkdir -p "+self.outputDirectory(self._configurations[job["iConfig"]]))
             #associate the file list
             looper = copy.deepcopy(self._listsOfLoopers[job["iConfig"]][job["iSample"]])
-            someFile = open(looper.inputFileListFileName)
+            someFile = open(looper.inputFileListFileName())
             looper.inputFiles = cPickle.load(someFile)[job["iSlice"]::self._nSlices] #choose appropriate slice
             someFile.close()
 
             oldName = looper.name
             looper.name = childName(looper.name, job["iSlice"])
-            looper.outputPlotFileName = self.outputPlotFileName(self._configurations[job["iConfig"]], looper.name)
-            looper.setOutputFileNames()
+            looper.outputDir = self.outputDirectory(self._configurations[job["iConfig"]])
 
             looper.parentName = oldName
             looper.setQuietMode(self._loop)
@@ -170,7 +168,8 @@ class analysis(object) :
                     listOfSamples.append(triplet)
                     listOfFileLists.append([])
                 index = listOfSamples.index(triplet)
-                listOfFileLists[index].append( self.outputPlotFileName(conf,looper.name) )
+                looper.setupSteps(minimal = True)
+                listOfFileLists[index].append( looper.steps[0].outputFileName() )
 
         return [ dict(zip(["name","color","markerStyle"],sample[:3])+[("outputFileNames",fileList)]) \
                  for sample,fileList in zip(listOfSamples,listOfFileLists) ]
@@ -195,7 +194,7 @@ class analysis(object) :
                 return ss.nFilesMax,ss.nEventsMax
 
         ptHatMinDict = {}
-        sampleLoopers = []
+        outLoopers = []
         for sampleSpec in listOfSamples :
             sampleName = sampleSpec.name
             sampleTuple = self.sampleDict[sampleName]
@@ -210,37 +209,35 @@ class analysis(object) :
 
             if nFilesMax >= 0 : fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
             if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
-            adjustedListOfSteps = [steps.Master.master(finalOutputPlotFileName = self.outputPlotFileName(conf,sampleName),
-                                                       xs = sampleTuple.xs,
+            adjustedListOfSteps = [steps.Master.master(xs = sampleTuple.xs,
                                                        lumi = sampleTuple.lumi,
                                                        lumiWarn = lumiWarn)
                                    ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
             
-            sampleLoopers.append(analysisLooper(self.fileDirectory,
-                                                self.treeName,
-                                                self._otherTreesToKeepWhenSkimming,
-                                                self._leavesToBlackList,
-                                                self.outputDirectory(conf),
-                                                self.outputPlotFileName(conf,sampleName),
-                                                adjustedListOfSteps,
-                                                listOfCalculables,
-                                                fileListCommand,
-                                                computeEntriesForReport,
-                                                self.printNodesUsed(),
-                                                sampleName,
-                                                nEventsMax,
-                                                sampleSpec.color,
-                                                sampleSpec.markerStyle
-                                                )
-                                 )
+            outLoopers.append(analysisLooper(self.fileDirectory,
+                                             self.treeName,
+                                             self._otherTreesToKeepWhenSkimming,
+                                             self._leavesToBlackList,
+                                             self.outputDirectory(conf),
+                                             adjustedListOfSteps,
+                                             listOfCalculables,
+                                             fileListCommand,
+                                             computeEntriesForReport,
+                                             self.printNodesUsed(),
+                                             sampleName,
+                                             nEventsMax,
+                                             sampleSpec.color,
+                                             sampleSpec.markerStyle
+                                             )
+                              )
             
         for thing in self.sampleDict.overlappingSamples :
             minPtHatsAndNames = []
             for sampleName in thing.samples :
                 if sampleName not in ptHatMinDict : continue
                 minPtHatsAndNames.append( (ptHatMinDict[sampleName],sampleName) )
-            self.manageInclusiveSamples(minPtHatsAndNames, sampleLoopers)
-        return sampleLoopers
+            self.manageInclusiveSamples(minPtHatsAndNames, outLoopers)
+        return outLoopers
 
     def manageInclusiveSamples(self, ptHatLowerThresholdsAndSampleNames = [], loopers = []) :
         def findLooper(ptHatLowerThreshold, sampleName) :
@@ -302,7 +299,7 @@ def mergeFunc(looper, listOfSlices) :
             os.remove(fileName)
         
     def stuff(iSlice) :
-        pDataFileName = looper.outputStepAndCalculableDataFileName.replace( looper.name, childName(looper.name,iSlice) )
+        pDataFileName = looper.outputStepAndCalculableDataFileName().replace( looper.name, childName(looper.name,iSlice) )
         pDataFile = open(pDataFileName)
         dataList,calcsUsed,leavesUsed = cPickle.load(pDataFile)
         pDataFile.close()

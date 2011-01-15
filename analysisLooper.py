@@ -7,13 +7,13 @@ class analysisLooper :
     """class to set up and loop over events"""
 
     def __init__(self, fileDirectory, treeName, otherTreesToKeepWhenSkimming, leavesToBlackList,
-                 outputDir, outputPlotFileName, steps, calculables, fileListCommand,
+                 outputDir, steps, calculables, fileListCommand,
                  computeEntriesForReport, printNodesUsed, sampleName, nEventsMax, color, markerStyle) :
 
         self.name = sampleName
 
         for arg in ["fileDirectory", "treeName", "otherTreesToKeepWhenSkimming", "leavesToBlackList",
-                    "outputDir", "outputPlotFileName", "fileListCommand", "nEventsMax", "color", "markerStyle",
+                    "outputDir", "fileListCommand", "nEventsMax", "color", "markerStyle",
                     "computeEntriesForReport","printNodesUsed"] :
             setattr(self,arg,eval(arg))
 
@@ -23,11 +23,15 @@ class analysisLooper :
 
         self.parentName = self.name
         self.quietMode = False
-        self.setOutputFileNames()
 
-    def setOutputFileNames(self) :
-        self.outputStepAndCalculableDataFileName = self.outputPlotFileName.replace(".root",".pickledData")
-        self.inputFileListFileName               = self.outputPlotFileName.replace(".root",".inputFileList")
+    def outputFileStem(self) :
+        return "%s/%s"%(self.outputDir, self.name)
+
+    def outputStepAndCalculableDataFileName(self) :
+        return "%s%s"%(self.outputFileStem(), ".pickledData")
+
+    def inputFileListFileName(self) :
+        return "%s%s"%(self.outputFileStem(), ".inputFileList")
 
     def go(self) :
         self.setupChains(self.inputFiles)
@@ -115,7 +119,7 @@ class analysisLooper :
         book = autoBook(current)
 
         for step in self.steps :
-            step.setOutputFileStem("%s/%s"%(self.outputDir, self.name))
+            step.setOutputFileStem(self.outputFileStem())            
             if hasattr(step,"select") :
                 current = current.mkdir(step.name())
                 book = autoBook(current)
@@ -128,7 +132,6 @@ class analysisLooper :
             step.setup(self.inputChain, self.fileDirectory, self.name, self.outputDir)
 
         r.gROOT.cd()
-        self.steps[0].notify(self.outputPlotFileName)#inform the master of the name of this job's output file
         return returnValue
 
     def setQuietMode(self, nWorkers) :
@@ -205,7 +208,7 @@ class analysisLooper :
         r.gDirectory.GetMother().cd()
 
     def writeHistos(self) :
-        outputFile = r.TFile(self.outputPlotFileName,"RECREATE")
+        outputFile = r.TFile(self.steps[0].outputFileName(), "RECREATE")
         self.writeNodesUsed()
         self.writeHistosFromBooks()
         outputFile.Close()
@@ -220,8 +223,9 @@ class analysisLooper :
             for step in self.steps :
                 d = {}
                 vars = set(step.varsToPickle())
-                items = ["nPass","nFail"]
-                assert not vars.intersection(set(items)), "Variables to be pickled cannot be called anything in %s."%str(items)
+                items = ["nPass", "nFail", "outputFileName"]
+                inter = vars.intersection(set(items))
+                assert not inter, "Variables to be pickled cannot be called anything in %s; %s is trying to pickle %s."%(str(items), step.name(), str(inter))
                 for item in vars :
                     d[item] = getattr(step, item)
                 for item in items :
@@ -229,7 +233,7 @@ class analysisLooper :
                 out.append(d)
             return out
             
-        outFileName = os.path.expanduser(self.outputStepAndCalculableDataFileName)
+        outFileName = os.path.expanduser(self.outputStepAndCalculableDataFileName())
         outFile = open(outFileName,"w")
         cPickle.dump([listToDump(), self.listOfCalculablesUsed, self.listOfLeavesUsed], outFile)
         outFile.close()
