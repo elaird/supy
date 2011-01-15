@@ -33,7 +33,7 @@ class analysisStep(object) :
     def varsToPickle(self) : return []
 
     def setOutputFileStem(self, stem) : self._outputFileStem = stem
-    def outputSuffix(self) : return "_.txt"%self.name()
+    def outputSuffix(self) : return "_%s.txt"%self.name()
     def outputFileName(self) : return "%s%s"%(self._outputFileStem, self.outputSuffix())
     
     def requiresNoSetBranchAddress(self) : return False
