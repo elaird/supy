@@ -48,7 +48,7 @@ class displayer(analysisStep) :
     def outputSuffix(self) :
         return "_displays.root"
     
-    def setup(self, chain, fileDir, name, outputDir) :
+    def setup(self, chain, fileDir) :
         someDir = r.gDirectory
         self.outputFile = r.TFile(self.outputFileName(), "RECREATE")
         someDir.cd()

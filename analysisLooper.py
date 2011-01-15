@@ -129,7 +129,7 @@ class analysisLooper :
             step.isSelector = hasattr(step,"select")            
             assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.name()
             if step.requiresNoSetBranchAddress() : returnValue = False
-            step.setup(self.inputChain, self.fileDirectory, self.name, self.outputDir)
+            step.setup(self.inputChain, self.fileDirectory)
 
         r.gROOT.cd()
         return returnValue

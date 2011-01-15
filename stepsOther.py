@@ -81,7 +81,7 @@ class skimmer(analysisStep) :
     def requiresNoSetBranchAddress(self) :
         return True
 
-    def setup(self, chain, fileDir, name, outputDir) :
+    def setup(self, chain, fileDir) :
         self.fileDir = fileDir
         self.outputFile = r.TFile(self.outputFileName(), "RECREATE")
         self.setupMainChain(chain)
