@@ -83,18 +83,15 @@ class skimmer(analysisStep) :
 
     def setup(self, chain, fileDir, name, outputDir) :
         self.fileDir = fileDir
-        self.outputFileName = "%s/%s_skim.root"%(outputDir, name)
-        os.system("mkdir -p "+outputDir)
-        self.outputFile = r.TFile(self.outputFileName,"RECREATE")
-
-        self.setupMainChain(chain, fileDir)
+        self.outputFile = r.TFile(self.outputFileName(), "RECREATE")
+        self.setupMainChain(chain)
         self.initExtraTree()
 
-    def setupMainChain(self, chain, fileDir) :
+    def setupMainChain(self, chain) :
         self.outputFile.mkdir(self.fileDir)
         self.outputFile.cd(self.fileDir)
         if chain and chain.GetEntry(0)>0 :
-            self.outputTree=chain.CloneTree(0)    #clone structure of tree (but no entries)
+            self.outputTree = chain.CloneTree(0)  #clone structure of tree (but no entries)
         if not self.outputTree :                  #in case the chain has 0 entries
             r.gROOT.cd()
             return
@@ -171,9 +168,9 @@ class skimmer(analysisStep) :
         self.writeOtherChains(otherChainDict)
         self.outputFile.Close()
 
-    def varsToPickle(self) :
-        return ["outputFileName"]
-
+    def outputSuffix(self) :
+        return "_skim.root"
+    
     def mergeFunc(self, productList, someLooper) :
         print "The %d skim files have been written."%len(productList)
         print "( e.g. %s )"%productList[0]["outputFileName"]
