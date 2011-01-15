@@ -44,12 +44,13 @@ class displayer(analysisStep) :
         
         self.legendDict = collections.defaultdict(int)
         self.legendList = []
-        
-    def setup(self,chain,fileDir,name,outputDir) :
-        someDir=r.gDirectory
-        self.outputFileName=outputDir+"/"+name+"_displays.root"
-        os.system("mkdir -p "+outputDir)
-        self.outputFile=r.TFile(self.outputFileName,"RECREATE")
+
+    def outputSuffix(self) :
+        return "_displays.root"
+    
+    def setup(self, chain, fileDir, name, outputDir) :
+        someDir = r.gDirectory
+        self.outputFile = r.TFile(self.outputFileName(), "RECREATE")
         someDir.cd()
 
         self.canvas = utils.canvas("canvas")
@@ -888,9 +889,6 @@ class displayer(analysisStep) :
         self.canvasIndex+=1
         someDir.cd()
 
-    def varsToPickle(self) :
-        return ["outputFileName"]
-
     def mergeFunc(self, productList, someLooper) :
         def psFromRoot(listOfInFileNames, outFileName) :
             if not len(listOfInFileNames) : return
@@ -914,6 +912,5 @@ class displayer(analysisStep) :
         
         if not len(productList) : return
         listOfFileNames = [p["outputFileName"] for p in productList]
-        outputFileName = listOfFileNames[0].replace(someLooper.name, someLooper.parentName).replace(".root", ".ps")
-        psFromRoot(listOfFileNames, outputFileName)
+        psFromRoot(listOfFileNames, self.outputFileName().replace(".root", ".ps"))
         print utils.hyphens
