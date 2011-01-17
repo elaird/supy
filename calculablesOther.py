@@ -98,7 +98,9 @@ class Mt(wrappedChain.calculable) :
         self.moreName = "%s%s, %s, byHand=%d"%(collection[0], collection[1], met, byHand)
 
     def update(self, ignored) :
-        if not len(self.Indices) : return -1.0
+        if not len(self.Indices) :
+            self.value= -1.0
+            return
         lep = self.source[self.P4][self.source[self.Indices][0]]
         met = self.source[self.met]
 
