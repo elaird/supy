@@ -130,11 +130,9 @@ class analysis(object) :
             looper.inputFiles = cPickle.load(someFile)[job["iSlice"]::self._nSlices] #choose appropriate slice
             someFile.close()
 
-            oldName = looper.name
             looper.name = childName(looper.name, job["iSlice"])
             looper.outputDir = self.outputDirectory(self._configurations[job["iConfig"]])
 
-            looper.parentName = oldName
             looper.setQuietMode(self._loop)
             listOfLoopers.append(looper)
 

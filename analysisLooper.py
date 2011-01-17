@@ -21,7 +21,6 @@ class analysisLooper :
         self.steps = copy.deepcopy(steps)
         self.calculables = copy.deepcopy(calculables)
 
-        self.parentName = self.name
         self.quietMode = False
 
     def outputFileStem(self) :
