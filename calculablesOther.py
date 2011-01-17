@@ -1,5 +1,5 @@
 from wrappedChain import *
-import calculables
+import calculables,math
 #####################################
 class localEntry(wrappedChain.calculable) :
     def update(self,localEntry) :
@@ -85,4 +85,25 @@ class lowestUnPrescaledTrigger(wrappedChain.calculable) :
             if self.source["prescaled"][path]==1 :
                 self.value = path
                 break
+##############################
+class Mt(wrappedChain.calculable) :
+    def name(self) :
+        return "%sMt%s%s"%(self.fixes[0], self.fixes[1], self.met)
+    
+    def __init__(self, collection = None, met = None, byHand = True ) :
+        self.met = met
+        self.fixes = collection
+        self.stash(["Indices","P4"])
+        self.byHand = byHand
+        self.moreName = "%s%s, %s, byHand=%d"%(collection[0], collection[1], met, byHand)
+
+    def update(self, ignored) :
+        if not len(self.Indices) : return -1.0
+        lep = self.source[self.P4][self.source[self.Indices][0]]
+        met = self.source[self.met]
+
+        if self.byHand :
+            self.value = math.sqrt( 2.0*lep.pt()*met.pt()*(1.0 - math.cos(r.Math.VectorUtil.DeltaPhi(lep, met))) )
+        else :
+            self.value = (lep+met).Mt()
 #####################################
