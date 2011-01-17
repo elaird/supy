@@ -36,7 +36,6 @@ Other
 * store inputFileList in root file?
 
 * analysis restructure
-* make prettier oldName in analysis.py
 * consider arguments to analysisLooper
 * generic batch mode
 * move ratio marker
