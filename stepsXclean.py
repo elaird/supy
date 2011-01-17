@@ -36,7 +36,22 @@ class vetoLists(analysisStep) :
         self.uniqueMuMatch="%s%sNonIsoMuonsUniquelyMatched"%objects["jet"]
         self.keys = ["any"]+[key for key,indices in self.lenkeys]+["nonUniqueMuMatch"]
         self.lists = dict([(key,[]) for key in self.keys])
+
         
+    def varsToPickle(self) :
+        return ["lists"]
+
+    def mergeFunc(self, productList, someLooper) :
+        for lists in [p["lists"] for p in productList] :
+            for key in self.keys :
+                self.lists[key] += lists[key]
+
+        for key in self.lists:
+            out = open("%s_%sVetos.txt"%(self.outputFileName(),key), "w")
+            for RLE in sorted(self.lists[key]) : print >> out, "%d, %d, %d" % RLE
+            out.close()
+        print "The vetoLists have been written."
+
     def uponAcceptance(self,eventVars) :
         for key,indices in self.lenkeys : self.vetos[key] = bool(len(eventVars[indices]))
         self.vetos["nonUniqueMuMatch"] = not eventVars["crock"][self.uniqueMuMatch]
@@ -46,12 +61,6 @@ class vetoLists(analysisStep) :
         runLumiEvent = (eventVars["run"],eventVars["lumiSection"],eventVars["event"])
         for key in self.keys :
             if self.vetos[key] : self.lists[key].append(runLumiEvent)
-        
-    def endFunc(self, otherChainDict) :
-        for key in self.lists :
-            file = open("%sVetos.txt"%key,"w")
-            for RLE in sorted(self.lists[key]) : print >>file, "%d, %d, %d"%RLE
-            file.close()
 #####################################
 class ecalDepositValidator(analysisStep):
     def __init__(self,objects,dR) :
