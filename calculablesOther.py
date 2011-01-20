@@ -109,3 +109,20 @@ class Mt(wrappedChain.calculable) :
         else :
             self.value = (lep+met).Mt()
 #####################################
+class RelativeEta(wrappedChain.calculable) :
+    def __init__(self, collection = None, MET = None) :
+        self.fixes = collection
+        self.stash(["Indices","P4","Charge"])
+        self.MET = MET
+        self.moreName = "%s%s; %s; sign(SumP4.z)*mu.eta*mu.charge"%(collection+(MET,))
+
+    def update(self,ignored) :
+        indices = self.source[self.Indices]
+        if not len(indices):
+            self.value=0
+            return
+        index = indices[0]
+        met = self.source[self.MET]
+        
+        self.value = (1 if met.pz()>0 else -1) * self.source[self.P4][index].eta() * self.source[self.Charge][index]
+#####################################
