@@ -1,4 +1,4 @@
-import copy,array,os,collections
+import copy,array,os,collections,re
 import ROOT as r
 from analysisStep import analysisStep
 import utils
@@ -601,7 +601,7 @@ class vertexHistogrammer(analysisStep) :
 
 #####################################
 class cutSorter(analysisStep) :
-    def __init__(self, listOfSteps, applySelections = True ) :
+    def __init__(self, listOfSteps = [], applySelections = True ) :
         self.selectors = filter(lambda s: hasattr(s,"select") and type(s)!=passFilter, listOfSteps)
         self.applySelections = applySelections
         self.moreName = "Applied" if applySelections else "Not Applied"
@@ -617,3 +617,25 @@ class cutSorter(analysisStep) :
         bins = len(self.selectors)
         self.book.fill(1, "cutSorterNames", bins, 0, bins, title = ";cutName", xAxisLabels = [sel.__class__.__name__ for sel in self.selectors])
         self.book.fill(1, "cutSorterMoreNames", bins, 0, bins, title = ";cutMoreName", xAxisLabels = [sel.moreName for sel in self.selectors])
+#####################################
+class triggerSet(analysisStep) :
+    def __init__(self, pattern = r".*", prescaleRequirement = "True") :
+        self.pattern = pattern
+        self.prescaleRequirement = prescaleRequirement
+        self.triggerNames = set()
+
+    def uponAcceptance(self,eventVars) :
+        for name,prescale in eventVars["prescaled"] :
+            if re.match(self.pattern,name) and eval(self.prescaleRequirement) :
+                self.triggerNames.add(name)
+
+    def varsToPickle(self) : return ["triggerNames"]
+        
+    def outputSuffix(self) : "_triggerSet.txt"
+
+    def mergeFunc(self,productList, someLooper) :
+        names = reduce(lambda a,b: a|b, [p["triggerNames"] for p in productList],set())
+        outFile = open(self.outputFileName(),"w")
+        for name in names: print >>outFile, name
+        outFile.close()
+        print "The trigger names file %s has been written."%self.outputFileName()
