@@ -1,6 +1,6 @@
 import ROOT as r
 from analysisStep import analysisStep
-import math,collections,os,utils
+import math,collections,os,utils,re
 #####################################
 class physicsDeclared(analysisStep) :
 
@@ -208,3 +208,55 @@ class jetMetTriggerHistogrammer(analysisStep) :
         self.book.fill( (triggerJetPt,offlineJetPt), "OfflineJetPt_vs_TriggerJetPt", (100,100), (0.0,0.0), (200.0,200.0),
                         title=";leading un-corr. %s p_{T} (GeV);%s p_{T} (GeV);events / bin"%(self.triggerJets,self.offlineJets))
 #####################################
+class triggerScan(analysisStep) :
+    def __init__(self, pattern = r".*", prescaleRequirement = "True", tag = "") :
+        self.tag = tag
+        self.pattern = pattern
+        self.prescaleRequirement = prescaleRequirement
+        self.moreName = "%s; %s"%(pattern, prescaleRequirement)
+
+        self.triggerNames = collections.defaultdict(set)
+        self.counts = collections.defaultdict(int)
+
+    def uponAcceptance(self,eventVars) :
+        key = (eventVars["run"],eventVars["lumiSection"])
+        self.counts[key] += 1
+        if key not in self.triggerNames :
+            for name,prescale in eventVars["prescaled"] :
+                if re.match(self.pattern,name) and eval(self.prescaleRequirement) :
+                    self.triggerNames[key].add(name)
+
+    def varsToPickle(self) : return ["triggerNames","counts"]
+        
+    def outputSuffix(self) : return "_triggerScan%s.txt"%self.tag
+
+    def mergeFunc(self,products) :
+        def update(a,b) : a.update(b); return a;
+        self.triggerNames = reduce(update, products["triggerNames"], dict())
+        self.counts = reduce(update, products["counts"], dict())
+
+        names = sorted(list(reduce(lambda a,b: a|b, self.triggerNames.values(), set())))
+        outFile = open(self.outputFileName(),"w")
+        for name in names: print >>outFile, name
+        outFile.close()
+        print "The trigger names file %s has been written."%self.outputFileName()
+
+        reducedNames = []
+        reducedCounts = []
+        order = sorted(self.triggerNames.keys())
+        for key in order :
+            if (not reducedNames) or reducedNames[-1] != self.triggerNames[key] :
+                reducedNames.append(self.triggerNames[key])
+                reducedCounts.append(self.counts[key])
+            else : reducedCounts[-1] += self.counts[key]
+
+        hist = r.TH2D("triggerScan","",len(reducedNames),0,len(reducedNames),len(names),0,len(names))
+        for i,name in enumerate(names) : hist.GetYaxis().SetBinLabel(i+1,name)
+        for i, iNames, iCount in zip(range(len(reducedNames)), reducedNames, reducedCounts) :
+            for name in iNames :
+                j = names.index(name)
+                hist.SetBinContent(i+1,j+1,iCount)
+        file = r.TFile.Open(self.outputFileName()+".root","RECREATE")
+        hist.Write()
+        file.Close()
+        print "The output file %s.root has been written."%self.outputFileName()
