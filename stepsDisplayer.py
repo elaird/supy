@@ -889,7 +889,7 @@ class displayer(analysisStep) :
         self.canvasIndex+=1
         someDir.cd()
 
-    def mergeFunc(self, productList, someLooper) :
+    def mergeFunc(self, products) :
         def psFromRoot(listOfInFileNames, outFileName) :
             if not len(listOfInFileNames) : return
             options = ""
@@ -910,7 +910,5 @@ class displayer(analysisStep) :
             os.system("gzip -f "+outFileName)
             print "The display file \""+pdfFileName+"\" has been written."    
         
-        if not len(productList) : return
-        listOfFileNames = [p["outputFileName"] for p in productList]
-        psFromRoot(listOfFileNames, self.outputFileName().replace(".root", ".ps"))
+        psFromRoot(products["outputFileName"], self.outputFileName().replace(".root", ".ps"))
         print utils.hyphens

@@ -41,8 +41,8 @@ class vetoLists(analysisStep) :
     def varsToPickle(self) :
         return ["lists"]
 
-    def mergeFunc(self, productList, someLooper) :
-        for lists in [p["lists"] for p in productList] :
+    def mergeFunc(self, products) :
+        for lists in products["lists"] :
             for key in self.keys :
                 self.lists[key] += lists[key]
 

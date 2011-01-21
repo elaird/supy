@@ -70,7 +70,7 @@ class Counts(analysisStep) :
     def varsToPickle(self) :
         return ["counts"]
 
-    def mergeFunc(self, productList, someLooper) :
+    def mergeFunc(self, products) :
         def mergedCounts(l) :
             out = collections.defaultdict(int)
             for d in l :
@@ -78,7 +78,7 @@ class Counts(analysisStep) :
                     out[key] += value
             return out
 
-        counts = mergedCounts([p["counts"] for p in productList])
+        counts = mergedCounts(products["counts"])
         outFile = open(self.outputFileName(),"w")
 
         maxNameLength = max([len(key) for key in counts.keys()])

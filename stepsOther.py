@@ -171,9 +171,9 @@ class skimmer(analysisStep) :
     def outputSuffix(self) :
         return "_skim.root"
     
-    def mergeFunc(self, productList, someLooper) :
-        print "The %d skim files have been written."%len(productList)
-        print "( e.g. %s )"%productList[0]["outputFileName"]
+    def mergeFunc(self, products) :
+        print "The %d skim files have been written."%len(products["outputFileName"])
+        print "( e.g. %s )"%products["outputFileName"][0]
         print utils.hyphens
 #####################################
 class hbheNoiseFilter(analysisStep) :
@@ -418,9 +418,9 @@ class pickEventSpecMaker(analysisStep) :
     def varsToPickle(self) :
         return ["events"]
 
-    def mergeFunc(self, productList, someLooper) :
+    def mergeFunc(self, products) :
         out = open(self.outputFileName(), "w")
-        for events in [p["events"] for p in productList] :
+        for events in products["events"] :
             for event in events :
                 out.write("%14d:%6d:%14d\n"%event)
         out.close()
@@ -441,7 +441,7 @@ class jsonMaker(analysisStep) :
     def outputSuffix(self) :
         return ".json"
     
-    def mergeFunc(self, productList, someLooper) :
+    def mergeFunc(self, products) :
         def mergedDict(runLsDicts) :
             #merge results into one dictionary
             out = collections.defaultdict(list)
@@ -480,10 +480,8 @@ class jsonMaker(analysisStep) :
                 outDict[str(run)] = newList
             return str(outDict).replace("'",'"')
 
-        runLsDicts = [p["runLsDict"] for p in productList]
-        
         outFile = open(self.outputFileName(),"w")
-        outFile.write(aJson(mergedDict(runLsDicts)))
+        outFile.write(aJson(mergedDict(products["runLsDict"])))
         outFile.close()
         print "The json file %s has been written."%self.outputFileName()
         print utils.hyphens
@@ -498,7 +496,7 @@ class duplicateEventCheck(analysisStep) :
     def varsToPickle(self) :
         return ["events"]
 
-    def mergeFunc(self, productList, someLooper) :
+    def mergeFunc(self, products) :
         def mergedEventDicts(l) :
             out = collections.defaultdict(list)
             for d in l :
@@ -513,7 +511,7 @@ class duplicateEventCheck(analysisStep) :
             return list(set(l))
 
         anyDups = False
-        events = mergedEventDicts([p["events"] for p in productList])
+        events = mergedEventDicts(products["events"])
         for runLs in sorted(events.keys()) :
             d = duplicates(events[runLs])
             if d :
