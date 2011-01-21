@@ -69,7 +69,7 @@ class photonLook(analysis.analysis) :
                                            ),
                  calculables.Jet.Indices( obj["jet"], _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
                  calculables.Jet.Indices( obj["jet"], params["lowPtThreshold"], etaMax = 3.0, flagName = params["jetId"], extraName = params["lowPtName"]),
-                 calculables.Muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
+                 calculables.Muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15, requireIsGlobal = False),
                  #calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
                  calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95NoConversionRejection", useCombinedIso = True),
                  calculables.Photon.photonIndicesPat(  ptMin = 25, flagName = params["photonId"]),
@@ -211,10 +211,13 @@ class photonLook(analysis.analysis) :
             steps.Gen.photonPurityPlots("Status1Photon", _jet, _photon),
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
 
+            steps.Other.histogrammer("%sSumEt%s"%_jet, 12, 250, 550, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
+            steps.Other.variableGreaterFilter(450.0, "%sSumEt%s"%_jet, suffix = "GeV"),
+        
             #steps.Other.histogrammer("%sMht%sOver%s" %(_jet[0], _jet[1], _met+"Plus%s%s"%_photon), 100, 0.0, 3.0,
             #                         title = ";MHT %s%s / %s;events / bin"%(_jet[0], _jet[1], _met+"Plus%s%s"%_photon)),
             #steps.Other.variableLessFilter(1.25,"%sMht%sOver%s" %(_jet[0], _jet[1], _met+"Plus%s%s"%_photon)),
-            steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
+            #steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
         
             #steps.Gen.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
             
@@ -252,63 +255,61 @@ class photonLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
 
-        data = [
-            #specify(name = "Nov4_MJ_noIsoReqSkim"),
-            #specify(name = "Nov4_J_noIsoReqSkim"),
-            #specify(name = "Nov4_J2_noIsoReqSkim"),
-            #specify(name = "Nov4_JM_noIsoReqSkim"),
-            #specify(name = "Nov4_JMT_noIsoReqSkim"),
-            #specify(name = "Nov4_JMT2_noIsoReqSkim"),
+        #data = specify(names = ["Nov4_MJ_noIsoReqSkim",
+        #                        "Nov4_J_noIsoReqSkim",
+        #                        "Nov4_J2_noIsoReqSkim",
+        #                        "Nov4_JM_noIsoReqSkim",
+        #                        "Nov4_JMT_noIsoReqSkim",
+        #                        "Nov4_JMT2_noIsoReqSkim",
+        #                        ])
 
-            specify(name = "Run2010A_JMT_skim_noIsoReqSkim"),
-            specify(name = "Run2010A_JM_skim_noIsoReqSkim"),
-            specify(name = "Run2010B_J_skim_noIsoReqSkim"),
-            specify(name = "Run2010B_J_skim2_noIsoReqSkim"),
-            specify(name = "Run2010B_MJ_skim_noIsoReqSkim"),
-            specify(name = "Run2010B_MJ_skim2_noIsoReqSkim"),
-            specify(name = "Run2010B_MJ_skim3_noIsoReqSkim"),
-            specify(name = "Run2010B_MJ_skim4_noIsoReqSkim"),
-            #specify(name = "Run2010B_MJ_skim5_noIsoReqSkim"),
-            ]
+        data = specify(names = ["Run2010A_JMT_skim_noIsoReqSkim",
+                                "Run2010A_JM_skim_noIsoReqSkim",
+                                "Run2010B_J_skim_noIsoReqSkim",
+                                "Run2010B_J_skim2_noIsoReqSkim",
+                                "Run2010B_MJ_skim_noIsoReqSkim",
+                                "Run2010B_MJ_skim2_noIsoReqSkim",
+                                "Run2010B_MJ_skim3_noIsoReqSkim",
+                                "Run2010B_MJ_skim4_noIsoReqSkim",
+                                #"Run2010B_MJ_skim5_noIsoReqSkim",
+                                ])
 
-        qcd_mg = [
-            #specify(name = "v12_qcd_mg_ht_50_100_noIsoReqSkim"),
-            specify(name = "v12_qcd_mg_ht_100_250_noIsoReqSkim"),
-            specify(name = "v12_qcd_mg_ht_250_500_noIsoReqSkim"),
-            specify(name = "v12_qcd_mg_ht_500_1000_noIsoReqSkim"),
-            specify(name = "v12_qcd_mg_ht_1000_inf_noIsoReqSkim"),
-            ]
+        qcd_mg = specify(names = [#"v12_qcd_mg_ht_50_100_noIsoReqSkim",
+                                  "v12_qcd_mg_ht_100_250_noIsoReqSkim",
+                                  "v12_qcd_mg_ht_250_500_noIsoReqSkim",
+                                  "v12_qcd_mg_ht_500_1000_noIsoReqSkim",
+                                  "v12_qcd_mg_ht_1000_inf_noIsoReqSkim",
+                                  ])
 
-        g_jets_mg = [
-            specify(name = "v12_g_jets_mg_pt40_100_noIsoReqSkim"),
-            specify(name = "v12_g_jets_mg_pt100_200_noIsoReqSkim"),
-            specify(name = "v12_g_jets_mg_pt200_noIsoReqSkim"),
-            ]
+        g_jets_mg = specify(names = ["v12_g_jets_mg_pt40_100_noIsoReqSkim",
+                                     "v12_g_jets_mg_pt100_200_noIsoReqSkim",
+                                     "v12_g_jets_mg_pt200_noIsoReqSkim"
+                                     ])
 
-        qcd_mg_full = [
-            specify(name = "v12_qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "v12_qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "v12_qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "v12_qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
-            specify(name = "v12_qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
-            ]
-
-        g_jets_mg_full = [                                               
-            specify(name = "v12_g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
-            specify(name = "v12_g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
-            specify(name = "v12_g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
-            ]
-
-        ttbar_mg_full = [                                                
-            specify(name = "tt_tauola_mg_v12",          nFilesMax =  3, color = r.kOrange  ),
-            ]
-
-        ewk_mg_full = [                                                     
-            specify(name = "z_jets_mg_v12",             nFilesMax = -1, color = r.kYellow-3),
-            specify(name = "w_jets_mg_v12",             nFilesMax = -1, color = 28         ),
-            ]
-
-        zinv_mg = [specify(name = "z_inv_mg_v12_skim", nFilesMax = -1, color = r.kMagenta )]
+        #qcd_mg_full = [
+        #    specify(name = "v12_qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
+        #    specify(name = "v12_qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
+        #    specify(name = "v12_qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
+        #    specify(name = "v12_qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
+        #    specify(name = "v12_qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
+        #    ]
+        #
+        #g_jets_mg_full = [                                               
+        #    specify(name = "v12_g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
+        #    specify(name = "v12_g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
+        #    specify(name = "v12_g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
+        #    ]
+        #
+        #ttbar_mg_full = [                                                
+        #    specify(name = "tt_tauola_mg_v12",          nFilesMax =  3, color = r.kOrange  ),
+        #    ]
+        #
+        #ewk_mg_full = [                                                     
+        #    specify(name = "z_jets_mg_v12",             nFilesMax = -1, color = r.kYellow-3),
+        #    specify(name = "w_jets_mg_v12",             nFilesMax = -1, color = 28         ),
+        #    ]
+        #
+        #zinv_mg = [specify(name = "z_inv_mg_v12_skim", nFilesMax = -1, color = r.kMagenta )]
 
         outList = []
 
@@ -324,7 +325,7 @@ class photonLook(analysis.analysis) :
         ##uncomment for short tests
         #for i in range(len(outList)):
         #    o = outList[i]
-        #    outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
+        #    outList[i] = specify(names = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)[0]
         
         return outList
 
@@ -385,6 +386,8 @@ class photonLook(analysis.analysis) :
                                           "nJetsStatus1Photon", "jetHtStatus1Photon",
                                           "nJetsPlusnPhotonsStatus1Photon", "jetHtPlusPhotonHtStatus1Photon",
                                           ],
+                             doLog = False,
+                             showStatBox = False,
                              #whiteList = ["xcak5JetIndicesPat",
                              #             #"photonPat1Pt",
                              #             #"photonPat1mhtVsPhotonPt",
