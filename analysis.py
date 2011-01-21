@@ -324,12 +324,19 @@ def mergeFunc(looper, listOfSlices) :
             leaves = list(set(leaves))
         return prods,calcs,leaves
 
+    def rearrangedProducts(prods) :
+        out = collections.defaultdict(list)
+        for d in prods :
+            for key,value in d.iteritems() :
+                out[key].append(value)
+        return out
+                
     cleanUpList = []
     looper.setupSteps(minimal = True)
     prods, looper.listOfCalculablesUsed, looper.listOfLeavesUsed = products()
     looper.printStats()
     print utils.hyphens
     for step,productList in zip(looper.steps, prods) :
-        step.mergeFunc(productList, looper)
+        step.mergeFunc(rearrangedProducts(productList))
 
     cleanUp(cleanUpList)

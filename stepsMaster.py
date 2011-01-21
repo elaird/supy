@@ -26,7 +26,7 @@ class master(analysisStep) :
     def outputSuffix(self) :
         return "_plots.root"
     
-    def mergeFunc(self, listOfProducts, someLooper) :
+    def mergeFunc(self, products) :
         def printComment(lines) :
             for line in lines.split("\n") :
                 if 'Source file' in line or \
@@ -40,8 +40,7 @@ class master(analysisStep) :
             for fileName in files :
                 os.remove(fileName)
 
-        files = [p["outputFileName"] for p in listOfProducts]
-        hAdd = utils.getCommandOutput("hadd -f %s %s"%(self.outputFileName(), " ".join(files)))
+        hAdd = utils.getCommandOutput("hadd -f %s %s"%(self.outputFileName(), " ".join(products["outputFileName"])))
         
         printComment(hAdd["stdout"])
-        cleanUp(hAdd["stderr"], files)
+        cleanUp(hAdd["stderr"], products["outputFileName"])

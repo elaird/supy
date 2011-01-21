@@ -26,7 +26,7 @@ class analysisStep(object) :
     def increment(self, passed, w = 1) : self.book.fill(passed, "counts", 2, 0, 2, w = w)
     def setup(self, inputChain, fileDirectory) : return
     def endFunc(self, otherChainDict) : return
-    def mergeFunc(self, productList, someLooper) : return
+    def mergeFunc(self, products) : return
     def name(self) : return self.__class__.__name__
     def name1(self) : return self.name().ljust(self.docWidth)+self.moreName.ljust(self.moreWidth)
     def name2(self) : return "" if self.moreName2=="" else "\n"+"".ljust(self.docWidth)+self.moreName2.ljust(self.moreWidth)
