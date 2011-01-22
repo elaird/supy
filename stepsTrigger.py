@@ -250,7 +250,7 @@ class triggerScan(analysisStep) :
                                                                            self.prescaleRequirement,
                                                                            self._outputFileStem.split('/')[-1]),
                       len(reducedNames),0,len(reducedNames),len(names),0,len(names))
-        for i,name in enumerate(names) : hist.GetYaxis().SetBinLabel(i+1,name[4:] if name[:4]=="HLT_" else name)
+        for i,name in enumerate(names) : hist.GetYaxis().SetBinLabel(i+1,name.replace("HLT_",""))
         for i in range(len(reducedNames)) : hist.GetXaxis().SetBinLabel(i+1,"%d"%(i+1))
         
         for i, iNames, iCount in zip(range(len(reducedNames)), reducedNames, reducedCounts) :
