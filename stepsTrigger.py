@@ -228,7 +228,7 @@ class triggerScan(analysisStep) :
 
     def varsToPickle(self) : return ["triggerNames","counts"]
         
-    def outputSuffix(self) : return "_triggerScan%s.txt"%self.tag
+    def outputSuffix(self) : return "_triggerScan%s.root"%self.tag
 
     def mergeFunc(self,products) :
         def update(a,b) : a.update(b); return a;
@@ -236,10 +236,6 @@ class triggerScan(analysisStep) :
         self.counts = reduce(update, products["counts"], dict())
 
         names = sorted(list(reduce(lambda a,b: a|b, self.triggerNames.values(), set())))
-        outFile = open(self.outputFileName(),"w")
-        for name in names: print >>outFile, name
-        outFile.close()
-        print "The trigger names file %s has been written."%self.outputFileName()
 
         reducedNames = []
         reducedCounts = []
@@ -250,13 +246,16 @@ class triggerScan(analysisStep) :
                 reducedCounts.append(self.counts[key])
             else : reducedCounts[-1] += self.counts[key]
 
-        hist = r.TH2D("triggerScan","",len(reducedNames),0,len(reducedNames),len(names),0,len(names))
-        for i,name in enumerate(names) : hist.GetYaxis().SetBinLabel(i+1,name)
+        hist = r.TH2D("triggerScan","(%s) with (%s);epochs of %s;;events"%(self.pattern,self.prescaleRequirement,self._outputFileStem),
+                      len(reducedNames),0,len(reducedNames),len(names),0,len(names))
+        for i,name in enumerate(names) : hist.GetYaxis().SetBinLabel(i+1,name[5:] if name[:5]=="HLT_" else name)
+        for i in range(len(reducedNames)) : hist.GetXaxis().SetBinLabel(i+1,"%d"%(i+1))
+        
         for i, iNames, iCount in zip(range(len(reducedNames)), reducedNames, reducedCounts) :
             for name in iNames :
                 j = names.index(name)
                 hist.SetBinContent(i+1,j+1,iCount)
-        file = r.TFile.Open(self.outputFileName()+".root","RECREATE")
+        file = r.TFile.Open(self.outputFileName(),"RECREATE")
         hist.Write()
         file.Close()
-        print "The output file %s.root has been written."%self.outputFileName()
+        print "The output file %s has been written."%self.outputFileName()
