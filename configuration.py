@@ -1,3 +1,5 @@
+import os
+
 def maxArrayLength() :
     return 256
 
@@ -28,9 +30,25 @@ def histogramsToDisableForMc() :
 def sourceFiles() :
     return ["pragmas.h"]
 
-def batchScripts(hostName) :
-    d = {"lx05.hep.ph.ic.ac.uk":("icSub.sh","icJob.sh"),
-         "lx06.hep.ph.ic.ac.uk":("icSub.sh","icJob.sh"),
+def sitePrefix() :
+    d = {"hep.ph.ic.ac.uk":"ic",
+         "sesame1":"pu",
          }
-    assert hostName in d,"hostname %s not recognized"%hostName
-    return d[hostName]
+
+    hostName = os.environ["HOSTNAME"]
+    for match,prefix in d.iteritems() :
+        if match in hostName :
+            return prefix
+    assert False,"hostname %s does not match anything in %s"%(hostName, str(d))
+
+def batchScripts() :
+    p = sitePrefix()
+    return ("%sSub.sh"%p, "%sJob.sh"%p)
+
+def outputDir() :
+    user = os.environ["USER"]
+    default = "/tmp/%s"%user
+    d = {"ic":"/vols/cms02/%s/tmp/"%user}
+         
+    sp = sitePrefix()
+    return d[sp] if (sp in d) else default

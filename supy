@@ -77,7 +77,7 @@ def doBatch(someInstance) :
     scriptDir = someInstance.namedOutputDirectory()
     os.system("mkdir -p "+scriptDir)
 
-    subScript,jobScript = configuration.batchScripts(hostName = os.environ["HOSTNAME"])
+    subScript,jobScript = configuration.batchScripts()
     os.system("chmod +x "+subScript)
     
     for iJob,listOfIndices in enumerate( someInstance.jobs() ) :
