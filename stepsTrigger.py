@@ -1,5 +1,6 @@
 import ROOT as r
 from analysisStep import analysisStep
+import stepsMaster
 import math,collections,os,utils,re
 #####################################
 class physicsDeclared(analysisStep) :
@@ -228,7 +229,7 @@ class triggerScan(analysisStep) :
 
     def varsToPickle(self) : return ["triggerNames","counts"]
         
-    def outputSuffix(self) : return "_triggerScan%s.root"%self.tag
+    def outputSuffix(self) : return stepsMaster.master.outputSuffix()
 
     def mergeFunc(self,products) :
         def update(a,b) : a.update(b); return a;
@@ -246,9 +247,8 @@ class triggerScan(analysisStep) :
                 reducedCounts.append(self.counts[key])
             else : reducedCounts[-1] += self.counts[key]
 
-        hist = r.TH2D("triggerScan","(%s) with (%s);epochs of %s;;events"%(self.pattern,
-                                                                           self.prescaleRequirement,
-                                                                           self._outputFileStem.split('/')[-1]),
+        hist = r.TH2D(self.tag if self.tag else "triggerScan",
+                      "(%s) with (%s);epochs of %s;;events"%(self.pattern, self.prescaleRequirement, self._outputFileStem.split('/')[-1]),
                       len(reducedNames),0,len(reducedNames),len(names),0,len(names))
         for i,name in enumerate(names) : hist.GetYaxis().SetBinLabel(i+1,name.replace("HLT_",""))
         for i in range(len(reducedNames)) : hist.GetXaxis().SetBinLabel(i+1,"%d"%(i+1))
@@ -257,7 +257,11 @@ class triggerScan(analysisStep) :
             for name in iNames :
                 j = names.index(name)
                 hist.SetBinContent(i+1,j+1,iCount)
-        file = r.TFile.Open(self.outputFileName(),"RECREATE")
+
+        file = r.TFile.Open(self.outputFileName(),"UPDATE")
+        if not file.FindKey("triggerScan") : file.mkdir("triggerScan")
+        file.cd("triggerScan")
         hist.Write()
+        r.gROOT.cd()
         file.Close()
-        print "The output file %s has been written."%self.outputFileName()
+        print "The output file: %s has been updated with triggerScans."%self.outputFileName()
