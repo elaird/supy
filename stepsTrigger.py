@@ -246,9 +246,11 @@ class triggerScan(analysisStep) :
                 reducedCounts.append(self.counts[key])
             else : reducedCounts[-1] += self.counts[key]
 
-        hist = r.TH2D("triggerScan","(%s) with (%s);epochs of %s;;events"%(self.pattern,self.prescaleRequirement,self._outputFileStem),
+        hist = r.TH2D("triggerScan","(%s) with (%s);epochs of %s;;events"%(self.pattern,
+                                                                           self.prescaleRequirement,
+                                                                           self._outputFileStem.split('/')[-1]),
                       len(reducedNames),0,len(reducedNames),len(names),0,len(names))
-        for i,name in enumerate(names) : hist.GetYaxis().SetBinLabel(i+1,name[5:] if name[:5]=="HLT_" else name)
+        for i,name in enumerate(names) : hist.GetYaxis().SetBinLabel(i+1,name[4:] if name[:4]=="HLT_" else name)
         for i in range(len(reducedNames)) : hist.GetXaxis().SetBinLabel(i+1,"%d"%(i+1))
         
         for i, iNames, iCount in zip(range(len(reducedNames)), reducedNames, reducedCounts) :
