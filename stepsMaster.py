@@ -23,8 +23,8 @@ class master(analysisStep) :
         if self.lumi : self.book.fill(0.0, "lumiHisto", 1, -0.5, 0.5, title = "%s;dummy axis;integrated luminosity (pb^{-1})"%\
                                         ("" if not self.lumiWarn else "WARNING: lumi value is probably wrong!"), w = self.lumi)
 
-    @classmethod
-    def outputSuffix(cls) :
+    @staticmethod
+    def outputSuffix() :
         return "_plots.root"
     
     def mergeFunc(self, products) :
