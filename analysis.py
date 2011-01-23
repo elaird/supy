@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os,sys,copy,cPickle,collections
-import utils,steps,samples
+import utils,steps,samples,configuration
 from analysisLooper import analysisLooper
 import ROOT as r
 #####################################
@@ -32,6 +32,13 @@ class analysis(object) :
     def __init__(self, options) :
         self.name = self.__class__.__name__
 
+        self._batch   = options.batch
+        self._loop    = int(options.loop)   if options.loop!=None else None
+        self._nSlices = int(options.slices) if options.slices!=None else 1
+        self._profile = options.profile
+        self._jobId   = options.jobId
+        self._site    = options.site
+
         for item in ["baseOutputDirectory", "mainTree", "otherTreesToKeepWhenSkimming",
                      "leavesToBlackList", "printNodesUsed"] :
             setattr(self, "_"+item, getattr(self,item)() )
@@ -41,12 +48,6 @@ class analysis(object) :
 
         self.fileDirectory,self.treeName = self._mainTree
         self._configurations = listOfConfigurations(self.parameters())
-
-        self._batch   = options.batch
-        self._loop    = int(options.loop)   if options.loop!=None else None
-        self._nSlices = int(options.slices) if options.slices!=None else 1
-        self._profile = options.profile
-        self._jobId   = options.jobId
 
         self._listsOfLoopers = []
         self._jobs = []
@@ -68,8 +69,10 @@ class analysis(object) :
     def jobsFile(self) : return "%s/%s.jobs" % (self.namedOutputDirectory(),self.name)
     def outputDirectory(self, conf) : return "%s/%s/config%s" % (self.namedOutputDirectory(), conf["tag"], conf["codeString"])
     def psFileName(self,tag="") : return "%s/%s%s.ps" % (self.namedOutputDirectory(), self.name, "_"+tag if len(tag) else "")
-
-    def baseOutputDirectory(self) :      raise Exception("NotImplemented", "Implement a member function %s"%"baseOutputDirectory(self)")
+    def baseOutputDirectory(self) :
+        site = configuration.sitePrefix() if self._site==None else self._site
+        return configuration.outputDir(sitePrefix = site, isLocal = self._jobId!=None)
+        
     def listOfSteps(self,config) :       raise Exception("NotImplemented", "Implement a member function %s"%"listOfSteps(self,config)")
     def listOfCalculables(self,config) : raise Exception("NotImplemented", "Implement a member function %s"%"listOfCalculables(self,config)")
     def listOfSampleDictionaries(self) : raise Exception("NotImplemented", "Implement a member function %s"%"sampleDict(self)")
@@ -122,7 +125,7 @@ class analysis(object) :
         listOfLoopers = []
         for iJob,job in enumerate(self._jobs) :
             if self._jobId!=None and int(self._jobId)!=iJob : continue
-            #make sure output directory exists (perhaps not necessary-- to be checked)
+            #create output directory
             os.system("mkdir -p "+self.outputDirectory(self._configurations[job["iConfig"]]))
             #associate the file list
             looper = copy.deepcopy(self._listsOfLoopers[job["iConfig"]][job["iSample"]])
