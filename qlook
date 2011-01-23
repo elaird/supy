@@ -1,4 +1,4 @@
 #!/usr/bin/env python
 
 import configuration
-exec(configuration.qlook())
+exec("import %s"%configuration.qlook())
