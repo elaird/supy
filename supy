@@ -9,6 +9,7 @@ def opts() :
     parser.add_option("--profile", dest = "profile", default = False, action  = "store_true", help = "profile the code")
     parser.add_option("--batch",   dest = "batch",   default = False, action  = "store_true", help = "submit to batch queue")
     parser.add_option("--jobid",   dest = "jobId",   default = None,  metavar = "id",         help = "[for internal use only]")
+    parser.add_option("--site",    dest = "site",    default = None,  metavar = "prefix",     help = "[for internal use only]")
     options,args = parser.parse_args()
 
     if len(args)!=1 :
@@ -61,7 +62,7 @@ def submitBatchJob(jobCmd, iJob, indexDict, scriptDir, subScript, jobScript) :
 
     os.system("cp -p "+jobScript+" "+jobScriptFileName)
     outJobScript = open(jobScriptFileName,"a")
-    outJobScript.write("cd "+os.environ["PWD"]+"\n")
+    outJobScript.write("\ncd "+os.environ["PWD"]+"\n")
     outJobScript.write(jobCmd)
     outJobScript.close()
 
@@ -79,10 +80,12 @@ def doBatch(someInstance) :
 
     subScript,jobScript = configuration.batchScripts()
     os.system("chmod +x "+subScript)
-    
+
+    site = configuration.sitePrefix()
     for iJob,listOfIndices in enumerate( someInstance.jobs() ) :
-        submitBatchJob(baseCmd+" --jobid "+str(iJob), iJob, listOfIndices,
-                       scriptDir = scriptDir, subScript = subScript, jobScript = jobScript)
+        submitBatchJob("%s --jobid %d --site %s"%(baseCmd, iJob, site),
+                       iJob, listOfIndices, scriptDir = scriptDir, subScript = subScript, jobScript = jobScript)
+                       
     print
     print "You may do this to monitor your jobs (exit with CTRL-C):"
     print "watch 'qstat | head -40; find %s | grep -c root'"%someInstance.namedOutputDirectory()
