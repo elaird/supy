@@ -59,20 +59,30 @@ class Mt(wrappedChain.calculable) :
         else :
             self.value = (lep+met).Mt()
 #####################################
-class RelativeEta(wrappedChain.calculable) :
-    def __init__(self, collection = None, MET = None) :
+class SemileptonicTopIndex(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
         self.fixes = collection
-        self.stash(["Indices","P4","Charge"])
-        self.MET = MET
-        self.moreName = "%s%s; %s; sign(SumP4.z)*mu.eta*mu.charge"%(collection+(MET,))
+        self.stash(["Indices"])
+        self.moreName = "Just indices[0] for now."
 
     def update(self,ignored) :
         indices = self.source[self.Indices]
-        if not len(indices):
-            self.value=0
-            return
-        index = indices[0]
-        met = self.source[self.MET]
+        self.value = indices[0] if indices else None
+#####################################
+class RelativeRapidity(wrappedChain.calculable) :
+    def __init__(self, collection = None, MissingP4 = None) :
+        self.fixes = collection
+        self.stash(["SemileptonicTopIndex","P4","Charge"])
+        self.MissingP4 = MissingP4
+        self.moreName = "- sign(y_miss) * q_mu * (y_miss+y_mu); %s%s; %s"%(collection+(MissingP4,))
+
+    def update(self,ignored) :
+        index = self.source[self.SemileptonicTopIndex]
+        if index is None: self.value=0; return
+
+        y_miss = self.source[self.MissingP4].rapidity()
+        y_mu = self.source[self.P4][index].rapidity()
+        q_mu = self.source[self.Charge][index]
         
-        self.value = (1 if met.pz()>0 else -1) * self.source[self.P4][index].eta() * self.source[self.Charge][index]
+        self.value = (-1 if y_miss>0 else 1) * q_mu * (y_miss + y_mu)
 #####################################
