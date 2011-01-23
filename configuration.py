@@ -45,10 +45,13 @@ def batchScripts() :
     p = sitePrefix()
     return ("%sSub.sh"%p, "%sJob.sh"%p)
 
-def outputDir() :
+def outputDir(sitePrefix, isLocal) :
     user = os.environ["USER"]
-    default = "/tmp/%s"%user
-    d = {"ic":"/vols/cms02/%s/tmp/"%user}
+
+    #sitePrefix: (localOutputDir, globalOutputDir)
+    d = {"ic":tuple(["/vols/cms02/%s/tmp/"%user]*2),
+         "pu":("/tmp/%s"%user, "/tigress-hsm/%s/tmp/"%user)
+         }
          
-    sp = sitePrefix()
-    return d[sp] if (sp in d) else default
+    assert sitePrefix in d, "sitePrefix %s needs to have output directories defined"%sitePrefix
+    return d[sitePrefix][int(not isLocal)]
