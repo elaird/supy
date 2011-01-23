@@ -45,6 +45,9 @@ def batchScripts() :
     p = sitePrefix()
     return ("%sSub.sh"%p, "%sJob.sh"%p)
 
+def qlook() :
+    return "%sQlook"%sitePrefix()
+    
 def outputDir(sitePrefix, isLocal) :
     user = os.environ["USER"]
 
