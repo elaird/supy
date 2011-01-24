@@ -4,9 +4,6 @@ import os,analysis,steps,calculables,samples,organizer,plotter,utils
 import ROOT as r
 
 class triggers(analysis.analysis) :
-    def baseOutputDirectory(self) :
-        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
-
     def parameters(self) :
         return { }
     
