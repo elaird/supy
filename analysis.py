@@ -39,15 +39,15 @@ class analysis(object) :
         self._jobId   = options.jobId
         self._site    = options.site
 
-        for item in ["baseOutputDirectory", "mainTree", "otherTreesToKeepWhenSkimming",
-                     "leavesToBlackList", "printNodesUsed"] :
-            setattr(self, "_"+item, getattr(self,item)() )
-            
         self.sampleDict = samples.SampleHolder()
         map(self.sampleDict.update,self.listOfSampleDictionaries())
 
-        self.fileDirectory,self.treeName = self._mainTree
+        self.fileDirectory,self.treeName = self.mainTree()
         self._configurations = listOfConfigurations(self.parameters())
+
+        if self._jobId==None and self._loop!=None :
+            os.system("mkdir -p %s"%self.namedOutputDirectory())
+            self.makeInputFileLists()
 
         self._listsOfLoopers = []
         self._jobs = []
@@ -58,27 +58,27 @@ class analysis(object) :
                     self._jobs.append({"iConfig":iConf,"iSample":iSample,"iSlice":iSlice})
 
         if self._jobId==None and self._loop!=None :
-            self.makeInputFileLists()
             self.pickleJobs()
 
     def sideBySideAnalysisTags(self) : return sorted(list(set([conf["tag"] for conf in self._configurations])))
     def configurations(self) : return self._configurations
     def jobs(self) : return self._jobs
 
-    def namedOutputDirectory(self) : return os.path.expanduser(self.baseOutputDirectory())+"/"+self.name
-    def jobsFile(self) : return "%s/%s.jobs" % (self.namedOutputDirectory(),self.name)
-    def outputDirectory(self, conf) : return "%s/%s/config%s" % (self.namedOutputDirectory(), conf["tag"], conf["codeString"])
-    def psFileName(self,tag="") : return "%s/%s%s.ps" % (self.namedOutputDirectory(), self.name, "_"+tag if len(tag) else "")
-    def baseOutputDirectory(self) :
+    def namedOutputDirectory(self, useGlobalDirectory = False) : return "%s/%s"%(self.baseOutputDirectory(useGlobalDirectory), self.name)
+    def jobsFile(self) : return "%s/%s.jobs"%(self.namedOutputDirectory(), self.name)
+    def inputFilesListFile(self, sampleName) : return "%s/%s.inputFiles"%(self.namedOutputDirectory(useGlobalDirectory = True), sampleName)
+    def outputDirectory(self, conf) : return "%s/%s/config%s"%(self.namedOutputDirectory(), conf["tag"], conf["codeString"])
+    def psFileName(self,tag="") : return "%s/%s%s.ps"%(self.namedOutputDirectory(), self.name, "_"+tag if len(tag) else "")
+    def baseOutputDirectory(self, useGlobalDir = False) :
         site = configuration.sitePrefix() if self._site==None else self._site
-        return configuration.outputDir(sitePrefix = site, isLocal = self._jobId!=None)
+        local = self._jobId!=None if not useGlobalDir else False
+        return configuration.outputDir(sitePrefix = site, isLocal = local)
         
     def listOfSteps(self,config) :       raise Exception("NotImplemented", "Implement a member function %s"%"listOfSteps(self,config)")
     def listOfCalculables(self,config) : raise Exception("NotImplemented", "Implement a member function %s"%"listOfCalculables(self,config)")
     def listOfSampleDictionaries(self) : raise Exception("NotImplemented", "Implement a member function %s"%"sampleDict(self)")
     def listOfSamples(self,config) :     raise Exception("NotImplemented", "Implement a member function %s"%"listOfSamples(self,config)")
 
-    def printNodesUsed(self) : return False
     def mainTree(self) : return ("susyTree","tree")
     def otherTreesToKeepWhenSkimming(self) : return [("lumiTree","tree")]
     def leavesToBlackList(self) : return ["hltL1Seeds"]
@@ -94,32 +94,27 @@ class analysis(object) :
         #define a helper function
         def inputFilesEvalWorker(q):
             while True:
-                key,value = q.get()
-                #write file list to disk
-                fileListCommand = key[1]
-                fileList = eval(fileListCommand)
-                assert len(fileList), "The command '%s' produced an empty list of files"%fileListCommand
-                for fileName in value :
-                    outFile=open(os.path.expanduser(fileName),"w")
-                    cPickle.dump(fileList,outFile)
-                    outFile.close()
+                sampleName,command = q.get()
+                fileList = eval(command)
+                assert fileList, "The command '%s' produced an empty list of files"%command
+                outFile = open(self.inputFilesListFile(sampleName),"w")
+                cPickle.dump(fileList, outFile)
+                outFile.close()
                 #notify queue
                 q.task_done()
 
-        #make output directories; compile a dict of commands and file names
-        fileNames = collections.defaultdict(set)
-        for job in self._jobs :
-            os.system("mkdir -p "+self.outputDirectory(self._configurations[job["iConfig"]]))
-            for looper in self._listsOfLoopers[job["iConfig"]] :
-                tuple = (looper.name, looper.fileListCommand)
-                fileNames[tuple].add(looper.inputFileListFileName())
+        def checkNames(listOfSamples) :
+            names = [s.name for s in listOfSamples]
+            assert len(names) == len(set(names)), "Duplicate sample names are not allowed."
+            return listOfSamples
 
-        #make lists from the sets
-        for key,value in fileNames.iteritems() :
-            fileNames[key]=list(value)
+        commands = {}
+        for iConf,conf in enumerate(self._configurations) :
+            for sampleSpec in checkNames(self.listOfSamples(conf)) :
+                commands[sampleSpec.name] = self.sampleDict[sampleSpec.name].filesCommand
 
         #execute in parallel commands to make file lists
-        utils.operateOnListUsingQueue(self._loop,inputFilesEvalWorker,fileNames.iteritems())
+        utils.operateOnListUsingQueue(self._loop,inputFilesEvalWorker,commands.iteritems())
 
     def loop(self) :
         listOfLoopers = []
@@ -129,10 +124,7 @@ class analysis(object) :
             os.system("mkdir -p "+self.outputDirectory(self._configurations[job["iConfig"]]))
             #associate the file list
             looper = copy.deepcopy(self._listsOfLoopers[job["iConfig"]][job["iSample"]])
-            someFile = open(looper.inputFileListFileName())
-            looper.inputFiles = cPickle.load(someFile)[job["iSlice"]::self._nSlices] #choose appropriate slice
-            someFile.close()
-
+            looper.inputFiles = looper.inputFiles[job["iSlice"]::self._nSlices] #choose appropriate slice
             looper.name = childName(looper.name, job["iSlice"])
             looper.outputDir = self.outputDirectory(self._configurations[job["iConfig"]])
 
@@ -175,7 +167,6 @@ class analysis(object) :
         return [ dict(zip(["name","color","markerStyle"],sample[:3])+[("outputFileNames",fileList)]) \
                  for sample,fileList in zip(listOfSamples,listOfFileLists) ]
 
-
     def sampleLoopers(self, conf) :
         listOfCalculables = self.listOfCalculables(conf)
         listOfSteps = self.listOfSteps(conf)
@@ -183,10 +174,9 @@ class analysis(object) :
 
         selectors = filter(lambda s: hasattr(s,"select"), listOfSteps)
         assert len(selectors) == len(set(map(lambda s:(s.__class__.__name__,s.moreName,s.moreName2), selectors))),"Duplicate selectors are not allowed."
-        names = [s.name for s in listOfSamples]
-        assert len(names) == len(set(names)), "Duplicate sample names are not allowed."
-
-        computeEntriesForReport = False #temporarily hard-coded
+        #checked already during makeInputFileLists
+        #names = [s.name for s in listOfSamples]
+        #assert len(names) == len(set(names)), "Duplicate sample names are not allowed."
 
         def parseForEventNumber(ss,sampletuple) :
             if not ss.effectiveLumi :
@@ -194,41 +184,45 @@ class analysis(object) :
             else :
                 return ss.nFilesMax,ss.nEventsMax
 
+        def checkLumi(isMc, nEventsMax, nFilesMax) :
+            if (not isMc) and (nEventsMax!=-1 or nFilesMax!=-1) :
+                print "Warning, not running over full data sample: wrong lumi?"
+                return True
+            return False
+
+        def fileList(sampleName, nFilesMax) :
+            f = open(self.inputFilesListFile(sampleName))
+            l = cPickle.load(f)
+            f.close()
+            return l if nFilesMax<0 else l[:nFilesMax]
+
         ptHatMinDict = {}
         outLoopers = []
         for sampleSpec in listOfSamples :
             sampleName = sampleSpec.name
             sampleTuple = self.sampleDict[sampleName]
             isMc = sampleTuple.lumi==None
-            fileListCommand = sampleTuple.filesCommand
-            nFilesMax,nEventsMax = parseForEventNumber(sampleSpec,sampleTuple)
-                
-            lumiWarn = False
-            if (not isMc) and (nEventsMax!=-1 or nFilesMax!=-1) :
-                print "Warning, not running over full data sample: wrong lumi?"
-                lumiWarn = True
+            nFilesMax,nEventsMax = parseForEventNumber(sampleSpec, sampleTuple)
+            lumiWarn = checkLumi(isMc, nEventsMax, nFilesMax)
 
-            if nFilesMax >= 0 : fileListCommand = "(%s)[:%d]"%(fileListCommand,nFilesMax)
             if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
             adjustedListOfSteps = [steps.Master.master(xs = sampleTuple.xs,
                                                        lumi = sampleTuple.lumi,
                                                        lumiWarn = lumiWarn)
                                    ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
             
-            outLoopers.append(analysisLooper(self.fileDirectory,
-                                             self.treeName,
-                                             self._otherTreesToKeepWhenSkimming,
-                                             self._leavesToBlackList,
-                                             self.outputDirectory(conf),
-                                             adjustedListOfSteps,
-                                             listOfCalculables,
-                                             fileListCommand,
-                                             computeEntriesForReport,
-                                             self.printNodesUsed(),
-                                             sampleName,
-                                             nEventsMax,
-                                             sampleSpec.color,
-                                             sampleSpec.markerStyle
+            outLoopers.append(analysisLooper(fileDirectory = self.fileDirectory,
+                                             treeName = self.treeName,
+                                             otherTreesToKeepWhenSkimming = self.otherTreesToKeepWhenSkimming(),
+                                             leavesToBlackList = self.leavesToBlackList(),
+                                             outputDir = self.outputDirectory(conf),
+                                             steps = adjustedListOfSteps,
+                                             calculables = listOfCalculables,
+                                             inputFiles = fileList(sampleName, nFilesMax),
+                                             sampleName = sampleName,
+                                             nEventsMax = nEventsMax,
+                                             color = sampleSpec.color,
+                                             markerStyle = sampleSpec.markerStyle
                                              )
                               )
             
