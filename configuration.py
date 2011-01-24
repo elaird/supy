@@ -3,6 +3,12 @@ import os
 def maxArrayLength() :
     return 256
 
+def computeEntriesForReport() :
+    return False
+
+def printNodesUsed() :
+    return False
+
 def fakeString() :
     return ";FAKE"
 
