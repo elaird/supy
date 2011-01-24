@@ -6,21 +6,17 @@ import ROOT as r
 class analysisLooper :
     """class to set up and loop over events"""
 
-    def __init__(self, fileDirectory, treeName, otherTreesToKeepWhenSkimming, leavesToBlackList,
-                 outputDir, steps, calculables, fileListCommand,
-                 computeEntriesForReport, printNodesUsed, sampleName, nEventsMax, color, markerStyle) :
-
-        self.name = sampleName
+    def __init__(self, fileDirectory = None, treeName = None, otherTreesToKeepWhenSkimming = None, leavesToBlackList = None,
+                 outputDir = None, steps = None, calculables = None, inputFiles = None,
+                 sampleName = None, nEventsMax = None, color = None, markerStyle = None) :
 
         for arg in ["fileDirectory", "treeName", "otherTreesToKeepWhenSkimming", "leavesToBlackList",
-                    "outputDir", "fileListCommand", "nEventsMax", "color", "markerStyle",
-                    "computeEntriesForReport","printNodesUsed"] :
+                    "outputDir", "inputFiles", "nEventsMax", "color", "markerStyle"] :
             setattr(self,arg,eval(arg))
 
-        self.inputFiles = None
+        self.name = sampleName
         self.steps = copy.deepcopy(steps)
         self.calculables = copy.deepcopy(calculables)
-
         self.quietMode = False
 
     def outputFileStem(self) :
@@ -28,9 +24,6 @@ class analysisLooper :
 
     def outputStepAndCalculableDataFileName(self) :
         return "%s%s"%(self.outputFileStem(), ".pickledData")
-
-    def inputFileListFileName(self) :
-        return "%s%s"%(self.outputFileStem(), ".inputFileList")
 
     def go(self) :
         self.setupChains(self.inputFiles)
@@ -101,13 +94,9 @@ class analysisLooper :
                 if not self.quietMode : print "..."
                 alreadyPrintedEllipsis=True
 
-        outString="contain"
-        if (nFiles==1) : outString+="s"
-
-        if self.computeEntriesForReport : outString+=" "+str(self.inputChain.GetEntries())
-        else :                            outString+=" (number not computed)"
-
-        outString+=" events."
+        outString = "contain%s %s events."%(("s" if nFiles==1 else ""),
+                                            str(self.inputChain.GetEntries()) if configuration.computeEntriesForReport() else "(number not computed)",
+                                            )
             
         if not self.quietMode : print outString
         if not self.quietMode : print utils.hyphens
@@ -160,7 +149,7 @@ class analysisLooper :
         print utils.hyphens
         print self.name
         
-        if self.printNodesUsed :
+        if configuration.printNodesUsed() :
             print utils.hyphens
             print "Leaves accessed:"
             print str([x[0] for x in self.listOfLeavesUsed]).replace("'","")
