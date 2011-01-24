@@ -5,9 +5,6 @@ import analysis,steps,calculables,samples,organizer,plotter,utils
 import ROOT as r
 
 class photonLook(analysis.analysis) :
-    def baseOutputDirectory(self) :
-        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
-
     def parameters(self) :
         objects = {}
         fields =                                             [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets"]
@@ -96,8 +93,8 @@ class photonLook(analysis.analysis) :
                      calculables.Jet.AlphaTMet(obj["jet"], _etRatherThanPt, obj["met"]),
                      calculables.Jet.MhtOverMet(obj["jet"], met = "%sPlus%s%s"%(obj["met"], obj["photon"][0], obj["photon"][1])),
                      calculables.Photon.metPlusPhotons(met = obj["met"], photons = obj["photon"]),
-                     calculables.Other.vertexID(),
-                     calculables.Other.vertexIndices(),
+                     calculables.Vertex.vertexID(),
+                     calculables.Vertex.vertexIndices(),
                      calculables.Jet.deadEcalDR(obj["jet"], extraName = params["lowPtName"], minNXtals = 10),
                      ]
 
