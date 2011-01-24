@@ -78,7 +78,7 @@ class RelativeRapidity(wrappedChain.calculable) :
 
     def update(self,ignored) :
         index = self.source[self.SemileptonicTopIndex]
-        if index is None: self.value=0; return
+        if index is None: self.value=None; return
 
         y_miss = self.source[self.MissingP4].rapidity()
         y_mu = self.source[self.P4][index].rapidity()
@@ -86,3 +86,38 @@ class RelativeRapidity(wrappedChain.calculable) :
         
         self.value = (-1 if y_miss>0 else 1) * q_mu * (y_miss + y_mu)
 #####################################
+class NuetrinoPz(wrappedChain.calculable) :
+    def __init__(self, collection = None, MissingP4 = None) :
+        self.fixes = collection
+        self.stash(["SemileptonicTopIndex","P4"])
+        self.MissingP4 = MissingP4
+        self.moreName = "neutrinoPz; given SemileptonicTopIndex in %s%s; %s"%(collection+(MissingP4,))
+        self.Wmass2 = 80**2 # GeV
+        
+    def update(self,ignored) :
+        self.value = None
+        
+        index = self.source[self.SemileptonicTopIndex]
+        if index is None: return
+
+        mu4 = self.source[self.P4][index]
+        nu4 = self.source[self.MissingP4]
+        W4 = mu4 + nu4
+
+        muZ = mu4.z()
+        muE = mu4.E()
+        muT2 = mu4.Perp2()
+        nuT2 = nu4.Perp2()
+        WT2 = W4.Perp2()
+
+        P = self.Wmass2 + WT2 - muT2 - nuT2
+
+        discriminant = muZ**2 + 4*muT2*(1-(4*muE*muE*nuT2)/(P**2))
+        if discriminant < 0: return
+        
+        #streamline below
+        sqrtD = math.sqrt(discriminant)
+        factor = 0.5*P/muT2
+        self.value = (factor * (muZ-sqrtD),
+                      factor * (muZ+sqrtD))
+
