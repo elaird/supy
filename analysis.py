@@ -24,8 +24,6 @@ def listOfConfigurations(params) :
                 else : conf["codeString"] += str(iVar)
     return configs
 #####################################
-def childName(looperName,iSlice) : return looperName+"_%d"%iSlice
-#####################################
 class analysis(object) :
     """base class for an analysis"""
 
@@ -37,7 +35,7 @@ class analysis(object) :
         self._nSlices = int(options.slices) if options.slices!=None else 1
         self._profile = options.profile
         self._jobId   = options.jobId
-        self._site    = options.site
+        self._site    = options.site if options.site!=None else configuration.sitePrefix()
 
         self.sampleDict = samples.SampleHolder()
         map(self.sampleDict.update,self.listOfSampleDictionaries())
@@ -70,9 +68,8 @@ class analysis(object) :
     def outputDirectory(self, conf) : return "%s/%s/config%s"%(self.namedOutputDirectory(), conf["tag"], conf["codeString"])
     def psFileName(self,tag="") : return "%s/%s%s.ps"%(self.namedOutputDirectory(), self.name, "_"+tag if len(tag) else "")
     def baseOutputDirectory(self, useGlobalDir = False) :
-        site = configuration.sitePrefix() if self._site==None else self._site
         local = self._jobId!=None if not useGlobalDir else False
-        return configuration.outputDir(sitePrefix = site, isLocal = local)
+        return configuration.outputDir(sitePrefix = self._site, isLocal = local)
         
     def listOfSteps(self,config) :       raise Exception("NotImplemented", "Implement a member function %s"%"listOfSteps(self,config)")
     def listOfCalculables(self,config) : raise Exception("NotImplemented", "Implement a member function %s"%"listOfCalculables(self,config)")
@@ -120,15 +117,12 @@ class analysis(object) :
         listOfLoopers = []
         for iJob,job in enumerate(self._jobs) :
             if self._jobId!=None and int(self._jobId)!=iJob : continue
-            #create output directory
-            os.system("mkdir -p "+self.outputDirectory(self._configurations[job["iConfig"]]))
-            #associate the file list
-            looper = copy.deepcopy(self._listsOfLoopers[job["iConfig"]][job["iSample"]])
-            looper.inputFiles = looper.inputFiles[job["iSlice"]::self._nSlices] #choose appropriate slice
-            looper.name = childName(looper.name, job["iSlice"])
-            looper.outputDir = self.outputDirectory(self._configurations[job["iConfig"]])
 
-            looper.setQuietMode(self._loop)
+            outputDir = self.outputDirectory(self._configurations[job["iConfig"]])
+            #create output directory
+            os.system("mkdir -p %s"%outputDir)
+            #add the looper
+            looper = self._listsOfLoopers[job["iConfig"]][job["iSample"]].slice(job["iSlice"], self._nSlices, outputDir)
             listOfLoopers.append(looper)
 
         if self._jobId!=None :
@@ -140,7 +134,7 @@ class analysis(object) :
             cProfile.run("someInstance.goLoop()","resultProfile.out")
 
         else :
-            utils.operateOnListUsingQueue(self._loop,utils.goWorker,listOfLoopers)
+            utils.operateOnListUsingQueue(self._loop, utils.goWorker, listOfLoopers)
 
     def goLoop(self) :
         for looper in self.listOfLoopersForProf : looper.go()
@@ -196,6 +190,9 @@ class analysis(object) :
             f.close()
             return l if nFilesMax<0 else l[:nFilesMax]
 
+        def quietMode(nWorkers) :
+            return nWorkers!=None and nWorkers>1
+
         ptHatMinDict = {}
         outLoopers = []
         for sampleSpec in listOfSamples :
@@ -203,12 +200,12 @@ class analysis(object) :
             sampleTuple = self.sampleDict[sampleName]
             isMc = sampleTuple.lumi==None
             nFilesMax,nEventsMax = parseForEventNumber(sampleSpec, sampleTuple)
-            lumiWarn = checkLumi(isMc, nEventsMax, nFilesMax)
 
             if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
             adjustedListOfSteps = [steps.Master.master(xs = sampleTuple.xs,
                                                        lumi = sampleTuple.lumi,
-                                                       lumiWarn = lumiWarn)
+                                                       lumiWarn = checkLumi(isMc, nEventsMax, nFilesMax),
+                                                       )
                                    ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
             
             outLoopers.append(analysisLooper(fileDirectory = self.fileDirectory,
@@ -219,8 +216,9 @@ class analysis(object) :
                                              steps = adjustedListOfSteps,
                                              calculables = listOfCalculables,
                                              inputFiles = fileList(sampleName, nFilesMax),
-                                             sampleName = sampleName,
+                                             name = sampleName,
                                              nEventsMax = nEventsMax,
+                                             quietMode = quietMode(self._loop),
                                              color = sampleSpec.color,
                                              markerStyle = sampleSpec.markerStyle
                                              )
@@ -269,23 +267,20 @@ class analysis(object) :
             while True:
                 mergeFunc(*q.get())
                 q.task_done()
-        
+
         inFile=open(self.jobsFile())
         nCores,jobs = cPickle.load(inFile)
         inFile.close()
-
         mergeDict = collections.defaultdict(list)
         for job in jobs : mergeDict[(job["iConfig"],job["iSample"])].append(job["iSlice"])
-
         workList = []
         for key,listOfSlices in mergeDict.iteritems() :
             iConfig = key[0]
             iSample = key[1]
             looper = self._listsOfLoopers[iConfig][iSample]
             workList.append( (looper,listOfSlices) )
-
-        ##for item in workList : mergeFunc(*item)
-        utils.operateOnListUsingQueue(nCores,mergeWorker,workList)
+        
+        utils.operateOnListUsingQueue(nCores, mergeWorker, workList)
         os.remove(self.jobsFile())
 #############################################
 def mergeFunc(looper, listOfSlices) :
@@ -294,7 +289,7 @@ def mergeFunc(looper, listOfSlices) :
             os.remove(fileName)
         
     def stuff(iSlice) :
-        pDataFileName = looper.outputStepAndCalculableDataFileName().replace( looper.name, childName(looper.name,iSlice) )
+        pDataFileName = looper.outputStepAndCalculableDataFileName().replace(looper.name, looper.childName(iSlice))
         pDataFile = open(pDataFileName)
         dataList,calcsUsed,leavesUsed = cPickle.load(pDataFile)
         pDataFile.close()
@@ -308,13 +303,13 @@ def mergeFunc(looper, listOfSlices) :
         for iSlice in listOfSlices :
             dataList,calcsUsed,leavesUsed,pDataFileName = stuff(iSlice)
             cleanUpList.append(pDataFileName)
-
+        
             for step,data,prod in zip(looper.steps, dataList, prods) :
                 prod.append(data)
                 if hasattr(step, "select") :
                     step.increment(True,  w = data["nPass"])
                     step.increment(False, w = data["nFail"])
-
+        
             calcs.extend(calcsUsed)
             calcs = list(set(calcs))
             leaves.extend(leavesUsed)
@@ -327,7 +322,7 @@ def mergeFunc(looper, listOfSlices) :
             for key,value in d.iteritems() :
                 out[key].append(value)
         return out
-                
+
     cleanUpList = []
     looper.setupSteps(minimal = True)
     prods, looper.listOfCalculablesUsed, looper.listOfLeavesUsed = products()
@@ -335,5 +330,4 @@ def mergeFunc(looper, listOfSlices) :
     print utils.hyphens
     for step,productList in zip(looper.steps, prods) :
         step.mergeFunc(rearrangedProducts(productList))
-
     cleanUp(cleanUpList)

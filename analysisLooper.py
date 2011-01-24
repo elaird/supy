@@ -7,17 +7,25 @@ class analysisLooper :
     """class to set up and loop over events"""
 
     def __init__(self, fileDirectory = None, treeName = None, otherTreesToKeepWhenSkimming = None, leavesToBlackList = None,
-                 outputDir = None, steps = None, calculables = None, inputFiles = None,
-                 sampleName = None, nEventsMax = None, color = None, markerStyle = None) :
+                 outputDir = None, steps = None, calculables = None, inputFiles = None, name = None, nEventsMax = None,
+                 quietMode = None, color = None, markerStyle = None) :
 
         for arg in ["fileDirectory", "treeName", "otherTreesToKeepWhenSkimming", "leavesToBlackList",
-                    "outputDir", "inputFiles", "nEventsMax", "color", "markerStyle"] :
-            setattr(self,arg,eval(arg))
+                    "outputDir", "inputFiles", "name", "nEventsMax", "quietMode", "color", "markerStyle"] :
+            setattr(self, arg, eval(arg))
 
-        self.name = sampleName
-        self.steps = copy.deepcopy(steps)
-        self.calculables = copy.deepcopy(calculables)
-        self.quietMode = False
+        for arg in ["steps", "calculables"] :
+            setattr(self, arg, eval("copy.deepcopy(%s)"%arg))
+
+    def childName(self, iSlice) :
+        return "%s_%d"%(self.name, iSlice)
+
+    def slice(self, iSlice, nSlices, outputDir) :
+        out = copy.deepcopy(self)
+        out.inputFiles = out.inputFiles[iSlice::nSlices]
+        out.name = self.childName(iSlice)
+        out.outputDir = outputDir
+        return out
 
     def outputFileStem(self) :
         return "%s/%s"%(self.outputDir, self.name)
@@ -123,10 +131,6 @@ class analysisLooper :
 
         r.gROOT.cd()
         return returnValue
-
-    def setQuietMode(self, nWorkers) :
-        if nWorkers!=None and nWorkers>1 :
-            self.quietMode = True
 
     def makeListsOfLeavesAndCalcsUsed(self, activeKeys) :
         self.listOfLeavesUsed = []
