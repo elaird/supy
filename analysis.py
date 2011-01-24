@@ -172,11 +172,13 @@ class analysis(object) :
         #names = [s.name for s in listOfSamples]
         #assert len(names) == len(set(names)), "Duplicate sample names are not allowed."
 
-        def parseForEventNumber(ss,sampletuple) :
+        def parseForEventNumber(ss,sampletuple,jobs) :
             if not ss.effectiveLumi :
-                return ss.nFilesMax,ss.nEventsMax
+                return ss.nEventsMax
             else :
-                return ss.nFilesMax,ss.nEventsMax
+                if ss.nEventsMax!=-1: print "Warning: %s nEventsMax ignored in favor of effectiveLumi "%ss.name
+                assert not sampletuple.lumi, "Cannot calculate effectiveLumi for _data_ sample %s"%ss.name
+                return 1+int(ss.effectiveLumi*sampletuple.xs/jobs)
 
         def checkLumi(isMc, nEventsMax, nFilesMax) :
             if (not isMc) and (nEventsMax!=-1 or nFilesMax!=-1) :
@@ -199,12 +201,13 @@ class analysis(object) :
             sampleName = sampleSpec.name
             sampleTuple = self.sampleDict[sampleName]
             isMc = sampleTuple.lumi==None
-            nFilesMax,nEventsMax = parseForEventNumber(sampleSpec, sampleTuple)
+            inputFiles = fileList(sampleName,sampleSpec.nFilesMax)
+            nEventsMax = parseForEventNumber(sampleSpec, sampleTuple, min(len(inputFiles), self._nSlices))
 
             if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
             adjustedListOfSteps = [steps.Master.master(xs = sampleTuple.xs,
                                                        lumi = sampleTuple.lumi,
-                                                       lumiWarn = checkLumi(isMc, nEventsMax, nFilesMax),
+                                                       lumiWarn = checkLumi(isMc, nEventsMax, sampleSpec.nFilesMax),
                                                        )
                                    ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
             
@@ -215,7 +218,7 @@ class analysis(object) :
                                              outputDir = self.outputDirectory(conf),
                                              steps = adjustedListOfSteps,
                                              calculables = listOfCalculables,
-                                             inputFiles = fileList(sampleName, nFilesMax),
+                                             inputFiles = inputFiles,
                                              name = sampleName,
                                              nEventsMax = nEventsMax,
                                              quietMode = quietMode(self._loop),

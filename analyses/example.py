@@ -5,9 +5,6 @@ import analysis,utils,calculables,steps,samples,organizer,plotter
 import ROOT as r
 
 class example(analysis.analysis) :
-    def baseOutputDirectory(self) :
-        return "/tmp/%s/"%os.environ["USER"]
-
     def parameters(self) :
         return {"etRatherThanPt" : [False],
                 "jets" : ("ak5JetPF","Pat"),
@@ -61,9 +58,8 @@ class example(analysis.analysis) :
         return [exampleDict]
 
     def listOfSamples(self,config) :
-        return [samples.specify(name = "Example_Skimmed_900_GeV_Data", color = r.kBlack, markerStyle = 20),
-                samples.specify(name = "Example_Skimmed_900_GeV_MC", color = r.kRed)
-                ]
+        return (samples.specify(names = "Example_Skimmed_900_GeV_Data", color = r.kBlack, markerStyle = 20) +
+                samples.specify(names = "Example_Skimmed_900_GeV_MC", color = r.kRed, effectiveLumi = 0.5) )
 
     def conclude(self) :
         #make a pdf file with plots from the histograms created above
