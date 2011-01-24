@@ -115,7 +115,6 @@ class NuetrinoPz(wrappedChain.calculable) :
         discriminant = muZ**2 + 4*muT2*(1-(4*muE*muE*nuT2)/(P**2))
         if discriminant < 0: return
         
-        #streamline below
         sqrtD = math.sqrt(discriminant)
         factor = 0.5*P/muT2
         self.value = (factor * (muZ-sqrtD),
