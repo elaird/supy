@@ -50,15 +50,16 @@ class analysisLooper :
         useSetBranchAddress = self.setupSteps()
 
         #loop through entries
-        chainWrapper = wrappedChain.wrappedChain(self.inputChain,
-                                                 calculables = self.calculables,
-                                                 useSetBranchAddress = useSetBranchAddress,
-                                                 leavesToBlackList = self.leavesToBlackList,
-                                                 maxArrayLength = configuration.maxArrayLength(),
-                                                 )
-        map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
-
-        self.makeListsOfLeavesAndCalcsUsed( chainWrapper.activeKeys() )
+        if self.nEventsMax!=0 :
+            chainWrapper = wrappedChain.wrappedChain(self.inputChain,
+                                                     calculables = self.calculables,
+                                                     useSetBranchAddress = useSetBranchAddress,
+                                                     leavesToBlackList = self.leavesToBlackList,
+                                                     maxArrayLength = configuration.maxArrayLength(),
+                                                     )
+            map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
+            self.makeListsOfLeavesAndCalcsUsed( chainWrapper.activeKeys() )
+        else : self.makeListOfLeavesAndCalcsUsed([])
 
         self.endSteps()
         self.pickleStepAndCalculableData()
