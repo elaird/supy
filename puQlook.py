@@ -18,6 +18,7 @@ def stats(l, h) :
     for line in l[2:] :
         d = dict(zip(h, line.split()))
         if "Queue" not in d : continue
+        if d["Queue"]!="hep" : continue
         if d["S"]=="R" :
             run[d["User"]]+=1
         else :
