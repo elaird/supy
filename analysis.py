@@ -176,12 +176,12 @@ class analysis(object) :
             if not ss.effectiveLumi :
                 return ss.nEventsMax
             else :
-                if ss.nEventsMax!=-1: print "Warning: %s nEventsMax ignored in favor of effectiveLumi "%ss.name
+                if ss.nEventsMax>=0: print "Warning: %s nEventsMax ignored in favor of effectiveLumi "%ss.name
                 assert not sampletuple.lumi, "Cannot calculate effectiveLumi for _data_ sample %s"%ss.name
                 return 1+int(ss.effectiveLumi*sampletuple.xs/jobs)
 
         def checkLumi(isMc, nEventsMax, nFilesMax) :
-            if (not isMc) and (nEventsMax!=-1 or nFilesMax!=-1) :
+            if (not isMc) and (nEventsMax>=0 or nFilesMax>=0) :
                 print "Warning, not running over full data sample: wrong lumi?"
                 return True
             return False
@@ -190,7 +190,7 @@ class analysis(object) :
             f = open(self.inputFilesListFile(sampleName))
             l = cPickle.load(f)
             f.close()
-            return l if nFilesMax<0 else l[:nFilesMax]
+            return l[:nFilesMax]
 
         def quietMode(nWorkers) :
             return nWorkers!=None and nWorkers>1
