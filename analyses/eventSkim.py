@@ -3,9 +3,6 @@
 import os,analysis,utils,calculables,steps,samples
 
 class eventSkim(analysis.analysis) :
-    def baseOutputDirectory(self) :
-        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
-
     def listOfSteps(self,params) :
         stepList=[ steps.Print.progressPrinter(2,300),
                    steps.Other.runLsEventFilter("/home/hep/elaird1/colin.txt"),

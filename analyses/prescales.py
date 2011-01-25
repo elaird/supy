@@ -4,9 +4,6 @@ import os,analysis,steps,calculables,samples,organizer,plotter,utils
 import ROOT as r
 
 class prescales(analysis.analysis) :
-    def baseOutputDirectory(self) :
-        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
-
     def parameters(self) :
         return {"jets" : ("ak5Jet","Pat"),
                 "triggers": ("HLT_HT100U","HLT_HT120U","HLT_HT140U","HLT_HT150U_v1","HLT_HT150U_v3","HLT_HT160U_v1","HLT_HT160U_v3")

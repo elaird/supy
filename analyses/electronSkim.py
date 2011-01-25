@@ -3,9 +3,6 @@
 import os,analysis,utils,calculables,steps,samples,organizer
 
 class electronSkim(analysis.analysis) :
-    def baseOutputDirectory(self) :
-        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
-
     def parameters(self) :
         return { "useCombinedIso": dict([ ("combinedIso", True), ("relativeIso", False) ]  [:] ),
                  "electrons" : ("electron","Pat"),

@@ -4,9 +4,6 @@ import os,analysis,steps,calculables,samples,organizer,plotter
 import ROOT as r
 
 class etaLook(analysis.analysis) :
-    def baseOutputDirectory(self) :
-        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
-
     def listOfCalculables(self,params) :
         return calculables.zeroArgs()
 

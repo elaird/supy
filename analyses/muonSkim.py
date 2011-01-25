@@ -5,9 +5,6 @@ import os,analysis,utils,calculables,steps,samples,organizer
 muon = ("muon","Pat")
 
 class muonSkim(analysis.analysis) :
-    def baseOutputDirectory(self) :
-        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
-
     def listOfSteps(self,params) :
         stepList=[ steps.Print.progressPrinter(),
                    steps.Other.multiplicityFilter("%sIndices%s"%muon, nMin = 1),

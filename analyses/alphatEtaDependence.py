@@ -5,9 +5,6 @@ import analysis,steps,calculables,samples,organizer,plotter
 import ROOT as r
 
 class alphatEtaDependence(analysis.analysis) :
-    def baseOutputDirectory(self) :
-        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
-
     def parameters(self) :
         objects = {}
         fields =                               ["jet",                 "met",             "muon",        "electron",        "photon",         "genjet","rechit"]

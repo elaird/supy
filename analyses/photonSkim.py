@@ -3,9 +3,6 @@
 import os,analysis,utils,calculables,steps,samples,organizer
 
 class photonSkim(analysis.analysis) :
-    def baseOutputDirectory(self) :
-        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
-
     def parameters(self) :
         return {"photon": ("photon", "Pat")}
 

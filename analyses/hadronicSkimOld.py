@@ -5,9 +5,6 @@ import os,analysis,utils,calculables,steps,samples,organizer
 jetAlgoList=[("ak5Jet"+jetType,"Pat") for jetType in ["","PF","JPT"]]
 
 class hadronicSkimOld(analysis.analysis) :
-    def baseOutputDirectory(self) :
-        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
-
     def listOfSteps(self,params) :
         stepList=[ steps.progressPrinter(2,300),
                    steps.hltFilterList(["HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v1","HLT_HT150U_v3"]),

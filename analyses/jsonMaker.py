@@ -3,9 +3,6 @@
 import os,analysis,utils,calculables,steps,samples
 
 class jsonMaker(analysis.analysis) :
-    def baseOutputDirectory(self) :
-        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
-
     def listOfSteps(self,params) :
         return [ steps.Print.progressPrinter(2,300),
                  steps.Other.jsonMaker(),

@@ -5,9 +5,6 @@ import analysis,utils,calculables,steps,samples,organizer,plotter
 import ROOT as r
 
 class triggerTurnOn(analysis.analysis) :
-    def baseOutputDirectory(self) :
-        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
-
     def parameters(self) :
         jettypes = ["ak5Jet","ak5JetJPT","ak5JetPF"]
         params = {"jets": dict(zip(jettypes,zip(jettypes,3*["Pat"]))),

@@ -4,9 +4,6 @@ import os,analysis,steps,calculables,samples,organizer,plotter
 import ROOT as r
 
 class tpLook(analysis.analysis) :
-    def baseOutputDirectory(self) :
-        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
-
     def parameters(self) :
         objects = {}
         fields =                              [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets", "jetPtMin"] 
