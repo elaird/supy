@@ -59,6 +59,7 @@ def outputDir(sitePrefix, isLocal) :
 
     #sitePrefix: (localOutputDir, globalOutputDir)
     d = {"ic":tuple(["/vols/cms02/%s/tmp/"%user]*2),
+         #"ic":("/vols/cms02/elaird1/tmpLocal/", "/vols/cms02/elaird1/tmpGlobal/"),
          "pu":("/tmp/%s"%user, "/tigress-hsm/%s/tmp/"%user)
          }
          
