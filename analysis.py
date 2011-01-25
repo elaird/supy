@@ -37,6 +37,9 @@ class analysis(object) :
         self._jobId   = options.jobId
         self._site    = options.site if options.site!=None else configuration.sitePrefix()
 
+        self.localStem  = "%s/%s"%(configuration.outputDir(sitePrefix = self._site, isLocal = True ), self.name)
+        self.globalStem = "%s/%s"%(configuration.outputDir(sitePrefix = self._site, isLocal = False), self.name)
+    
         self.sampleDict = samples.SampleHolder()
         map(self.sampleDict.update,self.listOfSampleDictionaries())
 
@@ -44,7 +47,7 @@ class analysis(object) :
         self._configurations = listOfConfigurations(self.parameters())
 
         if self._jobId==None and self._loop!=None :
-            os.system("mkdir -p %s"%self.namedOutputDirectory())
+            os.system("mkdir -p %s"%self.globalStem)
             self.makeInputFileLists()
 
         self._listsOfLoopers = []
@@ -62,14 +65,9 @@ class analysis(object) :
     def configurations(self) : return self._configurations
     def jobs(self) : return self._jobs
 
-    def namedOutputDirectory(self, useGlobalDirectory = False) : return "%s/%s"%(self.baseOutputDirectory(useGlobalDirectory), self.name)
-    def jobsFile(self) : return "%s/%s.jobs"%(self.namedOutputDirectory(), self.name)
-    def inputFilesListFile(self, sampleName) : return "%s/%s.inputFiles"%(self.namedOutputDirectory(useGlobalDirectory = True), sampleName)
-    def outputDirectory(self, conf) : return "%s/%s/config%s"%(self.namedOutputDirectory(), conf["tag"], conf["codeString"])
-    def psFileName(self,tag="") : return "%s/%s%s.ps"%(self.namedOutputDirectory(), self.name, "_"+tag if len(tag) else "")
-    def baseOutputDirectory(self, useGlobalDir = False) :
-        local = self._jobId!=None if not useGlobalDir else False
-        return configuration.outputDir(sitePrefix = self._site, isLocal = local)
+    def jobsFile(self) : return "%s/%s.jobs"%(self.globalStem, self.name)
+    def inputFilesListFile(self, sampleName) : return "%s/%s.inputFiles"%(self.globalStem, sampleName)
+    def psFileName(self,tag="") : return "%s/%s%s.ps"%(self.globalStem, self.name, "_"+tag if len(tag) else "")
         
     def listOfSteps(self,config) :       raise Exception("NotImplemented", "Implement a member function %s"%"listOfSteps(self,config)")
     def listOfCalculables(self,config) : raise Exception("NotImplemented", "Implement a member function %s"%"listOfCalculables(self,config)")
@@ -117,11 +115,7 @@ class analysis(object) :
         listOfLoopers = []
         for iJob,job in enumerate(self._jobs) :
             if self._jobId!=None and int(self._jobId)!=iJob : continue
-
-            looper = self._listsOfLoopers[job["iConfig"]][job["iSample"]].slice(job["iSlice"],
-                                                                                self._nSlices,
-                                                                                outputDir = self.outputDirectory(self._configurations[job["iConfig"]]),
-                                                                                )
+            looper = self._listsOfLoopers[job["iConfig"]][job["iSample"]].slice(job["iSlice"], self._nSlices)
             listOfLoopers.append(looper)
 
         if self._jobId!=None :
@@ -196,6 +190,9 @@ class analysis(object) :
         def quietMode(nWorkers) :
             return nWorkers!=None and nWorkers>1
 
+        def subDir(conf) :
+            return "%s/config%s"%(conf["tag"], conf["codeString"])
+
         ptHatMinDict = {}
         outLoopers = []
         for sampleSpec in listOfSamples :
@@ -216,8 +213,9 @@ class analysis(object) :
                                              treeName = self.treeName,
                                              otherTreesToKeepWhenSkimming = self.otherTreesToKeepWhenSkimming(),
                                              leavesToBlackList = self.leavesToBlackList(),
-                                             outputDir = self.outputDirectory(conf),
-                                             site = self._site,
+                                             localStem  = self.localStem,
+                                             globalStem = self.globalStem,
+                                             subDir = subDir(conf),
                                              steps = adjustedListOfSteps,
                                              calculables = listOfCalculables,
                                              inputFiles = inputFiles,

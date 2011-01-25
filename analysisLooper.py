@@ -7,26 +7,27 @@ class analysisLooper :
     """class to set up and loop over events"""
 
     def __init__(self, fileDirectory = None, treeName = None, otherTreesToKeepWhenSkimming = None, leavesToBlackList = None,
-                 outputDir = None, site = None, steps = None, calculables = None, inputFiles = None, name = None, nEventsMax = None,
-                 quietMode = None, color = None, markerStyle = None) :
+                 localStem = None, globalStem = None, subDir = None, steps = None, calculables = None, inputFiles = None, name = None,
+                 nEventsMax = None, quietMode = None, color = None, markerStyle = None) :
 
         for arg in ["fileDirectory", "treeName", "otherTreesToKeepWhenSkimming", "leavesToBlackList",
-                    "outputDir", "site", "inputFiles", "name", "nEventsMax", "quietMode", "color", "markerStyle"] :
+                    "localStem", "globalStem", "subDir", "inputFiles", "name", "nEventsMax", "quietMode", "color", "markerStyle"] :
             setattr(self, arg, eval(arg))
 
         for arg in ["steps", "calculables"] :
             setattr(self, arg, eval("copy.deepcopy(%s)"%arg))
 
+        self.globalDir = "%s/%s/"%(self.globalStem, self.subDir)
+        self.outputDir = self.globalDir #the value will be modified in self.prepareOutputDirectory()
         self.checkSteps()
 
     def childName(self, iSlice) :
         return "%s_%d"%(self.name, iSlice)
 
-    def slice(self, iSlice, nSlices, outputDir) :
+    def slice(self, iSlice, nSlices) :
         out = copy.deepcopy(self)
         out.inputFiles = out.inputFiles[iSlice::nSlices]
         out.name = self.childName(iSlice)
-        out.outputDir = outputDir
         return out
 
     def outputFileStem(self) :
@@ -74,18 +75,14 @@ class analysisLooper :
         self.moveFiles()
 
     def prepareOutputDirectory(self) :
-        localDir = configuration.outputDir(sitePrefix = self.site, isLocal = True)
-        self.globalDir = configuration.outputDir(sitePrefix = self.site, isLocal = False)
-        utils.mkdir(localDir)
-        self.tmpDir = tempfile.mkdtemp(dir = localDir)
-        self.outputDir = self.outputDir.replace(self.globalDir, self.tmpDir)
+        utils.mkdir(self.localStem)
+        self.tmpDir = tempfile.mkdtemp(dir = self.localStem)
+        self.outputDir = self.outputDir.replace(self.globalStem, self.tmpDir)
         utils.mkdir(self.outputDir)
         
     def moveFiles(self) :
-        src = self.outputDir
-        dest = self.outputDir.replace(self.tmpDir, self.globalDir)
-        utils.mkdir(dest)
-        os.system("rsync -a %s/ %s/"%(src, dest))
+        utils.mkdir(self.globalDir)
+        os.system("rsync -a %s/ %s/"%(self.outputDir, self.globalDir))
         os.system("rm -r %s"%self.tmpDir)
         
     def processEvent(self,eventVars) :
@@ -244,7 +241,7 @@ class analysisLooper :
                     d[item] = getattr(step, item)
                 for item in items :
                     if item=="outputFileName" :
-                        d[item] = getattr(step, item)().replace(self.tmpDir, self.globalDir)
+                        d[item] = getattr(step, item)().replace(self.outputDir, self.globalDir)
                     else :
                         d[item] = getattr(step, item)()
                 out.append(d)

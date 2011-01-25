@@ -75,7 +75,7 @@ def doBatch(someInstance) :
     argsAndOptions.remove("--batch")
     baseCmd = "./supy "+" ".join(argsAndOptions)
 
-    scriptDir = someInstance.namedOutputDirectory()
+    scriptDir = someInstance.globalStem
     os.system("mkdir -p "+scriptDir)
 
     subScript,jobScript = configuration.batchScripts()
