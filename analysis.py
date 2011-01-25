@@ -118,11 +118,10 @@ class analysis(object) :
         for iJob,job in enumerate(self._jobs) :
             if self._jobId!=None and int(self._jobId)!=iJob : continue
 
-            outputDir = self.outputDirectory(self._configurations[job["iConfig"]])
-            #create output directory
-            os.system("mkdir -p %s"%outputDir)
-            #add the looper
-            looper = self._listsOfLoopers[job["iConfig"]][job["iSample"]].slice(job["iSlice"], self._nSlices, outputDir)
+            looper = self._listsOfLoopers[job["iConfig"]][job["iSample"]].slice(job["iSlice"],
+                                                                                self._nSlices,
+                                                                                outputDir = self.outputDirectory(self._configurations[job["iConfig"]]),
+                                                                                )
             listOfLoopers.append(looper)
 
         if self._jobId!=None :
@@ -217,6 +216,7 @@ class analysis(object) :
                                              otherTreesToKeepWhenSkimming = self.otherTreesToKeepWhenSkimming(),
                                              leavesToBlackList = self.leavesToBlackList(),
                                              outputDir = self.outputDirectory(conf),
+                                             site = self._site,
                                              steps = adjustedListOfSteps,
                                              calculables = listOfCalculables,
                                              inputFiles = inputFiles,
