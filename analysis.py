@@ -167,7 +167,8 @@ class analysis(object) :
         listOfSamples = self.listOfSamples(conf)
 
         selectors = filter(lambda s: hasattr(s,"select"), listOfSteps)
-        assert len(selectors) == len(set(map(lambda s:(s.__class__.__name__,s.moreName,s.moreName2), selectors))),"Duplicate selectors are not allowed."
+        assert len(selectors) == len(set([(s.__class__.__name__,s.moreName,s.moreName2) for s in selectors])), \
+               "Duplicate selectors are not allowed."
         #checked already during makeInputFileLists
         #names = [s.name for s in listOfSamples]
         #assert len(names) == len(set(names)), "Duplicate sample names are not allowed."
