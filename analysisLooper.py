@@ -74,20 +74,17 @@ class analysisLooper :
         self.moveFiles()
 
     def prepareOutputDirectory(self) :
-        def mkdir(path) :
-            if not os.path.exists(path) :
-                os.makedirs(path)
-
         localDir = configuration.outputDir(sitePrefix = self.site, isLocal = True)
         self.globalDir = configuration.outputDir(sitePrefix = self.site, isLocal = False)
-        mkdir(localDir)
+        utils.mkdir(localDir)
         self.tmpDir = tempfile.mkdtemp(dir = localDir)
         self.outputDir = self.outputDir.replace(self.globalDir, self.tmpDir)
-        mkdir(self.outputDir)
+        utils.mkdir(self.outputDir)
         
     def moveFiles(self) :
         src = self.outputDir
         dest = self.outputDir.replace(self.tmpDir, self.globalDir)
+        utils.mkdir(dest)
         os.system("rsync -a %s/ %s/"%(src, dest))
         os.system("rm -r %s"%self.tmpDir)
         
