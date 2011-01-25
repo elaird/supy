@@ -9,6 +9,7 @@ class hadronicLook(analysis.analysis) :
         fields =                                                [ "jet",            "met",            "muon",        "electron",        "photon",
                                                                   "compJet",    "compMet",
                                                                   "rechit", "muonsInJets", "jetPtMin", "jetId"]
+
         objects["caloAK5JetMet_recoLepPhot"] = dict(zip(fields, [("xcak5Jet","Pat"),"metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"),
                                                                  ("xcak5JetPF","Pat"),"metP4PF",
                                                                  "Calo",     False,         50.0,      "JetIDloose"]))
@@ -186,12 +187,14 @@ class hadronicLook(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify
-        def data() : return specify( names = ["Nov4_MJ_skim"  ,
+        def data() : return specify( #nFilesMax = 4, nEventsMax = 2000,
+                                     names = ["Nov4_MJ_skim"  ,
                                               "Nov4_J_skim"   ,
                                               "Nov4_J_skim2"  ,
                                               "Nov4_JM_skim"  ,
                                               "Nov4_JMT_skim" ,
-                                              "Nov4_JMT_skim2"])#, nFilesMax = 4, nEventsMax = 2000 )
+                                              "Nov4_JMT_skim2"])
+        
 
         def qcd_py6(eL) :
             q6 = [0,5,15,30,50,80,120,170,300,470,600,800,1000,1400,1800]
@@ -256,12 +259,11 @@ class hadronicLook(analysis.analysis) :
 
         #outList = pfSkims
         #self.skimString = "_pfSkim"
-        #self.skimString = ""
 
         qcd_func,g_jets_func = {"py6": (qcd_py6,g_jets_py6),
                                 "py8": (qcd_py8,g_jets_py6), # no g_jets_py8 available
                                 "mg" : (qcd_mg, g_jets_mg ) }[params["mcSoup"]]
-        eL = 100 # 1/pb
+        eL = 50 # 1/pb
         return ( data() +
                  qcd_func(eL) + g_jets_func(eL) +
                  ttbar_mg(eL) + ewk(eL) + susy(eL) )
@@ -287,7 +289,7 @@ class hadronicLook(analysis.analysis) :
 
         smSources = ["tt_tauola_mg_v12", "z_inv_mg_v12_skim", "z_jets_mg_v12_skim", "w_jets_mg_v12_skim"]
         for i in range(len(smSources)) :
-            smSources[i] = smSources[i]+self.skimString
+            smSources[i] = smSources[i]+(self.skimString if hasattr(self,"skimString") else "")
             
         if "pythia6"  in tag : py6(org, smSources)
         if "pythia8"  in tag : py8(org, smSources)
