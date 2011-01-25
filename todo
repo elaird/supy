@@ -1,6 +1,6 @@
 Critical
 ---------
-support nSamples depending upon config
+(none)
 
 Processing
 -----------
@@ -21,9 +21,13 @@ Other
 * consider uncertainty on zero
 
 * config parameter interface
-* config sample interface, effective lumi argument, test mode
+* config sample interface
 * multi-site samples handles
 * protect against samples collisions
+* file list caching
+* other directories in organizer/plotter
+
+* continue clean-up of hadronicLook
 
 * handle float-based vectors
 * migrate to new ROOT
@@ -50,6 +54,7 @@ Other
 * check extra spike vars
 
 (low priority)
+* class name vs file name
 * move ratio marker
 * 2D ratios
 * logfiles
