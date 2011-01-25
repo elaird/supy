@@ -70,7 +70,7 @@ class analysisLooper :
         for chain in self.otherChainDict.values() :
             chain.IsA().Destructor( chain )
 
-        self.copyFiles()
+        self.moveFiles()
 
     def prepareOutputDirectory(self) :
         def mkdir(path) :
@@ -78,17 +78,17 @@ class analysisLooper :
                 os.makedirs(path)
 
         localDir = configuration.outputDir(sitePrefix = self.site, isLocal = True)
-        globalDir = configuration.outputDir(sitePrefix = self.site, isLocal = False)
+        self.globalDir = configuration.outputDir(sitePrefix = self.site, isLocal = False)
         mkdir(localDir)
         self.tmpDir = tempfile.mkdtemp(dir = localDir)
-        self.outputDir = self.outputDir.replace(globalDir, self.tmpDir)
+        self.outputDir = self.outputDir.replace(self.globalDir, self.tmpDir)
         mkdir(self.outputDir)
         
-    def copyFiles(self) :
-        globalDir = configuration.outputDir(sitePrefix = self.site, isLocal = False)
+    def moveFiles(self) :
         src = self.outputDir
-        dest = self.outputDir.replace(self.tmpDir, globalDir)
+        dest = self.outputDir.replace(self.tmpDir, self.globalDir)
         os.system("rsync -a %s/ %s/"%(src, dest))
+        os.system("rm -r %s"%self.tmpDir)
         
     def processEvent(self,eventVars) :
         for step in self.steps :
@@ -245,7 +245,10 @@ class analysisLooper :
                 for item in vars :
                     d[item] = getattr(step, item)
                 for item in items :
-                    d[item] = getattr(step, item)()
+                    if item=="outputFileName" :
+                        d[item] = getattr(step, item)().replace(self.tmpDir, self.globalDir)
+                    else :
+                        d[item] = getattr(step, item)()
                 out.append(d)
             return out
             
