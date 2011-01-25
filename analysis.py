@@ -178,7 +178,8 @@ class analysis(object) :
             else :
                 if ss.nEventsMax>=0: print "Warning: %s nEventsMax ignored in favor of effectiveLumi "%ss.name
                 assert not sampletuple.lumi, "Cannot calculate effectiveLumi for _data_ sample %s"%ss.name
-                return 1+int(ss.effectiveLumi*sampletuple.xs/jobs)
+                n = 10 # 1./n is the rounding threshold
+                return int( (ss.effectiveLumi*sampletuple.xs/jobs + 1)*n-1)/n
 
         def checkLumi(isMc, nEventsMax, nFilesMax) :
             if (not isMc) and (nEventsMax>=0 or nFilesMax>=0) :
@@ -186,11 +187,11 @@ class analysis(object) :
                 return True
             return False
 
-        def fileList(sampleName, nFilesMax) :
-            f = open(self.inputFilesListFile(sampleName))
+        def fileList(ss) :
+            f = open(self.inputFilesListFile(ss.name))
             l = cPickle.load(f)
             f.close()
-            return l[:nFilesMax]
+            return l[:ss.nFilesMax]
 
         def quietMode(nWorkers) :
             return nWorkers!=None and nWorkers>1
@@ -201,7 +202,7 @@ class analysis(object) :
             sampleName = sampleSpec.name
             sampleTuple = self.sampleDict[sampleName]
             isMc = sampleTuple.lumi==None
-            inputFiles = fileList(sampleName,sampleSpec.nFilesMax)
+            inputFiles = fileList(sampleSpec)
             nEventsMax = parseForEventNumber(sampleSpec, sampleTuple, min(len(inputFiles), self._nSlices))
 
             if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
