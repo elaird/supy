@@ -404,6 +404,9 @@ def intFromBits(bits) :
     return sum([j[1] * (1<<j[0]) for j in enumerate(reversed(bits))])
 #####################################
 def mkdir(path) :
-    if not os.path.exists(path) :
+    try:
         os.makedirs(path)
+    except OSError as e :
+        if e.errno!=17 :
+            raise e
 #####################################
