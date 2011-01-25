@@ -1,4 +1,4 @@
-import copy,array,os,cPickle
+import copy,array,os,cPickle,tempfile
 import wrappedChain,utils,steps,configuration
 from autoBook import autoBook
 import ROOT as r
@@ -7,15 +7,17 @@ class analysisLooper :
     """class to set up and loop over events"""
 
     def __init__(self, fileDirectory = None, treeName = None, otherTreesToKeepWhenSkimming = None, leavesToBlackList = None,
-                 outputDir = None, steps = None, calculables = None, inputFiles = None, name = None, nEventsMax = None,
+                 outputDir = None, site = None, steps = None, calculables = None, inputFiles = None, name = None, nEventsMax = None,
                  quietMode = None, color = None, markerStyle = None) :
 
         for arg in ["fileDirectory", "treeName", "otherTreesToKeepWhenSkimming", "leavesToBlackList",
-                    "outputDir", "inputFiles", "name", "nEventsMax", "quietMode", "color", "markerStyle"] :
+                    "outputDir", "site", "inputFiles", "name", "nEventsMax", "quietMode", "color", "markerStyle"] :
             setattr(self, arg, eval(arg))
 
         for arg in ["steps", "calculables"] :
             setattr(self, arg, eval("copy.deepcopy(%s)"%arg))
+
+        self.checkSteps()
 
     def childName(self, iSlice) :
         return "%s_%d"%(self.name, iSlice)
@@ -33,17 +35,19 @@ class analysisLooper :
     def outputStepAndCalculableDataFileName(self) :
         return "%s%s"%(self.outputFileStem(), ".pickledData")
 
-    def go(self) :
-        self.setupChains(self.inputFiles)
-        useSetBranchAddress = self.setupSteps()
-
-        #check for problems with the master
+    def checkSteps(self) :
         for iStep,step in enumerate(self.steps) :
             if step.name()=="master" :
                 assert not iStep,"The master step must occur first."
                 assert hasattr(step,"select"), "The master step must be a selector."
             else :
                 assert iStep,"The master step must occur first."
+        
+    def go(self) :
+        self.prepareOutputDirectory()
+        
+        self.setupChains(self.inputFiles)
+        useSetBranchAddress = self.setupSteps()
 
         #loop through entries
         chainWrapper = wrappedChain.wrappedChain(self.inputChain,
@@ -66,48 +70,66 @@ class analysisLooper :
         for chain in self.otherChainDict.values() :
             chain.IsA().Destructor( chain )
 
+        self.copyFiles()
+
+    def prepareOutputDirectory(self) :
+        def mkdir(path) :
+            if not os.path.exists(path) :
+                os.makedirs(path)
+
+        localDir = configuration.outputDir(sitePrefix = self.site, isLocal = True)
+        globalDir = configuration.outputDir(sitePrefix = self.site, isLocal = False)
+        mkdir(localDir)
+        self.tmpDir = tempfile.mkdtemp(dir = localDir)
+        self.outputDir = self.outputDir.replace(globalDir, self.tmpDir)
+        mkdir(self.outputDir)
+        
+    def copyFiles(self) :
+        globalDir = configuration.outputDir(sitePrefix = self.site, isLocal = False)
+        src = self.outputDir
+        dest = self.outputDir.replace(self.tmpDir, globalDir)
+        os.system("rsync -a %s/ %s/"%(src, dest))
+        
     def processEvent(self,eventVars) :
         for step in self.steps :
             if not step.go(eventVars) : break
 
     def setupChains(self,inputFiles) :
-        nFiles=len(inputFiles)
-        alreadyPrintedEllipsis=False
+        nFiles = len(inputFiles)
+        alreadyPrintedEllipsis = False
 
-        if not self.quietMode : print utils.hyphens
-        outString="The "+str(nFiles)+" \""+self.name+"\" input file"
-        if (nFiles>1) : outString+="s"
-        if not self.quietMode : print outString+":"
+        if not self.quietMode :
+            print utils.hyphens
+            print "The %d \"%s\" input file%s:"%(nFiles, self.name, "s" if nFiles>1 else "")
 
-        self.inputChain=r.TChain("chain")
-        r.SetOwnership(self.inputChain,False)
+        self.inputChain = r.TChain("chain")
+        r.SetOwnership(self.inputChain, False)
         
-        self.otherChainDict={}
-        otherChainCount=0
+        self.otherChainDict = {}
+        otherChainCount = 0
         for item in self.otherTreesToKeepWhenSkimming :
-            self.otherChainDict[item]=r.TChain("chain%d"%otherChainCount)
-            r.SetOwnership(self.otherChainDict[item],False)
+            self.otherChainDict[item] = r.TChain("chain%d"%otherChainCount)
+            r.SetOwnership(self.otherChainDict[item], False)
         
         for infile in inputFiles :
             #add main tree to main chain
-            self.inputChain.Add(infile+"/"+self.fileDirectory+"/"+self.treeName)
+            self.inputChain.Add("%s/%s/%s"%(infile, self.fileDirectory, self.treeName))
             
             #add other trees to other chains
             for (dirName,treeName),chain in self.otherChainDict.iteritems() :
-                chain.Add(infile+"/"+dirName+"/"+treeName)
-
+                chain.Add("%s/%s/%s"%(infile, dirName, treeName))
             if (inputFiles.index(infile)<2 or inputFiles.index(infile)>(nFiles-3) ) :
                 if not self.quietMode : print infile
             elif (not alreadyPrintedEllipsis) :
                 if not self.quietMode : print "..."
-                alreadyPrintedEllipsis=True
+                alreadyPrintedEllipsis = True
 
         outString = "contain%s %s events."%(("s" if nFiles==1 else ""),
                                             str(self.inputChain.GetEntries()) if configuration.computeEntriesForReport() else "(number not computed)",
                                             )
-            
-        if not self.quietMode : print outString
-        if not self.quietMode : print utils.hyphens
+        if not self.quietMode :
+            print outString
+            print utils.hyphens
         r.gROOT.cd()
 
     def setupSteps(self, minimal = False) :
@@ -227,8 +249,7 @@ class analysisLooper :
                 out.append(d)
             return out
             
-        outFileName = os.path.expanduser(self.outputStepAndCalculableDataFileName())
-        outFile = open(outFileName,"w")
+        outFile = open(self.outputStepAndCalculableDataFileName(), "w")
         cPickle.dump([listToDump(), self.listOfCalculablesUsed, self.listOfLeavesUsed], outFile)
         outFile.close()
 #####################################
