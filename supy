@@ -85,10 +85,6 @@ def doBatch(someInstance) :
     for iJob,listOfIndices in enumerate( someInstance.jobs() ) :
         submitBatchJob("%s --jobid %d --site %s"%(baseCmd, iJob, site),
                        iJob, listOfIndices, scriptDir = scriptDir, subScript = subScript, jobScript = jobScript)
-                       
-    print
-    print "You may do this to monitor your jobs (exit with CTRL-C):"
-    print "watch 'qstat | head -40; find %s | grep -c root'"%someInstance.namedOutputDirectory()
 ############################################
 def finish(someInstance) :
     someInstance.mergeOutput()
