@@ -54,7 +54,7 @@ def importedClass(module) :
     assert count==1,arg+" needs exactly 1 class which inherits from analysis; it has "+str(count)
     return theClass
 ############################################
-def submitBatchJob(jobCmd, iJob, indexDict, scriptDir, subScript, jobScript) :
+def submitBatchJob(jobCmd, iJob, indexDict, scriptDir, subScript, jobScript, condorTemplate) :
     jobScriptFileName  = scriptDir+"/job"+str(iJob)+"__"
     for key in ["iConfig","iSample","iSlice"] :
         jobScriptFileName +="_%s"%str(indexDict[key])
@@ -66,8 +66,14 @@ def submitBatchJob(jobCmd, iJob, indexDict, scriptDir, subScript, jobScript) :
     outJobScript.write(jobCmd)
     outJobScript.close()
 
-    subCmd = "./"+subScript+" "+jobScriptFileName
-    #print subCmd
+    if os.path.exists(condorTemplate) :
+        condorFileName = jobScriptFileName.replace(".sh",".condor")
+        os.system("cat %s | sed s@JOBFLAG@%s@g > %s"%(condorTemplate, jobScriptFileName, condorFileName))
+        arg = condorFileName
+    else :
+        arg = jobScriptFileName
+
+    subCmd = "./%s %s"%(subScript, arg)
     os.system(subCmd)
 ############################################
 def doBatch(someInstance) :
@@ -78,13 +84,13 @@ def doBatch(someInstance) :
     scriptDir = someInstance.globalStem
     os.system("mkdir -p "+scriptDir)
 
-    subScript,jobScript = configuration.batchScripts()
+    subScript,jobScript,condorTemplate = configuration.batchScripts()
     os.system("chmod +x "+subScript)
 
     site = configuration.sitePrefix()
     for iJob,listOfIndices in enumerate( someInstance.jobs() ) :
         submitBatchJob("%s --jobid %d --site %s"%(baseCmd, iJob, site),
-                       iJob, listOfIndices, scriptDir = scriptDir, subScript = subScript, jobScript = jobScript)
+                       iJob, listOfIndices, scriptDir = scriptDir, subScript = subScript, jobScript = jobScript, condorTemplate = condorTemplate)
 ############################################
 def finish(someInstance) :
     someInstance.mergeOutput()
