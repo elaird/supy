@@ -60,12 +60,14 @@ def siteSpecs() :
                 "dCachePrefix"   : "dcap://gfe02.grid.hep.ph.ic.ac.uk:22128",
                 "srmPrefix"      : "srm://gfe02.grid.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN=/pnfs/hep.ph.ic.ac.uk/data/cms/store/user",
                 "queueHeaders"   : ["job-ID", "prior", "name", "user", "state", "submit1", "submit2", "queue", "slots", "ja-task-ID"],
-                "queueVars"      : {"user":"user", "state":"state", "run":"r", "summary":"qstat -u '*'", "sample":"qstat | head"}
+                "queueVars"      : {"queue":"hep.q", "user":"user", "state":"state", "run":"r", "summary":"qstat -u '*'", "sample":"qstat | head"},
                 },
         "pu"  :{"localOutputDir" : "/tmp/%s"%user,
                 "globalOutputDir": "/tigress-hsm/%s/tmp/"%user,
                 "dCachePrefix"   : "",
                 "srmPrefix"      : "",
+                "queueHeaders"   : ["Job id","Name","User","Time Use","S","Queue"],
+                "queueVars"      : {"queue":"hep", "user":"User", "state":"S", "run":"R", "summary":"qstat", "sample": "qstat -u %s | head"%user}
                 },
         "cern":{"localOutputDir" : "/tmp/%s"%user,
                 "globalOutputDir": "/tmp/%s"%user,
