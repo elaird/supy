@@ -59,7 +59,9 @@ def siteSpecs() :
                 "globalOutputDir": "/vols/cms02/%s/tmp/"%user,
                 "dCachePrefix"   : "dcap://gfe02.grid.hep.ph.ic.ac.uk:22128",
                 "srmPrefix"      : "srm://gfe02.grid.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN=/pnfs/hep.ph.ic.ac.uk/data/cms/store/user",
-                },                 
+                "queueHeaders"   : ["job-ID", "prior", "name", "user", "state", "submit1", "submit2", "queue", "slots", "ja-task-ID"],
+                "queueVars"      : {"user":"user", "state":"state", "run":"r", "summary":"qstat -u '*'", "sample":"qstat | head"}
+                },
         "pu"  :{"localOutputDir" : "/tmp/%s"%user,
                 "globalOutputDir": "/tigress-hsm/%s/tmp/"%user,
                 "dCachePrefix"   : "",
@@ -75,6 +77,8 @@ def siteSpecs() :
                 #"globalOutputDir":"/pnfs/cms/WAX/resilient/%s/tmp/"%user,
                 "dCachePrefix"   : "dcap://cmsgridftp.fnal.gov:24125/pnfs/fnal.gov/usr/cms/WAX/",
                 "srmPrefix"      : "srm://cmssrm.fnal.gov:8443/",
+                "queueHeaders"   : ["ID", "OWNER", "SUBMITTED1", "SUBMITTED2", "RUN_TIME", "ST", "PRI", "SIZE", "CMD"],
+                "queueVars"      : {"user":"OWNER", "state":"ST", "run":"R", "summary":"condor_q -global", "sample": "condor_q -global -submitter %s | head"%user}
                 },
         }
 
