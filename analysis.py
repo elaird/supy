@@ -111,11 +111,12 @@ class analysis(object) :
 
             while True:
                 sampleName,command = q.get()
-                #write file locally
-                tmpDir,localFileName,globalFileName = self.globalToLocal(self.inputFilesListFile(sampleName))
-                writeFile(localFileName, fileList(command))
-                #transfer it and clean up
-                self.localToGlobal(tmpDir, localFileName, globalFileName)
+                if not (os.path.exists(self.inputFilesListFile(sampleName)) and configuration.useCachedFileLists()) :
+                    #write file locally
+                    tmpDir,localFileName,globalFileName = self.globalToLocal(self.inputFilesListFile(sampleName))
+                    writeFile(localFileName, fileList(command))
+                    #transfer it and clean up
+                    self.localToGlobal(tmpDir, localFileName, globalFileName)
                 #notify queue
                 q.task_done()
 

@@ -1,5 +1,8 @@
 import os
 
+def useCachedFileLists() :
+    return True
+
 def maxArrayLength() :
     return 256
 
