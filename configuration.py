@@ -50,7 +50,7 @@ def sitePrefix() :
 
 def batchScripts() :
     p = sitePrefix()
-    return ("%sSub.sh"%p, "%sJob.sh"%p)
+    return ("%sSub.sh"%p, "%sJob.sh"%p, "%sTemplate.condor"%p)
 
 def qlook() :
     return "%sQlook"%sitePrefix()
@@ -63,7 +63,7 @@ def outputDir(site, isLocal) :
          #"ic":("/vols/cms02/elaird1/tmpLocal/", "/vols/cms02/elaird1/tmpGlobal/"),
          "pu":("/tmp/%s"%user, "/tigress-hsm/%s/tmp/"%user),
          #"fnal":("/tmp/%s"%user, "/pnfs/cms/WAX/resilient/%s/tmp/"%user)
-         "fnal":("/tmp/%s"%user, "%s/supyOutput/"%os.environ["HOME"])
+         "fnal":(os.environ["_CONDOR_SCRATCH_DIR"] if "_CONDOR_SCRATCH_DIR" in os.environ else "/tmp/%s"%user, "%s/supyOutput/"%os.environ["HOME"])
          }
          
     assert site in d, "site %s needs to have output directories defined"%site
