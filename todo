@@ -8,7 +8,6 @@
 * config sample interface
 * multi-site samples handles
 * protect against samples collisions
-* file list caching
 * other directories in organizer/plotter
 * make 1/10 configurable
 
@@ -20,14 +19,10 @@
 
 * consider threshold for adding muons to jets
 * in analysis.py: looper.setupSteps(minimal = True) #determine why this is needed
-* run on lxplus
-* capitalize master
-* clean up inputFileList
-* store inputFileList in root file?
-
-* analysis restructure
 * consider arguments to analysisLooper
-* generic batch mode
+* fnalbatch
+* lxbatch
+* unify qlook
 
 (ongoing)
 * profile
@@ -39,6 +34,7 @@
 * check extra spike vars
 
 (low priority)
+* store inputFileList in root file?
 * class name vs file name
 * move ratio marker
 * 2D ratios
