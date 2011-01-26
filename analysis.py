@@ -37,8 +37,8 @@ class analysis(object) :
         self._jobId   = options.jobId
         self._site    = options.site if options.site!=None else configuration.sitePrefix()
 
-        self.localStem  = "%s/%s"%(configuration.outputDir(site = self._site, isLocal = True ), self.name)
-        self.globalStem = "%s/%s"%(configuration.outputDir(site = self._site, isLocal = False), self.name)
+        self.localStem  = "%s/%s"%(configuration.siteInfo(site = self._site, key = "localOutputDir" ), self.name)
+        self.globalStem = "%s/%s"%(configuration.siteInfo(site = self._site, key = "globalOutputDir"), self.name)
     
         self.sampleDict = samples.SampleHolder()
         map(self.sampleDict.update,self.listOfSampleDictionaries())

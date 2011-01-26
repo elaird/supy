@@ -48,6 +48,31 @@ def sitePrefix() :
             return prefix
     assert False,"hostname %s does not match anything in %s"%(hostName, str(d))
 
+def siteSpecs() :
+    user = os.environ["USER"]
+    return {
+        "ic"  :{"localOutputDir" : "/vols/cms02/%s/tmp/"%user,
+                "globalOutputDir": "/vols/cms02/%s/tmp/"%user,
+                "dCachePrefix"   : "dcap://gfe02.grid.hep.ph.ic.ac.uk:22128",
+                "srmPrefix"      : "srm://gfe02.grid.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN=/pnfs/hep.ph.ic.ac.uk/data/cms/store/user",
+                },                 
+        "pu"  :{"localOutputDir" : "/tmp/%s"%user,
+                "globalOutputDir": "/tigress-hsm/%s/tmp/"%user,
+                },
+        "fnal":{"localOutputDir" : os.environ["_CONDOR_SCRATCH_DIR"] if "_CONDOR_SCRATCH_DIR" in os.environ else "/tmp/%s"%user,
+                "globalOutputDir": "%s/supyOutput/"%os.environ["HOME"],
+                "dCachePrefix"   : "dcap://cmsgridftp.fnal.gov:24125/pnfs/fnal.gov/usr/cms/WAX/",
+                "srmPrefix"      : "srm://cmssrm.fnal.gov:8443/",
+                },
+        }
+
+def siteInfo(site = None, key = None) :
+    if site==None : site = sitePrefix()
+    ss = siteSpecs()
+    assert site in ss, "site %s does not appear in siteSpecs()"%site
+    assert key in ss[site], "site %s does not have key %s"%(site, key)
+    return ss[site][key]
+
 def batchScripts() :
     p = sitePrefix()
     return ("%sSub.sh"%p, "%sJob.sh"%p, "%sTemplate.condor"%p)
@@ -55,41 +80,11 @@ def batchScripts() :
 def qlook() :
     return "%sQlook"%sitePrefix()
     
-def outputDir(site, isLocal) :
-    user = os.environ["USER"]
-
-    #sitePrefix: (localOutputDir, globalOutputDir)
-    d = {"ic":tuple(["/vols/cms02/%s/tmp/"%user]*2),
-         #"ic":("/vols/cms02/elaird1/tmpLocal/", "/vols/cms02/elaird1/tmpGlobal/"),
-         "pu":("/tmp/%s"%user, "/tigress-hsm/%s/tmp/"%user),
-         #"fnal":("/tmp/%s"%user, "/pnfs/cms/WAX/resilient/%s/tmp/"%user)
-         "fnal":(os.environ["_CONDOR_SCRATCH_DIR"] if "_CONDOR_SCRATCH_DIR" in os.environ else "/tmp/%s"%user, "%s/supyOutput/"%os.environ["HOME"])
-         }
-         
-    assert site in d, "site %s needs to have output directories defined"%site
-    return d[site][int(not isLocal)]
-
-def dCachePrefix() :
-    d = {"ic":"dcap://gfe02.grid.hep.ph.ic.ac.uk:22128",
-         "fnal":"dcap://cmsgridftp.fnal.gov:24125/pnfs/fnal.gov/usr/cms/WAX/",
-        }
-    site = sitePrefix()
-    assert site in d, "site %s needs to have a dCache prefix defined"%site
-    return d[site]
-
-def srmPrefix(site = None) :
-    d = {"ic":"srm://gfe02.grid.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN=/pnfs/hep.ph.ic.ac.uk/data/cms/store/user",
-         "fnal":"srm://cmssrm.fnal.gov:8443/",
-        }
-    if site==None : site = sitePrefix() 
-    assert site in d, "site %s needs to have a srm prefix defined"%site
-    return d[site]
-
 def mvCommand(site = None, src = None, dest = None) :
     d = {"ic":"mv %s %s"%(src, dest),
          "pu":"mv %s %s"%(src, dest),
          "fnal":"mv %s %s"%(src, dest),
          #"fnal":"srmcp file:///%s %s/%s"%(src, srmPrefix("fnal"), dest.replace("/pnfs/cms/WAX/","/")),
         }
-    assert site in d, "site %s needs to have a mvCommand defined"%site
+    assert site in d, "site %s does not have a mvCommand defined"%site
     return d[site]
