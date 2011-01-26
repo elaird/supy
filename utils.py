@@ -87,17 +87,14 @@ def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = 
         print "File duplications, unresolved(%d), resolved(%d) %s" % (abandoned, resolved, location)
     return outList
 #####################################
-def fileListFromSrmLs(location, itemsToSkip = [], sizeThreshold = -1, pruneList = True, alwaysUseLastAttempt = False) :
-    srmPrefix="srm://gfe02.grid.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN="
-    dCachePrefix="dcap://gfe02.grid.hep.ph.ic.ac.uk:22128"
-
+def fileListFromSrmLs(dCachePrefix = None, location = None, itemsToSkip = [], sizeThreshold = -1, pruneList = True, alwaysUseLastAttempt = False) :
     fileList=[]
     sizes=[]
     offset = 0
     output = []
     #print cmd
     while len(output) >= 1000*offset :
-        cmd="srmls --count 1000 --offset %d %s/%s"% (1000*offset,srmPrefix,location)
+        cmd="srmls --count 1000 --offset %d %s"% (1000*offset,location)
         output += getCommandOutput(cmd)["stdout"].split('\n')
         offset += 1
     for line in output :

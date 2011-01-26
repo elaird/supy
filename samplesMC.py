@@ -1,7 +1,7 @@
-import samples
+import samples,configuration
 
 mc = samples.SampleHolder()
-srm = 'utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user'
+srm = 'utils.fileListFromSrmLs(dCachePrefix = "%s", location="%s'%(configuration.dCachePrefix(), configuration.srmPrefix())
 
 #PY 6 QCD
 tag1 = "/bm409/ICF/automated/2010_10_11_23_08_00/"

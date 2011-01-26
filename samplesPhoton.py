@@ -1,7 +1,7 @@
-import samples
+import samples,configuration
 
 photon = samples.SampleHolder()
-srm = 'utils.fileListFromSrmLs(location="/pnfs/hep.ph.ic.ac.uk/data/cms/store/user'
+srm = 'utils.fileListFromSrmLs(dCachePrefix = "%s", location="%s'%(configuration.dCachePrefix(), configuration.srmPrefix())
 
 #original photon-triggered data
 photon.add("EG.Run2010A-Sep17ReReco_v2.RECO",             '%s/mjarvis//ICF/automated/2010_10_13_14_25_09/")'%srm, lumi = 99999.9 )

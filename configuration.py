@@ -39,6 +39,7 @@ def sourceFiles() :
 def sitePrefix() :
     d = {"hep.ph.ic.ac.uk":"ic",
          "sesame1":"pu",
+         "fnal.gov":"fnal",
          }
 
     hostName = os.environ["HOSTNAME"]
@@ -60,8 +61,25 @@ def outputDir(sitePrefix, isLocal) :
     #sitePrefix: (localOutputDir, globalOutputDir)
     d = {"ic":tuple(["/vols/cms02/%s/tmp/"%user]*2),
          #"ic":("/vols/cms02/elaird1/tmpLocal/", "/vols/cms02/elaird1/tmpGlobal/"),
-         "pu":("/tmp/%s"%user, "/tigress-hsm/%s/tmp/"%user)
+         "pu":("/tmp/%s"%user, "/tigress-hsm/%s/tmp/"%user),
+         "fnal":("/tmp/%s"%user, "/pnfs/cms/WAX/resilient/%s/tmp/"%user)
          }
          
     assert sitePrefix in d, "sitePrefix %s needs to have output directories defined"%sitePrefix
     return d[sitePrefix][int(not isLocal)]
+
+def dCachePrefix() :
+    d = {"ic":"dcap://gfe02.grid.hep.ph.ic.ac.uk:22128",
+         "fnal":"dcap://cmsgridftp.fnal.gov:24125/pnfs/fnal.gov/usr/cms/WAX/",
+        }
+    sp = sitePrefix()
+    assert sp in d, "sitePrefix %s needs to have a dCache prefix defined"%sp
+    return d[sp]
+
+def srmPrefix() :
+    d = {"ic":"srm://gfe02.grid.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN=/pnfs/hep.ph.ic.ac.uk/data/cms/store/user",
+         "fnal":"srm://cmssrm.fnal.gov:8443/",
+        }
+    sp = sitePrefix()
+    assert sp in d, "sitePrefix %s needs to have a srm prefix defined"%sp
+    return d[sp]
