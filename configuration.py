@@ -61,6 +61,7 @@ def siteSpecs() :
                 },
         "fnal":{"localOutputDir" : os.environ["_CONDOR_SCRATCH_DIR"] if "_CONDOR_SCRATCH_DIR" in os.environ else "/tmp/%s"%user,
                 "globalOutputDir": "%s/supyOutput/"%os.environ["HOME"],
+                #"globalOutputDir":"/pnfs/cms/WAX/resilient/%s/tmp/"%user,
                 "dCachePrefix"   : "dcap://cmsgridftp.fnal.gov:24125/pnfs/fnal.gov/usr/cms/WAX/",
                 "srmPrefix"      : "srm://cmssrm.fnal.gov:8443/",
                 },
