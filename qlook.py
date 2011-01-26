@@ -24,20 +24,20 @@ def stats(l) :
 def summary(run, wait) :
     def printLine(user, r, w) :
         on,off = ('\033[91m','\033[0m') if user==os.environ["USER"] else ('','')
-        print "|%s%10s %6d %6d %6d%s|"%(on, user, r, w, r+w, off)
+        print "|%s%17s %6d %6d %6d%s|"%(on, user, r, w, r+w, off)
         
-    print "+-------------------------------+"
-    print "|      user      r  other  total|"
-    print "|-------------------------------|"
+    print "+--------------------------------------+"
+    print "|      user             r  other  total|"
+    print "|--------------------------------------|"
     runTotal  = 0
     waitTotal = 0
     for user in sorted(list(set(run.keys()+wait.keys()))) :
         runTotal += run[user]
         waitTotal+=wait[user]
         printLine(user, run[user], wait[user])
-    print "|-------------------------------|"
+    print "|--------------------------------------|"
     printLine("all", runTotal, waitTotal)
-    print "+-------------------------------+"
+    print "+--------------------------------------+"
 
 def sample(l) :
     print "\n".join(l)[:-1]
