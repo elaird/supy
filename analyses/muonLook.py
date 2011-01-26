@@ -4,9 +4,6 @@ import os,analysis,steps,calculables,samples,organizer,plotter,utils
 import ROOT as r
 
 class muonLook(analysis.analysis) :
-    def baseOutputDirectory(self) :
-        return "/vols/cms02/%s/tmp/"%os.environ["USER"]
-
     def parameters(self) :
         objects = {}
         fields =                                                [ "jet",            "met",            "muon",        "electron",        "photon",
@@ -78,8 +75,8 @@ class muonLook(analysis.analysis) :
             calculables.Photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
             #calculables.Photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDTightFromTwikiPat"),
             
-            calculables.Other.vertexID(),
-            calculables.Other.vertexIndices(),
+            calculables.Vertex.vertexID(),
+            calculables.Vertex.vertexIndices(),
             calculables.Other.lowestUnPrescaledTrigger(triggers),
             ]
     
@@ -270,7 +267,7 @@ class muonLook(analysis.analysis) :
         ##uncomment for short tests
         #for i in range(len(outList)):
         #    o = outList[i]
-        #    outList[i] = specify(names = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 10000)[0]
+        #    outList[i] = specify(names = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 3000)[0]
 
         return outList
 
