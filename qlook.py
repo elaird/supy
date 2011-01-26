@@ -12,11 +12,13 @@ def stats(l) :
 
     for line in l[2:] :
         d = dict(zip(configuration.siteInfo(key = "queueHeaders"), line.split()))
-        if q["state"] not in d : continue
-        if d[q["state"]]==q["run"] :
-            run[d[q["user"]]]+=1
+        if vars["state"] not in d : continue
+        if "queue" in vars and "queue" in d and d["queue"]!=vars["queue"] : continue
+        
+        if d[vars["state"]]==vars["run"] :
+            run[d[vars["user"]]]+=1
         else :
-            wait[d[q["user"]]]+=1
+            wait[d[vars["user"]]]+=1
     return run,wait
 
 def summary(run, wait) :
@@ -40,6 +42,6 @@ def summary(run, wait) :
 def sample(l) :
     print "\n".join(l)[:-1]
 
-q = configuration.siteInfo(key = "queueVars")
-summary(*stats(lines(q["summary"])))
-sample(lines(q["sample"]))
+vars = configuration.siteInfo(key = "queueVars")
+summary(*stats(lines(vars["summary"])))
+sample(lines(vars["sample"]))
