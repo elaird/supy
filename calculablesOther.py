@@ -107,7 +107,7 @@ class NeutrinoPlusP4(NeutrinoP4) :
 class NeutrinoMinusP4(NeutrinoP4) :
     def __init__(self, collection = None, MissingP4 = None) : super(NeutrinoPlusP4,self).__init__(collection,MissingP4,-1)
 ######################################
-class NuetrinoPz(wrappedChain.calculable) :
+class NeutrinoPz(wrappedChain.calculable) :
     def __init__(self, collection = None, MissingP4 = None) :
         self.fixes = collection
         self.stash(["SemileptonicTopIndex","P4"])
