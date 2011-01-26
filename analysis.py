@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os,sys,copy,cPickle,collections
+import os,sys,copy,cPickle,collections,tempfile
 import utils,steps,samples,configuration
 from analysisLooper import analysisLooper
 import ROOT as r
@@ -37,8 +37,8 @@ class analysis(object) :
         self._jobId   = options.jobId
         self._site    = options.site if options.site!=None else configuration.sitePrefix()
 
-        self.localStem  = "%s/%s"%(configuration.outputDir(sitePrefix = self._site, isLocal = True ), self.name)
-        self.globalStem = "%s/%s"%(configuration.outputDir(sitePrefix = self._site, isLocal = False), self.name)
+        self.localStem  = "%s/%s"%(configuration.outputDir(site = self._site, isLocal = True ), self.name)
+        self.globalStem = "%s/%s"%(configuration.outputDir(site = self._site, isLocal = False), self.name)
     
         self.sampleDict = samples.SampleHolder()
         map(self.sampleDict.update,self.listOfSampleDictionaries())
@@ -46,9 +46,11 @@ class analysis(object) :
         self.fileDirectory,self.treeName = self.mainTree()
         self._configurations = listOfConfigurations(self.parameters())
 
-        if self._jobId==None and self._loop!=None :
-            os.system("mkdir -p %s"%self.globalStem)
-            self.makeInputFileLists()
+        if self._loop!=None :
+            os.system("mkdir -p %s"%self.localStem)
+            if self._jobId==None :
+                os.system("mkdir -p %s"%self.globalStem)
+                self.makeInputFileLists()
 
         self._listsOfLoopers = []
         self._jobs = []
@@ -84,17 +86,36 @@ class analysis(object) :
         outFile=open(self.jobsFile(),"w")
         cPickle.dump( (self._loop,self._jobs), outFile )
         outFile.close()
+
+    def globalToLocal(self, globalFileName) :
+        tmpDir = tempfile.mkdtemp(dir = self.localStem)
+        localFileName = globalFileName.replace(self.globalStem, tmpDir)
+        return tmpDir,localFileName,globalFileName
+
+    def localToGlobal(self, tmpDir, localFileName, globalFileName) :
+        os.system(configuration.mvCommand(site = self._site, src = localFileName, dest = globalFileName))
+        os.system("rm -r %s"%tmpDir)
         
     def makeInputFileLists(self) :
         #define a helper function
         def inputFilesEvalWorker(q):
-            while True:
-                sampleName,command = q.get()
-                fileList = eval(command)
-                assert fileList, "The command '%s' produced an empty list of files"%command
-                outFile = open(self.inputFilesListFile(sampleName),"w")
+            def fileList(command) :
+                outList = eval(command)
+                assert outList, "The command '%s' produced an empty list of files"%command
+                return outList
+
+            def writeFile(fileName, fileList) :
+                outFile = open(fileName, "w")
                 cPickle.dump(fileList, outFile)
                 outFile.close()
+
+            while True:
+                sampleName,command = q.get()
+                #write file locally
+                tmpDir,localFileName,globalFileName = self.globalToLocal(self.inputFilesListFile(sampleName))
+                writeFile(localFileName, fileList(command))
+                #transfer it and clean up
+                self.localToGlobal(tmpDir, localFileName, globalFileName)
                 #notify queue
                 q.task_done()
 
