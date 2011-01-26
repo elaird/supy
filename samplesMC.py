@@ -1,7 +1,6 @@
-import samples,configuration
-
+import samples
+from configuration import srm
 mc = samples.SampleHolder()
-srm = 'utils.fileListFromSrmLs(dCachePrefix = "%s", location="%s'%(configuration.dCachePrefix(), configuration.srmPrefix())
 
 #PY 6 QCD
 tag1 = "/bm409/ICF/automated/2010_10_11_23_08_00/"

@@ -1,7 +1,6 @@
-import samples,configuration
-
+import samples
+from configuration import srm
 muon = samples.SampleHolder()
-srm = 'utils.fileListFromSrmLs(dCachePrefix = "%s", location="%s'%(configuration.dCachePrefix(), configuration.srmPrefix())
 
 #38X SKIMS
 muon.add("Mu.Run2010_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/17_markus_mu_dataset/")', lumi = 14.511) #/pb

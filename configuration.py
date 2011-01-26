@@ -88,3 +88,5 @@ def mvCommand(site = None, src = None, dest = None) :
         }
     assert site in d, "site %s does not have a mvCommand defined"%site
     return d[site]
+
+srm = 'utils.fileListFromSrmLs(dCachePrefix = "%s", location="%s'%(siteInfo(key = "dCachePrefix"), siteInfo(key = "srmPrefix"))

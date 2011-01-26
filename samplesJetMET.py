@@ -1,7 +1,6 @@
-import samples,configuration
-
+import samples
+from configuration import srm
 jetmet = samples.SampleHolder()
-srm = 'utils.fileListFromSrmLs(dCachePrefix = "%s", location="%s'%(configuration.dCachePrefix(), configuration.srmPrefix())
 
 #NOV.4 RE-RECO SKIMS
 dir = "/vols/cms02/elaird1/16_skims/"
