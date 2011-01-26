@@ -159,7 +159,7 @@ class hltTurnOnHistogrammer(analysisStep) :
         self.moreName = "%s by %s, given %s;" % (probe, var, tags)
 
     def uponAcceptance(self,eventVars) :
-        if not eventVars["prescaled"][self.probe] or \
+        if 1 != eventVars["prescaled"][self.probe] or \
            not any([eventVars["triggered"][t] for t in self.tags]) : return
         
         for t in ([self.tagTitle] if not eventVars["triggered"][self.probe] else [self.tagTitle,self.probeTitle]) :
@@ -180,6 +180,9 @@ class hltTurnOnHistogrammer(analysisStep) :
         efficiency = probe.Clone(self.effTitle[0])
         efficiency.SetTitle(self.effTitle[1])
         efficiency.Divide(probe,tag,1,1,"B")
+        for bin in [0,self.binsMinMax[0]+1] :
+            efficiency.SetBinContent(bin,0)
+            efficiency.SetBinError(bin,0)
         efficiency.Write()
         r.gROOT.cd()
         file.Close()
