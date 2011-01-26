@@ -2,8 +2,9 @@ from wrappedChain import *
 import calculables,math
 
 #####################################
-class vertexID(wrappedChain.calculable) :
+class ID(wrappedChain.calculable) :
     def __init__(self, minNdof = 5.0, maxAbsZ = 24.0, maxD0 = 2.0 ) :
+        self.fixes = ("vertex","")
         for item in ["minNdof","maxAbsZ","maxD0"] : setattr(self,item,eval(item))
         self.moreName = "!fake; nd>=%.1f; |z|<=%.1f cm; d0<=%.1f cm" % (minNdof,maxAbsZ,maxD0)
 
@@ -16,8 +17,9 @@ class vertexID(wrappedChain.calculable) :
     def update(self,ignored) :
         self.value = map(self.id, self.source["vertexIsFake"],self.source["vertexNdof"],self.source["vertexPosition"])
 #####################################
-class vertexIndices(wrappedChain.calculable) :
+class Indices(wrappedChain.calculable) :
     def __init__(self, sumPtMin = None) :
+        self.fixes = ("vertex","")
         self.sumPtMin = sumPtMin
         self.moreName = ""
         if self.sumPtMin!=None :
@@ -35,13 +37,15 @@ class vertexIndices(wrappedChain.calculable) :
             else : other.append(i)
         self.value.sort( key = sumPt.__getitem__, reverse = True )
 #####################################
-class vertexIndicesOther(calculables.indicesOther) :
+class IndicesOther(calculables.indicesOther) :
     def __init__(self) :
-        super(vertexIndicesOther, self).__init__(("vertex",""))
+        self.fixes = ("vertex","")
+        super(IndicesOther, self).__init__(self.fixes)
         self.moreName = "pass sumPtMin; fail ID"
 #####################################
-class vertexSumPt(wrappedChain.calculable) :
+class SumPt(wrappedChain.calculable) :
     def __init__(self) :
+        self.fixes = ("vertex","")
         self.sumPts = r.std.vector('double')()
         for i in range(100) :
             self.sumPts.push_back(-100.0)
@@ -49,8 +53,9 @@ class vertexSumPt(wrappedChain.calculable) :
     def update(self, ignored) :
         self.value = self.sumPts
 #####################################
-class vertexSumP3(wrappedChain.calculable) :
+class SumP3(wrappedChain.calculable) :
     def __init__(self) :
+        self.fixes = ("vertex","")
         self.sumP3s = r.std.vector(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double')))()
 
     def update(self, ignored) :
