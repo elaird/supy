@@ -98,3 +98,11 @@ class Indices(wrappedChain.calculable) :
                 else: nonIso.append(i)
             else: other.append(i)
 ##############################
+class LeadingPt(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","P4"])
+
+    def update(self,ignored) :
+        indices = self.source[self.Indices]
+        self.value = 0 if not indices else self.source[self.P4][indices[0]].pt()
