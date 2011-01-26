@@ -91,24 +91,22 @@ class Counts(analysisStep) :
         print utils.hyphens
 #####################################
 class lowestUnPrescaledTrigger(analysisStep) :
-    def __init__(self, sortedListOfPaths = []) :
-        self.sortedListOfPaths = sortedListOfPaths
-        self.moreName = "lowest unprescaled of "+','.join(self.sortedListOfPaths).replace("HLT_","")
+    def __init__(self) :
+        self.moreName = "lowest unprescaled of triggers in calculable"
         
     def select (self,eventVars) :
-        for path in self.sortedListOfPaths :
-            if eventVars["prescaled"][path]==1 : return eventVars["triggered"][path]
-        return False
+        return eventVars["triggered"][eventVars["lowestUnPrescaledTrigger"]]
 #####################################
 class lowestUnPrescaledTriggerHistogrammer(analysisStep) :
-    def __init__(self, listOfPaths = []) :
-        self.listOfPaths = listOfPaths
+    def __init__(self) :
         self.key = "lowestUnPrescaledTrigger"
-        self.n = len(self.listOfPaths)
         
     def uponAcceptance(self, eventVars) :
-        i = self.listOfPaths.index(eventVars["lowestUnPrescaledTrigger"])
-        self.book.fill( i, self.key, self.n, 0.0, self.n, title = ";lowest un-prescaled path;events / bin", xAxisLabels = self.listOfPaths)
+        if not hasattr(self,"listOfPaths") :
+            self.listOfPaths = dict.__getitem__(eventVars,self.key).sortedListOfPaths
+            self.nPaths = len(self.listOfPaths)
+        i = self.listOfPaths.index(eventVars[self.key])
+        self.book.fill( i, self.key, self.nPaths, 0.0, self.nPaths, title = ";lowest un-prescaled path;events / bin", xAxisLabels = self.listOfPaths)
 #####################################
 class hltFilter(analysisStep) :
 
@@ -147,32 +145,45 @@ class hltPrescaleHistogrammer(analysisStep) :
 #####################################
 class hltTurnOnHistogrammer(analysisStep) :
 
-    def __init__(self, probeTrig = None, var = None, tagTrigs = None, binsMinMax = None) :
-        self.var = var
-        self.bmm = binsMinMax
-        self.probeTrigger = probeTrig
-        self.tagTriggers = tagTrigs
+    def __init__(self, var = None, binsMinMax = None, probe = None, tags = None) :
+        for item in ["var","binsMinMax","probe","tags"] :
+            setattr(self,item,eval(item))
 
-        tagString = '-'.join(map(lambda s: s.lstrip("HLT_"),tagTrigs))
-        probeString = probeTrig.lstrip("HLT_")
+        tags = "{%s}"%(','.join([t.replace("HLT_","") for t in self.tags]))
+        probe = self.probe.replace("HLT_","")
         
-        self.probeTitle = ( "%s_given_%s_and_%s" % (var, tagString, probeString),
-                            "pass %s given %s;%s; events / bin" % (probeString, tagString, var) )
-        self.tagTitle = ( "%s_given_%s"% (var, tagString),
-                          "pass %s;%s; events / bin" % (tagString,var))
+        self.tagTitle   = ( "%s_given_%s" % (var, tags), "pass %s;%s;events / bin" % (tags,var))
+        self.probeTitle = ( "%s_given_%s_and_%s" % (var, tags, probe), "pass %s given %s;%s;events / bin" % (probe, tags, var) )
+        self.effTitle   = ( "turnon_%s_%s_%s" % (probe,tags,var), "%s Turn On;%s;P(%s | %s)" % (probe,var,probe,tags))
 
-        self.moreName = "%s given; %s; and %s" % (var, ", ".join(tagString.split('-')), probeString)
+        self.moreName = "%s by %s, given %s;" % (probe, var, tags)
 
     def uponAcceptance(self,eventVars) :
-        tag = any([eventVars["triggered"][t] for t in self.tagTriggers])
-        probe = eventVars["triggered"][self.probeTrigger]
-        types = [] if not tag else \
-                [self.tagTitle] if not probe else \
-                [self.tagTitle, self.probeTitle]
-        value = eventVars[self.var]
-        if value==None : return
-        for t in types :
-            self.book.fill( value, t[0], self.bmm[0],self.bmm[1],self.bmm[2], title = t[1] )
+        if not eventVars["prescaled"][self.probe] or \
+           not any([eventVars["triggered"][t] for t in self.tags]) : return
+        
+        for t in ([self.tagTitle] if not eventVars["triggered"][self.probe] else [self.tagTitle,self.probeTitle]) :
+            self.book.fill( eventVars[self.var], t[0], self.binsMinMax[0],self.binsMinMax[1],self.binsMinMax[2], title = t[1] )
+    
+    def outputSuffix(self) : return stepsMaster.Master.outputSuffix()
+
+    def mergeFunc(self, products) :
+        file = r.TFile.Open(self.outputFileName(), "UPDATE")
+        probe = file.FindObjectAny(self.probeTitle[0])
+        if not probe : return
+        probe.GetDirectory().cd()
+        tag = file.FindObjectAny(self.tagTitle[0])
+        if tag.GetDirectory() != probe.GetDirectory() :
+            print "Warning: hltTurnOnHistogrammer could not complete mergeFunc"
+            print self.tagTitle[0]
+            return
+        efficiency = probe.Clone(self.effTitle[0])
+        efficiency.SetTitle(self.effTitle[1])
+        efficiency.Divide(probe,tag,1,1,"B")
+        efficiency.Write()
+        r.gROOT.cd()
+        file.Close()
+        print "Output updated with TurnOn %s."%self.effTitle[0]
 #####################################
 class jetMetTriggerHistogrammer(analysisStep) :
 
@@ -264,4 +275,4 @@ class triggerScan(analysisStep) :
         hist.Write()
         r.gROOT.cd()
         file.Close()
-        print "The output file: %s has been updated with triggerScans."%self.outputFileName()
+        print "Output updated with triggerScans %s."%self.tag
