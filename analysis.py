@@ -225,7 +225,7 @@ class analysis(object) :
             nEventsMax = parseForEventNumber(sampleSpec, sampleTuple, min(len(inputFiles), self._nSlices))
 
             if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
-            adjustedListOfSteps = [steps.Master.master(xs = sampleTuple.xs,
+            adjustedListOfSteps = [steps.Master.Master(xs = sampleTuple.xs,
                                                        lumi = sampleTuple.lumi,
                                                        lumiWarn = checkLumi(isMc, nEventsMax, sampleSpec.nFilesMax),
                                                        )
@@ -277,7 +277,7 @@ class analysis(object) :
             thisPtHatLowerThreshold = ptHatLowerThresholdsAndSampleNames[iItem][0]
             thisLooperIndex = looperIndexDict[thisPtHatLowerThreshold]
 
-            #adjust cross sections and enable ptHatFilter in master step
+            #adjust cross sections and enable ptHatFilter in Master step
             if iItem<len(ptHatLowerThresholdsAndSampleNames)-1 :
                 nextPtHatLowerThreshold = ptHatLowerThresholdsAndSampleNames[iItem+1][0]
                 nextLooperIndex = looperIndexDict[nextPtHatLowerThreshold]

@@ -1,7 +1,7 @@
 from analysisStep import analysisStep
 import utils,os
 #####################################
-class master(analysisStep) :
+class Master(analysisStep) :
     def __init__(self, xs, lumi, lumiWarn) :
         self.moreName = ""
         self.filterPtHat = False

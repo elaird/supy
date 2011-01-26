@@ -38,7 +38,7 @@ class analysisLooper :
 
     def checkSteps(self) :
         for iStep,step in enumerate(self.steps) :
-            if step.name()=="master" :
+            if step.name()=="Master" :
                 assert not iStep,"The master step must occur first."
                 assert hasattr(step,"select"), "The master step must be a selector."
             else :

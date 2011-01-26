@@ -229,7 +229,7 @@ class triggerScan(analysisStep) :
 
     def varsToPickle(self) : return ["triggerNames","counts"]
         
-    def outputSuffix(self) : return stepsMaster.master.outputSuffix()
+    def outputSuffix(self) : return stepsMaster.Master.outputSuffix()
 
     def mergeFunc(self,products) :
         def update(a,b) : a.update(b); return a;
