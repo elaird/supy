@@ -1,19 +1,17 @@
 #!/usr/bin/env python
 
 import subprocess,collections,os
-import configuration
+import configuration,utils
 
 def lines(cmd) :
-    stdout,stderr = subprocess.Popen(cmd, shell = True, stdout = subprocess.PIPE).communicate()
-    out = stdout.split("\n")
-    return out,configuration.siteInfo(key = "queueHeaders")
+    return utils.getCommandOutput(cmd)["stdout"].split("\n")
 
-def stats(l, h) :
+def stats(l) :
     run  = collections.defaultdict(int)
     wait = collections.defaultdict(int)
 
     for line in l[2:] :
-        d = dict(zip(h, line.split()))
+        d = dict(zip(configuration.siteInfo(key = "queueHeaders"), line.split()))
         if q["state"] not in d : continue
         if d[q["state"]]==q["run"] :
             run[d[q["user"]]]+=1
@@ -39,9 +37,9 @@ def summary(run, wait) :
     printLine("all", runTotal, waitTotal)
     print "+-------------------------------+"
 
-def sample(l, h) :
+def sample(l) :
     print "\n".join(l)[:-1]
 
 q = configuration.siteInfo(key = "queueVars")
-summary(*stats(*lines(q["summary"])))
-sample(*lines(q["sample"]))
+summary(*stats(lines(q["summary"])))
+sample(lines(q["sample"]))
