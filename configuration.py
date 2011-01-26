@@ -42,6 +42,7 @@ def sourceFiles() :
 def sitePrefix() :
     d = {"hep.ph.ic.ac.uk":"ic",
          "sesame1":"pu",
+         "cern.ch":"cern",
          "fnal.gov":"fnal",
          }
 
@@ -61,6 +62,13 @@ def siteSpecs() :
                 },                 
         "pu"  :{"localOutputDir" : "/tmp/%s"%user,
                 "globalOutputDir": "/tigress-hsm/%s/tmp/"%user,
+                "dCachePrefix"   : "",
+                "srmPrefix"      : "",
+                },
+        "cern":{"localOutputDir" : "/tmp/%s"%user,
+                "globalOutputDir": "/tmp/%s"%user,
+                "dCachePrefix"   : "",
+                "srmPrefix"      : "",
                 },
         "fnal":{"localOutputDir" : os.environ["_CONDOR_SCRATCH_DIR"] if "_CONDOR_SCRATCH_DIR" in os.environ else "/tmp/%s"%user,
                 "globalOutputDir": "%s/supyOutput/"%os.environ["HOME"],
@@ -87,6 +95,7 @@ def qlook() :
 def mvCommand(site = None, src = None, dest = None) :
     d = {"ic":"mv %s %s"%(src, dest),
          "pu":"mv %s %s"%(src, dest),
+         "cern":"mv %s %s"%(src, dest),
          "fnal":"mv %s %s"%(src, dest),
          #"fnal":"srmcp file:///%s %s/%s"%(src, srmPrefix("fnal"), dest.replace("/pnfs/cms/WAX/","/")),
         }
