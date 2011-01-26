@@ -10,6 +10,7 @@
 * protect against samples collisions
 * file list caching
 * other directories in organizer/plotter
+* make 1/10 configurable
 
 * continue clean-up of hadronicLook
 
