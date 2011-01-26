@@ -78,8 +78,8 @@ class hadronicLook(analysis.analysis) :
             calculables.Photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
             #calculables.Photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDTightFromTwikiPat"),
             
-            calculables.Vertex.vertexID(),
-            calculables.Vertex.vertexIndices(),
+            calculables.Vertex.ID(),
+            calculables.Vertex.Indices(),
             calculables.Other.lowestUnPrescaledTrigger(triggers),
             ]
     
