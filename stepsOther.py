@@ -5,10 +5,10 @@ import utils
 #####################################
 class histogrammer(analysisStep) :
 
-    def __init__(self,var,N,low,up,title="", funcString = "lambda x:x" ) :
+    def __init__(self,var,N,low,up,title="", funcString = "lambda x:x" , suffix = "") :
         for item in ["var","N","low","up","title","funcString"] : setattr(self,item,eval(item))
         self.oneD = type(var) != tuple
-        self.hName = var if self.oneD else "_vs_".join(reversed(var))
+        self.hName = (var if self.oneD else "_vs_".join(reversed(var)))+suffix
         self.moreName = "%s(%s)"% ("(%s)"%funcString if funcString!="lambda x:x" else "", str(self.hName))
         self.funcStringEvaluated = False
 
@@ -56,18 +56,12 @@ def multiplicityPlotFilter(var, nMin=0, nMax=None, xlabel="") :
            [ multiplicityFilter(var, nMin = nMin , nMax = nMax) ]
 #####################################
 class orFilter(analysisStep) :
-
-    def __init__(self, varGreaterCutList = [], varLessCutList = []) :
-        self.varGreaterCutList = varGreaterCutList
-        self.varLessCutList = varLessCutList
-        self.moreName = '|'.join(["%s>%.2f"%i for i in varGreaterCutList]+\
-                                 ["%s<%.2f"%i for i in varLessCutList])
-        
+    def __init__(self, listOfSelectorSteps = []) :
+        self.steps = listOfSelectorSteps
+        self.moreName = '|'.join(["%s:%s"%(step.name(),step.moreName) for step in self.steps])
     def select(self,eventVars) :
-        for var,cut in self.varGreaterCutList:
-            if eventVars[var] > cut: return True
-        for var,cut in self.varLessCutList:
-            if eventVars[var] < cut: return True
+        for step in self.steps :
+            if step.select(eventVars) : return True
         return False
 #####################################
 class skimmer(analysisStep) :
@@ -222,6 +216,18 @@ class variablePtLessFilter(analysisStep) :
 
     def select (self,eventVars) :
         return eventVars[self.variable].pt()<=self.threshold
+#####################################
+class productGreaterFilter(analysisStep) :
+
+    def __init__(self, threshold, variables, suffix = ""):
+        self.threshold = threshold
+        self.variables = variables
+        self.moreName = "%s>=%.3f %s" % ("*".join(variables),threshold,suffix)
+
+    def select (self,eventVars) :
+        product = 1
+        for var in self.variables : product *= eventVars[var]
+        return product >= self.threshold
 #####################################
 class objectPtSelector(analysisStep) :
 
