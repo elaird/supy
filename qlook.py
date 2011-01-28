@@ -13,7 +13,7 @@ def stats(l) :
     for line in l[2:] :
         d = dict(zip(configuration.siteInfo(key = "queueHeaders"), line.split()))
         if vars["state"] not in d : continue
-        if "queueName" in vars and d[vars["queue"]]!=vars["queueName"] : continue
+        if "queueName" in vars and not vars["queueName"] in d[vars["queue"]] : continue
         
         if d[vars["state"]]==vars["run"] :
             run[d[vars["user"]]]+=1
