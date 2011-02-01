@@ -20,6 +20,7 @@
 * consider threshold for adding muons to jets
 * in analysis.py: looper.setupSteps(minimal = True) #determine why this is needed
 * consider arguments to analysisLooper
+* consider wrapping step operations in try except, so that we can have better errors
 * fnalbatch
 * lxbatch
 
@@ -44,3 +45,9 @@
 * non-linear cutflow
 * fix extra tree functionality in skimmer
 * handle subdirectories of input file directories
+* kill vertexRequirementFilter in favor of vertexIndices and multiplicityFilter
+* kill variablePt(Greater/Less)Filter in favor of ptFilter
+* kill jetPtFilter in favor of ptFilter
+
+* move all the filters in stepsOther to stepsFilter.
+* rename 'passFilter' to 'label'
