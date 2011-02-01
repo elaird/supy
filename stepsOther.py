@@ -19,7 +19,7 @@ class histogrammer(analysisStep) :
             
         value = eventVars[self.var] if self.oneD else \
                 tuple(map(eventVars.__getitem__,self.var))
-        if value is None or (not self.oneD and None in value) : return
+        if value is None or (not self.oneD and not all(value)) : return #temporary bug
 
         self.book.fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
 #####################################
@@ -37,7 +37,6 @@ class iterHistogrammer(histogrammer) :
             self.book.fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
 #####################################
 class passFilter(analysisStep) :
-
     def __init__(self,title) : self.moreName = title
     def select(self,eventVars) : return True
 #####################################
@@ -177,46 +176,6 @@ class hbheNoiseFilter(analysisStep) :
     def select (self,eventVars) :
         return eventVars["hbheNoiseFilterResult"]^self.invert
 #####################################
-class variableGreaterFilter(analysisStep) :
-
-    def __init__(self, threshold, variable, suffix = ""):
-        self.threshold = threshold
-        self.variable = variable
-        self.moreName = "%s>=%.3f %s" % (variable,threshold,suffix)
-
-    def select (self,eventVars) :
-        return eventVars[self.variable]>=self.threshold
-#####################################
-class variableLessFilter(analysisStep) :
-
-    def __init__(self, threshold, variable, suffix = ""):
-        self.threshold = threshold
-        self.variable = variable
-        self.moreName = "%s<%.3f %s" % (variable,threshold,suffix)
-
-    def select (self,eventVars) :
-        return eventVars[self.variable]<self.threshold
-#####################################
-class variablePtGreaterFilter(analysisStep) :
-
-    def __init__(self, threshold, variable, suffix = ""):
-        self.threshold = threshold
-        self.variable = variable
-        self.moreName = "%s.pt()>=%.1f %s" % (variable,threshold,suffix)
-
-    def select (self,eventVars) :
-        return eventVars[self.variable].pt()>=self.threshold
-#####################################
-class variablePtLessFilter(analysisStep) :
-
-    def __init__(self, threshold, variable, suffix = ""):
-        self.threshold = threshold
-        self.variable = variable
-        self.moreName = "%s.pt()<=%.1f %s" % (variable,threshold,suffix)
-
-    def select (self,eventVars) :
-        return eventVars[self.variable].pt()<=self.threshold
-#####################################
 class productGreaterFilter(analysisStep) :
 
     def __init__(self, threshold, variables, suffix = ""):
@@ -228,22 +187,6 @@ class productGreaterFilter(analysisStep) :
         product = 1
         for var in self.variables : product *= eventVars[var]
         return product >= self.threshold
-#####################################
-class objectPtSelector(analysisStep) :
-
-    def __init__(self, cs, ptThreshold, index, p4String):
-        self.index = index
-        self.ptThreshold = ptThreshold
-        self.cs = cs
-        self.indicesName = "%sIndices%s" % self.cs
-        self.p4sName = "%s%s%s" % (self.cs[0], p4String, self.cs[1])
-        self.moreName = "%s%s; pT[index[%d]]>=%.1f GeV" % (self.cs[0], self.cs[1], jetIndex, jetPtThreshold)
-
-    def select (self,eventVars) :
-        indices = eventVars[self.indicesName]
-        if len(indices) <= self.index : return False
-        p4s = eventVars[self.p4sName]
-        return self.ptThreshold <= p4s.at(indices[self.index]).pt()
 #####################################
 class objectEtaSelector(analysisStep) :
 
@@ -260,33 +203,6 @@ class objectEtaSelector(analysisStep) :
         if len(indices) <= self.index : return False
         p4s = eventVars[self.p4sName]
         return self.etaThreshold > abs(p4s.at(indices[self.index]).eta())
-#####################################
-class objectPtVetoer(analysisStep) :
-
-    def __init__(self, collection, p4String, suffix, ptThreshold, index):
-        self.index = index
-        self.ptThreshold = ptThreshold
-        self.varName = collection + p4String + suffix
-        self.moreName = "%s; %s; pT[%d]< %.1f GeV" % (collection, suffix, index, ptThreshold )
-
-    def select (self,eventVars) :
-        p4s = eventVars[self.varName]
-        if p4s.size() <= self.index : return True
-        return p4s.at(self.index).pt() < self.ptThreshold
-
-#    def uponRejection(self,eventVars) :
-#        p4Vector=eventVars[self.objectCollection+self.objectP4String+self.objectSuffix]
-#        self.book.fill(p4Vector[self.objectIndex].eta(),self.objectCollection+"Eta"+self.objectSuffix,100,-5.0,5.0,";#eta;events / bin")
-#####################################
-class soloObjectPtSelector(analysisStep) :
-
-    def __init__(self, collection, p4String, suffix, ptThreshold):
-        self.ptThreshold = ptThreshold
-        self.varName = collection + p4String + suffix        
-        self.moreName = "%s; %s; pT> %.1f GeV" % (collection, suffix, ptThreshold )
-
-    def select (self,eventVars) :
-        return self.ptThreshold <= eventVars[self.varName].pt()
 #####################################
 class ptRatioLessThanSelector(analysisStep) :
 
@@ -309,24 +225,6 @@ class ptRatioHistogrammer(analysisStep) :
     def uponAcceptance (self,ev) :
         value = ev[self.numVar].pt() / ev[self.denVar].pt()
         self.book.fill(value,"ptRatio", 50, 0.0, 2.0, title = ";%s / %s;events / bin"%(self.numVar,self.denVar) )
-#####################################
-class vertexRequirementFilter(analysisStep) :
-
-    #https://twiki.cern.ch/twiki/bin/viewauth/CMS/Collisions2010Recipes#Good_Vertex_selection
-    def __init__(self, minNdof = 5.0, maxAbsZ = 24.0, maxD0 = 2.0) :
-        for item in ["minNdof","maxAbsZ","maxD0"]: setattr(self,item,eval(item))
-        self.moreName = "any v: !fake; ndf>=%.1f; |z|<=%.1f cm; d0<=%.1f cm" % (minNdof,maxAbsZ,maxD0)
-
-    def select(self,eventVars) :
-        fake,ndof,pos = eventVars["vertexIsFake"], eventVars["vertexNdof"], eventVars["vertexPosition"]
-        
-        for i in range(pos.size()) :
-            if fake.at(i) : continue
-            if ndof.at(i) < self.minNdof : continue
-            if abs(pos.at(i).Z()) > self.maxAbsZ : continue
-            if abs(pos.at(i).Rho()) > self.maxD0 : continue
-            return True
-        return False
 #####################################
 class monsterEventFilter(analysisStep) :
     
@@ -621,4 +519,71 @@ class cutSorter(analysisStep) :
         bins = len(self.selectors)
         self.book.fill(1, "cutSorterNames", bins, 0, bins, title = ";cutName", xAxisLabels = [sel.__class__.__name__ for sel in self.selectors])
         self.book.fill(1, "cutSorterMoreNames", bins, 0, bins, title = ";cutMoreName", xAxisLabels = [sel.moreName for sel in self.selectors])
+#####################################
+
+
+###   Obsolete   ####
+#####################################
+class variablePtGreaterFilter(analysisStep) :
+    '''Obsolete: use ptFilter'''
+
+    def __init__(self, threshold, variable, suffix = ""):
+        self.threshold = threshold
+        self.variable = variable
+        self.moreName = "%s.pt()>=%.1f %s" % (variable,threshold,suffix)
+
+    def select (self,eventVars) :
+        return eventVars[self.variable].pt()>=self.threshold
+#####################################
+class variablePtLessFilter(analysisStep) :
+    '''Obsolete: use ptFilter'''
+
+    def __init__(self, threshold, variable, suffix = ""):
+        self.threshold = threshold
+        self.variable = variable
+        self.moreName = "%s.pt()<=%.1f %s" % (variable,threshold,suffix)
+
+    def select (self,eventVars) :
+        return eventVars[self.variable].pt()<=self.threshold
+#####################################
+class vertexRequirementFilter(analysisStep) :
+    '''Obsolete: use vertexIndices + multiplicityFilter'''
+
+    #https://twiki.cern.ch/twiki/bin/viewauth/CMS/Collisions2010Recipes#Good_Vertex_selection
+    def __init__(self, minNdof = 5.0, maxAbsZ = 24.0, maxD0 = 2.0) :
+        for item in ["minNdof","maxAbsZ","maxD0"]: setattr(self,item,eval(item))
+        self.moreName = "any v: !fake; ndf>=%.1f; |z|<=%.1f cm; d0<=%.1f cm" % (minNdof,maxAbsZ,maxD0)
+
+    def select(self,eventVars) :
+        fake,ndof,pos = eventVars["vertexIsFake"], eventVars["vertexNdof"], eventVars["vertexPosition"]
+        
+        for i in range(pos.size()) :
+            if fake.at(i) : continue
+            if ndof.at(i) < self.minNdof : continue
+            if abs(pos.at(i).Z()) > self.maxAbsZ : continue
+            if abs(pos.at(i).Rho()) > self.maxD0 : continue
+            return True
+        return False
+#####################################
+class variableGreaterFilter(analysisStep) :
+    '''Obsolete: use valueFilter'''
+
+    def __init__(self, threshold, variable, suffix = ""):
+        self.threshold = threshold
+        self.variable = variable
+        self.moreName = "%s>=%.3f %s" % (variable,threshold,suffix)
+
+    def select (self,eventVars) :
+        return eventVars[self.variable]>=self.threshold
+#####################################
+class variableLessFilter(analysisStep) :
+    '''Obsolete: use valueFilter'''
+
+    def __init__(self, threshold, variable, suffix = ""):
+        self.threshold = threshold
+        self.variable = variable
+        self.moreName = "%s<%.3f %s" % (variable,threshold,suffix)
+
+    def select (self,eventVars) :
+        return eventVars[self.variable]<self.threshold
 #####################################

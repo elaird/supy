@@ -22,13 +22,13 @@ def samplesFiles() :
     return ["MC", "JetMET", "Muon", "Photon", "SignalSkim"]
 
 def stepsFiles() :
-    return ["Other", "Jet", "Trigger", "Photon", "Print", "Gen", "Xclean", "Displayer", "Master"]
+    return ["Other", "Filter", "Jet", "Trigger", "Photon", "Print", "Gen", "Xclean", "Displayer", "Master"]
 
 def stepsToDisableForData() :
     return ["genMotherHistogrammer", "photonPurityPlots", "photonEfficiencyPlots"]
 
 def stepsToDisableForMc() :
-    return ["hltFilter", "hltFilterList", "lowestUnPrescaledTrigger", "lowestUnPrescaledTriggerHistogrammer", "hbheNoiseFilter", "bxFilter", "physicsDeclared", "techBitFilter"]
+    return ["hltFilter", "hltFilterList", "lowestUnPrescaledTrigger", "lowestUnPrescaledTriggerHistogrammer", "hbheNoiseFilter", "bxFilter", "physicsDeclared", "techBitFilter", "hbheNoise"]
 
 def histogramsToDisableForData() :
     return ["genpthat"]
