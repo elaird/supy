@@ -98,6 +98,15 @@ class Indices(wrappedChain.calculable) :
                 else: nonIso.append(i)
             else: other.append(i)
 ##############################
+class IndicesAnyIso(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","IndicesNonIso"])
+        self.moreName = "sorted(Indices+IndicesNonIso)"
+
+    def update(self, ignored) :
+        self.value = sorted(self.source[self.Indices]+self.source[self.IndicesNonIso])
+##############################
 class LeadingPt(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
