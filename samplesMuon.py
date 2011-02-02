@@ -3,8 +3,14 @@ from configuration import srm
 muon = samples.SampleHolder()
 
 #38X SKIMS
+muon.add("Mu.Run2010B_skim", 'utils.fileListFromDisk(location="/vols/cms02/bbetchar/01_skims/Mu.Run2010B-Nov4ReReco.RECO.Jad/")',lumi = 32.96)
+muon.add("Mu.Run2010A_skim", 'utils.fileListFromDisk(location = "/vols/cms02/bbetchar/01_skims/Mu.Run2010A-Nov4ReReco.RECO.Jad/")',lumi = 3.18)
+
+
 muon.add("Mu.Run2010_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/17_markus_mu_dataset/")', lumi = 14.511) #/pb
 muon.add("Run2010_muonSkim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/10_markus_muons/*_skim.root", isDirectory = False)', lumi = 32) #/pb #fake number
+
+
 
 #38X ORIGINALS
 muon.add("Mu.Run2010A-Nov4ReReco.RECO.Jad", '%s/jad//ICF/automated/2010_12_17_14_44_28/")'%srm, lumi =  3.18)
