@@ -188,14 +188,16 @@ class analysis(object) :
         #names = [s.name for s in listOfSamples]
         #assert len(names) == len(set(names)), "Duplicate sample names are not allowed."
 
-        def parseForEventNumber(ss,sampletuple,jobs) :
+        def parseForNumberEvents(ss,sampletuple,nFiles,nSlices) :
             if not ss.effectiveLumi :
                 return ss.nEventsMax
             else :
                 if ss.nEventsMax>=0: print "Warning: %s nEventsMax ignored in favor of effectiveLumi "%ss.name
                 assert not sampletuple.lumi, "Cannot calculate effectiveLumi for _data_ sample %s"%ss.name
-                n = 10 # 1./n is the rounding threshold
-                return int( (ss.effectiveLumi*sampletuple.xs/jobs + 1)*n-1)/n
+                nJobs = min(nFiles, nSlices)
+                nEventsTotal = ss.effectiveLumi*sampletuple.xs
+                if nEventsTotal < nJobs : return (1,int(nEventsTotal+0.9))
+                return (1+int(nEventsTotal/nJobs), nFiles)
 
         def checkLumi(isMc, nEventsMax, nFilesMax) :
             if (not isMc) and (nEventsMax>=0 or nFilesMax>=0) :
@@ -222,7 +224,8 @@ class analysis(object) :
             sampleTuple = self.sampleDict[sampleName]
             isMc = sampleTuple.lumi==None
             inputFiles = fileList(sampleSpec)
-            nEventsMax = parseForEventNumber(sampleSpec, sampleTuple, min(len(inputFiles), self._nSlices))
+            nEventsMax,nFilesMax = parseForNumberEvents(sampleSpec, sampleTuple, len(inputFiles), self._nSlices)
+            inputFiles = inputFiles[:nFilesMax]
 
             if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
             adjustedListOfSteps = [steps.Master.Master(xs = sampleTuple.xs,
