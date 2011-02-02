@@ -69,7 +69,22 @@ class IndicesIgnored(wrappedChain.calculable) :
         self.moreName = "jets not in Indices, IndicesOther"
     def update(self,ignored) :
         self.value = list(set(range(len(self.source[self.CorrectedP4]))) - set(self.source[self.Indices]) - set(self.source[self.IndicesOther]))
-####################################
+###################################
+class IndicesBtagged(wrappedChain.calculable) :
+    '''
+    CMS PAS BTV-09-001
+    CMS PAS BTV-10-001
+    '''
+    def __init__(self,collection,tag,min = None) :
+        self.fixes = collection
+        self.stash(["Indices"])
+        self.tag = ("%s"+tag+"%s") % xcStrip(collection)
+        self.min = min
+        self.moreName = "%.2f<=%s;%s%s"%((min,tag)+collection)
+    def tagged(self,i) : return self.min<=self.source[self.tag][i]
+    def update(self,ignored) :
+        self.value = filter(self.tagged, self.source[self.Indices])
+###################################
 class PFJetID(wrappedChain.calculable) :
     # following http://indico.cern.ch/getFile.py/access?contribId=0&resId=0&materialId=slides&confId=97994
     def __init__(self, collection = None, level = None) :
