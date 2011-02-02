@@ -384,6 +384,10 @@ class plotter(object) :
         text.SetTextFont(102)
         text.SetTextSize(0.5*text.GetTextSize())
 
+        pageWidth = 111
+        colWidth = min(25, pageWidth/len(self.someOrganizer.samples))
+        space = 1
+
         nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in self.someOrganizer.selections]))
         for i,selection in enumerate(selections[-self.nLinesMax:]) :
             absI = i + (0 if len(selections) <= self.nLinesMax else len(selections)-self.nLinesMax)
@@ -392,8 +396,8 @@ class plotter(object) :
             y = 0.98 - 0.35*(i+0.5+absI/5)/self.nLinesMax
             text.DrawTextNDC(x, y, nametitle.format(letter, selection.name, selection.title ))
             text.DrawTextNDC(x, y-0.5, "%s: %s"%(letter,
-                                                  "".join([(utils.roundString(*k, width=8, noSci = self.noSci) if k else "-    ").rjust(11) for k in selection.yields()])))
-        text.DrawTextNDC(x, 0.5, "   "+"".join([s["name"][:8].rjust(11) for s in self.someOrganizer.samples]))
+                                                  "".join([(utils.roundString(*k, width=(colWidth-space), noSci = self.noSci) if k else "-    ").rjust(colWidth) for k in selection.yields()])))
+        text.DrawTextNDC(x, 0.5, "   "+"".join([s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]))
         text.DrawTextNDC( 0.8,0.01,"events / %.3f pb^{-1}"% self.someOrganizer.lumi )
         self.printCanvas()
         self.canvas.Clear()
