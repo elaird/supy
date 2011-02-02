@@ -60,7 +60,7 @@ class analysisLooper :
                                                      )
             map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
             self.makeListsOfLeavesAndCalcsUsed( chainWrapper.activeKeys() )
-        else : self.makeListOfLeavesAndCalcsUsed([])
+        else : self.makeListsOfLeavesAndCalcsUsed([])
 
         self.endSteps()
         self.pickleStepAndCalculableData()
