@@ -174,7 +174,7 @@ mc.add("w_enu",'%s/bbetchar//ICF/automated/2010_10_11_21_21_39/")'%srm, xs = 789
 mc.add("w_munu",'%s/trommers/ICF/automated/2010_10_06_18_40_51/")'%srm, xs = 7899) 
 mc.add("w_taunu",'%s/bbetchar//ICF/automated/2010_10_11_21_21_39/")'%srm, xs = 7899) 
 
-#SUSY
+#SUSY LM
 mc.add("lm0_v12" ,'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM0.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 38.93   )
 mc.add("lm1_v12" ,'%s/bainbrid/ICF/automated/2010_07_12_17_52_54/LM1.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 4.888   )
 mc.add("lm2_v12" ,'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM2.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 0.6027  )
@@ -190,6 +190,13 @@ mc.add("lm11_v12",'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM11.Spring10-S
 mc.add("lm12_v12",'%s/bainbrid/ICF/automated/2010_07_12_17_52_54/LM12.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 4.414   )
 mc.add("lm13_v12",'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM13.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = 6.899   )
 
+#SMS
+mc.add("t1", '%s/bbetchar/ICF/automated/2011_01_24_18_09_42/")'%srm, xs = 1.0) #dummy xs
+mc.add("t2", '%s/bbetchar/ICF/automated/2011_01_24_18_14_21/")'%srm, xs = 1.0) #dummy xs
+mc.add("t3", '%s/bbetchar/ICF/automated/2011_01_25_21_33_22/")'%srm, xs = 1.0) #dummy xs
+mc.add("t4", '%s/henning//ICF/automated/2011_01_27_12_39_13/")'%srm, xs = 1.0) #dummy xs
+
+#MSUGRA SCANS
 mc.add("scan_tanbeta3_tanja1",'%s/trommers//ICF/automated/2010_12_03_15_28_38/")'%srm, xs = 100000.0 ) #dummy xs
 mc.add("scan_tanbeta3_tanja2",'%s/trommers//ICF/automated/2010_12_17_20_09_06/")'%srm, xs = 100000.0 ) #dummy xs
 dead = str(["_43_1_vfJ", "_109_1_K7V", "_648_1_SNq", "_19_1_P2A", '_106_1_5y9', '_107_1_xWu', '_116_1_GYJ', '_157_1_P2J', '_163_1_zG0', '_171_1_mkQ', '_173_1_gew', '_177_1_8Ew', '_191_1_Kdf', '_226_1_21E', '_266_1_ygR', '_295_1_BNB', '_311_1_Thz', '_319_1_UoK', '_328_2_Pn2', '_333_1_6tK', '_369_1_NG4', '_378_1_Nhp', '_413_1_IrU', '_42_1_h0i', '_446_1_5vP', '_449_1_a7D', '_487_1_VjZ', '_509_1_SiQ', '_547_1_hG9', '_559_1_Jjs', '_579_1_GaN', '_599_1_7Fs', '_644_1_1Zq', '_67_1_glp']).replace("'",'"')
