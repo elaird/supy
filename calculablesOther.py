@@ -70,6 +70,17 @@ class SemileptonicTopIndex(wrappedChain.calculable) :
         nonIso = self.source[self.IndicesNonIso]
         self.value = indices[0] if indices else nonIso[0] if nonIso else None
 #####################################
+class SignedRapidity(wrappedChain.calculable) :
+    def __init__(self, collection = None, SumP4 = None) :
+        self.fixes = collection
+        self.SumP4 = SumP4
+        self.stash(["SemileptonicTopIndex","P4","Charge"])
+        self.moreName = "sign(y_sum) * q_lep * y_lep"
+    def update(self,ignored) :
+        index = self.source[self.SemileptonicTopIndex]
+        self.value = None if index is None else \
+                     (1 if self.source[self.SumP4].Rapidity()>0 else -1)*self.source[self.Charge][index]*self.source[self.P4][index].Rapidity()
+#####################################
 class RelativeRapidity(wrappedChain.calculable) :
     def name(self) : return "%s%s"%self.fixes + self.__class__.__name__ + self.SumP4
     def __init__(self, collection = None, SumP4 = None) :
@@ -148,10 +159,12 @@ class NeutrinoPz(wrappedChain.calculable) :
 
         P = self.Wmass2 + WT2 - lepT2 - nuT2
 
-        discriminant = lepZ**2 + 4*lepT2*(1-(4*lepE*lepE*nuT2)/(P**2))
-        if discriminant < 0: discriminant = 0
+        determinant = lepZ**2 + 4*lepT2*(1-(4*lepE*lepE*nuT2)/(P**2))
+        if determinant < 0:
+            #return           # option A
+            determinant = 0   # option B
         
-        sqrtD = math.sqrt(discriminant)
+        sqrtD = math.sqrt(determinant)
         factor = 0.5*P/lepT2
         self.value = (factor * (lepZ-sqrtD),
                       factor * (lepZ+sqrtD))
