@@ -20,7 +20,6 @@
 * consider threshold for adding muons to jets
 * in analysis.py: looper.setupSteps(minimal = True) #determine why this is needed
 * consider arguments to analysisLooper
-* consider wrapping step operations in try except, so that we can have better errors
 * fnalbatch
 * lxbatch
 

@@ -87,8 +87,12 @@ class analysisLooper :
         
     def processEvent(self,eventVars) :
         for step in self.steps :
-            if not step.go(eventVars) : break
-
+            try:
+                if not step.go(eventVars) : break
+            except Exception as e:
+                print "Problem in step: %s\t%s"%(step.name(),step.moreName)
+                raise e
+        
     def setupChains(self,inputFiles) :
         nFiles = len(inputFiles)
         alreadyPrintedEllipsis = False
