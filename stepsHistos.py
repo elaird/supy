@@ -29,8 +29,9 @@ class value(analysisStep) :
             setattr(self,item,eval(item))
 
         self.moreName = var + self.wrapName() + (index if index else "")
-        self.title = ";%s;%s"%(xtitle if xtitle else var + ("[%s[%d]]"%(indices,index) if indices and index!=None else ""),
-                               "%s / bin"%(indices if indices and index!=None else "events"))
+        self.title = ";%s%s;%s"%(xtitle if xtitle else var + ("[%s[%d]]"%(indices,index) if indices and index!=None else ""),
+                                 self.wrapName(),
+                                 "%s / bin"%(indices if indices and index==None else "events"))
 
     def uponAcceptance(self,eventVars) :
         val = eventVars[self.var]
