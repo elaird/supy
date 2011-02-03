@@ -8,39 +8,44 @@ class label(analysisStep) :
     def select(self,eventVars) : return True
 #####################################
 class multiplicity(analysisStep) :
-    def __init__(self,var, nMin = 0, nMax = None ) :
-        self.moreName = "%d <= %s"%(nMin,var) + (" <= %d" % nMax if nMax!=None else "")
+    def __init__(self,var, min = 0, max = None ) :
+        self.moreName = "%d <= %s"%(min,var) + (" <= %d" % max if max!=None else "")
         self.var = var
-        self.nMin = nMin
-        self.nMax = nMax if nMax!=None else 1e6
+        self.min = min
+        self.max = max if max!=None else 1e6
     def select(self,eventVars) :
-        return self.nMin <= len(eventVars[self.var]) <= self.nMax
+        return self.min <= len(eventVars[self.var]) <= self.max
 #####################################
 class value(analysisStep) :
     def __init__(self, var, min = None, max = None, indices = "", index = None) :
         for item in ["var","min","max","indices","index"] : setattr(self,item,eval(item))
         self.moreName = ( ("%.1f<="%min if min is not None else "") + var +
-                          ("[i[%d]]" % index if indices else "") +
-                          ("%<=.1f"%max if max is not None else "") +
-                          ("; %s"%indices if indices else ""))
-        
-    def select(self,eventVars) :
-        val = eventVars[self.var] if not self.indices else \
-              eventVars[self.var][eventVars[self.indices]][self.index] if self.index<len(eventVars[self.indices]) else None
-        return val is not None and self.min < val and ((self.max is None) or val <= self.max)
-#####################################
-class pt(analysisStep) :
-    def __init__(self, var, min = 0, max = None, indices = "", index = None) :
-        for item in ["var","min","max","indices","index"] : setattr(self,item,eval(item))
-        self.moreName = ( ("%.1f<="%min if min is not None else "") + var +
-                          ("[i[%d]]" % index if indices else "") + ".pt" +
+                          ("[i[%d]]" % index if indices else "") + self.wrapName() + 
                           ("%<=.1f"%max if max is not None else "") +
                           ("; %s"%indices if indices else ""))
 
     def select(self,eventVars) :
-        pt = eventVars[self.var].pt() if not self.indices else \
-             eventVars[self.var][eventVars[self.indices][self.index]].pt() if self.index<len(eventVars[self.indices]) else None
-        return pt is not None and self.min <= pt and ((self.max is None) or pt <= self.max)
+        val = eventVars[self.var] if not self.indices else \
+              eventVars[self.var][eventVars[self.indices][self.index]] if self.index<len(eventVars[self.indices]) else None
+        if val is None : return False
+        val = self.wrap(val)
+        return self.min < val and ((self.max is None) or val <= self.max)
+
+    def wrapName(self) : return ""
+    def wrap(self,val) : return val
+#####################################
+class pt(value) :
+    def wrapName(self) : return ".pt"
+    def wrap(self,val) : return val.pt()
+class absPz(value) :
+    def wrapName(self) : return ".absPz"
+    def wrap(self,val) : return abs(val.pz())
+class eta(value) :
+    def wrapName(self) : return ".eta"
+    def wrap(self,val) : return val.eta()
+class absEta(value) :
+    def wrapName(self) : return ".absEta"
+    def wrap(self,val) : return abs(val.eta())
 #####################################
 class OR(analysisStep) :
     def __init__(self, listOfSelectorSteps = []) :
