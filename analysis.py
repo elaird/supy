@@ -190,7 +190,7 @@ class analysis(object) :
 
         def parseForNumberEvents(ss,sampletuple,nFiles,nSlices) :
             if not ss.effectiveLumi :
-                return ss.nEventsMax
+                return (ss.nEventsMax,nFiles)
             else :
                 if ss.nEventsMax>=0: print "Warning: %s nEventsMax ignored in favor of effectiveLumi "%ss.name
                 assert not sampletuple.lumi, "Cannot calculate effectiveLumi for _data_ sample %s"%ss.name
