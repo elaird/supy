@@ -21,7 +21,7 @@ class value(analysisStep) :
         for item in ["var","min","max","indices","index"] : setattr(self,item,eval(item))
         self.moreName = ( ("%.1f<="%min if min is not None else "") + var +
                           ("[i[%d]]" % index if indices else "") + self.wrapName() + 
-                          ("%<=.1f"%max if max is not None else "") +
+                          ("<=%.1f"%max if max is not None else "") +
                           ("; %s"%indices if indices else ""))
 
     def select(self,eventVars) :
@@ -29,7 +29,7 @@ class value(analysisStep) :
               eventVars[self.var][eventVars[self.indices][self.index]] if self.index<len(eventVars[self.indices]) else None
         if val is None : return False
         val = self.wrap(val)
-        return self.min < val and ((self.max is None) or val <= self.max)
+        return self.min <= val and ((self.max is None) or val <= self.max)
 
     def wrapName(self) : return ""
     def wrap(self,val) : return val
