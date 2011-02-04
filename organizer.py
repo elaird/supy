@@ -51,7 +51,7 @@ class organizer(object) :
             sample['dir'] = sample['file'].Get("Master")
             def extract(histName,bin=1) :
                 hist = sample['dir'].Get(histName)
-                return hist.GetBinContent(bin) if hist and hist.GetEntries() else None
+                return hist.GetBinContent(bin) if hist and hist.GetEntries() else 0
             lumiNjobs,xsNjobs,sample['nJobs'] = map(extract, ["lumiHisto","xsHisto","nJobsHisto"])
             sample['nEvents'] = extract('counts',bin=2)
 
