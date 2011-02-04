@@ -1,18 +1,14 @@
 import calculables
 from wrappedChain import *
+from calculablesMuon import IndicesOther,IndicesNonIso,IndicesAnyIso,LeadingPt
 ##############################
 barrelEtaMax = 1.4442
 endcapEtaMin = 1.560
 ##############################
-class IndicesOther(calculables.indicesOther) :
-    def __init__(self,collection = None) :
-        super(IndicesOther, self).__init__(collection)
-        self.moreName = "pass ptMin; fail id/iso"
-##############################
 class Indices(wrappedChain.calculable) :
     def __init__(self, collection = None, ptMin = None, simpleEleID = None, useCombinedIso = True) :
         self.fixes = collection
-        self.stash(["IndicesOther","P4"])
+        self.stash(["IndicesOther","IndicesNonIso","P4"])
         isotype = "c" if useCombinedIso else "rel"
         self.eID = ("%sID"+simpleEleID+"%s")% self.fixes
         self.eIso = ("%s"+isotype+"Iso"+simpleEleID+"%s") % self.fixes
@@ -22,13 +18,15 @@ class Indices(wrappedChain.calculable) :
     def update(self,ignored) :
         self.value = []
         other = self.source[self.IndicesOther]
+        nonIso = self.source[self.IndicesNonIso]
         p4s   = self.source[self.P4]
         eID   = self.source[self.eID]
         eIso  = self.source[self.eIso]
         for i in range(p4s.size()) :
             if p4s.at(i).pt() < self.ptMin : break
-            elif eID[i] and eIso[i]:
-                self.value.append(i)
+            elif eID[i]:
+                if eIso[i]: self.value.append(i)
+                else : nonIso.append(i)
             else: other.append(i)
 ##############################
 class ID(wrappedChain.calculable) :
