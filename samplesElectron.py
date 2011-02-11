@@ -4,9 +4,9 @@ electron = samples.SampleHolder()
 
 #Skims
 electron.add("EG.2010A_skim",
-             'utils.fileListFromDisk(localtion = "/vols/cms02/bbetchar/01_skims/EG.Run2010A-Nov4ReReco_v1.RECO.Sparrow/")', lumi = 9999)
+             'utils.fileListFromDisk(location = "/vols/cms02/bbetchar/01_skims/EG.Run2010A-Nov4ReReco_v1.RECO.Sparrow/")', lumi = 9999)
 electron.add("Electron.Run2010B_skim",
-             'utils.fileListFromDisk(location = "/vols/cms02/bbetchar/01_skims/Electron.Run2010B-Nov4ReReco_v1.RECO.Sparrow")', lumi = 9999)
+             'utils.fileListFromDisk(location = "/vols/cms02/bbetchar/01_skims/Electron.Run2010B-Nov4ReReco_v1.RECO.Sparrow")', lumi = 32.884)
 
 
 #38X ORIGINALS
