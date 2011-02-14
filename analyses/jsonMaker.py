@@ -13,16 +13,18 @@ class jsonMaker(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify        
-        return specify(names = ["Nov4_MJ_skim",
-                                "Nov4_J_skim",
-                                "Nov4_J_skim2",
-                                "Nov4_JM_skim",
-                                "Nov4_JMT_skim",
-                                "Nov4_JMT_skim2",
+        return specify(names = [#"Nov4_MJ_skim",
+                                #"Nov4_J_skim",
+                                #"Nov4_J_skim2",
+                                #"Nov4_JM_skim",
+                                #"Nov4_JMT_skim",
+                                #"Nov4_JMT_skim2",
+                                #"EG.2010A_skim",
+                                #"Electron.Run2010B_skim"
                                 ] )
                 
     def listOfSampleDictionaries(self) :
-        return [samples.jetmet, samples.muon, samples.photon]
+        return [samples.jetmet, samples.muon, samples.photon, samples.electron]
 
     def mainTree(self) :
         return ("lumiTree","tree")
