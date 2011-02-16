@@ -9,10 +9,10 @@ class genMLook(analysis.analysis) :
 
     def listOfSteps(self,params) :
         outList=[
-            steps.progressPrinter(),
-            #steps.genParticlePrinter(minPt = -1.0, minStatus = 3),
-            #steps.genMassHistogrammer(),
-            steps.genSHatHistogrammer(),
+            steps.Print.progressPrinter(),
+            steps.Gen.genParticlePrinter(minPt = -1.0, minStatus = 3),
+            #steps.Gen.genMassHistogrammer(),
+            #steps.Gen.genSHatHistogrammer(),
             ]
         return outList
 
@@ -21,16 +21,13 @@ class genMLook(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify
-        outList =[
-            specify(name = "z_jets_mg", nFilesMax = 1, nEventsMax = 10, color = r.kYellow-3),
-            ]
-        return outList
+        return specify(names = "t2", nFilesMax = 1, nEventsMax = 10, color = r.kYellow-3)
 
-    def conclude(self) :
-        org=organizer.organizer( self.sampleSpecs() )
-        org.scale(100.0)
-
-        pl = plotter.plotter(org,
-                             psFileName = self.psFileName(""),
-                             )
-        pl.plotAll()
+#    def conclude(self) :
+#        org=organizer.organizer( self.sampleSpecs() )
+#        org.scale(100.0)
+#
+#        pl = plotter.plotter(org,
+#                             psFileName = self.psFileName(""),
+#                             )
+#        pl.plotAll()
