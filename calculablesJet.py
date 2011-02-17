@@ -75,15 +75,14 @@ class IndicesBtagged(wrappedChain.calculable) :
     CMS PAS BTV-09-001
     CMS PAS BTV-10-001
     '''
-    def __init__(self,collection,tag,min = None) :
+    def __init__(self,collection,tag) :
         self.fixes = collection
         self.stash(["Indices"])
         self.tag = ("%s"+tag+"%s") % xcStrip(collection)
-        self.min = min
-        self.moreName = "%.2f<=%s;%s%s"%((min,tag)+collection)
-    def tagged(self,i) : return self.min<=self.source[self.tag][i]
+        self.moreName = "Ordered by %s; %s%s"%((tag,)+collection)
     def update(self,ignored) :
-        self.value = filter(self.tagged, self.source[self.Indices])
+        self.value = sorted(self.source[self.Indices],
+                            key = self.source[self.tag].__getitem__, reverse = True )
 ###################################
 class PFJetID(wrappedChain.calculable) :
     # following http://indico.cern.ch/getFile.py/access?contribId=0&resId=0&materialId=slides&confId=97994
