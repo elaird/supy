@@ -18,9 +18,9 @@ class topAsymm(analysis.analysis) :
         return { "objects": objects,
                  "lepton" : leptons,
                  "nJets" :  [{"min":3,"max":None}],
-                 "lepCharge" : {"pos":{"min":1},
-                                "neg":{"max":-1},
-                                #"":{}
+                 "lepCharge" : {#"pos":{"min":1},
+                                #"neg":{"max":-1},
+                                "":{}
                                 },
                  "btagAndCut" : ("TrkCountingHighEffBJetTags",2.3) #Best guess at TCHEL
                  }
@@ -46,7 +46,7 @@ class topAsymm(analysis.analysis) :
 
             calculables.XClean.IndicesUnmatched(collection = obj["photon"], xcjets = obj["jet"], DR = 0.5),
             calculables.XClean.IndicesUnmatched(collection = obj["electron"], xcjets = obj["jet"], DR = 0.5),
-            calculables.XClean.xcJet(obj["jet"], applyResidualCorrectionsToData = True,
+            calculables.XClean.xcJet(obj["jet"], applyResidualCorrectionsToData = False,
                                      gamma    = obj["photon"],      gammaDR = 0.5,
                                      electron = obj["electron"], electronDR = 0.5,
                                      muon     = obj["muon"],         muonDR = 0.5, correctForMuons = not obj["muonsInJets"]),
@@ -99,15 +99,18 @@ class topAsymm(analysis.analysis) :
             ]+[
             steps.Jet.uniquelyMatchedNonisoMuons(obj["jet"]),
 
-            steps.Histos.generic(("xcSumP4",obj["met"]),(50,50),(0,0),(500,500),
-                                 title=";xcSumP4.pt; %s;events"%obj["met"],funcString="lambda x: (x[0].pt(),x[1].pt())"),
-            steps.Histos.pt("xcSumP4",50,0,500),
-            steps.Histos.pt(obj["met"],50,0,500),
-            steps.Filter.pt("xcSumP4",min=20),
+            steps.Other.compareMissing(["xcSumP4",obj["met"]]),
             
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
-            steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=pars["nJets"]["min"], max=pars["nJets"]["max"]),
+            steps.Filter.multiplicity("%sIndices%s"%obj["jet"], **pars["nJets"]),
 
+            steps.Histos.multiplicity("%sIndicesModified%s"%obj["jet"]),
+            steps.Histos.value("%sNMuonsMatched%s"%obj["jet"], 10,-0.5,9.5, indices = "%sIndices%s"%obj["jet"]),
+            steps.Other.iterHistogrammer(("%sNmuon%s"%calculables.Jet.xcStrip(obj["jet"]),"%sNMuonsMatched%s"%obj["jet"]),
+                                         (6,6),(-0.5,-0.5),(5.5,5.5), title = ";Nmuon;NMuonsMatched;events / bin"),
+            steps.Other.compareMissing(["xcSumP4",obj["met"]]),
+            steps.Filter.pt("xcSumP4",min=20),
+            
             steps.Histos.multiplicity("%sIndices%s"%lepton),
             steps.Histos.multiplicity("%sIndicesNonIso%s"%lepton),
             steps.Histos.value(("%s"+pars["lepton"]["isoVar"]+"%s")%lepton, 60,0,0.6, indices = "%sIndicesAnyIsoIsoOrder%s"%lepton, index=0),
@@ -192,7 +195,7 @@ class topAsymm(analysis.analysis) :
             return specify( effectiveLumi = eL, color = r.kBlue,
                             names = ["v12_qcd_mg_ht_%s_%s"%t for t in zip(qM,qM[1:]+["inf"])])
         def ttbar_mg(eL) :
-            return specify( names = "tt_tauola_mg_v12", effectiveLumi = eL, color = r.kOrange)
+            return specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kOrange)
 
         def ewk(eL, skimp=True) :
             EWK = {}
