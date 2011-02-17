@@ -29,9 +29,9 @@ class iterHistogrammer(histogrammer) :
         if not self.funcStringEvaluated :
             self.func = eval(self.funcString)
             self.funcStringEvaluated = True
-            
+
         values = eventVars[self.var] if self.oneD else \
-                 tuple(map(eventVars.__getitem__,self.var))
+                 zip(*map(eventVars.__getitem__,self.var))
         for value in values:
             if value is None or (not self.oneD and None in value) : continue
             self.book.fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
@@ -521,6 +521,19 @@ class cutSorter(analysisStep) :
         self.book.fill(1, "cutSorterMoreNames", bins, 0, bins, title = ";cutMoreName", xAxisLabels = [sel.moreName for sel in self.selectors])
 #####################################
 
+class compareMissing(analysisStep) :
+    def __init__(self, missings, bins = 50, min = 0, max = 500) :
+        self.missings = missings
+        self.missingPairs = [(a,b) for a in missings for b in missings[missings.index(a)+1:]]
+        for item in ["bins","min","max"] :
+            setattr(self,item,eval(item))
+            setattr(self,"%sPair"%item,(eval(item),eval(item)))
+    def uponAcceptance(self,eV) :
+        for m in self.missings :
+            self.book.fill(eV[m].pt(), "%s.pt"%m, self.bins,self.min,self.max, title = ";%s.pt;events / bin"%m)
+        for pair in self.missingPairs :
+            self.book.fill((eV[pair[0]].pt(),eV[pair[1]].pt()), "%s.pt_vs_%s.pt"%pair, self.binsPair, self.minPair, self.maxPair,
+                           title = ";%s.pt;%s.pt;events / bin"%pair)
 
 ###   Obsolete   ####
 #####################################
