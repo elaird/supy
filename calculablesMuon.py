@@ -107,6 +107,16 @@ class IndicesAnyIso(wrappedChain.calculable) :
     def update(self, ignored) :
         self.value = sorted(self.source[self.Indices]+self.source[self.IndicesNonIso])
 ##############################
+class IndicesAnyIsoIsoOrder(wrappedChain.calculable) :
+    def __init__(self, collection = None, key = None) :
+        self.fixes = collection
+        self.stash(["IndicesAnyIso"])
+        self.key = ("%s"+key+"%s")%collection
+        self.moreName = "sorted(IndicesAnyIso,key=%s)"%key
+
+    def update(self, ignored) :
+        self.value = sorted(self.source[self.IndicesAnyIso],key = self.source[self.key].__getitem__)
+##############################
 class LeadingPt(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection

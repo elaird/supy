@@ -1,6 +1,6 @@
 import calculables
 from wrappedChain import *
-from calculablesMuon import IndicesOther,IndicesNonIso,IndicesAnyIso,LeadingPt
+from calculablesMuon import IndicesOther,IndicesNonIso,IndicesAnyIso,IndicesAnyIsoIsoOrder,LeadingPt
 ##############################
 barrelEtaMax = 1.4442
 endcapEtaMin = 1.560
