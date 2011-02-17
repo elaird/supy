@@ -218,7 +218,7 @@ class topAsymm(analysis.analysis) :
             org.mergeSamples(targetSpec = {"name":"Data 2010", "color":r.kBlack, "markerStyle":20}, sources=["EG.2010A_skim","Electron.Run2010B_skim"])
             org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
             org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3},
-                             sources = ["qcd_py6","w_munu","w_taunu","tt_tauola_mg_v12"], keepSources = True)
+                             sources = ["qcd_py6","w_enu","w_munu","w_taunu","tt_tauola_mg_v12"], keepSources = True)
             org.scale()
             
             #plot
