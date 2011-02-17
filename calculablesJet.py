@@ -84,6 +84,24 @@ class IndicesBtagged(wrappedChain.calculable) :
         self.value = sorted(self.source[self.Indices],
                             key = self.source[self.tag].__getitem__, reverse = True )
 ###################################
+class NMuonsMatched(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["CorrectedP4"])
+        self.multiplicity = "%sCorrectedP4%s"%xcStrip(collection)
+    def update(self,ignored) :
+        self.value = [0] * len(self.source[self.multiplicity])
+        if not dict.__getitem__(self.source,self.CorrectedP4).updated :
+            self.source[self.CorrectedP4] #xc modifies values
+###################################
+class Nmuon(wrappedChain.calculable) :
+    '''Leaf for PF, calculable list of 0s for Calo.'''
+    def __init__(self, collection = None) :
+        self.fixes = xcStrip(collection)
+        self.stash(["CorrectedP4"])
+    def update(self,ignored) :
+        self.value = [0] * len(self.source[self.CorrectedP4])
+###################################
 class PFJetID(wrappedChain.calculable) :
     # following http://indico.cern.ch/getFile.py/access?contribId=0&resId=0&materialId=slides&confId=97994
     def __init__(self, collection = None, level = None) :

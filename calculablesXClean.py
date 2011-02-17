@@ -52,6 +52,7 @@ class xcJet(wrappedChain.calculable) :
     def update(self,ignored) :
         jetP4s = self.source[self.jetP4Source]
         killed = self.source["%sIndicesKilled%s"%self.xcjets]
+        nMuonsMatched = self.source["%sNMuonsMatched%s"%self.xcjets]
         matchedMuons = []
 
         isData = self.source["isRealData"]
@@ -66,6 +67,7 @@ class xcJet(wrappedChain.calculable) :
 
             for p4 in self.matchesIn("muon",self.value[iJet], exitEarly=False, indicesStr="%sIndicesNonIso%s") :
                 matchedMuons.append(p4)
+                nMuonsMatched[iJet] += 1
                 if self.correctForMuons: self.value[iJet] += p4
 
         if self.other["muon"][0] :
