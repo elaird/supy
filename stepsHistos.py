@@ -28,7 +28,7 @@ class value(analysisStep) :
         for item in ["var","N","low","up","indices","index"] :
             setattr(self,item,eval(item))
 
-        self.moreName = var + self.wrapName() + (index if index else "")
+        self.moreName = var + self.wrapName() + ("[i[%d]]"%index if index!=None else "")
         self.title = ";%s%s;%s"%(xtitle if xtitle else var + ("[%s[%d]]"%(indices,index) if indices and index!=None else ""),
                                  self.wrapName(),
                                  "%s / bin"%(indices if indices and index==None else "events"))
@@ -44,7 +44,7 @@ class value(analysisStep) :
         indices = eventVars[self.indices]
         if self.index!=None :
             if self.index<len(indices) :
-                self.book.fill(self.wrap(val[indices[eventVars[self.index]]]), self.moreName, self.N, self.low, self.up, title=self.title)
+                self.book.fill(self.wrap(val[indices[self.index]]), self.moreName, self.N, self.low, self.up, title=self.title)
             return
         for i in indices :
             self.book.fill(self.wrap(val[i]), self.moreName, self.N, self.low, self.up, title=self.title)
