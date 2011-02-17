@@ -90,7 +90,10 @@ class analysisLooper :
             try:
                 if not step.go(eventVars) : break
             except Exception as e:
-                print "Problem in step: %s\t%s"%(step.name(),step.moreName)
+                print "Problem with %s"%type(step)
+                print step.moreName
+                print
+                print
                 raise e
         
     def setupChains(self,inputFiles) :
