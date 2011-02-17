@@ -6,13 +6,9 @@ import ROOT as r
 class topAsymm(analysis.analysis) :
     def parameters(self) :
         objects = {}
-        fields =                           [ "jet",            "met",            "muon",
-                                             "electron",        "photon",
-                                             "rechit", "muonsInJets"]
-        
-        objects["calo"] = dict(zip(fields, [("xcak5Jet","Pat"),"metP4AK5TypeII",("muon","Pat"),
-                                            ("electron","Pat"),("photon","Pat"),
-                                            "Calo",     False]))
+        fields =                           [ "jet",            "met",            "muon",       "electron",        "photon",        "muonsInJets"]
+        objects["calo"] = dict(zip(fields, [("xcak5Jet","Pat"),"metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), False]))
+        objects["pf"]   = dict(zip(fields, [("xcak5JetPF","Pat"),"metP4PF",    ("muon","PF"),("electron","PF"),("photon","Pat"),   True]))
 
         leptons = {}
         fieldsLepton    =                            ["name","ptMin",              "isoVar", "triggerList"]
@@ -22,7 +18,10 @@ class topAsymm(analysis.analysis) :
         return { "objects": objects,
                  "lepton" : leptons,
                  "nJets" :  [{"min":3,"max":None}],
-                 "lepCharge" : {"pos":1,"neg":-1},
+                 "lepCharge" : {"pos":{"min":1},
+                                "neg":{"max":-1},
+                                #"":{}
+                                },
                  "btagAndCut" : ("TrkCountingHighEffBJetTags",2.3) #Best guess at TCHEL
                  }
 
@@ -118,7 +117,7 @@ class topAsymm(analysis.analysis) :
             #steps.Filter.multiplicity("%sIndices%s"%lepton, max = 0),
             steps.Filter.multiplicity("%sIndices%s"%lepton, min = 1, max = 1),
             steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = "%sIndices%s"%lepton, index = 0),
-            steps.Filter.value("%sCharge%s"%lepton, min=pars['lepCharge'], max=pars['lepCharge'], indices = "%sIndices%s"%lepton, index = 0),
+            steps.Filter.value("%sCharge%s"%lepton, indices = "%sIndices%s"%lepton, index = 0, **pars['lepCharge']),
 
             steps.Histos.value(btag, 60,0,15, indices = "%sIndicesBtagged%s"%obj["jet"], index = 0),
             steps.Histos.value(btag, 60,0,15, indices = "%sIndicesBtagged%s"%obj["jet"], index = 1),
@@ -206,7 +205,7 @@ class topAsymm(analysis.analysis) :
 
         eL = 400 # 1/pb
         return  ( data() +
-                  #qcd_py6(eL) +
+                  qcd_py6(eL) +
                   ttbar_mg(eL) +
                   ewk(eL)
                   )
