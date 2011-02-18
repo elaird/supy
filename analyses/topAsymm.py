@@ -56,16 +56,18 @@ class topAsymm(analysis.analysis) :
             calculables.Vertex.Indices(),
             calculables.Other.lowestUnPrescaledTrigger(pars["lepton"]["triggerList"]),
 
-            calculables.Other.SemileptonicTopIndex(lepton),
-            calculables.Other.NeutrinoPz(lepton,"xcSumP4"),
-            calculables.Other.NeutrinoP4P(lepton,"xcSumP4"),
-            calculables.Other.NeutrinoP4M(lepton,"xcSumP4"),
-            calculables.Other.SumP4NuP(lepton,"xcSumP4"),
-            calculables.Other.SumP4NuM(lepton,"xcSumP4"),
-            calculables.Other.SignedRapidity(lepton,"xcSumP4"),
-            calculables.Other.RelativeRapidity(lepton,"xcSumP4"),
-            calculables.Other.RelativeRapidity(lepton,"xcSumP4NuP"),
-            calculables.Other.RelativeRapidity(lepton,"xcSumP4NuM"),
+            calculables.Top.mixedSumP4(transverse = obj["met"], longitudinal = "xcSumP4"),
+            calculables.Top.SemileptonicTopIndex(lepton),
+            
+            calculables.Top.NeutrinoPz(lepton,"mixedSumP4"),
+            calculables.Top.NeutrinoP4P(lepton,"mixedSumP4"),
+            calculables.Top.NeutrinoP4M(lepton,"mixedSumP4"),
+            calculables.Top.SumP4NuP(lepton,"mixedSumP4"),
+            calculables.Top.SumP4NuM(lepton,"mixedSumP4"),
+            calculables.Top.SignedRapidity(lepton,"mixedSumP4"),
+            calculables.Top.RelativeRapidity(lepton,"mixedSumP4"),
+            calculables.Top.RelativeRapidity(lepton,"mixedSumP4NuP"),
+            calculables.Top.RelativeRapidity(lepton,"mixedSumP4NuM"),
             
             calculables.Other.Mt(lepton,"%sNeutrinoP4P%s"%lepton),
             calculables.Muon.IndicesAnyIsoIsoOrder(obj[pars["lepton"]["name"]], pars["lepton"]["isoVar"])
@@ -135,10 +137,10 @@ class topAsymm(analysis.analysis) :
             steps.Filter.value(btag, min=bCut, indices = "%sIndicesBtagged%s"%obj["jet"], index = 1),
             
             steps.Histos.value("%sSignedRapidity%s"%lepton, 31,-5,5),
-            steps.Histos.value("%s%s"%lepton+"RelativeRapidityxcSumP4", 31,-5,5, xtitle = "#Delta y"),
+            steps.Histos.value("%s%s"%lepton+"RelativeRapiditymixedSumP4", 31,-5,5, xtitle = "#Delta y"),
             steps.Histos.value("%sMt%s"%lepton+"%sNeutrinoP4P%s"%lepton, 30,0,180, xtitle = "M_{T}"),
 
-            #steps.Histos.generic(("%s%s"%lepton+"RelativeRapidityxcSumP4NuM","%s%s"%lepton+"RelativeRapidityxcSumP4NuP"),
+            #steps.Histos.generic(("%s%s"%lepton+"RelativeRapiditymixedSumP4NuM","%s%s"%lepton+"RelativeRapiditymixedSumP4NuP"),
             #                     (101,101), (-5,-5), (5,5), title = ";#Delta y #nu_{-};#Delta y #nu_{+};events / bin",
             #                     funcString = "lambda x: (x[0],x[1])"),
 
@@ -152,16 +154,16 @@ class topAsymm(analysis.analysis) :
                                  30,0,180, title=";M_{2-light};events / bin",
                                  funcString="lambda x: (x[1][x[0][2]] + x[1][x[0][3]]).M()"),
 
-            #steps.Other.productGreaterFilter(0,["%s%s"%lepton+"RelativeRapidityxcSumP4NuM","%s%s"%lepton+"RelativeRapidityxcSumP4NuP"]),
+            #steps.Other.productGreaterFilter(0,["%s%s"%lepton+"RelativeRapiditymixedSumP4NuM","%s%s"%lepton+"RelativeRapiditymixedSumP4NuP"]),
             #steps.Other.histogrammer("%sSignedRapidity%s"%lepton, 51, -5, 5, title = ";y_lep*q_lep*sign(boost);events / bin"),
-            #steps.Other.histogrammer("%s%s"%lepton+"RelativeRapidityxcSumP4", 51, -5, 5, title = ";#Delta y;events / bin"),
-            #steps.Other.histogrammer(("%s%s"%lepton+"RelativeRapidityxcSumP4NuM","%s%s"%lepton+"RelativeRapidityxcSumP4NuP"),
+            #steps.Other.histogrammer("%s%s"%lepton+"RelativeRapiditymixedSumP4", 51, -5, 5, title = ";#Delta y;events / bin"),
+            #steps.Other.histogrammer(("%s%s"%lepton+"RelativeRapiditymixedSumP4NuM","%s%s"%lepton+"RelativeRapiditymixedSumP4NuP"),
             #                         (101,101), (-5,-5), (5,5), title = ";#Delta y #nu_{-};#Delta y #nu_{+};events / bin",
             #                         funcString = "lambda x: (x[0],x[1])"),
             #steps.Other.histogrammer("%sMt%s"%lepton+"%sNeutrinoP4P%s"%lepton,50,0,200, title = ";M_{T};events / bin"),
             #
-            #steps.Other.histogrammer(("xcSumP4NuM","xcSumP4NuP"),(75,75),(-1500,-1500),(1500,1500),
-            #                         funcString = "lambda x:(x[0].pz(),x[1].pz())", title = ";xcSumP4NuM.pz;xcSumP4NuP.pz;events / bin")
+            #steps.Other.histogrammer(("mixedSumP4NuM","mixedSumP4NuP"),(75,75),(-1500,-1500),(1500,1500),
+            #                         funcString = "lambda x:(x[0].pz(),x[1].pz())", title = ";mixedSumP4NuM.pz;mixedSumP4NuP.pz;events / bin")
             
             ]
     
@@ -206,7 +208,7 @@ class topAsymm(analysis.analysis) :
                 return EWK[pars["lepton"]["name"]]
             return sum(EWK.values(),[])
 
-        eL = 400 # 1/pb
+        eL = 2000 # 1/pb
         return  ( data() +
                   qcd_py6(eL) +
                   ttbar_mg(eL) +
@@ -221,7 +223,7 @@ class topAsymm(analysis.analysis) :
             org.mergeSamples(targetSpec = {"name":"Data 2010", "color":r.kBlack, "markerStyle":20}, sources=["EG.2010A_skim","Electron.Run2010B_skim"])
             org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
             org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3},
-                             sources = ["qcd_py6","w_enu","w_munu","w_taunu","tt_tauola_mg_v12"], keepSources = True)
+                             sources = ["qcd_py6","w_enu","w_munu","w_taunu","tt_tauola_mg"], keepSources = True)
             org.scale()
             
             #plot

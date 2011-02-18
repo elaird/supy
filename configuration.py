@@ -16,7 +16,7 @@ def fakeString() :
     return ";FAKE"
 
 def calculablesFiles() :
-    return ["Gen", "Jet", "Muon", "Electron", "Photon", "Other", "Vertex", "XClean", "Compatibility"]
+    return ["Gen", "Jet", "Muon", "Electron", "Photon", "Other", "Vertex", "XClean", "Top", "Compatibility"]
 
 def samplesFiles() :
     return ["MC", "JetMET", "Muon", "Electron", "Photon", "SignalSkim"]
