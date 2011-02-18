@@ -11,7 +11,7 @@ class mixedSumP4(wrappedChain.calculable) :
         trans = self.source[self.trans]
         longi = self.source[self.longi]
         f = trans.pt() / longi.pt()
-        self.value.SetPxPyPzE(trans.px(),trans.py(), f*longi.pz(), f*longi.E()) 
+        self.value.SetPxPyPzE(-trans.px(),-trans.py(), f*longi.pz(), f*longi.E()) 
 #####################################
 class SemileptonicTopIndex(wrappedChain.calculable) :
     def __init__(self, collection = None) :
