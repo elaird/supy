@@ -117,3 +117,14 @@ class SumP4(wrappedChain.calculable) :
     def update(self,ignored) :
         self.value.SetPxPyPzE(0,0,0,0)
         self.value = sum(sum([[self.source[p4s][index] for index in self.source[indices]] for indices,p4s in self.indicesP4s],[]),self.value)
+##############################
+class SumPt(wrappedChain.calculable) :
+    def __init__(self, jet = None, photon = None, electron = None, muon = None ) :
+        self.fixes = ("xc","")
+        stuff = ["jet","photon","electron","muon"]
+        self.indicesP4s = [("%sIndices%s"%eval(s),
+                           "%sP4%s"%eval(s) if s!="jet" else "%sCorrectedP4%s"%eval(s)) for s in stuff]
+        self.moreName = ';'.join(["%s: %s%s"%((s,)+eval(s)) for s in stuff])
+
+    def update(self,ignored) :
+        self.value = sum(sum([[self.source[p4s][index].pt() for index in self.source[indices]] for indices,p4s in self.indicesP4s],[]))
