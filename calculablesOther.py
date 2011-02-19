@@ -40,18 +40,21 @@ class Mt(wrappedChain.calculable) :
     def name(self) :
         return "%sMt%s%s"%(self.fixes[0], self.fixes[1], self.met)
     
-    def __init__(self, collection = None, met = None, byHand = True ) :
+    def __init__(self, collection = None, met = None, byHand = True , allowNonIso = False) :
         self.met = met
         self.fixes = collection
-        self.stash(["Indices","P4"])
+        self.stash(["Indices","IndicesNonIso","P4"])
         self.byHand = byHand
+        self.allowNonIso = allowNonIso
         self.moreName = "%s%s, %s, byHand=%d"%(collection[0], collection[1], met, byHand)
 
     def update(self, ignored) :
-        if not len(self.Indices) :
+        if (not self.source[self.Indices]) and not (self.allowNonIso or self.source[self.indicesNonIso]) :
             self.value= -1.0
             return
-        lep = self.source[self.P4][self.source[self.Indices][0]]
+        index = self.source[self.Indices][0] if self.source[self.Indices] else \
+                self.source[self.IndicesNonIso][0]
+        lep = self.source[self.P4][index]
         met = self.source[self.met]
 
         if self.byHand :
