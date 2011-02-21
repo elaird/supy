@@ -152,6 +152,12 @@ def fileListFromDisk(location, isDirectory = True, itemsToSkip = [], sizeThresho
         if acceptFile : fileList.append(fileName if not isDirectory else location+"/"+fileName)
 
     return fileList
+#####################################
+def fileListFromTextFile(fileName = None) :
+    f = open(fileName)
+    out = [line.replace("\n","") for line in f]
+    f.close()
+    return out
 #####################################        
 class rBin(object) :
     def __init__(self,num,den,i, minRelUnc=0.25) :
