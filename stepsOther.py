@@ -534,6 +534,23 @@ class compareMissing(analysisStep) :
         for pair in self.missingPairs :
             self.book.fill((eV[pair[0]].pt(),eV[pair[1]].pt()), "%s.pt_vs_%s.pt"%pair, self.binsPair, self.minPair, self.maxPair,
                            title = ";%s.pt;%s.pt;events / bin"%pair)
+#####################################
+class topAsymmetry(analysisStep) :
+    def __init__(self, lepton) :
+        self.charge = "%sCharge%s"%lepton
+        self.index = "%sSemileptonicTopIndex%s"%lepton
+        self.signedY = "%sSignedRapidity%s"%lepton
+        self.relY = "%s%s"%lepton+"RelativeRapiditymixedSumP4Nu"
+        self.bins = 31
+    def uponAcceptance(self,eV) :
+        for charge in ["",["Positive","Negative"][max(0,eV[self.charge][eV[self.index]])]] :
+            self.book.fill(eV[self.signedY], self.signedY+charge, self.bins,-5,5, title = "%s;%s;events / bin"%(charge,self.signedY))
+            self.book.fill(eV[self.relY], self.relY+charge, self.bins,-5,5, title = "%s;#Delta y;events / bin"%charge)
+        #steps.Histos.generic(("%s%s"%lepton+"RelativeRapiditymixedSumP4NuM","%s%s"%lepton+"RelativeRapiditymixedSumP4NuP"),
+        #                     (101,101), (-5,-5), (5,5), title = ";#Delta y #nu_{-};#Delta y #nu_{+};events / bin",
+        #                     funcString = "lambda x: (x[0],x[1])"),        
+#####################################
+
 
 ###   Obsolete   ####
 #####################################
