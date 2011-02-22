@@ -1,4 +1,4 @@
-import copy,array,os,cPickle,tempfile
+import copy,array,os,cPickle,tempfile,sys
 import wrappedChain,utils,steps,configuration
 from autoBook import autoBook
 import ROOT as r
@@ -90,11 +90,15 @@ class analysisLooper :
             try:
                 if not step.go(eventVars) : break
             except Exception as e:
+                print
                 print "Problem with %s"%type(step)
                 print step.moreName
                 print
-                print
-                raise e
+                import traceback
+                tb = sys.exc_info()[2]
+                traceback.print_tb(tb, limit=10, file=sys.stdout)
+                print e.__class__.__name__,":", e
+                sys.exit(0)
         
     def setupChains(self,inputFiles) :
         nFiles = len(inputFiles)
