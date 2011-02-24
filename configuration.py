@@ -19,7 +19,7 @@ def calculablesFiles() :
     return ["Gen", "Jet", "Muon", "Electron", "Photon", "Other", "Vertex", "XClean", "Top", "Compatibility"]
 
 def samplesFiles() :
-    return ["MC", "JetMET", "Muon", "Electron", "Photon", "SignalSkim"]
+    return ["MC", "JetMET", "Muon", "Electron", "Photon", "SignalSkim", "WPol"]
 
 def stepsFiles() :
     return ["Other", "Filter", "Histos", "Jet", "Trigger", "Photon", "Print", "Gen", "Xclean", "Displayer", "Master"]
