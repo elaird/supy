@@ -543,7 +543,7 @@ class topAsymmetry(analysisStep) :
         self.relY = "%s%s"%lepton+"RelativeRapiditymixedSumP4Nu"
         self.bins = 31
     def uponAcceptance(self,eV) :
-        for charge in ["",["Positive","Negative"][max(0,eV[self.charge][eV[self.index]])]] :
+        for charge in ["",["Negative","Positive"][max(0,eV[self.charge][eV[self.index]])]] :
             self.book.fill(eV[self.signedY], self.signedY+charge, self.bins,-5,5, title = "%s;%s;events / bin"%(charge,self.signedY))
             self.book.fill(eV[self.relY], self.relY+charge, self.bins,-5,5, title = "%s;#Delta y;events / bin"%charge)
         #steps.Histos.generic(("%s%s"%lepton+"RelativeRapiditymixedSumP4NuM","%s%s"%lepton+"RelativeRapiditymixedSumP4NuP"),
