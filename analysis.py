@@ -181,7 +181,7 @@ class analysis(object) :
         listOfSteps = self.listOfSteps(conf)
         listOfSamples = self.listOfSamples(conf)
 
-        selectors = filter(lambda s: hasattr(s,"select"), listOfSteps)
+        selectors = filter(lambda s: hasattr(s,"select") and type(s)!=steps.Filter.label, listOfSteps)
         assert len(selectors) == len(set([(s.__class__.__name__,s.moreName,s.moreName2) for s in selectors])), \
                "Duplicate selectors are not allowed."
         #checked already during makeInputFileLists
