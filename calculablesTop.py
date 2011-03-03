@@ -11,7 +11,7 @@ class mixedSumP4(wrappedChain.calculable) :
         trans = self.source[self.trans]
         longi = self.source[self.longi]
         f = trans.pt() / longi.pt()
-        self.value.SetPxPyPzE(-trans.px(),-trans.py(), f*longi.pz(), f*longi.E()) 
+        self.value.SetPxPyPzE(-trans.px(),-trans.py(), f*longi.pz(), f*longi.E())
 #####################################
 class SemileptonicTopIndex(wrappedChain.calculable) :
     def __init__(self, collection = None) :
@@ -96,7 +96,7 @@ class TopReconstruction(wrappedChain.calculable) :
                                 "lepTopBIndex" : iJet,
                                 "lepTopP4" : nuP4+lepP4+jetP4s[iJet],
                                 "hadTopP4" : sum([jetP4s[i] for i in (set(indices)-set([iJet]))], r.std.vector('LorentzV').value_type()),
-                                "hadTopBIndex" : list(set(bIndices) - set([iJet]))[0] } for nuP4 in nuP4s for iJet in bIndices],
+                                "hadTopBIndex" : filter(lambda i: i!=iJet, bIndices)[0] } for nuP4 in nuP4s for iJet in bIndices],
                             key = lambda x: abs(self.massTop - x["lepTopP4"].M()) )
 #####################################
 class NeutrinoP4(wrappedChain.calculable) :
