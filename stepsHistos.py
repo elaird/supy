@@ -28,7 +28,7 @@ class value(analysisStep) :
         for item in ["var","N","low","up","indices","index"] :
             setattr(self,item,eval(item))
 
-        self.moreName = var + self.wrapName() + ("[i[%d]]"%index if index!=None else "")
+        self.moreName = var + self.wrapName() + ("[i[%d]]:%s"%(index,indices) if index!=None else "")
         self.title = ";%s%s;%s"%(xtitle if xtitle else var + ("[%s[%d]]"%(indices,index) if indices and index!=None else ""),
                                  self.wrapName(),
                                  "%s / bin"%(indices if indices and index==None else "events"))
