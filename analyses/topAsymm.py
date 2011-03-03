@@ -6,9 +6,9 @@ import ROOT as r
 class topAsymm(analysis.analysis) :
     def parameters(self) :
         objects = {}
-        fields =                           [ "jet",            "met",            "muon",       "electron",        "photon",        "muonsInJets"]
-        objects["calo"] = dict(zip(fields, [("xcak5Jet","Pat"),"metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), False]))
-        objects["pf"]   = dict(zip(fields, [("xcak5JetPF","Pat"),"metP4PF",    ("muon","PF"),("electron","PF"),("photon","Pat"),   True]))
+        fields =                           [ "jet",              "met",           "sumP4",                "sumPt",                 "muon",       "electron",        "photon",        "muonsInJets"]
+        objects["calo"] = dict(zip(fields, [("xcak5Jet","Pat"),  "metP4AK5TypeII","xcSumP4",              "xcSumPt",               ("muon","Pat"),("electron","Pat"),("photon","Pat"), False]))
+        objects["pf"]   = dict(zip(fields, [("xcak5JetPF","Pat"),"metP4PF",       "xcak5JetPFRawSumP4Pat","xcak5JetPFRawSumPtPat", ("muon","Pat"),("electron","Pat"),("photon","Pat"),   True]))
 
         leptons = {}
         fieldsLepton    =                            ["name","ptMin",              "isoVar", "triggerList"]
@@ -43,12 +43,8 @@ class topAsymm(analysis.analysis) :
             calculables.Jet.IndicesBtagged(obj["jet"],pars["bVar"]),
             calculables.Jet.Indices(      obj["jet"],      ptMin = 30, etaMax = 3.0, flagName = "JetIDloose"),
             calculables.Muon.Indices(     obj["muon"],     ptMin = 10, combinedRelIsoMax = 0.15),
-            calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
+            calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "80", useCombinedIso = True),
             calculables.Photon.photonIndicesPat(           ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
-
-            calculables.Jet.SumP4(obj["jet"]),
-            calculables.Jet.MhtOverMet(obj["jet"], obj["met"]),
-            calculables.Jet.deadEcalDR(obj["jet"], minNXtals = 10),
 
             calculables.XClean.IndicesUnmatched(collection = obj["photon"], xcjets = obj["jet"], DR = 0.5),
             calculables.XClean.IndicesUnmatched(collection = obj["electron"], xcjets = obj["jet"], DR = 0.5),
@@ -63,7 +59,7 @@ class topAsymm(analysis.analysis) :
             calculables.Vertex.Indices(),
             calculables.Other.lowestUnPrescaledTrigger(pars["lepton"]["triggerList"]),
 
-            calculables.Top.mixedSumP4(transverse = obj["met"], longitudinal = "xcSumP4"),
+            calculables.Top.mixedSumP4(transverse = obj["met"], longitudinal = obj["sumP4"]),
             calculables.Top.SemileptonicTopIndex(lepton),
             
             calculables.Top.NeutrinoPz(lepton,"mixedSumP4"),
@@ -86,85 +82,82 @@ class topAsymm(analysis.analysis) :
         lPtMin = pars["lepton"]["ptMin"]
         bVar = ("%s"+pars["bVar"]+"%s")%calculables.Jet.xcStrip(obj["jet"])
 
-        return [
+        def cleanupSteps() :
+            return ([ steps.Filter.multiplicity("vertexIndices",min=1),
+                      steps.Filter.monster(),
+                      steps.Filter.hbheNoise(),
+                      steps.Trigger.techBitFilter([0],True),
+                      steps.Trigger.physicsDeclared(),            
+                      #steps.Trigger.lowestUnPrescaledTrigger(), #FIXME ele
+                      ]+[
+                steps.Filter.multiplicity(s, max = 0) for s in ["%sIndices%s"%obj["photon"],
+                                                                "%sIndicesUnmatched%s"%obj["photon"],
+                                                                "%sIndices%s"%(obj["electron" if pars["lepton"]["name"]=="muon" else "muon"]),
+                                                                "%sIndicesUnmatched%s"%obj["electron"],
+                                                                "%sIndicesOther%s"%obj["muon"],
+                                                                "%sIndicesOther%s"%obj["jet"],
+                                                                ]
+                ]+[steps.Jet.uniquelyMatchedNonisoMuons(obj["jet"]),]
+                    )
+        
+        def templateSteps() :
+            return ([ steps.Filter.label('templates'),
+                     steps.Histos.value(obj["sumPt"],50,0,1000),
+                     steps.Histos.value("%sMt%s"%lepton+"%sNeutrinoP4%s"%lepton, 30,0,180, xtitle = "M_{T}"),
+                     steps.Histos.pt("%sCorrectedP4%s"%obj['jet'], 40,0,400, index = 0, indices = "%sIndices%s"%obj['jet']),
+                     steps.Histos.pt("%sCorrectedP4%s"%obj['jet'], 40,0,400, index = 0, indices = "%sIndicesBtagged%s"%obj['jet']),
+                     steps.Histos.generic(("%sCorrectedP4%s"%obj['jet'],"%sIndicesBtagged%s"%obj['jet']), 30,0,6,
+                                          title = ";#Delta#phi leading b-tagness jets;events / bin",
+                                          funcString = "lambda x: r.Math.VectorUtil.DeltaPhi(x[0][x[1][0]],x[0][x[1][1]])"),
+                     ]+
+                    [steps.Histos.eta("%sCorrectedP4%s"%obj['jet'], 50,-5,5, index = i, indices = "%sIndices%s"%obj['jet']) for i in range(3)]+
+                    [steps.Filter.label('endTemplates')])
+
+        def lepIso(index) :
+            return steps.Histos.value(("%s"+pars["lepton"]["isoVar"]+"%s")%lepton, 60,0,0.6, indices = "%sIndicesAnyIsoIsoOrder%s"%lepton, index=index)
+        
+        return ([
             steps.Print.progressPrinter(),
             steps.Other.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
             steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = "%sIndicesAnyIso%s"%lepton, index = 0),
-            steps.Filter.multiplicity("vertexIndices",min=1),
-            steps.Filter.monster(),
-            steps.Filter.hbheNoise(),
-            steps.Trigger.techBitFilter([0],True),
-            steps.Trigger.physicsDeclared(),            
-            #steps.Trigger.lowestUnPrescaledTrigger(), #FIXME ele
-            ]+[
-            steps.Filter.multiplicity(s, max = 0) for s in ["%sIndicesOther%s"%obj["jet"],
-                                                            "%sIndicesOther%s"%obj["muon"],
-                                                            "%sIndicesUnmatched%s"%obj["electron"],
-                                                            "%sIndicesUnmatched%s"%obj["photon"],
-                                                            "%sIndices%s"%(obj["electron" if pars["lepton"]["name"]=="muon" else "muon"]),
-                                                            "%sIndices%s"%obj["photon"]]
-            ]+[
-            steps.Jet.uniquelyMatchedNonisoMuons(obj["jet"]),
-
-            steps.Histos.value("xcSumPt",50,0,1000),
-            steps.Other.compareMissing(["xcSumP4",obj["met"]]),
+            ]+sum([[step,lepIso(0)] for step in cleanupSteps()],[])+[
+            steps.Histos.value(obj["sumPt"],50,0,1000),
+            steps.Other.compareMissing([obj["sumP4"],obj["met"]]),
             
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             steps.Filter.multiplicity("%sIndices%s"%obj["jet"], **pars["nJets"]),
+            lepIso(0),
 
-            #steps.Histos.multiplicity("%sIndicesNonIso%s"%lepton),
-            #steps.Histos.multiplicity("%sIndicesModified%s"%obj["jet"]),
-            #steps.Histos.value("%sNMuonsMatched%s"%obj["jet"], 10,-0.5,9.5, indices = "%sIndices%s"%obj["jet"]),
-            #steps.Other.iterHistogrammer(("%sNmuon%s"%calculables.Jet.xcStrip(obj["jet"]),"%sNMuonsMatched%s"%obj["jet"]),
-            #                             (6,6),(-0.5,-0.5),(5.5,5.5), title = ";Nmuon;NMuonsMatched;events / bin"),
-            steps.Histos.value("xcSumPt",50,0,1000),
-            steps.Other.compareMissing(["xcSumP4",obj["met"]]),
+            steps.Histos.value(obj["sumPt"],50,0,1000),
+            steps.Other.compareMissing([obj["sumP4"],obj["met"]]),
             steps.Filter.pt("mixedSumP4",min=20),
             
-            #steps.Histos.multiplicity("%sIndices%s"%lepton),
-            #steps.Histos.multiplicity("%sIndicesNonIso%s"%lepton),
-            steps.Histos.value(("%s"+pars["lepton"]["isoVar"]+"%s")%lepton, 60,0,0.6, indices = "%sIndicesAnyIsoIsoOrder%s"%lepton, index=0),
-            steps.Histos.value(("%s"+pars["lepton"]["isoVar"]+"%s")%lepton, 60,0,0.6, indices = "%sIndicesAnyIsoIsoOrder%s"%lepton, index=1),
+            lepIso(0),
+            lepIso(1),
 
             steps.Filter.multiplicity("%sIndices%s"%lepton, max = pars["sample"]["lIso"]["nMaxIso"]),
             steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = ("%s"+pars["sample"]["lIso"]["indices"]+"%s")%lepton, index = 0),
-
-            steps.Histos.value("xcSumPt",50,0,1000),
-            steps.Histos.value("%sMt%s"%lepton+"%sNeutrinoP4%s"%lepton, 30,0,180, xtitle = "M_{T}"),
-
+            ]+templateSteps()+[
             steps.Histos.value(bVar, 60,0,15, indices = "%sIndicesBtagged%s"%obj["jet"], index = 0),
             steps.Histos.value(bVar, 60,0,15, indices = "%sIndicesBtagged%s"%obj["jet"], index = 1),
             steps.Histos.value(bVar, 60,0,15, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
-            #steps.Histos.generic( (bVar,"%sIndicesBtagged%s"%obj["jet"]), (60,60),(0,0),(15,30),
-            #                      title = ";btag1;btag0; events / bin",
-            #                      funcString = "lambda x: (x[0][x[1][1]],x[0][x[1][0]])", suffix = "_vs10"),
-            #steps.Histos.generic( (bVar,"%sIndicesBtagged%s"%obj["jet"]), (60,60),(0,0),(15,15),
-            #                      title = ";btag1;btag2; events / bin",
-            #                      funcString = "lambda x: (x[0][x[1][1]],x[0][x[1][2]])", suffix = "_vs12"),
             
+            steps.Filter.value(bVar, indices = "%sIndicesBtagged%s"%obj["jet"], index = 1, min = 0.0),
             steps.Filter.value(bVar, indices = "%sIndicesBtagged%s"%obj["jet"], **pars["sample"]["bCut"]),
             
-            steps.Histos.generic("%sTopReconstruction%s"%lepton, (100,100),(0,0),(300,300),
-                                 title = ";leptonic top mass;hadronic top mass;events / bin",
-                                 funcString = "lambda x: (x[0]['lepTopP4'].M(),x[0]['hadTopP4'].M())"),
-            steps.Histos.value("xcSumPt",50,0,1000),
-            steps.Other.compareMissing(["xcSumP4",obj["met"]]),
-            steps.Histos.value("%sMt%s"%lepton+"%sNeutrinoP4%s"%lepton, 30,0,180, xtitle = "M_{T}"),
+            steps.Other.compareMissing([obj["sumP4"],obj["met"]]),
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
-
+            ]+templateSteps()+[
             steps.Other.topAsymmetry(lepton),
 
-            steps.Histos.generic(("%sNeutrinoPz%s"%lepton,"%sNeutrinoPz%s"%lepton),(100,100),(-1500,-500),(500,1500),
-                                 title=";#nu_{-} p_{z} (GeV);#nu_{+} p_{z} (GeV);events / bin", funcString = "lambda x: (x[0][0],x[0][1])"),
+            #steps.Histos.generic(("%sNeutrinoPz%s"%lepton,"%sNeutrinoPz%s"%lepton),(100,100),(-1500,-500),(500,1500),
+            #                     title=";#nu_{-} p_{z} (GeV);#nu_{+} p_{z} (GeV);events / bin", funcString = "lambda x: (x[0][0],x[0][1])"),
             
             steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
             steps.Filter.value(bVar, max=2.0, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
 
             steps.Other.topAsymmetry(lepton),
-            steps.Histos.generic("%sTopReconstruction%s"%lepton, (100,100),(0,0),(300,300),
-                                 title = ";leptonic top mass;hadronic top mass;events / bin",
-                                 funcString = "lambda x: (x[0]['lepTopP4'].M(),x[0]['hadTopP4'].M())"),
-            steps.Histos.value("%sMt%s"%lepton+"%sNeutrinoP4%s"%lepton, 30,0,180, xtitle = "M_{T}"),
+            ]+templateSteps()+[
             steps.Histos.generic(("%sIndicesBtagged%s"%obj["jet"],"%sCorrectedP4%s"%obj["jet"]),
                                  30,0,180, title=";M_{2-light};events / bin",
                                  funcString="lambda x: (x[1][x[0][2]] + x[1][x[0][3]]).M()"),
@@ -175,12 +168,10 @@ class topAsymm(analysis.analysis) :
             #steps.Other.histogrammer(("%s%s"%lepton+"RelativeRapiditymixedSumP4NuM","%s%s"%lepton+"RelativeRapiditymixedSumP4NuP"),
             #                         (101,101), (-5,-5), (5,5), title = ";#Delta y #nu_{-};#Delta y #nu_{+};events / bin",
             #                         funcString = "lambda x: (x[0],x[1])"),
-            #steps.Other.histogrammer("%sMt%s"%lepton+"%sNeutrinoP4%s"%lepton,50,0,200, title = ";M_{T};events / bin"),
-            #
             #steps.Other.histogrammer(("mixedSumP4NuM","mixedSumP4NuP"),(75,75),(-1500,-1500),(1500,1500),
             #                         funcString = "lambda x:(x[0].pz(),x[1].pz())", title = ";mixedSumP4NuM.pz;mixedSumP4NuP.pz;events / bin")
             
-            ]
+            ])
     
     def listOfSampleDictionaries(self) :
         return [samples.mc, samples.muon, samples.electron]
@@ -250,7 +241,7 @@ class topAsymm(analysis.analysis) :
                                  #doLog = False,
                                  #compactOutput = True,
                                  #noSci = True,
-                                 #pegMinimum = 0.1,
+                                 pegMinimum = 0.1,
                                  blackList = ["lumiHisto","xsHisto","nJobsHisto"],
                                  )
             pl.plotAll()
