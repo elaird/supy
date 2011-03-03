@@ -174,6 +174,13 @@ class SumPt(wrappedChain.calculable) :
         pts = self.source[self.Pt]
         self.value = reduce( lambda x,i: x+pts[i], self.source[self.Indices] , 0)
 ##############################
+class RawSumPt(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["CorrectedP4"],xcStrip(collection))
+    def update(self,ignored) :
+        self.value = sum([p4.pt() for p4 in self.source[CorrectedP4]])
+##############################
 class SumPz(wrappedChain.calculable) :
     def __init__(self,collection = None) :
         self.fixes = collection
@@ -207,6 +214,15 @@ class SumP4Ignored(wrappedChain.calculable) :
     def update(self,ignored) :
         p4s = self.source[self.CorrectedP4]
         self.value = reduce( lambda x,i: x+p4s.at(i), self.source[self.IndicesIgnored], r.LorentzV())
+#####################################
+class RawSumP4(wrappedChain.calculable) :
+    def __init__(self, collection) :
+        self.fixes = collection
+        self.stash(['CorrectedP4'],xcStrip(collection))
+        self.value = r.std.vector('LorentzV').value_type()
+    def update(self,ignored) : 
+        self.value.SetPxPyPzE(0,0,0,0)
+        self.value = sum(self.source[self.CorrectedP4],self.value)
 ####################################
 class Mht(wrappedChain.calculable) :
     def __init__(self,collection) :
@@ -669,4 +685,3 @@ class P4(wrappedChain.calculable) :
         self.stash(["P4"], ("gen%sJets"%(self.fixes[0].replace("Jet","").replace("PF","").replace("JPT","")), "") )
     def update(self, ignored) :
         self.value = self.source[self.P4]
-#####################################
