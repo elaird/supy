@@ -1,6 +1,21 @@
 from wrappedChain import wrappedChain
 import ROOT as r
 ##############################
+class genSumP4(wrappedChain.calculable) :
+    def update(self,ignored) :
+        genP4 = self.source['genP4']
+        self.value = genP4.at(2) + genP4.at(3)
+##############################
+class genQQbar(wrappedChain.calculable) :
+    def update(self,ignored) :
+        ids = list(self.source['genPdgId'])
+        self.value = tuple(sorted([2,3],key = ids.__getitem__,reverse = True)) \
+                     if not sum(ids[2:4]) else tuple()
+##############################
+class genIndexStrongerParton(wrappedChain.calculable) :
+    def update(self,ignored) :
+        self.value = max([(abs(self.source['genP4'][i].pz()),i) for i in [2,3]])[1]
+##############################
 class genMotherPdgId(wrappedChain.calculable) :
     def isFake(self) : return True
     def update(self,ignored) :
@@ -191,4 +206,3 @@ class genParticleCounter(wrappedChain.calculable) :
             #whose mothers have index 0 or 1
             if self.source["genMotherIndex"].at(iParticle) not in [0,1] : continue
             self.incrementCategory(self.source["genPdgId"].at(iParticle))
-##############################
