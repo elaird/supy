@@ -179,7 +179,7 @@ class RawSumPt(wrappedChain.calculable) :
         self.fixes = collection
         self.stash(["CorrectedP4"],xcStrip(collection))
     def update(self,ignored) :
-        self.value = sum([p4.pt() for p4 in self.source[CorrectedP4]])
+        self.value = sum([p4.pt() for p4 in self.source[self.CorrectedP4]])
 ##############################
 class SumPz(wrappedChain.calculable) :
     def __init__(self,collection = None) :
