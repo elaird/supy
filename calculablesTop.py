@@ -1,6 +1,63 @@
 from wrappedChain import *
 import calculables,math
 
+######################################
+class genTopNuP4(wrappedChain.calculable) :
+    def __init__(self) :
+        self.empty = r.std.vector('LorentzV').value_type()
+    def update(self,ignored) :
+        self.value = self.empty
+        if self.source['isRealData'] : return
+        for index,pdg,mother in zip( range(len(self.source['genPdgId'])),
+                                     self.source['genPdgId'],
+                                     self.source['genMotherPdgId'] ) :
+            if abs(mother) == 24 and abs(pdg) in [12,14] :
+                self.value = self.source['genP4'][index]
+                return
+######################################
+class genTopTTbar(wrappedChain.calculable) :
+    def update(self,ignored) :
+        self.value = tuple(list(self.source['genPdgId']).index(i) for i in [6,-6]) if \
+                     (not self.source['isRealData']) and \
+                     all([id in self.source['genPdgId'] for id in [-6,6]]) else ()
+######################################
+class genTopTTbarSumP4(wrappedChain.calculable) :
+    def update(self,ignored) :
+        genP4 = self.source['genP4']
+        ttbar = self.source['genTopTTbar']
+        self.value = genP4[ttbar[0]] + genP4[ttbar[1]]
+######################################
+class CosThetaStar(wrappedChain.calculable) :
+    def __init__(self,TTbarIndex) :
+        self.TTbarIndex = TTbarIndex
+    def update(self,ignored) :
+        qqbar = self.source['genQQbar']
+        genP4 = self.source['genP4']
+        boost = r.Math.BoostZ( self.source['genTopTTbarSumP4'].BoostToCM().z())
+        iTop = self.source['genTopTTbar'][self.TTbarIndex]
+        iAxis = qqbar[0] if qqbar else self.source['genIndexStrongerParton']
+
+        self.value = r.Math.VectorUtil.CosTheta(boost(genP4[iTop]),genP4[iAxis]) *( 1 if self.TTbarIndex else -1)
+######################################
+class genTopCosThetaStar(CosThetaStar) :
+    def __init__(self) : super(genTopCosThetaStar,self).__init__(0)
+class genTopCosThetaStarBar(CosThetaStar) :
+    def __init__(self) : super(genTopCosThetaStarBar,self).__init__(1)
+class genTopCosThetaStarAvg(wrappedChain.calculable) :
+    def update(self,ignored) : self.value = 0.5 * (self.source['genTopCosThetaStar']+self.source['genTopCosThetaStarBar'])
+######################################
+class genTTbar(wrappedChain.calculable) :
+    def update(self,ignored) :
+        self.value = {}
+
+        indexT = ids.index(6)
+        indexTbar = ids.index(-6)
+        indexWplus = ids.index(24)
+        indexWminus = ids.index(-24)
+        indexB = ids.index(5)
+        indexBbar = ids.index(-5)
+######################################
+######################################
 class mixedSumP4(wrappedChain.calculable) :
     def __init__(self, transverse = None, longitudinal = None) :
         self.trans = transverse
