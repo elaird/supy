@@ -520,7 +520,6 @@ class cutSorter(analysisStep) :
         self.book.fill(1, "cutSorterNames", bins, 0, bins, title = ";cutName", xAxisLabels = [sel.__class__.__name__ for sel in self.selectors])
         self.book.fill(1, "cutSorterMoreNames", bins, 0, bins, title = ";cutMoreName", xAxisLabels = [sel.moreName for sel in self.selectors])
 #####################################
-
 class compareMissing(analysisStep) :
     def __init__(self, missings, bins = 50, min = 0, max = 500) :
         self.missings = missings
@@ -534,6 +533,19 @@ class compareMissing(analysisStep) :
         for pair in self.missingPairs :
             self.book.fill((eV[pair[0]].pt(),eV[pair[1]].pt()), "%s.pt_vs_%s.pt"%pair, self.binsPair, self.minPair, self.maxPair,
                            title = ";%s.pt;%s.pt;events / bin"%pair)
+#####################################
+class collector(analysisStep) :
+    def __init__(self, vars) :
+        self.vars = vars
+        self.collection = set([])
+    def uponAcceptance(self, eventVars) :
+        self.collection.add(tuple([eventVars[var] for var in self.vars]))
+    def varsToPickle(self) :
+        return ["collection"]
+    def mergeFunc(self, products) :
+        print "These points %s have been found:"%str(self.vars)
+        s = set([]).union(*products["collection"])
+        print sorted(list(s))
 #####################################
 
 
