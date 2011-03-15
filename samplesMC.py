@@ -195,9 +195,11 @@ mc.add("lm13_v12",'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM13.Spring10-S
 
 #SMS
 mc.add("t1", '%s/bbetchar/ICF/automated/2011_01_24_18_09_42/")'%srm, xs = 1.0) #dummy xs
-mc.add("t2", '%s/bbetchar/ICF/automated/2011_01_24_18_14_21/")'%srm, xs = 1.0) #dummy xs
+mc.add("t11",'%s/bainbrid//ICF/automated/2011_03_09_08_57_50/")'%srm, xs = 1.0) #dummy xs
+mc.add("t2", '%s/elaird/ICF/automated/2011_03_08_23_04_26/")'%srm, xs = 1.0) #dummy xs
+mc.add("t21",'%s/bainbrid//ICF/automated/2011_03_08_20_30_30/")'%srm, xs = 1.0) #dummy xs
 mc.add("t3", '%s/bbetchar/ICF/automated/2011_01_25_21_33_22/")'%srm, xs = 1.0) #dummy xs
-mc.add("t4", '%s/henning//ICF/automated/2011_01_27_12_39_13/")'%srm, xs = 1.0) #dummy xs
+mc.add("t4", '%s/henning/ICF/automated/2011_01_27_12_39_13/")'%srm, xs = 1.0) #dummy xs
 
 #MSUGRA SCANS
 mc.add("scan_tanbeta3_tanja1",'%s/trommers//ICF/automated/2010_12_03_15_28_38/")'%srm, xs = 100000.0 ) #dummy xs
