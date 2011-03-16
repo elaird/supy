@@ -219,7 +219,7 @@ class RawSumP4(wrappedChain.calculable) :
     def __init__(self, collection) :
         self.fixes = collection
         self.stash(['CorrectedP4'],xcStrip(collection))
-        self.value = r.std.vector('LorentzV').value_type()
+        self.value = r.std.vector(type(utils.LorentzV())).value_type()
     def update(self,ignored) : 
         self.value.SetPxPyPzE(0,0,0,0)
         self.value = sum(self.source[self.CorrectedP4],self.value)

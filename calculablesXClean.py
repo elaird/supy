@@ -14,7 +14,7 @@ class xcJet(wrappedChain.calculable) :
                  correctForMuons = None,
                  jesAbs = 1,
                  jesRel = 0 ) :
-        self.value = r.std.vector('LorentzV')()
+        self.value = r.std.vector(type(utils.LorentzV()))()
         self.jetP4Source = ("%sCorrectedP4%s"%xcjets)[2:]
 
         for item in ["xcjets", "applyResidualCorrectionsToData", "applyResidualCorrectionBug", "correctForMuons", "jesAbs", "jesRel"] :
