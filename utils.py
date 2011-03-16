@@ -4,8 +4,12 @@ import ROOT as r
 #####################################
 hyphens="-"*95
 #####################################
-def compileSources(listOfSourceFiles) :
-    for sourceFile in listOfSourceFiles :
+def generateDictionaries(inList) :
+    for item in inList :
+        r.gInterpreter.GenerateDictionary(*item)
+#####################################
+def compileSources(inList) :
+    for sourceFile in inList :
         r.gROOT.LoadMacro(sourceFile+"+")
 #####################################
 def operateOnListUsingQueue(nCores,workerFunc,inList) :
