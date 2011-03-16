@@ -4,6 +4,9 @@ import ROOT as r
 #####################################
 hyphens="-"*95
 #####################################
+def LorentzV(*args) :
+    return r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(*args)
+#####################################
 def generateDictionaries(inList) :
     for item in inList :
         r.gInterpreter.GenerateDictionary(*item)
