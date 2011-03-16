@@ -109,7 +109,8 @@ options,arg = opts()
 setupROOT()
 
 #compile cpp source files
-utils.compileSources(listOfSourceFiles = configuration.sourceFiles())
+utils.compileSources(inList = configuration.cppFiles())
+utils.generateDictionaries(inList = configuration.dictionariesToGenerate())
 
 #construct the analysis
 someClass = importedClass(moduleName(arg))
