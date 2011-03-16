@@ -93,9 +93,10 @@ class photonLook(analysis.analysis) :
                      calculables.Jet.AlphaTMet(obj["jet"], _etRatherThanPt, obj["met"]),
                      calculables.Jet.MhtOverMet(obj["jet"], met = "%sPlus%s%s"%(obj["met"], obj["photon"][0], obj["photon"][1])),
                      calculables.Photon.metPlusPhotons(met = obj["met"], photons = obj["photon"]),
-                     calculables.Vertex.vertexID(),
-                     calculables.Vertex.vertexIndices(),
+                     calculables.Vertex.ID(),
+                     calculables.Vertex.Indices(),
                      calculables.Jet.deadEcalDR(obj["jet"], extraName = params["lowPtName"], minNXtals = 10),
+                     calculables.Other.lowestUnPrescaledTrigger(params["triggerList"]),
                      ]
 
     def listOfSteps(self,params) :
@@ -114,7 +115,7 @@ class photonLook(analysis.analysis) :
 
         if params["thresholds"]["jet1PtMin"]!=None : outList+=[steps.Jet.jetPtSelector(_jet, params["thresholds"]["jet1PtMin"], 0)]
         if params["thresholds"]["jet2PtMin"]!=None : outList+=[steps.Jet.jetPtSelector(_jet, params["thresholds"]["jet2PtMin"], 1)]
-        if params["thresholds"]["applyTrigger"]    : outList+=[steps.Trigger.lowestUnPrescaledTrigger(params["triggerList"])]
+        if params["thresholds"]["applyTrigger"]    : outList+=[steps.Trigger.lowestUnPrescaledTrigger()]
 
         outList+=[
             steps.Other.vertexRequirementFilter(),
