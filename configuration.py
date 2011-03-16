@@ -36,8 +36,8 @@ def histogramsToDisableForData() :
 def histogramsToDisableForMc() :
     return []
 
-def sourceFiles() :
-    return ["pragmas.h"]
+def cppFiles() :
+    return []
 
 def sitePrefix() :
     d = {"hep.ph.ic.ac.uk":"ic",
@@ -97,9 +97,6 @@ def batchScripts() :
     p = sitePrefix()
     return ("%sSub.sh"%p, "%sJob.sh"%p, "%sTemplate.condor"%p)
 
-def qlook() :
-    return "%sQlook"%sitePrefix()
-    
 def mvCommand(site = None, src = None, dest = None) :
     d = {"ic":"mv %s %s"%(src, dest),
          "pu":"mv %s %s"%(src, dest),
@@ -109,5 +106,16 @@ def mvCommand(site = None, src = None, dest = None) :
         }
     assert site in d, "site %s does not have a mvCommand defined"%site
     return d[site]
+
+def dictionariesToGenerate() :
+    return [
+        ("pair<string,bool>","string"),
+        ("pair<string,string>","string"),
+        ("ROOT::Math::Cartesian3D<float>","Math/Point3D.h"),
+        ("ROOT::Math::DisplacementVector3D<ROOT::Math::Cartesian3D<float>,ROOT::Math::DefaultCoordinateSystemTag>","Math/Vector3D.h"),
+        ("ROOT::Math::PositionVector3D<ROOT::Math::Cartesian3D<float>,ROOT::Math::DefaultCoordinateSystemTag>","Math/Point3D.h"),
+        ("ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> >","Math/LorentzVector.h"),
+        ("ROOT::Math::PtEtaPhiM4D<float>","Math/LorentzVector.h"),
+        ]
 
 srm = 'utils.fileListFromSrmLs(dCachePrefix = "%s", location="%s'%(siteInfo(key = "dCachePrefix"), siteInfo(key = "srmPrefix"))
