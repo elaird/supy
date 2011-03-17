@@ -15,6 +15,7 @@ class variableStash(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         return specify(names = "t21")
-
+        #return specify(names = "scan_tanbeta3_skim100")
+    
     def listOfSampleDictionaries(self) :
         return [samples.mc]
