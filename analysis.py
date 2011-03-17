@@ -78,7 +78,7 @@ class analysis(object) :
 
     def mainTree(self) : return ("susyTree","tree")
     def otherTreesToKeepWhenSkimming(self) : return [("lumiTree","tree")]
-    def leavesToBlackList(self) : return ["hltL1Seeds"]
+    def leavesToBlackList(self) : return []
     def parameters(self) : return {}
     def conclude(self) : return
 
