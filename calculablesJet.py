@@ -205,7 +205,7 @@ class SumP4(wrappedChain.calculable) :
     def update(self,ignored) :
         p4s = self.source[self.CorrectedP4]
         indices = self.source[self.Indices]
-        self.value = reduce( lambda x,i: x+p4s.at(i), indices, r.LorentzV()) if len(indices) else None
+        self.value = reduce( lambda x,i: x+p4s.at(i), indices, utils.LorentzV()) if len(indices) else None
 ####################################
 class SumP4Ignored(wrappedChain.calculable) :
     def __init__(self,collection) :
@@ -213,7 +213,7 @@ class SumP4Ignored(wrappedChain.calculable) :
         self.stash(["CorrectedP4","IndicesIgnored"])
     def update(self,ignored) :
         p4s = self.source[self.CorrectedP4]
-        self.value = reduce( lambda x,i: x+p4s.at(i), self.source[self.IndicesIgnored], r.LorentzV())
+        self.value = reduce( lambda x,i: x+p4s.at(i), self.source[self.IndicesIgnored], utils.LorentzV())
 #####################################
 class RawSumP4(wrappedChain.calculable) :
     def __init__(self, collection) :
@@ -266,7 +266,7 @@ class LongP4(wrappedChain.calculable) :
         self.stash(["CorrectedP4","Indices"])
     def update(self,ignored) :
         p4s = self.source[self.CorrectedP4]
-        self.value = reduce(lambda x,p4: max(x+p4,x-p4,key=lambda p:p.pt()), [p4s.at(i) for i in self.source[self.Indices]], r.LorentzV())
+        self.value = reduce(lambda x,p4: max(x+p4,x-p4,key=lambda p:p.pt()), [p4s.at(i) for i in self.source[self.Indices]], utils.LorentzV())
 ##############################
 class Stretch(wrappedChain.calculable) :
     def __init__(self,collection=None) :

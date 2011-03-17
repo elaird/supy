@@ -1,10 +1,10 @@
 from wrappedChain import *
-import calculables,math
+import calculables,utils,math
 
 ######################################
 class genTopNuP4(wrappedChain.calculable) :
     def __init__(self) :
-        self.empty = r.std.vector('LorentzV').value_type()
+        self.empty = r.std.vector(type(utils.LorentzV())).value_type()
     def update(self,ignored) :
         self.value = self.empty
         if self.source['isRealData'] : return
@@ -63,7 +63,7 @@ class mixedSumP4(wrappedChain.calculable) :
         self.trans = transverse
         self.longi = longitudinal
         self.moreName = "transvers: %s ; longitudinal: %s" % (transverse,longitudinal)
-        self.value = r.std.vector('LorentzV').value_type()
+        self.value = r.std.vector(type(utils.LorentzV())).value_type()
     def update(self,ignored) :
         trans = self.source[self.trans]
         longi = self.source[self.longi]
@@ -152,7 +152,7 @@ class TopReconstruction(wrappedChain.calculable) :
         self.value = sorted([ { "nuP4" : nuP4,
                                 "lepTopBIndex" : iJet,
                                 "lepTopP4" : nuP4+lepP4+jetP4s[iJet],
-                                "hadTopP4" : sum([jetP4s[i] for i in (set(indices)-set([iJet]))], r.std.vector('LorentzV').value_type()),
+                                "hadTopP4" : sum([jetP4s[i] for i in (set(indices)-set([iJet]))], r.std.vector(type(utils.LorentzV())).value_type()),
                                 "hadTopBIndex" : filter(lambda i: i!=iJet, bIndices)[0] } for nuP4 in nuP4s for iJet in bIndices],
                             key = lambda x: abs(self.massTop - x["lepTopP4"].M()) )
 #####################################

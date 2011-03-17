@@ -28,7 +28,7 @@ class SumP4(wrappedChain.calculable) :
     def update(self, ignored) :
         p4s = self.source[self.P4]
         indices = self.source[self.Indices]
-        self.value = reduce( lambda x,i: x+p4s.at(i), indices, r.LorentzV()) if len(indices) else None
+        self.value = reduce( lambda x,i: x+p4s.at(i), indices, utils.LorentzV()) if len(indices) else None
 ##############################
 class SumEt(wrappedChain.calculable) :
     def __init__(self, collection = None) :
