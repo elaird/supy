@@ -323,7 +323,7 @@ def printSkimResults(org) :
 #####################################
 def phiOrder(p4s, indices) :
     if not indices : return indices
-    mp4 = reduce(lambda x,i: x-p4s.at(i), indices, r.LorentzV())
+    mp4 = reduce(lambda x,i: x-p4s.at(i), indices, LorentzV())
     iPhi = collections.deque(sorted(indices, key = lambda i: p4s.at(i).phi()))
     dphi = [r.Math.VectorUtil.DeltaPhi(mp4,p4s.at(i)) for i in iPhi]
     dphiP = [dp if dp>0 else 2*math.pi + dp for dp in dphi]
@@ -332,7 +332,7 @@ def phiOrder(p4s, indices) :
     return iPhi
 #####################################
 def partialSumP4(p4s, indices) :
-    partial = [r.LorentzV()]
+    partial = [LorentzV()]
     for i in indices:
         partial.append(partial[-1]+p4s[i])
     return partial
@@ -348,7 +348,7 @@ def partialSumP4Centroid(partials) :
     oneOverSixA = 1./(6*A)
     Cx = oneOverSixA * sum([ (p[i].x()+p[i+1].x())*(p[i].x()*p[i+1].y() - p[i+1].x()*p[i].y()) for i in range(len(partials))])
     Cy = oneOverSixA * sum([ (p[i].y()+p[i+1].y())*(p[i].x()*p[i+1].y() - p[i+1].x()*p[i].y()) for i in range(len(partials))])
-    return r.LorentzV(Cx,Cy,0,0)
+    return LorentzV(Cx,Cy,0,0)
 #####################################
 def dependence(TH2, name="", minimum=1.0/4, maximum=4) :
     if not TH2: return None
