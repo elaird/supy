@@ -112,6 +112,7 @@ def dictionariesToGenerate() :
         ("pair<string,bool>","string"),
         ("map<std::string,bool>","string;map"),
         ("pair<string,string>","string"),
+        ("map<std::string,string>","string;map"),
         ("ROOT::Math::Cartesian3D<float>","Math/Point3D.h"),
         ("ROOT::Math::DisplacementVector3D<ROOT::Math::Cartesian3D<float>,ROOT::Math::DefaultCoordinateSystemTag>","Math/Vector3D.h"),
         ("ROOT::Math::PositionVector3D<ROOT::Math::Cartesian3D<float>,ROOT::Math::DefaultCoordinateSystemTag>","Math/Point3D.h"),
