@@ -547,6 +547,34 @@ class collector(analysisStep) :
         s = set([]).union(*products["collection"])
         print sorted(list(s))
 #####################################
+class handleChecker(analysisStep) :
+    def __init__(self, matches = ["handle", "Handle", "valid", "Valid"]) :
+        self.run = False
+        self.matches = matches
+
+    def ofInterest(self, eventVars) :
+        out = []
+        for var in eventVars :
+            for item in self.matches :
+                if item in var :
+                    out.append(var)
+        return list(set(out))
+    
+    def uponAcceptance(self, eventVars) :
+        if self.run : return
+        self.run = True
+
+        true = []
+        false = []
+        for var in self.ofInterest(eventVars) :
+            if eventVars[var] :
+                true.append(var)
+            else :
+                false.append(var)
+        print "True:",sorted(true)
+        print
+        print "False:",sorted(false)
+#####################################
 
 
 ###   Obsolete   ####
