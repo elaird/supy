@@ -27,14 +27,12 @@
 * profile
 
 (ntupler)
-* light/lite ntuple mode
 * stage-out
 * prune gen MET
 * check extra spike vars
 
 (low priority)
 * store inputFileList in root file?
-* class name vs file name
 * move ratio marker
 * 2D ratios
 * logfiles
