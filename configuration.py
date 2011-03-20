@@ -109,15 +109,18 @@ def mvCommand(site = None, src = None, dest = None) :
 
 def dictionariesToGenerate() :
     return [
-        ("pair<string,bool>","string"),
-        ("map<std::string,bool>","string;map"),
-        ("pair<string,string>","string"),
-        ("map<std::string,string>","string;map"),
-        ("ROOT::Math::Cartesian3D<float>","Math/Point3D.h"),
-        ("ROOT::Math::DisplacementVector3D<ROOT::Math::Cartesian3D<float>,ROOT::Math::DefaultCoordinateSystemTag>","Math/Vector3D.h"),
-        ("ROOT::Math::PositionVector3D<ROOT::Math::Cartesian3D<float>,ROOT::Math::DefaultCoordinateSystemTag>","Math/Point3D.h"),
-        ("ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> >","Math/LorentzVector.h"),
-        ("ROOT::Math::PtEtaPhiM4D<float>","Math/LorentzVector.h"),
+        ("pair<string,bool>", "string"),
+        ("map<std::string,bool>", "string;map"),
+        ("pair<string,string>", "string"),
+        ("map<std::string,string>", "string;map"),
+        ("ROOT::Math::Cartesian3D<float>", "Math/Point3D.h"),
+        ("ROOT::Math::DisplacementVector3D<ROOT::Math::Cartesian3D<float>,ROOT::Math::DefaultCoordinateSystemTag>", "Math/Vector3D.h"),
+        ("vector<ROOT::Math::DisplacementVector3D<ROOT::Math::Cartesian3D<float>,ROOT::Math::DefaultCoordinateSystemTag> >", "vector;Math/Vector3D.h"),
+        ("ROOT::Math::PositionVector3D<ROOT::Math::Cartesian3D<float>,ROOT::Math::DefaultCoordinateSystemTag>", "Math/Point3D.h"),
+        ("vector<ROOT::Math::PositionVector3D<ROOT::Math::Cartesian3D<float>,ROOT::Math::DefaultCoordinateSystemTag> >", "vector;Math/Point3D.h"),
+        ("ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> >", "Math/LorentzVector.h"),
+        ("ROOT::Math::PtEtaPhiM4D<float>", "Math/LorentzVector.h"),
+        ("vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> > >", "vector;Math/LorentzVector.h"),
         ]
 
 srm = 'utils.fileListFromSrmLs(dCachePrefix = "%s", location="%s'%(siteInfo(key = "dCachePrefix"), siteInfo(key = "srmPrefix"))
