@@ -52,6 +52,7 @@ def importedClass(module) :
             count+=1
             theClass = item
     assert count==1,arg+" needs exactly 1 class which inherits from analysis; it has "+str(count)
+    assert module==theClass.__name__,"module name %s != class name %s"%(module, theClass.__name__)
     return theClass
 ############################################
 def submitBatchJob(jobCmd, iJob, indexDict, scriptDir, subScript, jobScript, condorTemplate) :
