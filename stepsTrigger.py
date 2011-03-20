@@ -46,7 +46,7 @@ class triggerTest(analysisStep) :
 #####################################
 class triggerNameDump(analysisStep) :
 
-    def __init__(self,triggerLevel):
+    def __init__(self,triggerLevel = ""):
         self.varName = triggerLevel + "triggered"
         self.moreName = self.varName
 
