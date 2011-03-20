@@ -13,7 +13,7 @@ class wrappedChain(dict) :
         if (not chain) or chain.GetEntry(0)==0 : return
         for branch in chain.GetListOfBranches() :
             nameB = branch.GetName()
-            nameL = (lambda nL: nameB if nL=="_" else nL )(branch.GetListOfLeaves().At(0).GetName())
+            nameL = (lambda nL: nameB if (nL=="_" or nL==nameB+"_") else nL )(branch.GetListOfLeaves().At(0).GetName())
             if nameL in leavesToBlackList : continue
             dict.__setitem__(self, nameL, self.__branchNode( nameL, nameB, chain, useSetBranchAddress, maxArrayLength) )
 
