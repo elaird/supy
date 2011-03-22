@@ -44,7 +44,7 @@ class triggerTest(analysisStep) :
                 L1["L1Tech_HCAL_HF_coincidence_PM.v1"] )
         return True
 #####################################
-class triggerNameDump(analysisStep) :
+class NameDump(analysisStep) :
 
     def __init__(self,triggerLevel = ""):
         self.varName = triggerLevel + "triggered"
@@ -107,6 +107,15 @@ class lowestUnPrescaledTriggerHistogrammer(analysisStep) :
             self.nPaths = len(self.listOfPaths)
         i = self.listOfPaths.index(eventVars[self.key])
         self.book.fill( i, self.key, self.nPaths, 0.0, self.nPaths, title = ";lowest un-prescaled path;events / bin", xAxisLabels = self.listOfPaths)
+#####################################
+class l1Filter(analysisStep) :
+
+    def __init__(self, bitName):
+        self.bitName = bitName
+        self.moreName = self.bitName
+
+    def select (self,eventVars) :
+        return eventVars["L1triggered"][self.bitName]
 #####################################
 class hltFilter(analysisStep) :
 
