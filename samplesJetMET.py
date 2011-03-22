@@ -68,5 +68,6 @@ jetmet.add("markus5_old", 'utils.fileListFromDisk(location = "/vols/cms02/elaird
 jetmet.add("colin1", 'utils.fileListFromDisk(location = "/home/hep/elaird1/55_colin_events/v1/Run2010B_MJ_skim4_1_skim.root", isDirectory = False)', lumi = 35.38)
 jetmet.add("burtFloaty", 'utils.fileListFromDisk(location = "/home/hep/bbetchar/public_html/sizetest/floaty.root", isDirectory = False)', lumi = 35.38)
 jetmet.add("burtDoubly", 'utils.fileListFromDisk(location = "/home/hep/bbetchar/public_html/sizetest/doubly.root", isDirectory = False)', lumi = 35.38)
-jetmet.add("41testData", 'utils.fileListFromDisk(location = "/home/hep/elaird1/64_format_test/SusyCAF_Tree.root", isDirectory = False)', lumi = 35.38)
+jetmet.add("41testData", 'utils.fileListFromDisk(location = "/home/hep/elaird1/64_format_test/data/SusyCAF_Tree.root", isDirectory = False)', lumi = 35.38)
+jetmet.add("41testMc", 'utils.fileListFromDisk(location = "/home/hep/elaird1/64_format_test/mc/SusyCAF_Tree.root", isDirectory = False)', xs = 100.0)
 jetmet.add("markus5_new", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/11_skims/32_markus5/new/markus5_new_0_skim.root", isDirectory = False)', lumi = 35.38)#Burt's 4 ReReco samples
