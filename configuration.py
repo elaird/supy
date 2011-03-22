@@ -1,4 +1,4 @@
-import os
+import os,socket
 
 def useCachedFileLists() :
     return True
@@ -45,12 +45,8 @@ def sitePrefix() :
          "cern.ch":"cern",
          "fnal.gov":"fnal",
          }
-
-    hostName = os.environ["HOSTNAME"]
-    for match,prefix in d.iteritems() :
-        if match in hostName :
-            return prefix
-    assert False,"hostname %s does not match anything in %s"%(hostName, str(d))
+    hostName = socket.gethostname()
+    return d[hostName] if hostName in d else "other"
 
 def siteSpecs() :
     user = os.environ["USER"]
@@ -84,6 +80,13 @@ def siteSpecs() :
                 "queueHeaders"   : ["ID", "OWNER", "SUBMITTED1", "SUBMITTED2", "RUN_TIME", "ST", "PRI", "SIZE", "CMD"],
                 "queueVars"      : {"user":"OWNER", "state":"ST", "run":"R", "summary":"condor_q -global", "sample": "condor_q -global -submitter %s | head"%user}
                 },
+        "other":{"localOutputDir" : "/tmp/%s"%user,
+                 "globalOutputDir": "/tmp/%s"%user,
+                 "dCachePrefix"   : "",
+                 "srmPrefix"      : "",
+                 "queueHeaders"   : [],
+                 "queueVars"      : {}
+                 },
         }
 
 def siteInfo(site = None, key = None) :
@@ -103,6 +106,7 @@ def mvCommand(site = None, src = None, dest = None) :
          "cern":"mv %s %s"%(src, dest),
          "fnal":"mv %s %s"%(src, dest),
          #"fnal":"srmcp file:///%s %s/%s"%(src, srmPrefix("fnal"), dest.replace("/pnfs/cms/WAX/","/")),
+         "other":"mv %s %s"%(src, dest),
         }
     assert site in d, "site %s does not have a mvCommand defined"%site
     return d[site]
