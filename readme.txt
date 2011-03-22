@@ -7,12 +7,12 @@ GPLv3 (http://www.gnu.org/licenses/gpl.html)
 | Instructions |
 ----------------
 0) Set up pyROOT:
-- use a CMSSW area:  cd /somewhere/CMSSW_3_8_4_patch3/src && cmsenv
+- use a CMSSW area: cd /somewhere/CMSSW_4_1_3/src && cmsenv
 - or see note (A)
 
 1) Check out the code:
 - [if needed: export CVSROOT=username@cmscvs.cern.ch:/cvs_server/repositories/CMSSW;export CVS_RSH=ssh]
-- cvs co -d supy -r V10-1 UserCode/elaird/supy
+- cvs co -d supy -r V10-8 UserCode/elaird/supy
 - cd supy
 
 2) (required only if running from dcache at IC) Use better dcap libraries:
@@ -24,7 +24,7 @@ GPLv3 (http://www.gnu.org/licenses/gpl.html)
 ---------
 | Notes |
 ---------
-(A) ROOT and python are required; CMSSW is not.  These are useful pages for setting up and learning pyROOT:
+(A) ROOT (>=5.27.06) and python (>=2.6) are required; CMSSW is not.  These are useful pages for setting up and learning pyROOT:
 http://root.cern.ch/drupal/content/how-use-use-python-pyroot-interpreter
 http://wlav.web.cern.ch/wlav/pyroot/
 
