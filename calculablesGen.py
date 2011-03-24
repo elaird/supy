@@ -25,6 +25,13 @@ class genMotherPdgId(wrappedChain.calculable) :
                mom if not momStored else \
                self.source["genPdgId"].at(mom)
 ##############################
+class genStatus1P4(wrappedChain.calculable) :
+    def update(self,ignored) :
+        self.value = []
+        for i in range(self.source["genP4"].size()) :
+            if self.source["genStatus"].at(i)!=1 : continue
+            self.value.append(self.source["genP4"][i])
+##############################
 class genMotherIndex(wrappedChain.calculable) :
     def isFake(self) : return True
     def update(self,ignored) :
