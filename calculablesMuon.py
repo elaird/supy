@@ -55,11 +55,13 @@ class CombinedRelativeIso(wrappedChain.calculable) :
         return (isoTrk+isoEcal+isoHcal)/p4.pt()
 
     def update(self,ignored) :
-        self.value = map(self.combinedRelativeIso,
-                         self.source[self.TrackIso],
-                         self.source[self.EcalIso],
-                         self.source[self.HcalIso],
-                         self.source[self.P4])
+        self.value = []
+        for i in range(self.source[self.P4].size()) :
+            self.value.append(self.combinedRelativeIso(self.source[self.TrackIso].at(i),
+                                                       self.source[self.EcalIso].at(i),
+                                                       self.source[self.HcalIso].at(i),
+                                                       self.source[self.P4].at(i))
+                              )
 ##############################
 class IndicesOther(calculables.indicesOther) :
     def __init__(self, collection = None) :
