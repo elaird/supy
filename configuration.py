@@ -31,7 +31,7 @@ def stepsToDisableForMc() :
     return ["hltFilter", "hltFilterList", "lowestUnPrescaledTrigger", "lowestUnPrescaledTriggerHistogrammer", "hbheNoiseFilter", "bxFilter", "physicsDeclared", "techBitFilter", "hbheNoise"]
 
 def histogramsToDisableForData() :
-    return ["genpthat"]
+    return ["^gen"]
 
 def histogramsToDisableForMc() :
     return []

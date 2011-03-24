@@ -1,4 +1,4 @@
-import copy,configuration,utils
+import re,copy,configuration,utils
 #####################################
 for module in configuration.stepsFiles() :
     exec("import steps%s as %s"%(module,module))
@@ -10,9 +10,9 @@ def adjustSteps(inSteps, dataOrMc = None) :
     for step in inSteps :
         disable = False
         if step.name() in blackList : disable = True
-        if step.name() == "histogrammer" :
-            for item in histoBlackList :
-                if item in step.var : disable = True
+        if isinstance(step, Other.histogrammer) :
+            for matchString in histoBlackList :
+                if re.search(matchString, step.var) : disable = True
         outSteps.append(copy.deepcopy(step))
         if disable : outSteps[-1].disable()
     return outSteps
