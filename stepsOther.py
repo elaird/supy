@@ -32,7 +32,9 @@ class iterHistogrammer(histogrammer) :
 
         values = eventVars[self.var] if self.oneD else \
                  zip(*map(eventVars.__getitem__,self.var))
-        for value in values:
+
+        for i in range(len(values)) :
+            value = values[i]
             if value is None or (not self.oneD and None in value) : continue
             self.book.fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
 #####################################
