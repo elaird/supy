@@ -1,5 +1,5 @@
 from wrappedChain import *
-import calculables
+import calculables,utils
 ##############################
 class photonIndicesOtherPat(calculables.indicesOther) :
     def __init__(self,collection = ("photon","Pat")) :
@@ -168,7 +168,7 @@ class photonID(wrappedChain.calculable) :
             setattr(self,item,eval(item)[level])
 
     def update(self,ignored) :
-        self.value = map(self.passId, 
+        self.value = utils.hackMap(self.passId, 
                          self.source[self.p4Name],
                          self.source[self.EcalRecHitEtConeDR04],
                          self.source[self.HcalTowSumEtConeDR04],

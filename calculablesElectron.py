@@ -1,4 +1,4 @@
-import calculables
+import calculables,utils
 from wrappedChain import *
 from calculablesMuon import IndicesOther,IndicesNonIso,IndicesAnyIso,IndicesAnyIsoIsoOrder,LeadingPt
 ##############################
@@ -39,7 +39,7 @@ class ID(wrappedChain.calculable) :
                None
 
     def update(self,ignored) :
-        self.value = map(self.id, 
+        self.value = utils.hackMap(self.id, 
                          self.source[self.HcalOverEcal],
                          self.source[self.DeltaPhiSuperClusterTrackAtVtx],
                          self.source[self.DeltaEtaSuperClusterTrackAtVtx],
@@ -114,10 +114,10 @@ class Iso(wrappedChain.calculable) :
         return None
 
     def update(self,ignored) :
-        self.value = map(self.cIso,
+        self.value = utils.hackMap(self.cIso,
                          self.source[self.IsoCombined],
                          self.source[self.P4]) if self.combined else \
-                     map(self.relIso,
+                     utils.hackMap(self.relIso,
                          self.source[self.TrackIsoRel],
                          self.source[self.EcalIsoRel],
                          self.source[self.HcalIsoRel],
@@ -155,7 +155,7 @@ class IsoCombined(wrappedChain.calculable) :
         self.stash(["Dr03TkSumPt","Dr03EcalRecHitSumEt","Dr03HcalTowerSumEt","P4"])
 
     def update(self,ignored) :
-        self.value = map(self.combinedIso,
+        self.value = utils.hackMap(self.combinedIso,
                          self.source[self.Dr03TkSumPt],
                          self.source[self.Dr03EcalRecHitSumEt],
                          self.source[self.Dr03HcalTowerSumEt],
@@ -173,7 +173,7 @@ class IsoRel(wrappedChain.calculable) :
         self.stash(["P4"])
         self.isoSource = ("%s"+isoSource+"%s") % collection
     def relIso(self, iso, p4) : return iso/p4.pt()
-    def update(self,ignored) : self.value = map(self.relIso, self.source[self.isoSource], self.source[self.P4])
+    def update(self,ignored) : self.value = utils.hackMap(self.relIso, self.source[self.isoSource], self.source[self.P4])
     
 class TrackIsoRel(IsoRel) :
     def __init__(self, collection = None) : super(TrackIsoRel,self).__init__(collection, "Dr03TkSumPt")
