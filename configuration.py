@@ -46,7 +46,9 @@ def sitePrefix() :
          "fnal.gov":"fnal",
          }
     hostName = socket.gethostname()
-    return d[hostName] if hostName in d else "other"
+    for match,prefix in d.iteritems() :
+        if match in hostName : return prefix
+    return "other"
 
 def siteSpecs() :
     user = os.environ["USER"]
