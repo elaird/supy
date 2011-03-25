@@ -7,8 +7,7 @@ hyphens="-"*95
 def hackMap(*args) :
     out = []
     func = args[0]
-    p4s  = args[-1]
-    for i in range(p4s.size()) :
+    for i in range(len(args[1])) :
         out.append(func(*tuple([x[i] for x in args[1:]])))
     return out
 #####################################
