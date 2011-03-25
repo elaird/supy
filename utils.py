@@ -4,6 +4,14 @@ import ROOT as r
 #####################################
 hyphens="-"*95
 #####################################
+def hackMap(*args) :
+    out = []
+    func = args[0]
+    p4s  = args[-1]
+    for i in range(p4s.size()) :
+        out.append(func(*tuple([x[i] for x in args[1:]])))
+    return out
+#####################################
 def LorentzV(*args) :
     return r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(*args)
 #####################################
