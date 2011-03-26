@@ -108,9 +108,9 @@ class hadronicLook(analysis.analysis) :
             steps.Jet.jetPtSelector(_jet, 100.0, 0),
             steps.Jet.jetPtSelector(_jet, 100.0, 1),
             steps.Jet.jetEtaSelector(_jet,2.5,0),
-            steps.Trigger.lowestUnPrescaledTrigger(params["triggerList"]),
+            #steps.Trigger.lowestUnPrescaledTrigger(params["triggerList"]),
             steps.Other.vertexRequirementFilter(),
-            steps.Trigger.techBitFilter([0],True),
+            steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
             steps.Trigger.physicsDeclared(),
             steps.Other.monsterEventFilter(),
             #steps.Other.cutSorter([
@@ -134,7 +134,7 @@ class hadronicLook(analysis.analysis) :
             steps.Other.variableGreaterFilter(350.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
             
             #many plots
-            steps.Trigger.lowestUnPrescaledTriggerHistogrammer(params["triggerList"]),
+            #steps.Trigger.lowestUnPrescaledTriggerHistogrammer(params["triggerList"]),
             steps.Other.passFilter("singleJetPlots1"),
             steps.Jet.singleJetHistogrammer(_jet),
             steps.Other.passFilter("jetSumPlots1"), 
@@ -143,7 +143,7 @@ class hadronicLook(analysis.analysis) :
             steps.Other.passFilter("kinematicPlots1"), 
             steps.Jet.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
             steps.Jet.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt, metName = _met),
-
+            
             #signal selection
             #steps.Other.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.Other.variableGreaterFilter(0.55,"%sAlphaT%s%s"%(_jet[0],"Et" if _etRatherThanPt else "Pt",_jet[1])),
