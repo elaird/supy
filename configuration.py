@@ -37,7 +37,7 @@ def histogramsToDisableForMc() :
     return []
 
 def cppFiles() :
-    return []
+    return ["linkdef.cxx"]
 
 def sitePrefix() :
     d = {"hep.ph.ic.ac.uk":"ic",
@@ -124,8 +124,7 @@ def dictionariesToGenerate() :
         ("vector<ROOT::Math::DisplacementVector3D<ROOT::Math::Cartesian3D<float>,ROOT::Math::DefaultCoordinateSystemTag> >", "vector;Math/Vector3D.h"),
         ("ROOT::Math::PositionVector3D<ROOT::Math::Cartesian3D<float>,ROOT::Math::DefaultCoordinateSystemTag>", "Math/Point3D.h"),
         ("vector<ROOT::Math::PositionVector3D<ROOT::Math::Cartesian3D<float>,ROOT::Math::DefaultCoordinateSystemTag> >", "vector;Math/Point3D.h"),
-        ("ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> >", "Math/LorentzVector.h"),
-        ("ROOT::Math::PtEtaPhiM4D<float>", "Math/LorentzVector.h"),
+        #ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> > etc. is addressed in linkdef.cxx
         ("vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> > >", "vector;Math/LorentzVector.h"),
         ]
 
