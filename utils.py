@@ -4,6 +4,11 @@ import ROOT as r
 #####################################
 hyphens="-"*95
 #####################################
+class vector(list) :
+    def at(self, i) : return self[i]
+    def size(self) : return len(self)
+    def push_back(self, thing) : self.append(thing)
+#####################################        
 def hackMap(*args) :
     out = []
     func = args[0]
@@ -12,7 +17,8 @@ def hackMap(*args) :
     return out
 #####################################
 def LorentzV(*args) :
-    return r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(*args)
+    #return r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(*args)
+    return r.Math.LorentzVector(r.Math.PtEtaPhiM4D('float'))(*args)
 #####################################
 def generateDictionaries(inList) :
     for item in inList :
