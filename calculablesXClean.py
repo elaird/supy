@@ -14,7 +14,7 @@ class xcJet(wrappedChain.calculable) :
                  correctForMuons = None,
                  jesAbs = 1,
                  jesRel = 0 ) :
-        self.value = r.std.vector(type(utils.LorentzV()))()
+        self.value = utils.vector()
         self.jetP4Source = ("%sCorrectedP4%s"%xcjets)[2:]
 
         for item in ["xcjets", "applyResidualCorrectionsToData", "applyResidualCorrectionBug", "correctForMuons", "jesAbs", "jesRel"] :
@@ -56,7 +56,7 @@ class xcJet(wrappedChain.calculable) :
         matchedMuons = []
 
         isData = self.source["isRealData"]
-        self.value.clear()
+        self.value = utils.vector()
         for iJet in range(len(jetP4s)) :
             self.value.push_back(self.jes(isData, jetP4s[iJet]))
             
@@ -97,8 +97,9 @@ class IndicesUnmatched(wrappedChain.calculable) :
 
     def noJetMatch(self, i) :
         p4 = self.source[self.P4].at(i)
-        for jet in self.source[self.compareJets]:
-            if self.DR > r.Math.VectorUtil.DeltaR(p4,jet) :
+        jets = self.source[self.compareJets]
+        for i in range(jets.size()) :
+            if self.DR > r.Math.VectorUtil.DeltaR(p4, jets.at(i)) :
                 return False
         return True
         
