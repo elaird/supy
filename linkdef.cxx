@@ -11,4 +11,11 @@ typedef ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> > LV;
 #pragma link C++ namespace ROOT::Math::VectorUtil+;
 //#pragma link C++ nestedclasses; 
 //#pragma link C++ nestedtypedefs;
+
+//for compatibility with pre-V15 ntuples
+typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LVd;
+#pragma link C++ function ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> >::operator+(LVd);
+#pragma link C++ function ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> >::operator-(LVd);
+#pragma link C++ function ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >::operator+(LV);
+#pragma link C++ function ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >::operator-(LV);
 #endif
