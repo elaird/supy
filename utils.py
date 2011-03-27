@@ -16,9 +16,11 @@ def hackMap(*args) :
         out.append(func(*tuple([x[i] for x in args[1:]])))
     return out
 #####################################
-def LorentzV(*args) :
-    #return r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(*args)
-    return r.Math.LorentzVector(r.Math.PtEtaPhiM4D('float'))(*args)
+lvClass = None
+def LorentzV() :
+    global lvClass
+    if lvClass is None : lvClass = r.Math.LorentzVector(r.Math.PtEtaPhiM4D('float'))
+    return lvClass()
 #####################################
 def generateDictionaries(inList) :
     for item in inList :
