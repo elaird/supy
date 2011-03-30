@@ -170,7 +170,8 @@ mc.add("w_jets_mg_v12",'%s/jad/ICF/automated//2010_06_18_22_33_23/")'%srm,
        xs = {"LO":24170.0,"NNLO":31314.0}["NNLO"] )
 mc.add("zg_nunu", '%s/bbetchar/ICF/automated/2010_10_09_21_40_58/")'%srm, xs = 2.68 )
 
-mc.add("tt_tauola_mg",'%s/bbetchar//ICF/automated/2010_11_17_05_40_17/")'%srm, xs = {"LO":121, "BurtGuessNLO":157.5}["BurtGuessNLO"])
+mc.add("tt_tauola_mg_v14",'%s/bbetchar//ICF/automated/2010_11_17_05_40_17/")'%srm, xs = {"LO":121, "BurtGuessNLO":157.5}["BurtGuessNLO"])
+mc.add("tt_tauola_mg",'%s/bbetchar//ICF/automated/2011_03_29_21_25_21/TTJets_TuneZ2_7TeV-madgraph-tauola.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%srm, xs = {"LO":121, "BurtGuessNLO":157.5}["BurtGuessNLO"])
 
 #PYTHIA
 mc.add("w_enu",       '%s/bbetchar//ICF/automated/2010_10_11_21_21_39/")'%srm, xs = {"LO":7899,"BurtGuessNNLO":10234}["BurtGuessNNLO"]) 
