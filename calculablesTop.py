@@ -1,10 +1,10 @@
 from wrappedChain import *
-import calculables,utils,math
+import calculables,math,utils
 
 ######################################
 class genTopNuP4(wrappedChain.calculable) :
     def __init__(self) :
-        self.empty = r.std.vector(type(utils.LorentzV())).value_type()
+        self.empty = utils.LorentzV()
     def update(self,ignored) :
         self.value = self.empty
         if self.source['isRealData'] : return
@@ -44,7 +44,16 @@ class genTopCosThetaStar(CosThetaStar) :
 class genTopCosThetaStarBar(CosThetaStar) :
     def __init__(self) : super(genTopCosThetaStarBar,self).__init__(1)
 class genTopCosThetaStarAvg(wrappedChain.calculable) :
-    def update(self,ignored) : self.value = 0.5 * (self.source['genTopCosThetaStar']+self.source['genTopCosThetaStarBar'])
+    def update(self,ignored) :
+        x,y = tuple(self.source['genTopCosThetaStar%s'%suf] for suf in ['','Bar'])
+        sign = 1 if x>0 else -1
+        self.value = sign - sign*math.sqrt((x-sign)*(y-sign))
+######################################
+class genTopAlpha(wrappedChain.calculable) :
+    m2 = 172**2
+    def update(self,ignored) :
+        x = 4*self.m2/ (self.source['genTopTTbarSumP4'].E())**2
+        self.value = (1-x)/(1+x)
 ######################################
 class genTTbar(wrappedChain.calculable) :
     def update(self,ignored) :
@@ -63,7 +72,7 @@ class mixedSumP4(wrappedChain.calculable) :
         self.trans = transverse
         self.longi = longitudinal
         self.moreName = "transvers: %s ; longitudinal: %s" % (transverse,longitudinal)
-        self.value = r.std.vector(type(utils.LorentzV())).value_type()
+        self.value = utils.LorentzV()
     def update(self,ignored) :
         trans = self.source[self.trans]
         longi = self.source[self.longi]
@@ -152,7 +161,7 @@ class TopReconstruction(wrappedChain.calculable) :
         self.value = sorted([ { "nuP4" : nuP4,
                                 "lepTopBIndex" : iJet,
                                 "lepTopP4" : nuP4+lepP4+jetP4s[iJet],
-                                "hadTopP4" : sum([jetP4s[i] for i in (set(indices)-set([iJet]))], r.std.vector(type(utils.LorentzV())).value_type()),
+                                "hadTopP4" : sum([jetP4s[i] for i in (set(indices)-set([iJet]))], utils.LorentzV()),
                                 "hadTopBIndex" : filter(lambda i: i!=iJet, bIndices)[0] } for nuP4 in nuP4s for iJet in bIndices],
                             key = lambda x: abs(self.massTop - x["lepTopP4"].M()) )
 #####################################
