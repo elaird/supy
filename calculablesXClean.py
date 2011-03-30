@@ -113,7 +113,7 @@ class SumP4(wrappedChain.calculable) :
         self.indicesP4s = [("%sIndices%s"%eval(s),
                            "%sP4%s"%eval(s) if s!="jet" else "%sCorrectedP4%s"%eval(s)) for s in stuff]
         self.moreName = ';'.join(["%s: %s%s"%((s,)+eval(s)) for s in stuff])
-        self.value = r.std.vector(type(r.LorentzV())).value_type()
+        self.value = utils.LorentzV()
 
     def update(self,ignored) :
         self.value.SetPxPyPzE(0,0,0,0)
