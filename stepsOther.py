@@ -1,6 +1,7 @@
 import copy,array,os,collections
 import ROOT as r
 from analysisStep import analysisStep
+import stepsMaster
 import utils
 #####################################
 class histogrammer(analysisStep) :
@@ -576,6 +577,87 @@ class handleChecker(analysisStep) :
         print "True:",sorted(true)
         print
         print "False:",sorted(false)
+#####################################
+class smsMedianHistogrammer(analysisStep) :
+    def __init__(self, cs) :
+        self.cs = cs
+
+    def uponAcceptance(self, eventVars) :
+
+        self.book.fill((eventVars["susyScanM0"], eventVars["susyScanM12"]), "nEvents",
+                       (12, 36), (400.0, 100.0), (1000.0, 1000.0),
+                       title = ";m_{mother} (GeV);m_{LSP} (GeV);N events")
+
+        nBins = 100
+        lo = 0.0
+        hi = 1000.0
+        
+        var = "%sSumEt%s"%self.cs
+        value = eventVars[var] if eventVars[var] else 0.0
+        self.book.fill((eventVars["susyScanM0"], eventVars["susyScanM12"], value), var,
+                       (12, 36, nBins), (400.0, 100.0, lo), (1000.0, 1000.0, hi),
+                       title = ";m_{mother} (GeV);m_{LSP} (GeV);%s"%var)
+
+        var = "%sSumP4%s"%self.cs
+        value = eventVars[var].pt() if eventVars[var] else 0.0
+        self.book.fill((eventVars["susyScanM0"], eventVars["susyScanM12"], value), var,
+                       (12, 36, nBins), (400.0, 100.0, lo), (1000.0, 1000.0, hi),
+                       title = ";m_{mother} (GeV);m_{LSP} (GeV);%s"%var)
+
+        jets = eventVars["%sCorrectedP4%s"%self.cs] if eventVars["%sCorrectedP4%s"%self.cs] else []
+        for i in range(2) :
+            var = "%sJet%dPt%s"%(self.cs[0], i, self.cs[1])
+            if len(jets)<i+1 : value = 0.0
+            else :             value = jets.at(i).pt()
+            self.book.fill((eventVars["susyScanM0"], eventVars["susyScanM12"], value), var,
+                           (12, 36, nBins), (400.0, 100.0, lo), (1000.0, 1000.0, hi),
+                           title = ";m_{mother} (GeV);m_{LSP} (GeV);%s"%var)
+
+
+        fowardJets = filter(lambda x:abs(x.eta())>3.0, jets)
+        maxForwardPt = max([jet.pt() for jet in forwardJets]) if forwardJets else 0.0
+        var = "%sMaxForwardJetPt%s"%self.cs
+        self.book.fill((eventVars["susyScanM0"], eventVars["susyScanM12"], value), var,
+                       (12, 36, nBins), (400.0, 100.0, lo), (1000.0, 1000.0, hi),
+                       title = ";m_{mother} (GeV);m_{LSP} (GeV);%s"%var)
+
+    def outputSuffix(self) : return stepsMaster.Master.outputSuffix()
+
+    def oneHisto(self, name, zAxisTitle) :
+        f = r.TFile(self.outputFileName(), "UPDATE")
+        h = f.Get("Master/orFilter/%s"%name)
+        outName = "%s_median"%name
+        out = r.TH2D(outName, h.GetTitle(),
+                     h.GetNbinsX(), h.GetXaxis().GetXmin(), h.GetXaxis().GetXmax(),
+                     h.GetNbinsY(), h.GetYaxis().GetXmin(), h.GetYaxis().GetXmax())
+        out.GetXaxis().SetTitle(h.GetXaxis().GetTitle())
+        out.GetYaxis().SetTitle(h.GetYaxis().GetTitle())
+        out.GetZaxis().SetTitle(zAxisTitle)
+        oneD = r.TH1D("%s_oneD"%name, h.GetTitle(), h.GetNbinsZ(), h.GetZaxis().GetXmin(), h.GetZaxis().GetXmax())
+        
+        for iBinX in range(1, 1+h.GetNbinsX()) :
+            for iBinY in range(1, 1+h.GetNbinsY()) :
+                oneD.Reset()
+                for iBinZ in range(1, 1+h.GetNbinsZ()) :
+                    oneD.SetBinContent(iBinZ, h.GetBinContent(iBinX, iBinY, iBinZ))
+                if not oneD.Integral() : continue
+                probSum = array.array('d', [0.5])
+                q = array.array('d', [0.0]*len(probSum))
+                oneD.GetQuantiles(len(probSum), q, probSum)
+                out.SetBinContent(iBinX, iBinY, q[0])
+
+        f.cd("Master/orFilter")
+        out.Write()
+        r.gROOT.cd()
+        f.Close()
+        print "Output updated with %s."%name
+        
+    def mergeFunc(self, products) :
+        self.oneHisto("%sSumEt%s"%self.cs, "Median HT (GeV)")
+        self.oneHisto("%sSumP4%s"%self.cs, "Median MHT (GeV)")
+        self.oneHisto("%sMaxForwardJetPt%s"%self.cs, "Median pT of (higest pT jet with abs(#eta) > 3.0) (GeV)")
+        for i in range(2) :
+            self.oneHisto("%sJet%dPt%s"%(self.cs[0], i, self.cs[1]), "Median pT of jet %d (GeV)"%(i+1))
 #####################################
 
 
