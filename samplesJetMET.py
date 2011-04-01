@@ -4,6 +4,7 @@ jetmet = samples.SampleHolder()
 
 #2011
 jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Ted",'%s/elaird//ICF/automated/2011_03_25_11_30_50/")'%srm,  lumi = 1.0 ) #dummy lumi value
+jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Bryn",'%s/bm409//ICF/automated/2011_03_30_07_22_47/")'%srm,  lumi = 1.0 ) #dummy lumi value
 
 #NOV.4 RE-RECO SKIMS
 dir = "/vols/cms02/elaird1/16_skims/"
