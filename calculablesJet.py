@@ -619,7 +619,7 @@ class deadEcalDR(wrappedChain.calculable) :
         for item in ["jets","extraName","minNXtals"] :
             setattr(self,item,eval(item))
         self.dps = "%sDeltaPhiStar%s%s"%(self.jets[0], self.jets[1], self.extraName)
-        self.badJet = r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0,0.0,0.0,0.0)
+        self.badJet = utils.LorentzV()
         self.moreName = "%s%s; nXtal>=%d"%(self.jets[0], self.jets[1], self.minNXtals)
         
     def update(self, ignored) :
@@ -629,7 +629,8 @@ class deadEcalDR(wrappedChain.calculable) :
             self.badJet.SetCoordinates(jet.pt(),jet.eta(),jet.phi(),jet.E())
 
             dRs = []
-            for iRegion,region in enumerate(self.source["ecalDeadTowerTrigPrimP4"]) :
+            for iRegion in range(self.source["ecalDeadTowerTrigPrimP4"].size()) :
+                region = self.source["ecalDeadTowerTrigPrimP4"].at(iRegion)
                 if self.source["ecalDeadTowerNBadXtals"].at(iRegion)<self.minNXtals : continue
                 dRs.append(r.Math.VectorUtil.DeltaR(self.badJet,region))
             self.value = min(dRs) if len(dRs) else None
