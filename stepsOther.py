@@ -582,45 +582,65 @@ class smsMedianHistogrammer(analysisStep) :
     def __init__(self, cs) :
         self.cs = cs
 
-    def uponAcceptance(self, eventVars) :
+        self.nBinsX = 12
+        self.xLo =  400.0
+        self.xHi = 1000.0
 
+        self.nBinsY = 36
+        self.yLo =  100.0
+        self.yHi = 1000.0
+
+        self.nBinsZ = 100
+        self.zLo =    0.0
+        self.zHi = 1000.0
+
+    def nEvents(self, eventVars) :
         self.book.fill((eventVars["susyScanM0"], eventVars["susyScanM12"]), "nEvents",
-                       (12, 36), (400.0, 100.0), (1000.0, 1000.0),
+                       (self.nBinsX, self.nBinsY), (self.xLo, self.yLo), (self.xHi, self.yHi),
                        title = ";m_{mother} (GeV);m_{LSP} (GeV);N events")
 
-        nBins = 100
-        lo = 0.0
-        hi = 1000.0
-        
+    def ht(self, eventVars) :
         var = "%sSumEt%s"%self.cs
         value = eventVars[var] if eventVars[var] else 0.0
         self.book.fill((eventVars["susyScanM0"], eventVars["susyScanM12"], value), var,
-                       (12, 36, nBins), (400.0, 100.0, lo), (1000.0, 1000.0, hi),
+                       (self.nBinsX, self.nBinsY, self.nBinsZ), (self.xLo, self.yLo, self.zLo), (self.xHi, self.yHi, self.zHi),
                        title = ";m_{mother} (GeV);m_{LSP} (GeV);%s"%var)
 
+    def mht(self, eventVars) :
         var = "%sSumP4%s"%self.cs
         value = eventVars[var].pt() if eventVars[var] else 0.0
         self.book.fill((eventVars["susyScanM0"], eventVars["susyScanM12"], value), var,
-                       (12, 36, nBins), (400.0, 100.0, lo), (1000.0, 1000.0, hi),
+                       (self.nBinsX, self.nBinsY, self.nBinsZ), (self.xLo, self.yLo, self.zLo), (self.xHi, self.yHi, self.zHi),
                        title = ";m_{mother} (GeV);m_{LSP} (GeV);%s"%var)
+        
 
+    def jets(self, eventVars) :
         jets = eventVars["%sCorrectedP4%s"%self.cs] if eventVars["%sCorrectedP4%s"%self.cs] else []
         for i in range(2) :
             var = "%sJet%dPt%s"%(self.cs[0], i, self.cs[1])
             if len(jets)<i+1 : value = 0.0
             else :             value = jets.at(i).pt()
             self.book.fill((eventVars["susyScanM0"], eventVars["susyScanM12"], value), var,
-                           (12, 36, nBins), (400.0, 100.0, lo), (1000.0, 1000.0, hi),
+                           (self.nBinsX, self.nBinsY, self.nBinsZ), (self.xLo, self.yLo, self.zLo), (self.xHi, self.yHi, self.zHi),
                            title = ";m_{mother} (GeV);m_{LSP} (GeV);%s"%var)
 
-
-        fowardJets = filter(lambda x:abs(x.eta())>3.0, jets)
-        maxForwardPt = max([jet.pt() for jet in forwardJets]) if forwardJets else 0.0
+    def forwardJets(self, eventVars) :
+        jets = eventVars["%sCorrectedP4%s"%self.cs] if eventVars["%sCorrectedP4%s"%self.cs] else []        
+        forwardJets = filter(lambda x:abs(x.eta())>3.0, jets)
+        value = max([jet.pt() for jet in forwardJets]) if forwardJets else 0.0
         var = "%sMaxForwardJetPt%s"%self.cs
         self.book.fill((eventVars["susyScanM0"], eventVars["susyScanM12"], value), var,
-                       (12, 36, nBins), (400.0, 100.0, lo), (1000.0, 1000.0, hi),
+                       (self.nBinsX, self.nBinsY, self.nBinsZ), (self.xLo, self.yLo, self.zLo), (self.xHi, self.yHi, self.zHi),
                        title = ";m_{mother} (GeV);m_{LSP} (GeV);%s"%var)
 
+
+    def uponAcceptance(self, eventVars) :
+        self.nEvents(eventVars)
+        self.ht(eventVars)
+        self.mht(eventVars)
+        self.jets(eventVars)
+        self.forwardJets(eventVars)
+        
     def outputSuffix(self) : return stepsMaster.Master.outputSuffix()
 
     def oneHisto(self, name, zAxisTitle) :
@@ -655,7 +675,7 @@ class smsMedianHistogrammer(analysisStep) :
     def mergeFunc(self, products) :
         self.oneHisto("%sSumEt%s"%self.cs, "Median HT (GeV)")
         self.oneHisto("%sSumP4%s"%self.cs, "Median MHT (GeV)")
-        self.oneHisto("%sMaxForwardJetPt%s"%self.cs, "Median pT of (higest pT jet with abs(#eta) > 3.0) (GeV)")
+        self.oneHisto("%sMaxForwardJetPt%s"%self.cs, "Median pT of (highest pT jet with |#eta| > 3.0) (GeV)")
         for i in range(2) :
             self.oneHisto("%sJet%dPt%s"%(self.cs[0], i, self.cs[1]), "Median pT of jet %d (GeV)"%(i+1))
 #####################################
