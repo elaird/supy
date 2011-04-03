@@ -2,6 +2,38 @@ import samples
 from configuration import srm
 mc = samples.SampleHolder()
 
+
+mgQcdLoc = "bbetchar//ICF/automated/2011_04_03_03_00_26/"
+mgQcdDset = "QCD_TuneD6T_HT-%s_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM"
+
+mc.add("qcd_mg_ht_100_250",  '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"100To250"), xs = 7e+6)
+mc.add("qcd_mg_ht_250_500",  '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"250To500"), xs = 1.71e+5)
+mc.add("qcd_mg_ht_500_1000", '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"500To1000"),xs = 5.2e+3)
+mc.add("qcd_mg_ht_1000",     '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"1000"),     xs = 8.3e+1)
+
+tag1 = "/bbetchar//ICF/automated/2011_04_01_22_23_36/"
+tag2 = "/bbetchar//ICF/automated/2011_04_02_00_17_16/"
+tag3 = "/bbetchar//ICF/automated/2011_04_01_22_32_00/"
+py6Dset = "/QCD_Pt_%s_TuneZ2_7TeV_pythia6.Spring11-PU_S1_START311_V1G1-v1.AODSIM"
+
+mc.add("qcd_py6_pt_15_30",     '%s/%s/%s")'%(srm,tag1,py6Dset%"15to30"),     xs = 8.159e+08)
+mc.add("qcd_py6_pt_30_50",     '%s/%s/%s")'%(srm,tag1,py6Dset%"30to50"),     xs = 5.312e+07)
+mc.add("qcd_py6_pt_50_80",     '%s/%s/%s")'%(srm,tag1,py6Dset%"50to80"),     xs = 6.359e+06)
+mc.add("qcd_py6_pt_80_120",    '%s/%s/%s")'%(srm,tag1,py6Dset%"80to120"),    xs = 7.843e+05)
+mc.add("qcd_py6_pt_120_170",   '%s/%s/%s")'%(srm,tag1,py6Dset%"120to170"),   xs = 1.151e+05)
+mc.add("qcd_py6_pt_170_300",   '%s/%s/%s")'%(srm,tag1,py6Dset%"170to300"),   xs = 2.426e+04)
+mc.add("qcd_py6_pt_300_470",   '%s/%s/%s")'%(srm,tag1,py6Dset%"300to470"),   xs = 1.168e+03)
+mc.add("qcd_py6_pt_470_600",   '%s/%s/%s")'%(srm,tag1,py6Dset%"470to600"),   xs = 7.022e+01)
+mc.add("qcd_py6_pt_600_800",   '%s/%s/%s")'%(srm,tag1,py6Dset%"600to800"),   xs = 1.555e+01)
+mc.add("qcd_py6_pt_800_1000",  '%s/%s/%s")'%(srm,tag1,py6Dset%"800to1000"),  xs = 1.844e+00)
+mc.add("qcd_py6_pt_1000_1400", '%s/%s/%s")'%(srm,tag1,py6Dset%"1000to1400"), xs = 3.321e-01)
+mc.add("qcd_py6_pt_1400_1800", '%s/%s/%s")'%(srm,tag1,py6Dset%"1400to1800"), xs = 1.087e-02)
+mc.add("qcd_py6_pt_1800",      '%s/%s/%s")'%(srm,tag1,py6Dset%"1800"),       xs = 3.575e-04)
+
+###############
+##V14 samples##
+###############
+
 #PY 6 QCD
 tag1 = "/bm409/ICF/automated/2010_10_11_23_08_00/"
 tag2 = "/bbetchar/ICF/automated/2010_10_18_17_55_22/"
@@ -10,40 +42,40 @@ tag4 = "/bm409/ICF/automated/2010_10_11_23_03_46/"
 tagB = "_TuneZ2_7TeV_pythia6.Fall10-START38_V12-v1.GEN-SIM-RECO/"
 tagC = "_TuneZ2_7TeV_pythia6.Fall10-START38_V12-v2.GEN-SIM-RECO/"
 
-mc.add('qcd_py6_pt_0to5'      , '%s/%s/QCD_Pt_0to5%s")'      %(srm,tag1,tagB), xs = 4.844e+10)
-mc.add('qcd_py6_pt_5to15'     , '%s/%s/QCD_Pt_5to15%s")'     %(srm,tag1,tagB), xs = 3.675e+10)
-mc.add('qcd_py6_pt_15to30'    , '%s/%s/QCD_Pt_15to30%s")'    %(srm,tag1,tagB), xs = 8.159e+08)
-mc.add('qcd_py6_pt_30to50'    , '%s/%s/QCD_Pt_30to50%s")'    %(srm,tag1,tagB), xs = 5.312e+07)
-mc.add('qcd_py6_pt_50to80'    , '%s/%s/QCD_Pt_50to80%s")'    %(srm,tag1,tagB), xs = 6.359e+06)
-mc.add('qcd_py6_pt_80to120'   , '%s/%s/QCD_Pt_80to120%s")'   %(srm,tag1,tagB), xs = 7.843e+05)
-mc.add('qcd_py6_pt_120to170'  , '%s/%s/QCD_Pt_120to170%s")'  %(srm,tag1,tagB), xs = 1.151e+05)
-mc.add('qcd_py6_pt_170to300'  , '%s/%s/QCD_Pt_170to300%s")'  %(srm,tag1,tagB), xs = 2.426e+04)
-mc.add('qcd_py6_pt_300to470'  , '%s/%s/QCD_Pt_300to470%s", alwaysUseLastAttempt = True)'%(srm,tag2,tagB), xs = 1.168e+03)
-mc.add('qcd_py6_pt_470to600'  , '%s/%s/QCD_Pt_470to600%s")'  %(srm,tag2,tagB), xs = 7.022e+01)
-mc.add('qcd_py6_pt_600to800'  , '%s/%s/QCD_Pt_600to800%s")'  %(srm,tag3,tagC), xs = 1.555e+01)
-mc.add('qcd_py6_pt_800to1000' , '%s/%s/QCD_Pt_800to1000%s")' %(srm,tag3,tagB), xs = 1.844e+00)
-mc.add('qcd_py6_pt_1000to1400', '%s/%s")'                    %(srm,tag3)     , xs = 3.321e-01)
-mc.add('qcd_py6_pt_1400to1800', '%s/%s/QCD_Pt_1400to1800%s")'%(srm,tag4,tagB), xs = 1.087e-02)
-mc.add('qcd_py6_pt_1800'      , '%s/%s/QCD_Pt_1800%s")'      %(srm,tag4,tagB), xs = 3.575e-04)
+mc.add('v14_qcd_py6_pt_0to5'      , '%s/%s/QCD_Pt_0to5%s")'      %(srm,tag1,tagB), xs = 4.844e+10)
+mc.add('v14_qcd_py6_pt_5to15'     , '%s/%s/QCD_Pt_5to15%s")'     %(srm,tag1,tagB), xs = 3.675e+10)
+mc.add('v14_qcd_py6_pt_15to30'    , '%s/%s/QCD_Pt_15to30%s")'    %(srm,tag1,tagB), xs = 8.159e+08)
+mc.add('v14_qcd_py6_pt_30to50'    , '%s/%s/QCD_Pt_30to50%s")'    %(srm,tag1,tagB), xs = 5.312e+07)
+mc.add('v14_qcd_py6_pt_50to80'    , '%s/%s/QCD_Pt_50to80%s")'    %(srm,tag1,tagB), xs = 6.359e+06)
+mc.add('v14_qcd_py6_pt_80to120'   , '%s/%s/QCD_Pt_80to120%s")'   %(srm,tag1,tagB), xs = 7.843e+05)
+mc.add('v14_qcd_py6_pt_120to170'  , '%s/%s/QCD_Pt_120to170%s")'  %(srm,tag1,tagB), xs = 1.151e+05)
+mc.add('v14_qcd_py6_pt_170to300'  , '%s/%s/QCD_Pt_170to300%s")'  %(srm,tag1,tagB), xs = 2.426e+04)
+mc.add('v14_qcd_py6_pt_300to470'  , '%s/%s/QCD_Pt_300to470%s", alwaysUseLastAttempt = True)'%(srm,tag2,tagB), xs = 1.168e+03)
+mc.add('v14_qcd_py6_pt_470to600'  , '%s/%s/QCD_Pt_470to600%s")'  %(srm,tag2,tagB), xs = 7.022e+01)
+mc.add('v14_qcd_py6_pt_600to800'  , '%s/%s/QCD_Pt_600to800%s")'  %(srm,tag3,tagC), xs = 1.555e+01)
+mc.add('v14_qcd_py6_pt_800to1000' , '%s/%s/QCD_Pt_800to1000%s")' %(srm,tag3,tagB), xs = 1.844e+00)
+mc.add('v14_qcd_py6_pt_1000to1400', '%s/%s")'                    %(srm,tag3)     , xs = 3.321e-01)
+mc.add('v14_qcd_py6_pt_1400to1800', '%s/%s/QCD_Pt_1400to1800%s")'%(srm,tag4,tagB), xs = 1.087e-02)
+mc.add('v14_qcd_py6_pt_1800'      , '%s/%s/QCD_Pt_1800%s")'      %(srm,tag4,tagB), xs = 3.575e-04)
             
 #PY 8 QCD
 tag1 = "bbetchar/ICF/automated/2010_10_06_02_22_48"
 tag2 = "Tune1_7TeV_pythia8.Fall10-START38_V12-v1.GEN-SIM-RECO"
 
-mc.add('qcd_py8_pt0to15'     , '%s/%s/QCD_Pt_0to15_%s/")'     %(srm,tag1,tag2), xs = 2.119e+12 )
-mc.add('qcd_py8_pt15to30'    , '%s/%s/QCD_Pt_15to30_%s/")'    %(srm,tag1,tag2), xs = 7.883e+08 )
-mc.add('qcd_py8_pt30to50'    , '%s/%s/QCD_Pt_30to50_%s/")'    %(srm,tag1,tag2), xs = 5.033e+07 )
-mc.add('qcd_py8_pt50to80'    , '%s/%s/QCD_Pt_50to80_%s/")'    %(srm,tag1,tag2), xs = 6.027e+06 )
-mc.add('qcd_py8_pt80to120'   , '%s/%s/QCD_Pt_80to120_%s/")'   %(srm,tag1,tag2), xs = 7.510e+05 )
-mc.add('qcd_py8_pt120to170'  , '%s/%s/QCD_Pt_120to170_%s/")'  %(srm,tag1,tag2), xs = 1.119e+05 )
-mc.add('qcd_py8_pt170to300'  , '%s/%s/QCD_Pt_170to300_%s/")'  %(srm,tag1,tag2), xs = 2.409e+04 )
-mc.add('qcd_py8_pt300to470'  , '%s/%s/QCD_Pt_300to470_%s/")'  %(srm,tag1,tag2), xs = 1.201e+03 )
-mc.add('qcd_py8_pt470to600'  , '%s/%s/QCD_Pt_470to600_%s/")'  %(srm,tag1,tag2), xs = 7.416e+01 )
-mc.add('qcd_py8_pt600to800'  , '%s/%s/QCD_Pt_600to800_%s/")'  %(srm,tag1,tag2), xs = 1.672e+01 )
-mc.add('qcd_py8_pt800to1000' , '%s/%s/QCD_Pt_800to1000_%s/")' %(srm,tag1,tag2), xs = 2.002e+00 )
-mc.add('qcd_py8_pt1000to1400', '%s/%s/QCD_Pt_1000to1400_%s/")'%(srm,tag1,tag2), xs = 3.625e-01 )
-mc.add('qcd_py8_pt1400to1800', '%s/%s/QCD_Pt_1400to1800_%s/")'%(srm,tag1,tag2), xs = 1.180e-02 )
-mc.add('qcd_py8_pt1800'      , '%s/%s/QCD_Pt_1800_%s/")'      %(srm,tag1,tag2), xs = 3.802e-04 )
+mc.add('v14_qcd_py8_pt0to15'     , '%s/%s/QCD_Pt_0to15_%s/")'     %(srm,tag1,tag2), xs = 2.119e+12 )
+mc.add('v14_qcd_py8_pt15to30'    , '%s/%s/QCD_Pt_15to30_%s/")'    %(srm,tag1,tag2), xs = 7.883e+08 )
+mc.add('v14_qcd_py8_pt30to50'    , '%s/%s/QCD_Pt_30to50_%s/")'    %(srm,tag1,tag2), xs = 5.033e+07 )
+mc.add('v14_qcd_py8_pt50to80'    , '%s/%s/QCD_Pt_50to80_%s/")'    %(srm,tag1,tag2), xs = 6.027e+06 )
+mc.add('v14_qcd_py8_pt80to120'   , '%s/%s/QCD_Pt_80to120_%s/")'   %(srm,tag1,tag2), xs = 7.510e+05 )
+mc.add('v14_qcd_py8_pt120to170'  , '%s/%s/QCD_Pt_120to170_%s/")'  %(srm,tag1,tag2), xs = 1.119e+05 )
+mc.add('v14_qcd_py8_pt170to300'  , '%s/%s/QCD_Pt_170to300_%s/")'  %(srm,tag1,tag2), xs = 2.409e+04 )
+mc.add('v14_qcd_py8_pt300to470'  , '%s/%s/QCD_Pt_300to470_%s/")'  %(srm,tag1,tag2), xs = 1.201e+03 )
+mc.add('v14_qcd_py8_pt470to600'  , '%s/%s/QCD_Pt_470to600_%s/")'  %(srm,tag1,tag2), xs = 7.416e+01 )
+mc.add('v14_qcd_py8_pt600to800'  , '%s/%s/QCD_Pt_600to800_%s/")'  %(srm,tag1,tag2), xs = 1.672e+01 )
+mc.add('v14_qcd_py8_pt800to1000' , '%s/%s/QCD_Pt_800to1000_%s/")' %(srm,tag1,tag2), xs = 2.002e+00 )
+mc.add('v14_qcd_py8_pt1000to1400', '%s/%s/QCD_Pt_1000to1400_%s/")'%(srm,tag1,tag2), xs = 3.625e-01 )
+mc.add('v14_qcd_py8_pt1400to1800', '%s/%s/QCD_Pt_1400to1800_%s/")'%(srm,tag1,tag2), xs = 1.180e-02 )
+mc.add('v14_qcd_py8_pt1800'      , '%s/%s/QCD_Pt_1800_%s/")'      %(srm,tag1,tag2), xs = 3.802e-04 )
 
 ##PY6 mu-enriched QCD
 #tag1 = "/bbetchar//ICF/automated/2010_10_29_20_17_55/"
@@ -98,16 +130,11 @@ mgKFactor = 3048.0/2400.0 #Z+jets NNLO/LO
 
 #MG QCD
 mgDir = "/as1604/ICF/automated/2010_08_15_23_34_33/"
-mc.add("v12_qcd_mg_ht_50_100",  '%s/%s/QCD_Pt-50To100_7TeV-madgraph.Spring10-START3X_V26-v1.GEN-SIM-RECO/")'%(srm,mgDir),
-       xs = {"LO":30e+06, "fakeNLO":30e+06*mgKFactor}["fakeNLO"])
-mc.add("v12_qcd_mg_ht_100_250", '%s/%s/QCD_Pt100to250-madgraph.Spring10-START3X_V26_S09-v2.GEN-SIM-RECO/ ")'%(srm,mgDir),
-       xs = {"LO":7e+06, "fakeNLO":7e+06*mgKFactor}["fakeNLO"])
-mc.add("v12_qcd_mg_ht_250_500", '%s/%s/QCD_Pt250to500-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/ ")'%(srm,mgDir),
-       xs = {"LO":171e+03, "fakeNLO":171e+03*mgKFactor}["fakeNLO"])
-mc.add("v12_qcd_mg_ht_500_1000",'%s/%s/QCD_Pt500to1000-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%(srm,mgDir),
-       xs = {"LO":5200, "fakeNLO":5200*mgKFactor}["fakeNLO"])
-mc.add("v12_qcd_mg_ht_1000_inf",'%s/%s/QCD_Pt1000toInf-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%(srm,mgDir),
-       xs = {"LO":83, "fakeNLO":83*mgKFactor}["fakeNLO"])
+mc.add("v12_qcd_mg_ht_50_100",  '%s/%s/QCD_Pt-50To100_7TeV-madgraph.Spring10-START3X_V26-v1.GEN-SIM-RECO/")'%(srm,mgDir), xs = {"LO":30e+06, "fakeNLO":30e+06*mgKFactor}["fakeNLO"])
+mc.add("v12_qcd_mg_ht_100_250", '%s/%s/QCD_Pt100to250-madgraph.Spring10-START3X_V26_S09-v2.GEN-SIM-RECO/ ")'%(srm,mgDir), xs = {"LO":7e+06, "fakeNLO":7e+06*mgKFactor}["fakeNLO"])
+mc.add("v12_qcd_mg_ht_250_500", '%s/%s/QCD_Pt250to500-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/ ")'%(srm,mgDir), xs = {"LO":171e+03, "fakeNLO":171e+03*mgKFactor}["fakeNLO"])
+mc.add("v12_qcd_mg_ht_500_1000",'%s/%s/QCD_Pt500to1000-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%(srm,mgDir), xs = {"LO":5200, "fakeNLO":5200*mgKFactor}["fakeNLO"])
+mc.add("v12_qcd_mg_ht_1000_inf",'%s/%s/QCD_Pt1000toInf-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%(srm,mgDir), xs = {"LO":83, "fakeNLO":83*mgKFactor}["fakeNLO"])
 
 #ALPGEN QCD
 #efficiences from https://hypernews.cern.ch/HyperNews/CMS/get/physics-validation/851.html
@@ -137,15 +164,16 @@ mc.add("v12_qcd_ag_6jets_pt120to280" ,'%s/%s/QCD6Jets_Pt120to280-alpgen.Summer10
 mc.add("v12_qcd_ag_6jets_pt280to500" ,'%s/%s/QCD6Jets_Pt280to500-alpgen.Summer10-START36_V9_S09-v2.GEN-SIM-RECO/")' %(srm,agDir), xs = 0.099 * 9.05E+02 )
 mc.add("v12_qcd_ag_6jets_pt500to5000",'%s/%s/QCD6Jets_Pt500to5000-alpgen.Summer10-START36_V9_S09-v2.GEN-SIM-RECO/")'%(srm,agDir), xs = 0.099 * 4.20E+01 )
 
-#MG GAMMA + JETS
-mc.add("v12_g_jets_mg_pt40_100", '%s/arlogb//ICF/automated/2010_07_26_15_14_40//PhotonJets_Pt40to100-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,
-       xs = {"LO":23620, "fakeNLO":23620*mgKFactor}["fakeNLO"])
-mc.add("v12_g_jets_mg_pt100_200",'%s/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt100to200-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,
-       xs = {"LO":3476, "fakeNLO":3476*mgKFactor}["fakeNLO"])
-mc.add("v12_g_jets_mg_pt200",    '%s/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt200toInf-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,
-       xs = {"LO":485, "fakeNLO":485*mgKFactor}["fakeNLO"])
 
-#PY GAMMA + JETS INCLUSIVE
+
+######### GAMMA + JETS ###########
+
+#MG
+mc.add("v12_g_jets_mg_pt40_100", '%s/arlogb//ICF/automated/2010_07_26_15_14_40//PhotonJets_Pt40to100-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm, xs = {"LO":23620, "fakeNLO":23620*mgKFactor}["fakeNLO"])
+mc.add("v12_g_jets_mg_pt100_200",'%s/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt100to200-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = {"LO":3476, "fakeNLO":3476*mgKFactor}["fakeNLO"])
+mc.add("v12_g_jets_mg_pt200",    '%s/arlogb/ICF/automated/2010_07_26_15_14_40/PhotonJets_Pt200toInf-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = {"LO":485, "fakeNLO":485*mgKFactor}["fakeNLO"])
+
+#PY (INCLUSIVE)
 rnString = 'utils.fileListFromDisk(location = "/vols/cms02/rnandi/PhotonJet_Pt%d.root", isDirectory = False)'
 mc.add("v12_g_jets_py6_pt15"  , rnString%15  , xs = 1.922e+05, ptHatMin =   15) 
 mc.add("v12_g_jets_py6_pt30"  , rnString%30  , xs = 2.007e+04, ptHatMin =   30) 
@@ -159,26 +187,36 @@ mc.add("v12_g_jets_py6_pt2200", rnString%2200, xs = 4.035e-09, ptHatMin = 2200)
 mc.add("v12_g_jets_py6_pt3000", rnString%3000, xs = 1.779e-14, ptHatMin = 3000)
 mc.adjustOverlappingSamples( ["v12_g_jets_py6_pt%d"%i for i in [15,30,80,170,300,470,800,1400,2200,3000] ] )
 
-#MG TT/EWK
-mc.add("tt_tauola_mg_v12",'utils.fileListFromDisk(location = "/vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root", isDirectory = False, itemsToSkip = ["_4_2"] )',
-       xs = {"LO":95.0,"NLO":157.5}["NLO"] )
-mc.add("z_inv_mg_v12",'%s/zph04/ICF/automated/2010_07_14_11_52_58/",itemsToSkip=["14_3.root"])'%srm,
-       xs = {"LO":4500.0,"fakeNLO":4500.0*mgKFactor}["fakeNLO"] )
-mc.add("z_jets_mg_v12",'%s/jad/ICF/automated//2010_07_05_22_43_20/", pruneList=False)'%srm,
-       xs = {"LO":2400.0,"NNLO":3048.0}["NNLO"] )
-mc.add("w_jets_mg_v12",'%s/jad/ICF/automated//2010_06_18_22_33_23/")'%srm,
-       xs = {"LO":24170.0,"NNLO":31314.0}["NNLO"] )
-mc.add("zg_nunu", '%s/bbetchar/ICF/automated/2010_10_09_21_40_58/")'%srm, xs = 2.68 )
+
+
+######### TT / EWK ############3
+burt_ttbar = "/bbetchar/ICF/automated/2011_04_01_20_01_22/"
+burt_ewk = "/bbetchar//ICF/automated/2011_04_01_22_16_06/"
+spring11pu = "Spring11-PU_S1_START311_V1G1-v1.AODSIM"
+
+#MG
+mc.add("tt_tauola_mg",'%s%s/TTJets_TuneZ2_7TeV-madgraph-tauola.%s")'%(srm,burt_ttbar,spring11pu), xs = {"LO":121, "BurtGuessNLO":157.5}["BurtGuessNLO"])
+mc.add("w_jets_mg",'%s%s/WJetsToLNu_TuneZ2_7TeV-madgraph-tauola.%s)'%(srm,burt_ewk,spring11pu), xs = {"LO":24640, "BurtGuessNNLO": 31924}["BurtGuessNNLO"])
 
 mc.add("tt_tauola_mg_v14",'%s/bbetchar//ICF/automated/2010_11_17_05_40_17/")'%srm, xs = {"LO":121, "BurtGuessNLO":157.5}["BurtGuessNLO"])
-mc.add("tt_tauola_mg",'%s/bbetchar//ICF/automated/2011_03_29_21_25_21/TTJets_TuneZ2_7TeV-madgraph-tauola.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%srm, xs = {"LO":121, "BurtGuessNLO":157.5}["BurtGuessNLO"])
+mc.add("tt_tauola_mg_v12",'utils.fileListFromDisk(location = "/vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root", isDirectory = False, itemsToSkip = ["_4_2"] )', xs = {"LO":95.0,"NLO":157.5}["NLO"] )
+mc.add("z_inv_mg_v12",'%s/zph04/ICF/automated/2010_07_14_11_52_58/",itemsToSkip=["14_3.root"])'%srm, xs = {"LO":4500.0,"fakeNLO":4500.0*mgKFactor}["fakeNLO"] )
+mc.add("z_jets_mg_v12",'%s/jad/ICF/automated//2010_07_05_22_43_20/", pruneList=False)'%srm, xs = {"LO":2400.0,"NNLO":3048.0}["NNLO"] )
+mc.add("w_jets_mg_v12",'%s/jad/ICF/automated//2010_06_18_22_33_23/")'%srm,  xs = {"LO":24170.0,"NNLO":31314.0}["NNLO"] )
 
 #PYTHIA
-mc.add("w_enu",       '%s/bbetchar//ICF/automated/2010_10_11_21_21_39/")'%srm, xs = {"LO":7899,"BurtGuessNNLO":10234}["BurtGuessNNLO"]) 
-mc.add("w_munu",      '%s/trommers/ICF/automated/2010_10_06_18_40_51/")'%srm,  xs = {"LO":7899,"BurtGuessNNLO":10234}["BurtGuessNNLO"]) 
-mc.add("w_taunu",     '%s/bbetchar//ICF/automated/2010_10_11_21_21_39/")'%srm, xs = {"LO":7899,"BurtGuessNNLO":10234}["BurtGuessNNLO"])
+mc.add("tt_tauola_pythia",'%s%s/TT_TuneZ2_7TeV-pythia6-tauola.%s")'%(srm,burt_ttbar,spring11pu), xs = {"LO":94, "BurtGuessNLO":122}["BurtGuessNLO"])
+mc.add("w_enu", '%s%s/WToENu_TuneZ2_7TeV-pythia6.%s)'%(srm,burt_ewk,spring11pu),            xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
+mc.add("w_munu", '%s%s/WToMuNu_TuneZ2_7TeV-pythia6.%s)'%(srm,burt_ewk,spring11pu),          xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
+mc.add("w_taunu", '%s%s/WToTauNu_TuneZ2_7TeV-pythia6-tauola.%s)'%(srm,burt_ewk,spring11pu), xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
 
-#SUSY LM
+mc.add("w_enu_v14",       '%s/bbetchar//ICF/automated/2010_10_11_21_21_39/")'%srm, xs = {"LO":7899,"BurtGuessNNLO":10234}["BurtGuessNNLO"]) 
+mc.add("w_munu_v14",      '%s/trommers/ICF/automated/2010_10_06_18_40_51/")'%srm,  xs = {"LO":7899,"BurtGuessNNLO":10234}["BurtGuessNNLO"]) 
+mc.add("w_taunu_v14",     '%s/bbetchar//ICF/automated/2010_10_11_21_21_39/")'%srm, xs = {"LO":7899,"BurtGuessNNLO":10234}["BurtGuessNNLO"])
+
+
+
+##### SUSY LM  ##########
 mc.add("lm0_v12" ,'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM0.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 38.93   )
 mc.add("lm1_v12" ,'%s/bainbrid/ICF/automated/2010_07_12_17_52_54/LM1.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 4.888   )
 mc.add("lm2_v12" ,'%s/bainbrid/ICF/automated/2010_07_16_12_54_00/LM2.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")'%srm,  xs = 0.6027  )
