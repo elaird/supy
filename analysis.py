@@ -121,7 +121,7 @@ class analysis(object) :
                 q.task_done()
 
         def checkNames(listOfSamples) :
-            names = [s.name for s in listOfSamples]
+            names = [(s.name, s.weightName) for s in listOfSamples]
             assert len(names) == len(set(names)), "Duplicate sample names are not allowed."
             return listOfSamples
 
@@ -245,7 +245,7 @@ class analysis(object) :
                                              steps = adjustedListOfSteps,
                                              calculables = listOfCalculables,
                                              inputFiles = inputFiles,
-                                             name = sampleName,
+                                             name = sampleName + ("."+sampleSpec.weightName if sampleSpec.weightName else ""),
                                              nEventsMax = nEventsMax,
                                              quietMode = quietMode(self._loop),
                                              color = sampleSpec.color,

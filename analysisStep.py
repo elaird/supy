@@ -23,7 +23,7 @@ class analysisStep(object) :
         passed = bool(self.select(eventVars))
         self.increment(passed)
         return passed
-    def increment(self, passed, w = 1) : self.book.fill(passed, "counts", 2, 0, 2, w = w)
+    def increment(self, passed, w = None) : self.book.fill(passed, "counts", 2, 0, 2, w = w)
     def setup(self, inputChain, fileDirectory) : return
     def endFunc(self, otherChainDict) : return
     def mergeFunc(self, products) : return
