@@ -2,6 +2,11 @@ import samples
 from configuration import srm
 muon = samples.SampleHolder()
 
+#2011
+muon.add("MuHad.Run2011A-PromptReco-v1.Burt",    '%s/bbetchar//ICF/automated/2011_04_02_22_12_10/")'%srm, lumi = 5.81 ) #/pb
+muon.add("SingleMu.Run2011A-PromptReco-v1.Burt", '%s/bbetchar//ICF/automated/2011_04_02_22_55_59/")'%srm, lumi = 5.81 ) #/pb
+
+
 #38X SKIMS
 muon.add("Mu.Run2010B_skim", 'utils.fileListFromDisk(location="/vols/cms02/bbetchar/01_skims/Mu.Run2010B-Nov4ReReco.RECO.Jad/")',lumi = 32.96)
 muon.add("Mu.Run2010A_skim", 'utils.fileListFromDisk(location = "/vols/cms02/bbetchar/01_skims/Mu.Run2010A-Nov4ReReco.RECO.Jad/")',lumi = 3.18)
