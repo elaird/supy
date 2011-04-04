@@ -5,8 +5,10 @@ class autoBook(dict) :
         self.__directory = r.TDirectory(arg,arg) if type(arg)==str else arg if arg else 0
         self.title = self.__directory.GetName() if self.__directory else ""
         self.fillOrder = []
+        self.weight = 1
         
-    def fill(self, x, name, N, low, up, w = 1, title = "", xAxisLabels = [], yAxisLabels = []) :
+    def fill(self, x, name, N, low, up, w = None, title = "", xAxisLabels = [], yAxisLabels = []) :
+        if w is None : w = self.weight
         if not name in self :
             self.__directory.cd()
             self.fillOrder.append(name)
@@ -20,7 +22,7 @@ class autoBook(dict) :
                 self[name].GetXaxis().SetBinLabel(i+1, label)
             for i,label in enumerate(yAxisLabels) :
                 self[name].GetYaxis().SetBinLabel(i+1, label)
-                             
+
         if    type(x)!=tuple : self[name].Fill(x,w)
         elif  type(N)!=tuple : self[name].Fill(x[0],x[1],w)
         elif  len(N)==2      : self[name].Fill(x[0],x[1],w)
