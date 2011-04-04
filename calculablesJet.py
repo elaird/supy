@@ -179,7 +179,8 @@ class RawSumPt(wrappedChain.calculable) :
         self.fixes = collection
         self.stash(["CorrectedP4"],xcStrip(collection))
     def update(self,ignored) :
-        self.value = sum([p4.pt() for p4 in self.source[self.CorrectedP4]])
+        #self.value = sum([p4.pt() for p4 in self.source[self.CorrectedP4]])
+        self.value = sum(utils.hackMap(lambda p4: p4.pt(), self.source[self.CorrectedP4]))
 ##############################
 class SumPz(wrappedChain.calculable) :
     def __init__(self,collection = None) :
@@ -219,9 +220,9 @@ class RawSumP4(wrappedChain.calculable) :
     def __init__(self, collection) :
         self.fixes = collection
         self.stash(['CorrectedP4'],xcStrip(collection))
-        self.value = r.std.vector(type(utils.LorentzV())).value_type()
+        self.value = utils.LorentzV()
     def update(self,ignored) : 
-        self.value.SetPxPyPzE(0,0,0,0)
+        self.value.SetCoordinates(0,0,0,0)
         self.value = sum(self.source[self.CorrectedP4],self.value)
 ####################################
 class Mht(wrappedChain.calculable) :
