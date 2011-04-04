@@ -20,12 +20,13 @@ class value(analysisStep) :
     def __init__(self, var, min = None, max = None, indices = "", index = None) :
         for item in ["var","min","max","indices","index"] : setattr(self,item,eval(item))
         self.moreName = ( ("%.1f<="%min if min is not None else "") + var +
-                          ("[i[%d]]" % index if indices else "") + self.wrapName() + 
+                          ("[i[%s]]" % str(index) if index is not None else "") + self.wrapName() + 
                           ("<=%.1f"%max if max is not None else "") +
                           ("; %s"%indices if indices else ""))
 
     def select(self,eventVars) :
-        val = eventVars[self.var] if not self.indices else \
+        val = eventVars[self.var] if self.index==None else \
+              eventVars[self.var][self.index] if not self.indices else \
               eventVars[self.var][eventVars[self.indices][self.index]] if self.index<len(eventVars[self.indices]) else None
         if val is None : return False
         val = self.wrap(val)
