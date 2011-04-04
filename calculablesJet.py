@@ -223,7 +223,9 @@ class RawSumP4(wrappedChain.calculable) :
         self.value = utils.LorentzV()
     def update(self,ignored) : 
         self.value.SetCoordinates(0,0,0,0)
-        self.value = sum(self.source[self.CorrectedP4],self.value)
+        #self.value = sum(self.source[self.CorrectedP4],self.value)
+        p4s = self.source[self.CorrectedP4]
+        for i in range(len(p4s)) : self.value += p4s[i]
 ####################################
 class Mht(wrappedChain.calculable) :
     def __init__(self,collection) :
