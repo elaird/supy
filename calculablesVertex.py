@@ -1,5 +1,5 @@
 from wrappedChain import *
-import calculables,math
+import calculables,math,utils
 
 #####################################
 class ID(wrappedChain.calculable) :
@@ -15,7 +15,7 @@ class ID(wrappedChain.calculable) :
                abs(pos.Rho()) <= self.maxD0
 
     def update(self,ignored) :
-        self.value = map(self.id, self.source["vertexIsFake"],self.source["vertexNdof"],self.source["vertexPosition"])
+        self.value = utils.hackMap(self.id, self.source["vertexIsFake"],self.source["vertexNdof"],self.source["vertexPosition"])
 #####################################
 class Indices(wrappedChain.calculable) :
     def __init__(self, sumPtMin = None) :
