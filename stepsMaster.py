@@ -2,10 +2,10 @@ from analysisStep import analysisStep
 import utils,os
 #####################################
 class Master(analysisStep) :
-    def __init__(self, xs, lumi, lumiWarn) :
+    def __init__(self, xs, lumi, lumiWarn, weightName) :
         self.moreName = ""
         self.filterPtHat = False
-        for item in ["xs", "lumi", "lumiWarn"] :
+        for item in ["xs", "lumi", "lumiWarn", "weightName"] :
             setattr(self, item, eval(item))
         
     def activatePtHatFilter(self, maxPtHat, lostXs) :
@@ -13,11 +13,16 @@ class Master(analysisStep) :
         self.filterPtHat = True
         self.maxPtHat = maxPtHat
         self.moreName += "(pthat<%.1f)"%self.maxPtHat
-    
-    def select (self,eventVars) :
+
+    def setBookWeights(self, weight) :
+        map(lambda x:x.weight = weight, self.books)
+        
+    def select (self, eventVars) :
+        if self.weightName : self.setBookWeights(eventVars[self.weightName])
         return (not self.filterPtHat) or eventVars["genpthat"]<self.maxPtHat
 
     def endFunc(self, otherChainDict) :
+        if self.weightName : self.setBookWeights(1.0)
         self.book.fill(0.0, "nJobsHisto", 1, -0.5, 0.5, title = ";dummy axis;N_{jobs}")        
         if self.xs   : self.book.fill(0.0, "xsHisto",   1, -0.5, 0.5, title = ";dummy axis;#sigma (pb)", w = self.xs)
         if self.lumi : self.book.fill(0.0, "lumiHisto", 1, -0.5, 0.5, title = "%s;dummy axis;integrated luminosity (pb^{-1})"%\

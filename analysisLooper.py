@@ -157,6 +157,9 @@ class analysisLooper :
             if step.requiresNoSetBranchAddress() : returnValue = False
             step.setup(self.inputChain, self.fileDirectory)
 
+        #make Master aware of all steps' books
+        self.steps[0].books = [step.book for step in self.steps]
+
         r.gROOT.cd()
         return returnValue
 
