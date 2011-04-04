@@ -52,7 +52,7 @@ class CombinedRelativeIso(wrappedChain.calculable) :
         self.moreName = "(trackIso + ecalIso + hcalIso) / pt_mu"
 
     def combinedRelativeIso(self,isoTrk,isoEcal,isoHcal,p4) :
-        return (isoTrk+isoEcal+isoHcal)/p4.pt()
+        return (isoTrk+isoEcal+isoHcal)/p4.pt() if p4.pt() > 0.1 else 1e10
 
     def update(self,ignored) :
         self.value = utils.hackMap(self.combinedRelativeIso,
