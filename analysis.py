@@ -231,7 +231,7 @@ class analysis(object) :
             adjustedListOfSteps = [steps.Master.Master(xs = sampleTuple.xs,
                                                        lumi = sampleTuple.lumi,
                                                        lumiWarn = checkLumi(isMc, nEventsMax, sampleSpec.nFilesMax),
-                                                       weightName = sampleTuple.weightName,
+                                                       weightName = sampleSpec.weightName,
                                                        )
                                    ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
             

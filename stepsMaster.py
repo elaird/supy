@@ -15,7 +15,7 @@ class Master(analysisStep) :
         self.moreName += "(pthat<%.1f)"%self.maxPtHat
 
     def setBookWeights(self, weight) :
-        map(lambda x:x.weight = weight, self.books)
+        for book in self.books: book.weight = weight
         
     def select (self, eventVars) :
         if self.weightName : self.setBookWeights(eventVars[self.weightName])
