@@ -9,7 +9,7 @@ mgQcdDset = "QCD_TuneD6T_HT-%s_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AOD
 mc.add("qcd_mg_ht_100_250",  '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"100To250"), xs = 7e+6)
 mc.add("qcd_mg_ht_250_500",  '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"250To500"), xs = 1.71e+5)
 mc.add("qcd_mg_ht_500_1000", '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"500To1000"),xs = 5.2e+3)
-mc.add("qcd_mg_ht_1000",     '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"1000"),     xs = 8.3e+1)
+mc.add("qcd_mg_ht_1000_inf",     '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"1000"),     xs = 8.3e+1)
 
 tag1 = "/bbetchar//ICF/automated/2011_04_01_22_23_36/"
 tag2 = "/bbetchar//ICF/automated/2011_04_02_00_17_16/"
@@ -196,7 +196,7 @@ spring11pu = "Spring11-PU_S1_START311_V1G1-v1.AODSIM"
 
 #MG
 mc.add("tt_tauola_mg",'%s%s/TTJets_TuneZ2_7TeV-madgraph-tauola.%s")'%(srm,burt_ttbar,spring11pu), xs = {"LO":121, "BurtGuessNLO":157.5}["BurtGuessNLO"])
-mc.add("w_jets_mg",'%s%s/WJetsToLNu_TuneZ2_7TeV-madgraph-tauola.%s)'%(srm,burt_ewk,spring11pu), xs = {"LO":24640, "BurtGuessNNLO": 31924}["BurtGuessNNLO"])
+mc.add("w_jets_mg",'%s%s/WJetsToLNu_TuneZ2_7TeV-madgraph-tauola.%s")'%(srm,burt_ewk,spring11pu), xs = {"LO":24640, "BurtGuessNNLO": 31924}["BurtGuessNNLO"])
 
 mc.add("tt_tauola_mg_v14",'%s/bbetchar//ICF/automated/2010_11_17_05_40_17/")'%srm, xs = {"LO":121, "BurtGuessNLO":157.5}["BurtGuessNLO"])
 mc.add("tt_tauola_mg_v12",'utils.fileListFromDisk(location = "/vols/cms01/mstoye/ttTauola_madgraph_V11tag/SusyCAF_Tree*.root", isDirectory = False, itemsToSkip = ["_4_2"] )', xs = {"LO":95.0,"NLO":157.5}["NLO"] )
