@@ -161,8 +161,8 @@ class hltTurnOnHistogrammer(analysisStep) :
         tags = "{%s}"%(','.join([t.replace("HLT_","") for t in self.tags]))
         probe = self.probe.replace("HLT_","")
         
-        self.tagTitle   = ( "%s_given_%s" % (var, tags), "pass %s;%s;events / bin" % (tags,var))
-        self.probeTitle = ( "%s_given_%s_and_%s" % (var, tags, probe), "pass %s given %s;%s;events / bin" % (probe, tags, var) )
+        self.tagTitle   = ( "tag_%s_%s_%s" % (probe,tags,var), "pass %s;%s;events / bin" % (tags,var))
+        self.probeTitle = ( "probe_%s_%s_%s" % (probe,tags,var), "pass %s given %s;%s;events / bin" % (probe, tags, var) )
         self.effTitle   = ( "turnon_%s_%s_%s" % (probe,tags,var), "%s Turn On;%s;P(%s | %s)" % (probe,var,probe,tags))
 
         self.moreName = "%s by %s, given %s;" % (probe, var, tags)
