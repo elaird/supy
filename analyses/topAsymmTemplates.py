@@ -84,12 +84,12 @@ class topAsymmTemplates(analysis.analysis) :
 
         return [steps.Print.progressPrinter(),
                 steps.Top.mcTruth(lepton),
-                steps.Filter.multiplicity("%sIndices%s"%obj['jet'],min=3),
-                steps.Top.mcTruthQDir(),
-                steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = "%sIndicesAnyIso%s"%lepton, index = 0),
-                steps.Top.mcTruthQDir(withNu = True),
-                steps.Filter.label('cosThetaStar'),
-                steps.Top.mcTruth(lepton),
+                #steps.Filter.multiplicity("%sIndices%s"%obj['jet'],min=3),
+                #steps.Top.mcTruthQDir(),
+                #steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = "%sIndicesAnyIso%s"%lepton, index = 0),
+                #steps.Top.mcTruthQDir(withNu = True),
+                #steps.Filter.label('cosThetaStar'),
+                #steps.Top.mcTruth(lepton),
                 ]
     
     def listOfSampleDictionaries(self) :
@@ -97,7 +97,16 @@ class topAsymmTemplates(analysis.analysis) :
 
     def listOfSamples(self,pars) :
         from samples import specify
-        return specify( names = "tt_tauola_mg", effectiveLumi = None, color = r.kGreen+3)
+        eL = None
+        return (
+            specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kBlack,     weightName = "wTopAsymN30") +
+            specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kBlue,      weightName = "wTopAsymN20") +
+            specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kGreen+3,   weightName = "wTopAsymN10") +
+            specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kGreen,     weightName = "wTopAsymP00") +
+            specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kYellow-3,  weightName = "wTopAsymP10") +
+            specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kOrange,    weightName = "wTopAsymP20") +
+            specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kRed,       weightName = "wTopAsymP30")
+            )
     
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
