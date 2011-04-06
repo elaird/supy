@@ -1,4 +1,4 @@
-import time
+import time,utils
 import ROOT as r
 from analysisStep import analysisStep
 #####################################
@@ -217,7 +217,7 @@ class recHitPrinter(analysisStep) :
         self.algoType=algoType
         self.detector=detector
 
-        self.sum=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
+        self.sum=utils.LorentzV()
         self.bitInfo=[]
         if   detector=="Hbhe" :
             self.bitInfo=[("mult.flag",0),

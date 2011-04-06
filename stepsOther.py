@@ -109,7 +109,7 @@ class skimmer(analysisStep) :
             raise Exception("at the moment, adding the extra tree with the skimmer is broken")
             self.arrayDictionary={}
             self.supportedBuiltInTypes=[type(True),type(0),type(0L),type(0.0)]
-            self.supportedOtherTypes=[type(r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0))]
+            self.supportedOtherTypes=[type(utils.LorentzV())]
             
             extraName=self.outputTree.GetName()+"Extra"
             self.outputTreeExtra=r.TTree(extraName,extraName)
@@ -443,7 +443,7 @@ class deadHcalFilter(analysisStep) :
         for item in ["jets","dR","dPhiStarCut"] :
             setattr(self,item,eval(item))
         self.dps = "%sDeltaPhiStar%s%s"%(self.jets[0],self.jets[1],extraName)
-        self.badJet = r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0,0.0,0.0,0.0)
+        self.badJet = utils.LorentzV()
         self.moreName = "%s%s; dR>%5.3f when deltaPhiStar<%5.3f"%(self.jets[0], self.jets[1], self.dR, self.dPhiStarCut)
         
     def select(self, eventVars) :
@@ -452,7 +452,7 @@ class deadHcalFilter(analysisStep) :
         if d["DeltaPhiStar"]>self.dPhiStarCut :
             return True
         jet = eventVars["%sCorrectedP4%s"%self.jets].at(index)
-        self.badJet.SetCoordinates(jet.pt(),jet.eta(),jet.phi(),jet.E())
+        self.badJet.SetCoordinates(jet.pt(),jet.eta(),jet.phi(),jet.mass())
         for channel in eventVars["hcalDeadChannelP4"] :
             if r.Math.VectorUtil.DeltaR(self.badJet,channel) < self.dR :
                 return False
@@ -463,7 +463,7 @@ class deadEcalFilterIncludingPhotons(analysisStep) :
         for item in ["jets","photons","dR","dPhiStarCut","nXtalThreshold"] :
             setattr(self,item,eval(item))
         self.dps = "%sDeltaPhiStarIncludingPhotons%s%s"%(self.jets[0],self.jets[1],extraName)
-        self.badThing = r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0,0.0,0.0,0.0)
+        self.badThing = utils.LorentzV()
         self.moreName = "%s%s; %s%s; dR>%5.3f when deltaPhiStar<%5.3f and nXtal>%d"%(self.jets[0], self.jets[1],
                                                                                      self.photons[0], self.photons[1],
                                                                                      self.dR, self.dPhiStarCut, self.nXtalThreshold)
@@ -480,7 +480,7 @@ class deadEcalFilterIncludingPhotons(analysisStep) :
         elif photonIndex!=None :
             thing = eventVars["%sP4%s"%self.photons].at(photonIndex)
 
-        self.badThing.SetCoordinates(thing.pt(),thing.eta(),thing.phi(),thing.E())
+        self.badThing.SetCoordinates(thing.pt(),thing.eta(),thing.phi(),thing.mass())
         for iRegion,region in enumerate(eventVars["ecalDeadTowerTrigPrimP4"]) :
             if eventVars["ecalDeadTowerNBadXtals"].at(iRegion)<self.nXtalThreshold : continue
             if r.Math.VectorUtil.DeltaR(self.badThing,region) < self.dR :

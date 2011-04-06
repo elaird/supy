@@ -56,7 +56,7 @@ class SumPt(wrappedChain.calculable) :
 class SumP3(wrappedChain.calculable) :
     def __init__(self) :
         self.fixes = ("vertex","")
-        self.sumP3s = r.std.vector(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double')))()
+        self.sumP3s = r.std.vector(utils.LorentzV())()
 
     def update(self, ignored) :
         self.value = self.sumP3s

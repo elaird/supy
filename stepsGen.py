@@ -139,9 +139,9 @@ class genParticleCountHistogrammer(analysisStep) :
 class genParticlePrinter(analysisStep) :
 
     def __init__(self,minPt=-1.0,minStatus=-1):
-        self.oneP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
-        self.sumP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
-        self.zeroP4=r.Math.LorentzVector(r.Math.PxPyPzE4D('double'))(0.0,0.0,0.0,0.0)
+        self.oneP4=utils.LorentzV()
+        self.sumP4=utils.LorentzV()
+        self.zeroP4=utils.LorentzV()
         self.minPt=minPt
         self.minStatus=minStatus
         

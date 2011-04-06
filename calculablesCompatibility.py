@@ -1,9 +1,9 @@
 from wrappedChain import *
-import calculables
+import calculables,utils
 ##############################
 class deadEcalRegionsFromFile(wrappedChain.calculable) :
     def __init__(self) :
-        self.trigPrims = r.std.vector(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double')))()
+        self.trigPrims = r.std.vector(utils.LorentzV())()
         self.nBadXtals = r.std.vector("int")()
         self.maxStatus = r.std.vector("int")()
         inFile=open("deadRegionList.txt")
@@ -13,7 +13,7 @@ class deadEcalRegionsFromFile(wrappedChain.calculable) :
             eta  = float(fieldList[0])
             phi  = float(fieldList[1])
             nBad = int(fieldList[4])
-            self.trigPrims.push_back(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0,eta,phi,0.0))
+            self.trigPrims.push_back(utils.LorentzV(0.0,eta,phi,0.0))
             self.nBadXtals.push_back(nBad)
             self.maxStatus.push_back(14)
         inFile.close()
@@ -26,7 +26,7 @@ class deadEcalRegionsFromFile(wrappedChain.calculable) :
 ##############################
 class deadHcalChannelsFromFile(wrappedChain.calculable) :
     def __init__(self) :
-        self.p4s = r.std.vector(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double')))()
+        self.p4s = r.std.vector(utils.LorentzV())()
         self.status = r.std.vector("int")()
         inFile = open("hcalDeadChannels.txt")
         for line in inFile :
@@ -36,7 +36,7 @@ class deadHcalChannelsFromFile(wrappedChain.calculable) :
             eta    = float(fieldList[0])
             phi    = float(fieldList[1])
             status = int(fieldList[2])
-            self.p4s.push_back(r.Math.LorentzVector(r.Math.PtEtaPhiE4D('double'))(0.0, eta, phi, 0.0))
+            self.p4s.push_back(utils.LorentzV()(0.0, eta, phi, 0.0))
             self.status.push_back(status)
         inFile.close()
 
