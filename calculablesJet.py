@@ -629,7 +629,7 @@ class deadEcalDR(wrappedChain.calculable) :
         index = self.source[self.dps]["DeltaPhiStarJetIndex"]
         if index!=None :
             jet = self.source["%sCorrectedP4%s"%self.jets].at(index)
-            self.badJet.SetCoordinates(jet.pt(),jet.eta(),jet.phi(),jet.E())
+            self.badJet.SetCoordinates(jet.pt(),jet.eta(),jet.phi(),jet.mass())
 
             dRs = []
             for iRegion in range(self.source["ecalDeadTowerTrigPrimP4"].size()) :
