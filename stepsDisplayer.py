@@ -209,12 +209,13 @@ class displayer(analysisStep) :
         jets2 = (jets[0].replace("xc",""),jets[1])
         isPf = "PF" in jets[0]
         p4Vector         = eventVars['%sCorrectedP4%s'     %jets]
+        corrVector       = eventVars['%sCorrFactor%s'      %jets2]
 
         if not isPf :
             jetEmfVector  = eventVars['%sEmEnergyFraction%s'%jets2]
             jetFHpdVector = eventVars['%sJetIDFHPD%s'       %jets2]
             jetN90Vector  = eventVars['%sJetIDN90Hits%s'    %jets2]
-
+            
             loose = eventVars["%sJetIDloose%s"%jets2]
             tight = eventVars["%sJetIDtight%s"%jets2]
             
@@ -232,8 +233,8 @@ class displayer(analysisStep) :
             tight = eventVars["%sPFJetIDtight%s"%jets2]
             
         self.printText(self.renamedDesc(jets[0]+jets[1]))
-        self.printText("ID   pT  eta  phi%s"%("   EMF  fHPD N90" if not isPf else "   CHF  NHF  CEF  NEF CM"))
-        self.printText("-----------------%s"%("----------------" if not isPf else "------------------------"))
+        self.printText("ID   pT  eta  phi%s"%("   EMF  fHPD N90 corr" if not isPf else "   CHF  NHF  CEF  NEF CM corr"))
+        self.printText("-----------------%s"%("---------------------" if not isPf else "-----------------------------"))
 
         nJets = p4Vector.size()
         for iJet in range(nJets) :
@@ -246,9 +247,9 @@ class displayer(analysisStep) :
             outString+="%5.0f %4.1f %4.1f"%(jet.pt(), jet.eta(), jet.phi())
 
             if not isPf :
-                outString+=" %5.2f %5.2f %3d"%(jetEmfVector.at(iJet), jetFHpdVector.at(iJet), jetN90Vector.at(iJet))
+                outString+=" %5.2f %5.2f %3d %4.2f"%(jetEmfVector.at(iJet), jetFHpdVector.at(iJet), jetN90Vector.at(iJet), corrVector.at(iJet))
             else :
-                outString+=" %5.3f %4.2f %4.2f %4.2f%3d"%(chf.at(iJet), nhf.at(iJet), cef.at(iJet), nef.at(iJet), cm.at(iJet))
+                outString+=" %5.3f %4.2f %4.2f %4.2f%3d %4.2f"%(chf.at(iJet), nhf.at(iJet), cef.at(iJet), nef.at(iJet), cm.at(iJet), corrVector.at(iJet))
             self.printText(outString)
 
     def printKinematicVariables(self, eventVars, params, coords, jets, jets2, others) :
@@ -516,7 +517,8 @@ class displayer(analysisStep) :
             for collectionName in ["","cluster"] :
                 varName = "rechit"+collectionName+self.recHits+"P4"+detector
                 if varName not in eventVars : continue
-                for hit in eventVars[varName] :
+                for iHit in range(len(eventVars[varName])) :
+                    hit = eventVars[varName].at(iHit)
                     if hit.pt()<self.recHitPtThreshold : continue
                     self.drawP4(coords, hit, color, lineWidth, arrowSize)
             
@@ -766,18 +768,18 @@ class displayer(analysisStep) :
             #                         (self.jets[0].replace("xc","")+"JPT","Pat"),896,defWidth, defArrowSize*3/4.0)
             #self.drawCleanJets      (eventVars, coords,
             #                         (self.jets[0].replace("xc","")+"PF","Pat"), 38,defWidth, defArrowSize*1/2.0)
-        
+            
             self.drawIgnoredJets    (eventVars, coords,r.kCyan    , defWidth, defArrowSize*1/6.0)
             #self.drawOtherJets      (eventVars, coords,r.kBlack  )
             if self.ra1Mode and not self.markusMode :
                 self.drawHt         (eventVars, coords,r.kBlue+3  , defWidth, defArrowSize*1/6.0)
                 self.drawNJetDeltaHt(eventVars, coords,r.kBlue-9  , defWidth, defArrowSize*1/6.0)
-
+            
             if self.ra1Mode :
                 self.drawMht        (eventVars, coords,r.kRed     , defWidth, defArrowSize*3/6.0)
             if self.met :
                 self.drawMet        (eventVars, coords,r.kGreen   , defWidth, defArrowSize*2/6.0)
-
+            
             if not self.markusMode :
                 if self.muons :     self.drawMuons    (eventVars, coords,r.kYellow  , defWidth, defArrowSize*2/6.0)
                 if self.electrons : self.drawElectrons(eventVars, coords,r.kOrange+7, defWidth, defArrowSize*2.5/6.0)
@@ -810,7 +812,7 @@ class displayer(analysisStep) :
         pad.cd()
 
         defaults = {}
-        defaults["size"] = 0.04
+        defaults["size"] = 0.035
         defaults["font"] = 80
         defaults["color"] = r.kBlack
         defaults["slope"] = 0.02
@@ -876,7 +878,7 @@ class displayer(analysisStep) :
                                                    "x2":rhoPhiPadXSize + 0.12,
                                                    "y2":0.55})
             #g4 = self.drawMhtLlPlot(eventVars, r.kBlack, corners = {"x1":0.63, "y1":0.63, "x2":0.95, "y2":0.95})
-
+        
         t = self.printAllText(eventVars,
                               corners = {"x1":rhoPhiPadXSize + 0.11,
                                          "y1":0.0,
