@@ -17,10 +17,10 @@ def hackMap(*args) :
     return out
 #####################################
 lvClass = None
-def LorentzV() :
+def LorentzV(*args) :
     global lvClass
     if lvClass is None : lvClass = r.Math.LorentzVector(r.Math.PtEtaPhiM4D('float'))
-    return lvClass()
+    return lvClass(*args)
 #####################################
 def generateDictionaries(inList) :
     for item in inList :
