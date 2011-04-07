@@ -9,32 +9,30 @@ class triggerLook(analysis.analysis) :
 
     def listOfSteps(self,params) :
         return [
-            #steps.triggerCounts(["HLT_HT"]),
-            steps.hltPrescaleHistogrammer(["HLT_HT100U","HLT_HT120U","HLT_HT140U","HLT_HT150U_v1","HLT_HT150U_v3","HLT_HT160U_v1","HLT_HT160U_v3"]),
+            steps.Trigger.Counts(),
+            #steps.Filter.label("150"),
+            #steps.Trigger.hltPrescaleHistogrammer(["HLT_HT150_v2","HLT_HT150_AlphaT0p60_v1","HLT_HT150_AlphaT0p70_v1"]),
+            #steps.Filter.label("200"),            
+            #steps.Trigger.hltPrescaleHistogrammer(["HLT_HT200_v2","HLT_HT200_AlphaT0p60_v1","HLT_HT200_AlphaT0p65_v1"]),
+            #steps.Filter.label("250"),
+            #steps.Trigger.hltPrescaleHistogrammer(["HLT_HT250_v2","HLT_HT250_AlphaT0p55_v1","HLT_HT250_AlphaT0p62_v1"]),
+            #steps.Filter.label("300"),
+            #steps.Trigger.hltPrescaleHistogrammer(["HLT_HT300_v3","HLT_HT300_AlphaT0p52_v1","HLT_HT300_AlphaT0p54_v1"]),
+            #steps.Filter.label("350"),
+            #steps.Trigger.hltPrescaleHistogrammer(["HLT_HT350_v2","HLT_HT350_AlphaT0p51_v1","HLT_HT350_AlphaT0p53_v1"]),
             ]
 
     def listOfSampleDictionaries(self) :
-        return [samples.mc, samples.jetmet]
+        return [samples.jetmet]
 
     def listOfSamples(self,params) :
         from samples import specify
-        outList = [
-            #specify(name = "MultiJet.Run2010B-PromptReco-v2.RECO.RAW.Bryn"),
-            specify(name = "Run2010B_MJ_skim3"),
-            ]
-
-        ##uncomment for short tests
-        #for i in range(len(outList)):
-        #    o = outList[i]
-        #    outList[i] = specify(name = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)
-        
-        return outList
+        return specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Bryn"])
         
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
             #organize
             org=organizer.organizer( self.sampleSpecs(tag) )
-            org.scale()
             
             #plot
             pl = plotter.plotter(org,
