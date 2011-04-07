@@ -126,6 +126,15 @@ class hltFilter(analysisStep) :
     def select (self,eventVars) :
         return eventVars["triggered"][self.hltPathName]
 #####################################
+class hltFail(analysisStep) :
+
+    def __init__(self,hltPathName):
+        self.hltPathName = hltPathName
+        self.moreName = self.hltPathName
+
+    def select (self,eventVars) :
+        return not eventVars["triggered"][self.hltPathName]
+#####################################
 class hltFilterList(analysisStep) :
 
     def __init__(self,hltPathNames):
