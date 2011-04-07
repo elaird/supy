@@ -18,9 +18,9 @@ class hadronicLook(analysis.analysis) :
                                                                  ("xcak5Jet","Pat"),"metP4AK5TypeII",
                                                                  "PF",        True,         50.0,      "JetIDtight"]))
 
-        #objects["pfAK5JetMetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","PF"),("electron","PF"), ("photon","Pat"),
-        #                                                         None, None,
-        #                                                         "PF",        True,         50.0]))
+        objects["pfAK5JetMetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","PF"),("electron","PF"), ("photon","Pat"),
+                                                                 None, None,
+                                                                 "PF",        True,         50.0]))
 
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
@@ -164,7 +164,6 @@ class hadronicLook(analysis.analysis) :
             #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (80,   0.4,   0.6 ), "HLT_HT350_AlphaT0p51_v1", ["HLT_HT350_v2"]),
             #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (80,   0.4,   0.6 ), "HLT_HT350_AlphaT0p53_v1", ["HLT_HT350_v2"]),
             
-            
             #many plots
             steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
             steps.Other.passFilter("singleJetPlots1"),
@@ -221,7 +220,6 @@ class hadronicLook(analysis.analysis) :
         from samples import specify
         def data() : return specify( #nFilesMax = 4, nEventsMax = 2000,
                                      names = [#"Nov4_MJ_skim","Nov4_J_skim","Nov4_J_skim2","Nov4_JM_skim","Nov4_JMT_skim","Nov4_JMT_skim2",
-                                              #"HT.Run2011A-PromptReco-v1.AOD.Bryn",
                                               "HT.Run2011A-PromptReco-v1.AOD.Henning",
                                               ])
         
