@@ -9,13 +9,14 @@ class displayer(analysisStep) :
                  recHits = None, recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False,
                  doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "", deltaPhiStarCut = None, deltaPhiStarDR = None, showAlphaTMet = True,
                  printOtherJetAlgoQuantities = False, jetsOtherAlgo = None, metOtherAlgo = None, printExtraText = True,
-                 ra1Mode = True, ra1CutBits = True, markusMode = False, tipToTail = False) :
+                 ra1Mode = True, ra1CutBits = True, markusMode = False, tipToTail = False, triggersToPrint = []) :
 
         self.moreName = "(see below)"
 
         for item in ["scale","jets","met","muons","electrons","photons","taus","recHits","recHitPtThreshold","doGenParticles",
                      "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "deltaPhiStarCut", "deltaPhiStarDR", "showAlphaTMet",
-                     "printOtherJetAlgoQuantities", "jetsOtherAlgo", "metOtherAlgo", "printExtraText", "ra1Mode", "ra1CutBits", "markusMode","tipToTail"] :
+                     "printOtherJetAlgoQuantities", "jetsOtherAlgo", "metOtherAlgo", "printExtraText", "ra1Mode", "ra1CutBits",
+                     "markusMode","tipToTail", "triggersToPrint"] :
             setattr(self,item,eval(item))
 
         self.jetRadius = 0.7 if "ak7Jet" in self.jets[0] else 0.5
@@ -119,6 +120,8 @@ class displayer(analysisStep) :
                         "Event %#10d"%eventVars["event"]
                         ] :
             self.printText(message)
+        for item in self.triggersToPrint :
+            self.printText("%s"%(item if eventVars["triggered"][item] else ""))
         
     def printVertices(self, eventVars, params, coords, nMax) :
         self.prepareText(params, coords)
@@ -842,10 +845,10 @@ class displayer(analysisStep) :
                 if self.ra1CutBits :
                     self.printCutBits(       eventVars, params = defaults, coords = {"x":x0, "y":y0-0.10}, jets = self.jets, jets2 = self.jetsOtherAlgo,
                                          met = self.met, met2 = self.metOtherAlgo, others = self.printOtherJetAlgoQuantities)
-                self.printFlags(eventVars, params = defaults, coords = {"x":x0, "y":y0-0.34},
-                                flags = ['logErrorTooManyClusters','logErrorTooManySeeds',
-                                         "beamHaloCSCLooseHaloId","beamHaloCSCTightHaloId","beamHaloEcalLooseHaloId","beamHaloEcalTightHaloId",
-                                         "beamHaloGlobalLooseHaloId","beamHaloGlobalTightHaloId","beamHaloHcalLooseHaloId","beamHaloHcalTightHaloId" ])
+                #self.printFlags(eventVars, params = defaults, coords = {"x":x0, "y":y0-0.34},
+                #                flags = ['logErrorTooManyClusters','logErrorTooManySeeds',
+                #                         "beamHaloCSCLooseHaloId","beamHaloCSCTightHaloId","beamHaloEcalLooseHaloId","beamHaloEcalTightHaloId",
+                #                         "beamHaloGlobalLooseHaloId","beamHaloGlobalTightHaloId","beamHaloHcalLooseHaloId","beamHaloHcalTightHaloId" ])
         
         self.canvas.cd()
         pad.Draw()
