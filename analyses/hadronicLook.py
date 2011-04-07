@@ -21,12 +21,6 @@ class hadronicLook(analysis.analysis) :
         #objects["pfAK5JetMetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","PF"),("electron","PF"), ("photon","Pat"),
         #                                                         None, None,
         #                                                         "PF",        True,         50.0]))
-        #objects["caloAK7JetMet_recoLepPhot"] = dict(zip(fields, [("xcak7Jet","Pat"),"metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"),
-        #                                                         None, None,
-        #                                                         "Calo" ,    False,         50.0]))
-        #objects["jptAK5JetMet_recoLepPhot"]  = dict(zip(fields, [("xcak5JetJPT","Pat"), "metP4TC",   ("muon","Pat"),("electron","Pat"),("photon","Pat"),
-        #                                                             None, None,
-        #                                                             "Calo",      True,         50.0]))
 
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
@@ -34,14 +28,17 @@ class hadronicLook(analysis.analysis) :
                  "etRatherThanPt" : [True,False]        [0],
                  "lowPtThreshold" : 30.0,
                  "lowPtName" : "lowPt",
-                 "triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"),#required to be a sorted tuple
+                 #required to be a sorted tuple with length>1
+                 #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
+                 "triggerList" : ("HLT_HT300_v3", "HLT_HT350_v2"),#early 2011
+                 #"triggerList" : ("HLT_HT350_AlphaT0p51_v1", "HLT_HT350_AlphaT0p53_v1"), #mid 2011
                  }
 
     def calcListJet(self, obj, etRatherThanPt, lowPtThreshold, lowPtName) :
         def calcList(jet, met, photon, muon, electron, muonsInJets, jetPtMin, jetIdFlag) :
             outList = [
                 calculables.XClean.xcJet(jet,
-                                         applyResidualCorrectionsToData = True,
+                                         applyResidualCorrectionsToData = False,
                                          gamma = photon,
                                          gammaDR = 0.5,
                                          muon = muon,
@@ -129,9 +126,44 @@ class hadronicLook(analysis.analysis) :
             steps.Other.multiplicityPlotFilter("%sIndices%s"%_jet, nMin=params["nJetsMinMax"][0], nMax=params["nJetsMinMax"][1], xlabel="number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts"%_jet)
             )+[
             steps.Jet.uniquelyMatchedNonisoMuons(_jet), 
-               
+
             steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 1500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
             steps.Other.variableGreaterFilter(350.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
+            
+            #steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT350_v2", ["HLT_HT300_v3"]),
+            ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT350_v2", ["HLT_HT250_v2"]),
+            ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT350_v2", ["HLT_HT200_v2"]),
+            ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT350_v2", ["HLT_HT150_v2"]),
+            #
+            #steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 150.0, 450.0), "HLT_HT300_v3", ["HLT_HT250_v2"], permissive = True),
+            ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT300_v3", ["HLT_HT200_v2"]),
+            ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT300_v3", ["HLT_HT150_v2"]),
+            #
+            #steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 100.0, 400.0), "HLT_HT250_v2", ["HLT_HT200_v2"], permissive = True),
+            ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT250_v2", ["HLT_HT150_v2"]),
+            #
+            #steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60,  50.0, 350.0), "HLT_HT200_v2", ["HLT_HT150_v2"], permissive = True),
+            #
+            #steps.Other.variableGreaterFilter(150.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
+            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (70,   0.4,   0.75), "HLT_HT150_AlphaT0p60_v1", ["HLT_HT150_v2"]),
+            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (70,   0.4,   0.75), "HLT_HT150_AlphaT0p70_v1", ["HLT_HT150_v2"]),
+            #
+            #steps.Other.variableGreaterFilter(200.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
+            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (60,   0.4,   0.7 ), "HLT_HT200_AlphaT0p60_v1", ["HLT_HT200_v2"]),
+            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (60,   0.4,   0.7 ), "HLT_HT200_AlphaT0p65_v1", ["HLT_HT200_v2"]),
+            #
+            #steps.Other.variableGreaterFilter(250.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
+            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (60,   0.4,   0.7 ), "HLT_HT250_AlphaT0p55_v1", ["HLT_HT250_v2"]),
+            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (60,   0.4,   0.7 ), "HLT_HT250_AlphaT0p62_v1", ["HLT_HT250_v2"]),
+            #
+            #steps.Other.variableGreaterFilter(300.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
+            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (80,   0.4,   0.6 ), "HLT_HT300_AlphaT0p52_v1", ["HLT_HT300_v3"]),
+            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (80,   0.4,   0.6 ), "HLT_HT300_AlphaT0p54_v1", ["HLT_HT300_v3"]),
+            #
+            #steps.Other.variableGreaterFilter(350.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
+            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (80,   0.4,   0.6 ), "HLT_HT350_AlphaT0p51_v1", ["HLT_HT350_v2"]),
+            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (80,   0.4,   0.6 ), "HLT_HT350_AlphaT0p53_v1", ["HLT_HT350_v2"]),
+            
             
             #many plots
             steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
@@ -188,19 +220,17 @@ class hadronicLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         def data() : return specify( #nFilesMax = 4, nEventsMax = 2000,
-                                     names = ["Nov4_MJ_skim"  ,
-                                              "Nov4_J_skim"   ,
-                                              "Nov4_J_skim2"  ,
-                                              "Nov4_JM_skim"  ,
-                                              "Nov4_JMT_skim" ,
-                                              "Nov4_JMT_skim2"])
+                                     names = [#"Nov4_MJ_skim","Nov4_J_skim","Nov4_J_skim2","Nov4_JM_skim","Nov4_JMT_skim","Nov4_JMT_skim2",
+                                              #"HT.Run2011A-PromptReco-v1.AOD.Bryn",
+                                              "HT.Run2011A-PromptReco-v1.AOD.Henning",
+                                              ])
         
 
         def qcd_py6(eL) :
             q6 = [0,5,15,30,50,80,120,170,300,470,600,800,1000,1400,1800]
             iCut = q6.index(80)
             return specify( effectiveLumi = eL, color = r.kBlue,
-                            names = [("qcd_py6_pt_%dto%d"%t)[:None if t[1] else -3] for t in zip(q6,q6[1:]+[0])[iCut:]] )
+                            names = [("v14_qcd_py6_pt_%dto%d"%t)[:None if t[1] else -3] for t in zip(q6,q6[1:]+[0])[iCut:]] )
 
         def g_jets_py6(eL) :
             return specify( effectiveLumi = eL, color = r.kGreen,
@@ -210,7 +240,7 @@ class hadronicLook(analysis.analysis) :
             q8 = [0,15,30,50,80,120,170,300,470,600,800,1000,1400,1800]
             iCut = q8.index(50)
             return specify( effectiveLumi = eL, color = r.kBlue,
-                            names = [("qcd_py8_pt%dto%d"%t)[:None if t[1] else -3] for t in zip(q8,q8[1:]+[0])[iCut:]] )
+                            names = [("v14_qcd_py8_pt%dto%d"%t)[:None if t[1] else -3] for t in zip(q8,q8[1:]+[0])[iCut:]] )
 
         def qcd_mg(eL) :
             qM = ["%d"%t for t in [50,100,250,500,1000]]
@@ -264,16 +294,18 @@ class hadronicLook(analysis.analysis) :
                                 "py8": (qcd_py8,g_jets_py6), # no g_jets_py8 available
                                 "mg" : (qcd_mg, g_jets_mg ) }[params["mcSoup"]]
         eL = 50 # 1/pb
+        #return data()
         return ( data() +
-                 qcd_func(eL) + g_jets_func(eL) +
-                 ttbar_mg(eL) + ewk(eL) + susy(eL) )
+                 qcd_func(eL) + #g_jets_func(eL) +
+                 ttbar_mg(eL) + ewk(eL) + susy(eL)
+                 )
 
     def mergeSamples(self, org, tag) :
         def py6(org, smSources) :
-            org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
-            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen}, allWithPrefix="v12_g_jets_py6")
+            org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="v14_qcd_py6")
+            #org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen}, allWithPrefix="v12_g_jets_py6")
             smSources.append("qcd_py6")
-            smSources.append("g_jets_py6_v12")
+            #smSources.append("g_jets_py6_v12")
 
         def py8(org, smSources) :
             org.mergeSamples(targetSpec = {"name":"qcd_py8", "color":r.kBlue}, allWithPrefix="qcd_py8")
@@ -295,8 +327,9 @@ class hadronicLook(analysis.analysis) :
         if "pythia8"  in tag : py8(org, smSources)
         if "madgraph" in tag : mg (org, smSources)
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
-        org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="Nov4")
-
+        #org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="Nov4")
+        org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="HT.Run2011A")
+        
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
             ##for skimming only
@@ -311,8 +344,8 @@ class hadronicLook(analysis.analysis) :
             #plot
             pl = plotter.plotter(org,
                                  psFileName = self.psFileName(tag),
-                                 #samplesForRatios = ("2010 Data","standard_model"),
-                                 #sampleLabelsForRatios = ("data","s.m."),
+                                 samplesForRatios = ("2011 Data","standard_model"),
+                                 sampleLabelsForRatios = ("data","s.m."),
                                  #whiteList = ["lowestUnPrescaledTrigger"],
                                  #doLog = False,
                                  #compactOutput = True,
