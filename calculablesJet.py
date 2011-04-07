@@ -164,7 +164,8 @@ class Pt(wrappedChain.calculable) :
         self.fixes = collection
         self.stash(["CorrectedP4"])
     def update(self,ignored) :
-        self.value = [p4.pt() for p4 in self.source[self.CorrectedP4]]
+        p4s = self.source[self.CorrectedP4]
+        self.value = [p4s.at(i).pt() for i in range(len(p4s))]
 ##############################
 class SumPt(wrappedChain.calculable) :
     def __init__(self, collection = None) :
