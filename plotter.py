@@ -301,7 +301,7 @@ class plotter(object) :
         text = r.TText()
         text.SetNDC()
         text.SetTextFont(102)
-        text.SetTextSize(0.55*text.GetTextSize())
+        text.SetTextSize(0.38*text.GetTextSize())
 
         def getLumi(sample = None, iSource = None) :
             value = 0.0
@@ -382,7 +382,7 @@ class plotter(object) :
         text = r.TText()
         text.SetNDC()
         text.SetTextFont(102)
-        text.SetTextSize(0.5*text.GetTextSize())
+        text.SetTextSize(0.45*text.GetTextSize())
 
         pageWidth = 111
         colWidth = min(25, pageWidth/len(self.someOrganizer.samples))
