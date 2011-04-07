@@ -67,19 +67,20 @@ class wTopAsym(wrappedChain.calculable) :
         self.rPrime = rPrime
         self.R = __R__
         self.epsilon = 1.
-        self.epsilon = 1. / max( self.weight(math.sqrt(__f0__)),
-                                 self.weight(-math.sqrt(__f0__)))
+        self.epsilon = 1. / max( self.weight(math.sqrt(__f0__),__f0__),
+                                 self.weight(-math.sqrt(__f0__),__f0__))
 
         assert self.epsilon <= 1.
         assert totalEff < self.epsilon
         if 0 < totalEff : self.epsilon = totalEff
         
-    def weight(self,beta) :
-        base = 3./8 * (1+beta*beta)
+    def weight(self,beta,alpha) :
+        base = 3 * (1+beta*beta) / (6+2.*alpha)
         return self.epsilon * (base+beta*self.rPrime) / (base+beta*self.R)
     
     def update(self,ignored) :
-        self.value = self.epsilon if not self.source['genQQbar'] else self.weight(self.source['genTopBeta'])
+        self.value = self.epsilon if not self.source['genQQbar'] else self.weight(self.source['genTopBeta'],
+                                                                                  min(__f0__,self.source['genTopAlpha']))
 
 __totalEff__ = 0.68
 class wTopAsymN30(wTopAsym) :
