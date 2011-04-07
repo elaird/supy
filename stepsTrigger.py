@@ -154,8 +154,8 @@ class hltPrescaleHistogrammer(analysisStep) :
 #####################################
 class hltTurnOnHistogrammer(analysisStep) :
 
-    def __init__(self, var = None, binsMinMax = None, probe = None, tags = None) :
-        for item in ["var","binsMinMax","probe","tags"] :
+    def __init__(self, var = None, binsMinMax = None, probe = None, tags = None, permissive = False) :
+        for item in ["var","binsMinMax","probe","tags","permissive"] :
             setattr(self,item,eval(item))
 
         tags = "{%s}"%(','.join([t.replace("HLT_","") for t in self.tags]))
@@ -168,8 +168,8 @@ class hltTurnOnHistogrammer(analysisStep) :
         self.moreName = "%s by %s, given %s;" % (probe, var, tags)
 
     def uponAcceptance(self,eventVars) :
-        if 1 != eventVars["prescaled"][self.probe] or \
-           not any([eventVars["triggered"][t] for t in self.tags]) : return
+        if not any([eventVars["triggered"][t] for t in self.tags]) : return
+        if (not self.permissive) and 1 != eventVars["prescaled"][self.probe] : return
         
         for t in ([self.tagTitle] if not eventVars["triggered"][self.probe] else [self.tagTitle,self.probeTitle]) :
             self.book.fill( eventVars[self.var], t[0], self.binsMinMax[0],self.binsMinMax[1],self.binsMinMax[2], title = t[1] )
