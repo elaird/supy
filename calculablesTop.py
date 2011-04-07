@@ -53,7 +53,7 @@ class genTopAlpha(wrappedChain.calculable) :
     m2 = 172**2
     def update(self,ignored) :
         x = 4*self.m2/ (self.source['genTopTTbarSumP4'].E())**2
-        self.value = (1-x)/(1+x)
+        self.value = max(0,(1-x)/(1+x))
 ######################################
 __f0__ = 0.6
 __R__ = 0.04

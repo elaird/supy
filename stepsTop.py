@@ -27,30 +27,33 @@ class Asymmetry(analysisStep) :
         #                     funcString = "lambda x: (x[0],x[1])"),        
 #####################################
 class mcTruthQDir(analysisStep) :
-    def __init__(self,withNu=False) :
-        self.withNu = withNu
+    def __init__(self,withLepton = False, withNu = False) :
+        self.withNu = withNu and withLepton
+        self.withLepton = withLepton
+        
     def uponAcceptance(self,ev) :
         if ev['isRealData'] : return
         genSumPz = ev['genSumP4'].pz()
-        for sumP4 in ['genTopNuP4','genTopTTbarSumP4','mixedSumP4','mixedSumP4Nu'][:4 if self.withNu else 3] :
+        for sumP4 in ['genTopNuP4','genTopTTbarSumP4','mixedSumP4','mixedSumP4Nu'][:4 if self.withNu else 3 if self.withLepton else 2] :
             self.book.fill( (genSumPz, ev[sumP4].pz()), "genSumP4_%s_pz"%sumP4, (100,100),(-3000,-3000),(3000,3000),
                             title = ";genSumP4 pz;%s pz;events/bin"%sumP4)
 
         qqbar = ev['genQQbar']
         if qqbar :
             qdir = 1 if ev['genP4'][qqbar[0]].pz()>0 else -1
-            for sumP4 in ['genSumP4','mixedSumP4','mixedSumP4Nu'][:3 if self.withNu else 2] :
+            for sumP4 in ['genSumP4','mixedSumP4','mixedSumP4Nu'][:3 if self.withNu else 2 if self.withLepton else 1] :
                 self.book.fill( qdir * ev[sumP4].pz(), "qdir_%s_pz"%sumP4, 100,-3000,3000, title = ';qdir * %s.pz;events/bin'%sumP4)
         
 #####################################
 class mcTruth(analysisStep) :
-    def __init__(self,lepton) :
-
-        pass
+    def __init__(self,qqbar = None) :
+        self.qqbar = qqbar
 
     def uponAcceptance(self,ev) :
         if not ev['genTopTTbar'] : return
+        if self.qqbar is not None and bool(ev['genQQbar']) != self.qqbar : return
         suf = '_QQbar' if ev['genQQbar'] else '_NonQQbar'
+
         self.book.fill(ev['genTopAlpha'],'alpha%s'%suf,10,0,1,title=';genTopAlpha;events / bin')
         alpha = '_alpha%d'%int(10*ev['genTopAlpha'])
 
@@ -61,3 +64,4 @@ class mcTruth(analysisStep) :
         #self.book.fill( (ev['genTopCosThetaStar'],ev['genTopCosThetaStarBar']), 'cts_v_ctsbar%s%s'%(suf,alpha), (100,100),(-1,-1),(1,1), title = ';costhetaQT;cosThetaQbarTbar;%s events/bin'%suf)
         #self.book.fill( (ev['genTopCosThetaStar'],ev['genTopAlpha']), 'cts_v_alpha%s'%suf, (25,25),(-1,0),(1,1), title = ';costhetaQT;#alpha;%s events/bin'%suf)
         #self.book.fill( (ev['genTopCosThetaStarAvg'],ev['genTopAlpha']), 'ctsavg_v_alpha%s'%suf, (25,25),(-1,0),(1,1), title = ';costhetaAvg;#alpha;%s events/bin'%suf)
+        self.book.fill(ev['genTopTTbarSumP4'].M(), "genttbarinvmass", 40,0,1000, title = ';ttbar invariant mass;events / bin' )
