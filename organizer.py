@@ -138,16 +138,16 @@ class organizer(object) :
         self.samples = tuplePopInsert( self.samples, target )
         return
 
-    def scale(self, lumiToUseInAbsenceOfData = None) :
+    def scale(self, lumiToUseInAbsenceOfData = None, toPdf = False) :
         for org in self.alternateConfigurations :
             org.scale(lumiToUseInAbsenceOfData)
 
-        dataIndices = filter(lambda i: "lumi" in self.samples[i], range(len(self.samples)))
+        dataIndices = filter(lambda i: "lumi" in self.samples[i], range(len(self.samples))) if not toPdf else []
         assert len(dataIndices)<2, \
                "What should I do with more than one data sample?"
         iData = dataIndices[0] if len(dataIndices) else None
-        self.lumi = self.samples[iData]["lumi"] if iData!=None else lumiToUseInAbsenceOfData
-        assert self.lumi, \
+        self.lumi = self.samples[iData]["lumi"] if iData!=None else 0.0 if toPdf else lumiToUseInAbsenceOfData
+        assert self.lumi or toPdf, \
                "You need to have a data sample or specify the lumi to use."
         if type(self.lumi) is list : self.lumi = sum(self.lumi)
 
@@ -156,10 +156,11 @@ class organizer(object) :
                 if key in ["lumiHisto","xsHisto","nJobsHisto","nEventsHisto"] : continue
                 for i,h in enumerate(hists):
                     if not h: continue
-                    if i!=iData: h.Scale(self.lumi)
+                    if toPdf : h.Scale(1/h.Integral("width"))
+                    elif i!=iData : h.Scale(self.lumi)
                     dim = int(h.ClassName()[2])
                     axis = h.GetYaxis() if dim==1 else h.GetZaxis() if dim==2 else None
-                    if axis: axis.SetTitle("%s / %s pb^{-1}"%(axis.GetTitle(),str(self.lumi)))
+                    if axis: axis.SetTitle("p.d.f." if toPdf else "%s / %s pb^{-1}"%(axis.GetTitle(),str(self.lumi)))
         self.scaled = True
 
     def normalize(self) :
