@@ -5,7 +5,11 @@ import ROOT as r
 
 class topAsymmTemplates(analysis.analysis) :
     def parameters(self) :
-        return {"sample" : {"compare":["mg","pythia"],"mg":"mg","pythia":"pythia"}
+        return {"sample" : {"compare":["mg","pythia"],
+                            "mg":"mg",
+                            "pythia":"pythia"
+                            },
+                "effectiveLumi" : None
                 }
 
     def listOfCalculables(self, pars) :
@@ -18,9 +22,13 @@ class topAsymmTemplates(analysis.analysis) :
     
     def listOfSteps(self, pars) :
         return [steps.Print.progressPrinter(),
+                steps.Filter.label("q direction"), steps.Top.mcTruthQDir(),
                 steps.Filter.label("non-qqbar"),   steps.Top.mcTruth(qqbar=False),
                 steps.Filter.label("qqbar"),       steps.Top.mcTruth(qqbar=True),
-                steps.Filter.label("q direction"), steps.Top.mcTruthQDir(),
+                steps.Filter.label("all"),         steps.Top.mcTruth(),
+                steps.Filter.OR([steps.Filter.value('genTTbarIndices',min=0,index='lplus'),
+                                 steps.Filter.value('genTTbarIndices',min=0,index='lminus')]),
+                steps.Top.mcTruth(),
                 ]
     
     def listOfSampleDictionaries(self) :
@@ -28,7 +36,7 @@ class topAsymmTemplates(analysis.analysis) :
 
     def listOfSamples(self,pars) :
         from samples import specify
-        eL = None
+        eL = pars["effectiveLumi"]
 
         if type(pars["sample"]) is list :
             return (specify( names = "tt_tauola_%s"%pars["sample"][0], effectiveLumi = eL) +
@@ -49,7 +57,7 @@ class topAsymmTemplates(analysis.analysis) :
         for tag in self.sideBySideAnalysisTags() :
             #organize
             org=organizer.organizer( self.sampleSpecs(tag) )
-            org.scale(100)
+            org.scale(toPdf=True)
             
             #plot
             pl = plotter.plotter(org,

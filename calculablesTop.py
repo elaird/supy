@@ -21,6 +21,25 @@ class genTopTTbar(wrappedChain.calculable) :
                      (not self.source['isRealData']) and \
                      all([id in self.source['genPdgId'] for id in [-6,6]]) else ()
 ######################################
+class genTTbarIndices(wrappedChain.calculable) :
+    def update(self,ignored) :
+        ids = [i for i in self.source['genPdgId']]
+        mom = self.source['genMotherIndex']
+        self.value = dict([(name, ids.index(i)) for name,i in [('t',6),
+                                                               ('tbar',-6),
+                                                               ('wplus',24),
+                                                               ('wminus',-24)
+                                                               ]])
+        self.value.update(dict([ (w+"Child",filter(lambda i: mom[i]==self.value[w],range(len(ids)))) for w in ['wplus','wminus','t','tbar']]))
+        self.value['lplus'] = max([None]+filter(lambda i: ids[i] in [-11,-13],self.value['wplusChild']))
+        self.value['lminus'] = max([None]+filter(lambda i: ids[i] in [11,13],self.value['wminusChild']))
+######################################
+class genTopDeltaYttbar(wrappedChain.calculable) :
+    def update(self,ignored) :
+        p4 = self.source['genP4']
+        ttbar = self.source['genTopTTbar']
+        self.value = p4[ttbar[0]].Rapidity() - p4[ttbar[1]].Rapidity() if ttbar else None
+######################################
 class genTopTTbarSumP4(wrappedChain.calculable) :
     def update(self,ignored) :
         genP4 = self.source['genP4']
@@ -105,17 +124,6 @@ class wTopAsymP20(wTopAsym) :
     def __init__(self) : super(wTopAsymP20,self).__init__(0.20, __totalEff__)
 class wTopAsymP30(wTopAsym) :
     def __init__(self) : super(wTopAsymP30,self).__init__(0.30, __totalEff__)
-######################################
-class genTTbar(wrappedChain.calculable) :
-    def update(self,ignored) :
-        self.value = {}
-
-        indexT = ids.index(6)
-        indexTbar = ids.index(-6)
-        indexWplus = ids.index(24)
-        indexWminus = ids.index(-24)
-        indexB = ids.index(5)
-        indexBbar = ids.index(-5)
 ######################################
 class mixedSumP4(wrappedChain.calculable) :
     def __init__(self, transverse = None, longitudinal = None) :
