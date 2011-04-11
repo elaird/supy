@@ -81,6 +81,10 @@ class genTopBeta(wrappedChain.calculable) :
     def update(self, ignored) :
         self.value = self.source['genTopCosThetaStarAvg'] * math.sqrt(min(__f0__,self.source['genTopAlpha']))
 ######################################
+class genTopBeta2(wrappedChain.calculable) :
+    def update(self, ignored) :
+        self.value = self.source['genTopCosThetaStarAvg'] * math.sqrt(self.source['genTopAlpha'])
+######################################
 class wTopAsym(wrappedChain.calculable) :
     def __init__(self,rPrime,totalEff=None) :
         self.rPrime = rPrime
