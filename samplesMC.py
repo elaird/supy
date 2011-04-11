@@ -3,7 +3,7 @@ from configuration import srm
 mc = samples.SampleHolder()
 
 
-mgQcdLoc = "bbetchar//ICF/automated/2011_04_03_03_00_26/"
+mgQcdLoc = '/bbetchar//ICF/automated/2011_04_07_20_30_16/'
 mgQcdDset = "QCD_TuneD6T_HT-%s_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM"
 
 mc.add("qcd_mg_ht_100_250",  '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"100To250"), xs = 7e+6)
@@ -11,24 +11,22 @@ mc.add("qcd_mg_ht_250_500",  '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"250To500"), x
 mc.add("qcd_mg_ht_500_1000", '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"500To1000"),xs = 5.2e+3)
 mc.add("qcd_mg_ht_1000_inf",     '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"1000"),     xs = 8.3e+1)
 
-tag1 = "/bbetchar//ICF/automated/2011_04_01_22_23_36/"
-tag2 = "/bbetchar//ICF/automated/2011_04_02_00_17_16/"
-tag3 = "/bbetchar//ICF/automated/2011_04_01_22_32_00/"
+py6Loc = '/bbetchar//ICF/automated/2011_04_07_19_50_45/'
 py6Dset = "/QCD_Pt_%s_TuneZ2_7TeV_pythia6.Spring11-PU_S1_START311_V1G1-v1.AODSIM"
 
-mc.add("qcd_py6_pt_15_30",     '%s/%s/%s")'%(srm,tag1,py6Dset%"15to30"),     xs = 8.159e+08)
-mc.add("qcd_py6_pt_30_50",     '%s/%s/%s")'%(srm,tag1,py6Dset%"30to50"),     xs = 5.312e+07)
-mc.add("qcd_py6_pt_50_80",     '%s/%s/%s")'%(srm,tag1,py6Dset%"50to80"),     xs = 6.359e+06)
-mc.add("qcd_py6_pt_80_120",    '%s/%s/%s")'%(srm,tag1,py6Dset%"80to120"),    xs = 7.843e+05)
-mc.add("qcd_py6_pt_120_170",   '%s/%s/%s")'%(srm,tag1,py6Dset%"120to170"),   xs = 1.151e+05)
-mc.add("qcd_py6_pt_170_300",   '%s/%s/%s")'%(srm,tag1,py6Dset%"170to300"),   xs = 2.426e+04)
-mc.add("qcd_py6_pt_300_470",   '%s/%s/%s")'%(srm,tag1,py6Dset%"300to470"),   xs = 1.168e+03)
-mc.add("qcd_py6_pt_470_600",   '%s/%s/%s")'%(srm,tag1,py6Dset%"470to600"),   xs = 7.022e+01)
-mc.add("qcd_py6_pt_600_800",   '%s/%s/%s")'%(srm,tag1,py6Dset%"600to800"),   xs = 1.555e+01)
-mc.add("qcd_py6_pt_800_1000",  '%s/%s/%s")'%(srm,tag1,py6Dset%"800to1000"),  xs = 1.844e+00)
-mc.add("qcd_py6_pt_1000_1400", '%s/%s/%s")'%(srm,tag1,py6Dset%"1000to1400"), xs = 3.321e-01)
-mc.add("qcd_py6_pt_1400_1800", '%s/%s/%s")'%(srm,tag1,py6Dset%"1400to1800"), xs = 1.087e-02)
-mc.add("qcd_py6_pt_1800",      '%s/%s/%s")'%(srm,tag1,py6Dset%"1800"),       xs = 3.575e-04)
+mc.add("qcd_py6_pt_15_30",     '%s/%s/%s")'%(srm,py6Loc,py6Dset%"15to30"),     xs = 8.159e+08)
+mc.add("qcd_py6_pt_30_50",     '%s/%s/%s")'%(srm,py6Loc,py6Dset%"30to50"),     xs = 5.312e+07)
+mc.add("qcd_py6_pt_50_80",     '%s/%s/%s")'%(srm,py6Loc,py6Dset%"50to80"),     xs = 6.359e+06)
+mc.add("qcd_py6_pt_80_120",    '%s/%s/%s")'%(srm,py6Loc,py6Dset%"80to120"),    xs = 7.843e+05)
+mc.add("qcd_py6_pt_120_170",   '%s/%s/%s")'%(srm,py6Loc,py6Dset%"120to170"),   xs = 1.151e+05)
+mc.add("qcd_py6_pt_170_300",   '%s/%s/%s")'%(srm,py6Loc,py6Dset%"170to300"),   xs = 2.426e+04)
+mc.add("qcd_py6_pt_300_470",   '%s/%s/%s")'%(srm,py6Loc,py6Dset%"300to470"),   xs = 1.168e+03)
+mc.add("qcd_py6_pt_470_600",   '%s/%s/%s")'%(srm,py6Loc,py6Dset%"470to600"),   xs = 7.022e+01)
+mc.add("qcd_py6_pt_600_800",   '%s/%s/%s")'%(srm,py6Loc,py6Dset%"600to800"),   xs = 1.555e+01)
+mc.add("qcd_py6_pt_800_1000",  '%s/%s/%s")'%(srm,py6Loc,py6Dset%"800to1000"),  xs = 1.844e+00)
+mc.add("qcd_py6_pt_1000_1400", '%s/%s/%s")'%(srm,py6Loc,py6Dset%"1000to1400"), xs = 3.321e-01)
+mc.add("qcd_py6_pt_1400_1800", '%s/%s/%s")'%(srm,py6Loc,py6Dset%"1400to1800"), xs = 1.087e-02)
+mc.add("qcd_py6_pt_1800",      '%s/%s/%s")'%(srm,py6Loc,py6Dset%"1800"),       xs = 3.575e-04)
 
 ###############
 ##V14 samples##
@@ -190,8 +188,8 @@ mc.adjustOverlappingSamples( ["v12_g_jets_py6_pt%d"%i for i in [15,30,80,170,300
 
 
 ######### TT / EWK ############3
-burt_ttbar = "/bbetchar/ICF/automated/2011_04_01_20_01_22/"
-burt_ewk = "/bbetchar//ICF/automated/2011_04_01_22_16_06/"
+burt_ttbar = '/bbetchar//ICF/automated/2011_04_07_19_30_01/'
+burt_ewk = '/bbetchar//ICF/automated/2011_04_07_19_40_51/'
 spring11pu = "Spring11-PU_S1_START311_V1G1-v1.AODSIM"
 
 #MG
