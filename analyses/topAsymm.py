@@ -8,12 +8,12 @@ class topAsymm(analysis.analysis) :
         objects = {}
         fields =                           [ "jet",              "met",           "sumP4",                "sumPt",                 "muon",       "electron",        "photon",        "muonsInJets"]
         objects["calo"] = dict(zip(fields, [("xcak5Jet","Pat"),  "metP4AK5TypeII","xcSumP4",              "xcSumPt",               ("muon","Pat"),("electron","Pat"),("photon","Pat"), False]))
-        objects["pf"]   = dict(zip(fields, [("xcak5JetPF","Pat"),"metP4PF",       "xcak5JetPFRawSumP4Pat","xcak5JetPFRawSumPtPat", ("muon","Pat"),("electron","Pat"),("photon","Pat"),   True]))
+        objects["pf"]   = dict(zip(fields, [("xcak5JetPF","Pat"),"metP4PF",       "xcak5JetPFRawSumP4Pat","xcak5JetPFRawSumPtPat", ("muon","PF"),("electron","PF"),("photon","Pat"),   True]))
 
         leptons = {}
         fieldsLepton    =                            ["name","ptMin",              "isoVar", "triggerList"]
-        leptons["muon"]     = dict(zip(fieldsLepton, ["muon",     20, "CombinedRelativeIso", ("HLT_Mu9","HLT_Mu15_v1")]))
-        leptons["electron"] = dict(zip(fieldsLepton, ["electron", 30,         "IsoCombined", ("FIX","ME")]))
+        leptons["muon"]     = dict(zip(fieldsLepton, ["muon",     21, "CombinedRelativeIso", ("HLT_Mu20_v1")]))
+        #leptons["electron"] = dict(zip(fieldsLepton, ["electron", 30,         "IsoCombined", ("FIX","ME")]))
         
         bVar = "TrkCountingHighEffBJetTags"
         bCut = {"normal"   : {"index":1, "min":2.0},
@@ -26,8 +26,8 @@ class topAsymm(analysis.analysis) :
                  "nJets" :  [{"min":3,"max":None}],
                  "bVar" : bVar,
                  "sample" : {"top" : {"bCut":bCut["normal"],  "lIso":lIso["normal"]},
-                             "Wlv" : {"bCut":bCut["inverted"],"lIso":lIso["normal"]},
-                             "QCD" : {"bCut":bCut["normal"],  "lIso":lIso["inverted"]}
+                             #"Wlv" : {"bCut":bCut["inverted"],"lIso":lIso["normal"]},
+                             #"QCD" : {"bCut":bCut["normal"],  "lIso":lIso["inverted"]}
                              }
                  }
 
@@ -86,7 +86,7 @@ class topAsymm(analysis.analysis) :
             return ([ steps.Filter.multiplicity("vertexIndices",min=1),
                       steps.Filter.monster(),
                       steps.Filter.hbheNoise(),
-                      steps.Trigger.techBitFilter([0],True),
+                      #steps.Trigger.techBitFilter([0],True), #FIXME
                       steps.Trigger.physicsDeclared(),            
                       #steps.Trigger.lowestUnPrescaledTrigger(), #FIXME ele
                       ]+[
@@ -97,11 +97,12 @@ class topAsymm(analysis.analysis) :
                                                                 "%sIndicesOther%s"%obj["muon"],
                                                                 "%sIndicesOther%s"%obj["jet"],
                                                                 ]
-                ]+[steps.Jet.uniquelyMatchedNonisoMuons(obj["jet"]),]
+                ]+[steps.Jet.uniquelyMatchedNonisoMuons(obj["jet"]),
+                ]
                     )
         
         def templateSteps() :
-            return ([ steps.Filter.label('templates'),
+            return ([steps.Filter.label('templates'),
                      steps.Histos.value(obj["sumPt"],50,0,1000),
                      steps.Histos.value("%sMt%s"%lepton+"%sNeutrinoP4%s"%lepton, 30,0,180, xtitle = "M_{T}"),
                      steps.Histos.pt("%sCorrectedP4%s"%obj['jet'], 40,0,400, index = 0, indices = "%sIndices%s"%obj['jet']),
@@ -127,14 +128,14 @@ class topAsymm(analysis.analysis) :
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             steps.Filter.multiplicity("%sIndices%s"%obj["jet"], **pars["nJets"]),
             lepIso(0),
-
+            
             steps.Histos.value(obj["sumPt"],50,0,1000),
             steps.Other.compareMissing([obj["sumP4"],obj["met"]]),
             steps.Filter.pt("mixedSumP4",min=20),
             
             lepIso(0),
             lepIso(1),
-
+            
             steps.Filter.multiplicity("%sIndices%s"%lepton, max = pars["sample"]["lIso"]["nMaxIso"]),
             steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = ("%s"+pars["sample"]["lIso"]["indices"]+"%s")%lepton, index = 0),
             ]+templateSteps()+[
@@ -148,20 +149,20 @@ class topAsymm(analysis.analysis) :
             steps.Other.compareMissing([obj["sumP4"],obj["met"]]),
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             ]+templateSteps()+[
-            steps.Other.topAsymmetry(lepton),
-
+            steps.Top.Asymmetry(lepton),
+            
             #steps.Histos.generic(("%sNeutrinoPz%s"%lepton,"%sNeutrinoPz%s"%lepton),(100,100),(-1500,-500),(500,1500),
             #                     title=";#nu_{-} p_{z} (GeV);#nu_{+} p_{z} (GeV);events / bin", funcString = "lambda x: (x[0][0],x[0][1])"),
             
             steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
             steps.Filter.value(bVar, max=2.0, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
-
-            steps.Other.topAsymmetry(lepton),
+            
+            steps.Top.Asymmetry(lepton),
             ]+templateSteps()+[
             steps.Histos.generic(("%sIndicesBtagged%s"%obj["jet"],"%sCorrectedP4%s"%obj["jet"]),
                                  30,0,180, title=";M_{2-light};events / bin",
                                  funcString="lambda x: (x[1][x[0][2]] + x[1][x[0][3]]).M()"),
-
+##
             #steps.Other.productGreaterFilter(0,["%s%s"%lepton+"RelativeRapiditymixedSumP4NuM","%s%s"%lepton+"RelativeRapiditymixedSumP4NuP"]),
             #steps.Other.histogrammer("%sSignedRapidity%s"%lepton, 51, -5, 5, title = ";y_lep*q_lep*sign(boost);events / bin"),
             #steps.Other.histogrammer("%s%s"%lepton+"RelativeRapiditymixedSumP4", 51, -5, 5, title = ";#Delta y;events / bin"),
@@ -179,12 +180,8 @@ class topAsymm(analysis.analysis) :
     def listOfSamples(self,pars) :
         from samples import specify
         def data() :
-            names = { "electron": [#"EG.2010A_skim",
-                                   "Electron.Run2010B_skim"
-                                   ],
-                      "muon": ["Mu.Run2010A_skim",
-                               "Mu.Run2010B_skim"
-                               ] }
+            names = { "electron": ["SingleElectron.Run2011A-PromptReco-v1.Burt"],
+                      "muon": ["SingleMu.Run2011A-PromptReco-v1.Burt"] }
             return specify( #nFilesMax = 1, nEventsMax = 40000,
                             names = names[pars["lepton"]["name"]])
 
@@ -193,19 +190,17 @@ class topAsymm(analysis.analysis) :
             iCut = q6.index(15)
             return specify( effectiveLumi = eL, color = r.kBlue,
                             names = [("qcd_py6_pt_%dto%d"%t)[:None if t[1] else -3] for t in zip(q6,q6[1:]+[0])[iCut:]] )
-        def qcd_py8(eL) :
-            q8 = [0,15,30,50,80,120,170,300,470,600,800,1000,1400,1800]
-            iCut = q8.index(50)
-            return specify( effectiveLumi = eL, color = r.kBlue,
-                            names = [("qcd_py8_pt%dto%d"%t)[:None if t[1] else -3] for t in zip(q8,q8[1:]+[0])[iCut:]] )
         def qcd_mg(eL) :
-            qM = ["%d"%t for t in [50,100,250,500,1000]]
+            qM = ["%d"%t for t in [50,100,250,500,1000][1:]]
             return specify( effectiveLumi = eL, color = r.kBlue,
-                            names = ["v12_qcd_mg_ht_%s_%s"%t for t in zip(qM,qM[1:]+["inf"])])
+                            names = ["qcd_mg_ht_%s_%s"%t for t in zip(qM,qM[1:]+["inf"])])
         def ttbar_mg(eL) :
-            return specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kOrange)
+            return (specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kOrange,   weightName="wTopAsymN30") +
+                    #specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kYellow-3, weightName="wTopAsymP00") +
+                    specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kRed,      weightName="wTopAsymP30") )
 
         def ewk(eL, skimp=True) :
+            return specify( names = "w_jets_mg", effectiveLumi = eL, color = 28 )
             EWK = {}
             EWK["electron"] = specify( names = "w_enu", effectiveLumi = eL, color = 28)
             EWK["muon"] = specify( names = "w_munu", effectiveLumi = eL, color = 28)
@@ -214,10 +209,10 @@ class topAsymm(analysis.analysis) :
                 return EWK[pars["lepton"]["name"]]
             return sum(EWK.values(),[])
 
-        eL = 100 # 1/pb
-        return  ( data() +
-                  qcd_py6(eL) +
-                  ttbar_mg(2000) +
+        eL = 1000 # 1/pb
+        return  ( #data() +
+                  qcd_mg(eL) +
+                  ttbar_mg(None) +
                   ewk(eL)
                   )
 
@@ -225,20 +220,22 @@ class topAsymm(analysis.analysis) :
         for tag in self.sideBySideAnalysisTags() :
             #organize
             org=organizer.organizer( self.sampleSpecs(tag) )
+            org.mergeSamples(targetSpec = {"name":"Data 2011", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu")
             org.mergeSamples(targetSpec = {"name":"Data 2010", "color":r.kBlack, "markerStyle":20}, allWithPrefix="Mu.Run2010")
             org.mergeSamples(targetSpec = {"name":"Data 2010", "color":r.kBlack, "markerStyle":20}, sources=["EG.2010A_skim","Electron.Run2010B_skim"])
+            org.mergeSamples(targetSpec = {"name":"qcd_mg", "color":r.kBlue}, allWithPrefix="qcd_mg")
             org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
             org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3},
-                             sources = ["qcd_py6","w_enu","w_munu","w_taunu","tt_tauola_mg"], keepSources = True)
-            org.scale(33)
+                             sources = ["qcd_mg", "qcd_py6","w_jets_mg", "w_enu","w_munu","w_taunu","tt_tauola_mg"], keepSources = True)
+            org.scale(100)
             
             #plot
             pl = plotter.plotter(org,
                                  psFileName = self.psFileName(tag),
-                                 samplesForRatios = ("Data 2010","standard_model"),
-                                 sampleLabelsForRatios = ("data","s.m."),
+                                 #samplesForRatios = ("Data 2011","standard_model"),
+                                 #sampleLabelsForRatios = ("data","s.m."),
                                  #whiteList = ["lowestUnPrescaledTrigger"],
-                                 #doLog = False,
+                                 doLog = False,
                                  #compactOutput = True,
                                  #noSci = True,
                                  pegMinimum = 0.1,
