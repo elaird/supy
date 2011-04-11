@@ -61,6 +61,7 @@ class mcTruth(analysisStep) :
         self.book.fill(ev['genTopCosThetaStarAvg'], 'cosThetaStarAvg%s%s'%(suf,alpha), 20, -1, 1, title = ';cosThetaStarAvg;events / bin')
 
         self.book.fill(ev['genTopBeta'], 'genTopBeta%s'%suf, 20,-1,1, title = ";beta;events / bin")
+        self.book.fill(ev['genTopBeta2'], 'genTopBeta2%s'%suf, 20,-1,1, title = ";beta;events / bin")
         #self.book.fill( (ev['genTopCosThetaStar'],ev['genTopCosThetaStarBar']), 'cts_v_ctsbar%s%s'%(suf,alpha), (100,100),(-1,-1),(1,1), title = ';costhetaQT;cosThetaQbarTbar;%s events/bin'%suf)
         #self.book.fill( (ev['genTopCosThetaStar'],ev['genTopAlpha']), 'cts_v_alpha%s'%suf, (25,25),(-1,0),(1,1), title = ';costhetaQT;#alpha;%s events/bin'%suf)
         #self.book.fill( (ev['genTopCosThetaStarAvg'],ev['genTopAlpha']), 'ctsavg_v_alpha%s'%suf, (25,25),(-1,0),(1,1), title = ';costhetaAvg;#alpha;%s events/bin'%suf)
@@ -75,6 +76,7 @@ class mcTruth(analysisStep) :
         
         self.book.fill(    qdir * ev['genTopDeltaYttbar'], 'genTopTruepDeltaYttbar', 31,-5,5, title = ';True Signed #Delta y_{ttbar};events / bin')
         self.book.fill(genP4dir * ev['genTopDeltaYttbar'], 'genTopMezDeltaYttbar', 31,-5,5, title = ';MEZ Signed #Delta y_{ttbar};events / bin')
+        self.book.fill( ev['genTopDeltaAbsYttbar'], 'genTopDeltaAbsYttbar', 31,-5,5, title = ';#Delta |y|_{ttbar};events / bin')
 
         indices = ev['genTTbarIndices']
         if indices['lplus'] and indices['lminus'] :
@@ -82,7 +84,11 @@ class mcTruth(analysisStep) :
             self.book.fill(    qdir * dy, "genTopTrueDeltaYll", 31,-5,5, title = ';True Signed #Delta y_{ll};evens / bin')
             self.book.fill(genP4dir * dy, "genTopMezDeltaYll", 31,-5,5, title = ';MEZ Signed #Delta y_{ll};evens / bin')
         elif indices['lplus'] or indices['lminus'] :
-            dy = (1 if indices['lplus'] else -1)*(genP4[max(indices['lplus'],indices['lminus'])].Rapidity() - ev['genSumP4'].Rapidity())
-            self.book.fill(    qdir * dy, "genTopTrueDeltaYlmiss", 31,-5,5, title = ';True Signed #Delta y_{lmiss};evens / bin')
-            self.book.fill(genP4dir * dy, "genTopMezDeltaYlmiss", 31,-5,5, title = ';MEZ Signed #Delta y_{lmiss};evens / bin')
-            
+            Q = 1 if indices['lplus'] else -1
+            lRapidity = genP4[max(indices['lplus'],indices['lminus'])].Rapidity()
+            dy = (lRapidity - ev['genSumP4'].Rapidity())
+            for suf in ['','Positive' if Q>0 else 'Negative'] :
+                self.book.fill(    qdir * Q * dy, "genTopTrueDeltaYlmiss"+suf, 31,-5,5, title = '%s;True Signed #Delta y_{lmiss};events / bin'%suf)
+                self.book.fill(genP4dir * Q * dy, "genTopMezDeltaYlmiss"+suf, 31,-5,5, title = '%s;MEZ Signed #Delta y_{lmiss};events / bin'%suf)
+                self.book.fill(    qdir * Q * lRapidity, "genTopTrueLRapidity"+suf, 31,-5,5, title = "%s;True Signed y_l;events / bin"%suf)
+                self.book.fill(genP4dir * Q * lRapidity, "genTopMezLRapidity"+suf, 31,-5,5, title = "%s;MEZ Signed y_l;events / bin"%suf)

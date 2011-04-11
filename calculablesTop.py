@@ -40,6 +40,12 @@ class genTopDeltaYttbar(wrappedChain.calculable) :
         ttbar = self.source['genTopTTbar']
         self.value = p4[ttbar[0]].Rapidity() - p4[ttbar[1]].Rapidity() if ttbar else None
 ######################################
+class genTopDeltaAbsYttbar(wrappedChain.calculable) :
+    def update(self,ignored) :
+        p4 = self.source['genP4']
+        ttbar = self.source['genTopTTbar']
+        self.value = abs(p4[ttbar[0]].Rapidity()) - abs(p4[ttbar[1]].Rapidity()) if ttbar else None
+######################################
 class genTopTTbarSumP4(wrappedChain.calculable) :
     def update(self,ignored) :
         genP4 = self.source['genP4']
