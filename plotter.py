@@ -224,7 +224,7 @@ class plotter(object) :
         text = r.TText()
         text.SetNDC()
         text.SetTextFont(102)
-        text.SetTextSize(0.55*text.GetTextSize())
+        text.SetTextSize(0.45*text.GetTextSize())
 
         def theCalcs(selectImperfect) :
             def theCounts() :
