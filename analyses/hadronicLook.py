@@ -17,10 +17,10 @@ class hadronicLook(analysis.analysis) :
         objects["pfAK5JetMet_recoLepPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","Pat"),("electron","Pat"),("photon","Pat"),
                                                                  ("xcak5Jet","Pat"),"metP4AK5TypeII",
                                                                  "PF",        True,         50.0,      "JetIDtight"]))
-
-        objects["pfAK5JetMetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","PF"),("electron","PF"), ("photon","Pat"),
-                                                                 None, None,
-                                                                 "PF",        True,         50.0]))
+        
+        #objects["pfAK5JetMetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","PF"),("electron","PF"), ("photon","Pat"),
+        #                                                         None, None,
+        #                                                         "PF",        True,         50.0]))
 
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
@@ -220,7 +220,7 @@ class hadronicLook(analysis.analysis) :
         from samples import specify
         def data() : return specify( #nFilesMax = 4, nEventsMax = 2000,
                                      names = [#"Nov4_MJ_skim","Nov4_J_skim","Nov4_J_skim2","Nov4_JM_skim","Nov4_JMT_skim","Nov4_JMT_skim2",
-                                              "HT.Run2011A-PromptReco-v1.AOD.Henning",
+                                              "HT.Run2011A-PromptReco-v1.AOD.Georgia",
                                               ])
         
 

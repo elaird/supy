@@ -3,12 +3,13 @@ from configuration import srm
 jetmet = samples.SampleHolder()
 
 #2011
-jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Ted",'%s/elaird//ICF/automated/2011_03_25_11_30_50/")'%srm,  lumi = 1.0 ) #dummy lumi value
-jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Bryn",'%s/bm409//ICF/automated/2011_03_30_07_22_47/")'%srm,  lumi = 12.2 )
-jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Henning", '%s/henning//ICF/automated/2011_04_06_16_37_07/")'%srm, lumi = 7.8 )#partially complete ntuples
-jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Henning.skim.calo", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/29_skims/02_8pb_candidates/HT.Run2011A-PromptReco-v1.AOD.Henning.skim.calo_0_skim.root", isDirectory = False)', lumi = 7.8 )#partially complete ntuples
-jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Henning.skim.pf", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/29_skims/02_8pb_candidates/HT.Run2011A-PromptReco-v1.AOD.Henning.skim.pf_0_skim.root", isDirectory = False)', lumi = 7.8 )#partially complete ntuples
-jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Henning.triggerFail", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/29_skims/03_trigger_fail/")', lumi = 7.8 )#partially complete ntuples
+jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Georgia",'%s/georgia//ICF/automated/2011_04_09_18_07_10/")'%srm, lumi = 11.88)
+
+##Henning's 7.8/pb
+#jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Henning", '%s/henning//ICF/automated/2011_04_06_16_37_07/")'%srm, lumi = 7.8 )#partially complete ntuples
+#jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Henning.skim.calo", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/29_skims/02_8pb_candidates/HT.Run2011A-PromptReco-v1.AOD.Henning.skim.calo_0_skim.root", isDirectory = False)', lumi = 7.8 )#partially complete ntuples
+#jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Henning.skim.pf", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/29_skims/02_8pb_candidates/HT.Run2011A-PromptReco-v1.AOD.Henning.skim.pf_0_skim.root", isDirectory = False)', lumi = 7.8 )#partially complete ntuples
+#jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Henning.triggerFail", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/29_skims/03_trigger_fail/")', lumi = 7.8 )#partially complete ntuples
 
 #jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Henning", '%s/henning//ICF/automated/2011_04_06_16_37_07/")'%srm, lumi = 12.2 )
 
