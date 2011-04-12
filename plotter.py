@@ -478,6 +478,8 @@ class plotter(object) :
                 histo.SetMarkerStyle(sample["markerStyle"])
             if "lineStyle" in sample :
                 histo.SetLineStyle(sample["lineStyle"])
+            if "lineWidth" in sample :
+                histo.SetLineWidth(sample["lineWidth"])
 
             goptions = "hist" if (self.mcAsHist and ("xs" in sample)) else ""
             legend.AddEntry(histo, newSampleNames[sampleName] if (newSampleNames!=None and sampleName in newSampleNames) else sampleName, "lp")
