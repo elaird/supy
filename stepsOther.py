@@ -54,7 +54,7 @@ class multiplicityFilter(analysisStep) :
         return self.nMin <= len(eventVars[self.var]) <= self.nMax
 #####################################
 def multiplicityPlotFilter(var, nMin=0, nMax=None, xlabel="") :
-    return ([ histogrammer(var,10,-0.5,9.5, title=";%s;events / bin"%xlabel, funcString="lambda x:len(x)")] if xlabel else []) + \
+    return ([ histogrammer(var, 20, -0.5, 19.5, title=";%s;events / bin"%xlabel, funcString="lambda x:len(x)")] if xlabel else []) + \
            [ multiplicityFilter(var, nMin = nMin , nMax = nMax) ]
 #####################################
 class orFilter(analysisStep) :
