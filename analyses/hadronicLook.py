@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os,analysis,steps,calculables,samples,organizer,plotter,utils
+import copy,analysis,steps,calculables,samples,organizer,plotter,utils
 import ROOT as r
 
 class hadronicLook(analysis.analysis) :
@@ -34,6 +34,8 @@ class hadronicLook(analysis.analysis) :
                  #"triggerList" : ("HLT_HT350_AlphaT0p51_v1", "HLT_HT350_AlphaT0p53_v1"), #mid 2011
                  }
 
+    def ra1Cosmetics(self) : return True
+    
     def calcListJet(self, obj, etRatherThanPt, lowPtThreshold, lowPtName) :
         def calcList(jet, met, photon, muon, electron, muonsInJets, jetPtMin, jetIdFlag) :
             outList = [
@@ -257,13 +259,13 @@ class hadronicLook(analysis.analysis) :
             return specify( names = "tt_tauola_mg_v12", effectiveLumi = eL, color = r.kOrange)
         
         def ewk(eL) :
-            return ( specify(names = "z_inv_mg_v12_skim",  effectiveLumi = eL, color = r.kMagenta ) +
+            return ( specify(names = "z_inv_mg_v12_skim",  effectiveLumi = eL, color = r.kRed + 1) +
                      specify(names = "z_jets_mg_v12_skim", effectiveLumi = eL, color = r.kYellow-3) +
                      specify(names = "w_jets_mg_v12_skim", effectiveLumi = eL, color = 28         ) )
 
         def susy(eL) :
-            return ( specify(names = "lm0_v12", effectiveLumi = eL, color = r.kRed   ) +
-                     specify(names = "lm1_v12", effectiveLumi = eL, color = r.kRed+1 ) )
+            return ( specify(names = "lm0_v12", effectiveLumi = eL, color = r.kRed    ) +
+                     specify(names = "lm1_v12", effectiveLumi = eL, color = r.kMagenta) )
 
         ##specify(name = "2010_data_calo_skim",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),            
         ##specify(name = "2010_data_pf_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
@@ -320,17 +322,27 @@ class hadronicLook(analysis.analysis) :
             smSources.append("qcd_mg_v12")
             smSources.append("g_jets_mg_v12")
 
-        smSources = ["tt_tauola_mg_v12", "z_inv_mg_v12_skim", "z_jets_mg_v12_skim", "w_jets_mg_v12_skim"]
+        ewkSources = ["tt_tauola_mg_v12", "z_inv_mg_v12_skim", "z_jets_mg_v12_skim", "w_jets_mg_v12_skim"]
+        smSources = copy.deepcopy(ewkSources)
         for i in range(len(smSources)) :
             smSources[i] = smSources[i]+(self.skimString if hasattr(self,"skimString") else "")
             
         if "pythia6"  in tag : py6(org, smSources)
         if "pythia8"  in tag : py8(org, smSources)
         if "madgraph" in tag : mg (org, smSources)
-        org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)
+
         #org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="Nov4")
         org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="HT.Run2011A")
-        
+        org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)        
+
+        #Henning's requests
+        if self.ra1Cosmetics() :
+            org.mergeSamples(targetSpec = {"name":"Standard Model ", "color":r.kCyan}, sources = ["standard_model"])
+            org.mergeSamples(targetSpec = {"name":"QCD Multijet", "color":r.kGreen+3}, allWithPrefix="qcd")
+            org.mergeSamples(targetSpec = {"name":"t#bar{t}, W, Z + Jets", "color":r.kBlue}, sources = ewkSources)
+            org.mergeSamples(targetSpec = {"name":"LM0", "color":r.kRed, "lineStyle":10}, allWithPrefix="lm0")
+            org.mergeSamples(targetSpec = {"name":"LM1", "color":r.kMagenta, "lineStyle":2}, allWithPrefix="lm1")
+
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
             ##for skimming only
@@ -345,8 +357,10 @@ class hadronicLook(analysis.analysis) :
             #plot
             pl = plotter.plotter(org,
                                  psFileName = self.psFileName(tag),
-                                 samplesForRatios = ("2011 Data","standard_model"),
+                                 samplesForRatios = ("2011 Data","standard_model" if not self.ra1Cosmetics() else "Standard Model "),
                                  sampleLabelsForRatios = ("data","s.m."),
+                                 showStatBox = not self.ra1Cosmetics(),
+                                 mcAsHist = self.ra1Cosmetics(),
                                  #whiteList = ["lowestUnPrescaledTrigger"],
                                  #doLog = False,
                                  #compactOutput = True,
