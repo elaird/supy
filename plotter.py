@@ -86,6 +86,7 @@ class plotter(object) :
                  samplesForRatios = ("",""),
                  sampleLabelsForRatios = ("",""),
                  showStatBox = True,
+                 mcAsHist = False,
                  doLog = True,
                  pegMinimum = None,
                  anMode = False,
@@ -102,7 +103,7 @@ class plotter(object) :
                  ) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","compactOutput",
-                     "noSci", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox" ] :
+                     "noSci", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox","mcAsHist"] :
             setattr(self,item,eval(item))
 
         self.useWhiteList = len(self.whiteList)>0
@@ -475,11 +476,13 @@ class plotter(object) :
                 histo.SetMarkerColor(sample["color"])
             if "markerStyle" in sample :
                 histo.SetMarkerStyle(sample["markerStyle"])
-            
-            legend.AddEntry(histo, newSampleNames[sampleName] if (newSampleNames!=None and sampleName in newSampleNames) else sampleName, "lp")
+            if "lineStyle" in sample :
+                histo.SetLineStyle(sample["lineStyle"])
 
-            if dimension==1   : self.plot1D(histo,count,stuffToKeep)
-            elif dimension==2 : self.plot2D(histo,count,sampleName,stuffToKeep)
+            goptions = "hist" if (self.mcAsHist and ("xs" in sample)) else ""
+            legend.AddEntry(histo, newSampleNames[sampleName] if (newSampleNames!=None and sampleName in newSampleNames) else sampleName, "lp")
+            if dimension==1   : self.plot1D(histo, count, goptions, stuffToKeep)
+            elif dimension==2 : self.plot2D(histo, count, sampleName, stuffToKeep)
             else :
                 print "Skipping histo",histo.GetName(),"with dimension",dimension
                 continue
@@ -551,16 +554,16 @@ class plotter(object) :
         if individual :
             return stuffToKeep
 
-    def plot1D(self, histo, count, stuffToKeep) :
+    def plot1D(self, histo, count, goptions, stuffToKeep) :
         adjustPad(r.gPad, self.anMode)
         if count==0 :
             histo.SetStats(self.showStatBox)
             if not self.anMode : histo.GetYaxis().SetTitleOffset(1.25)
-            histo.Draw()
+            histo.Draw(goptions)
             if self.doLog : r.gPad.SetLogy()
         else :
             histo.SetStats(self.showStatBox)
-            histo.Draw("same")
+            histo.Draw(goptions+"same")
             r.gStyle.SetOptFit(0)
             if self.doMetFit and "met" in histo.GetName() :
                 r.gStyle.SetOptFit(1111)
