@@ -101,21 +101,24 @@ class hadronicLook(analysis.analysis) :
 
         return [
             steps.Print.progressPrinter(),
+            
+            steps.Trigger.lowestUnPrescaledTrigger(),
+            steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
+
+            steps.Trigger.physicsDeclared(),
+            steps.Other.monsterEventFilter(),
+            steps.Other.hbheNoiseFilter(),
             steps.Other.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
+            steps.Trigger.hltPrescaleHistogrammer(params["triggerList"]),
+
+            #steps.Other.cutSorter([
             steps.Jet.jetPtSelector(_jet, 100.0, 0),
             steps.Jet.jetPtSelector(_jet, 100.0, 1),
             steps.Jet.jetEtaSelector(_jet,2.5,0),
-            steps.Trigger.lowestUnPrescaledTrigger(),
-            steps.Other.vertexRequirementFilter(),
-            steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
-            steps.Trigger.physicsDeclared(),
-            steps.Other.monsterEventFilter(),
-            #steps.Other.cutSorter([
-            steps.Other.hbheNoiseFilter(),
             
-            steps.Trigger.hltPrescaleHistogrammer(params["triggerList"]),
             #steps.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin", funcString="lambda x:x.Et()"),
             ]+(
+            steps.Other.multiplicityPlotFilter("vertexIndices",                  nMin = 1, xlabel = "N vertices") +
             steps.Other.multiplicityPlotFilter("%sIndices%s"%_electron,          nMax = 0, xlabel = "N electrons") +
             steps.Other.multiplicityPlotFilter("%sIndices%s"%_muon,              nMax = 0, xlabel = "N muons") +
             steps.Other.multiplicityPlotFilter("%sIndices%s"%_photon,            nMax = 0, xlabel = "N photons") +
@@ -291,7 +294,7 @@ class hadronicLook(analysis.analysis) :
         qcd_func,g_jets_func = {"py6": (qcd_py6,g_jets_py6),
                                 "py8": (qcd_py8,g_jets_py6), # no g_jets_py8 available
                                 "mg" : (qcd_mg, g_jets_mg ) }[params["mcSoup"]]
-        eL = 50 # 1/pb
+        eL = 200 # 1/pb
         #return data()
         return ( data() +
                  qcd_func(eL) + #g_jets_func(eL) +
