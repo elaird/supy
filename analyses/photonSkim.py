@@ -16,7 +16,7 @@ class photonSkim(analysis.analysis) :
     def listOfCalculables(self,params) :
         return calculables.zeroArgs() +\
                calculables.fromCollections(calculables.Photon,[params["photon"]]) +\
-               [calculables.Photon.photonIndicesPat(ptMin = 80, flagName = "photonIDNoIsoReqPat")]
+               [calculables.Photon.Indices(collection = params["photon"], ptMin = 80, flagName = "photonIDNoIsoReqPat")]
 
     def listOfSamples(self,params) :
         from samples import specify        

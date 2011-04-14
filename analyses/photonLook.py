@@ -69,7 +69,7 @@ class photonLook(analysis.analysis) :
                  calculables.Jet.Indices( obj["jet"], params["lowPtThreshold"], etaMax = 3.0, flagName = params["jetId"], extraName = params["lowPtName"]),
                  calculables.Muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
                  calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
-                 calculables.Photon.photonIndicesPat(  ptMin = 25, flagName = params["photonId"]),
+                 calculables.Photon.Indices(obj["photon"], ptMin = 25, flagName = params["photonId"]),
 
                  calculables.Gen.genIndices( pdgs = [22], label = "Status3Photon", status = [3]),
                  calculables.Gen.genMinDeltaRPhotonOther( label = "Status3Photon"),

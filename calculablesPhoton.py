@@ -1,21 +1,23 @@
 from wrappedChain import *
 import calculables,utils
 ##############################
-class photonIndicesOtherPat(calculables.indicesOther) :
-    def __init__(self,collection = ("photon","Pat")) :
-        super(photonIndicesOtherPat, self).__init__(collection)
+class IndicesOther(calculables.indicesOther) :
+    def __init__(self,collection = None) :
+        super(IndicesOther, self).__init__(collection)
         self.moreName = "pass ptMin; fail id/iso"
 ##############################
-class photonIndicesPat(wrappedChain.calculable) :
-    def __init__(self, ptMin = None, flagName = None ):
+class Indices(wrappedChain.calculable) :
+    def __init__(self, collection = None, ptMin = None, flagName = None):
+        self.fixes = collection
+        self.stash(["IndicesOther", "P4"])
         self.ptMin = ptMin
         self.flagName = flagName
         self.moreName = "pT>=%.1f GeV; %s"% (ptMin, flagName if flagName else "")
     def update(self,ignored) :
-        p4s = self.source["photonP4Pat"]
+        p4s = self.source[self.P4]
         ids = self.source[self.flagName] if self.flagName else p4s.size()*[1]
         self.value = []
-        other = self.source["photonIndicesOtherPat"]
+        other = self.source[self.IndicesOther]
         for i in range(p4s.size()):
             if p4s.at(i).pt() < self.ptMin: continue
             elif ids[i] : self.value.append(i)
