@@ -132,9 +132,10 @@ class hadronicLook(analysis.analysis) :
             )+[
             steps.Jet.uniquelyMatchedNonisoMuons(_jet), 
 
-            steps.Other.histogrammer("vertexSumPt", 100, 0.0, 500.0, title = ";SumPt of 2nd vertex (GeV);events / bin", funcString = "lambda x:([0.0,0.0]+sorted(x))[-2]"),
             steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 1500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
             steps.Other.variableGreaterFilter(350.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
+            steps.Other.histogrammer("vertexIndices", 20, -0.5, 19.5, title=";N vertices;events / bin", funcString="lambda x:len(x)"),
+            steps.Other.histogrammer("vertexSumPt", 100, 0.0, 500.0, title = ";SumPt of 2nd vertex (GeV);events / bin", funcString = "lambda x:([0.0,0.0]+sorted(x))[-2]"),
             
             #steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT350_v2", ["HLT_HT300_v3"]),
             ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT350_v2", ["HLT_HT250_v2"]),
@@ -256,50 +257,24 @@ class hadronicLook(analysis.analysis) :
         def qcd_mg(eL) :
             qM = ["%d"%t for t in [50,100,250,500,1000]]
             return specify( effectiveLumi = eL, color = r.kBlue,
-                            names = ["v12_qcd_mg_ht_%s_%s"%t for t in zip(qM,qM[1:]+["inf"])])
+                            names = ["qcd_mg_ht_%s_%s"%t for t in zip(qM,qM[1:]+["inf"])])
 
         def g_jets_mg(eL) :
             gM = [40,100,200]
             return specify( effectiveLumi = eL, color = r.kGreen,
-                            names = [("v12_g_jets_mg_pt%d_%d")[:None if t[1] else -2] for t in zip(gM,gM[1:]+[0])] )
+                            names = [("g_jets_mg_ht_%d_%d")[:None if t[1] else -2] for t in zip(gM,gM[1:]+["inf"])] )
 
         def ttbar_mg(eL) :
             return specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kOrange)
         
         def ewk(eL) :
-            return ( specify(names = "z_inv_mg_v12_skim",  effectiveLumi = eL, color = r.kRed + 1) +
-                     specify(names = "z_jets_mg_v12_skim", effectiveLumi = eL, color = r.kYellow-3) +
+            return ( specify(names = "zinv_jets_mg",  effectiveLumi = eL, color = r.kRed + 1) +
+                     #specify(names = "z_jets_mg_v12_skim", effectiveLumi = eL, color = r.kYellow-3) +
                      specify(names = "w_jets_mg", effectiveLumi = eL, color = 28         ) )
 
         def susy(eL) :
-            return ( specify(names = "lm0_v12", effectiveLumi = eL, color = r.kRed    ) +
-                     specify(names = "lm1_v12", effectiveLumi = eL, color = r.kMagenta) )
-
-        ##specify(name = "2010_data_calo_skim",       nFilesMax = -1, color = r.kBlack   , markerStyle = 20),            
-        ##specify(name = "2010_data_pf_skim",         nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-        ##specify(name = "test",                      nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-        #
-        #caloSkims = [
-        #    specify(names = "2010_data_calo_skim",        nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-        #    specify(names = "v12_qcd_py6_pt300_caloSkim", nFilesMax = -1, color = r.kBlue    ),
-        #    specify(names = "tt_tauola_mg_v12_caloSkim",  nFilesMax =  3, color = r.kOrange  ),
-        #    specify(names = "w_jets_mg_v12_skim_caloSkim",nFilesMax = -1, color = 28         ),
-        #    specify(names = "z_inv_mg_v12_skim_caloSkim", nFilesMax = -1, color = r.kMagenta ),
-        #    ]
-        #pfSkims = [
-        #    specify(names = "2010_data_pf_skim",          nFilesMax = -1, color = r.kBlack   , markerStyle = 20),
-        #    specify(names = "v12_qcd_py6_pt300_pfSkim",   nFilesMax = -1, color = r.kBlue    ),
-        #    specify(names = "tt_tauola_mg_v12_pfSkim",    nFilesMax =  3, color = r.kOrange  ),
-        #    specify(names = "w_jets_mg_v12_skim_pfSkim",  nFilesMax = -1, color = 28         ),
-        #    specify(names = "z_inv_mg_v12_skim_pfSkim",   nFilesMax = -1, color = r.kMagenta ),
-        #    ]
-        #
-        #outList = []
-        #outList = caloSkims
-        #self.skimString = "_caloSkim"
-
-        #outList = pfSkims
-        #self.skimString = "_pfSkim"
+            return ( specify(names = "lm0", effectiveLumi = eL, color = r.kRed    ) +
+                     specify(names = "lm1", effectiveLumi = eL, color = r.kMagenta) )
 
         qcd_func,g_jets_func = {"py6": (qcd_py6,g_jets_py6),
                                 "py8": (qcd_py8,g_jets_py6), # no g_jets_py8 available
@@ -319,12 +294,12 @@ class hadronicLook(analysis.analysis) :
             smSources.append("g_jets_py6_v12")
 
         def mg(org, smSources) :
-            org.mergeSamples(targetSpec = {"name":"qcd_mg_v12", "color":r.kBlue}, allWithPrefix="v12_qcd_mg")
-            org.mergeSamples(targetSpec = {"name":"g_jets_mg_v12", "color":r.kGreen}, allWithPrefix="v12_g_jets_mg")
+            org.mergeSamples(targetSpec = {"name":"qcd_mg", "color":r.kBlue}, allWithPrefix="v12_qcd_mg")
+            org.mergeSamples(targetSpec = {"name":"g_jets_mg", "color":r.kGreen}, allWithPrefix="v12_g_jets_mg")
             smSources.append("qcd_mg_v12")
             smSources.append("g_jets_mg_v12")
 
-        ewkSources = ["tt_tauola_mg", "z_inv_mg_v12_skim", "z_jets_mg_v12_skim", "w_jets_mg"]
+        ewkSources = ["tt_tauola_mg", "zinv_jets_mg", "w_jets_mg"] #note: include DY samples
         smSources = copy.deepcopy(ewkSources)
         for i in range(len(smSources)) :
             smSources[i] = smSources[i]+(self.skimString if hasattr(self,"skimString") else "")
