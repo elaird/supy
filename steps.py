@@ -12,7 +12,9 @@ def adjustSteps(inSteps, dataOrMc = None) :
         if step.name() in blackList : disable = True
         if isinstance(step, Other.histogrammer) :
             for matchString in histoBlackList :
-                if re.search(matchString, step.var) : disable = True
+                vars = [step.var] if type(step.var) is str else step.var
+                for var in vars :
+                    if re.search(matchString, var) : disable = True
         outSteps.append(copy.deepcopy(step))
         if disable : outSteps[-1].disable()
     return outSteps
