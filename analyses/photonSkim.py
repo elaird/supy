@@ -7,40 +7,25 @@ class photonSkim(analysis.analysis) :
         return {"photon": ("photon", "Pat")}
 
     def listOfSteps(self, params) :
-        stepList=[ steps.progressPrinter(),
-                   steps.multiplicityFilter("%sIndices%s"%params["photon"], nMin = 1),
-                   steps.skimmer(),
+        stepList=[ steps.Print.progressPrinter(),
+                   steps.Other.multiplicityFilter("%sIndices%s"%params["photon"], nMin = 1),
+                   steps.Other.skimmer(),
                    ]
         return stepList
 
     def listOfCalculables(self,params) :
         return calculables.zeroArgs() +\
-               calculables.fromCollections(calculables.photon,[params["photon"]]) +\
-               [calculables.photon.photonIndicesPat(ptMin = 80, flagName = "photonIDNoIsoReqPat")]
+               calculables.fromCollections(calculables.Photon,[params["photon"]]) +\
+               [calculables.Photon.photonIndicesPat(ptMin = 80, flagName = "photonIDNoIsoReqPat")]
 
     def listOfSamples(self,params) :
         from samples import specify        
-        return [
-            specify(name = "JetMETTau.Run2010A-Nov4ReReco_v1.RECO.Burt"),
-            specify(name = "JetMETTau.Run2010A-Nov4ReReco_v1.RECO.Henning"),
-            specify(name = "JetMET.Run2010A-Nov4ReReco_v1.RECO.Burt"),
-            specify(name = "Jet.Run2010B-Nov4ReReco_v1.RECO.Burt"),
-            specify(name = "Jet.Run2010B-Nov4ReReco_v1.RECO.Henning"),
-            specify(name = "MultiJet.Run2010B-Nov4ReReco_v1.RECO.Burt"),
-
-            #specify(name = "v12_qcd_mg_ht_50_100"),
-            #specify(name = "v12_qcd_mg_ht_100_250"),
-            #specify(name = "v12_qcd_mg_ht_250_500"),
-            #specify(name = "v12_qcd_mg_ht_500_1000"),
-            #specify(name = "v12_qcd_mg_ht_1000_inf"),
-            #
-            #specify(name = "v12_g_jets_mg_pt40_100"),
-            #specify(name = "v12_g_jets_mg_pt100_200"),
-            #specify(name = "v12_g_jets_mg_pt200"),
-            ]
+        return specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Georgia"]) +\
+               specify(names = ["qcd_mg_ht_100_250", "qcd_mg_ht_250_500", "qcd_mg_ht_500_1000", "qcd_mg_ht_1000_inf"]) +\
+               specify(names = ["g_jets_mg_ht_40_100", "g_jets_mg_ht_100_200", "g_jets_mg_ht_200_inf"])
 
     def listOfSampleDictionaries(self) :
-        return [samples.jetmet, samples.photon, samples.mc]
+        return [samples.jetmet, samples.mc]
 
     def conclude(self) :
         org = organizer.organizer( self.sampleSpecs() )
