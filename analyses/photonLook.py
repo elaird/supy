@@ -209,13 +209,13 @@ class photonLook(analysis.analysis) :
             steps.Gen.photonPurityPlots("Status1Photon", _jet, _photon),
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
 
-            steps.Other.histogrammer("%sSumEt%s"%_jet, 12, 250, 550, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
-            steps.Other.variableGreaterFilter(450.0, "%sSumEt%s"%_jet, suffix = "GeV"),
+            #steps.Other.histogrammer("%sSumEt%s"%_jet, 12, 250, 550, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
+            #steps.Other.variableGreaterFilter(450.0, "%sSumEt%s"%_jet, suffix = "GeV"),
         
-            #steps.Other.histogrammer("%sMht%sOver%s" %(_jet[0], _jet[1], _met+"Plus%s%s"%_photon), 100, 0.0, 3.0,
-            #                         title = ";MHT %s%s / %s;events / bin"%(_jet[0], _jet[1], _met+"Plus%s%s"%_photon)),
-            #steps.Other.variableLessFilter(1.25,"%sMht%sOver%s" %(_jet[0], _jet[1], _met+"Plus%s%s"%_photon)),
-            #steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
+            steps.Other.histogrammer("%sMht%sOver%s" %(_jet[0], _jet[1], _met+"Plus%s%s"%_photon), 100, 0.0, 3.0,
+                                     title = ";MHT %s%s / %s;events / bin"%(_jet[0], _jet[1], _met+"Plus%s%s"%_photon)),
+            steps.Other.variableLessFilter(1.25,"%sMht%sOver%s" %(_jet[0], _jet[1], _met+"Plus%s%s"%_photon)),
+            steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
         
             #steps.Gen.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
             
