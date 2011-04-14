@@ -86,7 +86,6 @@ class plotter(object) :
                  samplesForRatios = ("",""),
                  sampleLabelsForRatios = ("",""),
                  showStatBox = True,
-                 mcAsHist = False,
                  doLog = True,
                  pegMinimum = None,
                  anMode = False,
@@ -103,7 +102,7 @@ class plotter(object) :
                  ) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","compactOutput",
-                     "noSci", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox","mcAsHist"] :
+                     "noSci", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox"] :
             setattr(self,item,eval(item))
 
         self.useWhiteList = len(self.whiteList)>0
@@ -394,11 +393,11 @@ class plotter(object) :
             absI = i + (0 if len(selections) <= self.nLinesMax else len(selections)-self.nLinesMax)
             letter = string.ascii_letters[absI]
             x = 0.01
-            y = 0.98 - 0.35*(i+0.5+absI/5)/self.nLinesMax
+            y = 0.98 - 0.33*(i+0.5+absI/5)/self.nLinesMax
             text.DrawTextNDC(x, y, nametitle.format(letter, selection.name, selection.title ))
-            text.DrawTextNDC(x, y-0.5, "%s: %s"%(letter,
+            text.DrawTextNDC(x, y-0.49, "%s: %s"%(letter,
                                                   "".join([(utils.roundString(*k, width=(colWidth-space), noSci = self.noSci) if k else "-    ").rjust(colWidth) for k in selection.yields()])))
-        text.DrawTextNDC(x, 0.5, "   "+"".join([s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]))
+        text.DrawTextNDC(x, 0.45, "   "+"".join([s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]))
         text.DrawTextNDC( 0.8,0.01,"events / %.3f pb^{-1}"% self.someOrganizer.lumi )
         self.printCanvas()
         self.canvas.Clear()
@@ -481,9 +480,8 @@ class plotter(object) :
             if "lineWidth" in sample :
                 histo.SetLineWidth(sample["lineWidth"])
 
-            goptions = "hist" if (self.mcAsHist and ("xs" in sample)) else ""
             legend.AddEntry(histo, newSampleNames[sampleName] if (newSampleNames!=None and sampleName in newSampleNames) else sampleName, "lp")
-            if dimension==1   : self.plot1D(histo, count, goptions, stuffToKeep)
+            if dimension==1   : self.plot1D(histo, count, sample["goptions"] if ("goptions" in sample) else "", stuffToKeep)
             elif dimension==2 : self.plot2D(histo, count, sampleName, stuffToKeep)
             else :
                 print "Skipping histo",histo.GetName(),"with dimension",dimension
