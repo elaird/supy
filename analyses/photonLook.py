@@ -42,7 +42,9 @@ class photonLook(analysis.analysis) :
                  "etRatherThanPt" : [True,False]                   [0],
                  "lowPtThreshold": 30.0,
                  "lowPtName":"lowPt",
-                 "triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"),#required to be a sorted tuple                 
+                 #required to be a sorted tuple with length>1
+                 #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
+                 "triggerList" : ("HLT_HT300_v3", "HLT_HT350_v2"),#early 2011
                  }
 
     def listOfCalculables(self, params) :
@@ -56,7 +58,6 @@ class photonLook(analysis.analysis) :
                calculables.fromCollections(calculables.Electron,[obj["electron"]]) +\
                calculables.fromCollections(calculables.Photon,[obj["photon"]]) +\
                [ calculables.XClean.xcJet( obj["jet"],
-                                           #applyResidualCorrectionsToData = True,
                                            gamma = obj["photon"],
                                            gammaDR = 0.5,
                                            muon = obj["muon"],
@@ -66,9 +67,8 @@ class photonLook(analysis.analysis) :
                                            ),
                  calculables.Jet.Indices( obj["jet"], _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
                  calculables.Jet.Indices( obj["jet"], params["lowPtThreshold"], etaMax = 3.0, flagName = params["jetId"], extraName = params["lowPtName"]),
-                 calculables.Muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15, requireIsGlobal = False),
-                 #calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
-                 calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95NoConversionRejection", useCombinedIso = True),
+                 calculables.Muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
+                 calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
                  calculables.Photon.photonIndicesPat(  ptMin = 25, flagName = params["photonId"]),
 
                  calculables.Gen.genIndices( pdgs = [22], label = "Status3Photon", status = [3]),
@@ -119,7 +119,7 @@ class photonLook(analysis.analysis) :
 
         outList+=[
             steps.Other.vertexRequirementFilter(),
-            steps.Trigger.techBitFilter([0],True),
+            steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
             steps.Trigger.physicsDeclared(),
             steps.Other.monsterEventFilter(),
             steps.Other.hbheNoiseFilter(),
@@ -253,6 +253,7 @@ class photonLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
 
+        #2010
         #data = specify(names = ["Nov4_MJ_noIsoReqSkim",
         #                        "Nov4_J_noIsoReqSkim",
         #                        "Nov4_J2_noIsoReqSkim",
@@ -260,54 +261,42 @@ class photonLook(analysis.analysis) :
         #                        "Nov4_JMT_noIsoReqSkim",
         #                        "Nov4_JMT2_noIsoReqSkim",
         #                        ])
-
-        data = specify(names = ["Run2010A_JMT_skim_noIsoReqSkim",
-                                "Run2010A_JM_skim_noIsoReqSkim",
-                                "Run2010B_J_skim_noIsoReqSkim",
-                                "Run2010B_J_skim2_noIsoReqSkim",
-                                "Run2010B_MJ_skim_noIsoReqSkim",
-                                "Run2010B_MJ_skim2_noIsoReqSkim",
-                                "Run2010B_MJ_skim3_noIsoReqSkim",
-                                "Run2010B_MJ_skim4_noIsoReqSkim",
-                                #"Run2010B_MJ_skim5_noIsoReqSkim",
-                                ])
-
-        qcd_mg = specify(names = [#"v12_qcd_mg_ht_50_100_noIsoReqSkim",
-                                  "v12_qcd_mg_ht_100_250_noIsoReqSkim",
-                                  "v12_qcd_mg_ht_250_500_noIsoReqSkim",
-                                  "v12_qcd_mg_ht_500_1000_noIsoReqSkim",
-                                  "v12_qcd_mg_ht_1000_inf_noIsoReqSkim",
-                                  ])
-
-        g_jets_mg = specify(names = ["v12_g_jets_mg_pt40_100_noIsoReqSkim",
-                                     "v12_g_jets_mg_pt100_200_noIsoReqSkim",
-                                     "v12_g_jets_mg_pt200_noIsoReqSkim"
-                                     ])
-
-        #qcd_mg_full = [
-        #    specify(name = "v12_qcd_mg_ht_50_100",      nFilesMax = -1, color = r.kBlue    ),
-        #    specify(name = "v12_qcd_mg_ht_100_250",     nFilesMax = -1, color = r.kBlue    ),
-        #    specify(name = "v12_qcd_mg_ht_250_500",     nFilesMax = -1, color = r.kBlue    ),
-        #    specify(name = "v12_qcd_mg_ht_500_1000",    nFilesMax = -1, color = r.kBlue    ),
-        #    specify(name = "v12_qcd_mg_ht_1000_inf",    nFilesMax = -1, color = r.kBlue    ),
-        #    ]
         #
-        #g_jets_mg_full = [                                               
-        #    specify(name = "v12_g_jets_mg_pt40_100",    nFilesMax = -1, color = r.kGreen   ),
-        #    specify(name = "v12_g_jets_mg_pt100_200",   nFilesMax = -1, color = r.kGreen   ),
-        #    specify(name = "v12_g_jets_mg_pt200",       nFilesMax = -1, color = r.kGreen   ),
-        #    ]
+        #data = specify(names = ["Run2010A_JMT_skim_noIsoReqSkim",
+        #                        "Run2010A_JM_skim_noIsoReqSkim",
+        #                        "Run2010B_J_skim_noIsoReqSkim",
+        #                        "Run2010B_J_skim2_noIsoReqSkim",
+        #                        "Run2010B_MJ_skim_noIsoReqSkim",
+        #                        "Run2010B_MJ_skim2_noIsoReqSkim",
+        #                        "Run2010B_MJ_skim3_noIsoReqSkim",
+        #                        "Run2010B_MJ_skim4_noIsoReqSkim",
+        #                        #"Run2010B_MJ_skim5_noIsoReqSkim",
+        #                        ])
         #
-        #ttbar_mg_full = [                                                
-        #    specify(name = "tt_tauola_mg_v12",          nFilesMax =  3, color = r.kOrange  ),
-        #    ]
+        #qcd_mg = specify(names = [#"v12_qcd_mg_ht_50_100_noIsoReqSkim",
+        #                          "v12_qcd_mg_ht_100_250_noIsoReqSkim",
+        #                          "v12_qcd_mg_ht_250_500_noIsoReqSkim",
+        #                          "v12_qcd_mg_ht_500_1000_noIsoReqSkim",
+        #                          "v12_qcd_mg_ht_1000_inf_noIsoReqSkim",
+        #                          ])
         #
-        #ewk_mg_full = [                                                     
-        #    specify(name = "z_jets_mg_v12",             nFilesMax = -1, color = r.kYellow-3),
-        #    specify(name = "w_jets_mg_v12",             nFilesMax = -1, color = 28         ),
-        #    ]
-        #
-        #zinv_mg = [specify(name = "z_inv_mg_v12_skim", nFilesMax = -1, color = r.kMagenta )]
+        #g_jets_mg = specify(names = ["v12_g_jets_mg_pt40_100_noIsoReqSkim",
+        #                             "v12_g_jets_mg_pt100_200_noIsoReqSkim",
+        #                             "v12_g_jets_mg_pt200_noIsoReqSkim"
+        #                             ])
+
+        #2011
+        data = specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Georgia_noIsoReqSkim"])
+
+        eL = 2000.0
+        l = ["100", "250", "500", "1000", "inf"]
+        qcd_mg = specify(effectiveLumi = eL, color = r.kBlue, names = ["qcd_mg_ht_%s_%s_noIsoReqSkim"%(a,b) for a,b in zip(l[:-1], l[1:])])
+        l = ["40", "100", "200", "inf"]
+        g_jets_mg = specify(effectiveLumi = eL, color = r.kGreen, names = ["g_jets_mg_ht_%s_%s_noIsoReqSkim"%(a,b) for a,b in zip(l[:-1], l[1:])])
+
+        ttbar_mg = specify(effectiveLumi = eL, color = r.kOrange, names = ["tt_tauola_mg"])
+        ewk_mg = specify(effectiveLumi = eL, color = r.kYellow-3, names = ["z_jets_mg"]) + specify(effectiveLumi = eL, color = 28, names = ["w_jets_mg"])
+        zinv_mg = specify(effectiveLumi = eL, color = r.kMagenta, names = ["zinv_jets_mg"])
 
         outList = []
 
@@ -320,11 +309,6 @@ class photonLook(analysis.analysis) :
         else :
             outList += zinv_mg
             
-        ##uncomment for short tests
-        #for i in range(len(outList)):
-        #    o = outList[i]
-        #    outList[i] = specify(names = o.name, color = o.color, markerStyle = o.markerStyle, nFilesMax = 1, nEventsMax = 1000)[0]
-        
         return outList
 
     def mergeSamples(self, org, tag) :
@@ -333,16 +317,16 @@ class photonLook(analysis.analysis) :
             return [outName]
 
         smSources = []
-        #smSources = [item for item in ["z_inv_mg_v12", "z_jets_mg_v12", "w_jets_mg_v12"]]
+        ewkSources = ["z_inv_mg", "z_jets_mg", "w_jets_mg"]
+        #smSources += ewkSources
 
-        smSources += go(org, outName = "qcd_mg_v12",     inPrefix = "v12_qcd_mg",     color = r.kBlue )
-        smSources += go(org, outName = "g_jets_mg_v12",  inPrefix = "v12_g_jets_mg",  color = r.kGreen)
+        smSources += go(org, outName = "qcd_mg",     inPrefix = "qcd_mg",     color = r.kBlue )
+        smSources += go(org, outName = "g_jets_mg",  inPrefix = "g_jets_mg",  color = r.kGreen)
         
-        #org.mergeSamples(targetSpec = {"name":"MG QCD+G", "color":r.kGreen}, sources = ["qcd_mg_v12","g_jets_mg_v12"])
-        #org.mergeSamples(targetSpec = {"name":"MG TT+EWK", "color":r.kOrange}, sources = [item for item in ["z_jets_mg_v12", "w_jets_mg_v12", "tt_tauola_mg_v12"]])
+        #org.mergeSamples(targetSpec = {"name":"MG QCD+G", "color":r.kGreen}, sources = ["qcd_mg","g_jets_mg"])
+        #org.mergeSamples(targetSpec = {"name":"MG TT+EWK", "color":r.kOrange}, sources = ewkSources])
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3, "markerStyle":1}, sources = smSources, keepSources = True)
-        org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Run2010")
-        #org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Nov4")
+        org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "HT")
             
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
@@ -370,7 +354,7 @@ class photonLook(analysis.analysis) :
         #plot all
         pl = plotter.plotter(org,
                              psFileName = self.psFileName(tag),
-                             samplesForRatios = ("2010 Data","standard_model"),
+                             samplesForRatios = ("2011 Data","standard_model"),
                              sampleLabelsForRatios = ("data","s.m."),
                              #samplesForRatios = ("2010 Data","MG QCD+G"),
                              #sampleLabelsForRatios = ("data","MG"),
