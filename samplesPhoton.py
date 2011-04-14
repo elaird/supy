@@ -2,6 +2,26 @@ import samples
 from configuration import srm
 photon = samples.SampleHolder()
 
+dir = "/vols/cms02/elaird1/29_skims/04_photons/v1"
+photon.add("HT.Run2011A-PromptReco-v1.AOD.Georgia_noIsoReqSkim",
+           'utils.fileListFromDisk(location = "%s/HT.Run2011A-PromptReco-v1.AOD.Georgia_*_skim.root", isDirectory = False)'%dir, lumi = 1.188000e+01)
+photon.add("g_jets_mg_ht_100_200_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_*_skim.root", isDirectory = False)'%dir,
+           xs = 8.158440e-02 * 4.414520e+03)
+photon.add("g_jets_mg_ht_200_inf_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_200_inf_*_skim.root", isDirectory = False)'%dir,
+           xs = 1.554971e-01 * 6.159500e+02)
+photon.add("g_jets_mg_ht_40_100_noIsoReqSkim",  'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_40_100_*_skim.root", isDirectory = False)'%dir,
+           xs = 4.606359e-03 * 2.999740e+04)
+photon.add("qcd_mg_ht_1000_inf_noIsoReqSkim",   'utils.fileListFromDisk(location = "%s/qcd_mg_ht_1000_inf_*_skim.root", isDirectory = False)'%dir,
+           xs = 4.445170e-03 * 1.054100e+02)
+photon.add("qcd_mg_ht_100_250_noIsoReqSkim",    'utils.fileListFromDisk(location = "%s/qcd_mg_ht_100_250_*_skim.root", isDirectory = False)'%dir,
+           xs = 1.111370e-04 * 8.890000e+06)
+photon.add("qcd_mg_ht_250_500_noIsoReqSkim",    'utils.fileListFromDisk(location = "%s/qcd_mg_ht_250_500_*_skim.root", isDirectory = False)'%dir,
+           xs = 4.298156e-03 * 2.171700e+05)
+photon.add("qcd_mg_ht_500_1000_noIsoReqSkim",   'utils.fileListFromDisk(location = "%s/qcd_mg_ht_500_1000_*_skim.root", isDirectory = False)'%dir,
+           xs = 5.889124e-03 * 6.604000e+03)
+
+####### only 2010 below ######
+
 #original photon-triggered data
 photon.add("EG.Run2010A-Sep17ReReco_v2.RECO",             '%s/mjarvis//ICF/automated/2010_10_13_14_25_09/")'%srm, lumi = 99999.9 )
 photon.add("Photon.Run2010B-PromptReco-v2.RECO.Alex",     '%s/as1604//ICF/automated/2010_10_26_15_38_03/")'%srm,  lumi = 99999.9 )
