@@ -179,7 +179,7 @@ class hadronicLook(analysis.analysis) :
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             steps.Other.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
             steps.Other.passFilter("kinematicPlots1"),
-
+            
             steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1],_met), 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
             steps.Other.variableLessFilter(1.25,"%sMht%sOver%s"%(_jet[0],_jet[1],_met)),
             steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
@@ -191,7 +191,7 @@ class hadronicLook(analysis.analysis) :
             #steps.Other.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.Other.variableGreaterFilter(0.55,"%sAlphaT%s%s"%(_jet[0],"Et" if _etRatherThanPt else "Pt",_jet[1])),
             #]), #end cutSorter
-
+            
             steps.Other.histogrammer("vertexIndices", 20, -0.5, 19.5, title=";N vertices;events / bin", funcString="lambda x:len(x)"),
             steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
@@ -305,6 +305,7 @@ class hadronicLook(analysis.analysis) :
             smSources[i] = smSources[i]+(self.skimString if hasattr(self,"skimString") else "")
 
         lineWidth = 2
+        goptions = "hist"
         if "pythia8"  in tag : py8(org, smSources)
         if "madgraph" in tag : mg (org, smSources)
         if "pythia6"  in tag :
@@ -312,7 +313,7 @@ class hadronicLook(analysis.analysis) :
                 org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
                 smSources.append("qcd_py6")
             else :
-                org.mergeSamples(targetSpec = {"name":"QCD Multijet", "color":r.kGreen+3, "lineWidth":lineWidth}, allWithPrefix="qcd_py6")
+                org.mergeSamples(targetSpec = {"name":"QCD Multijet", "color":r.kGreen+3, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="qcd_py6")
 
         #org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="Nov4")
         org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="HT.Run2011A")
@@ -320,10 +321,10 @@ class hadronicLook(analysis.analysis) :
         if not self.ra1Cosmetics() : 
             org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)        
         else : #Henning's requests
-            org.mergeSamples(targetSpec = {"name":"t#bar{t}, W, Z + Jets", "color":r.kBlue, "lineWidth":lineWidth}, sources = ewkSources)
-            org.mergeSamples(targetSpec = {"name":"Standard Model ", "color":r.kCyan, "lineWidth":lineWidth}, sources = ["QCD Multijet", "t#bar{t}, W, Z + Jets"], keepSources = True)
-            org.mergeSamples(targetSpec = {"name":"LM0", "color":r.kRed, "lineStyle":10, "lineWidth":lineWidth}, allWithPrefix="lm0")
-            org.mergeSamples(targetSpec = {"name":"LM1", "color":r.kMagenta, "lineStyle":2, "lineWidth":lineWidth}, allWithPrefix="lm1")
+            org.mergeSamples(targetSpec = {"name":"t#bar{t}, W, Z + Jets", "color":r.kBlue, "lineWidth":lineWidth, "goptions":goptions}, sources = ewkSources)
+            org.mergeSamples(targetSpec = {"name":"Standard Model ", "color":r.kCyan, "lineWidth":lineWidth, "goptions":goptions}, sources = ["QCD Multijet", "t#bar{t}, W, Z + Jets"], keepSources = True)
+            org.mergeSamples(targetSpec = {"name":"LM0", "color":r.kRed, "lineStyle":10, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="lm0")
+            org.mergeSamples(targetSpec = {"name":"LM1", "color":r.kMagenta, "lineStyle":2, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="lm1")
 
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
@@ -342,7 +343,6 @@ class hadronicLook(analysis.analysis) :
                                  samplesForRatios = ("2011 Data","standard_model" if not self.ra1Cosmetics() else "Standard Model "),
                                  sampleLabelsForRatios = ("data","s.m."),
                                  showStatBox = not self.ra1Cosmetics(),
-                                 mcAsHist = self.ra1Cosmetics(),
                                  #whiteList = ["lowestUnPrescaledTrigger"],
                                  #doLog = False,
                                  #compactOutput = True,
