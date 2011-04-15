@@ -20,7 +20,8 @@ class photonSkim(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify        
-        return specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Georgia"]) +\
+        return specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Henning"]) +\
+               specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Georgia"]) +\
                specify(names = ["qcd_mg_ht_100_250", "qcd_mg_ht_250_500", "qcd_mg_ht_500_1000", "qcd_mg_ht_1000_inf"]) +\
                specify(names = ["g_jets_mg_ht_40_100", "g_jets_mg_ht_100_200", "g_jets_mg_ht_200_inf"])
 
