@@ -83,8 +83,8 @@ class organizer(object) :
 
     def indexOfSampleWithName(self,name) :
         someList = [sample["name"] for sample in self.samples]
-        assert name in someList,"organizer: sample %s not found"%name
-        return someList.index(name)
+        #assert name in someList,"organizer: sample %s not found"%name
+        return someList.index(name) if name in someList else None
 
     def drop(self,sampleName) :
         index = self.indexOfSampleWithName(sampleName)
@@ -140,7 +140,7 @@ class organizer(object) :
 
     def scale(self, lumiToUseInAbsenceOfData = None, toPdf = False) :
         for org in self.alternateConfigurations :
-            org.scale(lumiToUseInAbsenceOfData)
+            org.scale(lumiToUseInAbsenceOfData, toPdf)
 
         dataIndices = filter(lambda i: "lumi" in self.samples[i], range(len(self.samples))) if not toPdf else []
         assert len(dataIndices)<2, \
@@ -178,7 +178,10 @@ class organizer(object) :
 
     def indicesOfSelectionsWithKey(self,key) :
         return filter( lambda i: key in self.selections[i], range(len(self.selections)))
-            
+
+    def keysMatching(self,inKeys) :
+        return filter(lambda k: any([i in k for i in inKeys]), set(sum([sel.keys() for sel in self.selections],[])))
+
     def __nameTitlesIn(self) :
         def things(dir, isLeaf) :
             def code(isLeaf, title) :
