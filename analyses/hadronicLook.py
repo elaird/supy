@@ -31,6 +31,7 @@ class hadronicLook(analysis.analysis) :
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  "triggerList": ("HLT_HT160_v2","HLT_HT240_v2","HLT_HT260_v2","HLT_HT350_v2","HLT_HT360_v2"),#early 2011
+                 #"triggerList": ("HLT_HT260_MHT60_v2", "HLT_HT300_MHT75_v2"), #perhaps sometime
                  #"triggerList" : ("HLT_HT350_AlphaT0p51_v1", "HLT_HT350_AlphaT0p53_v1"), #mid 2011
                  }
 
@@ -219,7 +220,7 @@ class hadronicLook(analysis.analysis) :
             #                          deltaPhiStarExtraName = params["lowPtName"],
             #                          deltaPhiStarCut = 0.5,
             #                          deltaPhiStarDR = 0.3,
-            #                          printOtherJetAlgoQuantities = False,
+            #                          printOtherJetAlgoQuantities = True,
             #                          jetsOtherAlgo = params["objects"]["compJet"],
             #                          metOtherAlgo  = params["objects"]["compMet"],
             #                          markusMode = False,
