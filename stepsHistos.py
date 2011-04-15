@@ -61,6 +61,9 @@ class pz(value) :
 class eta(value) :
     def wrapName(self) : return ".eta"
     def wrap(self,val) : return val.eta()
+class mass(value) :
+    def wrapName(self) : return ".mass"
+    def wrap(self,val) : return val.M()
 #####################################
 class multiplicity(analysisStep) :
     def __init__(self,var, max = 10) :
