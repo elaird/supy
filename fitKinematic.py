@@ -44,7 +44,7 @@ class hadronicTop(object) :
     def element(self,i,j, key = None) :
         if key==None : return sum( [self.element(i,j,key) for key in ["J","W","T"]] )
         elif key=="J": return [ 0, 2*self.J.invRes2[i] ][i==j]
-        elif key=="W": return self.W.Lambda * [ 1-0.5*self.W.R,  0.5*self.W.R ][i==j]
+        elif key=="W": return self.W.Lambda * [ 1-0.5*self.W.R,  0.5*self.W.R ][i==j] if i else 0
         elif key=="T":
             T = self.T
             sumM2 = sum(self.m2)
