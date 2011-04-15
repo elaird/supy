@@ -30,7 +30,7 @@ class hadronicLook(analysis.analysis) :
                  "lowPtName" : "lowPt",
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
-                 "triggerList" : ("HLT_HT300_v3", "HLT_HT350_v2"),#early 2011
+                 "triggerList": ("HLT_HT160_v2","HLT_HT240_v2","HLT_HT260_v2","HLT_HT350_v2","HLT_HT360_v2"),#early 2011
                  #"triggerList" : ("HLT_HT350_AlphaT0p51_v1", "HLT_HT350_AlphaT0p53_v1"), #mid 2011
                  }
 
@@ -74,8 +74,8 @@ class hadronicLook(analysis.analysis) :
 
             calculables.Muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
             calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
-            calculables.Photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
-            #calculables.Photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDTightFromTwikiPat"),
+            calculables.Photon.Indices(obj["photon"],  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
+            #calculables.Photon.Indices(obj["photon"],  ptMin = 25, flagName = "photonIDTightFromTwikiPat"),
             
             calculables.Vertex.ID(),
             calculables.Vertex.Indices(),
@@ -103,16 +103,15 @@ class hadronicLook(analysis.analysis) :
 
         return [
             steps.Print.progressPrinter(),
-            
             steps.Trigger.lowestUnPrescaledTrigger(),
             steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
-
+            
             steps.Trigger.physicsDeclared(),
             steps.Other.monsterEventFilter(),
             steps.Other.hbheNoiseFilter(),
             steps.Other.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
             steps.Trigger.hltPrescaleHistogrammer(params["triggerList"]),
-
+            
             #steps.Other.cutSorter([
             steps.Jet.jetPtSelector(_jet, 100.0, 0),
             steps.Jet.jetPtSelector(_jet, 100.0, 1),
@@ -131,7 +130,7 @@ class hadronicLook(analysis.analysis) :
             steps.Other.multiplicityPlotFilter("%sIndices%s"%_jet, nMin=params["nJetsMinMax"][0], nMax=params["nJetsMinMax"][1], xlabel="number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts"%_jet)
             )+[
             steps.Jet.uniquelyMatchedNonisoMuons(_jet), 
-
+            
             steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 1500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
             steps.Other.variableGreaterFilter(350.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
             steps.Other.histogrammer("vertexIndices", 20, -0.5, 19.5, title=";N vertices;events / bin", funcString="lambda x:len(x)"),
@@ -234,7 +233,7 @@ class hadronicLook(analysis.analysis) :
         from samples import specify
         def data() : return specify( #nFilesMax = 4, nEventsMax = 2000,
                                      names = [#"Nov4_MJ_skim","Nov4_J_skim","Nov4_J_skim2","Nov4_JM_skim","Nov4_JMT_skim","Nov4_JMT_skim2",
-                                              "HT.Run2011A-PromptReco-v1.AOD.Georgia",
+                                              "HT.Run2011A-PromptReco-v1.AOD.Georgia","HT.Run2011A-PromptReco-v1.AOD.Henning",
                                               ])
         
 
@@ -304,7 +303,7 @@ class hadronicLook(analysis.analysis) :
         for i in range(len(smSources)) :
             smSources[i] = smSources[i]+(self.skimString if hasattr(self,"skimString") else "")
 
-        lineWidth = 2
+        lineWidth = 3
         goptions = "hist"
         if "pythia8"  in tag : py8(org, smSources)
         if "madgraph" in tag : mg (org, smSources)

@@ -44,7 +44,7 @@ class photonLook(analysis.analysis) :
                  "lowPtName":"lowPt",
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
-                 "triggerList" : ("HLT_HT300_v3", "HLT_HT350_v2"),#early 2011
+                 "triggerList": ("HLT_HT160_v2","HLT_HT240_v2","HLT_HT260_v2","HLT_HT350_v2","HLT_HT360_v2"),#early 2011
                  }
 
     def listOfCalculables(self, params) :
@@ -286,7 +286,7 @@ class photonLook(analysis.analysis) :
         #                             ])
 
         #2011
-        data = specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Georgia_noIsoReqSkim"])
+        data = specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Henning_noIsoReqSkim", "HT.Run2011A-PromptReco-v1.AOD.Georgia_noIsoReqSkim"])
 
         eL = 2000.0
         l = ["100", "250", "500", "1000", "inf"]
