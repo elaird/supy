@@ -4,6 +4,8 @@ import ROOT as r
 #####################################
 hyphens="-"*95
 #####################################
+class vessel(object) : pass
+#####################################
 class vector(list) :
     def at(self, i) : return self[i]
     def size(self) : return len(self)
