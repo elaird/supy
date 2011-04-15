@@ -3,6 +3,8 @@ from configuration import srm
 photon = samples.SampleHolder()
 
 dir = "/vols/cms02/elaird1/29_skims/04_photons/v1"
+photon.add("HT.Run2011A-PromptReco-v1.AOD.Henning_noIsoReqSkim",
+           'utils.fileListFromDisk(location = "%s/HT.Run2011A-PromptReco-v1.AOD.Henning_*_skim.root", isDirectory = False)'%dir, lumi = 5.07)
 photon.add("HT.Run2011A-PromptReco-v1.AOD.Georgia_noIsoReqSkim",
            'utils.fileListFromDisk(location = "%s/HT.Run2011A-PromptReco-v1.AOD.Georgia_*_skim.root", isDirectory = False)'%dir, lumi = 1.188000e+01)
 photon.add("g_jets_mg_ht_100_200_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_*_skim.root", isDirectory = False)'%dir,
