@@ -1,10 +1,10 @@
 import numpy,math,utils
 
 class hadronicTop(object) :
-    '''Fit three jets to the hypothesis t -> bqq.
+    '''Fit three jets to the hypothesis t-->bqq.
 
-    Indices 0 is the b-jet.
-    Resolutions should be given in units of sigma(pT)/pT.'''
+    Index 0 is the b-jet.
+    Resolutions are expected in units of sigma(pT)/pT.'''
 
     def chi2(self, key = None) :
         if key==None : return sum( [self.chi2(key) for key in ["J","W","T"]])
