@@ -437,3 +437,22 @@ def mkdir(path) :
         if e.errno!=17 :
             raise e
 #####################################
+def cmsswFuncData(fileName = None, par = None) :
+    if not fileName or not par: return None
+    lines = open(fileName).readlines(10000)
+    lines = lines[lines.index("[%s]\n"%par):]
+    lines = lines[:1+[L[0] for L in lines[1:]].index('[')]
+
+    ROOT_funcString = lines[1].split()[4]
+    funcs = []
+    for line in lines[2:] :
+        pars = [float(s) for s in line.split()]
+        binLo,binHi = tuple(pars[:2])
+        domainLo,domainHi = tuple(pars[3:5])
+        funcPars = pars[5:]
+        f = r.TF1("%s_%s_%f_%f"%(fileName,par,binLo,binHi), ROOT_funcString, domainLo, domainHi)
+        for i,p in enumerate(funcPars) : f.SetParameter(i,p)
+        f.SetNpx(500)
+        funcs.append( (binLo,binHi,f) )
+    funcs.sort()
+    return funcs
