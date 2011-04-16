@@ -1,5 +1,5 @@
 from wrappedChain import *
-import math,collections
+import math,collections,bisect
 import calculables,utils
 
 def xcStrip(collection) :
@@ -676,6 +676,28 @@ class ResidualCorrectionsFromFile(wrappedChain.calculable) :
 
     def update(self, ignored) :
         self.value = {"etaLo":self.etaLo, "etaHi":self.etaHi, "p":self.p}
+#####################################
+class Resolution(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["CorrectedP4"])
+        self.resFuncs = sorted( utils.cmsswFuncData(fileName(collection), parName="sigma") )
+
+    @staticmethod
+    def fileName(collection) :
+        names = {}
+        for pre in ["ak5Jet","xcak5Jet"] : names[(pre,"Pat")] = "Spring10_PtResolution_AK5Calo.txt"
+        for pre in ["ak5JetPF","xcak5JetPF"] : names[(pre,"Pat")] = "Spring10_PtResolution_AK5PF.txt"
+        if collection not in names : return None
+        return names[collection]
+        
+    def res(self, p4) :
+        if not self.resFuncs: return None
+        etaBin = max(0,bisect.bisect(self.resFuncs,(p4.eta(),None,None))-1)
+        return self.resFuncs[etaBin].Eval(p4.pt())
+    
+    def update(self, ignored) :
+        self.value = utils.hackMap(self.res, self.CorrectedP4)
 #####################################
 class CorrectedP4(wrappedChain.calculable) :
     def __init__(self, genJets = None) : #purposefully not called collection
