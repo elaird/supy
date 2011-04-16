@@ -12,7 +12,7 @@ class hadronicTop(object) :
         elif key=="W": return self.W.invWidth2 * ( self.W.mass - (self.J.fitted[1] + self.J.fitted[2]).M() )**2
         elif key=="T": return self.T.invWidth2 * ( self.T.mass - sum( self.J.fitted, utils.LorentzV()).M() )**2
 
-    def __init__(self, jetP4s, jetResolutions, massT = 172.5, widthT = 6.0, massW = 80.1, widthW = 1.0 ) :
+    def __init__(self, jetP4s, jetResolutions, massT = 172.0, widthT = 13.1/2, massW = 80.4, widthW = 2.085/2 ) :
         assert len(jetP4s) == 3 == len(jetResolutions), "Please specify 3 and only 3 jets."
         J,W,T = tuple( utils.vessel() for i in range(3) )
 
