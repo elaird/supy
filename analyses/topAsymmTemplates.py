@@ -23,12 +23,18 @@ class topAsymmTemplates(analysis.analysis) :
     def listOfSteps(self, pars) :
         return [steps.Print.progressPrinter(),
                 steps.Filter.label("q direction"), steps.Top.mcTruthQDir(),
-                steps.Filter.label("non-qqbar"),   steps.Top.mcTruth(qqbar=False),
-                steps.Filter.label("qqbar"),       steps.Top.mcTruth(qqbar=True),
-                steps.Filter.label("all"),         steps.Top.mcTruth(),
+                steps.Filter.label("non-qqbar asymm"),   steps.Top.mcTruthTemplates(qqbar=False),
+                steps.Filter.label("qqbar asymm"),       steps.Top.mcTruthTemplates(qqbar=True),
+                steps.Filter.label("all asymm"),         steps.Top.mcTruthTemplates(),
                 steps.Filter.OR([steps.Filter.value('genTTbarIndices',min=0,index='lplus'),
                                  steps.Filter.value('genTTbarIndices',min=0,index='lminus')]),
-                steps.Top.mcTruth(),
+                steps.Top.mcTruthTemplates(),
+                steps.Filter.label("acceptance"),
+                steps.Top.mcTruthAcceptance(qqbar=True),
+                steps.Top.mcTruthAcceptance(qqbar=False),
+                steps.Filter.label("discriminateQQbar"),
+                steps.Top.mcTruthDiscriminateQQbar(qqbar=True),
+                steps.Top.mcTruthDiscriminateQQbar(qqbar=False)
                 ]
     
     def listOfSampleDictionaries(self) :

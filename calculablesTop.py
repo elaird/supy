@@ -31,6 +31,8 @@ class genTTbarIndices(wrappedChain.calculable) :
                                                                ('wminus',-24)
                                                                ]])
         self.value.update(dict([ (w+"Child",filter(lambda i: mom[i]==self.value[w],range(len(ids)))) for w in ['wplus','wminus','t','tbar']]))
+        self.value['b'] = list(set(self.value['tChild']) - set(['24']))[0]
+        self.value['bbar'] = list(set(self.value['tbarChild']) - set(['-24']))[0]
         self.value['lplus'] = max([None]+filter(lambda i: ids[i] in [-11,-13],self.value['wplusChild']))
         self.value['lminus'] = max([None]+filter(lambda i: ids[i] in [11,13],self.value['wminusChild']))
 ######################################
