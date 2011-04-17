@@ -1,4 +1,4 @@
-import copy,array,os,collections
+import copy,array,os,collections,math
 import ROOT as r
 from analysisStep import analysisStep
 import utils
@@ -77,6 +77,17 @@ class mcTruth(analysisStep) :
         self.book.fill(    qdir * ev['genTopDeltaYttbar'], 'genTopTruepDeltaYttbar', 31,-5,5, title = ';True Signed #Delta y_{ttbar};events / bin')
         self.book.fill(genP4dir * ev['genTopDeltaYttbar'], 'genTopMezDeltaYttbar', 31,-5,5, title = ';MEZ Signed #Delta y_{ttbar};events / bin')
         self.book.fill( ev['genTopDeltaAbsYttbar'], 'genTopDeltaAbsYttbar', 31,-5,5, title = ';#Delta |y|_{ttbar};events / bin')
+
+        def phiMod(phi) : return phi + 2*math.pi*int(phi<0)
+        dphi = phiMod(ev['genTopDeltaPhittbar'])
+        self.book.fill( dphi, 'genTopDeltaPhittbar', 51,0,2*math.pi, title = ';#Delta #phi_{ttbar};events / bin')
+        self.book.fill( ev['genTopPtAsymttbar'], 'genTopPtAsymttbar', 51, -1, 1, title = ';(pT_{t}-pT_{tbar})/(pT_{t}+pT_{tbar});events / bin')
+
+        ### dphi is highly correlated with PtAsym, but they are mostly uncorrelated to alpha
+        #self.book.fill( (dphi,ev['genTopPtAsymttbar']), 'corrDphiPtAsym', (51,51), (0,-1),(2*math.pi,1), title=';dphi;ptasymm;events / bin' )
+        #self.book.fill( (dphi,ev['genTopAlpha']), 'corrDphiAlpha', (51,10), (0,0),(2*math.pi,1), title=';dphi;#alpha;events / bin' )
+        #self.book.fill( (ev['genTopPtAsymttbar'],ev['genTopAlpha']), 'corrPtAsymAlpha', (51,10), (-1,0),(1,1), title=';ptasym;#alpha;events / bin' )
+        self.book.fill( math.sin(dphi) * ev['genTopPtAsymttbar'], 'ttbarPtAsymSinDphi', 81,-1,1, title=';ptasym*sim(#Delta#Phi_{tt});events / bin')
 
         indices = ev['genTTbarIndices']
         if indices['lplus'] and indices['lminus'] :

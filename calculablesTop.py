@@ -34,6 +34,22 @@ class genTTbarIndices(wrappedChain.calculable) :
         self.value['lplus'] = max([None]+filter(lambda i: ids[i] in [-11,-13],self.value['wplusChild']))
         self.value['lminus'] = max([None]+filter(lambda i: ids[i] in [11,13],self.value['wminusChild']))
 ######################################
+class genTopPtAsymttbar(wrappedChain.calculable) :
+    def update(self,ignored) :
+        p4 = self.source['genP4']
+        ttbar = self.source['genTopTTbar']
+        if not ttbar : self.value = None
+        else :
+            pt = p4[ttbar[0]].Pt()
+            ptbar = p4[ttbar[1]].Pt()
+            self.value = (pt-ptbar)/(pt+ptbar)
+######################################
+class genTopDeltaPhittbar(wrappedChain.calculable) :
+    def update(self,ignored) :
+        p4 = self.source['genP4']
+        ttbar = self.source['genTopTTbar']
+        self.value = r.Math.VectorUtil.DeltaPhi(p4[ttbar[0]], p4[ttbar[1]]) if ttbar else None
+######################################
 class genTopDeltaYttbar(wrappedChain.calculable) :
     def update(self,ignored) :
         p4 = self.source['genP4']
