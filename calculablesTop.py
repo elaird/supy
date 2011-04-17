@@ -34,15 +34,9 @@ class genTTbarIndices(wrappedChain.calculable) :
         self.value['lplus'] = max([None]+filter(lambda i: ids[i] in [-11,-13],self.value['wplusChild']))
         self.value['lminus'] = max([None]+filter(lambda i: ids[i] in [11,13],self.value['wminusChild']))
 ######################################
-class genTopPtAsymttbar(wrappedChain.calculable) :
+class genTopTTbarPtOverSumPt(wrappedChain.calculable) :
     def update(self,ignored) :
-        p4 = self.source['genP4']
-        ttbar = self.source['genTopTTbar']
-        if not ttbar : self.value = None
-        else :
-            pt = p4[ttbar[0]].Pt()
-            ptbar = p4[ttbar[1]].Pt()
-            self.value = (pt-ptbar)/(pt+ptbar)
+        self.value = self.source['genTopTTbarSumP4'].Pt() / self.source['genTopTTbarSumPt']
 ######################################
 class genTopDeltaPhittbar(wrappedChain.calculable) :
     def update(self,ignored) :
@@ -67,6 +61,12 @@ class genTopTTbarSumP4(wrappedChain.calculable) :
         genP4 = self.source['genP4']
         ttbar = self.source['genTopTTbar']
         self.value = genP4[ttbar[0]] + genP4[ttbar[1]]
+######################################
+class genTopTTbarSumPt(wrappedChain.calculable) :
+    def update(self,ignored) :
+        genP4 = self.source['genP4']
+        ttbar = self.source['genTopTTbar']
+        self.value = genP4[ttbar[0]].Pt() + genP4[ttbar[1]].Pt()
 ######################################
 class CosThetaStar(wrappedChain.calculable) :
     def __init__(self,TTbarIndex) :
