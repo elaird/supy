@@ -5,11 +5,11 @@ import ROOT as r
 
 class topAsymmTemplates(analysis.analysis) :
     def parameters(self) :
-        return {"sample" : {"compare":["mg","pythia"],
+        return {"sample" : {#"compare":["mg","pythia"],
                             "mg":"mg",
-                            "pythia":"pythia"
+                            #"pythia":"pythia"
                             },
-                "effectiveLumi" : None
+                "effectiveLumi" : None# 100
                 }
 
     def listOfCalculables(self, pars) :
@@ -45,11 +45,11 @@ class topAsymmTemplates(analysis.analysis) :
         sample = "tt_tauola_%s"%pars["sample"]
         return (
             specify( names = sample, effectiveLumi = eL, color = r.kBlack,     weightName = "wTopAsymN30") +
-            specify( names = sample, effectiveLumi = eL, color = r.kBlue,      weightName = "wTopAsymN20") +
-            specify( names = sample, effectiveLumi = eL, color = r.kGreen+3,   weightName = "wTopAsymN10") +
+            #specify( names = sample, effectiveLumi = eL, color = r.kBlue,      weightName = "wTopAsymN20") +
+            #specify( names = sample, effectiveLumi = eL, color = r.kGreen+3,   weightName = "wTopAsymN10") +
             specify( names = sample, effectiveLumi = eL, color = r.kGreen,     weightName = "wTopAsymP00") +
-            specify( names = sample, effectiveLumi = eL, color = r.kYellow-3,  weightName = "wTopAsymP10") +
-            specify( names = sample, effectiveLumi = eL, color = r.kOrange,    weightName = "wTopAsymP20") +
+            #specify( names = sample, effectiveLumi = eL, color = r.kYellow-3,  weightName = "wTopAsymP10") +
+            #specify( names = sample, effectiveLumi = eL, color = r.kOrange,    weightName = "wTopAsymP20") +
             specify( names = sample, effectiveLumi = eL, color = r.kRed,       weightName = "wTopAsymP30")
             )
     
@@ -58,6 +58,12 @@ class topAsymmTemplates(analysis.analysis) :
             #organize
             org=organizer.organizer( self.sampleSpecs(tag) )
             org.scale(toPdf=True)
+
+            self.signalChi2(org,("tt_tauola_mg.wTopAsymN30","tt_tauola_mg.wTopAsymP30"), org.keysMatching(["genTopBeta",
+                                                                                                           "genTopDeltaAbsYttbar",
+                                                                                                           "genTopTrue",
+                                                                                                           "genTopMez"
+                                                                                                           ]))
             
             #plot
             pl = plotter.plotter(org,
@@ -70,3 +76,15 @@ class topAsymmTemplates(analysis.analysis) :
                                  )
             pl.plotAll()
 
+
+    def signalChi2(self,org, samples,hists) :
+        iZero,iOne = tuple([org.indexOfSampleWithName(i) for i in samples])
+        if iZero is None  or iOne is None : return
+        for sel in org.selections :
+            print "\n\n%s:%s"%sel.nameTitle
+            print '-'*20
+            for hist in hists :
+                if hist not in sel : continue
+                zero = sel[hist][iZero]
+                one = sel[hist][iOne]
+                print hist.ljust(35), ('%.1f'%zero.Chi2Test(one,"WWOFUFCHI2")).rjust(10)
