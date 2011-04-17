@@ -367,7 +367,7 @@ def partialSumP4Centroid(partials) :
     Cy = oneOverSixA * sum([ (p[i].y()+p[i+1].y())*(p[i].x()*p[i+1].y() - p[i+1].x()*p[i].y()) for i in range(len(partials))])
     return LorentzV(Cx,Cy,0,0)
 #####################################
-def dependence(TH2, name="", minimum=1.0/4, maximum=4) :
+def dependence(TH2, name="", minimum=-1.5, maximum=1.5) :
     if not TH2: return None
     TH2.GetDirectory().cd()
     dep = TH2.Clone(name if name else TH2.GetName()+"_dependence")
@@ -381,7 +381,7 @@ def dependence(TH2, name="", minimum=1.0/4, maximum=4) :
             Y = projY.GetBinContent(iY)
             bin = TH2.GetBin(iX,iY)
             XY = TH2.GetBinContent(bin)
-            dep.SetBinContent(bin, min(maximum,max(minimum,norm*XY/X/Y)) if XY else 0)
+            dep.SetBinContent(bin, min(maximum,max(minimum,math.log(norm*XY/X/Y))) if XY else 0)
             dep.SetBinError(bin,0) 
     dep.SetMinimum(minimum)
     dep.SetMaximum(maximum)
