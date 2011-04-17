@@ -41,8 +41,9 @@ class mcTruthQDir(analysisStep) :
         qqbar = ev['genQQbar']
         if qqbar :
             qdir = 1 if ev['genP4'][qqbar[0]].pz()>0 else -1
-            for sumP4 in ['genSumP4','mixedSumP4','mixedSumP4Nu'][:3 if self.withNu else 2 if self.withLepton else 1] :
+            for sumP4 in ['genSumP4','genTopTTbarSumP4','mixedSumP4','mixedSumP4Nu'][:4 if self.withNu else 3 if self.withLepton else 2] :
                 self.book.fill( qdir * ev[sumP4].pz(), "qdir_%s_pz"%sumP4, 100,-3000,3000, title = ';qdir * %s.pz;events/bin'%sumP4)
+                self.book.fill( qdir * ev[sumP4].Eta(), "qdir_%s_eta"%sumP4, 100,-10,10, title = ';qdir * %s.eta;events/bin'%sumP4)
         
 #####################################
 class mcTruth(analysisStep) :
@@ -81,13 +82,15 @@ class mcTruth(analysisStep) :
         def phiMod(phi) : return phi + 2*math.pi*int(phi<0)
         dphi = phiMod(ev['genTopDeltaPhittbar'])
         self.book.fill( dphi, 'genTopDeltaPhittbar', 51,0,2*math.pi, title = ';#Delta #phi_{ttbar};events / bin')
-        self.book.fill( ev['genTopPtAsymttbar'], 'genTopPtAsymttbar', 51, -1, 1, title = ';(pT_{t}-pT_{tbar})/(pT_{t}+pT_{tbar});events / bin')
 
         ### dphi is highly correlated with PtAsym, but they are mostly uncorrelated to alpha
         #self.book.fill( (dphi,ev['genTopPtAsymttbar']), 'corrDphiPtAsym', (51,51), (0,-1),(2*math.pi,1), title=';dphi;ptasymm;events / bin' )
         #self.book.fill( (dphi,ev['genTopAlpha']), 'corrDphiAlpha', (51,10), (0,0),(2*math.pi,1), title=';dphi;#alpha;events / bin' )
-        #self.book.fill( (ev['genTopPtAsymttbar'],ev['genTopAlpha']), 'corrPtAsymAlpha', (51,10), (-1,0),(1,1), title=';ptasym;#alpha;events / bin' )
-        self.book.fill( math.sin(dphi) * ev['genTopPtAsymttbar'], 'ttbarPtAsymSinDphi', 81,-1,1, title=';ptasym*sim(#Delta#Phi_{tt});events / bin')
+        self.book.fill( (ev['genTopTTbarPtOverSumPt'],ev['genTopAlpha']), 'corrPtAsymAlpha', (50,10), (0,0),(1,1), title=';(t+tbar)_{pt}/(t_{pt}+tbar_{pt});#alpha;events / bin' )
+        self.book.fill( ev['genTopTTbarPtOverSumPt'], 'ttbarPtOverSumPt', 50,0,1, title = ';(t+tbar)_{pt}/(t_{pt}+tbar_{pt});events / bin')
+        self.book.fill( ev['genTopTTbarSumP4'].Rapidity(), 'ttbarRapidity', 51,-3,3, title = ';y_{ttbar};events / bin')
+        self.book.fill( ev['genTopTTbarSumP4'].Eta(), 'ttbarEta', 81,-10,10, title = ';#eta_{ttbar};events / bin')
+        self.book.fill( ev['genTopTTbarSumP4'].Pz(), 'ttbarPz', 51,-3000,3000, title = ';pz_{ttbar};events / bin')
 
         indices = ev['genTTbarIndices']
         if indices['lplus'] and indices['lminus'] :
