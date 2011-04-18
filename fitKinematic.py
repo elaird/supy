@@ -1,5 +1,6 @@
 import numpy,math,utils
 
+###########################
 class hadronicTop(object) :
     '''Fit three jets to the hypothesis t-->bqq.
 
@@ -52,3 +53,30 @@ class hadronicTop(object) :
             m2_j = sumM2 - self.m2[j]
             term2 = [(1-T.R) * T.invWidth2 * (sumM2 - self.m2[i] - self.m2[j] ) , 0 ][i==j]
             return term2  +  m2_i * m2_j * T.L * T.R
+
+
+###########################
+class simpleWb(object) :
+    '''Fit the b jet in the hypothesis t-->bW'''
+
+    def chi2(self) :
+        return ( self.b.invRes2 * self.b.delta**2 +
+                 self.topInvWidth2 * (self.massTop - (self.b.fitted+self.W).M())**2 )
+
+    def __init__(self,bjet,bresolution,W,
+                 massTop=172.0,widthTop=13.1/2) :
+
+        rawTop2 = (b+W).M2()
+        topInvWidth2 = widthTop**(-2)
+
+        R = massTop / math.sqrt(rawTop2)
+        A = (rawTop2 - W.M2()) * topInvWidth2
+        B = rawTop2 * topInvWidth2
+
+        b = utils.vessel()
+        b.raw = bjet
+        b.invRes2 = bresolution**(-2)
+        b.delta = A*(R-1) / (2*bjet.invRes2 + 0.5*R*A*A/B)
+        b.fitted = (1+bjet.delta) * b.raw
+
+        for item in ['b','W','massTop','topInvWidth2'] : setattr(self,item,eval(item))
