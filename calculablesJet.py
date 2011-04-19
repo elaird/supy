@@ -699,8 +699,8 @@ class Resolution(wrappedChain.calculable) :
     def update(self, ignored) :
         self.value = utils.hackMap(self.res, self.CorrectedP4)
 #####################################
-class AbsoluteSumP4Resolution(wrappedChain.calculable) :
-    '''Resolution (xx,xy,yy) in the transverse plane.'''
+class AbsoluteSumP4Resolution2(wrappedChain.calculable) :
+    '''Resolution2 : (xx,xy,yy) in the transverse plane.'''
 
     def __init__(self, collection = None) :
         self.fixes = collection
