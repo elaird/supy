@@ -699,6 +699,27 @@ class Resolution(wrappedChain.calculable) :
     def update(self, ignored) :
         self.value = utils.hackMap(self.res, self.CorrectedP4)
 #####################################
+class AbsoluteSumP4Resolution(wrappedChain.calculable) :
+    '''Resolution (xx,xy,yy) in the transverse plane.'''
+
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","CorrectedP4","Resolution"])
+
+    def update(self,ignored) :
+        p4s = self.source[self.CorrectedP4]
+        res = self.source[self.CorrectedP4]
+        errMatrix = 3*[0.]
+        for i in self.source[self.Indices] :
+            phi = p4s[i].phi()
+            c1 = math.cos(phi)
+            s1 = math.sin(phi)
+            r2 = p4s[i].Pt2() * res[i]**2
+            errMatrix[0] += r2*c1*c1
+            errMatrix[1] -= r2*c1*s1
+            errMatrix[2] += r2*s1*s1
+        self.value = tuple(errMatrix)
+#####################################
 class CorrectedP4(wrappedChain.calculable) :
     def __init__(self, genJets = None) : #purposefully not called collection
         self.fixes = genJets
