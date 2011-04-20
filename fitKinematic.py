@@ -115,7 +115,7 @@ class minuitMuNuW(object) :
     def fit(self) :
         phi = 0.5 * math.arctan(self.covErr[1]/(self.covErr[0]-self.covErr[2])) if self.covErr[0]!=self.covErr[2] else 0.25*math.pi * (-1 if self.covErr[1]<0 else 1)
         R = r.RotationZ(phi)
-        rNuP4 = R(self.MuP4)
+        rNuP4 = R(self.NuP4)
         rMuP4 = R(self.MuP4)
         cos = R.CosAngle()
         sin = R.SinAngle()
@@ -140,5 +140,8 @@ class minuitMuNuW(object) :
         P = self.massW**2 + 2 * (rmuX*fitNuX + rmuY*fitNuY)
         fitNuZ = 0.5 * self.muZ * P / self.muT2
         self.fittedNu[0].SetPxPyPzE(fitNuX,fitNuY,fitNuZ,math.sqrt(fitNuX**2+fitNuY**2+fitNuZ**2))
+
+        R.Invert()
+        self.fittedNu = R(self.fittedNu[0])
         self.chi2 = fnc(**fitted)
         
