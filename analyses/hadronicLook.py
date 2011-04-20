@@ -18,7 +18,7 @@ class hadronicLook(analysis.analysis) :
                                                                  ("xcak5Jet","Pat"),"metP4AK5TypeII",
                                                                  "PF",        True,         50.0,      "JetIDtight"]))
         
-        #objects["pfAK5JetMetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","PF"),("electron","PF"), ("photon","Pat"),
+        #objects["pf2patAK5JetMetLep_recoPhot"]=dict(zip(fields, [("xcak5JetPF2Pat","Pat"), "metP4PF",    ("muon","PF"),("electron","PF"), ("photon","Pat"),
         #                                                         None, None,
         #                                                         "PF",        True,         50.0]))
 
@@ -30,9 +30,9 @@ class hadronicLook(analysis.analysis) :
                  "lowPtName" : "lowPt",
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
-                 "triggerList": ("HLT_HT160_v2","HLT_HT240_v2","HLT_HT260_v2","HLT_HT350_v2","HLT_HT360_v2"),#early 2011
-                 #"triggerList": ("HLT_HT260_MHT60_v2", "HLT_HT300_MHT75_v2"), #perhaps sometime
-                 #"triggerList" : ("HLT_HT350_AlphaT0p51_v1", "HLT_HT350_AlphaT0p53_v1"), #mid 2011
+                 #"triggerList": ("HLT_HT160_v2","HLT_HT240_v2","HLT_HT260_v2","HLT_HT350_v2","HLT_HT360_v2"),#2011 epoch 1
+                 "triggerList": ("HLT_HT250_MHT60_v2","HLT_HT260_MHT60_v2","HLT_HT300_MHT75_v2","HLT_HT300_MHT75_v3"),#2011 epoch 2
+                 #"triggerList" : ("HLT_HT350_AlphaT0p51_v1", "HLT_HT350_AlphaT0p53_v1"), #2011 epoch 3
                  }
 
     def ra1Cosmetics(self) : return True
@@ -134,8 +134,10 @@ class hadronicLook(analysis.analysis) :
             
             steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 1500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
             steps.Other.variableGreaterFilter(350.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
+            steps.Other.histogrammer("%sSumP4%s"%_jet, 50, 0, 500, title = ";MHT from %s%s (GeV);events / bin"%_jet, funcString = "lambda x:x.pt()"),
+            steps.Other.variablePtGreaterFilter(80.0,"%sSumP4%s"%_jet,"GeV"),
             steps.Other.histogrammer("vertexIndices", 20, -0.5, 19.5, title=";N vertices;events / bin", funcString="lambda x:len(x)"),
-            steps.Other.histogrammer("vertexSumPt", 100, 0.0, 500.0, title = ";SumPt of 2nd vertex (GeV);events / bin", funcString = "lambda x:([0.0,0.0]+sorted(x))[-2]"),
+            steps.Other.histogrammer("vertexSumPt", 100, 0.0, 1.0e3, title = ";SumPt of 2nd vertex (GeV);events / bin", funcString = "lambda x:([0.0,0.0]+sorted(x))[-2]"),
             
             #steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT350_v2", ["HLT_HT300_v3"]),
             ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT350_v2", ["HLT_HT250_v2"]),
@@ -177,6 +179,7 @@ class hadronicLook(analysis.analysis) :
             steps.Jet.singleJetHistogrammer(_jet),
             steps.Other.passFilter("jetSumPlots1"), 
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
+            steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 100, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
             steps.Other.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
             steps.Other.passFilter("kinematicPlots1"),
             
@@ -195,6 +198,7 @@ class hadronicLook(analysis.analysis) :
             steps.Other.histogrammer("vertexIndices", 20, -0.5, 19.5, title=";N vertices;events / bin", funcString="lambda x:len(x)"),
             steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
+            steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 100, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
             steps.Other.passFilter("final"),
             
             #steps.Other.skimmer(),
@@ -234,7 +238,8 @@ class hadronicLook(analysis.analysis) :
         from samples import specify
         def data() : return specify( #nFilesMax = 4, nEventsMax = 2000,
                                      names = [#"Nov4_MJ_skim","Nov4_J_skim","Nov4_J_skim2","Nov4_JM_skim","Nov4_JMT_skim","Nov4_JMT_skim2",
-                                              "HT.Run2011A-PromptReco-v1.AOD.Georgia","HT.Run2011A-PromptReco-v1.AOD.Henning",
+                                              #"HT.Run2011A-PromptReco-v1.AOD.Georgia","HT.Run2011A-PromptReco-v1.AOD.Henning",
+                                              "HT.Run2011A-PromptReco-v1.AOD.Arlo",
                                               ])
         
 
