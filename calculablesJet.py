@@ -681,7 +681,7 @@ class Resolution(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
         self.stash(["CorrectedP4"])
-        self.resFuncs = sorted( utils.cmsswFuncData(fileName(collection), par="sigma") )
+        self.resFuncs = sorted( utils.cmsswFuncData(self.fileName(collection), par="sigma") )
 
     @staticmethod
     def fileName(collection) :
