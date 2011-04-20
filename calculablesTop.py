@@ -202,12 +202,12 @@ class NeutrinoPz(wrappedChain.calculable) :
 
         P = self.Wmass2 + WT2 - lepT2 - nuT2
 
-        determinant = lepZ**2 + 4*lepT2*(1-(4*lepE*lepE*nuT2)/(P**2))
-        if determinant < 0:
+        discriminant = lepZ**2 + 4*lepT2*(1-(4*lepE*lepE*nuT2)/(P**2))
+        if discriminant < 0:
             #return           # option A
-            determinant = 0   # option B
+            discriminant = 0   # option B
         
-        sqrtD = math.sqrt(determinant)
+        sqrtD = math.sqrt(discriminant)
         factor = 0.5*P/lepT2
         self.value = (factor * (lepZ-sqrtD),
                       factor * (lepZ+sqrtD))
@@ -232,31 +232,54 @@ class NeutrinoP4M(NeutrinoP4Solution) :
     def __init__(self, collection = None, SumP4 = None) : super(NeutrinoP4M,self).__init__(collection,SumP4,-1)
 ######################################
 class TopReconstruction(wrappedChain.calculable) :
-    def __init__(self, collection, jets) :
-        self.massTop = 172 #GeV
+    def __init__(self, collection, jets, SumP4) :
+        self.massTop = 172.0 #GeV
         self.fixes = collection
-        self.stash(["SemileptonicTopIndex","P4","NeutrinoP4P","NeutrinoP4M"])
-        self.stash(["CorrectedP4","IndicesBtagged","Indices"],jets)
+        self.stash(["SemileptonicTopIndex","P4"])
+        self.stash(["CorrectedP4","IndicesBtagged","Indices","Resolution","AbsoluteSumP4Resolution2"],jets)
+        self.SumP4 = SumP4
+
+    def reconstruct(self, iBhad, iQQ, iBlep) :
+        iHad = [iBhad,iQQ[0],iQQ[1]]
+        hadP4 = [self.source[self.CorrectedP4][i] for i in iHad]
+        hadRes = [self.source[self.Resolution][i] for i in iHad]
+        hadronicFit = fitKinematic.linearHadronicTop(hadP4, hadRes)
+        hadTopP4 = sum(hadronicFit.J.fitted, utils.LorentzV())
+        
+        sumP4 = self.source[self.SumP4] - sum(hadP4,utils.LorentzV()) + hadTopP4
+        lepP4 = self.source[self.P4][self.source[self.SemileptonicTopIndex]]
+        metCovRes = self.source[self.AbsoluteSumP4Resolution2]
+        lepNuFit = fitKinematic.minuitMuNuW( lepP4, -sumP4.x(), -sumP4.y(), metCovRes)
+
+        leptonicFits = [ fitKinematic.linearWbTop( self.source[self.CorrectedP4][iBlep],
+                                                   self.source[self.Resolution][iBlep],
+                                                   lepNuFit.muP4 + fittedNu
+                                                   ) if fittedNu else None for fittedNu in lepNuFit.fittedNu ]
+        iNuZ = 0 if leptonicFits[1] is None or leptonicFits[0].chi2 < leptonicFits[1].chi2 else 1
+        return {"nu"   : lepNuFit.fittedNu[iNuZ],
+                "lep"  : lepNuFit.muP4,
+                "lepB" : leptonicFits[iNuZ].b,
+                "hadB" : hadronicFit.J.fitted[0],
+                "hadP" : hadronicFit.J.fitted[1],
+                "hadQ" : hadronicFit.J.fitted[2],
+                "lepTopP4" : lepNuFit.muP4 + lepNuFit.fittedNu[iNuZ] + leptonicFits[iNuZ].b,
+                "hadTopP4" : hadTopP4,
+                "chi2" : hadronicFit.chi2() + lepNuFit.chi2 + leptonicFits[iNuZ].chi2
+                }
 
     def update(self,ignored) :
-        indices = self.source[self.Indices]
         bIndices = self.source[self.IndicesBtagged][:2]
-        jetP4s = self.source[self.CorrectedP4]
-        lepP4 = self.source[self.P4][self.source[self.SemileptonicTopIndex]]
-        nuP4s = [self.source[self.NeutrinoP4P],self.source[self.NeutrinoP4M]]
-        self.value = sorted([ { "nuP4" : nuP4,
-                                "lepTopBIndex" : iJet,
-                                "lepTopP4" : nuP4+lepP4+jetP4s[iJet],
-                                "hadTopP4" : sum([jetP4s[i] for i in (set(indices)-set([iJet]))], utils.LorentzV()),
-                                "hadTopBIndex" : filter(lambda i: i!=iJet, bIndices)[0] } for nuP4 in nuP4s for iJet in bIndices],
-                            key = lambda x: abs(self.massTop - x["lepTopP4"].M()) )
+        indices = filter(lambda i: i not in bIndices, self.source[self.Indices])[:2]
+
+        self.value = sorted([ self.reconstruct( bIndices[0], indices, bIndices[1]),
+                              self.reconstruct( bIndices[1], indices, bIndices[0]) ], key = lambda x: x["chi2"] )
 #####################################
 class NeutrinoP4(wrappedChain.calculable) :
     def __init__(self, collection) :
         self.fixes = collection
         self.stash(["TopReconstruction"])
     def update(self,ignored) :
-        self.value = self.source[self.TopReconstruction][0]["nuP4"]
+        self.value = self.source[self.TopReconstruction][0]["nu"]
 #####################################
 class SumP4Nu(wrappedChain.calculable) :
     def name(self) : return self.SumP4 + "Nu"
