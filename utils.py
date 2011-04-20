@@ -90,7 +90,7 @@ def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = 
 
     versionDict = defaultdict(list)
     for inFile,size in zip(inList,sizes) :
-        fields = re.split(pattern,inFile)
+        fields = re.split(pattern,inFile.strip('/'))
         versionDict[ (fields[0],fields[1]) ].append( (int(fields[2]), size, fields[3]) )
 
     resolved = 0
