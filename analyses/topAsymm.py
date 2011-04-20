@@ -7,7 +7,7 @@ class topAsymm(analysis.analysis) :
     def parameters(self) :
         objects = {}
         fields =                           [ "jet",              "met",           "sumP4",                "sumPt",                 "muon",       "electron",        "photon",        "muonsInJets"]
-        objects["calo"] = dict(zip(fields, [("xcak5Jet","Pat"),  "metP4AK5TypeII","xcSumP4",              "xcSumPt",               ("muon","Pat"),("electron","Pat"),("photon","Pat"), False]))
+        #objects["calo"] = dict(zip(fields, [("xcak5Jet","Pat"),  "metP4AK5TypeII","xcSumP4",              "xcSumPt",               ("muon","Pat"),("electron","Pat"),("photon","Pat"), False]))
         objects["pf"]   = dict(zip(fields, [("xcak5JetPF","Pat"),"metP4PF",       "xcak5JetPFRawSumP4Pat","xcak5JetPFRawSumPtPat", ("muon","PF"),("electron","PF"),("photon","Pat"),   True]))
 
         leptons = {}
@@ -44,7 +44,7 @@ class topAsymm(analysis.analysis) :
             calculables.Jet.Indices(      obj["jet"],      ptMin = 30, etaMax = 3.0, flagName = "JetIDloose"),
             calculables.Muon.Indices(     obj["muon"],     ptMin = 10, combinedRelIsoMax = 0.15),
             calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "80", useCombinedIso = True),
-            calculables.Photon.photonIndicesPat(           ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
+            calculables.Photon.Indices(   obj["photon"],   ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
 
             calculables.XClean.IndicesUnmatched(collection = obj["photon"], xcjets = obj["jet"], DR = 0.5),
             calculables.XClean.IndicesUnmatched(collection = obj["electron"], xcjets = obj["jet"], DR = 0.5),
@@ -65,7 +65,7 @@ class topAsymm(analysis.analysis) :
             calculables.Top.NeutrinoPz(lepton,"mixedSumP4"),
             calculables.Top.NeutrinoP4P(lepton,"mixedSumP4"),
             calculables.Top.NeutrinoP4M(lepton,"mixedSumP4"),
-            calculables.Top.TopReconstruction(lepton,obj["jet"]),
+            calculables.Top.TopReconstruction(lepton,obj["jet"],"mixedSumP4"),
             calculables.Top.NeutrinoP4(lepton),
             calculables.Top.SumP4Nu(lepton,"mixedSumP4"),
             calculables.Top.SignedRapidity(lepton,"mixedSumP4Nu"),
@@ -127,6 +127,7 @@ class topAsymm(analysis.analysis) :
             
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             steps.Filter.multiplicity("%sIndices%s"%obj["jet"], **pars["nJets"]),
+            #steps.Histos.mass("%sCorrectedP4%s"%obj["jet"], indices = "%sIndices%s"%obj['jet'], index = 1),
             lepIso(0),
             
             steps.Histos.value(obj["sumPt"],50,0,1000),
@@ -138,7 +139,7 @@ class topAsymm(analysis.analysis) :
             
             steps.Filter.multiplicity("%sIndices%s"%lepton, max = pars["sample"]["lIso"]["nMaxIso"]),
             steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = ("%s"+pars["sample"]["lIso"]["indices"]+"%s")%lepton, index = 0),
-            ]+templateSteps()+[
+            #]+templateSteps()+[
             steps.Histos.value(bVar, 60,0,15, indices = "%sIndicesBtagged%s"%obj["jet"], index = 0),
             steps.Histos.value(bVar, 60,0,15, indices = "%sIndicesBtagged%s"%obj["jet"], index = 1),
             steps.Histos.value(bVar, 60,0,15, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
@@ -148,7 +149,7 @@ class topAsymm(analysis.analysis) :
             
             steps.Other.compareMissing([obj["sumP4"],obj["met"]]),
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
-            ]+templateSteps()+[
+            #]+templateSteps()+[
             steps.Top.Asymmetry(lepton),
             
             #steps.Histos.generic(("%sNeutrinoPz%s"%lepton,"%sNeutrinoPz%s"%lepton),(100,100),(-1500,-500),(500,1500),
@@ -157,11 +158,11 @@ class topAsymm(analysis.analysis) :
             steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
             steps.Filter.value(bVar, max=2.0, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
             
-            steps.Top.Asymmetry(lepton),
-            ]+templateSteps()+[
-            steps.Histos.generic(("%sIndicesBtagged%s"%obj["jet"],"%sCorrectedP4%s"%obj["jet"]),
-                                 30,0,180, title=";M_{2-light};events / bin",
-                                 funcString="lambda x: (x[1][x[0][2]] + x[1][x[0][3]]).M()"),
+            #steps.Top.Asymmetry(lepton),
+            #]+templateSteps()+[
+            #steps.Histos.generic(("%sIndicesBtagged%s"%obj["jet"],"%sCorrectedP4%s"%obj["jet"]),
+            #                     30,0,180, title=";M_{2-light};events / bin",
+            #                     funcString="lambda x: (x[1][x[0][2]] + x[1][x[0][3]]).M()"),
 ##
             #steps.Other.productGreaterFilter(0,["%s%s"%lepton+"RelativeRapiditymixedSumP4NuM","%s%s"%lepton+"RelativeRapiditymixedSumP4NuP"]),
             #steps.Other.histogrammer("%sSignedRapidity%s"%lepton, 51, -5, 5, title = ";y_lep*q_lep*sign(boost);events / bin"),
@@ -211,9 +212,9 @@ class topAsymm(analysis.analysis) :
 
         eL = 1000 # 1/pb
         return  ( #data() +
-                  qcd_mg(eL) +
-                  ttbar_mg(None) +
-                  ewk(eL)
+                  #qcd_mg(eL) +
+                  ttbar_mg(None) #+
+                  #ewk(eL)
                   )
 
     def conclude(self) :

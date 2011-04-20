@@ -681,7 +681,7 @@ class Resolution(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
         self.stash(["CorrectedP4"])
-        self.resFuncs = sorted( utils.cmsswFuncData(self.fileName(collection), par="sigma") )
+        self.resFuncs = sorted( utils.cmsswFuncData(self.fileName(collection), par="sigma"))
 
     @staticmethod
     def fileName(collection) :
@@ -694,10 +694,10 @@ class Resolution(wrappedChain.calculable) :
     def res(self, p4) :
         if not self.resFuncs: return None
         etaBin = max(0,bisect.bisect(self.resFuncs,(p4.eta(),None,None))-1)
-        return self.resFuncs[etaBin].Eval(p4.pt())
+        return self.resFuncs[etaBin][2].Eval(p4.pt())
     
     def update(self, ignored) :
-        self.value = utils.hackMap(self.res, self.CorrectedP4)
+        self.value = utils.hackMap(self.res, self.source[self.CorrectedP4])
 #####################################
 class AbsoluteSumP4Resolution2(wrappedChain.calculable) :
     '''Resolution2 : (xx,xy,yy) in the transverse plane.'''
@@ -708,13 +708,13 @@ class AbsoluteSumP4Resolution2(wrappedChain.calculable) :
 
     def update(self,ignored) :
         p4s = self.source[self.CorrectedP4]
-        res = self.source[self.CorrectedP4]
+        res = self.source[self.Resolution]
         errMatrix = 3*[0.]
         for i in self.source[self.Indices] :
             phi = p4s[i].phi()
             c1 = math.cos(phi)
             s1 = math.sin(phi)
-            r2 = p4s[i].Pt2() * res[i]**2
+            r2 = p4s[i].Perp2() * res[i]**2
             errMatrix[0] += r2*c1*c1
             errMatrix[1] -= r2*c1*s1
             errMatrix[2] += r2*s1*s1

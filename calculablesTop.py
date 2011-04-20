@@ -1,5 +1,5 @@
 from wrappedChain import *
-import calculables,math,utils
+import calculables,math,utils,fitKinematic
 
 ######################################
 class genTopNuP4(wrappedChain.calculable) :
@@ -240,9 +240,11 @@ class TopReconstruction(wrappedChain.calculable) :
         self.SumP4 = SumP4
 
     def reconstruct(self, iBhad, iQQ, iBlep) :
-        iHad = [iBhad,iQQ[0],iQQ[1]]
+        
+        iHad = [iBhad] + iQQ
         hadP4 = [self.source[self.CorrectedP4][i] for i in iHad]
         hadRes = [self.source[self.Resolution][i] for i in iHad]
+        if len(iQQ) == 1 : hadP4.append(utils.LorentzV()); hadRes.append(1.0)
         hadronicFit = fitKinematic.linearHadronicTop(hadP4, hadRes)
         hadTopP4 = sum(hadronicFit.J.fitted, utils.LorentzV())
         
@@ -258,13 +260,13 @@ class TopReconstruction(wrappedChain.calculable) :
         iNuZ = 0 if leptonicFits[1] is None or leptonicFits[0].chi2 < leptonicFits[1].chi2 else 1
         return {"nu"   : lepNuFit.fittedNu[iNuZ],
                 "lep"  : lepNuFit.muP4,
-                "lepB" : leptonicFits[iNuZ].b,
+                "lepB" : leptonicFits[iNuZ].b.fitted,
                 "hadB" : hadronicFit.J.fitted[0],
                 "hadP" : hadronicFit.J.fitted[1],
                 "hadQ" : hadronicFit.J.fitted[2],
-                "lepTopP4" : lepNuFit.muP4 + lepNuFit.fittedNu[iNuZ] + leptonicFits[iNuZ].b,
+                "lepTopP4" : lepNuFit.muP4 + lepNuFit.fittedNu[iNuZ] + leptonicFits[iNuZ].b.fitted,
                 "hadTopP4" : hadTopP4,
-                "chi2" : hadronicFit.chi2() + lepNuFit.chi2 + leptonicFits[iNuZ].chi2
+                "chi2" : hadronicFit.chi2() + lepNuFit.chi2 + leptonicFits[iNuZ].chi2()
                 }
 
     def update(self,ignored) :
@@ -280,6 +282,7 @@ class NeutrinoP4(wrappedChain.calculable) :
         self.stash(["TopReconstruction"])
     def update(self,ignored) :
         self.value = self.source[self.TopReconstruction][0]["nu"]
+        print "called %s.update()\tself.value = "%self.name(), type(self.value), self.value
 #####################################
 class SumP4Nu(wrappedChain.calculable) :
     def name(self) : return self.SumP4 + "Nu"
