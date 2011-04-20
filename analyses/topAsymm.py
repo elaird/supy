@@ -139,7 +139,7 @@ class topAsymm(analysis.analysis) :
             
             steps.Filter.multiplicity("%sIndices%s"%lepton, max = pars["sample"]["lIso"]["nMaxIso"]),
             steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = ("%s"+pars["sample"]["lIso"]["indices"]+"%s")%lepton, index = 0),
-            #]+templateSteps()+[
+            ]+templateSteps()+[
             steps.Histos.value(bVar, 60,0,15, indices = "%sIndicesBtagged%s"%obj["jet"], index = 0),
             steps.Histos.value(bVar, 60,0,15, indices = "%sIndicesBtagged%s"%obj["jet"], index = 1),
             steps.Histos.value(bVar, 60,0,15, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
@@ -149,7 +149,7 @@ class topAsymm(analysis.analysis) :
             
             steps.Other.compareMissing([obj["sumP4"],obj["met"]]),
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
-            #]+templateSteps()+[
+            ]+templateSteps()+[
             steps.Top.Asymmetry(lepton),
             
             #steps.Histos.generic(("%sNeutrinoPz%s"%lepton,"%sNeutrinoPz%s"%lepton),(100,100),(-1500,-500),(500,1500),
@@ -158,11 +158,11 @@ class topAsymm(analysis.analysis) :
             steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
             steps.Filter.value(bVar, max=2.0, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
             
-            #steps.Top.Asymmetry(lepton),
-            #]+templateSteps()+[
-            #steps.Histos.generic(("%sIndicesBtagged%s"%obj["jet"],"%sCorrectedP4%s"%obj["jet"]),
-            #                     30,0,180, title=";M_{2-light};events / bin",
-            #                     funcString="lambda x: (x[1][x[0][2]] + x[1][x[0][3]]).M()"),
+            steps.Top.Asymmetry(lepton),
+            ]+templateSteps()+[
+            steps.Histos.generic(("%sIndicesBtagged%s"%obj["jet"],"%sCorrectedP4%s"%obj["jet"]),
+                                 30,0,180, title=";M_{2-light};events / bin",
+                                 funcString="lambda x: (x[1][x[0][2]] + x[1][x[0][3]]).M()"),
 ##
             #steps.Other.productGreaterFilter(0,["%s%s"%lepton+"RelativeRapiditymixedSumP4NuM","%s%s"%lepton+"RelativeRapiditymixedSumP4NuP"]),
             #steps.Other.histogrammer("%sSignedRapidity%s"%lepton, 51, -5, 5, title = ";y_lep*q_lep*sign(boost);events / bin"),
