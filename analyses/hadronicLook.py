@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import copy,analysis,steps,calculables,samples,organizer,plotter,utils
+import copy,os
+import analysis,steps,calculables,samples,organizer,plotter,utils
 import ROOT as r
 
 class hadronicLook(analysis.analysis) :
@@ -114,6 +115,10 @@ class hadronicLook(analysis.analysis) :
             steps.Trigger.hltPrescaleHistogrammer(params["triggerList"]),
             
             #steps.Other.cutSorter([
+            ##for signal efficiency calculation
+            #steps.Other.passFilter("htLabel1"),
+            #steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 20, 0, 1000, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
+            
             steps.Jet.jetPtSelector(_jet, 100.0, 0),
             steps.Jet.jetPtSelector(_jet, 100.0, 1),
             steps.Jet.jetEtaSelector(_jet,2.5,0),
@@ -199,6 +204,11 @@ class hadronicLook(analysis.analysis) :
             steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 100, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
+
+            ##for signal efficiency calculation
+            #steps.Other.passFilter("htLabel2"),
+            #steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 20, 0, 1000, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
+
             steps.Other.passFilter("final"),
             
             #steps.Other.skimmer(),
@@ -356,12 +366,56 @@ class hadronicLook(analysis.analysis) :
                                  blackList = ["lumiHisto","xsHisto","nJobsHisto"],
                                  )
             pl.plotAll()
+            #self.makeEfficiencyPlots(org, tag, sampleName = "LM1")
 
-            ##working on manipulation
-            #dataIndex = org.indexOfSampleWithName("2010 Data")
-            #csIndex = org.indicesOfSelectionsWithKey("cutSorterConfigurationCounts")[0]
-            #csTriplet = [org.selections[csIndex][key][dataIndex] for key in ["cutSorterConfigurationCounts","cutSorterNames","cutSorterMoreNames"]]
-            #cutSpecs = [(csTriplet[1].GetXaxis().GetBinLabel(i+1),csTriplet[2].GetXaxis().GetBinLabel(i+1)) for i in range(csTriplet[1].GetNbinsX())]
+    def makeEfficiencyPlots(self, org, tag, sampleName) :
+        def sampleIndex(org, name) :
+            for iSample,sample in enumerate(org.samples) :
+                if sample["name"]==name : return iSample
+            assert False, "could not find sample %s"%name
 
-            
-            
+        def numerAndDenom(org, var) :
+            d = {}
+            for selection in org.selections :
+                if selection.name!= "passFilter" : continue
+                if   "htLabel1" in selection.title : label = "before"
+                elif "htLabel2" in selection.title : label = "after"
+                else : continue
+                if var in selection :
+                    d[label] = selection[var][sampleIndex(org, sampleName)].Clone(label)
+                
+            return d
+
+        keep = []
+        canvas = r.TCanvas()
+        canvas.SetRightMargin(0.2)
+        canvas.SetTickx()
+        canvas.SetTicky()
+        psFileName = "%s.ps"%tag
+        canvas.Print(psFileName+"[","Lanscape")
+
+        assert len(self.parameters()["objects"])==1
+        for key,value in self.parameters()["objects"].iteritems() :
+            jet = value["jet"]
+
+        for variable in ["%sSumEt%s"%jet] :
+            histos = numerAndDenom(org, variable)
+            if "before" not in histos or "after" not in histos : continue
+            result = histos["after"].Clone(variable)
+            result.Scale(1.0/histos["before"].Integral(0, histos["before"].GetNbinsX()+1))
+            result.SetMarkerStyle(20)
+            result.SetStats(False)
+            if result.ClassName()[2]=="1" :
+                #result.GetYaxis().SetRangeUser(0.0,1.0)
+                result.GetYaxis().SetTitle("efficiency")
+                result.Draw()
+            else :
+                #result.GetZaxis().SetRangeUser(0.0,1.0)
+                result.GetZaxis().SetTitle("efficiency")
+                result.Draw("colz")
+            canvas.Print(psFileName,"Lanscape")
+
+        canvas.Print(psFileName+"]","Lanscape")                
+        os.system("ps2pdf "+psFileName)
+        os.remove(psFileName)
+
