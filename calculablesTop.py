@@ -282,7 +282,6 @@ class NeutrinoP4(wrappedChain.calculable) :
         self.stash(["TopReconstruction"])
     def update(self,ignored) :
         self.value = self.source[self.TopReconstruction][0]["nu"]
-        print "called %s.update()\tself.value = "%self.name(), type(self.value), self.value
 #####################################
 class SumP4Nu(wrappedChain.calculable) :
     def name(self) : return self.SumP4 + "Nu"
