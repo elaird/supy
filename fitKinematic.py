@@ -142,6 +142,6 @@ class minuitMuNuW(object) :
         self.fittedNu[0].SetPxPyPzE(fitNuX,fitNuY,fitNuZ,math.sqrt(fitNuX**2+fitNuY**2+fitNuZ**2))
 
         R.Invert()
-        self.fittedNu = R(self.fittedNu[0])
+        self.fittedNu = tuple( R(self.fittedNu[0]), None)
         self.chi2 = fnc(**fitted)
         
