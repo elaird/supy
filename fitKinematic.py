@@ -2,6 +2,46 @@ import numpy,math,utils,minuit
 import ROOT as r
 
 ###########################
+class minuitHadronicTop(object) :
+    '''Fit three jets to the hypothesis t-->bqq.
+
+    Index 0 is the b-jet.
+    Resolutions are expected in units of sigma(pT)/pT.'''
+
+    def __init__(self, jetP4s, jetResolutions, massT = 172.0, widthT = 13.1/2, massW = 80.4, widthW = 2.085/2 ) :
+        assert len(jetP4s) == 3 == len(jetResolutions), "Please specify 3 and only 3 jets."
+        J,W,T = tuple( utils.vessel() for i in range(3) )
+
+        J.raw = jetP4s
+        J.invRes2 = [ jr**(-2) for jr in jetResolutions ]
+
+        T.rawMass2 = sum( jetP4s, utils.LorentzV()).M2()
+        T.mass = massT ;   T.invWidth2 = widthT**(-2)
+        W.mass = massW ;   W.invWidth2 = widthW**(-2)
+
+        for item in ["J","T","W"] : setattr(self,item,eval(item))
+        self.fit()
+
+    def fit(self) :
+        def fnc(db,dp,dq) :
+            d = [db,dp,dq]
+            fitted = [jet*(1+delta) for delta,jet in zip(d,self.J.raw)]
+            W = fitted[1]+fitted[2]
+            T = fitted[0]+W
+            return ( self.T.invWidth2 * (self.T.mass - T.M())**2 +
+                     self.W.invWidth2 * (self.W.mass - W.M())**2 +
+                     sum([r*delta**2 for delta,r in zip(d,self.J.invRes2)]) )
+
+        m = minuit.minuit(fnc)        
+        if m.mnexcm("MIGRAD", 500, 1) : m.printStatus()
+        fitted = m.values()
+        self.chi2_ = fnc(**fitted)
+        self.J.delta = [fitted[s] for s in ['db','dp','dq']]
+        self.J.fitted = [jet*(1+delta) for delta,jet in zip(self.J.delta,self.J.raw)]
+
+    def chi2(self) : return self.chi2_
+    
+###########################
 class linearHadronicTop(object) :
     '''Fit three jets to the hypothesis t-->bqq.
 
@@ -94,30 +134,27 @@ class minuitMuNuW(object) :
         else : self.fit()
 
     def discriminant(self) :
-        self.nuT2 = self.nuP4.Perp2()
-        self.nuX = self.nuP4.X()
-        self.nuY = self.nuP4.Y()
-        muX = self.muP4.X()
-        muY = self.muP4.Y()
-        self.P = self.massW**2 + 2 * (self.nuX*muX + self.nuY*muY)
-        self.muZ = self.muP4.Z()
         self.muT2 = self.muP4.Perp2()
-        self.muE2 = self.muP4.E()**2
-        self.discriminant = 1 + (self.muT2/self.muZ**2)*(1 - 4*self.muE2*self.nuT2 / self.P**2)
+        self.nuT2 = self.nuP4.Perp2()
+        self.P = self.massW**2 + 2 * (self.nuP4.X()*self.muP4.X() + self.nuP4.Y()*self.muP4.Y())
+
+        self.discriminant =  1  -  4 * self.muT2 * self.nuT2 / self.P**2
         return self.discriminant
 
     def solve(self) :
-        #print 'solve'
+        print 'solve'
+        nuX,nuY = self.nuP4.X(), self.nuP4.Y()
+        muZ,muE = self.muP4.z(), self.muP4.E()
         sqrtDisc = math.sqrt(self.discriminant)
-        base = 0.5 * self.muZ * self.P / self.muT2
-        zplus = base*(1+sqrtDisc)
-        zminus = base*(1-sqrtDisc)
-        self.fittedNu[0].SetPxPyPzE(self.nuX, self.nuY, zplus,  math.sqrt(self.nuT2 + zplus**2))
-        self.fittedNu[1].SetPxPyPzE(self.nuX, self.nuY, zminus, math.sqrt(self.nuT2 + zminus**2))
+        base = 0.5 * self.P / self.muT2
+        zplus = base*(muZ+muE*sqrtDisc)
+        zminus = base*(muZ-muE*sqrtDisc)
+        self.fittedNu[0].SetPxPyPzE(nuX, nuY, zplus,  math.sqrt(self.nuT2 + zplus**2))
+        self.fittedNu[1].SetPxPyPzE(nuX, nuY, zminus, math.sqrt(self.nuT2 + zminus**2))
         self.chi2 = 0.0
 
     def fit(self) :
-        #print 'fit'
+        print 'fit'
         phi = 0.5 * math.atan2(self.covErr[1], self.covErr[0]-self.covErr[2]) 
         R = r.Math.RotationZ(phi)
         rNuP4 = R(self.nuP4)
@@ -130,26 +167,32 @@ class minuitMuNuW(object) :
         assert sigma2y > 0, sigma2y
         rnuX,rnuY = rNuP4.x(),rNuP4.y()
         rmuX,rmuY = rMuP4.x(),rMuP4.y()
+        rMuPhi = rMuP4.Phi()
 
-        def fnc(deltax,deltay) :
-            constraint = (1+(self.muT2/self.muZ**2) * (1 - 4*self.muE2 * ((1+deltax)**2 * rnuX**2 + (1+deltay)**2 * rnuY**2) / (self.P + 2*(rmuX*rnuX*deltax+rmuY*rnuY*deltay))**2 )  )
-            val = ( (deltax*rnuX)**2/sigma2x +
-                    (deltay*rnuY)**2/sigma2y +
-                    constraint**2 )
-            #print val, constraint**2, math.sqrt(sigma2x), math.sqrt(sigma2y), deltax*rnuX, deltay*rnuY
+        muT = math.sqrt(self.muT2)
+        def NUT(dphi) : return 0.5 * self.massW**2 / (muT*(1-math.cos(dphi)))
+
+        def fnc(phi) :
+            nuT = NUT(rMuPhi-phi)
+            x = nuT*math.cos(phi)
+            y = nuT*math.sin(phi)
+            val = ( (x - rnuX)**2/sigma2x +
+                    (y - rnuY)**2/sigma2y )
             return val
         
-        m = minuit.minuit(fnc, deltax=(0.,0.001), deltay=(0.,0.001))
+        m = minuit.minuit(fnc, phi = rNuP4.Phi() )
         if m.mnexcm("MIGRAD", 500, 1) : m.printStatus()
         fitted = m.values()
-        
-        fitNuX = (1+fitted['deltax'])*rnuX
-        fitNuY = (1+fitted['deltay'])*rnuY
+        self.chi2 = fnc(**fitted)
+
+        nuT = NUT(rMuPhi-fitted['phi'])
+        fitNuX = nuT * math.cos(fitted['phi'])
+        fitNuY = nuT * math.sin(fitted['phi'])
+
         P = self.massW**2 + 2 * (rmuX*fitNuX + rmuY*fitNuY)
-        fitNuZ = 0.5 * self.muZ * P / self.muT2
+        fitNuZ = 0.5 * self.muP4.Z() * P / self.muT2
         self.fittedNu[0].SetPxPyPzE(fitNuX,fitNuY,fitNuZ,math.sqrt(fitNuX**2+fitNuY**2+fitNuZ**2))
 
         R.Invert()
         self.fittedNu = ( R(self.fittedNu[0]) , None )
-        self.chi2 = fnc(**fitted)
         
