@@ -29,7 +29,7 @@ class minuit(object) :
                     assert len(iv)==2 or len(iv)==4,'\n\nInitial value can be start, (start,step), or (start,step,lo,hi)'
                     if len(iv)==2 : start,step = iv
                     else : start,step,lo,hi = iv
-                else: start = initalValues[name]
+                else: start = ivs[name]
             self.minuit.mnparm(i,name, start, step, lo, hi, self.ierflg)
         return
 
