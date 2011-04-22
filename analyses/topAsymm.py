@@ -62,6 +62,9 @@ class topAsymm(analysis.analysis) :
             calculables.Top.mixedSumP4(transverse = obj["met"], longitudinal = obj["sumP4"]),
             calculables.Top.SemileptonicTopIndex(lepton),
             
+            calculables.Top.TTbarDeltaAbsY(lepton),
+            calculables.Top.TTbarSignedDeltaY(lepton),
+            calculables.Top.TTbarMHTOverHT(lepton),
             calculables.Top.NeutrinoPz(lepton,"mixedSumP4"),
             calculables.Top.NeutrinoP4P(lepton,"mixedSumP4"),
             calculables.Top.NeutrinoP4M(lepton,"mixedSumP4"),

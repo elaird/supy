@@ -5,6 +5,7 @@ import utils
 #####################################
 class Asymmetry(analysisStep) :
     def __init__(self, lepton) :
+        self.lepton = lepton
         self.charge = "%sCharge%s"%lepton
         self.index = "%sSemileptonicTopIndex%s"%lepton
         self.signedY = "%sSignedRapidity%s"%lepton
@@ -18,10 +19,18 @@ class Asymmetry(analysisStep) :
 
         topReco = eV[self.TopReco]
         lepTopM = topReco[0]['lepTopP4'].M()
-        self.book.fill( lepTopM, "bestLepTopM", 100,0,300, title = ";best leptonic top mass;events / bin" )
-        self.book.fill( (lepTopM, topReco[0]['hadTopP4'].M()), "lepM_vs_hadM", (100,100),(0,0),(300,300),
-                        title = ";best leptonic top mass; corresponding hadronic top mass;events / bin",)
-        self.book.fill( topReco[1]['lepTopP4'].M(), "secondBestLepTopM", 100,0,300, title = ";2nd best leptonic top mass;events / bin" )
+        hadTopM = topReco[0]['hadTopP4'].M()
+        
+        self.book.fill( lepTopM, "bestLepTopM", 100,0,300, title = ";leptonic top mass;events / bin" )
+        self.book.fill( hadTopM, "bestLepTopM", 100,0,300, title = ";hadronic top mass;events / bin" )
+        self.book.fill( (lepTopM, hadTopM), "lepM_vs_hadM", (100,100),(0,0),(300,300),
+                        title = ";leptonic top mass; hadronic top mass;events / bin",)
+
+        self.book.fill( math.log(1+topReco[0]['chi2']), "topRecoLogChi2", 50, 0 , 10, title = ';top reco Log(chi2);events / bin')
+        self.book.fill( 1 - topReco[0]['chi2']/topReco[1]['chi2'], "topRecoRelDiffChi2", 50, 0 , 1, title = ';top reco reldiff chi2;events / bin')
+        self.book.fill( eV['%sTTbarDeltaAbsY%s'%self.lepton], "ttbarDeltaAbsY", 31, -5, 5, title = ';#Delta|Y|_{ttbar};events / bin' )
+        self.book.fill( eV['%sTTbarSignedDeltaY%s'%self.lepton], "ttbarSignedDeltaY", 31, -5, 5, title = ';sumP4dir * #Delta Y_{ttbar};events / bin' )
+        self.book.fill( eV['%sTTbarMHTOverHT%s'%self.lepton], 'ttbarMHTOverHT', 50, 0, 1, title = ';ttbar MHT/HT;events / bint')
         #steps.Histos.generic(("%s%s"%lepton+"RelativeRapiditymixedSumP4NuM","%s%s"%lepton+"RelativeRapiditymixedSumP4NuP"),
         #                     (101,101), (-5,-5), (5,5), title = ";#Delta y #nu_{-};#Delta y #nu_{+};events / bin",
         #                     funcString = "lambda x: (x[0],x[1])"),        

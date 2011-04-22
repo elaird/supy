@@ -33,7 +33,7 @@ class minuitHadronicTop(object) :
                      sum([r*delta**2 for delta,r in zip(d,self.J.invRes2)]) )
 
         m = minuit.minuit(fnc)        
-        if m.mnexcm("MIGRAD", 500, 1) : m.printStatus()
+        m.mnexcm("MIGRAD", 500, 1)
         fitted = m.values()
         self.chi2_ = fnc(**fitted)
         self.J.delta = [fitted[s] for s in ['db','dp','dq']]
@@ -142,7 +142,6 @@ class minuitMuNuW(object) :
         return self.discriminant
 
     def solve(self) :
-        print 'solve'
         nuX,nuY = self.nuP4.X(), self.nuP4.Y()
         muZ,muE = self.muP4.z(), self.muP4.E()
         sqrtDisc = math.sqrt(self.discriminant)
@@ -154,7 +153,6 @@ class minuitMuNuW(object) :
         self.chi2 = 0.0
 
     def fit(self) :
-        print 'fit'
         phi = 0.5 * math.atan2(self.covErr[1], self.covErr[0]-self.covErr[2]) 
         R = r.Math.RotationZ(phi)
         rNuP4 = R(self.nuP4)

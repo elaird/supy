@@ -235,12 +235,13 @@ class TopReconstruction(wrappedChain.calculable) :
     def __init__(self, collection, jets, SumP4) :
         self.massTop = 172.0 #GeV
         self.fixes = collection
-        self.stash(["SemileptonicTopIndex","P4"])
+        self.stash(["SemileptonicTopIndex","P4","Charge"])
         self.stash(["CorrectedP4","IndicesBtagged","Indices","Resolution","AbsoluteSumP4Resolution2"],jets)
         self.SumP4 = SumP4
 
     def reconstruct(self, iBhad, iQQ, iBlep) :
-        
+        iLep = self.source[self.SemileptonicTopIndex]
+        charge = self.source[self.Charge][iLep]
         iHad = [iBhad] + iQQ
         hadP4 = [self.source[self.CorrectedP4][i] for i in iHad]
         hadRes = [self.source[self.Resolution][i] for i in iHad]
@@ -250,7 +251,7 @@ class TopReconstruction(wrappedChain.calculable) :
         hadTopP4 = sum(hadronicFit.J.fitted, utils.LorentzV())
         
         sumP4 = self.source[self.SumP4] - sum(hadP4,utils.LorentzV()) + hadTopP4
-        lepP4 = self.source[self.P4][self.source[self.SemileptonicTopIndex]]
+        lepP4 = self.source[self.P4][iLep]
         metCovRes = self.source[self.AbsoluteSumP4Resolution2]
         lepNuFit = fitKinematic.minuitMuNuW( lepP4, -sumP4.x(), -sumP4.y(), metCovRes)
 
@@ -259,15 +260,24 @@ class TopReconstruction(wrappedChain.calculable) :
                                                    lepNuFit.muP4 + fittedNu
                                                    ) if fittedNu else None for fittedNu in lepNuFit.fittedNu ]
         iNuZ = 0 if leptonicFits[1] is None or leptonicFits[0].chi2 < leptonicFits[1].chi2 else 1
+
+        lepTopP4 = lepNuFit.muP4 + lepNuFit.fittedNu[iNuZ] + leptonicFits[iNuZ].b.fitted
+        topP4 = lepTopP4 if charge > 0 else hadTopP4
+        tbarP4= hadTopP4 if charge > 0 else lepTopP4
+        assert topP4 != tbarP4
+        
         return {"nu"   : lepNuFit.fittedNu[iNuZ],
                 "lep"  : lepNuFit.muP4,
                 "lepB" : leptonicFits[iNuZ].b.fitted,
                 "hadB" : hadronicFit.J.fitted[0],
                 "hadP" : hadronicFit.J.fitted[1],
                 "hadQ" : hadronicFit.J.fitted[2],
-                "lepTopP4" : lepNuFit.muP4 + lepNuFit.fittedNu[iNuZ] + leptonicFits[iNuZ].b.fitted,
+                "lepTopP4" : lepTopP4,
                 "hadTopP4" : hadTopP4,
-                "chi2" : hadronicFit.chi2() + lepNuFit.chi2 + leptonicFits[iNuZ].chi2()
+                "chi2" : hadronicFit.chi2() + lepNuFit.chi2 + leptonicFits[iNuZ].chi2(),
+                "top"  : topP4,
+                "tbar" : tbarP4,
+                "sumP4": sumP4
                 }
 
     def update(self,ignored) :
@@ -321,3 +331,32 @@ class RelativeRapidity(wrappedChain.calculable) :
         
         self.value = (1 if y_sum>0 else -1) * q_lep * (y_lep-y_sum)
 ######################################
+class TTbarDeltaAbsY(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["TopReconstruction"])
+
+    def update(self,ignored) :
+        reco = self.source[self.TopReconstruction][0]
+        self.value = abs(reco['top'].Rapidity()) - abs(reco['tbar'].Rapidity())
+######################################
+class TTbarSignedDeltaY(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["TopReconstruction"])
+
+    def update(self,ignored) :
+        reco = self.source[self.TopReconstruction][0]
+        sign = 1 if reco['sumP4'].Eta() > 0 else -1
+        self.value = sign * (reco['top'].Rapidity() - reco['tbar'].Rapidity())
+######################################
+class TTbarMHTOverHT(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["TopReconstruction"])
+
+    def update(self,ignored) :
+        reco = self.source[self.TopReconstruction][0]
+        sumP4 = reco['top'] + reco['tbar']
+        sumPt = reco['top'].Pt() + reco['tbar'].Pt()
+        self.value = sumP4.Pt() / sumPt
