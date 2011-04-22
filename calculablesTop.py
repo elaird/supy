@@ -245,7 +245,8 @@ class TopReconstruction(wrappedChain.calculable) :
         hadP4 = [self.source[self.CorrectedP4][i] for i in iHad]
         hadRes = [self.source[self.Resolution][i] for i in iHad]
         if len(iQQ) == 1 : hadP4.append(utils.LorentzV()); hadRes.append(1.0)
-        hadronicFit = fitKinematic.linearHadronicTop(hadP4, hadRes)
+        #hadronicFit = fitKinematic.linearHadronicTop(hadP4, hadRes)
+        hadronicFit = fitKinematic.minuitHadronicTop(hadP4, hadRes)
         hadTopP4 = sum(hadronicFit.J.fitted, utils.LorentzV())
         
         sumP4 = self.source[self.SumP4] - sum(hadP4,utils.LorentzV()) + hadTopP4

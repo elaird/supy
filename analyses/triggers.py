@@ -20,15 +20,17 @@ class triggers(analysis.analysis) :
     def listOfSteps(self, pars) :
         return (
             [steps.Print.progressPrinter(),
-             steps.Filter.multiplicity("%sIndices%s"%pars["electron"], min = 1),
+             steps.Filter.multiplicity("%sIndices%s"%pars["muon"], min = 1),
+             steps.Filter.value("prescaled",max=1,index="HLT_Mu15_v2"),
              #steps.Trigger.triggerScan( pattern = r"HLT_Mu\d*($|_v\d*|_HT\d*U|_Jet\d*U)", prescaleRequirement = "prescale==1", tag = "Mu"),
              #steps.Trigger.triggerScan( pattern = r"HLT_Mu\d($|\d($|_v\d*))", prescaleRequirement = "True", tag = "MuAll"),
-             steps.Trigger.triggerScan( pattern = r"HLT_Ele\d*", prescaleRequirement = "prescale==1", tag = "Ele"),
+             #steps.Trigger.triggerScan( pattern = r"HLT_Ele\d*", prescaleRequirement = "prescale==1", tag = "Ele"),
              #steps.Trigger.triggerScan( pattern = r"HLT_IsoMu\d*", prescaleRequirement = "prescale==1", tag = "IsoMu"),
              #steps.Trigger.triggerScan( pattern = r"HLT_HT\d*U($|_v\d*)", prescaleRequirement = "prescale==1", tag = "HT"),
              #steps.Trigger.triggerScan( pattern = r"HLT_Jet\d*U($|_v\d*)", prescaleRequirement = "prescale==1", tag = "Jet"),
-             #steps.Trigger.hltTurnOnHistogrammer( "%sLeadingPt%s"%pars["muon"], (50,0,25), "HLT_Mu9",["HLT_Mu%d"%d for d in [5,3]]),
-             #steps.Trigger.hltTurnOnHistogrammer( "%sLeadingPt%s"%pars["muon"], (50,0,25), "HLT_Mu15_v1",["HLT_Mu%d"%d for d in [9,7,5,3]]),
+             steps.Trigger.hltTurnOnHistogrammer("%sLeadingPt%s"%pars["muon"],(50,0,30),"HLT_Mu15_v2",["HLT_Mu%s"%s for s in ["12_v1","8_v1"]]),
+             steps.Trigger.hltTurnOnHistogrammer("%sLeadingPt%s"%pars["muon"],(50,0,30),"HLT_Mu20_v1",["HLT_Mu%s"%s for s in ["15_v2","12_v1"]]),
+             steps.Trigger.hltTurnOnHistogrammer("%sLeadingPt%s"%pars["muon"],(50,0,30),"HLT_Mu24_v1",["HLT_Mu%s"%s for s in ["15_v2","20_v1"]]),
              ])
     
     def listOfSampleDictionaries(self) :
@@ -37,20 +39,22 @@ class triggers(analysis.analysis) :
     def listOfSamples(self,pars) :
         from samples import specify
         data = specify(# nFilesMax = 32, nEventsMax = 40000,
-                        names = [#"Mu.Run2010A-Nov4ReReco.RECO.Jad",
+                        names = ["SingleMu.Run2011A-PromptReco-v1.Burt"
+                                 #"Mu.Run2010A-Nov4ReReco.RECO.Jad",
                                  #"Mu.Run2010B-Nov4ReReco.RECO.Jad",
-                                 "Electron.Run2010B-Nov4ReReco_v1.RECO.Sparrow",
-                                 "EG.Run2010A-Nov4ReReco_v1.RECO.Sparrow"
+                                 #"Electron.Run2010B-Nov4ReReco_v1.RECO.Sparrow",
+                                 #"EG.Run2010A-Nov4ReReco_v1.RECO.Sparrow"
                                  ])
         return data
 
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
             org=organizer.organizer( self.sampleSpecs(tag) )
+            org.mergeSamples(targetSpec = {"name":"SingleMu2011A", "color":r.kBlack}, allWithPrefix="SingleMu")
             #org.mergeSamples(targetSpec = {"name":"Mu2010A", "color":r.kBlack}, allWithPrefix="Mu.Run2010A")
             #org.mergeSamples(targetSpec = {"name":"Mu2010B", "color":r.kRed}, allWithPrefix="Mu.Run2010B")
-            org.mergeSamples(targetSpec = {"name":"EG2010A", "color":r.kBlack}, allWithPrefix="EG")
-            org.mergeSamples(targetSpec = {"name":"Ele2010B", "color":r.kRed}, allWithPrefix="Electron")
+            #org.mergeSamples(targetSpec = {"name":"EG2010A", "color":r.kBlack}, allWithPrefix="EG")
+            #org.mergeSamples(targetSpec = {"name":"Ele2010B", "color":r.kRed}, allWithPrefix="Electron")
             #org.scale()
             
             #plot

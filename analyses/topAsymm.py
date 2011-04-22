@@ -163,6 +163,10 @@ class topAsymm(analysis.analysis) :
             steps.Histos.generic(("%sIndicesBtagged%s"%obj["jet"],"%sCorrectedP4%s"%obj["jet"]),
                                  30,0,180, title=";M_{2-light};events / bin",
                                  funcString="lambda x: (x[1][x[0][2]] + x[1][x[0][3]]).M()"),
+            steps.Histos.generic("%sTopReconstruction%s"%lepton,
+                                 30,0,180, title=";fitted M_{2-light};events / bin",
+                                 funcString="lambda x: (x[0]['hadP'] + x[0]['hadQ']).M()"),
+
 ##
             #steps.Other.productGreaterFilter(0,["%s%s"%lepton+"RelativeRapiditymixedSumP4NuM","%s%s"%lepton+"RelativeRapiditymixedSumP4NuP"]),
             #steps.Other.histogrammer("%sSignedRapidity%s"%lepton, 51, -5, 5, title = ";y_lep*q_lep*sign(boost);events / bin"),
