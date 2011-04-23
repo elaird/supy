@@ -6,15 +6,15 @@ class minuitLeptonicTop(object) :
     '''Fit jet, lepton, and missing energy to the hypothesis t-->blv.'''
 
     def __init__(self, bP4, bResolution, muP4, nuX, nuY, nuErr, 
-                 massT = 172.0, widthT = 13.1/2, massW = 80.4, zSolPlus = True ) :
+                 massT = 172.0, widthT = 13.1/2, massW = 80.4, zPlus = True ) :
 
-        T,B,mu,nu = tuple( utils.vessel() for i in range(5) )
+        T,B,mu,nu = tuple( utils.vessel() for i in range(4) )
 
         T.mass = massT ;
         T.invWidth2 = widthT**(-2);  
         B.raw = bP4;
         B.invRes2 = bResolution**(-2); 
-        mu.p4 = muP4
+        mu.P4 = muP4
 
         phi = math.atan2(2*nuErr[1], nuErr[0] - nuErr[1])
         nu.cos = math.cos(phi) ; nu.sin = math.sin(phi)
@@ -28,14 +28,15 @@ class minuitLeptonicTop(object) :
         self.fit()
 
     def cache(self) :
-        self.B.rawX = bP4.X()
-        self.B.rawY = bP4.Y()
+        self.B.rawX = self.B.raw.X()
+        self.B.rawY = self.B.raw.Y()
         self.mu.X = self.mu.P4.X()
         self.mu.Y = self.mu.P4.Y()
-        self.mu.T2 = self.mu.muP4.Perp2()
+        self.mu.Z = self.mu.P4.Z()
+        self.mu.E = self.mu.P4.E()
+        self.mu.T2 = self.mu.P4.Perp2()
         self.mu.T = math.sqrt(self.mu.T2)
-        self.mu.E = self.mu.muP4.E()
-        self.mu.phi = self.mu.muP4.Phi()
+        self.mu.phi = self.mu.P4.Phi()
 
     def fit(self) :
         def fnc(db,dS,dL) :
@@ -54,7 +55,7 @@ class minuitLeptonicTop(object) :
         m.mnexcm("MIGRAD", 500, 1)
         fitted = m.values()
         self.chi2_ = fnc(**fitted)
-        if 0 <= self.discriminant : return
+        if 0 <= self.discriminant :  return
 
         def fnc(db,phi) :
             self.B.fitted = self.B.raw * (1+db)
@@ -69,7 +70,6 @@ class minuitLeptonicTop(object) :
                      self.B.invRes2 * db**2 +
                      self.nu.invSigmaS2 * dS**2 +
                      self.nu.invSigmaL2 * dL**2 )
-
         m = minuit.minuit(fnc, db=0, phi = self.nu.rawX / math.sqrt(self.nu.rawX**2+self.nu.rawY**2))
         m.mnexcm("MIGRAD", 500, 1)
         fitted = m.values()

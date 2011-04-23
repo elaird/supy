@@ -706,11 +706,10 @@ class AbsoluteSumP4Resolution2(wrappedChain.calculable) :
         self.fixes = collection
         self.stash(["Indices","CorrectedP4","Resolution"])
 
-    def update(self,ignored) :
-        p4s = self.source[self.CorrectedP4]
-        res = self.source[self.Resolution]
-        errMatrix = 3*[0.]
-        for i in self.source[self.Indices] :
+    @staticmethod
+    def calculate(indices,p4s,res) :
+        errMatrix = [1.,0.,1.]
+        for i in indices :
             phi = p4s[i].phi()
             c1 = math.cos(phi)
             s1 = math.sin(phi)
@@ -718,7 +717,13 @@ class AbsoluteSumP4Resolution2(wrappedChain.calculable) :
             errMatrix[0] += r2*c1*c1
             errMatrix[1] -= r2*c1*s1
             errMatrix[2] += r2*s1*s1
-        self.value = tuple(errMatrix)
+        return tuple(errMatrix)
+
+    def update(self,ignored) : 
+        indices = self.source[self.Indices] 
+        p4s = self.source[self.CorrectedP4]
+        res = self.source[self.Resolution]
+        self.value = self.calculate(indices,p4s,res)
 #####################################
 class CorrectedP4(wrappedChain.calculable) :
     def __init__(self, genJets = None) : #purposefully not called collection

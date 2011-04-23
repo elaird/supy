@@ -239,42 +239,41 @@ class TopReconstruction(wrappedChain.calculable) :
         self.stash(["CorrectedP4","IndicesBtagged","Indices","Resolution","AbsoluteSumP4Resolution2"],jets)
         self.SumP4 = SumP4
 
-    def reconstruct(self, iBhad, iQQ, iBlep) :
+    def reconstruct(self, iBhad, iQQ, iBlep, zPlus) :
         iLep = self.source[self.SemileptonicTopIndex]
         charge = self.source[self.Charge][iLep]
         iHad = [iBhad] + iQQ
         hadP4 = [self.source[self.CorrectedP4][i] for i in iHad]
         hadRes = [self.source[self.Resolution][i] for i in iHad]
         if len(iQQ) == 1 : hadP4.append(utils.LorentzV()); hadRes.append(1.0)
-        #hadronicFit = fitKinematic.linearHadronicTop(hadP4, hadRes)
         hadronicFit = fitKinematic.minuitHadronicTop(hadP4, hadRes)
         hadTopP4 = sum(hadronicFit.J.fitted, utils.LorentzV())
         
         sumP4 = self.source[self.SumP4] - sum(hadP4,utils.LorentzV()) + hadTopP4
         lepP4 = self.source[self.P4][iLep]
-        metCovRes = self.source[self.AbsoluteSumP4Resolution2]
-        lepNuFit = fitKinematic.minuitMuNuW( lepP4, -sumP4.x(), -sumP4.y(), metCovRes)
 
-        leptonicFits = [ fitKinematic.linearWbTop( self.source[self.CorrectedP4][iBlep],
-                                                   self.source[self.Resolution][iBlep],
-                                                   lepNuFit.muP4 + fittedNu
-                                                   ) if fittedNu else None for fittedNu in lepNuFit.fittedNu ]
-        iNuZ = 0 if leptonicFits[1] is None or leptonicFits[0].chi2 < leptonicFits[1].chi2 else 1
+        nuErr = calculables.Jet.AbsoluteSumP4Resolution2.calculate( list(set(range(len(self.source[self.CorrectedP4])))-set(iHad+[iBlep])),
+                                                                    self.source[self.CorrectedP4],
+                                                                    self.source[self.Resolution])
 
-        lepTopP4 = lepNuFit.muP4 + lepNuFit.fittedNu[iNuZ] + leptonicFits[iNuZ].b.fitted
+        leptonicFit = fitKinematic.minuitLeptonicTop(self.source[self.CorrectedP4][iBlep],
+                                                     self.source[self.Resolution][iBlep],
+                                                     lepP4, -sumP4.x(), -sumP4.y(),
+                                                     nuErr, zPlus = zPlus )
+
+        lepTopP4 = leptonicFit.mu.P4 + leptonicFit.nu.fitted + leptonicFit.B.fitted
         topP4 = lepTopP4 if charge > 0 else hadTopP4
         tbarP4= hadTopP4 if charge > 0 else lepTopP4
-        assert topP4 != tbarP4
         
-        return {"nu"   : lepNuFit.fittedNu[iNuZ],
-                "lep"  : lepNuFit.muP4,
-                "lepB" : leptonicFits[iNuZ].b.fitted,
+        return {"nu"   : leptonicFit.nu.fitted,
+                "lep"  : leptonicFit.mu.P4,
+                "lepB" : leptonicFit.B.fitted,
                 "hadB" : hadronicFit.J.fitted[0],
                 "hadP" : hadronicFit.J.fitted[1],
                 "hadQ" : hadronicFit.J.fitted[2],
                 "lepTopP4" : lepTopP4,
                 "hadTopP4" : hadTopP4,
-                "chi2" : hadronicFit.chi2() + lepNuFit.chi2 + leptonicFits[iNuZ].chi2(),
+                "chi2" : hadronicFit.chi2() + leptonicFit.chi2(),
                 "top"  : topP4,
                 "tbar" : tbarP4,
                 "sumP4": sumP4
@@ -284,8 +283,8 @@ class TopReconstruction(wrappedChain.calculable) :
         bIndices = self.source[self.IndicesBtagged][:2]
         indices = filter(lambda i: i not in bIndices, self.source[self.Indices])[:2]
 
-        self.value = sorted([ self.reconstruct( bIndices[0], indices, bIndices[1]),
-                              self.reconstruct( bIndices[1], indices, bIndices[0]) ], key = lambda x: x["chi2"] )
+        self.value = sorted([ self.reconstruct( bIndices[not bLep], indices, bIndices[bLep], zPlus) for bLep in [0,1] for zPlus in [0,1] ],
+                            key = lambda x: x["chi2"] )
 #####################################
 class NeutrinoP4(wrappedChain.calculable) :
     def __init__(self, collection) :
