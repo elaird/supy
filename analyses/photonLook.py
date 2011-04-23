@@ -298,6 +298,8 @@ class photonLook(analysis.analysis) :
                                      "v12_g_jets_mg_pt200_noIsoReqSkim"
                                      ])
 
+        zinv_mg_2010 = specify(names = ["z_inv_mg_v12_skim"], color = r.kMagenta+3)
+
         #2011
         #data = specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Henning_noIsoReqSkim", "HT.Run2011A-PromptReco-v1.AOD.Georgia_noIsoReqSkim"])
         data = specify(names = ["Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim", "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim"])
@@ -327,6 +329,7 @@ class photonLook(analysis.analysis) :
             #outList += ttbar_mg
         else :
             outList += zinv_mg
+            #outList += zinv_mg_2010
             
         return outList
 
