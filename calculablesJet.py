@@ -26,19 +26,74 @@ class IndicesOther(calculables.indicesOther) :
         self.moreName = "pass ptMin; fail jetID or etaMax"
 ##############################
 class Indices(wrappedChain.calculable) :
-    def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None, extraName = ""):
+    def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None, extraName = "",
+                 scaleThresholds = False, htBins = None, referenceThresholds = None):
         self.fixes = (collection[0],collection[1]+extraName)
         self.stash(["IndicesOther","IndicesKilled"])
         self.stash(["CorrectedP4"],collection)
-        self.extraName = extraName
-        self.pt2Min = ptMin*ptMin
-        self.etaMax = etaMax
         self.flag = None if not flagName else \
                     ( "%s"+flagName+"%s" if xcStrip(collection)[0][-2:] != "PF" else \
                       "%sPF"+flagName+"%s" ) % xcStrip(collection)
-        self.moreName = "pT>=%.1f GeV; |eta|<%.1f; %s"% (ptMin, etaMax, flagName if flagName else "")
+        for item in ["extraName", "etaMax", "scaleThresholds", "htBins", "referenceThresholds"] :
+            setattr(self, item, eval(item))
+        if not self.scaleThresholds :
+            self.pt2Min = ptMin*ptMin
+            self.moreName = "pT>=%.1f GeV; |eta|<%.1f; %s"% (ptMin, etaMax, flagName if flagName else "")
+        else :
+            self.moreName = "|eta|<%.1f; %s; %s; %s"% (etaMax, flagName if flagName else "", str(self.referenceThresholds), str(self.htBins))
 
-    def update(self,ignored) :
+    def update(self, ignored) :
+        if not self.scaleThresholds :
+            self.updateSimple()
+        else :
+            self.updateWithScaling()
+
+    def jetLoop(self, p4s, killed, ids, ptMin) :
+        pts = []
+        indices = []
+        others = []
+        ht = 0.0
+        for i in range(p4s.size()) :
+            pt = p4s.at(i).pt()
+            pts.append(pt)
+            if pt < ptMin or i in killed: continue
+            elif ids[i] and abs(p4s.at(i).eta()) < self.etaMax :
+                ht+=pt
+                indices.append(i)
+            else: others.append(i)
+        indices.sort( key = pts.__getitem__, reverse = True)
+        return ht,indices,others
+
+    def finish(self, indices, others, htThreshold, other) :
+        self.value = indices
+        for iOther in others :
+            other.append(iOther)
+        self.source["crock"]["htBin"] = htThreshold
+        #print "%sIndices%s"%self.fixes,"=",self.source["%sIndices%s"%self.fixes]
+        #print "%sIndicesOther%s"%self.fixes,"=",self.source["%sIndicesOther%s"%self.fixes]
+        #print "crock =",self.source["crock"]
+        
+    def updateWithScaling(self) :
+        self.value = []
+        p4s    = self.source[self.CorrectedP4]
+        other  = self.source[self.IndicesOther]  if not self.extraName else []
+        killed = self.source[self.IndicesKilled] if not self.extraName else []
+        jetIds = self.source[self.flag] if self.flag else p4s.size()*[1]
+
+        #print
+        #print " entry    ptMin  htThresh       ht                indices                 others"
+        #print "--------------------------------------------------------------------------------"
+        for htThreshold in reversed(self.htBins) :
+            ptMin = self.referenceThresholds["singleJetPt"]*htThreshold/self.referenceThresholds["ht"]
+            ht,indices,others = self.jetLoop(p4s, killed, jetIds, ptMin)
+            #print "%6d     %4.1f    %6.1f   %6.1f   %20s   %20s"%(self.source["entry"], ptMin, htThreshold, ht, str(indices), str(others))
+            if ht>htThreshold :
+                self.finish(indices, others, htThreshold, other)
+                return
+        #did not make it into any HT bin; use the last values
+        self.finish(indices, others, None, other)
+            
+    def updateSimple(self) :
         self.value = []
         p4s    = self.source[self.CorrectedP4]
         other  = self.source[self.IndicesOther]  if not self.extraName else []
