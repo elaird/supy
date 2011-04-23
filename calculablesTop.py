@@ -176,61 +176,6 @@ class SemileptonicTopIndex(wrappedChain.calculable) :
         nonIso = self.source[self.IndicesNonIso]
         self.value = indices[0] if indices else nonIso[0] if nonIso else None
 #####################################
-class NeutrinoPz(wrappedChain.calculable) :
-    def __init__(self, collection = None, SumP4 = None) :
-        self.fixes = collection
-        self.stash(["SemileptonicTopIndex","P4"])
-        self.SumP4 = SumP4
-        self.moreName = "neutrinoPz; given SemileptonicTopIndex in %s%s; %s"%(collection+(SumP4,))
-        self.Wmass2 = 80.4**2 # GeV
-        
-    def update(self,ignored) :
-        self.value = None
-        
-        index = self.source[self.SemileptonicTopIndex]
-        if index is None: return
-
-        lep4 = self.source[self.P4][index]
-        negNu4 = self.source[self.SumP4]
-        W4 = lep4 - negNu4
-
-        lepZ = lep4.z()
-        lepE = lep4.E()
-        lepT2 = lep4.Perp2()
-        nuT2 = negNu4.Perp2()
-        WT2 = W4.Perp2()
-
-        P = self.Wmass2 + WT2 - lepT2 - nuT2
-
-        discriminant = lepZ**2 + 4*lepT2*(1-(4*lepE*lepE*nuT2)/(P**2))
-        if discriminant < 0:
-            #return           # option A
-            discriminant = 0   # option B
-        
-        sqrtD = math.sqrt(discriminant)
-        factor = 0.5*P/lepT2
-        self.value = (factor * (lepZ-sqrtD),
-                      factor * (lepZ+sqrtD))
-#####################################
-class NeutrinoP4Solution(wrappedChain.calculable) :
-    def __init__(self, collection, SumP4, solutionPz) :
-        self.fixes = collection
-        self.stash(["NeutrinoPz"])
-        self.SumP4 = SumP4
-        self.solutionPz = 1 if solutionPz>0 else 0
-
-    def update(self,ignored) :
-        self.value = None
-        pzMinusPlus = self.source[self.NeutrinoPz]
-        if not pzMinusPlus : return
-        sum = self.source[self.SumP4]
-        px,py,pz = -sum.px(),-sum.py(),pzMinusPlus[self.solutionPz]
-        self.value = type(self.source[self.SumP4])().SetPxPyPzE(px,py,pz,math.sqrt(px**2+py**2+pz**2))
-class NeutrinoP4P(NeutrinoP4Solution) :
-    def __init__(self, collection = None, SumP4 = None) : super(NeutrinoP4P,self).__init__(collection,SumP4,+1)
-class NeutrinoP4M(NeutrinoP4Solution) :
-    def __init__(self, collection = None, SumP4 = None) : super(NeutrinoP4M,self).__init__(collection,SumP4,-1)
-######################################
 class TopReconstruction(wrappedChain.calculable) :
     def __init__(self, collection, jets, SumP4) :
         self.massTop = 172.0 #GeV

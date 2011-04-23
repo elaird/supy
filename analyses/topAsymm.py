@@ -65,9 +65,6 @@ class topAsymm(analysis.analysis) :
             calculables.Top.TTbarDeltaAbsY(lepton),
             calculables.Top.TTbarSignedDeltaY(lepton),
             calculables.Top.TTbarMHTOverHT(lepton),
-            calculables.Top.NeutrinoPz(lepton,"mixedSumP4"),
-            calculables.Top.NeutrinoP4P(lepton,"mixedSumP4"),
-            calculables.Top.NeutrinoP4M(lepton,"mixedSumP4"),
             calculables.Top.TopReconstruction(lepton,obj["jet"],"mixedSumP4"),
             calculables.Top.NeutrinoP4(lepton),
             calculables.Top.SumP4Nu(lepton,"mixedSumP4"),
@@ -220,7 +217,7 @@ class topAsymm(analysis.analysis) :
         eL = 1000 # 1/pb
         return  ( #data() +
                   #qcd_mg(eL) +
-                  ttbar_mg(None) #+
+                  ttbar_mg(100) #+
                   #ewk(eL)
                   )
 
