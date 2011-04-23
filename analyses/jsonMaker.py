@@ -13,7 +13,7 @@ class jsonMaker(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify        
-        return specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Henning",            
+        return specify(names = ["HT.Run2011A-PromptReco-v2.AOD.Henning",
                                 ] )
                 
     def listOfSampleDictionaries(self) :
