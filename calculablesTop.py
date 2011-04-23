@@ -236,25 +236,27 @@ class TopReconstruction(wrappedChain.calculable) :
         self.massTop = 172.0 #GeV
         self.fixes = collection
         self.stash(["SemileptonicTopIndex","P4","Charge"])
-        self.stash(["CorrectedP4","IndicesBtagged","Indices","Resolution","AbsoluteSumP4Resolution2"],jets)
+        self.stash(["CorrectedP4","IndicesBtagged","Indices","Resolution","CovariantResolution2"],jets)
         self.SumP4 = SumP4
 
     def reconstruct(self, iBhad, iQQ, iBlep, zPlus) :
         iLep = self.source[self.SemileptonicTopIndex]
         charge = self.source[self.Charge][iLep]
-        iHad = [iBhad] + iQQ
-        hadP4 = [self.source[self.CorrectedP4][i] for i in iHad]
-        hadRes = [self.source[self.Resolution][i] for i in iHad]
-        if len(iQQ) == 1 : hadP4.append(utils.LorentzV()); hadRes.append(1.0)
-        hadronicFit = fitKinematic.minuitHadronicTop(hadP4, hadRes)
+        iHad = tuple([iBhad] + iQQ)
+        if iHad not in self.hadronicFitCache :
+            hadP4 = [self.source[self.CorrectedP4][i] for i in iHad]
+            hadRes = [self.source[self.Resolution][i] for i in iHad]
+            if len(iQQ) == 1 : hadP4.append(utils.LorentzV()); hadRes.append(1.0)
+            self.hadronicFitCache[iHad] = fitKinematic.minuitHadronicTop(hadP4, hadRes)
+
+        hadronicFit = self.hadronicFitCache[iHad]
         hadTopP4 = sum(hadronicFit.J.fitted, utils.LorentzV())
         
-        sumP4 = self.source[self.SumP4] - sum(hadP4,utils.LorentzV()) + hadTopP4
+        sumP4 = self.source[self.SumP4] - sum(hadronicFit.J.raw,utils.LorentzV()) + hadTopP4
         lepP4 = self.source[self.P4][iLep]
 
-        nuErr = calculables.Jet.AbsoluteSumP4Resolution2.calculate( list(set(range(len(self.source[self.CorrectedP4])))-set(iHad+[iBlep])),
-                                                                    self.source[self.CorrectedP4],
-                                                                    self.source[self.Resolution])
+        iUnusedJets = list(set(range(len(self.source[self.CorrectedP4])))-set(list(iHad)+[iBlep]))
+        nuErr = sum([self.source[self.CovariantResolution2][i] for i in iUnusedJets], calculables.Jet.CovariantResolution2.matrix())
 
         leptonicFit = fitKinematic.minuitLeptonicTop(self.source[self.CorrectedP4][iBlep],
                                                      self.source[self.Resolution][iBlep],
@@ -280,6 +282,7 @@ class TopReconstruction(wrappedChain.calculable) :
                 }
 
     def update(self,ignored) :
+        self.hadronicFitCache = {}
         bIndices = self.source[self.IndicesBtagged][:2]
         indices = filter(lambda i: i not in bIndices, self.source[self.Indices])[:2]
 
