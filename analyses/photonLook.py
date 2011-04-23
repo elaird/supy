@@ -71,6 +71,7 @@ class photonLook(analysis.analysis) :
                  calculables.Muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
                  calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
                  calculables.Photon.Indices(obj["photon"], ptMin = 25, flagName = params["photonId"]),
+                 calculables.Photon.photonWeight(var = "vertexIndices"),
 
                  calculables.Gen.genIndices( pdgs = [22], label = "Status3Photon", status = [3]),
                  calculables.Gen.genMinDeltaRPhotonOther( label = "Status3Photon"),
@@ -253,6 +254,14 @@ class photonLook(analysis.analysis) :
     def listOfSampleDictionaries(self) :
         return [samples.mc, samples.jetmet, samples.photon]
 
+    def qcdMgNames(self) :
+        l = ["100", "250", "500", "1000", "inf"]
+        return ["qcd_mg_ht_%s_%s_noIsoReqSkim"%(a,b) for a,b in zip(l[:-1], l[1:])]
+
+    def gJetsMgNames(self) :
+        l = ["40", "100", "200", "inf"]
+        return ["g_jets_mg_ht_%s_%s_noIsoReqSkim"%(a,b) for a,b in zip(l[:-1], l[1:])]
+
     def listOfSamples(self,params) :
         from samples import specify
 
@@ -293,10 +302,11 @@ class photonLook(analysis.analysis) :
         data = specify(names = ["Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim", "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim"])
 
         eL = 2000.0
-        l = ["100", "250", "500", "1000", "inf"]
-        qcd_mg = specify(effectiveLumi = eL, color = r.kBlue, names = ["qcd_mg_ht_%s_%s_noIsoReqSkim"%(a,b) for a,b in zip(l[:-1], l[1:])])
-        l = ["40", "100", "200", "inf"]
-        g_jets_mg = specify(effectiveLumi = eL, color = r.kGreen, names = ["g_jets_mg_ht_%s_%s_noIsoReqSkim"%(a,b) for a,b in zip(l[:-1], l[1:])])
+        qcd_mg          = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdMgNames())
+        qcd_mg_weighted = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdMgNames(), weightName = "photonWeight")
+
+        g_jets_mg          = specify(effectiveLumi = eL, color = r.kGreen, names = self.gJetsMgNames())
+        g_jets_mg_weighted = specify(effectiveLumi = eL, color = r.kGreen, names = self.gJetsMgNames(), weightName = "photonWeight")
 
         ttbar_mg = specify(effectiveLumi = eL, color = r.kOrange, names = ["tt_tauola_mg"])
         ewk_mg = specify(effectiveLumi = eL, color = r.kYellow-3, names = ["z_jets_mg"]) + specify(effectiveLumi = eL, color = 28, names = ["w_jets_mg"])
@@ -307,6 +317,8 @@ class photonLook(analysis.analysis) :
         if not params["zMode"] :
             outList += qcd_mg
             outList += g_jets_mg
+            #outList += qcd_mg_weighted
+            #outList += g_jets_mg_weighted
             #outList += qcd_mg_2010
             #outList += g_jets_mg_2010
             outList += data
@@ -318,24 +330,27 @@ class photonLook(analysis.analysis) :
         return outList
 
     def mergeSamples(self, org, tag) :
-        def go(org, outName, inPrefix, color, markerStyle = 1) :
-            org.mergeSamples(targetSpec = {"name":outName, "color":color, "markerStyle":markerStyle}, allWithPrefix = inPrefix)
-            return [outName]
-
         smSources = []
         smSources2010 = []
+        smSourcesWeighted = []
         ewkSources = ["z_inv_mg", "z_jets_mg", "w_jets_mg"]
         #smSources += ewkSources
 
-        smSources += go(org, outName = "qcd_mg",     inPrefix = "qcd_mg",     color = r.kBlue )
-        smSources += go(org, outName = "g_jets_mg",  inPrefix = "g_jets_mg",  color = r.kGreen)
+        org.mergeSamples(targetSpec = {"name":"qcd_mg",    "color":r.kBlue},  sources = self.qcdMgNames())
+        org.mergeSamples(targetSpec = {"name":"g_jets_mg", "color":r.kGreen}, sources = self.gJetsMgNames())
+        smSources += ["qcd_mg", "g_jets_mg"]
+
+        #org.mergeSamples(targetSpec = {"name":"qcd_mg_weighted",    "color":r.kBlue+3},  sources = [item+".photonWeight" for item in self.qcdMgNames()])
+        #org.mergeSamples(targetSpec = {"name":"g_jets_mg_weighted", "color":r.kGreen+3}, sources = [item+".photonWeight" for item in self.gJetsMgNames()])
+        #smSourcesWeighted += ["qcd_mg_weighted", "g_jets_mg_weighted"]
         
         #smSources2010 += go(org, outName = "qcd_mg_2010",     inPrefix = "v12_qcd_mg",     color = r.kBlue +3)
         #smSources2010 += go(org, outName = "g_jets_mg_2010",  inPrefix = "v12_g_jets_mg",  color = r.kGreen+3)
         
         #org.mergeSamples(targetSpec = {"name":"MG QCD+G", "color":r.kGreen}, sources = ["qcd_mg","g_jets_mg"])
         #org.mergeSamples(targetSpec = {"name":"MG TT+EWK", "color":r.kOrange}, sources = ewkSources])
-        org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kRed, "markerStyle":1}, sources = smSources, keepSources = True)
+        org.mergeSamples(targetSpec = {"name":"standard_model",          "color":r.kRed,   "markerStyle":1}, sources = smSources, keepSources = True)
+        #org.mergeSamples(targetSpec = {"name":"standard_model_weighted", "color":r.kRed+3, "markerStyle":1}, sources = smSourcesWeighted, keepSources = True)
         #org.mergeSamples(targetSpec = {"name":"s_m_2010", "color":r.kRed+3, "markerStyle":1}, sources = smSources2010, keepSources = True)
         org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Photon.Run2011")
             
@@ -359,6 +374,7 @@ class photonLook(analysis.analysis) :
             #self.makeIndividualPlots(org, tag)
             #self.makePurityPlots(org, tag)
             #self.makeEfficiencyPlots(org, tag)
+            #self.makeNVertexWeights(org, tag)
         #self.makeMultiModePlots(34.7255)
 
     def makeStandardPlots(self, org, tag) :
@@ -445,7 +461,60 @@ class photonLook(analysis.analysis) :
                            preliminary = False,
                            )
 
-            
+    def makeNVertexWeights(self, org, tag) :
+        def sampleIndex(org, name) :
+            for iSample,sample in enumerate(org.samples) :
+                if sample["name"]==name : return iSample
+            assert False, "could not find sample %s"%name
+
+        def numerAndDenom(org, var) :
+            d = {}
+            for selection in org.selections :
+                if selection.name != "passFilter" : continue
+                if selection.title!="vertexDistribution1" : continue
+                if var in selection :
+                    sample = "2011 Data";      d["numer"] = selection[var][sampleIndex(org, sample)].Clone("%s_%s_clone"%(var, sample.replace(" ","_")))
+                    sample = "standard_model"; d["denom"] = selection[var][sampleIndex(org, sample)].Clone("%s_%s_clone"%(var, sample.replace(" ","_")))
+            return d
+
+        keep = []
+        canvas = r.TCanvas()
+        canvas.SetRightMargin(0.2)
+        canvas.SetTickx()
+        canvas.SetTicky()
+        psFileName = "%s.ps"%tag
+        canvas.Print(psFileName+"[","Lanscape")
+        for variable in ["vertexIndices"] :
+            histos = numerAndDenom(org, variable)
+            if "numer" not in histos or "denom" not in histos : continue
+
+            #get relative bin heights
+            result = histos["denom"].Clone("%s_oldDist"%variable)
+            result.Reset()
+            result.Divide(histos["numer"], histos["denom"], 1.0/histos["numer"].Integral(), 1.0/histos["denom"].Integral())
+            result.SetBinContent(1, 1.0); result.SetBinError(1, 0.0) #hack for zero vertex bin
+
+            #leave MC yield unchanged
+            newDist = histos["denom"].Clone("%s_newDist"%variable)
+            newDist.Reset()
+            newDist.Multiply(histos["denom"], result)
+            result.Scale(histos["denom"].Integral()/newDist.Integral())
+
+            #print results
+            contents = []
+            for iBin in range(1, 1+result.GetNbinsX()) :
+                contents.append("%g:%g"%(result.GetBinCenter(iBin), result.GetBinContent(iBin)))
+            print "self.weight = {%s}"%", ".join(contents)
+            result.GetYaxis().SetTitle("weight to apply to MC")
+            result.SetMarkerStyle(20)
+            result.SetStats(False)
+            result.Draw()
+            canvas.Print(psFileName,"Lanscape")
+
+        canvas.Print(psFileName+"]","Lanscape")                
+        os.system("ps2pdf "+psFileName)
+        os.remove(psFileName)
+
     def makeEfficiencyPlots(self, org, tag) :
         def sampleIndex(org, name) :
             for iSample,sample in enumerate(org.samples) :
