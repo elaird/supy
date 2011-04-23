@@ -118,8 +118,9 @@ class photonLook(analysis.analysis) :
         if params["thresholds"]["jet2PtMin"]!=None : outList+=[steps.Jet.jetPtSelector(_jet, params["thresholds"]["jet2PtMin"], 1)]
         if params["thresholds"]["applyTrigger"]    : outList+=[steps.Trigger.lowestUnPrescaledTrigger()]
 
+        outList += [steps.Other.passFilter("vertexDistribution1")]
+        outList += steps.Other.multiplicityPlotFilter("vertexIndices", nMin = 1, xlabel = "N vertices")
         outList+=[
-            steps.Other.vertexRequirementFilter(),
             steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
             steps.Trigger.physicsDeclared(),
             steps.Other.monsterEventFilter(),
@@ -167,12 +168,11 @@ class photonLook(analysis.analysis) :
 
         outList+=[
             #many plots
+            steps.Other.histogrammer("vertexIndices", 20, -0.5, 19.5, title=";N vertices;events / bin", funcString="lambda x:len(x)"),            
             steps.Other.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
                                funcString="lambda x:len(x)"),
             steps.Other.passFilter("singlePhotonPlots1"),
             steps.Photon.singlePhotonHistogrammer(_photon, _jet),
-            #steps.Other.histogrammer("vertexIndices", 10,-0.5,9.5, title = ";N good vertices;events / bin", funcString="lambda x:len(x)"),
-            #steps.Other.vertexHistogrammer(),
             steps.Other.passFilter("purityPlots1"),
             steps.Gen.photonPurityPlots("Status1Photon", _jet, _photon),
             
@@ -276,17 +276,17 @@ class photonLook(analysis.analysis) :
         #                        #"Run2010B_MJ_skim5_noIsoReqSkim",
         #                        ])
         #
-        #qcd_mg = specify(names = [#"v12_qcd_mg_ht_50_100_noIsoReqSkim",
-        #                          "v12_qcd_mg_ht_100_250_noIsoReqSkim",
-        #                          "v12_qcd_mg_ht_250_500_noIsoReqSkim",
-        #                          "v12_qcd_mg_ht_500_1000_noIsoReqSkim",
-        #                          "v12_qcd_mg_ht_1000_inf_noIsoReqSkim",
-        #                          ])
-        #
-        #g_jets_mg = specify(names = ["v12_g_jets_mg_pt40_100_noIsoReqSkim",
-        #                             "v12_g_jets_mg_pt100_200_noIsoReqSkim",
-        #                             "v12_g_jets_mg_pt200_noIsoReqSkim"
-        #                             ])
+        qcd_mg_2010 = specify(names = [#"v12_qcd_mg_ht_50_100_noIsoReqSkim",
+                                  "v12_qcd_mg_ht_100_250_noIsoReqSkim",
+                                  "v12_qcd_mg_ht_250_500_noIsoReqSkim",
+                                  "v12_qcd_mg_ht_500_1000_noIsoReqSkim",
+                                  "v12_qcd_mg_ht_1000_inf_noIsoReqSkim",
+                                  ])
+        
+        g_jets_mg_2010 = specify(names = ["v12_g_jets_mg_pt40_100_noIsoReqSkim",
+                                     "v12_g_jets_mg_pt100_200_noIsoReqSkim",
+                                     "v12_g_jets_mg_pt200_noIsoReqSkim"
+                                     ])
 
         #2011
         #data = specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Henning_noIsoReqSkim", "HT.Run2011A-PromptReco-v1.AOD.Georgia_noIsoReqSkim"])
@@ -307,6 +307,8 @@ class photonLook(analysis.analysis) :
         if not params["zMode"] :
             outList += qcd_mg
             outList += g_jets_mg
+            #outList += qcd_mg_2010
+            #outList += g_jets_mg_2010
             outList += data
             #outList += ewk_mg
             #outList += ttbar_mg
@@ -321,15 +323,20 @@ class photonLook(analysis.analysis) :
             return [outName]
 
         smSources = []
+        smSources2010 = []
         ewkSources = ["z_inv_mg", "z_jets_mg", "w_jets_mg"]
         #smSources += ewkSources
 
         smSources += go(org, outName = "qcd_mg",     inPrefix = "qcd_mg",     color = r.kBlue )
         smSources += go(org, outName = "g_jets_mg",  inPrefix = "g_jets_mg",  color = r.kGreen)
         
+        #smSources2010 += go(org, outName = "qcd_mg_2010",     inPrefix = "v12_qcd_mg",     color = r.kBlue +3)
+        #smSources2010 += go(org, outName = "g_jets_mg_2010",  inPrefix = "v12_g_jets_mg",  color = r.kGreen+3)
+        
         #org.mergeSamples(targetSpec = {"name":"MG QCD+G", "color":r.kGreen}, sources = ["qcd_mg","g_jets_mg"])
         #org.mergeSamples(targetSpec = {"name":"MG TT+EWK", "color":r.kOrange}, sources = ewkSources])
-        org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3, "markerStyle":1}, sources = smSources, keepSources = True)
+        org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kRed, "markerStyle":1}, sources = smSources, keepSources = True)
+        #org.mergeSamples(targetSpec = {"name":"s_m_2010", "color":r.kRed+3, "markerStyle":1}, sources = smSources2010, keepSources = True)
         org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Photon.Run2011")
             
     def conclude(self) :
