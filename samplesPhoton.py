@@ -32,6 +32,10 @@ photon.add("qcd_mg_ht_500_1000_noIsoReqSkim",   'utils.fileListFromDisk(location
 
 ####### only 2010 below ######
 
+#this one sample copied from samplesMCOld.py to avoid importing that file
+photon.add("z_inv_mg_v12_skim",  'utils.fileListFromDisk(location = "/vols/cms02/elaird1/14_skims/ZinvisibleJets-madgraph.Spring10-START3X_V26_S09-v1.GEN-SIM-RECO/")',
+           xs = 2.067155e-03 * 5.715000e+03)
+
 #original photon-triggered data
 photon.add("EG.Run2010A-Sep17ReReco_v2.RECO",             '%s/mjarvis//ICF/automated/2010_10_13_14_25_09/")'%srm, lumi = 99999.9 )
 photon.add("Photon.Run2010B-PromptReco-v2.RECO.Alex",     '%s/as1604//ICF/automated/2010_10_26_15_38_03/")'%srm,  lumi = 99999.9 )
