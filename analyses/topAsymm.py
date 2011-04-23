@@ -41,7 +41,7 @@ class topAsymm(analysis.analysis) :
         outList += calculables.fromCollections(calculables.Jet, [obj["jet"]])
         outList += [
             calculables.Jet.IndicesBtagged(obj["jet"],pars["bVar"]),
-            calculables.Jet.Indices(      obj["jet"],      ptMin = 30, etaMax = 3.0, flagName = "JetIDloose"),
+            calculables.Jet.Indices(      obj["jet"],      ptMin = 20, etaMax = 3.5, flagName = "JetIDloose"),
             calculables.Muon.Indices(     obj["muon"],     ptMin = 10, combinedRelIsoMax = 0.15),
             calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "80", useCombinedIso = True),
             calculables.Photon.Indices(   obj["photon"],   ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
@@ -95,10 +95,10 @@ class topAsymm(analysis.analysis) :
                                                                 "%sIndices%s"%(obj["electron" if pars["lepton"]["name"]=="muon" else "muon"]),
                                                                 "%sIndicesUnmatched%s"%obj["electron"],
                                                                 "%sIndicesOther%s"%obj["muon"],
-                                                                "%sIndicesOther%s"%obj["jet"],
                                                                 ]
-                ]+[steps.Jet.uniquelyMatchedNonisoMuons(obj["jet"]),
-                ]
+                ]+[ steps.Jet.forwardJetVeto( obj["jet"], ptAbove = 50, etaAbove = 3.5),
+                    steps.Jet.uniquelyMatchedNonisoMuons(obj["jet"]),
+                    ]
                     )
         
         def templateSteps() :
@@ -151,9 +151,6 @@ class topAsymm(analysis.analysis) :
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             ]+templateSteps()+[
             steps.Top.Asymmetry(lepton),
-            
-            #steps.Histos.generic(("%sNeutrinoPz%s"%lepton,"%sNeutrinoPz%s"%lepton),(100,100),(-1500,-500),(500,1500),
-            #                     title=";#nu_{-} p_{z} (GeV);#nu_{+} p_{z} (GeV);events / bin", funcString = "lambda x: (x[0][0],x[0][1])"),
             
             steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
             steps.Filter.value(bVar, max=2.0, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
