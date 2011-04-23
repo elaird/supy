@@ -44,7 +44,8 @@ class photonLook(analysis.analysis) :
                  "lowPtName":"lowPt",
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
-                 "triggerList": ("HLT_HT160_v2","HLT_HT240_v2","HLT_HT260_v2","HLT_HT350_v2","HLT_HT360_v2"),#early 2011
+                 #"triggerList": ("HLT_HT160_v2","HLT_HT240_v2","HLT_HT260_v2","HLT_HT350_v2","HLT_HT360_v2"),#2011 epoch 0
+                 "triggerList": ("HLT_Photon75_CaloIdVL_v1","HLT_Photon75_CaloIdVL_IsoL_v1","HLT_Photon75_CaloIdVL_v2","HLT_Photon75_CaloIdVL_IsoL_v2"),#2011 epoch 1
                  }
 
     def listOfCalculables(self, params) :
@@ -123,6 +124,8 @@ class photonLook(analysis.analysis) :
             steps.Trigger.physicsDeclared(),
             steps.Other.monsterEventFilter(),
             steps.Other.hbheNoiseFilter(),
+            steps.Trigger.hltPrescaleHistogrammer(params["triggerList"]),            
+            steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
             #steps.Other.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
             ]
 
@@ -286,7 +289,8 @@ class photonLook(analysis.analysis) :
         #                             ])
 
         #2011
-        data = specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Henning_noIsoReqSkim", "HT.Run2011A-PromptReco-v1.AOD.Georgia_noIsoReqSkim"])
+        #data = specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Henning_noIsoReqSkim", "HT.Run2011A-PromptReco-v1.AOD.Georgia_noIsoReqSkim"])
+        data = specify(names = ["Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim", "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim"])
 
         eL = 2000.0
         l = ["100", "250", "500", "1000", "inf"]
@@ -326,7 +330,7 @@ class photonLook(analysis.analysis) :
         #org.mergeSamples(targetSpec = {"name":"MG QCD+G", "color":r.kGreen}, sources = ["qcd_mg","g_jets_mg"])
         #org.mergeSamples(targetSpec = {"name":"MG TT+EWK", "color":r.kOrange}, sources = ewkSources])
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3, "markerStyle":1}, sources = smSources, keepSources = True)
-        org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "HT")
+        org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Photon.Run2011")
             
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
