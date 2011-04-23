@@ -267,3 +267,10 @@ class photonIDEGM_10_006_Loose(photonID) :
     def __init__(self, collection = None) :
         super(photonIDEGM_10_006_Loose,self).__init__(collection,"EGM_10_006_Loose")
 ####################################
+class photonWeight(wrappedChain.calculable) :
+    def __init__(self, var = None) :
+        self.weight = {0:1.0001, 1:0.296134, 2:0.934791, 3:1.61404, 4:1.72028, 5:1.48318, 6:0.967893, 7:0.598355, 8:0.399606, 9:0.232468, 10:0.144349, 11:0.117307, 12:0.0486522, 13:0.230382, 14:0, 15:0, 16:0, 17:0, 18:0, 19:0} #determined on 2011-04-23
+        self.var = var
+    def update(self, ignored) :
+        self.value = self.weight[len(self.source[self.var])]
+####################################
