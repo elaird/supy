@@ -2,6 +2,93 @@ import numpy,math,utils,minuit
 import ROOT as r
 
 ###########################
+class minuitLeptonicTop(object) :
+    '''Fit jet, lepton, and missing energy to the hypothesis t-->blv.'''
+
+    def __init__(self, bP4, bResolution, muP4, nuX, nuY, nuErr, 
+                 massT = 172.0, widthT = 13.1/2, massW = 80.4, zSolPlus = True ) :
+
+        T,B,mu,nu = tuple( utils.vessel() for i in range(5) )
+
+        T.mass = massT ;
+        T.invWidth2 = widthT**(-2);  
+        B.raw = bP4;
+        B.invRes2 = bResolution**(-2); 
+        mu.p4 = muP4
+
+        phi = math.atan2(2*nuErr[1], nuErr[0] - nuErr[1])
+        nu.cos = math.cos(phi) ; nu.sin = math.sin(phi)
+        nu.invSigmaS2 = 1.0 / ( nuErr[0]*nu.cos**2 - 2*nuErr[1]*nu.cos*nu.sin + nuErr[2]*nu.sin**2 )
+        nu.invSigmaL2 = 1.0 / ( nuErr[0]*nu.sin**2 + 2*nuErr[1]*nu.cos*nu.sin + nuErr[2]*nu.cos**2 )
+        nu.rawX = nuX ; nu.rawY = nuY
+        nu.fitted = utils.LorentzV()
+        
+        for item in ["T","B","mu","nu","massW","zPlus"] : setattr(self,item,eval(item))
+        self.cache()
+        self.fit()
+
+    def cache(self) :
+        self.B.rawX = bP4.X()
+        self.B.rawY = bP4.Y()
+        self.mu.X = self.mu.P4.X()
+        self.mu.Y = self.mu.P4.Y()
+        self.mu.T2 = self.mu.muP4.Perp2()
+        self.mu.T = math.sqrt(self.mu.T2)
+        self.mu.E = self.mu.muP4.E()
+        self.mu.phi = self.mu.muP4.Phi()
+
+    def fit(self) :
+        def fnc(db,dS,dL) :
+            nuX = self.nu.rawX  -  db * self.B.rawX  +  dS * self.nu.cos + dL * self.nu.sin
+            nuY = self.nu.rawY  -  db * self.B.rawY  -  dS * self.nu.sin + dL * self.nu.cos
+            self.setFittedNu(nuX,nuY)
+            self.B.fitted = self.B.raw * (1+db)
+
+            T = self.mu.P4 + self.nu.fitted + self.B.fitted
+            return ( self.T.invWidth2 * (self.T.mass - T.M())**2 +
+                     self.B.invRes2 * db**2 +
+                     self.nu.invSigmaS2 * dS**2 +
+                     self.nu.invSigmaL2 * dL**2 )
+
+        m = minuit.minuit(fnc, db=0, dS=0, dL=0)
+        m.mnexcm("MIGRAD", 500, 1)
+        fitted = m.values()
+        self.chi2_ = fnc(**fitted)
+        if 0 <= self.discriminant : return
+
+        def fnc(db,phi) :
+            self.B.fitted = self.B.raw * (1+db)
+            self.setBoundaryFittedNu(phi)
+            dX = self.nu.fitted.X() - self.nu.rawX + db * self.B.rawX
+            dY = self.nu.fitted.Y() - self.nu.rawY + db * self.B.rawY
+            dS = dX * self.nu.cos - dY * self.nu.sin
+            dL = dX * self.nu.sin + dY * self.nu.cos
+
+            T = self.mu.P4 + self.nu.fitted + self.B.fitted
+            return ( self.T.invWidth2 * (self.T.mass - T.M())**2 +
+                     self.B.invRes2 * db**2 +
+                     self.nu.invSigmaS2 * dS**2 +
+                     self.nu.invSigmaL2 * dL**2 )
+
+        m = minuit.minuit(fnc, db=0, phi = self.nu.rawX / math.sqrt(self.nu.rawX**2+self.nu.rawY**2))
+        m.mnexcm("MIGRAD", 500, 1)
+        fitted = m.values()
+        self.chi2_ = fnc(**fitted)
+        
+    def setFittedNu(self,nuX,nuY) :
+        P = self.massW**2 + 2* ( self.mu.X*nuX + self.mu.Y*nuY )
+        self.discriminant = 1 - 4 * self.mu.T2 * (nuX**2+nuY**2) / P**2
+        sign = 0 if self.discriminant < 0 else 1 if self.zPlus else -1
+        nuZ = 0.5 * P / self.mu.T2 * (self.mu.Z + sign * self.mu.E * self.discriminant)
+        self.nu.fitted.SetPxPyPzE(nuX,nuY,nuZ,math.sqrt(nuX**2+nuY**2+nuZ**2))
+
+    def setBoundaryFittedNu(self,phi) :
+        nuT = 0.5 * self.massW**2 / (self.mu.T * (1 - math.cos(self.mu.phi-phi)))
+        self.setFittedNu(nuT*math.cos(phi), nuT*math.sin(phi))
+        
+    def chi2(self) : return self.chi2_
+    
+###########################
 class minuitHadronicTop(object) :
     '''Fit three jets to the hypothesis t-->bqq.
 
@@ -15,7 +102,6 @@ class minuitHadronicTop(object) :
         J.raw = jetP4s
         J.invRes2 = [ jr**(-2) for jr in jetResolutions ]
 
-        T.rawMass2 = sum( jetP4s, utils.LorentzV()).M2()
         T.mass = massT ;   T.invWidth2 = widthT**(-2)
         W.mass = massW ;   W.invWidth2 = widthW**(-2)
 
