@@ -2,7 +2,15 @@ import samples
 from configuration import srm
 photon = samples.SampleHolder()
 
+photon.add("Photon.Run2011A-PromptReco-v1.AOD.Henning1", '%s/henning//ICF/automated/2011_04_11_22_38_56/")'%srm, lumi = 11.88)
+photon.add("Photon.Run2011A-PromptReco-v1.AOD.Henning2", '%s/henning//ICF/automated/2011_04_13_15_50_13/")'%srm, lumi =  5.07)
+photon.add("Photon.Run2011A-PromptReco-v2.AOD.Arlo",     '%s/arlogb//ICF/automated/2011_04_20_15_08_17/")'%srm, lumi = 3.0) #guess lumi
+
 dir = "/vols/cms02/elaird1/29_skims/04_photons/v1"
+photon.add("Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim",
+           'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v1.AOD.Henning1_*_skim.root", isDirectory = False)'%dir,lumi = 1.188000e+01)
+photon.add("Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim",
+           'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v1.AOD.Henning2_*_skim.root", isDirectory = False)'%dir,lumi = 5.070000e+00)
 photon.add("HT.Run2011A-PromptReco-v1.AOD.Henning_noIsoReqSkim",
            'utils.fileListFromDisk(location = "%s/HT.Run2011A-PromptReco-v1.AOD.Henning_*_skim.root", isDirectory = False)'%dir, lumi = 5.07)
 photon.add("HT.Run2011A-PromptReco-v1.AOD.Georgia_noIsoReqSkim",
