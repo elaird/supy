@@ -754,31 +754,32 @@ class Resolution(wrappedChain.calculable) :
     def update(self, ignored) :
         self.value = utils.hackMap(self.res, self.source[self.CorrectedP4])
 #####################################
-class AbsoluteSumP4Resolution2(wrappedChain.calculable) :
-    '''Resolution2 : (xx,xy,yy) in the transverse plane.'''
+class CovariantResolution2(wrappedChain.calculable) :
+    '''(xx,xy,yy) in the transverse plane.'''
 
     def __init__(self, collection = None) :
         self.fixes = collection
         self.stash(["Indices","CorrectedP4","Resolution"])
 
-    @staticmethod
-    def calculate(indices,p4s,res) :
-        errMatrix = [1.,0.,1.]
-        for i in indices :
-            phi = p4s[i].phi()
-            c1 = math.cos(phi)
-            s1 = math.sin(phi)
-            r2 = p4s[i].Perp2() * res[i]**2
-            errMatrix[0] += r2*c1*c1
-            errMatrix[1] -= r2*c1*s1
-            errMatrix[2] += r2*s1*s1
-        return tuple(errMatrix)
-
+    class matrix(object) :
+        def __init__(self,p4=None,res=None,default = (1.0,0.0,1.0)) :
+            if not p4 :
+                self.xx,self.xy,self.yy = default
+            else:
+                phi = p4.phi()
+                c1 = math.cos(phi)
+                s1 = math.sin(phi)
+                r2 = p4.Perp2() * res**2
+                self.xx =  r2*c1*c1
+                self.xy = -r2*c1*s1
+                self.yy =  r2*s1*s1
+            return
+        def __add__(self,other) :
+            return self.__class__(default=(self.xx+other.xx,
+                                           self.xy+other.xy,
+                                           self.yy+other.yy))
     def update(self,ignored) : 
-        indices = self.source[self.Indices] 
-        p4s = self.source[self.CorrectedP4]
-        res = self.source[self.Resolution]
-        self.value = self.calculate(indices,p4s,res)
+        self.value = utils.hackMap(self.matrix , self.source[self.CorrectedP4] , self.source[self.Resolution] )
 #####################################
 class CorrectedP4(wrappedChain.calculable) :
     def __init__(self, genJets = None) : #purposefully not called collection

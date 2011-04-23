@@ -16,10 +16,10 @@ class minuitLeptonicTop(object) :
         B.invRes2 = bResolution**(-2); 
         mu.P4 = muP4
 
-        phi = math.atan2(2*nuErr[1], nuErr[0] - nuErr[1])
+        phi = math.atan2(2*nuErr.xy, nuErr.xx - nuErr.yy)
         nu.cos = math.cos(phi) ; nu.sin = math.sin(phi)
-        nu.invSigmaS2 = 1.0 / ( nuErr[0]*nu.cos**2 - 2*nuErr[1]*nu.cos*nu.sin + nuErr[2]*nu.sin**2 )
-        nu.invSigmaL2 = 1.0 / ( nuErr[0]*nu.sin**2 + 2*nuErr[1]*nu.cos*nu.sin + nuErr[2]*nu.cos**2 )
+        nu.invSigmaS2 = 1.0 / ( nuErr.xx*nu.cos**2 - 2*nuErr.xy*nu.cos*nu.sin + nuErr.yy*nu.sin**2 )
+        nu.invSigmaL2 = 1.0 / ( nuErr.xx*nu.sin**2 + 2*nuErr.xy*nu.cos*nu.sin + nuErr.yy*nu.cos**2 )
         nu.rawX = nuX ; nu.rawY = nuY
         nu.fitted = utils.LorentzV()
         
@@ -239,14 +239,14 @@ class minuitMuNuW(object) :
         self.chi2 = 0.0
 
     def fit(self) :
-        phi = 0.5 * math.atan2(self.covErr[1], self.covErr[0]-self.covErr[2]) 
+        phi = 0.5 * math.atan2(self.covErr.xy, self.covErr.xx-self.covErr.yy) 
         R = r.Math.RotationZ(phi)
         rNuP4 = R(self.nuP4)
         rMuP4 = R(self.muP4)
         cos = R.CosAngle()
         sin = R.SinAngle()
-        sigma2x = self.covErr[0]*cos**2 - 2*self.covErr[1]*cos*sin + self.covErr[2]*sin**2
-        sigma2y = self.covErr[0]*sin**2 + 2*self.covErr[1]*cos*sin + self.covErr[2]*cos**2
+        sigma2x = self.covErr.xx*cos**2 - 2*self.covErr.xy*cos*sin + self.covErr.yy*sin**2
+        sigma2y = self.covErr.xx*sin**2 + 2*self.covErr.xy*cos*sin + self.covErr.yy*cos**2
         assert sigma2x > 0, sigma2x
         assert sigma2y > 0, sigma2y
         rnuX,rnuY = rNuP4.x(),rNuP4.y()
