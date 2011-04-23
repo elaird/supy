@@ -93,6 +93,7 @@ class photonLook(analysis.analysis) :
                      calculables.Jet.AlphaTWithPhoton1PtRatherThanMht(obj["jet"], photons = obj["photon"], etRatherThanPt = _etRatherThanPt),
                      calculables.Jet.AlphaT(obj["jet"], _etRatherThanPt),
                      calculables.Jet.AlphaTMet(obj["jet"], _etRatherThanPt, obj["met"]),
+                     calculables.Jet.MhtOverMet(obj["jet"], met = obj["met"]),
                      calculables.Jet.MhtOverMet(obj["jet"], met = "%sPlus%s%s"%(obj["met"], obj["photon"][0], obj["photon"][1])),
                      calculables.Photon.metPlusPhotons(met = obj["met"], photons = obj["photon"]),
                      calculables.Vertex.ID(),
@@ -216,9 +217,9 @@ class photonLook(analysis.analysis) :
             #steps.Other.histogrammer("%sSumEt%s"%_jet, 12, 250, 550, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
             #steps.Other.variableGreaterFilter(450.0, "%sSumEt%s"%_jet, suffix = "GeV"),
         
-            steps.Other.histogrammer("%sMht%sOver%s" %(_jet[0], _jet[1], _met+"Plus%s%s"%_photon), 100, 0.0, 3.0,
-                                     title = ";MHT %s%s / %s;events / bin"%(_jet[0], _jet[1], _met+"Plus%s%s"%_photon)),
-            steps.Other.variableLessFilter(1.25,"%sMht%sOver%s" %(_jet[0], _jet[1], _met+"Plus%s%s"%_photon)),
+            steps.Other.histogrammer("%sMht%sOver%s" %(_jet[0], _jet[1], _met if params["zMode"] else _met+"Plus%s%s"%_photon), 100, 0.0, 3.0,
+                                     title = ";MHT %s%s / %s;events / bin"%(_jet[0], _jet[1], _met if params["zMode"] else _met+"Plus%s%s"%_photon)),
+            steps.Other.variableLessFilter(1.25,"%sMht%sOver%s" %(_jet[0], _jet[1], _met if params["zMode"] else _met+"Plus%s%s"%_photon)),
             steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
         
             #steps.Gen.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
@@ -362,12 +363,13 @@ class photonLook(analysis.analysis) :
             
             #organize
             org = organizer.organizer( self.sampleSpecs(tag) )
-            self.mergeSamples(org, tag)
 
             if "zMode" in tag :
-                org.scale(34.7255)
+                #org.scale(34.7255)
+                org.scale(16.95)
                 print "WARNING: HARD-CODED LUMI FOR Z MODE!"
             else :
+                self.mergeSamples(org, tag)
                 org.scale()
                 
             self.makeStandardPlots(org, tag)
