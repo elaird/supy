@@ -23,11 +23,11 @@ class triggerLook(analysis.analysis) :
             ]
 
     def listOfSampleDictionaries(self) :
-        return [samples.jetmet]
+        return [samples.jetmet, samples.photon]
 
     def listOfSamples(self,params) :
         from samples import specify
-        return specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Bryn"])
+        return specify(names = ["Photon.Run2011A-PromptReco-v1.AOD.Henning1","Photon.Run2011A-PromptReco-v1.AOD.Henning2"])
         
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
