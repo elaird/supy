@@ -7,24 +7,25 @@ import ROOT as r
 class hadronicLook(analysis.analysis) :
     def parameters(self) :
         objects = {}
-        fields =                                                [ "jet",                    "jetId",     "muonsInJets",           "met",
-                                                                  "compJet",            "compJetId", "compMuonsInJets",        "compMet",
-                                                                  "muon",                "electron",          "photon",         "rechit"]
+        fields =                                                  [ "jet",                        "jetId",     "muonsInJets",           "met",
+                                                                    "compJet",                "compJetId", "compMuonsInJets",        "compMet",
+                                                                    "muon",                    "electron",          "photon",         "rechit"]
 
-        objects["caloAK5JetMet_recoLepPhot"] = dict(zip(fields, [("xcak5Jet","Pat"),   "JetIDloose",             False, "metP4AK5TypeII",
-                                                                 ("xcak5JetPF","Pat"), "JetIDtight",              True,        "metP4PF",
-                                                                 ("muon","Pat"), ("electron","Pat"),  ("photon","Pat"),           "Calo",
-                                                                 ]))
+        objects["caloAK5JetMet_recoLepPhot"]   = dict(zip(fields, [("xcak5Jet","Pat"),       "JetIDloose",             False, "metP4AK5TypeII",
+                                                                   ("xcak5JetPF","Pat"),     "JetIDtight",              True,        "metP4PF",
+                                                                   ("muon","Pat"),     ("electron","Pat"),  ("photon","Pat"),           "Calo",
+                                                                   ]))
         
-        objects["pfAK5JetMet_recoLepPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "JetIDtight",              True,        "metP4PF",
-                                                                 ("xcak5Jet","Pat"),   "JetIDloose",             False, "metP4AK5TypeII",
-                                                                 ("muon","Pat"), ("electron","Pat"),  ("photon","Pat"),             "PF",
-                                                                 ]))
+        objects["pfAK5JetMet_recoLepPhot"]     = dict(zip(fields, [("xcak5JetPF","Pat"),     "JetIDtight",              True,        "metP4PF",
+                                                                   ("xcak5Jet","Pat"),       "JetIDloose",             False, "metP4AK5TypeII",
+                                                                   ("muon","Pat"),     ("electron","Pat"),  ("photon","Pat"),             "PF",
+                                                                   ]))
         
-        #objects["pf2patAK5JetMetLep_recoPhot"]=dict(zip(fields, [("xcak5JetPF2Pat","Pat"), "metP4PF",    ("muon","PF"),("electron","PF"), ("photon","Pat"),
-        #                                                         None, None,
-        #                                                         "PF",        True,         50.0]))
-
+        #objects["pf2patAK5JetMetLep_recoPhot"] = dict(zip(fields, [("xcak5JetPF2PAT","Pat"), "PFJetIDtight",            True,        "metP4PF",
+        #                                                           ("xcak5JetPF","Pat"),     "JetIDtight",              True,        "metP4PF",
+        #                                                           ("muon","PF"),       ("electron","PF"),  ("photon","Pat"),             "PF",
+        #                                                           ]))
+        
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
                  "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ] [0:1] ),
@@ -124,7 +125,7 @@ class hadronicLook(analysis.analysis) :
             #steps.Other.passFilter("htLabel1"),
             #steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 20, 0, 1000, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
 
-            steps.Jet.htBinFilter(_jet, min = 340.0),
+            steps.Jet.htBinFilter(_jet, min = 340),
             steps.Jet.jetSelector(_jet, params["referenceThresholds"][0], 0),
             steps.Jet.jetSelector(_jet, params["referenceThresholds"][0], 1),
             steps.Jet.jetEtaSelector(_jet,2.5,0),
@@ -144,7 +145,6 @@ class hadronicLook(analysis.analysis) :
             steps.Jet.uniquelyMatchedNonisoMuons(_jet), 
             
             steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 1500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
-            steps.Other.variableGreaterFilter(350.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
 
             steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1],_met), 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
             steps.Other.variableLessFilter(1.25,"%sMht%sOver%s"%(_jet[0],_jet[1],_met)),
@@ -258,6 +258,9 @@ class hadronicLook(analysis.analysis) :
                                      names = [#"Nov4_MJ_skim","Nov4_J_skim","Nov4_J_skim2","Nov4_JM_skim","Nov4_JMT_skim","Nov4_JMT_skim2",
                                               "HT.Run2011A-PromptReco-v1.AOD.Georgia","HT.Run2011A-PromptReco-v1.AOD.Henning",
                                               #"HT.Run2011A-PromptReco-v2.AOD.Arlo",
+                                              #"HT250_skim_calo",
+                                              #"HT300_skim_calo",
+                                              #"HT350_skim_calo",
                                               ])
         
 
