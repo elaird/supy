@@ -259,17 +259,19 @@ class displayer(analysisStep) :
         self.prepareText(params, coords)
         
         def go(j) :
-            l = [eventVars["%s%s%s"  %(j[0], "SumEt",        j[1])],
+            indices = eventVars["%sIndices%s"%j] #fill crock if need be
+            l = [eventVars["crock"]["%sHtBin%s"%j],
+                 eventVars["%s%s%s"  %(j[0], "SumEt",        j[1])],
                  eventVars["%s%s%s"  %(j[0], "SumP4",        j[1])].pt() if eventVars["%s%s%s"%(j[0], "SumP4",  j[1])] else 0,
                  eventVars["%s%s%s"  %(j[0], "AlphaTEt",     j[1])],
                  eventVars["%s%s%s%s"%(j[0], "DeltaPhiStar", j[1], self.deltaPhiStarExtraName)]["DeltaPhiStar"],
                  ]
             for i in range(len(l)) :
                 if l[i]==None : l[i] = -1.0
-            self.printText("%14s %4.0f %4.0f %6.3f %4.2f"%tuple([self.renamedDesc(j[0]+j[1])]+l))
+            self.printText("%14s %4.0f %4.0f %4.0f %6.3f  %4.2f"%tuple([self.renamedDesc(j[0]+j[1])]+l))
 
-        self.printText("jet collection   HT  MHT alphaT Dphi*")
-        self.printText("-------------------------------------")
+        self.printText("jet collection  bin   HT  MHT alphaT Dphi*")
+        self.printText("------------------------------------------")
         
         go(jets)
         if jets2!=None and others :
@@ -289,19 +291,21 @@ class displayer(analysisStep) :
             DE = eventVars["%sDeltaPhiStar%s%s"%(j[0], j[1], self.deltaPhiStarExtraName)]["DeltaPhiStar"]>0.5 or \
                  eventVars["%sDeadEcalDR%s%s"  %(j[0], j[1], self.deltaPhiStarExtraName)]                >0.3
 
-            all = (J2!=None and J2 > 100.0) and \
-                  (HT!=None and HT > 350.0) and \
-                  (aT!=None and aT > 0.550) and \
-                  (DE!=None and DE        ) and \
-                  (MM!=None and MM < 1.250)
+            htBin = eventVars["crock"]["%sHtBin%s"%j]
+
+            j2Bit = J2!=None and J2 > 100.0*htBin/350.0
+            htBit = HT!=None and HT > htBin
+            atBit = aT!=None and aT > 0.550
+            deBit = DE!=None and DE
+            mmBit = MM!=None and MM < 1.250
             
             self.printText("%14s  %s %s %s %s %s  %s"%(self.renamedDesc(j[0]+j[1]),
-                                                       self.passBit(J2!=None and J2 > 100.0),
-                                                       self.passBit(HT!=None and HT > 350.0),
-                                                       self.passBit(aT!=None and aT > 0.550),
-                                                       self.passBit(DE!=None and DE),
-                                                       self.passBit(MM!=None and MM < 1.250),
-                                                       "candidate" if all else "",
+                                                       self.passBit(j2Bit),
+                                                       self.passBit(htBit),
+                                                       self.passBit(atBit),
+                                                       self.passBit(deBit),
+                                                       self.passBit(mmBit),
+                                                       "candidate (%g)"%htBin if all([j2Bit, htBit, atBit, deBit, mmBit]) else "",
                                                        )
                            )
             if self.markusMode and all and not i :
