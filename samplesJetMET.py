@@ -11,6 +11,7 @@ jetmet.add("HT350_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elai
 jetmet.add("HT350_skim_pf", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v1/350_bin/pf.root", isDirectory = False)', lumi = 17.0)
 
 jetmet.add("HT300_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v1/300_bin/calo.root", isDirectory = False)', lumi = 17.0)
+jetmet.add("HT250_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v1/250_bin/calo.root", isDirectory = False)', lumi = 17.0)
 
 #NOV.4 RE-RECO SKIMS
 dir = "/vols/cms02/elaird1/16_skims/"
