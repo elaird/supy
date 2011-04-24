@@ -49,21 +49,22 @@ class jetEtaSelector(analysisStep) :
         p4s = eventVars[self.p4sName]
         return self.jetEtaThreshold > abs(p4s.at(indices[self.jetIndex]).eta())
 #####################################
-class jetEtSelector(analysisStep) :
+class jetSelector(analysisStep) :
 
     def __init__(self, cs, referenceThresholds, jetIndex) :
         for item in ["jetIndex", "cs"] :
             setattr(self, item, eval(item))
-        self.fraction = referenceThresholds["jet%dEt"%(jetIndex+1)]/referenceThresholds["ht"]
+
+        self.fraction = referenceThresholds["jet%dPt"%(jetIndex+1)]/referenceThresholds["ht"]
         self.indicesName = "%sIndices%s" % self.cs
         self.p4sName = "%sCorrectedP4%s" % self.cs
-        self.moreName = "%s%s; ET[index[%d]]>=%4.3f * HtBin" % (self.cs[0], self.cs[1], jetIndex, self.fraction)
+        self.moreName = "%s%s; pT[index[%d]]>=%4.3f * HtBin" % (self.cs[0], self.cs[1], jetIndex, self.fraction)
 
     def select (self,eventVars) :
         indices = eventVars[self.indicesName]
         if len(indices) <= self.jetIndex : return False
-        p4s = eventVars[self.p4sName]
-        return self.fraction*eventVars["crock"]["%sHtBin%s"%self.cs] <= p4s.at(indices[self.jetIndex]).Et()
+        value = eventVars[self.p4sName].at(indices[self.jetIndex]).pt()
+        return self.fraction*eventVars["crock"]["%sHtBin%s"%self.cs] <= value
 #####################################
 class htBinFilter(analysisStep) :
 
