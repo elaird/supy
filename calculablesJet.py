@@ -55,10 +55,11 @@ class Indices(wrappedChain.calculable) :
         ht = 0.0
         for i in range(p4s.size()) :
             pt = p4s.at(i).pt()
+            et = p4s.at(i).Et()
             pts.append(pt)
             if pt < ptMin or i in killed: continue
             elif ids[i] and abs(p4s.at(i).eta()) < self.etaMax :
-                ht+=pt
+                ht+=et
                 indices.append(i)
             else: others.append(i)
         indices.sort( key = pts.__getitem__, reverse = True)
@@ -68,7 +69,7 @@ class Indices(wrappedChain.calculable) :
         self.value = indices
         for iOther in others :
             other.append(iOther)
-        self.source["crock"]["htBin"] = htThreshold
+        self.source["crock"]["%sHtBin%s"%self.fixes] = htThreshold
         #print "%sIndices%s"%self.fixes,"=",self.source["%sIndices%s"%self.fixes]
         #print "%sIndicesOther%s"%self.fixes,"=",self.source["%sIndicesOther%s"%self.fixes]
         #print "crock =",self.source["crock"]
