@@ -49,6 +49,39 @@ class jetEtaSelector(analysisStep) :
         p4s = eventVars[self.p4sName]
         return self.jetEtaThreshold > abs(p4s.at(indices[self.jetIndex]).eta())
 #####################################
+class jetEtSelector(analysisStep) :
+
+    def __init__(self, cs, referenceThresholds, jetIndex) :
+        for item in ["jetIndex", "cs"] :
+            setattr(self, item, eval(item))
+        self.fraction = referenceThresholds["jet%dEt"%(jetIndex+1)]/referenceThresholds["ht"]
+        self.indicesName = "%sIndices%s" % self.cs
+        self.p4sName = "%sCorrectedP4%s" % self.cs
+        self.moreName = "%s%s; ET[index[%d]]>=%4.3f * HtBin" % (self.cs[0], self.cs[1], jetIndex, self.fraction)
+
+    def select (self,eventVars) :
+        indices = eventVars[self.indicesName]
+        if len(indices) <= self.jetIndex : return False
+        p4s = eventVars[self.p4sName]
+        return self.fraction*eventVars["crock"]["%sHtBin%s"%self.cs] <= p4s.at(indices[self.jetIndex]).Et()
+#####################################
+class htBinFilter(analysisStep) :
+
+    def __init__(self, cs, min = None, max = None) :
+        for item in ["cs", "min", "max"] :
+            setattr(self, item, eval(item))
+        self.moreName = "%s%s"%self.cs
+        if self.min :
+            self.moreName += "; %g <= HtBin"%self.min
+            if self.max : self.moreName += " <= %g"%self.max
+        elif self.max :
+            self.moreName += "; %g <= HtBin"%self.max
+        
+    def select(self,eventVars) :
+        indices = eventVars["%sIndices%s"%self.cs] #to fill the crock
+        bin = eventVars["crock"]["%sHtBin%s"%self.cs]
+        return ( (self.min==None or self.min<=bin) and (self.max==None or bin<=self.max) )
+#####################################
 class jetPtVetoer(analysisStep) :
 
     def __init__(self,cs,jetPtThreshold,jetIndex):
