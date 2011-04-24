@@ -114,7 +114,7 @@ class Indices(wrappedChain.calculable) :
                 self.finish(indices, others, htThreshold, other, htBinContainer)
                 return
         #did not make it into any HT bin; use the last values
-        self.finish(indices, others, None, other)
+        self.finish(indices, others, None, other, htBinContainer)
             
     def updateSimple(self) :
         self.value = []
