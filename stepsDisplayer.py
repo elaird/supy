@@ -259,7 +259,6 @@ class displayer(analysisStep) :
         self.prepareText(params, coords)
         
         def go(j) :
-            indices = eventVars["%sIndices%s"%j] #fill crock if need be
             l = [eventVars["%sHtBin%s"%j],
                  eventVars["%s%s%s"  %(j[0], "SumEt",        j[1])],
                  eventVars["%s%s%s"  %(j[0], "SumP4",        j[1])].pt() if eventVars["%s%s%s"%(j[0], "SumP4",  j[1])] else 0,
