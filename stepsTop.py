@@ -97,11 +97,28 @@ class mcTruthAcceptance(analysisStep) :
         lep = ev['genP4'][max(indices['lplus'],indices['lminus'])]
         iJets = [indices['b'],indices['bbar']] + indices['wplusChild' if indices['lminus'] else 'wminusChild']
         jets = [ev['genP4'][i] for i in iJets]
+        iBlep = indices['b'] if indices['lplus'] else indices['bbar']
         
         self.book.fill(lep.eta(),"lepEta"+suf,31,-5,5, title=';#eta_{lep};events / bin')
         self.book.fill(max([abs(p4.eta()) for p4 in jets]), 'jetEtaMax'+suf, 30,0,5, title=';jet |#eta|_{max};events / bin')
-        self.book.fill(min([p4.pt() for p4 in jets]), 'jetMinPt'+suf, 50,0,100, title=';jet pT_{min};events / bin')
+        self.book.fill(max([abs(p4.eta()) for p4 in jets[:2]]), 'jetEtaMaxB'+suf, 30,0,5, title=';b jet |#eta|_{max};events / bin')
+        self.book.fill(max([abs(p4.eta()) for p4 in jets[2:]]), 'jetEtaMaxLite'+suf, 30,0,5, title=';lite jet |#eta|_{max};events / bin')
 
+        pts = [p4.pt() for p4 in jets]
+        self.book.fill(min(pts), 'jetMinPt'+suf, 50,0,100, title=';jet pT_{min};events / bin')
+        self.book.fill(min(pts[:2]), 'jetMinPtB'+suf, 50,0,100, title=';b jet pT_{min};events / bin')
+        self.book.fill(min(pts[2:]), 'jetMinPtLite'+suf, 50,0,100, title=';lite jet pT_{min};events / bin')
+
+        self.book.fill( max(pts[:2]) - min(pts[2:]), "diffBigBLittleQ"+suf, 50,-50,100,title=';pT_{maxb}-pT_{minq};events / bin' )
+        self.book.fill( min(pts[:2]) - max(pts[2:]), "diffLittleBBigQ"+suf, 50,-50,100,title=';pT_{minb}-pT_{maxq};events / bin' )
+        self.book.fill( sum(pts[:2]) - sum(pts[2:]), "diffSumBBSumQQ"+suf, 50,-50,100,title=';sumpT_{b}-sumpT_{q};events / bin' )
+        
+        self.book.fill(sum(pts), 'jetSumPt'+suf, 50, 0, 800, title=';#sum pT_{top jets};events / bin')
+        self.book.fill(sum(pts)-ev['genP4'][iBlep].pt(), 'jetSumPtHad'+suf, 50, 0, 500, title=';hadronic #sum pT_{top jets};events / bin')
+
+        self.book.fill( int(max(pts)==max(pts[:2])), "maxPtJetIsBjet"+suf, 2, 0 , 1, title = ';maxPt is bjet;events / bin')
+        self.book.fill( int(max(pts[:2])>min(pts[2:])), "maxPtOrNextJetIsBjet"+suf, 2, 0 , 1, title = ';maxPt or next is bjet;events / bin')
+        self.book.fill( int(sum(pts[:2])>sum(pts[2:])), "sumPtBB_gt_sumPtPQ"+suf, 2, 0 , 1, title = ';sumPt of bs > sumPt of pq;events / bin')
 #####################################
 class mcTruthTemplates(analysisStep) :
     def __init__(self,qqbar = None) :
