@@ -228,11 +228,26 @@ class TopReconstruction(wrappedChain.calculable) :
 
     def update(self,ignored) :
         self.hadronicFitCache = {}
-        bIndices = self.source[self.IndicesBtagged][:2]
-        indices = filter(lambda i: i not in bIndices, self.source[self.Indices])[:2]
 
-        self.value = sorted([ self.reconstruct( bIndices[not bLep], indices, bIndices[bLep], zPlus) for bLep in [0,1] for zPlus in [0,1] ],
-                            key = lambda x: x["chi2"] )
+        bIndices = set(self.source[self.IndicesBtagged][:3]) #consider the top 3 tags as possible b candidates
+        allIndices = set(self.source[self.Indices])
+        recos = []
+        
+        for iBLep in bIndices :
+            for iBHad in (bIndices-set([iBLep])) :
+                iOther = list(allIndices - set([iBLep,iBHad]))
+                for iP in iOther :
+                    for iQ in iOther[iOther.index(iP)+1:] :
+                        pts = [self.source[self.CorrectedP4][i].pt() for i in [iBLep,iBHad,iP,iQ]]
+                        if max(pts[:2])<min(pts[2:]) : continue # probability that neither of the two leading in pT is a b-jet is only 7%
+                        if sum(pts[1:])<100 : continue # probability that the sumPt of hadronic side jets is less that 100 is only 4%
+                        for zPlus in [0,1] :
+                            recos.append( self.reconstruct(iBHad,[iP,iQ],iBLep, zPlus))
+        if not recos:
+            bIndices = self.source[self.IndicesBtagged][:2]
+            indices = filter(lambda i: i not in bIndices, self.source[self.Indices])[:2]
+            recos = [ self.reconstruct( bIndices[not bLep], indices, bIndices[bLep], zPlus) for bLep in [0,1] for zPlus in [0,1] ]
+        self.value = sorted( recos,  key = lambda x: x["chi2"] )
 #####################################
 class NeutrinoP4(wrappedChain.calculable) :
     def __init__(self, collection) :
