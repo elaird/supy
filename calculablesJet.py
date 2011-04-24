@@ -734,6 +734,8 @@ class ResidualCorrectionsFromFile(wrappedChain.calculable) :
         fileDict[( "xcak5JetPF","Pat")] = "Spring10DataV2_L2L3Residual_AK5PF.txt"
 
         fileDict[("ak5JetPFGenJet","Pat")] = None
+        fileDict[("ak5JetPF2PAT","Pat")] = None
+        fileDict[("xcak5JetPF2PAT","Pat")] = None
         assert collection in fileDict,"residual corrections file for %s%s not found"%collection
         return fileDict[collection]
     
@@ -759,7 +761,7 @@ class Resolution(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
         self.stash(["CorrectedP4"])
-        self.resFuncs = sorted( utils.cmsswFuncData(self.fileName(collection), par="sigma"))
+        self.resFuncs = sorted( utils.cmsswFuncData(self.fileName(collection), par="sigma")) if self.fileName(collection) else []
 
     @staticmethod
     def fileName(collection) :
