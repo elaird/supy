@@ -7,17 +7,19 @@ import ROOT as r
 class hadronicLook(analysis.analysis) :
     def parameters(self) :
         objects = {}
-        fields =                                                [ "jet",            "met",            "muon",        "electron",        "photon",
-                                                                  "compJet",    "compMet",
-                                                                  "rechit", "muonsInJets", "jetPtMin", "jetId"]
+        fields =                                                [ "jet",                    "jetId",     "muonsInJets",           "met",
+                                                                  "compJet",            "compJetId", "compMuonsInJets",        "compMet",
+                                                                  "muon",                "electron",          "photon",         "rechit"]
 
-        objects["caloAK5JetMet_recoLepPhot"] = dict(zip(fields, [("xcak5Jet","Pat"),"metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"),
-                                                                 ("xcak5JetPF","Pat"),"metP4PF",
-                                                                 "Calo",     False,         50.0,      "JetIDloose"]))
+        objects["caloAK5JetMet_recoLepPhot"] = dict(zip(fields, [("xcak5Jet","Pat"),   "JetIDloose",             False, "metP4AK5TypeII",
+                                                                 ("xcak5JetPF","Pat"), "JetIDtight",              True,        "metP4PF",
+                                                                 ("muon","Pat"), ("electron","Pat"),  ("photon","Pat"),           "Calo",
+                                                                 ]))
         
-        objects["pfAK5JetMet_recoLepPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",    ("muon","Pat"),("electron","Pat"),("photon","Pat"),
-                                                                 ("xcak5Jet","Pat"),"metP4AK5TypeII",
-                                                                 "PF",        True,         50.0,      "JetIDtight"]))
+        objects["pfAK5JetMet_recoLepPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "JetIDtight",              True,        "metP4PF",
+                                                                 ("xcak5Jet","Pat"),   "JetIDloose",             False, "metP4AK5TypeII",
+                                                                 ("muon","Pat"), ("electron","Pat"),  ("photon","Pat"),             "PF",
+                                                                 ]))
         
         #objects["pf2patAK5JetMetLep_recoPhot"]=dict(zip(fields, [("xcak5JetPF2Pat","Pat"), "metP4PF",    ("muon","PF"),("electron","PF"), ("photon","Pat"),
         #                                                         None, None,
@@ -29,6 +31,8 @@ class hadronicLook(analysis.analysis) :
                  "etRatherThanPt" : [True,False]        [0],
                  "lowPtThreshold" : 30.0,
                  "lowPtName" : "lowPt",
+                 "htBins": (250.0, 300.0, 350.0),
+                 "referenceThresholds": ({"ht": 350.0, "singleJetPt": 50.0, "jet1Pt": 100.0, "jet2Pt":100.0}, {}),
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  #"triggerList": ("HLT_HT160_v2","HLT_HT240_v2","HLT_HT260_v2","HLT_HT350_v2","HLT_HT360_v2"),#2011 epoch 1
@@ -38,8 +42,8 @@ class hadronicLook(analysis.analysis) :
 
     def ra1Cosmetics(self) : return True
     
-    def calcListJet(self, obj, etRatherThanPt, lowPtThreshold, lowPtName) :
-        def calcList(jet, met, photon, muon, electron, muonsInJets, jetPtMin, jetIdFlag) :
+    def calcListJet(self, obj, etRatherThanPt, lowPtThreshold, lowPtName, htBins, referenceThresholds) :
+        def calcList(jet, met, photon, muon, electron, muonsInJets, jetIdFlag) :
             outList = [
                 calculables.XClean.xcJet(jet,
                                          applyResidualCorrectionsToData = False,
@@ -50,8 +54,9 @@ class hadronicLook(analysis.analysis) :
                                          correctForMuons = not muonsInJets,
                                          electron = electron,
                                          electronDR = 0.5),
-                calculables.Jet.Indices( jet, jetPtMin, etaMax = 3.0, flagName = jetIdFlag),
-                calculables.Jet.Indices( jet, lowPtThreshold, etaMax = 3.0, flagName = jetIdFlag, extraName = lowPtName),
+                calculables.Jet.Indices( jet, etaMax = 3.0, flagName = jetIdFlag,
+                                         scaleThresholds = True, htBins = htBins, referenceThresholds = referenceThresholds),
+                calculables.Jet.Indices( jet, ptMin = lowPtThreshold, etaMax = 3.0, flagName = jetIdFlag, extraName = lowPtName),
                 
                 calculables.Jet.SumP4(jet),
                 calculables.Jet.SumP4(jet, extraName = lowPtName),
@@ -64,9 +69,9 @@ class hadronicLook(analysis.analysis) :
                 ]
             return outList+calculables.fromCollections(calculables.Jet, [jet])
 
-        outList = calcList(obj["jet"], obj["met"], obj["photon"], obj["muon"], obj["electron"], obj["muonsInJets"], obj["jetPtMin"], obj["jetId"])
-        if obj["compJet"]!=None and obj["compMet"]!=None :
-            outList += calcList(obj["compJet"], obj["compMet"], obj["photon"], obj["muon"], obj["electron"], obj["muonsInJets"], obj["jetPtMin"], obj["jetId"])
+        outList = calcList(obj["jet"], obj["met"], obj["photon"], obj["muon"], obj["electron"], obj["muonsInJets"], obj["jetId"])
+        if all([obj["comp"+item] for item in ["Jet", "Met","MuonsInJets","JetId"]]) :
+            outList += calcList(obj["compJet"], obj["compMet"], obj["photon"], obj["muon"], obj["electron"], obj["compMuonsInJets"], obj["compJetId"])
         return outList
 
     def calcListOther(self, obj, triggers) :
@@ -91,7 +96,7 @@ class hadronicLook(analysis.analysis) :
         outList += calculables.fromCollections(calculables.Electron, [obj["electron"]])
         outList += calculables.fromCollections(calculables.Photon, [obj["photon"]])
         outList += self.calcListOther(obj, params["triggerList"])
-        outList += self.calcListJet(obj, params["etRatherThanPt"], params["lowPtThreshold"], params["lowPtName"])
+        outList += self.calcListJet(obj, params["etRatherThanPt"], params["lowPtThreshold"], params["lowPtName"], params["htBins"], params["referenceThresholds"][0])
         return outList
     
     def listOfSteps(self, params) :
@@ -118,9 +123,10 @@ class hadronicLook(analysis.analysis) :
             ##for signal efficiency calculation
             #steps.Other.passFilter("htLabel1"),
             #steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 20, 0, 1000, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
-            
-            steps.Jet.jetPtSelector(_jet, 100.0, 0),
-            steps.Jet.jetPtSelector(_jet, 100.0, 1),
+
+            steps.Jet.htBinFilter(_jet, min = 340.0),
+            steps.Jet.jetSelector(_jet, params["referenceThresholds"][0], 0),
+            steps.Jet.jetSelector(_jet, params["referenceThresholds"][0], 1),
             steps.Jet.jetEtaSelector(_jet,2.5,0),
             
             #steps.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin", funcString="lambda x:x.Et()"),
@@ -139,6 +145,10 @@ class hadronicLook(analysis.analysis) :
             
             steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 1500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
             steps.Other.variableGreaterFilter(350.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
+
+            steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1],_met), 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
+            steps.Other.variableLessFilter(1.25,"%sMht%sOver%s"%(_jet[0],_jet[1],_met)),
+            
             steps.Other.histogrammer("%sSumP4%s"%_jet, 50, 0, 500, title = ";MHT from %s%s (GeV);events / bin"%_jet, funcString = "lambda x:x.pt()"),
             steps.Other.variablePtGreaterFilter(80.0,"%sSumP4%s"%_jet,"GeV"),
             steps.Other.histogrammer("vertexIndices", 20, -0.5, 19.5, title=";N vertices;events / bin", funcString="lambda x:len(x)"),
@@ -188,8 +198,6 @@ class hadronicLook(analysis.analysis) :
             steps.Other.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
             steps.Other.passFilter("kinematicPlots1"),
             
-            steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1],_met), 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
-            steps.Other.variableLessFilter(1.25,"%sMht%sOver%s"%(_jet[0],_jet[1],_met)),
             steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
             
             steps.Jet.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
@@ -248,8 +256,8 @@ class hadronicLook(analysis.analysis) :
         from samples import specify
         def data() : return specify( #nFilesMax = 4, nEventsMax = 2000,
                                      names = [#"Nov4_MJ_skim","Nov4_J_skim","Nov4_J_skim2","Nov4_JM_skim","Nov4_JMT_skim","Nov4_JMT_skim2",
-                                              #"HT.Run2011A-PromptReco-v1.AOD.Georgia","HT.Run2011A-PromptReco-v1.AOD.Henning",
-                                              "HT.Run2011A-PromptReco-v1.AOD.Arlo",
+                                              "HT.Run2011A-PromptReco-v1.AOD.Georgia","HT.Run2011A-PromptReco-v1.AOD.Henning",
+                                              #"HT.Run2011A-PromptReco-v2.AOD.Arlo",
                                               ])
         
 
@@ -332,6 +340,8 @@ class hadronicLook(analysis.analysis) :
 
         #org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="Nov4")
         org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="HT.Run2011A")
+        #org.mergeSamples(targetSpec = {"name":"50 ns data (3 inv pb)",  "color":r.kRed, "markerStyle":20}, sources=["HT.Run2011A-PromptReco-v2.AOD.Arlo"])
+        #org.mergeSamples(targetSpec = {"name":"75 ns data (17 inv pb)", "color":r.kBlack, "markerStyle":20}, sources = ["HT.Run2011A-PromptReco-v1.AOD.Georgia","HT.Run2011A-PromptReco-v1.AOD.Henning"])
 
         if not self.ra1Cosmetics() : 
             org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)        
