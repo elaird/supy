@@ -64,7 +64,7 @@ class jetSelector(analysisStep) :
         indices = eventVars[self.indicesName]
         if len(indices) <= self.jetIndex : return False
         value = eventVars[self.p4sName].at(indices[self.jetIndex]).pt()
-        return self.fraction*eventVars["crock"]["%sHtBin%s"%self.cs] <= value
+        return self.fraction*eventVars["%sHtBin%s"%self.cs] <= value
 #####################################
 class htBinFilter(analysisStep) :
 
@@ -79,8 +79,7 @@ class htBinFilter(analysisStep) :
             self.moreName += "; %g <= HtBin"%self.max
         
     def select(self,eventVars) :
-        indices = eventVars["%sIndices%s"%self.cs] #to fill the crock
-        bin = eventVars["crock"]["%sHtBin%s"%self.cs]
+        bin = eventVars["%sHtBin%s"%self.cs]
         return ( (self.min==None or self.min<=bin) and (self.max==None or bin<=self.max) )
 #####################################
 class jetPtVetoer(analysisStep) :

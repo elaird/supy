@@ -260,7 +260,7 @@ class displayer(analysisStep) :
         
         def go(j) :
             indices = eventVars["%sIndices%s"%j] #fill crock if need be
-            l = [eventVars["crock"]["%sHtBin%s"%j],
+            l = [eventVars["%sHtBin%s"%j],
                  eventVars["%s%s%s"  %(j[0], "SumEt",        j[1])],
                  eventVars["%s%s%s"  %(j[0], "SumP4",        j[1])].pt() if eventVars["%s%s%s"%(j[0], "SumP4",  j[1])] else 0,
                  eventVars["%s%s%s"  %(j[0], "AlphaTEt",     j[1])],
@@ -291,7 +291,7 @@ class displayer(analysisStep) :
             DE = eventVars["%sDeltaPhiStar%s%s"%(j[0], j[1], self.deltaPhiStarExtraName)]["DeltaPhiStar"]>0.5 or \
                  eventVars["%sDeadEcalDR%s%s"  %(j[0], j[1], self.deltaPhiStarExtraName)]                >0.3
 
-            htBin = eventVars["crock"]["%sHtBin%s"%j]
+            htBin = eventVars["%sHtBin%s"%j]
 
             j2Bit = J2!=None and J2 > 100.0*htBin/350.0
             htBit = HT!=None and HT > htBin
