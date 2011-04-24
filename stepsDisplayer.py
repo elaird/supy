@@ -292,8 +292,8 @@ class displayer(analysisStep) :
 
             htBin = eventVars["%sHtBin%s"%j]
 
-            j2Bit = J2!=None and J2 > 100.0*htBin/350.0
-            htBit = HT!=None and HT > htBin
+            j2Bit = J2!=None and htBin!=None and J2 > 100.0*htBin/350.0
+            htBit = HT!=None and htBin!=None and HT > htBin
             atBit = aT!=None and aT > 0.550
             deBit = DE!=None and DE
             mmBit = MM!=None and MM < 1.250
