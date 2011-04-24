@@ -25,6 +25,26 @@ class IndicesOther(calculables.indicesOther) :
         super(IndicesOther, self).__init__(collection)
         self.moreName = "pass ptMin; fail jetID or etaMax"
 ##############################
+class HtBinContainer(wrappedChain.calculable) :
+    """this is hacky-- see Indices and HtBin"""
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.indices = "%sIndices%s"%collection
+        self.htBinContainer = "%sHtBinContainer%s"%collection
+
+    def update(self,ignored) : #copied from calculables.indicesOther
+        self.value = []
+        if not dict.__getitem__(self.source,self.indices).updated :
+            self.source[self.indices]
+##############################
+class HtBin(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["HtBinContainer"])
+
+    def update(self,ignored) :
+        self.value = self.source[self.HtBinContainer][0]
+##############################
 class Indices(wrappedChain.calculable) :
     def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None, extraName = "",
                  scaleThresholds = False, htBins = None, referenceThresholds = None):
@@ -40,6 +60,7 @@ class Indices(wrappedChain.calculable) :
             self.pt2Min = ptMin*ptMin
             self.moreName = "pT>=%.1f GeV; |eta|<%.1f; %s"% (ptMin, etaMax, flagName if flagName else "")
         else :
+            self.stash(["HtBinContainer"])
             self.moreName = "|eta|<%.1f; %s; %s; %s"% (etaMax, flagName if flagName else "", str(self.referenceThresholds), str(self.htBins))
 
     def update(self, ignored) :
@@ -65,18 +86,19 @@ class Indices(wrappedChain.calculable) :
         indices.sort( key = pts.__getitem__, reverse = True)
         return ht,indices,others
 
-    def finish(self, indices, others, htThreshold, other) :
+    def finish(self, indices, others, htThreshold, other, htBinContainer) :
         self.value = indices
         for iOther in others :
             other.append(iOther)
-        self.source["crock"]["%sHtBin%s"%self.fixes] = htThreshold
+        htBinContainer.append(htThreshold)
         #print "%sIndices%s"%self.fixes,"=",self.source["%sIndices%s"%self.fixes]
         #print "%sIndicesOther%s"%self.fixes,"=",self.source["%sIndicesOther%s"%self.fixes]
-        #print "crock =",self.source["crock"]
+        #print "%sHtBin%s"%self.fixes,"=",self.source["%sHtBin%s"%self.fixes]
         
     def updateWithScaling(self) :
         self.value = []
         p4s    = self.source[self.CorrectedP4]
+        htBinContainer = self.source[self.HtBinContainer] if not self.extraName else None
         other  = self.source[self.IndicesOther]  if not self.extraName else []
         killed = self.source[self.IndicesKilled] if not self.extraName else []
         jetIds = self.source[self.flag] if self.flag else p4s.size()*[1]
@@ -89,7 +111,7 @@ class Indices(wrappedChain.calculable) :
             ht,indices,others = self.jetLoop(p4s, killed, jetIds, ptMin)
             #print "%6d     %4.1f    %6.1f   %6.1f   %20s   %20s"%(self.source["entry"], ptMin, htThreshold, ht, str(indices), str(others))
             if ht>htThreshold :
-                self.finish(indices, others, htThreshold, other)
+                self.finish(indices, others, htThreshold, other, htBinContainer)
                 return
         #did not make it into any HT bin; use the last values
         self.finish(indices, others, None, other)
