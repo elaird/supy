@@ -123,35 +123,33 @@ class wTopAsym(wrappedChain.calculable) :
         
     def weight(self,beta,alpha) :
         base = 3 * (1+beta*beta) / (6+2.*alpha)
-        return self.epsilon * (base+beta*self.rPrime) / (base+beta*self.R)
+        return (base+beta*self.rPrime) / (base+beta*self.R)
     
     def update(self,ignored) :
-        self.value = self.epsilon if not self.source['genQQbar'] else self.weight(self.source['genTopBeta'],
-                                                                                  min(__f0__,self.source['genTopAlpha']))
-
-__totalEff__ = 0.68
+        self.value = None if not self.source['genQQbar'] else self.weight(self.source['genTopBeta'],
+                                                                          min(__f0__,self.source['genTopAlpha']))
 class wTopAsymN30(wTopAsym) :
-    def __init__(self) : super(wTopAsymN30,self).__init__(-0.30, __totalEff__)
+    def __init__(self) : super(wTopAsymN30,self).__init__(-0.30)
 class wTopAsymN20(wTopAsym) :
-    def __init__(self) : super(wTopAsymN20,self).__init__(-0.20, __totalEff__)
+    def __init__(self) : super(wTopAsymN20,self).__init__(-0.20)
 class wTopAsymN15(wTopAsym) :
-    def __init__(self) : super(wTopAsymN15,self).__init__(-0.15, __totalEff__)
+    def __init__(self) : super(wTopAsymN15,self).__init__(-0.15)
 class wTopAsymN10(wTopAsym) :
-    def __init__(self) : super(wTopAsymN10,self).__init__(-0.10, __totalEff__)
+    def __init__(self) : super(wTopAsymN10,self).__init__(-0.10)
 class wTopAsymN05(wTopAsym) :
-    def __init__(self) : super(wTopAsymN05,self).__init__(-0.05, __totalEff__)
+    def __init__(self) : super(wTopAsymN05,self).__init__(-0.05)
 class wTopAsymP00(wTopAsym) :
-    def __init__(self) : super(wTopAsymP00,self).__init__(0.00, __totalEff__)
+    def __init__(self) : super(wTopAsymP00,self).__init__(0.00)
 class wTopAsymP05(wTopAsym) :
-    def __init__(self) : super(wTopAsymP05,self).__init__(0.05, __totalEff__)
+    def __init__(self) : super(wTopAsymP05,self).__init__(0.05)
 class wTopAsymP10(wTopAsym) :
-    def __init__(self) : super(wTopAsymP10,self).__init__(0.10, __totalEff__)
+    def __init__(self) : super(wTopAsymP10,self).__init__(0.10)
 class wTopAsymP15(wTopAsym) :
-    def __init__(self) : super(wTopAsymP15,self).__init__(0.15, __totalEff__)
+    def __init__(self) : super(wTopAsymP15,self).__init__(0.15)
 class wTopAsymP20(wTopAsym) :
-    def __init__(self) : super(wTopAsymP20,self).__init__(0.20, __totalEff__)
+    def __init__(self) : super(wTopAsymP20,self).__init__(0.20)
 class wTopAsymP30(wTopAsym) :
-    def __init__(self) : super(wTopAsymP30,self).__init__(0.30, __totalEff__)
+    def __init__(self) : super(wTopAsymP30,self).__init__(0.30)
 ######################################
 class mixedSumP4(wrappedChain.calculable) :
     def __init__(self, transverse = None, longitudinal = None) :

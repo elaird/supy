@@ -6,6 +6,10 @@ class genSumP4(wrappedChain.calculable) :
         genP4 = self.source['genP4']
         self.value = genP4.at(2) + genP4.at(3)
 ##############################
+class wNonQQbar(wrappedChain.calculable) :
+    def update(self,ignored) :
+        self.value = None if self.source['genQQbar'] else 1
+##############################
 class genQQbar(wrappedChain.calculable) :
     def update(self,ignored) :
         ids = list(self.source['genPdgId'])

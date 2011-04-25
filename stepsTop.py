@@ -53,41 +53,33 @@ class mcTruthQDir(analysisStep) :
         
 #####################################
 class mcTruthDiscriminateQQbar(analysisStep) :
-    def __init__(self, qqbar = None) :
-        self.qqbar = qqbar
 
     @staticmethod
     def phiMod(phi) : return phi + 2*math.pi*int(phi<0)
 
     def uponAcceptance(self,ev) :
         if not ev['genTopTTbar'] : return
-        if self.qqbar!=None and self.qqbar!=bool(ev['genQQbar']) : return
 
-        suf = '' if self.qqbar==None else '_QQbar' if ev['genQQbar'] else '_NonQQbar'
         dphi = self.phiMod(ev['genTopDeltaPhittbar'])
 
         ### dphi is highly correlated with PtAsym and/or PtOverSumPt, but they are mostly uncorrelated to alpha
         #self.book.fill( (dphi,ev['genTopPtAsymttbar']), 'corrDphiPtAsym', (51,51), (0,-1),(2*math.pi,1), title=';dphi;ptasymm;events / bin' )
         #self.book.fill( (dphi,ev['genTopAlpha']), 'corrDphiAlpha', (51,10), (0,0),(2*math.pi,1), title=';dphi;#alpha;events / bin' )
-        #self.book.fill( (ev['genTopTTbarPtOverSumPt'],ev['genTopAlpha']), 'corrPtAsymAlpha'+suf, (50,10), (0,0),(1,1), title=';(t+tbar)_{pt}/(t_{pt}+tbar_{pt});#alpha;events / bin' )
+        #self.book.fill( (ev['genTopTTbarPtOverSumPt'],ev['genTopAlpha']), 'corrPtAsymAlpha', (50,10), (0,0),(1,1), title=';(t+tbar)_{pt}/(t_{pt}+tbar_{pt});#alpha;events / bin' )
 
-        self.book.fill( dphi, 'genTopDeltaPhittbar'+suf, 51,0,2*math.pi, title = ';#Delta #phi_{ttbar};events / bin')
-        self.book.fill( ev['genTopTTbarPtOverSumPt'], 'ttbarPtOverSumPt'+suf, 50,0,1, title = ';(t+tbar)_{pt}/(t_{pt}+tbar_{pt});events / bin')
+        self.book.fill( dphi, 'genTopDeltaPhittbar', 51,0,2*math.pi, title = ';#Delta #phi_{ttbar};events / bin')
+        self.book.fill( ev['genTopTTbarPtOverSumPt'], 'ttbarPtOverSumPt', 50,0,1, title = ';(t+tbar)_{pt}/(t_{pt}+tbar_{pt});events / bin')
 
-        self.book.fill(ev['genTopAlpha'],'alpha'+suf,10,0,1,title=';genTopAlpha;events / bin')
+        self.book.fill(ev['genTopAlpha'],'alpha',10,0,1,title=';genTopAlpha;events / bin')
 
-        self.book.fill( ev['genTopTTbarSumP4'].Rapidity(), 'ttbarRapidity'+suf, 51,-3,3, title = ';y_{ttbar};events / bin')
-        self.book.fill( ev['genTopTTbarSumP4'].Eta(), 'ttbarEta'+suf, 81,-10,10, title = ';#eta_{ttbar};events / bin')
-        self.book.fill( ev['genTopTTbarSumP4'].Pz(), 'ttbarPz'+suf, 51,-3000,3000, title = ';pz_{ttbar};events / bin')
+        self.book.fill( ev['genTopTTbarSumP4'].Rapidity(), 'ttbarRapidity', 51,-3,3, title = ';y_{ttbar};events / bin')
+        self.book.fill( ev['genTopTTbarSumP4'].Eta(), 'ttbarEta', 81,-10,10, title = ';#eta_{ttbar};events / bin')
+        self.book.fill( ev['genTopTTbarSumP4'].Pz(), 'ttbarPz', 51,-3000,3000, title = ';pz_{ttbar};events / bin')
         
 #####################################
 class mcTruthAcceptance(analysisStep) :
-    def __init__(self, qqbar = None) :
-        self.qqbar = qqbar
     def uponAcceptance(self,ev) :
         if not ev['genTopTTbar'] : return
-        if self.qqbar is not None and bool(ev['genQQbar']) != self.qqbar : return
-        suf = '' if self.qqbar is None else '_QQbar' if ev['genQQbar'] else '_NonQQbar'
 
         indices = ev['genTTbarIndices']
         if not bool(indices['lplus'])^bool(indices['lminus']) : return
@@ -96,46 +88,41 @@ class mcTruthAcceptance(analysisStep) :
         jets = [ev['genP4'][i] for i in iJets]
         iBlep = indices['b'] if indices['lplus'] else indices['bbar']
         
-        self.book.fill(lep.eta(),"lepEta"+suf,31,-5,5, title=';#eta_{lep};events / bin')
-        self.book.fill(max([abs(p4.eta()) for p4 in jets]), 'jetEtaMax'+suf, 30,0,5, title=';jet |#eta|_{max};events / bin')
-        self.book.fill(max([abs(p4.eta()) for p4 in jets[:2]]), 'jetEtaMaxB'+suf, 30,0,5, title=';b jet |#eta|_{max};events / bin')
-        self.book.fill(max([abs(p4.eta()) for p4 in jets[2:]]), 'jetEtaMaxLite'+suf, 30,0,5, title=';lite jet |#eta|_{max};events / bin')
+        self.book.fill(lep.eta(),"lepEta",31,-5,5, title=';#eta_{lep};events / bin')
+        self.book.fill(max([abs(p4.eta()) for p4 in jets]), 'jetEtaMax', 30,0,5, title=';jet |#eta|_{max};events / bin')
+        self.book.fill(max([abs(p4.eta()) for p4 in jets[:2]]), 'jetEtaMaxB', 30,0,5, title=';b jet |#eta|_{max};events / bin')
+        self.book.fill(max([abs(p4.eta()) for p4 in jets[2:]]), 'jetEtaMaxLite', 30,0,5, title=';lite jet |#eta|_{max};events / bin')
 
         pts = [p4.pt() for p4 in jets]
-        self.book.fill(min(pts), 'jetMinPt'+suf, 50,0,100, title=';jet pT_{min};events / bin')
-        self.book.fill(min(pts[:2]), 'jetMinPtB'+suf, 50,0,100, title=';b jet pT_{min};events / bin')
-        self.book.fill(min(pts[2:]), 'jetMinPtLite'+suf, 50,0,100, title=';lite jet pT_{min};events / bin')
+        self.book.fill(min(pts), 'jetMinPt', 50,0,100, title=';jet pT_{min};events / bin')
+        self.book.fill(min(pts[:2]), 'jetMinPtB', 50,0,100, title=';b jet pT_{min};events / bin')
+        self.book.fill(min(pts[2:]), 'jetMinPtLite', 50,0,100, title=';lite jet pT_{min};events / bin')
 
-        self.book.fill( max(pts[:2]) - min(pts[2:]), "diffBigBLittleQ"+suf, 50,-50,100,title=';pT_{maxb}-pT_{minq};events / bin' )
-        self.book.fill( min(pts[:2]) - max(pts[2:]), "diffLittleBBigQ"+suf, 50,-50,100,title=';pT_{minb}-pT_{maxq};events / bin' )
-        self.book.fill( sum(pts[:2]) - sum(pts[2:]), "diffSumBBSumQQ"+suf, 50,-50,100,title=';sumpT_{b}-sumpT_{q};events / bin' )
+        self.book.fill( max(pts[:2]) - min(pts[2:]), "diffBigBLittleQ", 50,-50,100,title=';pT_{maxb}-pT_{minq};events / bin' )
+        self.book.fill( min(pts[:2]) - max(pts[2:]), "diffLittleBBigQ", 50,-50,100,title=';pT_{minb}-pT_{maxq};events / bin' )
+        self.book.fill( sum(pts[:2]) - sum(pts[2:]), "diffSumBBSumQQ", 50,-50,100,title=';sumpT_{b}-sumpT_{q};events / bin' )
         
-        self.book.fill(sum(pts), 'jetSumPt'+suf, 50, 0, 800, title=';#sum pT_{top jets};events / bin')
-        self.book.fill(sum(pts)-ev['genP4'][iBlep].pt(), 'jetSumPtHad'+suf, 50, 0, 500, title=';hadronic #sum pT_{top jets};events / bin')
+        self.book.fill(sum(pts), 'jetSumPt', 50, 0, 800, title=';#sum pT_{top jets};events / bin')
+        self.book.fill(sum(pts)-ev['genP4'][iBlep].pt(), 'jetSumPtHad', 50, 0, 500, title=';hadronic #sum pT_{top jets};events / bin')
 
-        self.book.fill( int(max(pts)==max(pts[:2])), "maxPtJetIsBjet"+suf, 2, 0 , 1, title = ';maxPt is bjet;events / bin')
-        self.book.fill( int(max(pts[:2])>min(pts[2:])), "maxPtOrNextJetIsBjet"+suf, 2, 0 , 1, title = ';maxPt or next is bjet;events / bin')
-        self.book.fill( int(sum(pts[:2])>sum(pts[2:])), "sumPtBB_gt_sumPtPQ"+suf, 2, 0 , 1, title = ';sumPt of bs > sumPt of pq;events / bin')
+        self.book.fill( int(max(pts)==max(pts[:2])), "maxPtJetIsBjet", 2, 0 , 1, title = ';maxPt is bjet;events / bin')
+        self.book.fill( int(max(pts[:2])>min(pts[2:])), "maxPtOrNextJetIsBjet", 2, 0 , 1, title = ';maxPt or next is bjet;events / bin')
+        self.book.fill( int(sum(pts[:2])>sum(pts[2:])), "sumPtBB_gt_sumPtPQ", 2, 0 , 1, title = ';sumPt of bs > sumPt of pq;events / bin')
 #####################################
 class mcTruthTemplates(analysisStep) :
-    def __init__(self,qqbar = None) :
-        self.qqbar = qqbar
-
     def uponAcceptance(self,ev) :
         if not ev['genTopTTbar'] : return
-        if self.qqbar is not None and bool(ev['genQQbar']) != self.qqbar : return
-        suf = '' if self.qqbar is None else '_QQbar' if ev['genQQbar'] else '_NonQQbar'
 
-        self.book.fill(ev['genTopAlpha'],'alpha%s'%suf,10,0,1,title=';genTopAlpha;events / bin')
+        self.book.fill(ev['genTopAlpha'],'alpha',10,0,1,title=';genTopAlpha;events / bin')
         alpha = '_alpha%d'%int(10*ev['genTopAlpha'])
 
-        self.book.fill(ev['genTopCosThetaStarAvg'], 'cosThetaStarAvg%s%s'%(suf,alpha), 20, -1, 1, title = ';cosThetaStarAvg;events / bin')
+        self.book.fill(ev['genTopCosThetaStarAvg'], 'cosThetaStarAvg%s'%alpha, 20, -1, 1, title = ';cosThetaStarAvg;events / bin')
 
-        self.book.fill(ev['genTopBeta'], 'genTopBeta%s'%suf, 20,-1,1, title = ";beta;events / bin")
-        self.book.fill(ev['genTopBeta2'], 'genTopBeta2%s'%suf, 20,-1,1, title = ";beta;events / bin")
-        #self.book.fill( (ev['genTopCosThetaStar'],ev['genTopCosThetaStarBar']), 'cts_v_ctsbar%s%s'%(suf,alpha), (100,100),(-1,-1),(1,1), title = ';costhetaQT;cosThetaQbarTbar;%s events/bin'%suf)
-        #self.book.fill( (ev['genTopCosThetaStar'],ev['genTopAlpha']), 'cts_v_alpha%s'%suf, (25,25),(-1,0),(1,1), title = ';costhetaQT;#alpha;%s events/bin'%suf)
-        #self.book.fill( (ev['genTopCosThetaStarAvg'],ev['genTopAlpha']), 'ctsavg_v_alpha%s'%suf, (25,25),(-1,0),(1,1), title = ';costhetaAvg;#alpha;%s events/bin'%suf)
+        self.book.fill(ev['genTopBeta'], 'genTopBeta', 20,-1,1, title = ";beta;events / bin")
+        self.book.fill(ev['genTopBeta2'], 'genTopBeta2', 20,-1,1, title = ";beta;events / bin")
+        #self.book.fill( (ev['genTopCosThetaStar'],ev['genTopCosThetaStarBar']), 'cts_v_ctsbar%s'%alpha, (100,100),(-1,-1),(1,1), title = ';costhetaQT;cosThetaQbarTbar;events/bin')
+        #self.book.fill( (ev['genTopCosThetaStar'],ev['genTopAlpha']), 'cts_v_alpha', (25,25),(-1,0),(1,1), title = ';costhetaQT;#alpha;events/bin')
+        #self.book.fill( (ev['genTopCosThetaStarAvg'],ev['genTopAlpha']), 'ctsavg_v_alpha', (25,25),(-1,0),(1,1), title = ';costhetaAvg;#alpha;%s events/bin')
         #self.book.fill(ev['genTopTTbarSumP4'].M(), "genttbarinvmass", 40,0,1000, title = ';ttbar invariant mass;events / bin' )
         #for i in [0,1]: self.book.fill(ev['genP4'][ev['genTopTTbar'][i]].M(), "topmass", 50, 120, 220, title = ';top mass;events / bin')
         

@@ -22,23 +22,16 @@ class topAsymmTemplates(analysis.analysis) :
     
     def listOfSteps(self, pars) :
         return [steps.Print.progressPrinter(),
-                steps.Filter.label("q direction"), steps.Top.mcTruthQDir(),
-                steps.Filter.label("non-qqbar asymm"),   steps.Top.mcTruthTemplates(qqbar=False),
-                steps.Filter.label("qqbar asymm"),       steps.Top.mcTruthTemplates(qqbar=True),
-                steps.Filter.label("all asymm"),         steps.Top.mcTruthTemplates(),
+                steps.Filter.label("all"),         steps.Top.mcTruthTemplates(),
                 steps.Filter.OR([steps.Filter.value('genTTbarIndices',min=0,index='lplus'),
                                  steps.Filter.value('genTTbarIndices',min=0,index='lminus')]),
                 steps.Top.mcTruthTemplates(),
-                steps.Filter.label("acceptance"),
-                steps.Top.mcTruthAcceptance(qqbar=True),
-                steps.Top.mcTruthAcceptance(qqbar=False),
-                steps.Filter.label("discriminateQQbar"),
-                steps.Top.mcTruthDiscriminateQQbar(qqbar=True),
-                steps.Top.mcTruthDiscriminateQQbar(qqbar=False)
+                steps.Filter.label("acceptance"),        steps.Top.mcTruthAcceptance(),
+                steps.Filter.label("discriminateQQbar"), steps.Top.mcTruthDiscriminateQQbar(),
+                steps.Filter.label("q direction"),       steps.Top.mcTruthQDir(),
                 ]
     
-    def listOfSampleDictionaries(self) :
-        return [samples.mc]
+    def listOfSampleDictionaries(self) : return [samples.mc]
 
     def listOfSamples(self,pars) :
         from samples import specify
@@ -50,7 +43,8 @@ class topAsymmTemplates(analysis.analysis) :
 
         sample = "tt_tauola_%s"%pars["sample"]
         return (
-            specify( names = sample, effectiveLumi = eL, color = r.kBlack,     weightName = "wTopAsymN30") +
+            specify( names = sample, effectiveLumi = eL, color = r.kBlack,     weightName = "wNonQQbar") +
+            specify( names = sample, effectiveLumi = eL, color = r.kBlue,      weightName = "wTopAsymN30") +
             #specify( names = sample, effectiveLumi = eL, color = r.kBlue,      weightName = "wTopAsymN20") +
             #specify( names = sample, effectiveLumi = eL, color = r.kGreen+3,   weightName = "wTopAsymN10") +
             specify( names = sample, effectiveLumi = eL, color = r.kGreen,     weightName = "wTopAsymP00") +
@@ -65,11 +59,11 @@ class topAsymmTemplates(analysis.analysis) :
             org=organizer.organizer( self.sampleSpecs(tag) )
             org.scale(toPdf=True)
 
-            self.signalChi2(org,("tt_tauola_mg.wTopAsymN30","tt_tauola_mg.wTopAsymP30"), org.keysMatching(["genTopBeta",
-                                                                                                           "genTopDeltaAbsYttbar",
-                                                                                                           "genTopTrue",
-                                                                                                           "genTopMez"
-                                                                                                           ]))
+            #self.signalChi2(org,("tt_tauola_mg.wTopAsymN30","tt_tauola_mg.wTopAsymP30"), org.keysMatching(["genTopBeta",
+            #                                                                                               "genTopDeltaAbsYttbar",
+            #                                                                                               "genTopTrue",
+            #                                                                                               "genTopMez"
+            #                                                                                               ]))
             
             #plot
             pl = plotter.plotter(org,
