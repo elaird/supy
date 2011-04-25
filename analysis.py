@@ -283,8 +283,7 @@ class analysis(object) :
             #adjust cross sections and enable ptHatFilter in Master step
             if iItem<len(ptHatLowerThresholdsAndSampleNames)-1 :
                 nextPtHatLowerThreshold = ptHatLowerThresholdsAndSampleNames[iItem+1][0]
-                nextLooperIndex = looperIndexDict[nextPtHatLowerThreshold]
-                loopers[thisLooperIndex].steps[0].activatePtHatFilter(maxPtHat = nextPtHatLowerThreshold, lostXs = loopers[nextLooperIndex].steps[0].xs)
+                loopers[thisLooperIndex].steps[0].activatePtHatFilter(maxPtHat = nextPtHatLowerThreshold)
 
         return
     

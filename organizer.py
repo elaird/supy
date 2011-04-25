@@ -54,9 +54,10 @@ class organizer(object) :
                 return hist.GetBinContent(bin) if hist and hist.GetEntries() else 0
             lumiNjobs,xsNjobs,sample['nJobs'] = map(extract, ["lumiHisto","xsHisto","nJobsHisto"])
             sample['nEvents'] = extract('counts',bin=2)
+            nEventsRejected = extract('counts')
 
             if lumiNjobs: sample["lumi"] = lumiNjobs/sample['nJobs']
-            if xsNjobs: sample["xs"] = xsNjobs/sample['nJobs']
+            if xsNjobs: sample["xs"] = (xsNjobs/sample['nJobs'])*(sample['nEvents']/(sample['nEvents']+nEventsRejected))
             assert ("xs" in sample)^("lumi" in sample), \
                    "Sample %s should have one and only one of {xs,lumi}."% sample["name"]
             

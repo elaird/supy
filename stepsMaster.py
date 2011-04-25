@@ -4,25 +4,25 @@ import utils,os
 class Master(analysisStep) :
     def __init__(self, xs, lumi, lumiWarn) :
         self.moreName = ""
-        self.filterPtHat = False
+        self.maxPtHat = None
         for item in ["xs", "lumi", "lumiWarn"] :
             setattr(self, item, eval(item))
         
-    def activatePtHatFilter(self, maxPtHat, lostXs) :
-        self.xs -= lostXs
-        self.filterPtHat = True
+    def activatePtHatFilter(self, maxPtHat) :
         self.maxPtHat = maxPtHat
         self.moreName += "(pthat<%.1f)"%self.maxPtHat
 
-    def setBookWeights(self, weight) :
-        for book in self.books: book.weight = weight
-        
     def select (self, eventVars) :
-        self.setBookWeights(eventVars["weight"])
-        return (not self.filterPtHat) or eventVars["genpthat"]<self.maxPtHat
+        weight = eventVars["weight"]
+        if self.maxPtHat and eventVars["genpthat"]<self.maxPtHat : weight = None
+        for book in self.books: book.weight = weight
+        if weight is None : self.books[0].weight = 1
+        return weight is not None
+    # 'None' weight counts toward the total cross section with weight = 1,
+    # but is not processed.  This is useful for sub-sampling and pthat-filtering
 
     def endFunc(self, otherChainDict) :
-        self.setBookWeights(1.0)
+        self.select({"weight":1.0})
         self.book.fill(0.0, "nJobsHisto", 1, -0.5, 0.5, title = ";dummy axis;N_{jobs}")        
         if self.xs   : self.book.fill(0.0, "xsHisto",   1, -0.5, 0.5, title = ";dummy axis;#sigma (pb)", w = self.xs)
         if self.lumi : self.book.fill(0.0, "lumiHisto", 1, -0.5, 0.5, title = "%s;dummy axis;integrated luminosity (pb^{-1})"%\
