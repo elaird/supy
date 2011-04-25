@@ -14,7 +14,7 @@ class Master(analysisStep) :
 
     def select (self, eventVars) :
         weight = eventVars["weight"]
-        if self.maxPtHat and eventVars["genpthat"]<self.maxPtHat : weight = None
+        if self.maxPtHat and self.maxPtHat<eventVars["genpthat"] : weight = None
         for book in self.books: book.weight = weight
         if weight is None : self.books[0].weight = 1
         return weight is not None
