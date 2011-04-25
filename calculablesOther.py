@@ -40,11 +40,12 @@ class Mt(wrappedChain.calculable) :
     def name(self) :
         return "%sMt%s%s"%(self.fixes[0], self.fixes[1], self.met)
     
-    def __init__(self, collection = None, met = None, byHand = True , allowNonIso = False) :
+    def __init__(self, collection = None, met = None, byHand = True , allowNonIso = False, isSumP4=False) :
         self.met = met
         self.fixes = collection
         self.stash(["Indices","IndicesNonIso","P4"])
         self.byHand = byHand
+        self.isSumP4 = isSumP4
         self.allowNonIso = allowNonIso
         self.moreName = "%s%s, %s, byHand=%d"%(collection[0], collection[1], met, byHand)
 
@@ -55,7 +56,7 @@ class Mt(wrappedChain.calculable) :
         index = self.source[self.Indices][0] if self.source[self.Indices] else \
                 self.source[self.IndicesNonIso][0]
         lep = self.source[self.P4][index]
-        met = self.source[self.met]
+        met = self.source[self.met] * (-1 if self.isSumP4 else 1)
 
         if self.byHand :
             self.value = math.sqrt( 2.0*lep.pt()*met.pt()*(1.0 - math.cos(r.Math.VectorUtil.DeltaPhi(lep, met))) )
