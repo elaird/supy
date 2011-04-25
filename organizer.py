@@ -157,7 +157,7 @@ class organizer(object) :
                 if key in ["lumiHisto","xsHisto","nJobsHisto","nEventsHisto"] : continue
                 for i,h in enumerate(hists):
                     if not h: continue
-                    if toPdf : h.Scale(1/h.Integral("width"))
+                    if toPdf : h.Scale(1/h.Integral("width") if h.Integral() else 1.0)
                     elif i!=iData : h.Scale(self.lumi)
                     dim = int(h.ClassName()[2])
                     axis = h.GetYaxis() if dim==1 else h.GetZaxis() if dim==2 else None
