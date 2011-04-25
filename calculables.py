@@ -2,6 +2,12 @@ from wrappedChain import *
 from inspect import isclass,ismodule,getargspec
 import configuration
 ##############################
+class weight(wrappedChain.calculable) :
+    value = 1
+    def __init__(self, calcName) : self.calcName = calcName
+    def update(self, ignored) :
+        if self.calcName : self.value = self.source[self.calcName]
+##############################
 class indicesOther(wrappedChain.calculable) :
     def name(self) : return self.indicesOther
     

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os,sys,copy,cPickle,collections,tempfile
-import utils,steps,samples,configuration
+import utils,steps,samples,configuration,calculables
 from analysisLooper import analysisLooper
 import ROOT as r
 #####################################
@@ -231,7 +231,6 @@ class analysis(object) :
             adjustedListOfSteps = [steps.Master.Master(xs = sampleTuple.xs,
                                                        lumi = sampleTuple.lumi,
                                                        lumiWarn = checkLumi(isMc, nEventsMax, sampleSpec.nFilesMax),
-                                                       weightName = sampleSpec.weightName,
                                                        )
                                    ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
             
@@ -243,7 +242,7 @@ class analysis(object) :
                                              globalStem = self.globalStem,
                                              subDir = subDir(conf),
                                              steps = adjustedListOfSteps,
-                                             calculables = listOfCalculables,
+                                             calculables = listOfCalculables + [calculables.weight(sampleSpec.weightName)],
                                              inputFiles = inputFiles,
                                              name = sampleName + ("."+sampleSpec.weightName if sampleSpec.weightName else ""),
                                              nEventsMax = nEventsMax,
