@@ -22,18 +22,15 @@ class Asymmetry(analysisStep) :
         hadTopM = topReco[0]['hadTopP4'].M()
         
         self.book.fill( lepTopM, "bestLepTopM", 100,0,300, title = ";leptonic top mass;events / bin" )
-        self.book.fill( hadTopM, "bestLepTopM", 100,0,300, title = ";hadronic top mass;events / bin" )
+        self.book.fill( hadTopM, "bestHadTopM", 100,0,300, title = ";hadronic top mass;events / bin" )
         self.book.fill( (lepTopM, hadTopM), "lepM_vs_hadM", (100,100),(0,0),(300,300),
                         title = ";leptonic top mass; hadronic top mass;events / bin",)
 
-        self.book.fill( math.log(1+topReco[0]['chi2']), "topRecoLogChi2", 50, 0 , 10, title = ';top reco Log(chi2);events / bin')
+        self.book.fill( math.log(1+topReco[0]['chi2']), "topRecoLogChi2", 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2});events / bin')
         self.book.fill( 1 - topReco[0]['chi2']/topReco[1]['chi2'], "topRecoRelDiffChi2", 50, 0 , 1, title = ';top reco reldiff chi2;events / bin')
         self.book.fill( eV['%sTTbarDeltaAbsY%s'%self.lepton], "ttbarDeltaAbsY", 31, -5, 5, title = ';#Delta|Y|_{ttbar};events / bin' )
         self.book.fill( eV['%sTTbarSignedDeltaY%s'%self.lepton], "ttbarSignedDeltaY", 31, -5, 5, title = ';sumP4dir * #Delta Y_{ttbar};events / bin' )
         self.book.fill( eV['%sTTbarMHTOverHT%s'%self.lepton], 'ttbarMHTOverHT', 50, 0, 1, title = ';ttbar MHT/HT;events / bint')
-        #steps.Histos.generic(("%s%s"%lepton+"RelativeRapiditymixedSumP4NuM","%s%s"%lepton+"RelativeRapiditymixedSumP4NuP"),
-        #                     (101,101), (-5,-5), (5,5), title = ";#Delta y #nu_{-};#Delta y #nu_{+};events / bin",
-        #                     funcString = "lambda x: (x[0],x[1])"),        
 #####################################
 class mcTruthQDir(analysisStep) :
     def __init__(self,withLepton = False, withNu = False) :
@@ -132,7 +129,6 @@ class mcTruthTemplates(analysisStep) :
         self.book.fill(ev['genTopAlpha'],'alpha%s'%suf,10,0,1,title=';genTopAlpha;events / bin')
         alpha = '_alpha%d'%int(10*ev['genTopAlpha'])
 
-        #self.book.fill(ev['genTopCosThetaStar'], 'cosThetaStar%s%s'%(suf,alpha), 20, -1, 1, title = ';cosThetaStar;events / bin')
         self.book.fill(ev['genTopCosThetaStarAvg'], 'cosThetaStarAvg%s%s'%(suf,alpha), 20, -1, 1, title = ';cosThetaStarAvg;events / bin')
 
         self.book.fill(ev['genTopBeta'], 'genTopBeta%s'%suf, 20,-1,1, title = ";beta;events / bin")
