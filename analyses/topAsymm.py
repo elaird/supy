@@ -23,7 +23,7 @@ class topAsymm(analysis.analysis) :
         
         return { "objects": objects,
                  "lepton" : leptons,
-                 "nJets" :  [{"min":3,"max":None}],
+                 "nJets" :  [{"min":4,"max":None}],
                  "bVar" : bVar,
                  "sample" : {"top" : {"bCut":bCut["normal"],  "lIso":lIso["normal"]},
                              #"Wlv" : {"bCut":bCut["inverted"],"lIso":lIso["normal"]},
@@ -71,7 +71,7 @@ class topAsymm(analysis.analysis) :
             calculables.Top.SignedRapidity(lepton,"mixedSumP4Nu"),
             calculables.Top.RelativeRapidity(lepton,"mixedSumP4Nu"),
             
-            calculables.Other.Mt(lepton,"%sNeutrinoP4%s"%lepton, allowNonIso=True),
+            calculables.Other.Mt(lepton,"mixedSumP4", allowNonIso=True, isSumP4=True),
             calculables.Muon.IndicesAnyIsoIsoOrder(obj[pars["lepton"]["name"]], pars["lepton"]["isoVar"])
             ]
         return outList
@@ -104,7 +104,7 @@ class topAsymm(analysis.analysis) :
         def templateSteps() :
             return ([steps.Filter.label('templates'),
                      steps.Histos.value(obj["sumPt"],50,0,1000),
-                     steps.Histos.value("%sMt%s"%lepton+"%sNeutrinoP4%s"%lepton, 30,0,180, xtitle = "M_{T}"),
+                     steps.Histos.value("%sMt%s"%lepton+"mixedSumP4", 30,0,180, xtitle = "M_{T}"),
                      steps.Histos.pt("%sCorrectedP4%s"%obj['jet'], 40,0,400, index = 0, indices = "%sIndices%s"%obj['jet']),
                      steps.Histos.pt("%sCorrectedP4%s"%obj['jet'], 40,0,400, index = 0, indices = "%sIndicesBtagged%s"%obj['jet']),
                      steps.Histos.generic(("%sCorrectedP4%s"%obj['jet'],"%sIndicesBtagged%s"%obj['jet']), 30,0,6,
@@ -121,7 +121,7 @@ class topAsymm(analysis.analysis) :
             steps.Print.progressPrinter(),
             steps.Other.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
             steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = "%sIndicesAnyIso%s"%lepton, index = 0),
-            ]+sum([[step,lepIso(0)] for step in cleanupSteps()],[])+[
+            ]+sum([[step,lepIso(0)][:1] for step in cleanupSteps()],[])+[
             steps.Histos.value(obj["sumPt"],50,0,1000),
             steps.Other.compareMissing([obj["sumP4"],obj["met"]]),
             
@@ -197,9 +197,10 @@ class topAsymm(analysis.analysis) :
             return specify( effectiveLumi = eL, color = r.kBlue,
                             names = ["qcd_mg_ht_%s_%s"%t for t in zip(qM,qM[1:]+["inf"])])
         def ttbar_mg(eL) :
-            return (specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kOrange,   weightName="wTopAsymN30") +
+            return (specify( names = "tt_tauola_mg", effectiveLumi = 200, color = r.kBlack,   weightName="wNonQQbar") +
+                    specify( names = "tt_tauola_mg", effectiveLumi = 2000, color = r.kOrange,   weightName="wTopAsymN30") +
                     #specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kYellow-3, weightName="wTopAsymP00") +
-                    specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kRed,      weightName="wTopAsymP30") )
+                    specify( names = "tt_tauola_mg", effectiveLumi = 2000, color = r.kRed,      weightName="wTopAsymP30") )
 
         def ewk(eL, skimp=True) :
             return specify( names = "w_jets_mg", effectiveLumi = eL, color = 28 )
@@ -213,9 +214,9 @@ class topAsymm(analysis.analysis) :
 
         eL = 1000 # 1/pb
         return  ( #data() +
-                  #qcd_mg(eL) +
-                  ttbar_mg(100) #+
-                  #ewk(eL)
+                  #qcd_mg(10) +
+                  ttbar_mg(None) #+
+                  #ewk(100)
                   )
 
     def conclude(self) :
