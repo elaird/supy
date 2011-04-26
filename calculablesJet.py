@@ -93,7 +93,6 @@ class Indices(wrappedChain.calculable) :
         htBinContainer.append(htThreshold)
         #print "%sIndices%s"%self.fixes,"=",self.source["%sIndices%s"%self.fixes]
         #print "%sIndicesOther%s"%self.fixes,"=",self.source["%sIndicesOther%s"%self.fixes]
-        #print "%sHtBin%s"%self.fixes,"=",self.source["%sHtBin%s"%self.fixes]
         
     def updateWithScaling(self) :
         self.value = []
