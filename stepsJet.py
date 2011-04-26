@@ -66,6 +66,17 @@ class jetSelector(analysisStep) :
         value = eventVars[self.p4sName].at(indices[self.jetIndex]).pt()
         return self.fraction*eventVars["%sHtBin%s"%self.cs] <= value
 #####################################
+class mhtSelector(analysisStep) :
+    def __init__(self, cs, referenceThresholds) :
+        self.cs = cs
+        self.fraction = referenceThresholds["mht"]/referenceThresholds["ht"]
+        self.indicesName = "%sIndices%s" % self.cs
+        self.mhtName = "%sSumP4%s" % self.cs
+        self.moreName = "%s >= %4.3f * HtBin" % (self.mhtName, self.fraction)
+
+    def select (self,eventVars) :
+        return self.fraction*eventVars["%sHtBin%s"%self.cs] <= eventVars[self.mhtName].pt()
+#####################################
 class htBinFilter(analysisStep) :
 
     def __init__(self, cs, min = None, max = None) :
