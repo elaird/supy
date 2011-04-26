@@ -15,8 +15,6 @@
 
 * continue clean-up of hadronicLook
 
-* handle float-based vectors
-
 * consider threshold for adding muons to jets
 * in analysis.py: looper.setupSteps(minimal = True) #determine why this is needed
 * consider arguments to analysisLooper
@@ -29,9 +27,7 @@
 * profile
 
 (ntupler)
-* stage-out
-* prune gen MET
-* check extra spike vars
+* xs by event
 
 (low priority)
 * store inputFileList in root file?
