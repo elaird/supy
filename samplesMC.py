@@ -47,6 +47,7 @@ mc.add("w_munu", '%s%s/WToMuNu_TuneZ2_7TeV-pythia6.%s)'%(srm,burt_ewk,spring11pu
 mc.add("w_taunu", '%s%s/WToTauNu_TuneZ2_7TeV-pythia6-tauola.%s)'%(srm,burt_ewk,spring11pu), xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
 
 ##### G + jets #########
+#MG
 gJetMg = "/elaird//ICF/automated/2011_04_04_11_45_04/"
 mc.add("g_jets_mg_ht_40_100",'%s/%s/GJets_TuneD6T_HT-40To100_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
        xs = {"LO":23620, "fakeNLO":23620*mgKFactor}["fakeNLO"])
@@ -54,6 +55,22 @@ mc.add("g_jets_mg_ht_100_200",'%s/%s/GJets_TuneD6T_HT-100To200_7TeV-madgraph.Spr
        xs = {"LO":3476, "fakeNLO":3476*mgKFactor}["fakeNLO"])
 mc.add("g_jets_mg_ht_200_inf"   ,'%s/%s/GJets_TuneD6T_HT-200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
        xs = {"LO":485, "fakeNLO":485*mgKFactor}["fakeNLO"])
+
+#PYTHIA
+GPyLoc = "/dburton//ICF/automated/2011_04_15_14_36_55/"
+GPyDset = "G_Pt_%s_TuneZ2_7TeV_pythia6.Spring11-PU_S1_START311_V1G1-v1.AODSIM"
+mc.add("g_jets_py6_pt_0_15",      '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"0to15"),      xs = 8.420e+07)
+mc.add("g_jets_py6_pt_15_30",     '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"15to30"),     xs = 1.717e+05)
+mc.add("g_jets_py6_pt_30_50",     '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"30to50"),     xs = 1.669e+04)
+mc.add("g_jets_py6_pt_50_80",     '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"50to80"),     xs = 2.722e+03)
+mc.add("g_jets_py6_pt_80_120",    '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"80to120"),    xs = 4.472e+02)
+mc.add("g_jets_py6_pt_120_170",   '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"120to170"),   xs = 8.417e+01)
+mc.add("g_jets_py6_pt_170_300",   '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"170to300"),   xs = 2.264e+01)
+mc.add("g_jets_py6_pt_300_470",   '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"300to470"),   xs = 1.493e+00)
+mc.add("g_jets_py6_ptf_470_800",  '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"470to800"),   xs = 1.323e-01)
+mc.add("g_jets_py6_pt_800_1400",  '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"800to1400"),  xs = 3.481e-03)
+mc.add("g_jets_py6_pt_1400_1800", '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"1400to1800"), xs = 1.270e-05)
+mc.add("g_jets_py6_pt_1800_inf",  '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"1800"),       xs = 2.936e-07)
 
 ##### SUSY LM  ##########
 lmDir = "/henning//ICF/automated/2011_04_12_14_13_06/"
