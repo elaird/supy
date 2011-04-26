@@ -18,6 +18,23 @@ class photonPtSelector(analysisStep) :
         p4s = eventVars[self.p4sName]
         return self.photonPtThreshold <= p4s.at(indices[self.photonIndex]).pt()
 #####################################
+class photonSelector(analysisStep) :
+
+    def __init__(self, cs, jetCs, referenceThresholds, index) :
+        for item in ["index", "cs", "jetCs"] :
+            setattr(self, item, eval(item))
+
+        self.fraction = referenceThresholds["photonPt"]/referenceThresholds["ht"]
+        self.indicesName = "%sIndices%s" % self.cs
+        self.p4sName = "%sP4%s" % self.cs
+        self.moreName = "%s%s; pT[index[%d]]>=%4.3f * %sHtBin%s" % (self.cs[0], self.cs[1], index, self.fraction, self.jetCs[0], self.jetCs[1])
+
+    def select (self,eventVars) :
+        indices = eventVars[self.indicesName]
+        if len(indices) <= self.index : return False
+        value = eventVars[self.p4sName].at(indices[self.index]).pt()
+        return self.fraction*eventVars["%sHtBin%s"%self.jetCs] <= value
+#####################################
 class photonEtaSelector(analysisStep) :
 
     def __init__(self,cs,photonEtaThreshold,photonIndex):
