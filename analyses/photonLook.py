@@ -12,16 +12,9 @@ class photonLook(analysis.analysis) :
         #objects["pfAK5Jet_recoLepPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",     ("muon","Pat"),("electron","Pat"),("photon","Pat"),  "PF"  ,    True ,    ]))
         #objects["pfAK5JetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,    ]))
 
-        thresholds = {}
-        fields =                                    ["jetPtMin","jet1PtMin","jet2PtMin","htLower","htUpper","mht","applyAlphaTCut","applyTrigger","photonPt","genPhotonPtMin"]
-        thresholds["signal"]     = dict(zip(fields, [   50.0,       100.0,    100.0,      350.0,    None,   140.0,      True,           True,        100.0,         110.0    ]))
-        #thresholds["relaxed"]    = dict(zip(fields, [   50.0,        50.0,     50.0,      250.0,   350.0,   140.0,      True,           True,        100.0,         110.0    ]))
-        ##thresholds["HT_250_300"] = dict(zip(fields, [   35.9,        72.7,     72.7,      250.0,   300.0, , 100.0,      True,           True,         80.0,          90.0    ]))
-        ##thresholds["HT_275_300"] = dict(zip(fields, [   39.3,        79.5,     79.5,      275.0,   300.0, , 110.0,      True,           True,         80.0,          90.0    ]))
-        ##thresholds["HT_300_350"] = dict(zip(fields, [   42.9,        85.7,     85.7,      300.0,   350.0, , 120.0,      True,           True,         80.0,          90.0    ]))
-
         return { "objects": objects,
-                 "thresholds": thresholds,
+                 "htBins": (250.0, 300.0, 350.0),
+                 "referenceThresholds": ({"ht": 350.0, "singleJetPt": 50.0, "jet1Pt": 100.0, "jet2Pt":100.0, "mht":140.0, "photonPt":100.0, "genPhotonPtMin":110.0}, {}),
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
                  "photonId" :         dict([ ("photonLoose","photonIDLooseFromTwikiPat"),             #0
                                              ("photonTight","photonIDTightFromTwikiPat"),             #1
@@ -51,7 +44,6 @@ class photonLook(analysis.analysis) :
     def listOfCalculables(self, params) :
         obj = params["objects"]
         _etRatherThanPt = params["etRatherThanPt"]
-        _jetPtMin = params["thresholds"]["jetPtMin"]
 
         return calculables.zeroArgs() +\
                calculables.fromCollections(calculables.Jet,[obj["jet"]]) +\
@@ -66,8 +58,9 @@ class photonLook(analysis.analysis) :
                                            correctForMuons = not obj["muonsInJets"],
                                            electron = obj["electron"], electronDR = 0.5
                                            ),
-                 calculables.Jet.Indices( obj["jet"], _jetPtMin,      etaMax = 3.0, flagName = params["jetId"]),
-                 calculables.Jet.Indices( obj["jet"], params["lowPtThreshold"], etaMax = 3.0, flagName = params["jetId"], extraName = params["lowPtName"]),
+                 calculables.Jet.Indices( obj["jet"], etaMax = 3.0, flagName = params["jetId"],
+                                          scaleThresholds = True, htBins = params["htBins"], referenceThresholds = params["referenceThresholds"][0]),
+                 calculables.Jet.Indices( obj["jet"], ptMin = params["lowPtThreshold"], etaMax = 3.0, flagName = params["jetId"], extraName = params["lowPtName"]),
                  calculables.Muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
                  calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
                  calculables.Photon.Indices(obj["photon"], ptMin = 25, flagName = params["photonId"]),
@@ -110,32 +103,28 @@ class photonLook(analysis.analysis) :
         _met  = params["objects"]["met"]
         _etRatherThanPt = params["etRatherThanPt"]
 
-        outList=[
+        outList = [
             steps.Print.progressPrinter(),
-            steps.Other.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
-            steps.Jet.jetEtaSelector(_jet, 2.5, 0),
-            ]
-
-        if params["thresholds"]["jet1PtMin"]!=None : outList+=[steps.Jet.jetPtSelector(_jet, params["thresholds"]["jet1PtMin"], 0)]
-        if params["thresholds"]["jet2PtMin"]!=None : outList+=[steps.Jet.jetPtSelector(_jet, params["thresholds"]["jet2PtMin"], 1)]
-        if params["thresholds"]["applyTrigger"]    : outList+=[steps.Trigger.lowestUnPrescaledTrigger()]
-
-        outList += [steps.Other.passFilter("vertexDistribution1")]
-        outList += steps.Other.multiplicityPlotFilter("vertexIndices", nMin = 1, xlabel = "N vertices")
-        outList+=[
+            steps.Other.histogrammer("genpthat", 200, 0, 1000, title = ";#hat{p_{T}} (GeV);events / bin"),
             steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
             steps.Trigger.physicsDeclared(),
             steps.Other.monsterEventFilter(),
             steps.Other.hbheNoiseFilter(),
             steps.Trigger.hltPrescaleHistogrammer(params["triggerList"]),            
-            steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
-            #steps.Other.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
+            #steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
+            steps.Trigger.lowestUnPrescaledTrigger(),
+
+            steps.Jet.htBinFilter(_jet, min = 340),
+            steps.Jet.jetSelector(_jet, params["referenceThresholds"][0], 0),
+            steps.Jet.jetSelector(_jet, params["referenceThresholds"][0], 1),
+            steps.Jet.jetEtaSelector(_jet, 2.5, 0),
             ]
 
-        if params["thresholds"]["htLower"]!=None : outList+=[steps.Other.variableGreaterFilter(params["thresholds"]["htLower"],"%sSumEt%s"%_jet, suffix = "GeV")]
-        if params["thresholds"]["htUpper"]!=None : outList+=[steps.Other.variableLessFilter   (params["thresholds"]["htUpper"],"%sSumEt%s"%_jet, suffix = "GeV")]
+        outList += [steps.Other.passFilter("vertexDistribution1")]
+        outList += steps.Other.multiplicityPlotFilter("vertexIndices", nMin = 1, xlabel = "N vertices")
+        #steps.Other.histogrammer("%sSumEt%s"%_jet,50,0,1500, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
 
-        outList+=[
+        outList += [
             #bad-jet, electron, muon, vetoes
             steps.Other.multiplicityFilter("%sIndicesOther%s"%_jet, nMax = 0),
             steps.Other.multiplicityFilter("%sIndices%s"%_electron, nMax = 0),
@@ -145,23 +134,22 @@ class photonLook(analysis.analysis) :
             steps.Other.multiplicityFilter("%sIndicesUnmatched%s"%_photon,   nMax = 0),
             steps.Jet.uniquelyMatchedNonisoMuons(_jet),
             steps.Other.multiplicityFilter("%sIndices%s"%_jet, nMin=params["nJetsMinMax"][0], nMax=params["nJetsMinMax"][1]),
-            #steps.histogrammer("%sIndices%s"%_photon,10,-0.5,9.5,title="; N photons ;events / bin", funcString = "lambda x: len(x)"),
             ]
         if not params["zMode"] :
             outList+=[
-                steps.Other.passFilter("photonEfficiencyPlots1"),
-                steps.Gen.photonEfficiencyPlots(label = "Status1Photon", ptCut = params["thresholds"]["genPhotonPtMin"],
-                                                etaCut = 1.4, isoCut = 5.0, deltaRCut = 1.1, jets = _jet, photons = _photon),
+                #steps.Other.passFilter("photonEfficiencyPlots1"),
+                #steps.Gen.photonEfficiencyPlots(label = "Status1Photon", ptCut = params["thresholds"]["genPhotonPtMin"],
+                #                                etaCut = 1.4, isoCut = 5.0, deltaRCut = 1.1, jets = _jet, photons = _photon),
                 
-                steps.Photon.photonPtSelector(_photon, params["thresholds"]["photonPt"], 0),
+                steps.Photon.photonSelector(_photon, _jet, params["referenceThresholds"][0], 0),
                 steps.Photon.photonEtaSelector(_photon, 1.45, 0),
                 steps.Photon.photonDeltaRGreaterSelector(jets = _jet, photons = _photon, minDeltaR = 1.0, photonIndex = 0),
                 
                 steps.Other.multiplicityFilter("%sIndices%s"%_photon, nMin = 1, nMax = 1),
 
-                steps.Other.passFilter("photonEfficiencyPlots2"),
-                steps.Gen.photonEfficiencyPlots(label = "Status1Photon", ptCut = params["thresholds"]["genPhotonPtMin"],
-                                                etaCut = 1.4, isoCut = 5.0, deltaRCut = 1.1, jets = _jet, photons = _photon),                                            
+                #steps.Other.passFilter("photonEfficiencyPlots2"),
+                #steps.Gen.photonEfficiencyPlots(label = "Status1Photon", ptCut = params["thresholds"]["genPhotonPtMin"],
+                #                                etaCut = 1.4, isoCut = 5.0, deltaRCut = 1.1, jets = _jet, photons = _photon),                                            
                 ]
         else :
             outList+=[
@@ -190,7 +178,7 @@ class photonLook(analysis.analysis) :
             
             steps.Jet.photon1PtOverHtHistogrammer(jets = _jet, photons = _photon, etRatherThanPt = _etRatherThanPt),
             
-            steps.Other.variablePtGreaterFilter(params["thresholds"]["mht"],"%sSumP4%s"%_jet,"GeV"),
+            steps.Jet.mhtSelector(_jet, params["referenceThresholds"][0]),
 
             steps.Jet.alphaHistogrammer(_jet, deltaPhiStarExtraName = "", etRatherThanPt = _etRatherThanPt),            
             #steps.Other.histogrammer("%sAlphaTEt%s"%_jet, 4, 0.0, 0.55*4, title=";#alpha_{T};events / bin"),
@@ -198,12 +186,9 @@ class photonLook(analysis.analysis) :
                                funcString="lambda x:len(x)"),
             steps.Other.passFilter("singlePhotonPlots2"),
             steps.Photon.singlePhotonHistogrammer(_photon, _jet),
-            ]
-        if params["thresholds"]["applyAlphaTCut"] :
-            outList+=[
-                steps.Other.variableGreaterFilter(0.55,"%sAlphaTEt%s"%_jet),
-            ]
-        outList+=[
+
+            steps.Other.variableGreaterFilter(0.55,"%sAlphaTEt%s"%_jet),
+
             steps.Jet.photon1PtOverHtHistogrammer(jets = _jet, photons = _photon, etRatherThanPt = _etRatherThanPt),            
             steps.Other.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
                                funcString="lambda x:len(x)"),
@@ -302,7 +287,7 @@ class photonLook(analysis.analysis) :
 
         #2011
         #data = specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Henning_noIsoReqSkim", "HT.Run2011A-PromptReco-v1.AOD.Georgia_noIsoReqSkim"])
-        data = specify(names = ["Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim", "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim"])
+        data = specify(names = ["Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim", "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim", "Photon.Run2011A-PromptReco-v2.AOD.Ted_noIsoReqSkim"])
 
         eL = 2000.0
         qcd_mg          = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdMgNames())
