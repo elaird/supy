@@ -257,7 +257,7 @@ class hadronicLook(analysis.analysis) :
         def data() : return specify( #nFilesMax = 4, nEventsMax = 2000,
                                      names = [#"Nov4_MJ_skim","Nov4_J_skim","Nov4_J_skim2","Nov4_JM_skim","Nov4_JMT_skim","Nov4_JMT_skim2",
                                               "HT.Run2011A-PromptReco-v1.AOD.Georgia","HT.Run2011A-PromptReco-v1.AOD.Henning",
-                                              #"HT.Run2011A-PromptReco-v2.AOD.Arlo",
+                                              "HT.Run2011A-PromptReco-v2.AOD.Arlo",
                                               #"HT250_skim_calo",
                                               #"HT300_skim_calo",
                                               #"HT350_skim_calo",
