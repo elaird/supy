@@ -5,7 +5,7 @@ jetmet = samples.SampleHolder()
 #2011
 jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Georgia",'%s/georgia//ICF/automated/2011_04_09_18_07_10/")'%srm, lumi = 11.88)
 jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Henning",'%s/henning//ICF/automated/2011_04_13_17_17_19/")'%srm, lumi =  5.07)
-jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Arlo", '%s/arlogb//ICF/automated/2011_04_20_15_01_48/")'%srm, lumi = 3.08) #was partially complete
+jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Arlo", '%s/arlogb//ICF/automated/2011_04_24_19_07_39/")'%srm, lumi = 15.28) #174/188 complete
 
 jetmet.add("HT350_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v1/350_bin/calo.root", isDirectory = False)', lumi = 17.0)
 jetmet.add("HT350_skim_pf", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v1/350_bin/pf.root", isDirectory = False)', lumi = 17.0)
