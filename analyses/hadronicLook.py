@@ -32,8 +32,11 @@ class hadronicLook(analysis.analysis) :
                  "etRatherThanPt" : [True,False]        [0],
                  "lowPtThreshold" : 30.0,
                  "lowPtName" : "lowPt",
+                 "highPtThreshold" : 50.0,
+                 "highPtName" : "highPt",
                  "htBins": (250.0, 300.0, 350.0),
                  "referenceThresholds": ({"ht": 350.0, "singleJetPt": 50.0, "jet1Pt": 100.0, "jet2Pt":100.0}, {}),
+                 "htBin": dict( [("250",250.0), ("300",300.0), ("350",350.0)][2:3] ),
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  #"triggerList": ("HLT_HT160_v2","HLT_HT240_v2","HLT_HT260_v2","HLT_HT350_v2","HLT_HT360_v2"),#2011 epoch 1
@@ -43,7 +46,7 @@ class hadronicLook(analysis.analysis) :
 
     def ra1Cosmetics(self) : return True
     
-    def calcListJet(self, obj, etRatherThanPt, lowPtThreshold, lowPtName, htBins, referenceThresholds) :
+    def calcListJet(self, obj, etRatherThanPt, htBins, referenceThresholds, lowPtThreshold, lowPtName, highPtThreshold, highPtName) :
         def calcList(jet, met, photon, muon, electron, muonsInJets, jetIdFlag) :
             outList = [
                 calculables.XClean.xcJet(jet,
@@ -58,14 +61,16 @@ class hadronicLook(analysis.analysis) :
                 calculables.Jet.Indices( jet, etaMax = 3.0, flagName = jetIdFlag,
                                          scaleThresholds = True, htBins = htBins, referenceThresholds = referenceThresholds),
                 calculables.Jet.Indices( jet, ptMin = lowPtThreshold, etaMax = 3.0, flagName = jetIdFlag, extraName = lowPtName),
+                calculables.Jet.Indices( jet, ptMin = highPtThreshold, etaMax = 3.0, flagName = jetIdFlag, extraName = highPtName),
                 
                 calculables.Jet.SumP4(jet),
                 calculables.Jet.SumP4(jet, extraName = lowPtName),
+                calculables.Jet.SumP4(jet, extraName = highPtName),
                 calculables.Jet.DeltaPhiStar(jet, extraName = lowPtName),
                 calculables.Jet.DeltaPseudoJet(jet, etRatherThanPt),
                 calculables.Jet.AlphaT(jet, etRatherThanPt),
                 calculables.Jet.AlphaTMet(jet, etRatherThanPt, met),
-                calculables.Jet.MhtOverMet(jet, met),
+                calculables.Jet.MhtOverMet((jet[0], jet[1]+highPtName), met),
                 calculables.Jet.deadEcalDR(jet, extraName = lowPtName, minNXtals = 10),
                 ]
             return outList+calculables.fromCollections(calculables.Jet, [jet])
@@ -97,7 +102,8 @@ class hadronicLook(analysis.analysis) :
         outList += calculables.fromCollections(calculables.Electron, [obj["electron"]])
         outList += calculables.fromCollections(calculables.Photon, [obj["photon"]])
         outList += self.calcListOther(obj, params["triggerList"])
-        outList += self.calcListJet(obj, params["etRatherThanPt"], params["lowPtThreshold"], params["lowPtName"], params["htBins"], params["referenceThresholds"][0])
+        outList += self.calcListJet(obj, params["etRatherThanPt"], params["htBins"], params["referenceThresholds"][0],
+                                    params["lowPtThreshold"], params["lowPtName"], params["highPtThreshold"], params["highPtName"])
         return outList
     
     def listOfSteps(self, params) :
@@ -125,7 +131,7 @@ class hadronicLook(analysis.analysis) :
             #steps.Other.passFilter("htLabel1"),
             #steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 20, 0, 1000, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
 
-            steps.Jet.htBinFilter(_jet, min = 340),
+            steps.Jet.htBinFilter(_jet, min = params["htBin"], max = params["htBin"]),
             steps.Jet.jetSelector(_jet, params["referenceThresholds"][0], 0),
             steps.Jet.jetSelector(_jet, params["referenceThresholds"][0], 1),
             steps.Jet.jetEtaSelector(_jet,2.5,0),
@@ -146,8 +152,9 @@ class hadronicLook(analysis.analysis) :
             
             steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 1500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
 
-            steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1],_met), 100, 0.0, 3.0, title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1],_met)),
-            steps.Other.variableLessFilter(1.25,"%sMht%sOver%s"%(_jet[0],_jet[1],_met)),
+            steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met), 100, 0.0, 3.0,
+                                     title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1]+params["highPtName"],_met)),
+            steps.Other.variableLessFilter(1.25,"%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met)),
             
             steps.Other.histogrammer("%sSumP4%s"%_jet, 50, 0, 500, title = ";MHT from %s%s (GeV);events / bin"%_jet, funcString = "lambda x:x.pt()"),
             steps.Other.variablePtGreaterFilter(80.0,"%sSumP4%s"%_jet,"GeV"),
@@ -242,6 +249,7 @@ class hadronicLook(analysis.analysis) :
             #                          deltaPhiStarExtraName = params["lowPtName"],
             #                          deltaPhiStarCut = 0.5,
             #                          deltaPhiStarDR = 0.3,
+            #                          mhtOverMetExtraName = params["highPtName"],
             #                          printOtherJetAlgoQuantities = True,
             #                          jetsOtherAlgo = params["objects"]["compJet"],
             #                          metOtherAlgo  = params["objects"]["compMet"],
