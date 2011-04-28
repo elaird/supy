@@ -66,6 +66,10 @@ class orFilter(analysisStep) :
             if step.select(eventVars) : return True
         return False
 #####################################
+class assertNotYetCalculated(analysisStep) :
+    def __init__(self,var) : self.var = var
+    def uponAcceptance(self, eV) : assert not dict.__getitem__(eV, self.var).updated
+#####################################
 class skimmer(analysisStep) :
     
     def __init__(self) :
