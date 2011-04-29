@@ -70,7 +70,7 @@ class minuitLeptonicTop(object) :
                      self.B.invRes2 * db**2 +
                      self.nu.invSigmaS2 * dS**2 +
                      self.nu.invSigmaL2 * dL**2 )
-        m = minuit.minuit(fnc, db=0, phi = self.nu.rawX / math.sqrt(self.nu.rawX**2+self.nu.rawY**2))
+        m = minuit.minuit(fnc, db=0, phi = math.atan2(self.nu.rawY, self.nu.rawX))
         m.mnexcm("MIGRAD", 500, 1)
         fitted = m.values()
         self.chi2_ = fnc(**fitted)
