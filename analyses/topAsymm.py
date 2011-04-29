@@ -151,7 +151,7 @@ class topAsymm(analysis.analysis) :
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             ]+templateSteps()+[
             steps.Other.assertNotYetCalculated("%sTopReconstruction%s"%lepton),
-            steps.Filter.label('kinfit'), steps.Top.kinFitResiduals(lepton),
+            steps.Filter.label('kinfit'), steps.Top.kinFitLook(lepton),
             steps.Filter.label('signal'), steps.Top.Asymmetry(lepton),
             
             steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
@@ -159,12 +159,6 @@ class topAsymm(analysis.analysis) :
             
             steps.Top.Asymmetry(lepton),
             ]+templateSteps()+[
-            steps.Histos.generic(("%sIndicesBtagged%s"%obj["jet"],"%sCorrectedP4%s"%obj["jet"]),
-                                 30,0,180, title=";M_{2-light};events / bin",
-                                 funcString="lambda x: (x[1][x[0][2]] + x[1][x[0][3]]).M()"),
-            steps.Histos.generic("%sTopReconstruction%s"%lepton,
-                                 30,0,180, title=";fitted M_{2-light};events / bin",
-                                 funcString="lambda x: (x[0]['hadP'] + x[0]['hadQ']).M()"),
 
 ##
             #steps.Other.productGreaterFilter(0,["%s%s"%lepton+"RelativeRapiditymixedSumP4NuM","%s%s"%lepton+"RelativeRapiditymixedSumP4NuP"]),

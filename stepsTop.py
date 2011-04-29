@@ -18,28 +18,35 @@ class Asymmetry(analysisStep) :
             self.book.fill(eV[self.relY], self.relY+charge, self.bins,-5,5, title = "%s;#Delta y;events / bin"%charge)
 
         topReco = eV[self.TopReco]
-        lepTopM = topReco[0]['lepTopP4'].M()
-        hadTopM = topReco[0]['hadTopP4'].M()
-        
-        self.book.fill( lepTopM, "bestLepTopM", 100,0,300, title = ";leptonic top mass;events / bin" )
-        self.book.fill( hadTopM, "bestHadTopM", 100,0,300, title = ";hadronic top mass;events / bin" )
-        self.book.fill( (lepTopM, hadTopM), "lepM_vs_hadM", (100,100),(0,0),(300,300),
-                        title = ";leptonic top mass; hadronic top mass;events / bin",)
 
-        self.book.fill( math.log(1+topReco[0]['chi2']), "topRecoLogChi2", 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2});events / bin')
-        self.book.fill( 1 - topReco[0]['chi2']/topReco[1]['chi2'], "topRecoRelDiffChi2", 50, 0 , 1, title = ';top reco reldiff chi2;events / bin')
         self.book.fill( eV['%sTTbarDeltaAbsY%s'%self.lepton], "ttbarDeltaAbsY", 31, -5, 5, title = ';#Delta|Y|_{ttbar};events / bin' )
         self.book.fill( eV['%sTTbarSignedDeltaY%s'%self.lepton], "ttbarSignedDeltaY", 31, -5, 5, title = ';sumP4dir * #Delta Y_{ttbar};events / bin' )
         self.book.fill( eV['%sTTbarMHTOverHT%s'%self.lepton], 'ttbarMHTOverHT', 50, 0, 1, title = ';ttbar MHT/HT;events / bin')
 #####################################
-class kinFitResiduals(analysisStep) :
+class kinFitLook(analysisStep) :
     def __init__(self,lepton) :
         self.TopReco = "%sTopReconstruction%s"%lepton
     def uponAcceptance(self,ev) :
         topReco = ev[self.TopReco]
         residuals = topReco[0]["residuals"]
+        lepTopM = topReco[0]['lepTopP4'].M()
+        hadTopM = topReco[0]['hadTopP4'].M()
+        lepWM = topReco[0]['lepW'].M()
+        hadWM = topReco[0]['hadW'].M()
+
         for name,val in residuals.iteritems() :
             self.book.fill(val, "topKinFit_residual_%s"%name, 100,-5,5, title = ";residual %s;events / bin"%name)
+        self.book.fill((residuals["hadP"],residuals["hadQ"]), "topKinFit_residual_had_PQ", (100,100),(-5,-5),(5,5), title = ';residual hadP;residual hadQ;events / bin')
+        self.book.fill((residuals["lepS"],residuals["lepL"]), "topKinFit_residual_lep_SL", (100,100),(-5,-5),(5,5), title = ';residual lepS;residual lepL;events / bin')
+        self.book.fill( math.log(1+topReco[0]['chi2']), "topRecoLogChi2", 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2});events / bin')
+
+        self.book.fill( lepWM, "wMassLepFit", 75, 0, 150, title = ';fit mass_{W} (leptonic);events / bin')
+        self.book.fill( hadWM, "wMassHadFit", 75, 0, 150, title = ';fit mass_{W} (hadronic);events / bin')
+        self.book.fill( lepTopM, "topMassLepFit", 100,0,300, title = ";fit mass_{top} (leptonic);events / bin" )
+        self.book.fill( hadTopM, "topMassHadFit", 100,0,300, title = ";fit mass_{top} (hadronic);events / bin" )
+        self.book.fill( (lepTopM, hadTopM), "lepM_vs_hadM", (100,100),(0,0),(300,300),
+                        title = ";fit mass_{top} (leptonic); fit mass_{top} (hadronic);events / bin",)
+
 #####################################
 class mcTruthQDir(analysisStep) :
     def __init__(self,withLepton = False, withNu = False) :
