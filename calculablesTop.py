@@ -176,7 +176,6 @@ class SemileptonicTopIndex(wrappedChain.calculable) :
 #####################################
 class TopReconstruction(wrappedChain.calculable) :
     def __init__(self, collection, jets, SumP4) :
-        self.massTop = 172.0 #GeV
         self.fixes = collection
         self.stash(["SemileptonicTopIndex","P4","Charge"])
         self.stash(["CorrectedP4","IndicesBtagged","Indices","Resolution","CovariantResolution2"],jets)
@@ -221,7 +220,17 @@ class TopReconstruction(wrappedChain.calculable) :
                 "chi2" : hadronicFit.chi2() + leptonicFit.chi2(),
                 "top"  : topP4,
                 "tbar" : tbarP4,
-                "sumP4": sumP4
+                "sumP4": sumP4,
+                "residuals" : {"lepB":leptonicFit.residuals.B,
+                               "lepS":leptonicFit.residuals.S,
+                               "lepL":leptonicFit.residuals.L,
+                               "lepT":leptonicFit.residuals.T,
+                               "hadB":hadronicFit.J.residuals[0],
+                               "hadP":hadronicFit.J.residuals[1],
+                               "hadQ":hadronicFit.J.residuals[2],
+                               "hadW":hadronicFit.W.residual,
+                               "hadT":hadronicFit.T.residual
+                               }
                 }
 
     def update(self,ignored) :

@@ -25,7 +25,12 @@ class minuitLeptonicTop(object) :
         
         for item in ["T","B","mu","nu","massW","zPlus"] : setattr(self,item,eval(item))
         self.cache()
-        self.fit()
+        self.fitted = self.fit()
+        self.residuals = utils.vessel()
+        self.residuals.B = self.fitted['db'] / bResolution
+        self.residuals.S = self.fitted['dS'] * math.sqrt(nu.invSigmaS2)
+        self.residuals.L = self.fitted['dL'] * math.sqrt(nu.invSigmaL2)
+        self.residuals.T = (self.T.mass - (mu.P4+self.B.fitted+self.nu.fitted).M()) / widthT
 
     def cache(self) :
         self.B.rawX = self.B.raw.X()
@@ -53,27 +58,34 @@ class minuitLeptonicTop(object) :
 
         m = minuit.minuit(fnc, db=0, dS=0, dL=0)
         m.mnexcm("MIGRAD", 500, 1)
-        fitted = m.values()
-        self.chi2_ = fnc(**fitted)
-        if 0 <= self.discriminant :  return
+        result = m.values()
+        self.chi2_ = fnc(**result)
+        if 0 <= self.discriminant :  return result
 
+        def nuRotate(dX,dY) :
+            return (dX * self.nu.cos - dY * self.nu.sin,
+                    dX * self.nu.sin + dY * self.nu.cos)
+        
         def fnc(db,phi) :
             self.B.fitted = self.B.raw * (1+db)
             self.setBoundaryFittedNu(phi)
-            dX = self.nu.fitted.X() - self.nu.rawX + db * self.B.rawX
-            dY = self.nu.fitted.Y() - self.nu.rawY + db * self.B.rawY
-            dS = dX * self.nu.cos - dY * self.nu.sin
-            dL = dX * self.nu.sin + dY * self.nu.cos
+            dS,dL = nuRotate( self.nu.fitted.X() - self.nu.rawX + db * self.B.rawX,
+                              self.nu.fitted.Y() - self.nu.rawY + db * self.B.rawY )
 
             T = self.mu.P4 + self.nu.fitted + self.B.fitted
             return ( self.T.invWidth2 * (self.T.mass - T.M())**2 +
                      self.B.invRes2 * db**2 +
                      self.nu.invSigmaS2 * dS**2 +
                      self.nu.invSigmaL2 * dL**2 )
+
         m = minuit.minuit(fnc, db=0, phi = math.atan2(self.nu.rawY, self.nu.rawX))
         m.mnexcm("MIGRAD", 500, 1)
-        fitted = m.values()
-        self.chi2_ = fnc(**fitted)
+        result = m.values()
+        self.chi2_ = fnc(**result)
+        dS,dL = nuRotate( self.nu.fitted.X() - self.nu.rawX + result['db'] * self.B.rawX,
+                          self.nu.fitted.Y() - self.nu.rawY + result['db'] * self.B.rawY )
+        result.update({"dS":dS,"dL":dL})
+        return result
         
     def setFittedNu(self,nuX,nuY) :
         P = self.massW**2 + 2* ( self.mu.X*nuX + self.mu.Y*nuY )
@@ -124,6 +136,11 @@ class minuitHadronicTop(object) :
         self.chi2_ = fnc(**fitted)
         self.J.delta = [fitted[s] for s in ['db','dp','dq']]
         self.J.fitted = [jet*(1+delta) for delta,jet in zip(self.J.delta,self.J.raw)]
+        self.J.residuals = [d * math.sqrt(iR) for d,iR in zip(self.J.delta,self.J.invRes2)]
+
+        W = self.J.fitted[1] + self.J.fitted[2]
+        self.W.residual = (self.W.mass - W.M()) * math.sqrt(self.W.invWidth2)
+        self.T.residual = (self.T.mass - (W+self.J.fitted[0]).M()) * math.sqrt(self.T.invWidth2)
 
     def chi2(self) : return self.chi2_
     

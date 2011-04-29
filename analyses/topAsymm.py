@@ -136,7 +136,7 @@ class topAsymm(analysis.analysis) :
             
             lepIso(0),
             lepIso(1),
-            
+
             steps.Filter.multiplicity("%sIndices%s"%lepton, max = pars["sample"]["lIso"]["nMaxIso"]),
             steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = ("%s"+pars["sample"]["lIso"]["indices"]+"%s")%lepton, index = 0),
             ]+templateSteps()+[
@@ -150,7 +150,9 @@ class topAsymm(analysis.analysis) :
             steps.Other.compareMissing([obj["sumP4"],obj["met"]]),
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             ]+templateSteps()+[
-            steps.Top.Asymmetry(lepton),
+            steps.Other.assertNotYetCalculated("%sTopReconstruction%s"%lepton),
+            steps.Filter.label('kinfit'), steps.Top.kinFitResiduals(lepton),
+            steps.Filter.label('signal'), steps.Top.Asymmetry(lepton),
             
             steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
             steps.Filter.value(bVar, max=2.0, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
@@ -197,10 +199,11 @@ class topAsymm(analysis.analysis) :
             return specify( effectiveLumi = eL, color = r.kBlue,
                             names = ["qcd_mg_ht_%s_%s"%t for t in zip(qM,qM[1:]+["inf"])])
         def ttbar_mg(eL) :
-            return (specify( names = "tt_tauola_mg", effectiveLumi = 200, color = r.kBlack,   weightName="wNonQQbar") +
-                    specify( names = "tt_tauola_mg", effectiveLumi = 2000, color = r.kOrange,   weightName="wTopAsymN30") +
-                    #specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kYellow-3, weightName="wTopAsymP00") +
-                    specify( names = "tt_tauola_mg", effectiveLumi = 2000, color = r.kRed,      weightName="wTopAsymP30") )
+            return (specify( names = "tt_tauola_mg", effectiveLumi = 500, color = r.kBlack,   weightName="wNonQQbar") +
+                    specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kOrange,   weightName="wTopAsymN30") +
+                    specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kYellow-3, weightName="wTopAsymP00") +
+                    specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kRed,      weightName="wTopAsymP30") +
+                    [])
 
         def ewk(eL, skimp=True) :
             return specify( names = "w_jets_mg", effectiveLumi = eL, color = 28 )
@@ -230,7 +233,7 @@ class topAsymm(analysis.analysis) :
             org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
             org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3},
                              sources = ["qcd_mg", "qcd_py6","w_jets_mg", "w_enu","w_munu","w_taunu","tt_tauola_mg"], keepSources = True)
-            org.scale(100)
+            org.scale(toPdf=True)
             
             #plot
             pl = plotter.plotter(org,

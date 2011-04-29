@@ -30,7 +30,16 @@ class Asymmetry(analysisStep) :
         self.book.fill( 1 - topReco[0]['chi2']/topReco[1]['chi2'], "topRecoRelDiffChi2", 50, 0 , 1, title = ';top reco reldiff chi2;events / bin')
         self.book.fill( eV['%sTTbarDeltaAbsY%s'%self.lepton], "ttbarDeltaAbsY", 31, -5, 5, title = ';#Delta|Y|_{ttbar};events / bin' )
         self.book.fill( eV['%sTTbarSignedDeltaY%s'%self.lepton], "ttbarSignedDeltaY", 31, -5, 5, title = ';sumP4dir * #Delta Y_{ttbar};events / bin' )
-        self.book.fill( eV['%sTTbarMHTOverHT%s'%self.lepton], 'ttbarMHTOverHT', 50, 0, 1, title = ';ttbar MHT/HT;events / bint')
+        self.book.fill( eV['%sTTbarMHTOverHT%s'%self.lepton], 'ttbarMHTOverHT', 50, 0, 1, title = ';ttbar MHT/HT;events / bin')
+#####################################
+class kinFitResiduals(analysisStep) :
+    def __init__(self,lepton) :
+        self.TopReco = "%sTopReconstruction%s"%lepton
+    def uponAcceptance(self,ev) :
+        topReco = ev[self.TopReco]
+        residuals = topReco[0]["residuals"]
+        for name,val in residuals.iteritems() :
+            self.book.fill(val, "topKinFit_residual_%s"%name, 100,-5,5, title = ";residual %s;events / bin"%name)
 #####################################
 class mcTruthQDir(analysisStep) :
     def __init__(self,withLepton = False, withNu = False) :
