@@ -23,7 +23,8 @@ class minuitLeptonicTop(object) :
         nu.rawX = nuX ; nu.rawY = nuY
         nu.fitted = utils.LorentzV()
         
-        for item in ["T","B","mu","nu","massW","zPlus"] : setattr(self,item,eval(item))
+        for item in ["T","B","mu","nu","massW"] : setattr(self,item,eval(item))
+        self.sign = 1 if zPlus else -1
         self.cache()
         self.fitted = self.fit()
         self.residuals = utils.vessel()
@@ -60,7 +61,7 @@ class minuitLeptonicTop(object) :
         m.mnexcm("MIGRAD", 500, 1)
         result = m.values()
         self.chi2_ = fnc(**result)
-        if 0 <= self.discriminant :  return result
+        if 0 <= self.discriminant : return result
 
         def nuRotate(dX,dY) :
             return (dX * self.nu.cos - dY * self.nu.sin,
@@ -90,8 +91,7 @@ class minuitLeptonicTop(object) :
     def setFittedNu(self,nuX,nuY) :
         P = self.massW**2 + 2* ( self.mu.X*nuX + self.mu.Y*nuY )
         self.discriminant = 1 - 4 * self.mu.T2 * (nuX**2+nuY**2) / P**2
-        sign = 0 if self.discriminant < 0 else 1 if self.zPlus else -1
-        nuZ = 0.5 * P / self.mu.T2 * (self.mu.Z + sign * self.mu.E * self.discriminant)
+        nuZ = 0.5 * P / self.mu.T2 * (self.mu.Z + (0 if self.discriminant<0 else self.sign * self.mu.E * math.sqrt(self.discriminant)))
         self.nu.fitted.SetPxPyPzE(nuX,nuY,nuZ,math.sqrt(nuX**2+nuY**2+nuZ**2))
 
     def setBoundaryFittedNu(self,phi) :
