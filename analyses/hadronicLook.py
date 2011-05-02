@@ -151,7 +151,7 @@ class hadronicLook(analysis.analysis) :
             steps.Jet.uniquelyMatchedNonisoMuons(_jet), 
             
             steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 1500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
-
+            
             steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met), 100, 0.0, 3.0,
                                      title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1]+params["highPtName"],_met)),
             steps.Other.variableLessFilter(1.25,"%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met)),
@@ -250,7 +250,6 @@ class hadronicLook(analysis.analysis) :
             #                          deltaPhiStarCut = 0.5,
             #                          deltaPhiStarDR = 0.3,
             #                          mhtOverMetExtraName = params["highPtName"],
-            #                          printOtherJetAlgoQuantities = True,
             #                          jetsOtherAlgo = params["objects"]["compJet"],
             #                          metOtherAlgo  = params["objects"]["compMet"],
             #                          markusMode = False,
