@@ -45,6 +45,7 @@ mc.add("tt_tauola_pythia",'%s%s/TT_TuneZ2_7TeV-pythia6-tauola.%s")'%(srm,burt_tt
 mc.add("w_enu", '%s%s/WToENu_TuneZ2_7TeV-pythia6.%s)'%(srm,burt_ewk,spring11pu),            xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
 mc.add("w_munu", '%s%s/WToMuNu_TuneZ2_7TeV-pythia6.%s)'%(srm,burt_ewk,spring11pu),          xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
 mc.add("w_taunu", '%s%s/WToTauNu_TuneZ2_7TeV-pythia6-tauola.%s)'%(srm,burt_ewk,spring11pu), xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
+mc.add("z_nunu",  '%s/henning//ICF/automated/2011_04_15_10_55_57/")'%srm, xs = 4292)
 
 ##### G + jets #########
 #MG
@@ -67,7 +68,7 @@ mc.add("g_jets_py6_pt_80_120",    '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"80to120"),  
 mc.add("g_jets_py6_pt_120_170",   '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"120to170"),   xs = 8.417e+01)
 mc.add("g_jets_py6_pt_170_300",   '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"170to300"),   xs = 2.264e+01)
 mc.add("g_jets_py6_pt_300_470",   '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"300to470"),   xs = 1.493e+00)
-mc.add("g_jets_py6_ptf_470_800",  '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"470to800"),   xs = 1.323e-01)
+mc.add("g_jets_py6_pt_470_800",   '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"470to800"),   xs = 1.323e-01)
 mc.add("g_jets_py6_pt_800_1400",  '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"800to1400"),  xs = 3.481e-03)
 mc.add("g_jets_py6_pt_1400_1800", '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"1400to1800"), xs = 1.270e-05)
 mc.add("g_jets_py6_pt_1800_inf",  '%s/%s/%s")'%(srm,GPyLoc,GPyDset%"1800"),       xs = 2.936e-07)
