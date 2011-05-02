@@ -33,6 +33,28 @@ photon.add("qcd_mg_ht_250_500_noIsoReqSkim",    'utils.fileListFromDisk(location
 photon.add("qcd_mg_ht_500_1000_noIsoReqSkim",   'utils.fileListFromDisk(location = "%s/qcd_mg_ht_500_1000_*_skim.root", isDirectory = False)'%dir,
            xs = 5.889124e-03 * 6.604000e+03)
 
+dir = "/vols/cms02/elaird1/29_skims/04_photons/v1/py6"
+photon.add("g_jets_py6_pt_120_170_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/g_jets_py6_pt_120_170_*_skim.root", isDirectory = False)'%dir,
+           xs = 8.495875e-01 * 8.417000e+01)
+photon.add("g_jets_py6_pt_170_300_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/g_jets_py6_pt_170_300_*_skim.root", isDirectory = False)'%dir,
+           xs = 8.746827e-01 * 2.264000e+01)
+photon.add("g_jets_py6_pt_300_470_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/g_jets_py6_pt_300_470_*_skim.root", isDirectory = False)'%dir,
+           xs = 8.932955e-01 * 1.493000e+00)
+photon.add("g_jets_py6_pt_470_800_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/g_jets_py6_pt_470_800_*_skim.root", isDirectory = False)'%dir,
+           xs = 9.066254e-01 * 1.323000e-01)
+photon.add("g_jets_py6_pt_80_120_noIsoReqSkim",  'utils.fileListFromDisk(location = "%s/g_jets_py6_pt_80_120_*_skim.root", isDirectory = False)'%dir,
+           xs = 6.699809e-01 * 4.472000e+02)
+photon.add("qcd_py6_pt_120_170_noIsoReqSkim",    'utils.fileListFromDisk(location = "%s/qcd_py6_pt_120_170_*_skim.root", isDirectory = False)'%dir,
+           xs = 5.968081e-03 * 1.151000e+05)
+photon.add("qcd_py6_pt_170_300_noIsoReqSkim",    'utils.fileListFromDisk(location = "%s/qcd_py6_pt_170_300_*_skim.root", isDirectory = False)'%dir,
+           xs = 6.342714e-03 * 2.426000e+04)
+photon.add("qcd_py6_pt_300_470_noIsoReqSkim",    'utils.fileListFromDisk(location = "%s/qcd_py6_pt_300_470_*_skim.root", isDirectory = False)'%dir,
+           xs = 4.966940e-03 * 1.168000e+03)
+photon.add("qcd_py6_pt_470_600_noIsoReqSkim",    'utils.fileListFromDisk(location = "%s/qcd_py6_pt_470_600_*_skim.root", isDirectory = False)'%dir,
+           xs = 4.614852e-03 * 7.022000e+01)
+photon.add("qcd_py6_pt_80_120_noIsoReqSkim",     'utils.fileListFromDisk(location = "%s/qcd_py6_pt_80_120_*_skim.root", isDirectory = False)'%dir,
+           xs = 1.612738e-03 * 7.843000e+05)
+
 ####### only 2010 below ######
 
 #this one sample copied from samplesMCOld.py to avoid importing that file
