@@ -10,6 +10,10 @@ class wNonQQbar(wrappedChain.calculable) :
     def update(self,ignored) :
         self.value = None if self.source['genQQbar'] else 1
 ##############################
+class wQQbar(wrappedChain.calculable) :
+    def update(self,ignored) :
+        self.value = 1 if self.source['genQQbar'] else None
+##############################
 class genQQbar(wrappedChain.calculable) :
     def update(self,ignored) :
         ids = list(self.source['genPdgId'])
