@@ -20,7 +20,7 @@ class Asymmetry(analysisStep) :
         self.book.fill( ev[self.DeltaAbsY],   'ttbarDeltaAbsY',    31, -4, 4, title = ';#Delta|Y|_{ttbar};events / bin' )
         self.book.fill( ev[self.DeltaY],      'ttbarSignedDeltaY', 31, -4, 4, title = ';sumP4dir * #Delta Y_{ttbar};events / bin' )
         self.book.fill( ev[self.PtOverSumPt], 'ttbarPtOverSumPt',    30,  0, 1, title = ';ttbar MHT/HT;events / bin')
-        self.book.fill( ev[self.Beta],        'ttbarBeta',  20, -math.sqrt(2), math.sqrt(2), title = ';ttbar #beta;events / bin')
+        self.book.fill( ev[self.Beta],        'ttbarBeta',  21, -math.sqrt(2), math.sqrt(2), title = ';#beta_{ttbar};events / bin')
 #####################################
 class kinFitLook(analysisStep) :
     def uponAcceptance(self,ev) :
@@ -73,29 +73,30 @@ class mcTruthQDir(analysisStep) :
                 self.book.fill( qdir * ev[sumP4].Eta(), "qdir_%s_eta"%sumP4, 100,-10,10, title = ';qdir * %s.eta;events/bin'%sumP4)
         
 #####################################
-class mcTruthDiscriminateQQbar(analysisStep) :
-
+class discriminateQQbar(analysisStep) :
+    def __init__(self, collection) :
+        for item in ['DeltaPhi','PtOverSumPt','SumP4'] :
+            setattr(self,item,('%s'+item+'%s')%collection)
+        
     @staticmethod
     def phiMod(phi) : return phi + 2*math.pi*int(phi<0)
 
     def uponAcceptance(self,ev) :
         if not ev['genTopTTbar'] : return
 
-        dphi = self.phiMod(ev['genTopDeltaPhi'])
+        dphi = self.phiMod(ev[self.DeltaPhi])
 
         ### dphi is highly correlated with PtAsym and/or PtOverSumPt, but they are mostly uncorrelated to alpha
         #self.book.fill( (dphi,ev['genTopPtAsymttbar']), 'corrDphiPtAsym', (51,51), (0,-1),(2*math.pi,1), title=';dphi;ptasymm;events / bin' )
         #self.book.fill( (dphi,ev['genTopAlpha']), 'corrDphiAlpha', (51,10), (0,0),(2*math.pi,1), title=';dphi;#alpha;events / bin' )
         #self.book.fill( (ev['genTopTTbarPtOverSumPt'],ev['genTopAlpha']), 'corrPtAsymAlpha', (50,10), (0,0),(1,1), title=';(t+tbar)_{pt}/(t_{pt}+tbar_{pt});#alpha;events / bin' )
 
-        self.book.fill( dphi, 'genTopDeltaPhit', 51,0,2*math.pi, title = ';#Delta #phi_{ttbar};events / bin')
-        self.book.fill( ev['genTopPtOverSumPt'], 'ttbarPtOverSumPt', 50,0,1, title = ';(t+tbar)_{pt}/(t_{pt}+tbar_{pt});events / bin')
-
-        self.book.fill(ev['genTopAlpha'],'alpha',10,0,2,title=';genTopAlpha;events / bin')
-
-        self.book.fill( ev['genTopSumP4'].Rapidity(), 'ttbarRapidity', 51,-3,3, title = ';y_{ttbar};events / bin')
-        self.book.fill( ev['genTopSumP4'].Eta(), 'ttbarEta', 81,-10,10, title = ';#eta_{ttbar};events / bin')
-        self.book.fill( ev['genTopSumP4'].Pz(), 'ttbarPz', 51,-3000,3000, title = ';pz_{ttbar};events / bin')
+        self.book.fill( dphi, self.DeltaPhi, 51,0,2*math.pi, title = ';#Delta #phi_{ttbar};events / bin')
+        self.book.fill( ev[self.PtOverSumPt], self.PtOverSumPt, 50,0,1, title = ';(t+tbar)_{pt}/(t_{pt}+tbar_{pt});events / bin')
+        sumP4 = ev[self.SumP4]
+        self.book.fill( abs(sumP4.Rapidity()), self.SumP4+'AbsRapidity', 50,0,3, title = ';y_{ttbar};events / bin')
+        self.book.fill( abs(sumP4.Eta()), self.SumP4+'AbsEta', 40,0,10, title = ';|#eta_{ttbar}|;events / bin')
+        self.book.fill( abs(sumP4.Pz()), self.SumP4+'AbsPz', 50,0,3000, title = ';|pz|_{ttbar};events / bin')
         
 #####################################
 class mcTruthAcceptance(analysisStep) :

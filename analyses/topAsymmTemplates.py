@@ -29,7 +29,7 @@ class topAsymmTemplates(analysis.analysis) :
                                  steps.Filter.value('genTTbarIndices',min=0,index='lminus')]),
                 steps.Top.mcTruthTemplates(),
                 steps.Filter.label("acceptance"),        steps.Top.mcTruthAcceptance(),
-                steps.Filter.label("discriminateQQbar"), steps.Top.mcTruthDiscriminateQQbar(),
+                steps.Filter.label("discriminateQQbar"), steps.Top.discriminateQQbar(('genTop','')),
                 steps.Filter.label("q direction"),       steps.Top.mcTruthQDir(),
                 ]
     
