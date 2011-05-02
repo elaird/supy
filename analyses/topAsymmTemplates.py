@@ -18,6 +18,8 @@ class topAsymmTemplates(analysis.analysis) :
             calculables.Vertex.ID(),
             calculables.Vertex.Indices(),
             ]
+        outList += [calculables.Top.wTopAsym(i) for i in [-0.3,0,0.3]]
+        outList += calculables.fromCollections(calculables.Top,[('genTop',""),('fitTop',"")])
         return outList
     
     def listOfSteps(self, pars) :
@@ -44,14 +46,15 @@ class topAsymmTemplates(analysis.analysis) :
         sample = "tt_tauola_%s"%pars["sample"]
         return (
             specify( names = sample, effectiveLumi = eL, color = r.kBlack,     weightName = "wNonQQbar") +
+            #specify( names = sample, effectiveLumi = eL, color = r.kRed,     weightName = "wQQbar") +
             specify( names = sample, effectiveLumi = eL, color = r.kBlue,      weightName = "wTopAsymN30") +
             #specify( names = sample, effectiveLumi = eL, color = r.kBlue,      weightName = "wTopAsymN20") +
             #specify( names = sample, effectiveLumi = eL, color = r.kGreen+3,   weightName = "wTopAsymN10") +
             specify( names = sample, effectiveLumi = eL, color = r.kGreen,     weightName = "wTopAsymP00") +
             #specify( names = sample, effectiveLumi = eL, color = r.kYellow-3,  weightName = "wTopAsymP10") +
             #specify( names = sample, effectiveLumi = eL, color = r.kOrange,    weightName = "wTopAsymP20") +
-            specify( names = sample, effectiveLumi = eL, color = r.kRed,       weightName = "wTopAsymP30")
-            )
+            specify( names = sample, effectiveLumi = eL, color = r.kRed,       weightName = "wTopAsymP30") +
+            [])
     
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
@@ -59,11 +62,11 @@ class topAsymmTemplates(analysis.analysis) :
             org=organizer.organizer( self.sampleSpecs(tag) )
             org.scale(toPdf=True)
 
-            #self.signalChi2(org,("tt_tauola_mg.wTopAsymN30","tt_tauola_mg.wTopAsymP30"), org.keysMatching(["genTopBeta",
-            #                                                                                               "genTopDeltaAbsYttbar",
-            #                                                                                               "genTopTrue",
-            #                                                                                               "genTopMez"
-            #                                                                                               ]))
+            self.signalChi2(org,("tt_tauola_mg.wTopAsymN30","tt_tauola_mg.wTopAsymP30"), org.keysMatching(["genTopBeta",
+                                                                                                           "genTopDeltaAbsYttbar",
+                                                                                                           "genTopTrue",
+                                                                                                           "genTopMez"
+                                                                                                           ]))
             
             #plot
             pl = plotter.plotter(org,

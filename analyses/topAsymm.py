@@ -60,20 +60,15 @@ class topAsymm(analysis.analysis) :
             calculables.Other.lowestUnPrescaledTrigger(pars["lepton"]["triggerList"]),
 
             calculables.Top.mixedSumP4(transverse = obj["met"], longitudinal = obj["sumP4"]),
-            calculables.Top.SemileptonicTopIndex(lepton),
-            
-            calculables.Top.TTbarDeltaAbsY(lepton),
-            calculables.Top.TTbarSignedDeltaY(lepton),
-            calculables.Top.TTbarMHTOverHT(lepton),
+            calculables.Top.SemileptonicTopIndex(lepton),            
+            calculables.Top.fitTopLeptonCharge(lepton),
             calculables.Top.TopReconstruction(lepton,obj["jet"],"mixedSumP4"),
-            calculables.Top.NeutrinoP4(lepton),
-            calculables.Top.SumP4Nu(lepton,"mixedSumP4"),
-            calculables.Top.SignedRapidity(lepton,"mixedSumP4Nu"),
-            calculables.Top.RelativeRapidity(lepton,"mixedSumP4Nu"),
             
             calculables.Other.Mt(lepton,"mixedSumP4", allowNonIso=True, isSumP4=True),
             calculables.Muon.IndicesAnyIsoIsoOrder(obj[pars["lepton"]["name"]], pars["lepton"]["isoVar"])
             ]
+        outList += [calculables.Top.wTopAsym(i/100.) for i in range(-30,40,10)]
+        outList += calculables.fromCollections(calculables.Top,[('genTop',""),('fitTop',"")])
         return outList
     
     def listOfSteps(self, pars) :
@@ -136,7 +131,7 @@ class topAsymm(analysis.analysis) :
             
             lepIso(0),
             lepIso(1),
-
+            
             steps.Filter.multiplicity("%sIndices%s"%lepton, max = pars["sample"]["lIso"]["nMaxIso"]),
             steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = ("%s"+pars["sample"]["lIso"]["indices"]+"%s")%lepton, index = 0),
             ]+templateSteps()+[
@@ -150,15 +145,15 @@ class topAsymm(analysis.analysis) :
             steps.Other.compareMissing([obj["sumP4"],obj["met"]]),
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             ]+templateSteps()+[
-            steps.Other.assertNotYetCalculated("%sTopReconstruction%s"%lepton),
-            steps.Filter.label('kinfit'), steps.Top.kinFitLook(lepton),
-            steps.Filter.label('signal'), steps.Top.Asymmetry(lepton),
-            
-            steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
-            steps.Filter.value(bVar, max=2.0, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
-            
-            steps.Top.Asymmetry(lepton),
-            ]+templateSteps()+[
+            steps.Other.assertNotYetCalculated("TopReconstruction"),
+            steps.Filter.label('kinfit'), steps.Top.kinFitLook(),
+            steps.Filter.label('signal'), steps.Top.Asymmetry(('fitTop','')),
+            ###
+            ###steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
+            ###steps.Filter.value(bVar, max=2.0, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
+            ###
+            ###steps.Top.Asymmetry(('fitTop','')),
+            ###]+templateSteps()+[
 
 ##
             #steps.Other.productGreaterFilter(0,["%s%s"%lepton+"RelativeRapiditymixedSumP4NuM","%s%s"%lepton+"RelativeRapiditymixedSumP4NuP"]),
