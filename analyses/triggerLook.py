@@ -27,7 +27,7 @@ class triggerLook(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify
-        return specify(names = ["Photon.Run2011A-PromptReco-v2.AOD.Ted","HT.Run2011A-PromptReco-v2.AOD.Arlo"])
+        return specify(names = ["HT.Run2011A-PromptReco-v2.AOD.Arlo2"])
         
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
