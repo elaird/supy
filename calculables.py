@@ -43,6 +43,7 @@ def fromCollections(module,collections) :
     for name,calc in module.__dict__.iteritems() :
         if not isclass(calc) : continue
         if not issubclass(calc, wrappedChain.calculable) : continue
+        if not hasattr(calc.__init__,"im_func") : continue
         args = getargspec(calc.__init__.im_func)[0]
         if "collection" in args and len(args) is 2:
             for col in collections : calcs.append(calc(col))
