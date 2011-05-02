@@ -6,6 +6,7 @@ jetmet = samples.SampleHolder()
 jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Georgia",'%s/georgia//ICF/automated/2011_04_09_18_07_10/")'%srm, lumi = 11.88)
 jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Henning",'%s/henning//ICF/automated/2011_04_13_17_17_19/")'%srm, lumi =  5.07)
 jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Arlo", '%s/arlogb//ICF/automated/2011_04_24_19_07_39/")'%srm, lumi = 15.28) #174/188 complete
+jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Arlo2",'%s/arlogb//ICF/automated/2011_05_01_22_10_08/")'%srm, lumi = 78.61) #406/430 complete
 
 jetmet.add("HT350_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v2/350_bin/calo.root", isDirectory = False)', lumi = 32.23)
 #jetmet.add("HT350_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v1/350_bin/calo.root", isDirectory = False)', lumi = 17.0)
@@ -15,6 +16,7 @@ jetmet.add("HT300_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elai
 jetmet.add("HT250_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v1/250_bin/calo.root", isDirectory = False)', lumi = 17.0)
 
 jetmet.add("zoe_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/76_zoe_sync/zoes_events.root", isDirectory = False)', lumi = 17.0)
+jetmet.add("bryn_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/78_bryn_sync/bryns_events.root", isDirectory = False)', lumi = 32.0)
 
 #NOV.4 RE-RECO SKIMS
 dir = "/vols/cms02/elaird1/16_skims/"
