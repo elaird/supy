@@ -95,17 +95,13 @@ class genTopCosThetaStarAvg(wrappedChain.calculable) :
 class genTopAlpha(wrappedChain.calculable) :
     m2 = 172**2
     def update(self,ignored) :
-        x = 4*self.m2/ (self.source['genTopTTbarSumP4'].E())**2
-        self.value = max(0,(1-x)/(1+x))
+        x = 4*self.m2 / self.source['genTopTTbarSumP4'].M2()
+        self.value = 2 * max(0,(1-x)/(1+x))
 ######################################
-__f0__ = 0.6
-__R__ = 0.04
+__f0__ = 2.0
+__R__ = 0.05
 ######################################
 class genTopBeta(wrappedChain.calculable) :
-    def update(self, ignored) :
-        self.value = self.source['genTopCosThetaStarAvg'] * math.sqrt(min(__f0__,self.source['genTopAlpha']))
-######################################
-class genTopBeta2(wrappedChain.calculable) :
     def update(self, ignored) :
         self.value = self.source['genTopCosThetaStarAvg'] * math.sqrt(self.source['genTopAlpha'])
 ######################################
@@ -213,12 +209,15 @@ class TopReconstruction(wrappedChain.calculable) :
                 "lep"  : leptonicFit.mu.P4,
                 "lepB" : leptonicFit.B.fitted,
                 "lepW" : leptonicFit.mu.P4 + leptonicFit.nu.fitted,
+                "lepBound" : "phi" in leptonicFit.fitted,
                 "hadB" : hadronicFit.J.fitted[0],
                 "hadP" : hadronicFit.J.fitted[1],
                 "hadQ" : hadronicFit.J.fitted[2],
                 "hadW" : hadronicFit.J.fitted[1] + hadronicFit.J.fitted[2],
                 "lepTopP4" : lepTopP4,
                 "hadTopP4" : hadTopP4,
+                "hadChi2" : hadronicFit.chi2(),
+                "lepChi2" : leptonicFit.chi2(),
                 "chi2" : hadronicFit.chi2() + leptonicFit.chi2(),
                 "top"  : topP4,
                 "tbar" : tbarP4,

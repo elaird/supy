@@ -38,7 +38,6 @@ class kinFitLook(analysisStep) :
             self.book.fill(val, "topKinFit_residual_%s"%name, 100,-5,5, title = ";residual %s;events / bin"%name)
         self.book.fill((residuals["hadP"],residuals["hadQ"]), "topKinFit_residual_had_PQ", (100,100),(-5,-5),(5,5), title = ';residual hadP;residual hadQ;events / bin')
         self.book.fill((residuals["lepS"],residuals["lepL"]), "topKinFit_residual_lep_SL", (100,100),(-5,-5),(5,5), title = ';residual lepS;residual lepL;events / bin')
-        self.book.fill( math.log(1+topReco[0]['chi2']), "topRecoLogChi2", 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2});events / bin')
 
         self.book.fill( lepWM, "wMassLepFit", 75, 0, 150, title = ';fit mass_{W} (leptonic);events / bin')
         self.book.fill( hadWM, "wMassHadFit", 75, 0, 150, title = ';fit mass_{W} (hadronic);events / bin')
@@ -46,6 +45,15 @@ class kinFitLook(analysisStep) :
         self.book.fill( hadTopM, "topMassHadFit", 100,0,300, title = ";fit mass_{top} (hadronic);events / bin" )
         self.book.fill( (lepTopM, hadTopM), "lepM_vs_hadM", (100,100),(0,0),(300,300),
                         title = ";fit mass_{top} (leptonic); fit mass_{top} (hadronic);events / bin",)
+
+        hadX2 = math.log(1+topReco[0]['hadChi2'])
+        lepX2 = math.log(1+topReco[0]['lepChi2'])
+        bound = ("_bound" if topReco[0]['lepBound'] else "_unbound")
+        self.book.fill( math.log(1+topReco[0]['chi2']), "topRecoLogChi2", 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2});events / bin')
+        self.book.fill( hadX2, "topRecoLogHadChi2", 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2}_{had});events / bin')
+        self.book.fill( lepX2, "topRecoLogLepChi2", 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2}_{lep});events / bin')
+        self.book.fill( lepX2, "topRecoLogLepChi2"+bound, 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2}_{lep});events / bin')
+        self.book.fill( (lepX2,hadX2), "topRecoVsLogX2", (50,50),(0,0),(10,10), title = ";log(1+#chi^{2}_{lep});log(1+#chi^{2}_{had});events / bin" )
 
 #####################################
 class mcTruthQDir(analysisStep) :
@@ -86,7 +94,7 @@ class mcTruthDiscriminateQQbar(analysisStep) :
         self.book.fill( dphi, 'genTopDeltaPhittbar', 51,0,2*math.pi, title = ';#Delta #phi_{ttbar};events / bin')
         self.book.fill( ev['genTopTTbarPtOverSumPt'], 'ttbarPtOverSumPt', 50,0,1, title = ';(t+tbar)_{pt}/(t_{pt}+tbar_{pt});events / bin')
 
-        self.book.fill(ev['genTopAlpha'],'alpha',10,0,1,title=';genTopAlpha;events / bin')
+        self.book.fill(ev['genTopAlpha'],'alpha',10,0,2,title=';genTopAlpha;events / bin')
 
         self.book.fill( ev['genTopTTbarSumP4'].Rapidity(), 'ttbarRapidity', 51,-3,3, title = ';y_{ttbar};events / bin')
         self.book.fill( ev['genTopTTbarSumP4'].Eta(), 'ttbarEta', 81,-10,10, title = ';#eta_{ttbar};events / bin')
@@ -129,13 +137,12 @@ class mcTruthTemplates(analysisStep) :
     def uponAcceptance(self,ev) :
         if not ev['genTopTTbar'] : return
 
-        self.book.fill(ev['genTopAlpha'],'alpha',10,0,1,title=';genTopAlpha;events / bin')
-        alpha = '_alpha%d'%int(10*ev['genTopAlpha'])
+        self.book.fill(ev['genTopAlpha'],'alpha',10,0,2,title=';genTopAlpha;events / bin')
+        alpha = '_alpha%02d'%int(10*ev['genTopAlpha'])
 
         self.book.fill(ev['genTopCosThetaStarAvg'], 'cosThetaStarAvg%s'%alpha, 20, -1, 1, title = ';cosThetaStarAvg;events / bin')
 
-        self.book.fill(ev['genTopBeta'], 'genTopBeta', 20,-1,1, title = ";beta;events / bin")
-        self.book.fill(ev['genTopBeta2'], 'genTopBeta2', 20,-1,1, title = ";beta;events / bin")
+        self.book.fill(ev['genTopBeta'], 'genTopBeta', 20,-2,2, title = ";beta;events / bin")
         #self.book.fill( (ev['genTopCosThetaStar'],ev['genTopCosThetaStarBar']), 'cts_v_ctsbar%s'%alpha, (100,100),(-1,-1),(1,1), title = ';costhetaQT;cosThetaQbarTbar;events/bin')
         #self.book.fill( (ev['genTopCosThetaStar'],ev['genTopAlpha']), 'cts_v_alpha', (25,25),(-1,0),(1,1), title = ';costhetaQT;#alpha;events/bin')
         #self.book.fill( (ev['genTopCosThetaStarAvg'],ev['genTopAlpha']), 'ctsavg_v_alpha', (25,25),(-1,0),(1,1), title = ';costhetaAvg;#alpha;%s events/bin')
