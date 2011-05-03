@@ -126,7 +126,11 @@ class fitTopP4(wrappedChain.calculable) :
         reco = self.source["TopReconstruction"][0]
         t = reco['top']
         tbar = reco['tbar']
-        self.value = {'t':t, 'tbar':tbar, 'quark': t+tbar, 'lepton': reco['lep']}
+        q_z = 0.5*(t+tbar).z()
+        self.value = {'t':t,
+                      'tbar':tbar,
+                      'quark': utils.LorentzV().SetPxPyPzE(0,0,q_z,abs(q_z)),
+                      'lepton': reco['lep']}
 class fitTopLeptonCharge(wrappedChain.calculable) :
     def __init__(self, lepton) :
         self.lepton = lepton
@@ -137,8 +141,6 @@ class fitTopLeptonCharge(wrappedChain.calculable) :
 ######################################
 ######################################
 ######################################
-
-
 
 
 
@@ -276,19 +278,15 @@ class TopReconstruction(wrappedChain.calculable) :
         self.value = sorted( recos,  key = lambda x: x["chi2"] )
 
 
-
-######################################
-__f0__ = 2.0
-__R__ = 0.05
 ######################################
 class wTopAsym(wrappedChain.calculable) :
-    def __init__(self,rPrime,totalEff=None) :
+    def __init__(self, rPrime, totalEff = None, intrinsicR = 0.05) :
         self.fixes = ("",("N" if rPrime < 0 else "P") + "%02d"%(100*abs(rPrime)))
         self.rPrime = rPrime
-        self.R = __R__
+        self.R = intrinsicR
         self.epsilon = 1.
-        self.epsilon = 1. / max( self.weight(math.sqrt(__f0__),__f0__),
-                                 self.weight(-math.sqrt(__f0__),__f0__))
+        self.epsilon = 1. / max( self.weight(math.sqrt(2),2),
+                                 self.weight(-math.sqrt(2),2))
 
         assert self.epsilon <= 1.
         assert totalEff < self.epsilon
@@ -300,4 +298,4 @@ class wTopAsym(wrappedChain.calculable) :
     
     def update(self,ignored) :
         self.value = None if not self.source['genQQbar'] else self.weight(self.source['genTopBeta'],
-                                                                          min(__f0__,self.source['genTopAlpha']))
+                                                                          self.source['genTopAlpha'])
