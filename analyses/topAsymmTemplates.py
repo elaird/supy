@@ -7,7 +7,7 @@ class topAsymmTemplates(analysis.analysis) :
     def parameters(self) :
         return {"sample" : {#"compare":["mg","pythia"],
                             "mg":"mg",
-                            #"pythia":"pythia"
+                            "pythia":"pythia"
                             },
                 "effectiveLumi" : None# 100
                 }
@@ -18,7 +18,6 @@ class topAsymmTemplates(analysis.analysis) :
             calculables.Vertex.ID(),
             calculables.Vertex.Indices(),
             ]
-        outList += [calculables.Top.wTopAsym(i) for i in [-0.3,0,0.3]]
         outList += calculables.fromCollections(calculables.Top,[('genTop',""),('fitTop',"")])
         return outList
     
@@ -40,20 +39,18 @@ class topAsymmTemplates(analysis.analysis) :
         eL = pars["effectiveLumi"]
 
         if type(pars["sample"]) is list :
-            return (specify( names = "tt_tauola_%s"%pars["sample"][0], effectiveLumi = eL) +
-                    specify( names = "tt_tauola_%s"%pars["sample"][1], effectiveLumi = eL, color = r.kRed) )
+            suffixColor = zip(pars["sample"],[r.kBlack,r.kRed])
+            return sum([specify(names = "tt_tauola_%s"%suf, effectiveLumi = eL, color = col) for suf,col in suffixColor],[])
 
         sample = "tt_tauola_%s"%pars["sample"]
+        asymms = [(r.kBlue, -0.3),
+                  (r.kGreen, 0.0),
+                  (r.kRed,   0.3)]
+        intrinsicR = -0.05 if pars['sample'] == "mg" else 0.0
         return (
-            specify( names = sample, effectiveLumi = eL, color = r.kBlack,     weightName = "wNonQQbar") +
-            #specify( names = sample, effectiveLumi = eL, color = r.kRed,     weightName = "wQQbar") +
-            specify( names = sample, effectiveLumi = eL, color = r.kBlue,      weightName = "wTopAsymN30") +
-            #specify( names = sample, effectiveLumi = eL, color = r.kBlue,      weightName = "wTopAsymN20") +
-            #specify( names = sample, effectiveLumi = eL, color = r.kGreen+3,   weightName = "wTopAsymN10") +
-            specify( names = sample, effectiveLumi = eL, color = r.kGreen,     weightName = "wTopAsymP00") +
-            #specify( names = sample, effectiveLumi = eL, color = r.kYellow-3,  weightName = "wTopAsymP10") +
-            #specify( names = sample, effectiveLumi = eL, color = r.kOrange,    weightName = "wTopAsymP20") +
-            specify( names = sample, effectiveLumi = eL, color = r.kRed,       weightName = "wTopAsymP30") +
+            specify( names = sample, effectiveLumi = eL, color = r.kBlack,     weights = calculables.Gen.wNonQQbar()) +
+            #specify( names = sample, effectiveLumi = eL, color = r.kRed,       weights = calculables.Gen.wQQbar()) +
+            sum([specify(names = sample, effectiveLumi = eL, color = col, weights = calculables.Top.wTopAsym(A,intrinsicR=intrinsicR)) for col,A in asymms],[]) +
             [])
     
     def conclude(self) :
