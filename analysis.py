@@ -238,7 +238,7 @@ class analysis(object) :
 
             if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
             adjustedListOfSteps = [steps.Master.Master(xs = sampleTuple.xs,
-                                                       lumi = sampleSpec.overrideLumi if sampleSpec.overrideLumi else sampleTuple.lumi,
+                                                       lumi = sampleSpec.overrideLumi if sampleSpec.overrideLumi!=None else sampleTuple.lumi,
                                                        lumiWarn = checkLumi(isMc, nEventsMax, sampleSpec.nFilesMax),
                                                        )
                                    ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
