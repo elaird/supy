@@ -280,7 +280,7 @@ class TopReconstruction(wrappedChain.calculable) :
 
 ######################################
 class wTopAsym(wrappedChain.calculable) :
-    def __init__(self, rPrime, totalEff = None, intrinsicR = 0.05) :
+    def __init__(self, rPrime, totalEff = None, intrinsicR = 0) :
         self.fixes = ("",("N" if rPrime < 0 else "P") + "%02d"%(100*abs(rPrime)))
         self.rPrime = rPrime
         self.R = intrinsicR
