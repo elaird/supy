@@ -1,9 +1,11 @@
 import collections, configuration
 
-def specify(names = [], effectiveLumi = None, nFilesMax = None, nEventsMax = None, weightName = None, color = 1, markerStyle = 1 ) :
+def specify(names = [], overrideLumi = None, effectiveLumi = None, nFilesMax = None, nEventsMax = None, weights = [], color = 1, markerStyle = 1 ) :
+    assert not (overrideLumi and type(names)==list)
     if type(names) != list : names = [names]
-    samplespec = collections.namedtuple("samplespec", "name effectiveLumi nFilesMax nEventsMax weightName color markerStyle")
-    return [samplespec(name,effectiveLumi,nFilesMax,nEventsMax,weightName,color,markerStyle) for name in names]
+    if type(weights) != list : weights = [weights]
+    samplespec = collections.namedtuple("samplespec", "name overrideLumi effectiveLumi nFilesMax nEventsMax weights color markerStyle")
+    return [samplespec(name,overrideLumi,effectiveLumi,nFilesMax,nEventsMax,weights,color,markerStyle) for name in names]
     
 class SampleHolder(dict) :
     sample = collections.namedtuple("sample", "filesCommand xs lumi ptHatMin")

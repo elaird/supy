@@ -121,7 +121,7 @@ class analysis(object) :
                 q.task_done()
 
         def checkNames(listOfSamples) :
-            names = [(s.name, s.weightName) for s in listOfSamples]
+            names = ['.'.join([s.name]+[w.name() for w in s.weights]) for s in listOfSamples]
             assert len(names) == len(set(names)), "Duplicate sample names are not allowed."
             return listOfSamples
 
@@ -217,6 +217,15 @@ class analysis(object) :
         def subDir(conf) :
             return "%s/config%s"%(conf["tag"], conf["codeString"])
 
+        def allCalculables(calcs,weights) :
+            calcNames = [c.name() for c in calcs]
+            for w in weights :
+                if w.name() in calcNames :
+                    print "Warn: weight %s is already a listed calculable."%w.name()
+                    for c in calcs:
+                        assert c.name() != w.name() or type(c) == type(w), "Weight and listed calculables of differing types share a name!"
+            return calcs + [calculables.weight(weights)] + filter(lambda c: c.name() not in calcNames, weights)
+
         ptHatMinDict = {}
         outLoopers = []
         for sampleSpec in listOfSamples :
@@ -229,11 +238,11 @@ class analysis(object) :
 
             if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
             adjustedListOfSteps = [steps.Master.Master(xs = sampleTuple.xs,
-                                                       lumi = sampleTuple.lumi,
+                                                       lumi = sampleSpec.overrideLumi if sampleSpec.overrideLumi else sampleTuple.lumi,
                                                        lumiWarn = checkLumi(isMc, nEventsMax, sampleSpec.nFilesMax),
                                                        )
                                    ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
-            
+
             outLoopers.append(analysisLooper(fileDirectory = self.fileDirectory,
                                              treeName = self.treeName,
                                              otherTreesToKeepWhenSkimming = self.otherTreesToKeepWhenSkimming(),
@@ -242,9 +251,9 @@ class analysis(object) :
                                              globalStem = self.globalStem,
                                              subDir = subDir(conf),
                                              steps = adjustedListOfSteps,
-                                             calculables = listOfCalculables + [calculables.weight(sampleSpec.weightName)],
+                                             calculables = allCalculables( listOfCalculables, sampleSpec.weights ),
                                              inputFiles = inputFiles,
-                                             name = sampleName + ("."+sampleSpec.weightName if sampleSpec.weightName else ""),
+                                             name = ".".join([sampleName]+[w.name() for w in sampleSpec.weights]),
                                              nEventsMax = nEventsMax,
                                              quietMode = quietMode(self._loop),
                                              color = sampleSpec.color,
