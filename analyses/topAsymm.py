@@ -67,7 +67,6 @@ class topAsymm(analysis.analysis) :
             calculables.Other.Mt(lepton,"mixedSumP4", allowNonIso=True, isSumP4=True),
             calculables.Muon.IndicesAnyIsoIsoOrder(obj[pars["lepton"]["name"]], pars["lepton"]["isoVar"])
             ]
-        outList += [calculables.Top.wTopAsym(i/100.) for i in range(-30,40,10)]
         outList += calculables.fromCollections(calculables.Top,[('genTop',""),('fitTop',"")])
         return outList
     
@@ -148,14 +147,16 @@ class topAsymm(analysis.analysis) :
             steps.Other.assertNotYetCalculated("TopReconstruction"),
             steps.Filter.label('kinfit'), steps.Top.kinFitLook(),
             steps.Filter.label('signal'), steps.Top.Asymmetry(('fitTop','')),
-            ###
-            ###steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
-            ###steps.Filter.value(bVar, max=2.0, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
-            ###
-            ###steps.Top.Asymmetry(('fitTop','')),
-            ###]+templateSteps()+[
+            
+            #steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
+            #steps.Filter.value(bVar, max=2.0, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
+            steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=5),
+            steps.Filter.value("fitTopPtOverSumPt", max=0.2),
+            
+            steps.Top.Asymmetry(('fitTop','')),
+            ]+templateSteps()+[
 
-##
+
             #steps.Other.productGreaterFilter(0,["%s%s"%lepton+"RelativeRapiditymixedSumP4NuM","%s%s"%lepton+"RelativeRapiditymixedSumP4NuP"]),
             #steps.Other.histogrammer("%sSignedRapidity%s"%lepton, 51, -5, 5, title = ";y_lep*q_lep*sign(boost);events / bin"),
             #steps.Other.histogrammer("%s%s"%lepton+"RelativeRapiditymixedSumP4", 51, -5, 5, title = ";#Delta y;events / bin"),
@@ -188,10 +189,11 @@ class topAsymm(analysis.analysis) :
             return specify( effectiveLumi = eL, color = r.kBlue,
                             names = ["qcd_mg_ht_%s_%s"%t for t in zip(qM,qM[1:]+["inf"])])
         def ttbar_mg(eL) :
-            return (specify( names = "tt_tauola_mg", effectiveLumi = 500, color = r.kBlack,   weightName="wNonQQbar") +
-                    specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kOrange,   weightName="wTopAsymN30") +
-                    specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kYellow-3, weightName="wTopAsymP00") +
-                    specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kRed,      weightName="wTopAsymP30") +
+            intrinsicR = -0.05
+            return (specify( names = "tt_tauola_mg", effectiveLumi = 2000, color = r.kBlack,  weights = calculables.Gen.wNonQQbar()) +
+                    specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kOrange,   weights = calculables.Top.wTopAsym(-0.30, intrinsicR = intrinsicR)) +
+                    specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kYellow-3, weights = calculables.Top.wTopAsym( 0.00, intrinsicR = intrinsicR)) +
+                    specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kRed,      weights = calculables.Top.wTopAsym( 0.30, intrinsicR = intrinsicR)) +
                     [])
 
         def ewk(eL, skimp=True) :
