@@ -53,25 +53,32 @@ class kinFitLook(analysisStep) :
         self.book.fill( (lepX2,hadX2), "topRecoVsLogX2", (50,50),(0,0),(10,10), title = ";log(1+#chi^{2}_{lep});log(1+#chi^{2}_{had});events / bin" )
 
 #####################################
-class mcTruthQDir(analysisStep) :
-    def __init__(self,withLepton = False, withNu = False) :
-        self.withNu = withNu and withLepton
-        self.withLepton = withLepton
-        
-    def uponAcceptance(self,ev) :
-        if ev['isRealData'] : return
-        genSumPz = ev['genSumP4'].pz()
-        #for sumP4 in ['genTopNuP4','genTopTTbarSumP4','mixedSumP4','mixedSumP4Nu'][:4 if self.withNu else 3 if self.withLepton else 2] :
-        #    self.book.fill( (genSumPz, ev[sumP4].pz()), "genSumP4_%s_pz"%sumP4, (100,100),(-3000,-3000),(3000,3000),
-        #                    title = ";genSumP4 pz;%s pz;events/bin"%sumP4)
+class discriminateNonTop(analysisStep) :
+    def __init__(self, pars) :
+        obj = pars['objects']
+        self.mixed = "%sMt%s"%obj[pars['lepton']['name']]+"mixedSumP4"
+        self.sumPt = obj["sumPt"]
+        self.jetP4 = "%sCorrectedP4%s"%obj["jet"]
+        self.iJet = "%sIndices%s"%obj["jet"]
+        self.bJet = "%sIndicesBtagged%s"%obj["jet"]        
 
-        qqbar = ev['genQQbar']
-        if qqbar :
-            qdir = 1 if ev['genP4'][qqbar[0]].pz()>0 else -1
-            for sumP4 in ['genSumP4','genTopSumP4','mixedSumP4','mixedSumP4Nu'][:4 if self.withNu else 3 if self.withLepton else 2] :
-                self.book.fill( qdir * ev[sumP4].pz(), "qdir_%s_pz"%sumP4, 100,-3000,3000, title = ';qdir * %s.pz;events/bin'%sumP4)
-                self.book.fill( qdir * ev[sumP4].Eta(), "qdir_%s_eta"%sumP4, 100,-10,10, title = ';qdir * %s.eta;events/bin'%sumP4)
-        
+    @staticmethod
+    def phiMod(phi) : return phi + 2*math.pi*int(phi<0)
+
+    def uponAcceptance(self, ev) :
+        jetP4 = ev[self.jetP4]
+        iJet = ev[self.iJet]
+        bJet = ev[self.bJet]
+
+        self.book.fill(ev[self.sumPt],self.sumPt,50,0,1000, title = ';%s;events / bin'%self.sumPt),
+        self.book.fill(ev[self.mixed],self.mixed,30,0,180, title = "M_{T}"),
+        self.book.fill(jetP4[iJet[0]].pt(), "jetPtI0", 40,0,400, title = ';pT jets[0] pt;events / bin')
+        self.book.fill(jetP4[bJet[0]].pt(), "jetPtB0", 40,0,400, title = ';b- jets[0] pt;events / bin')
+        self.book.fill( self.phiMod(r.Math.VectorUtil.DeltaPhi(jetP4[bJet[0]],jetP4[bJet[1]])), "dphiBjets", 30,0,2*math.pi,
+                        title = ";#Delta#phi leading b-tagged jets;events / bin" )
+        for i in range(3) :
+            self.book.fill(jetP4[i].eta(), "jetEtaI%d"%i, 50,-5,5, title = ';pT jets[%d] eta;events / bin'%i)
+                
 #####################################
 class discriminateQQbar(analysisStep) :
     def __init__(self, collection) :
@@ -97,6 +104,26 @@ class discriminateQQbar(analysisStep) :
         self.book.fill( abs(sumP4.Rapidity()), self.SumP4+'AbsRapidity', 50,0,3, title = ';y_{ttbar};events / bin')
         self.book.fill( abs(sumP4.Eta()), self.SumP4+'AbsEta', 40,0,10, title = ';|#eta_{ttbar}|;events / bin')
         self.book.fill( abs(sumP4.Pz()), self.SumP4+'AbsPz', 50,0,3000, title = ';|pz|_{ttbar};events / bin')
+        
+#####################################
+class mcTruthQDir(analysisStep) :
+    def __init__(self,withLepton = False, withNu = False) :
+        self.withNu = withNu and withLepton
+        self.withLepton = withLepton
+        
+    def uponAcceptance(self,ev) :
+        if ev['isRealData'] : return
+        genSumPz = ev['genSumP4'].pz()
+        #for sumP4 in ['genTopNuP4','genTopTTbarSumP4','mixedSumP4','mixedSumP4Nu'][:4 if self.withNu else 3 if self.withLepton else 2] :
+        #    self.book.fill( (genSumPz, ev[sumP4].pz()), "genSumP4_%s_pz"%sumP4, (100,100),(-3000,-3000),(3000,3000),
+        #                    title = ";genSumP4 pz;%s pz;events/bin"%sumP4)
+
+        qqbar = ev['genQQbar']
+        if qqbar :
+            qdir = 1 if ev['genP4'][qqbar[0]].pz()>0 else -1
+            for sumP4 in ['genSumP4','genTopSumP4','mixedSumP4','mixedSumP4Nu'][:4 if self.withNu else 3 if self.withLepton else 2] :
+                self.book.fill( qdir * ev[sumP4].pz(), "qdir_%s_pz"%sumP4, 100,-3000,3000, title = ';qdir * %s.pz;events/bin'%sumP4)
+                self.book.fill( qdir * ev[sumP4].Eta(), "qdir_%s_eta"%sumP4, 100,-10,10, title = ';qdir * %s.eta;events/bin'%sumP4)
         
 #####################################
 class mcTruthAcceptance(analysisStep) :
@@ -170,3 +197,4 @@ class mcTruthTemplates(analysisStep) :
                 self.book.fill(genP4dir * Q * dy, "genTopMezDeltaYlmiss"+suf, 31,-5,5, title = '%s;MEZ Signed #Delta y_{lmiss};events / bin'%suf)
                 self.book.fill(    qdir * Q * lRapidity, "genTopTrueLRapidity"+suf, 31,-5,5, title = "%s;True Signed y_l;events / bin"%suf)
                 self.book.fill(genP4dir * Q * lRapidity, "genTopMezLRapidity"+suf, 31,-5,5, title = "%s;MEZ Signed y_l;events / bin"%suf)
+
