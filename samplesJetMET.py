@@ -23,7 +23,7 @@ jetmet.add("HT300_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elai
 jetmet.add("HT250_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v1/250_bin/calo.root", isDirectory = False)', lumi = 17.0)
 
 jetmet.add("zoe_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/76_zoe_sync/zoes_events.root", isDirectory = False)', lumi = 17.0)
-jetmet.add("bryn_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/78_bryn_sync/bryns_events.root", isDirectory = False)', lumi = 32.0)
+jetmet.add("bryn_skim_calo", 'utils.fileListFromDisk(location = "/vols/cms03/bm409/ICFSkims/18Events_040511.root", isDirectory = False)', lumi = 36.9)#lumi is a guess
 
 #NOV.4 RE-RECO SKIMS
 dir = "/vols/cms02/elaird1/16_skims/"
