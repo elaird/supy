@@ -316,7 +316,7 @@ class hadronicLook(analysis.analysis) :
         qcd_func,g_jets_func = {"py6": (qcd_py6,g_jets_py6),
                                 "py8": (qcd_py8,g_jets_py6), # no g_jets_py8 available
                                 "mg" : (qcd_mg, g_jets_mg ) }[params["mcSoup"]]
-        eL = 200 # 1/pb
+        eL = 1000 # 1/pb
         #return data()
         return ( data() +
                  qcd_func(eL) + #g_jets_func(eL) +
