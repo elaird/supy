@@ -39,9 +39,10 @@ class hadronicLook(analysis.analysis) :
                  "htBin": dict( [("250",250.0), ("300",300.0), ("350",350.0)][2:3] ),
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
-                 #"triggerList": ("HLT_HT160_v2","HLT_HT240_v2","HLT_HT260_v2","HLT_HT350_v2","HLT_HT360_v2"),#2011 epoch 1
-                 "triggerList": ("HLT_HT250_MHT60_v2","HLT_HT260_MHT60_v2","HLT_HT300_MHT75_v2","HLT_HT300_MHT75_v3"),#2011 epoch 2
-                 #"triggerList" : ("HLT_HT350_AlphaT0p51_v1", "HLT_HT350_AlphaT0p53_v1"), #2011 epoch 3
+                 #"triggerList": ("HLT_HT150_v2","HLT_HT150_v3","HLT_HT160_v2","HLT_HT200_v2","HLT_HT200_v3","HLT_HT240_v2","HLT_HT250_v2","HLT_HT250_v3","HLT_HT260_v2",
+                 #                "HLT_HT300_v2","HLT_HT300_v3","HLT_HT300_v4","HLT_HT350_v2","HLT_HT350_v3","HLT_HT360_v2","HLT_HT400_v2","HLT_HT400_v3","HLT_HT440_v2",
+                 #                "HLT_HT450_v2","HLT_HT450_v3","HLT_HT500_v2","HLT_HT500_v3","HLT_HT520_v2","HLT_HT550_v2","HLT_HT550_v3")#2011 HT mania
+                 "triggerList": ("HLT_HT250_MHT60_v2","HLT_HT250_MHT60_v3","HLT_HT260_MHT60_v2","HLT_HT300_MHT75_v2","HLT_HT300_MHT75_v3","HLT_HT300_MHT75_v4"),#2011 epoch 2
                  }
 
     def ra1Cosmetics(self) : return True
@@ -116,6 +117,7 @@ class hadronicLook(analysis.analysis) :
         _et = "Et" if _etRatherThanPt else "Pt"
 
         return [
+            steps.Other.jsonFilter("/home/hep/elaird1/supy/Cert_160404-163369_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False),
             steps.Print.progressPrinter(),
             steps.Trigger.lowestUnPrescaledTrigger(),
             steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
@@ -151,6 +153,7 @@ class hadronicLook(analysis.analysis) :
             steps.Jet.uniquelyMatchedNonisoMuons(_jet), 
             
             steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 1500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
+            #steps.Other.variableGreaterFilter(450.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
             
             steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met), 100, 0.0, 3.0,
                                      title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1]+params["highPtName"],_met)),
@@ -261,14 +264,15 @@ class hadronicLook(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify
-        def data() : return specify( #nFilesMax = 4, nEventsMax = 2000,
-                                     names = [#"Nov4_MJ_skim","Nov4_J_skim","Nov4_J_skim2","Nov4_JM_skim","Nov4_JMT_skim","Nov4_JMT_skim2",
-                                              "HT.Run2011A-PromptReco-v1.AOD.Georgia","HT.Run2011A-PromptReco-v1.AOD.Henning",
-                                              "HT.Run2011A-PromptReco-v2.AOD.Arlo",
-                                              #"HT250_skim_calo",
-                                              #"HT300_skim_calo",
-                                              #"HT350_skim_calo",
-                                              ])
+        def data() : return specify(names = [#"HT.Run2011A-PromptReco-v1.AOD.Georgia",
+                                             "HT.Run2011A-PromptReco-v1.AOD.Henning.Cert",
+                                             "HT.Run2011A-PromptReco-v2.AOD.Arlo.Cert",
+                                             "HT.Run2011A-PromptReco-v2.AOD.Arlo2.Cert",
+                                             #"HT250_skim_calo",
+                                             #"HT300_skim_calo",
+                                             #"HT350_skim_calo",
+                                             #"Nov4_MJ_skim","Nov4_J_skim","Nov4_J_skim2","Nov4_JM_skim","Nov4_JMT_skim","Nov4_JMT_skim2",
+                                             ])#, #nFilesMax = 4, nEventsMax = 2000)
         
 
         def qcd_py6(eL) :
