@@ -19,7 +19,6 @@ class Asymmetry(analysisStep) :
         
         self.book.fill( ev[self.DeltaAbsY],   'ttbarDeltaAbsY',    31, -4, 4, title = ';#Delta|Y|_{ttbar};events / bin' )
         self.book.fill( ev[self.DeltaY],      'ttbarSignedDeltaY', 31, -4, 4, title = ';sumP4dir * #Delta Y_{ttbar};events / bin' )
-        self.book.fill( ev[self.PtOverSumPt], 'ttbarPtOverSumPt',    30,  0, 1, title = ';ttbar MHT/HT;events / bin')
         self.book.fill( ev[self.Beta],        'ttbarBeta',  21, -math.sqrt(2), math.sqrt(2), title = ';#beta_{ttbar};events / bin')
 #####################################
 class kinFitLook(analysisStep) :
