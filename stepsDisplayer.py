@@ -161,11 +161,12 @@ class displayer(analysisStep) :
     def printElectrons(self, eventVars, params, coords, electrons, nMax) :
         self.prepareText(params, coords)
         p4Vector = eventVars["%sP4%s"        %electrons]
+        cIso = eventVars["%sIsoCombined%s"%electrons]
         ninetyFive = eventVars["%sID95%s"%electrons]
      
         self.printText(self.renamedDesc(electrons[0]+electrons[1]))
-        self.printText("ID   pT  eta  phi")
-        self.printText("-----------------")
+        self.printText("ID   pT  eta  phi  cIso")
+        self.printText("-----------------------")
 
         nElectrons = p4Vector.size()
         for iElectron in range(nElectrons) :
@@ -176,6 +177,7 @@ class displayer(analysisStep) :
 
             outString = "%2s"%("95" if ninetyFive[iElectron] else "  ")
             outString+="%5.0f %4.1f %4.1f"%(electron.pt(), electron.eta(), electron.phi())
+            outString+=" %5.2f"%cIso[iElectron] if cIso[iElectron]!=None else " %5s"%"-"
             self.printText(outString)
 
     def printMuons(self, eventVars, params, coords, muons, nMax) :
@@ -188,8 +190,8 @@ class displayer(analysisStep) :
         glpt     = eventVars["%sIDGlobalMuonPromptTight%s"%muons]
         
         self.printText(self.renamedDesc(muons[0]+muons[1]))
-        self.printText("ID   pT  eta  phi    iso tr gl glpt")
-        self.printText("-----------------------------------")
+        self.printText("ID   pT  eta  phi  cIso TGP")
+        self.printText("---------------------------")
 
         nMuons = p4Vector.size()
         for iMuon in range(nMuons) :
@@ -199,11 +201,40 @@ class displayer(analysisStep) :
             muon=p4Vector[iMuon]
 
             outString = "%1s%1s"% (" ","T" if tight[iMuon] else " ")
-            outString+="%5.0f %4.1f %4.1f %6.3f %2s %2s   %2s"%(muon.pt(), muon.eta(), muon.phi(), iso[iMuon],
-                                                                "p" if   tr[iMuon] else "f",
-                                                                "p" if   gl[iMuon] else "f",
-                                                                "p" if glpt[iMuon] else "f",
-                                                                )
+            outString+="%5.0f %4.1f %4.1f %5.2f %3s"%(muon.pt(), muon.eta(), muon.phi(), iso[iMuon],
+                                                      "%s%s%s"%("p" if tr[iMuon] else "f", "p" if gl[iMuon] else "f","p" if glpt[iMuon] else "f"),
+                                                      )
+            self.printText(outString)
+
+    def printRecHits(self, eventVars, params, coords, recHits, nMax) :
+        self.prepareText(params, coords)
+        
+        self.printText(self.renamedDesc("cleaned %s rechits"%recHits))
+        self.printText("  det   pT  eta  phi")
+        self.printText("--------------------")
+
+        subDetectors=[]
+        if recHits=="Calo" :
+            subDetectors=["Eb","Ee","Hbhe","Hf"]
+        if recHits=="PF" :
+            subDetectors=["Ecal","Hcal","Hfem","Hfhad","Ps"]
+
+        hits = []
+        for detector in subDetectors :
+            for collectionName in ["","cluster"] :
+                varName = "rechit"+collectionName+recHits+"P4"+detector
+                if varName not in eventVars : continue
+                for iHit in range(len(eventVars[varName])) :
+                    hit = eventVars[varName].at(iHit)
+                    hits.append( (hit.pt(), hit.eta(), hit.phi(), detector) )
+
+        
+        for iHit,hit in enumerate(reversed(sorted(hits))) :
+            if nMax<=iHit :
+                self.printText("[%d more not listed]"%(len(hits)-nMax))
+                break
+            outString = "%5s"%hit[3]
+            outString+="%5.0f %4.1f %4.1f"%(hit[0], hit[1], hit[2])
             self.printText(outString)
 
     def printJets(self, eventVars, params, coords, jets, nMax) :
@@ -824,7 +855,7 @@ class displayer(analysisStep) :
         s = defaults["slope"]
 
         yy = 0.98
-        x0 = 0.015
+        x0 = 0.01
         x1 = 0.45
         self.printEvent(   eventVars, params = defaults, coords = {"x":x0, "y":yy})
 
@@ -840,7 +871,8 @@ class displayer(analysisStep) :
                 self.printElectrons(eventVars, params = defaults, coords = {"x":x0+0.50, "y":yy-40*s}, electrons = self.electrons, nMax = 3)
             if self.muons :
                 self.printMuons(    eventVars, params = defaults, coords = {"x":x0,      "y":yy-47*s}, muons = self.muons, nMax = 3)
-
+            if self.recHits :
+                self.printRecHits(  eventVars, params = defaults, coords = {"x":x0+0.575,"y":yy-47*s}, recHits = self.recHits, nMax = 3)
             if self.ra1Mode :
                 self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":yy-30*s}, jets = self.jets, jets2 = self.jetsOtherAlgo)
                 if self.ra1CutBits :
