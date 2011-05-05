@@ -8,16 +8,22 @@ class displayer(analysisStep) :
     def __init__(self, jets = None, met = None, muons = None, electrons = None, photons = None, taus = None,
                  recHits = None, recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False,
                  doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "", deltaPhiStarCut = None, deltaPhiStarDR = None, mhtOverMetExtraName = "",
-                 showAlphaTMet = True, jetsOtherAlgo = None, metOtherAlgo = None, printExtraText = True,
-                 ra1Mode = True, ra1CutBits = True, markusMode = False, tipToTail = False, triggersToPrint = []) :
+                 showAlphaTMet = True, jetsOtherAlgo = None, metOtherAlgo = None, printExtraText = True,                 
+                 ra1Mode = True, ra1CutBits = True, markusMode = False, tipToTail = False, triggersToPrint = [],
+                 flagsToPrint = ["logErrorTooManyClusters","logErrorTooManySeeds",
+                                 #"beamHaloCSCLooseHaloId","beamHaloCSCTightHaloId","beamHaloEcalLooseHaloId","beamHaloEcalTightHaloId",
+                                 #"beamHaloGlobalLooseHaloId","beamHaloGlobalTightHaloId","beamHaloHcalLooseHaloId","beamHaloHcalTightHaloId"
+                                 ]
+                 ) :
 
         self.moreName = "(see below)"
 
         for item in ["scale","jets","met","muons","electrons","photons","taus","recHits","recHitPtThreshold","doGenParticles",
                      "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "deltaPhiStarCut", "deltaPhiStarDR", "mhtOverMetExtraName", "showAlphaTMet",
-                     "jetsOtherAlgo", "metOtherAlgo", "printExtraText", "ra1Mode", "ra1CutBits", "markusMode","tipToTail", "triggersToPrint"] :
+                     "jetsOtherAlgo", "metOtherAlgo", "printExtraText", "ra1Mode", "ra1CutBits", "markusMode","tipToTail", "triggersToPrint", "flagsToPrint"] :
             setattr(self,item,eval(item))
 
+        if len(self.flagsToPrint)>3 : print "WARNING: More than three flags specified in the displayer.  The list will run off the page."
         self.jetRadius = 0.7 if "ak7Jet" in self.jets[0] else 0.5
         self.genJets = self.jets
         self.genMet  = self.met.replace("P4","GenMetP4") if self.met else self.met
@@ -209,7 +215,7 @@ class displayer(analysisStep) :
     def printRecHits(self, eventVars, params, coords, recHits, nMax) :
         self.prepareText(params, coords)
         
-        self.printText(self.renamedDesc("cleaned %s rechits"%recHits))
+        self.printText(self.renamedDesc("cleaned%sRecHits"%recHits))
         self.printText("  det   pT  eta  phi")
         self.printText("--------------------")
 
@@ -873,16 +879,13 @@ class displayer(analysisStep) :
                 self.printMuons(    eventVars, params = defaults, coords = {"x":x0,      "y":yy-47*s}, muons = self.muons, nMax = 3)
             if self.recHits :
                 self.printRecHits(  eventVars, params = defaults, coords = {"x":x0+0.575,"y":yy-47*s}, recHits = self.recHits, nMax = 3)
+            if self.flagsToPrint :
+                self.printFlags(    eventVars, params = defaults, coords = {"x":x0,      "y":yy-55*s}, flags = self.flagsToPrint)
             if self.ra1Mode :
                 self.printKinematicVariables(eventVars, params = defaults, coords = {"x":x0, "y":yy-30*s}, jets = self.jets, jets2 = self.jetsOtherAlgo)
                 if self.ra1CutBits :
                     self.printCutBits(       eventVars, params = defaults, coords = {"x":x0, "y":yy-35*s}, jets = self.jets, jets2 = self.jetsOtherAlgo,
                                          met = self.met, met2 = self.metOtherAlgo)
-                #self.printFlags(eventVars, params = defaults, coords = {"x":x0, "y":yy-0.65},
-                #                flags = ['logErrorTooManyClusters','logErrorTooManySeeds',
-                #                         "beamHaloCSCLooseHaloId","beamHaloCSCTightHaloId","beamHaloEcalLooseHaloId","beamHaloEcalTightHaloId",
-                #                         "beamHaloGlobalLooseHaloId","beamHaloGlobalTightHaloId","beamHaloHcalLooseHaloId","beamHaloHcalTightHaloId" ])
-        
         self.canvas.cd()
         pad.Draw()
         return [pad]
