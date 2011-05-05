@@ -138,7 +138,7 @@ class hadronicLook(analysis.analysis) :
             steps.Jet.jetSelector(_jet, params["referenceThresholds"][0], 1),
             steps.Jet.jetEtaSelector(_jet,2.5,0),
             
-            #steps.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin", funcString="lambda x:x.Et()"),
+            #steps.Other.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin", funcString="lambda x:x.Et()"),
             ]+(
             steps.Other.multiplicityPlotFilter("vertexIndices",                  nMin = 1, xlabel = "N vertices") +
             steps.Other.multiplicityPlotFilter("%sIndices%s"%_electron,          nMax = 0, xlabel = "N electrons") +
@@ -152,7 +152,7 @@ class hadronicLook(analysis.analysis) :
             )+[
             steps.Jet.uniquelyMatchedNonisoMuons(_jet), 
             
-            steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 1500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
+            steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 2000, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
             #steps.Other.variableGreaterFilter(450.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
             
             steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met), 100, 0.0, 3.0,
@@ -204,7 +204,7 @@ class hadronicLook(analysis.analysis) :
             steps.Jet.singleJetHistogrammer(_jet),
             steps.Other.passFilter("jetSumPlots1"), 
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
-            steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 100, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
+            steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
             steps.Other.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
             steps.Other.passFilter("kinematicPlots1"),
             
@@ -221,7 +221,7 @@ class hadronicLook(analysis.analysis) :
             steps.Other.histogrammer("vertexIndices", 20, -0.5, 19.5, title=";N vertices;events / bin", funcString="lambda x:len(x)"),
             steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
-            steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 100, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
+            steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
 
             ##for signal efficiency calculation
             #steps.Other.passFilter("htLabel2"),
@@ -268,9 +268,12 @@ class hadronicLook(analysis.analysis) :
                                              "HT.Run2011A-PromptReco-v1.AOD.Henning.Cert",
                                              "HT.Run2011A-PromptReco-v2.AOD.Arlo.Cert",
                                              "HT.Run2011A-PromptReco-v2.AOD.Arlo2.Cert",
+
                                              #"HT250_skim_calo",
                                              #"HT300_skim_calo",
                                              #"HT350_skim_calo",
+                                             #"bryn_skim_calo",
+                                             
                                              #"Nov4_MJ_skim","Nov4_J_skim","Nov4_J_skim2","Nov4_JM_skim","Nov4_JMT_skim","Nov4_JMT_skim2",
                                              ])#, #nFilesMax = 4, nEventsMax = 2000)
         
