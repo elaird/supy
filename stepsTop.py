@@ -50,7 +50,14 @@ class kinFitLook(analysisStep) :
         self.book.fill( lepX2, "topRecoLogLepChi2", 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2}_{lep});events / bin')
         self.book.fill( lepX2, "topRecoLogLepChi2"+bound, 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2}_{lep});events / bin')
         self.book.fill( (lepX2,hadX2), "topRecoVsLogX2", (50,50),(0,0),(10,10), title = ";log(1+#chi^{2}_{lep});log(1+#chi^{2}_{had});events / bin" )
-
+#####################################
+class combinatoricsLook(analysisStep) :
+    def __init__(self,indexName) : self.indexName = indexName
+    def uponAcceptance(self,ev) :
+        topReco = ev["TopReconstruction"]
+        index = ev[self.indexName]
+        for s in ['lep','nu','bLep','bHad','q'] :
+            self.book.fill(ev['%sDeltaRTopRecoGen'%s][index], s+'DeltaRTopRecoGen'+self.indexName, 50,0,3, title = ';%s DeltaR reco gen;events / bin'%s)
 #####################################
 class discriminateNonTop(analysisStep) :
     def __init__(self, pars) :
