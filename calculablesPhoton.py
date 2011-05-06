@@ -275,3 +275,10 @@ class photonWeight(wrappedChain.calculable) :
     def update(self, ignored) :
         self.value = self.weight[len(self.source[self.var])]
 ####################################
+class photonWeightChoppedToOne(wrappedChain.calculable) :
+    def __init__(self, var = None) :
+        self.weight = {0:0.999993, 1:7.7039, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0, 11:0, 12:0, 13:0, 14:0, 15:0, 16:0, 17:0, 18:0, 19:0}#determined on 2011-05-05
+        self.var = var
+    def update(self, ignored) :
+        self.value = self.weight[len(self.source[self.var])]
+####################################
