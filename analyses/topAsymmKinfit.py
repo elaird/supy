@@ -29,10 +29,9 @@ class topAsymmKinfit(topAsymmShell.topAsymmShell) :
             steps.Filter.label('kinfit'),  steps.Top.kinFitLook("fitTopRecoIndex"),
             steps.Filter.value("genTopSemiLeptonicWithinAcceptance", min = True),
             steps.Filter.value("genTopRecoIndex", min = 0),
-            steps.Histos.value("genTopRecoIndex",20,-0.5,19.5),
             steps.Filter.label('kinfit selected combo'),  steps.Top.kinFitLook("fitTopRecoIndex"),
             steps.Filter.label('kinfit true combo'),  steps.Top.kinFitLook("genTopRecoIndex"),
-            steps.Filter.label('deltaR true combo'), steps.Top.combinatoricsLook("genTopRecoIndex"),
+            steps.Filter.label('deltaR true combo'), steps.Top.combinatoricsLook("genTopRecoIndex", jets = "%sIndices%s"%pars['objects']['jet']),
             steps.Filter.label('deltaR selected combo'), steps.Top.combinatoricsLook("fitTopRecoIndex"),
             ])
     
