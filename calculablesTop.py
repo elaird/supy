@@ -166,7 +166,8 @@ class genTTbarIndices(wrappedChain.calculable) :
         self.value['lminus'] = max([None]+filter(lambda i: ids[i] in [11,13],self.value['wminusChild']))
         self.value['q'] = ((self.value['wplusChild'] if not self.value['lplus'] else []) +
                             (self.value['wminusChild'] if not self.value['lminus'] else []))
-        self.value['nu'] = filter(lambda i: abs(ids[i]) in [12,14], self.value['wplusChild']+self.value['wminusChild'])
+        nus = filter(lambda i: abs(ids[i]) in [12,14], self.value['wplusChild']+self.value['wminusChild'])
+        self.value['nu'] = nus[0] if nus else None
 ######################################
 class genTopSemiLeptonicWithinAcceptance(wrappedChain.calculable) :
     def __init__(self, jetPtMin = None, jetAbsEtaMax = None, lepPtMin = None, lepAbsEtaMax = None) :
@@ -178,10 +179,10 @@ class genTopSemiLeptonicWithinAcceptance(wrappedChain.calculable) :
         iLep = max(indices['lplus'],indices['lminus'])
         genP4 = self.source["genP4"]
         if genP4[iLep].pt() < self.lepPtMin : return
-        if abs(genP4[iLep].eta()) < self.lepAbsEtaMax : return
+        if abs(genP4[iLep].eta()) > self.lepAbsEtaMax : return
         for iJet in ( indices['q'] + [indices['b'],indices['bbar']] ) :
             if genP4[iJet].pt() < self.jetPtMin : return
-            if abs(genP4[iJet].eta()) < self.jetAbsEtaMax : return
+            if abs(genP4[iJet].eta()) > self.jetAbsEtaMax : return
         self.value = True
 ######################################
 class mixedSumP4(wrappedChain.calculable) :
@@ -300,7 +301,7 @@ class lepDeltaRTopRecoGen(wrappedChain.calculable) :
         indices = self.source['genTTbarIndices']
         genLep = self.source['genP4'][max(indices['lplus'],indices['lminus'])]
         self.value = [r.Math.VectorUtil.DeltaR(genLep,reco['lep']) for reco in self.source['TopReconstruction']]
-class nuDeltaRtopRecoGen(wrappedChain.calculable) :
+class nuDeltaRTopRecoGen(wrappedChain.calculable) :
     def update(self,ignored):
         genNu = self.source['genP4'][self.source['genTTbarIndices']['nu']]
         self.value = [r.Math.VectorUtil.DeltaR(genNu,reco['nu']) for reco in self.source['TopReconstruction']]
@@ -323,7 +324,8 @@ class qDeltaRTopRecoGen(wrappedChain.calculable) :
     def update(self,ignored): self.value = [pq[1] for pq in self.source['pqDeltaRTopRecoGen']]
 ######################################
 class fitTopRecoIndex(wrappedChain.calculable) :
-    def update(self,ignored) : return 0
+    value = 0
+    def update(self,ignored) : pass
 class genTopRecoIndex(wrappedChain.calculable) :
     def __init__(self,rMax) : self.rMax = rMax
     def update(self,ignored) :
@@ -331,8 +333,8 @@ class genTopRecoIndex(wrappedChain.calculable) :
         if not self.source['genTopSemiLeptonicWithinAcceptance'] : return        
         indices = range(len(self.source['TopReconstruction']))
         iPass = reduce(lambda A,B: A.intersection(B),
-                       [set(filter(lambda i: self.source['%sDeltaRtopRecoGen'%s][i]<self.rMax,indices)) for s in ['lep','nu','bLep','bHad','q']])
-        if len(iPass) : self.value = iPass[0]
+                       [set(filter(lambda i: self.source['%sDeltaRTopRecoGen'%s][i]<self.rMax,indices)) for s in ['lep','nu','bLep','bHad','q']])
+        if len(iPass) : self.value = list(iPass)[0]
 ######################################
 class wTopAsym(wrappedChain.calculable) :
     def __init__(self, rPrime, totalEff = None, intrinsicR = 0) :

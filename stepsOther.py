@@ -255,6 +255,13 @@ class touchstuff(analysisStep) :
     def uponAcceptance(self,eventVars) :
         for s in self.stuff : eventVars[s]
 #####################################
+class printstuff(analysisStep) :
+    def __init__(self,stuff) :
+        self.stuff = stuff
+        self.moreName = "touch all in %s" % str(stuff)
+    def uponAcceptance(self,eventVars) :
+        for s in self.stuff : print s.rjust(20), eventVars[s]
+#####################################
 class jsonFilter(analysisStep) :
 
     def __init__(self, fileName = "", acceptFutureRuns = False) :
