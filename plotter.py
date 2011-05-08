@@ -94,15 +94,17 @@ class plotter(object) :
                  doColzFor2D = True,
                  compactOutput = False,
                  noSci = False,
+                 showErrorsOnDataYields = True,
                  nLinesMax = 17,
+                 nColumnsMax = 67,
                  shiftUnderOverFlows = True,
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
                  blackList = [],
                  whiteList = []
                  ) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog",
-                     "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","compactOutput",
-                     "noSci", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox"] :
+                     "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput",
+                     "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox"] :
             setattr(self,item,eval(item))
 
         self.useWhiteList = len(self.whiteList)>0
@@ -302,7 +304,8 @@ class plotter(object) :
         text.SetNDC()
         text.SetTextFont(102)
         text.SetTextSize(0.38*text.GetTextSize())
-
+        defSize = text.GetTextSize()
+        
         def getLumi(sample = None, iSource = None) :
             value = 0.0
             if sample!=None :
@@ -354,6 +357,10 @@ class plotter(object) :
             sLength = max([len(item) for item in sampleNames])
             nLength = max([len(item) for item in nEventsIn]  )
             lLength = max([len(item) for item in lumis]      )
+
+            total = sLength + nLength + lLength + 15
+            if total>self.nColumnsMax : text.SetTextSize(defSize*self.nColumnsMax/(total+0.0))
+                
             nSamples = len(sampleNames)
             if nSamples == 1 : return
             for i in range(nSamples) :
@@ -395,9 +402,15 @@ class plotter(object) :
             x = 0.01
             y = 0.98 - 0.33*(i+0.5+absI/5)/self.nLinesMax
             text.DrawTextNDC(x, y, nametitle.format(letter, selection.name, selection.title ))
-            text.DrawTextNDC(x, y-0.49, "%s: %s"%(letter,
-                                                  "".join([(utils.roundString(*k, width=(colWidth-space), noSci = self.noSci) if k else "-    ").rjust(colWidth) for k in selection.yields()])))
-        text.DrawTextNDC(x, 0.45, "   "+"".join([s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]))
+
+            nums = []
+            for iYield,k in enumerate(selection.yields()) :
+                s = utils.roundString(*k, width=(colWidth-space), noSci = self.noSci,
+                                      noErr = ("lumi" in self.someOrganizer.samples[iYield] and not self.showErrorsOnDataYields)) if k else "-    "
+                nums.append(s.rjust(colWidth))
+            text.DrawTextNDC(x, y-0.49, "%s: %s"%(letter, "".join(nums)))
+
+        text.DrawTextNDC(x, 0.5, "   "+"".join([s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]))
         text.DrawTextNDC( 0.8,0.01,"events / %.3f pb^{-1}"% self.someOrganizer.lumi )
         self.printCanvas()
         self.canvas.Clear()
