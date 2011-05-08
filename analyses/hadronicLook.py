@@ -117,7 +117,6 @@ class hadronicLook(analysis.analysis) :
         _et = "Et" if _etRatherThanPt else "Pt"
 
         return [
-            steps.Other.jsonFilter("/home/hep/elaird1/supy/Cert_160404-163369_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False),
             steps.Print.progressPrinter(),
             steps.Trigger.lowestUnPrescaledTrigger(),
             steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
@@ -163,7 +162,9 @@ class hadronicLook(analysis.analysis) :
             steps.Other.variablePtGreaterFilter(80.0,"%sSumP4%s"%_jet,"GeV"),
             steps.Other.histogrammer("vertexIndices", 20, -0.5, 19.5, title=";N vertices;events / bin", funcString="lambda x:len(x)"),
             steps.Other.histogrammer("vertexSumPt", 100, 0.0, 1.0e3, title = ";SumPt of 2nd vertex (GeV);events / bin", funcString = "lambda x:([0.0,0.0]+sorted(x))[-2]"),
-            
+            #steps.Other.histogrammer("logErrorTooManySeeds",    2, 0.0, 1.0, title = ";logErrorTooManySeeds;events / bin"),
+            #steps.Other.histogrammer("logErrorTooManyClusters", 2, 0.0, 1.0, title = ";logErrorTooManyClusters;events / bin"),
+
             #steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT350_v2", ["HLT_HT300_v3"]),
             ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT350_v2", ["HLT_HT250_v2"]),
             ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT350_v2", ["HLT_HT200_v2"]),
@@ -264,19 +265,23 @@ class hadronicLook(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify
-        def data() : return specify(names = [#"HT.Run2011A-PromptReco-v1.AOD.Georgia",
-                                             "HT.Run2011A-PromptReco-v1.AOD.Henning.Cert",
-                                             "HT.Run2011A-PromptReco-v2.AOD.Arlo.Cert",
-                                             "HT.Run2011A-PromptReco-v2.AOD.Arlo2.Cert",
 
-                                             #"HT250_skim_calo",
-                                             #"HT300_skim_calo",
-                                             #"HT350_skim_calo",
-                                             #"bryn_skim_calo",
-                                             
-                                             #"Nov4_MJ_skim","Nov4_J_skim","Nov4_J_skim2","Nov4_JM_skim","Nov4_JMT_skim","Nov4_JMT_skim2",
-                                             ])#, #nFilesMax = 4, nEventsMax = 2000)
-        
+        def data() :
+            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163369_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #40/pb
+            out = []
+            #out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Georgia", weights = jw, overrideLumi =  0.0 )
+            out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Henning",  weights = jw, overrideLumi =  5.07)
+            out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Arlo",     weights = jw, overrideLumi = 10.7 )
+            out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Arlo2",    weights = jw, overrideLumi = 21.15)
+
+            #"HT250_skim_calo",
+            #"HT300_skim_calo",
+            #"HT350_skim_calo",
+            #"bryn_skim_calo",
+            
+            #"Nov4_MJ_skim","Nov4_J_skim","Nov4_J_skim2","Nov4_JM_skim","Nov4_JMT_skim","Nov4_JMT_skim2",
+            #, #nFilesMax = 4, nEventsMax = 2000)
+            return out
 
         def qcd_py6(eL) :
             q6 = [0,5,15,30,50,80,120,170,300,470,600,800,1000,1400,1800]
@@ -389,6 +394,7 @@ class hadronicLook(analysis.analysis) :
                                  #doLog = False,
                                  #compactOutput = True,
                                  #noSci = True,
+                                 showErrorsOnDataYields = False,
                                  pegMinimum = 0.1,
                                  blackList = ["lumiHisto","xsHisto","nJobsHisto"],
                                  )
