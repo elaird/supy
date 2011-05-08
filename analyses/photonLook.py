@@ -16,20 +16,19 @@ class photonLook(analysis.analysis) :
                  "htBins": (250.0, 300.0, 350.0),
                  "referenceThresholds": ({"ht": 350.0, "singleJetPt": 50.0, "jet1Pt": 100.0, "jet2Pt":100.0, "mht":140.0, "photonPt":100.0, "genPhotonPtMin":110.0}, {}),
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
-                 "photonId" :         dict([ ("photonLoose","photonIDLooseFromTwikiPat"),             #0
-                                             ("photonTight","photonIDTightFromTwikiPat"),             #1
+                 "photonId" :         dict([ ("photonIsoRelaxed","photonIDIsoRelaxedPat"),            #0
 
-                                             ("photonTrkIsoRelaxed","photonIDTrkIsoRelaxedPat"),      #2
-                                             ("photonTrkIsoSideband","photonIDTrkIsoSideBandPat"),    #3
+                                             ("photonLoose","photonIDLooseFromTwikiPat"),             #1
+                                             ("photonTight","photonIDTightFromTwikiPat"),             #2
 
-                                             ("photonIsoSideband","photonIDIsoSideBandPat"),          #4
-                                             ("photonIsoRelaxed","photonIDIsoRelaxedPat"),            #5
-                                             ("photonNoIsoReq","photonIDNoIsoReqPat"),                #6
-                                             
-                                             ("photonEGM-10-006-Loose","photonIDEGM_10_006_LoosePat"),#7
-                                             ("photonEGM-10-006-Tight","photonIDEGM_10_006_TightPat"),#8
+                                             ("photonEGM-10-006-Loose","photonIDEGM_10_006_LoosePat"),#3
+                                             ("photonEGM-10-006-Tight","photonIDEGM_10_006_TightPat"),#4
 
-                                             ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [8:9] ),
+                                             ("photonTrkIsoRelaxed","photonIDTrkIsoRelaxedPat"),      #5
+                                             ("photonTrkIsoSideband","photonIDTrkIsoSideBandPat"),    #6
+                                             ("photonIsoSideband","photonIDIsoSideBandPat"),          #7
+                                             ("photonNoIsoReq","photonIDNoIsoReqPat"),                #8
+                                             ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [1:2] ),
                  "zMode" :            dict([ ("zMode",True), ("",False) ]                              [1:2] ),
                  "vertexMode" :       dict([ ("vertexMode",True), ("",False) ]                         [1:2] ),
                  "jetId" :  ["JetIDloose","JetIDtight"]            [0],
@@ -47,7 +46,7 @@ class photonLook(analysis.analysis) :
 
     def listOfCalculables(self, params) :
         if params["vertexMode"] :
-            assert params["photonId"]=="photonIDNoIsoReqPat","In vertexMode but requested %s"%params["photonId"]
+            assert params["photonId"] in ["photonIDIsoRelaxedPat","photonIDNoIsoReqPat"],"In vertexMode but requested %s"%params["photonId"]
 
         obj = params["objects"]
         _etRatherThanPt = params["etRatherThanPt"]
@@ -73,6 +72,7 @@ class photonLook(analysis.analysis) :
                  calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
                  calculables.Photon.Indices(obj["photon"], ptMin = 25, flagName = params["photonId"]),
                  calculables.Photon.photonWeight(var = "vertexIndices"),
+                 #calculables.Photon.photonWeightChoppedToOne(var = "vertexIndices"),
 
                  calculables.Gen.genIndices( pdgs = [22], label = "Status3Photon", status = [3]),
                  calculables.Gen.genMinDeltaRPhotonOther( label = "Status3Photon"),
@@ -127,9 +127,12 @@ class photonLook(analysis.analysis) :
 
         if params["vertexMode"] :
             outList += [
-                steps.Photon.photonPtSelector(_photon, 80.0, 0),
+                steps.Photon.photonPtSelector(_photon, 100.0, 0),
                 steps.Photon.photonEtaSelector(_photon, 1.45, 0),
                 steps.Other.passFilter("vertexDistribution1"),
+                steps.Other.histogrammer("vertexIndices", 20, -0.5, 19.5, title=";N vertices;events / bin", funcString="lambda x:len(x)"),                
+                steps.Other.multiplicityFilter("%sIndices%s"%_jet, nMin = 1),
+                steps.Photon.singlePhotonHistogrammer(_photon, _jet),
                 ]
 
         #require vertex
@@ -225,13 +228,14 @@ class photonLook(analysis.analysis) :
             steps.Gen.photonPurityPlots("Status1Photon", _jet, _photon),
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             
-            #steps.Other.histogrammer("%sSumEt%s"%_jet, 12, 250, 550, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
-            #steps.Other.variableGreaterFilter(450.0, "%sSumEt%s"%_jet, suffix = "GeV"),
-            
             steps.Other.histogrammer("%sMht%sOver%s" %(_jet[0], _jet[1]+params["highPtName"], _met if params["zMode"] else _met+"Plus%s%s"%_photon), 100, 0.0, 3.0,
                                      title = ";MHT %s%s / %s;events / bin"%(_jet[0], _jet[1], _met if params["zMode"] else _met+"Plus%s%s"%_photon)),
             steps.Other.variableLessFilter(1.25,"%sMht%sOver%s" %(_jet[0], _jet[1]+params["highPtName"], _met if params["zMode"] else _met+"Plus%s%s"%_photon)),
             steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
+            
+            steps.Other.histogrammer("%sSumEt%s"%_jet, 16, 250, 650, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
+            steps.Other.variableGreaterFilter(450.0, "%sSumEt%s"%_jet, suffix = "GeV"),
+            steps.Other.variableGreaterFilter(550.0, "%sSumEt%s"%_jet, suffix = "GeV"),
             
             #steps.Gen.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
             
@@ -289,13 +293,21 @@ class photonLook(analysis.analysis) :
         l = ["40", "100", "200", "inf"]
         return ["g_jets_mg_ht_%s_%s_noIsoReqSkim"%(a,b) for a,b in zip(l[:-1], l[1:])]
 
-    def qcyPyNames(self) :
-        l = ["15", "30", "50", "80", "120", "170", "300", "470", "600", "800", "1000", "1400", "1800"]
-        return ["qcd_py6_pt_%s_%s"%(a,b) for a,b in zip(l[:-2], l[1:-1])]
+    #def qcdPyNames(self) : #full samples
+    #    l = ["15", "30", "50", "80", "120", "170", "300", "470", "600", "800", "1000", "1400", "1800"]
+    #    return ["qcd_py6_pt_%s_%s"%(a,b) for a,b in zip(l[:-2], l[1:-1])]
+    #
+    #def gJetsPyNames(self) : #full samples
+    #    l = ["0", "15", "30", "50", "80", "120", "170", "300", "470", "800", "1400", "1800", "inf"]
+    #    return ["g_jets_py6_pt_%s_%s"%(a,b) for a,b in zip(l[:-1], l[1:])]
 
-    def gJetPyNames(self) :
-        l = ["0", "15", "30", "50", "80", "120", "170", "300", "470", "800", "1400", "1800", "inf"]
-        return ["g_jets_py6_pt_%s_%s"%(a,b) for a,b in zip(l[:-1], l[1:])]
+    def qcdPyNames(self) :
+        l = ["80", "120", "170", "300", "470", "600", "800"]
+        return ["qcd_py6_pt_%s_%s_noIsoReqSkim"%(a,b) for a,b in zip(l[:-2], l[1:-1])]
+
+    def gJetsPyNames(self) :
+        l = ["80", "120", "170", "300", "470", "800"]
+        return ["g_jets_py6_pt_%s_%s_noIsoReqSkim"%(a,b) for a,b in zip(l[:-1], l[1:])]
 
     def listOfSamples(self,params) :
         from samples import specify
@@ -316,20 +328,34 @@ class photonLook(analysis.analysis) :
         zinv_mg_2010   = specify(names = ["z_inv_mg_v12_skim"], color = r.kMagenta+3)
 
         #2011
+        #jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163757_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #153/pb
+        #data = []
+        ##data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim", weights = jw, overrideLumi =  0.0 )
+        #data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim",  weights = jw, overrideLumi =  5.07)
+        #data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted1_noIsoReqSkim",      weights = jw, overrideLumi = 12.27)
+        #data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted2_noIsoReqSkim",      weights = jw, overrideLumi = 83.6 )
+        
         #data = specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Henning_noIsoReqSkim", "HT.Run2011A-PromptReco-v1.AOD.Georgia_noIsoReqSkim"])
-        data = specify(names = ["Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim", "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim", "Photon.Run2011A-PromptReco-v2.AOD.Ted_noIsoReqSkim"])
+        data = specify(names = ["Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim",
+                                "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim",
+                                "Photon.Run2011A-PromptReco-v2.AOD.Ted_noIsoReqSkim"])
 
         eL = 2000.0
         qcd_mg          = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdMgNames())
-        qcd_mg_weighted = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdMgNames(), weightName = "photonWeight")
+        #qcd_mg_weighted = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdMgNames(), weightName = "photonWeight")
 
         g_jets_mg          = specify(effectiveLumi = eL, color = r.kGreen, names = self.gJetsMgNames())
-        g_jets_mg_weighted = specify(effectiveLumi = eL, color = r.kGreen, names = self.gJetsMgNames(), weightName = "photonWeight")
+        #g_jets_mg_weighted = specify(effectiveLumi = eL, color = r.kGreen, names = self.gJetsMgNames(), weightName = "photonWeight")
+
+        qcd_py6         = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdPyNames())
+        g_jets_py6      = specify(effectiveLumi = eL, color = r.kGreen, names = self.gJetsPyNames())
 
         ttbar_mg = specify(effectiveLumi = eL, color = r.kOrange, names = ["tt_tauola_mg"])
         ewk_mg = specify(effectiveLumi = eL, color = r.kYellow-3, names = ["z_jets_mg"]) + specify(effectiveLumi = eL, color = 28, names = ["w_jets_mg"])
         zinv_mg = specify(effectiveLumi = eL, color = r.kMagenta, names = ["zinv_jets_mg"])
 
+        zinv_py6 = specify(effectiveLumi = eL, color = r.kMagenta, names = ["z_nunu"])
+        
         outList = []
 
         if not params["zMode"] :
@@ -344,6 +370,9 @@ class photonLook(analysis.analysis) :
             outList += g_jets_mg
             #outList += qcd_mg_weighted
             #outList += g_jets_mg_weighted
+            #outList += qcd_py6
+            #outList += g_jets_py6
+            
             outList += data
 
             #outList += ewk_mg
@@ -351,6 +380,7 @@ class photonLook(analysis.analysis) :
         else :
             #outList += zinv_mg_2010
             outList += zinv_mg
+            #outList += zinv_py6
             
         return outList
 
@@ -361,27 +391,32 @@ class photonLook(analysis.analysis) :
         ewkSources = ["z_inv_mg", "z_jets_mg", "w_jets_mg"]
         #smSources += ewkSources
 
-        org.mergeSamples(targetSpec = {"name":"qcd_mg",    "color":r.kBlue},  sources = self.qcdMgNames())
-        org.mergeSamples(targetSpec = {"name":"g_jets_mg", "color":r.kGreen}, sources = self.gJetsMgNames())
-        smSources += ["qcd_mg", "g_jets_mg"]
-        org.mergeSamples(targetSpec = {"name":"standard_model",          "color":r.kRed,   "markerStyle":1}, sources = smSources, keepSources = True)
+        #org.mergeSamples(targetSpec = {"name":"qcd_py6",    "color":r.kBlue},  sources = self.qcdPyNames())
+        #org.mergeSamples(targetSpec = {"name":"g_jets_py6", "color":r.kGreen}, sources = self.gJetsPyNames())
+        #smSources += ["qcd_py6", "g_jets_py6"]
+        #org.mergeSamples(targetSpec = {"name":"standard_model",          "color":r.kRed,   "markerStyle":1}, sources = smSources, keepSources = True)
 
-        #org.mergeSamples(targetSpec = {"name":"qcd_mg_weighted",    "color":r.kBlue+3},  sources = [item+".photonWeight" for item in self.qcdMgNames()])
-        #org.mergeSamples(targetSpec = {"name":"g_jets_mg_weighted", "color":r.kGreen+3}, sources = [item+".photonWeight" for item in self.gJetsMgNames()])
-        #smSourcesWeighted += ["qcd_mg_weighted", "g_jets_mg_weighted"]
-        #org.mergeSamples(targetSpec = {"name":"standard_model_weighted", "color":r.kRed+3, "markerStyle":1}, sources = smSourcesWeighted, keepSources = True)
-        
+        org.mergeSamples(targetSpec = {"name":"qcd_mg",    "color":r.kBlue+3},  sources = self.qcdMgNames())
+        org.mergeSamples(targetSpec = {"name":"g_jets_mg", "color":r.kGreen+3}, sources = self.gJetsMgNames())
+        smSources += ["qcd_mg", "g_jets_mg"]
+        org.mergeSamples(targetSpec = {"name":"standard_model",          "color":r.kRed+3,   "markerStyle":1}, sources = smSources, keepSources = True)
+
+        #org.mergeSamples(targetSpec = {"name":"qcd_mg_nVtx",    "color":r.kBlue},  sources = [item+".photonWeight" for item in self.qcdMgNames()])
+        #org.mergeSamples(targetSpec = {"name":"g_jets_mg_nVtx", "color":r.kGreen}, sources = [item+".photonWeight" for item in self.gJetsMgNames()])
+        #smSourcesWeighted += ["qcd_mg_nVtx", "g_jets_mg_nVtx"]
+        #org.mergeSamples(targetSpec = {"name":"standard_model_nVtx", "color":r.kRed, "markerStyle":1}, sources = smSourcesWeighted, keepSources = True)
+
+        org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Photon.Run2011")
+            
         ##org.mergeSamples(targetSpec = {"name":"MG TT+EWK", "color":r.kOrange}, sources = ewkSources])
-        #org.mergeSamples(targetSpec = {"name":"qcd_mg_2010",    "color":r.kBlue +3}, sources = self.qcdMgNames2010())
-        #org.mergeSamples(targetSpec = {"name":"g_jets_mg_2010", "color":r.kGreen+3}, sources = self.gJetsMgNames2010())
+        #org.mergeSamples(targetSpec = {"name":"qcd_mg_2010",    "color":r.kBlue -3}, sources = self.qcdMgNames2010())
+        #org.mergeSamples(targetSpec = {"name":"g_jets_mg_2010", "color":r.kGreen-3}, sources = self.gJetsMgNames2010())
         #smSources2010 += ["qcd_mg_2010", "g_jets_mg_2010"]
-        #org.mergeSamples(targetSpec = {"name":"sm_2010", "color":r.kRed+3, "markerStyle":1}, sources = smSources2010, keepSources = True)
+        #org.mergeSamples(targetSpec = {"name":"sm_2010", "color":r.kRed-3, "markerStyle":1}, sources = smSources2010, keepSources = True)
 
         ##org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Nov4")
         #org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Run2010")
 
-        org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Photon.Run2011")
-            
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
             ##for skimming only
@@ -394,7 +429,7 @@ class photonLook(analysis.analysis) :
             if "zMode" in tag :
                 #lumi = 34.7255
                 lumi = 32.78
-                #org.scale(lumi)
+                org.scale(lumi)
                 print "WARNING: HARD-CODED LUMI FOR Z MODE! (%g)"%lumi
             else :
                 self.mergeSamples(org, tag)
@@ -413,10 +448,11 @@ class photonLook(analysis.analysis) :
                              psFileName = self.psFileName(tag),
                              sampleLabelsForRatios = ("data","s.m."),
                              
-                             samplesForRatios = ("2011 Data","standard_model"),
-                             #samplesForRatios = ("2011 Data","standard_model_weighted"),
-
+                             #samplesForRatios = ("2011 Data","standard_model"),
+                             #samplesForRatios = ("2011 Data","standard_model_nVtx"),
+                             
                              #samplesForRatios = ("2010 Data","sm_2010"),
+                             #samplesForRatios = ("2011 Data","sm_2010"),
                              blackList = ["lumiHisto","xsHisto","nJobsHisto",
                                           "deltaRGenReco",
                                           "photonMothergenPt", "photonMotherrecoPt", "photonMothermht",
@@ -428,7 +464,7 @@ class photonLook(analysis.analysis) :
                                           "nJetsPlusnPhotonsStatus1Photon", "jetHtPlusPhotonHtStatus1Photon",
                                           ],
                              doLog = False,
-                             showStatBox = False,
+                             showErrorsOnDataYields = False,
                              #whiteList = ["xcak5JetIndicesPat",
                              #             #"photonPat1Pt",
                              #             #"photonPat1mhtVsPhotonPt",
@@ -493,7 +529,7 @@ class photonLook(analysis.analysis) :
                            preliminary = False,
                            )
 
-    def makeNVertexWeights(self, org, tag) :
+    def makeNVertexWeights(self, org, tag, chopToOne = False) :
         def sampleIndex(org, name) :
             for iSample,sample in enumerate(org.samples) :
                 if sample["name"]==name : return iSample
@@ -509,6 +545,12 @@ class photonLook(analysis.analysis) :
                     sample = "standard_model"; d["denom"] = selection[var][sampleIndex(org, sample)].Clone("%s_%s_clone"%(var, sample.replace(" ","_")))
             return d
 
+        def chop(h) :
+            for iBin in range(1, 1 + h.GetNbinsX()) :
+                if h.GetBinCenter(iBin)!=1.0 :
+                    h.SetBinContent(iBin, 0.0)
+            return
+            
         keep = []
         canvas = r.TCanvas()
         canvas.SetRightMargin(0.2)
@@ -523,6 +565,7 @@ class photonLook(analysis.analysis) :
             #get relative bin heights
             result = histos["denom"].Clone("%s_oldDist"%variable)
             result.Reset()
+            if chopToOne : chop(histos["numer"])
             result.Divide(histos["numer"], histos["denom"], 1.0/histos["numer"].Integral(), 1.0/histos["denom"].Integral())
             result.SetBinContent(1, 1.0); result.SetBinError(1, 0.0) #hack for zero vertex bin
 
