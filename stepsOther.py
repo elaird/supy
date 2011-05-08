@@ -262,37 +262,6 @@ class printstuff(analysisStep) :
     def uponAcceptance(self,eventVars) :
         for s in self.stuff : print s.rjust(20), eventVars[s]
 #####################################
-class jsonFilter(analysisStep) :
-
-    def __init__(self, fileName = "", acceptFutureRuns = False) :
-        self.moreName = "run:ls in %s"%fileName
-        self.acceptFutureRuns = acceptFutureRuns
-        if self.acceptFutureRuns : self.moreName += " OR future runs"
-
-        self.json = {}
-        self.runs = []
-        self.maxRunInJson = -1
-        if fileName :
-            file = open(fileName)
-            self.makeIntJson(eval(file.readlines()[0].replace("\n","")))
-            file.close()
-
-    def makeIntJson(self, json) :
-        for key,value in json.iteritems() :
-            self.json[int(key)] = value
-        self.maxRunInJson = max(self.json.keys())
-        self.runs = self.json.keys()
-
-    def select (self,eventVars) :
-        run = eventVars["run"]
-        if self.acceptFutureRuns and run>self.maxRunInJson : return True
-        if not (run in self.runs) : return False
-        lumiRanges = self.json[run]
-        ls = eventVars["lumiSection"]
-        for lumiRange in lumiRanges :
-            if (ls>=lumiRange[0] and ls<=lumiRange[1]) : return True
-        return False
-#####################################
 class runLsEventFilter(analysisStep) :
 
     def __init__(self, fileName) :
