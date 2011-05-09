@@ -28,7 +28,7 @@ class photonLook(analysis.analysis) :
                                              ("photonTrkIsoSideband","photonIDTrkIsoSideBandPat"),    #6
                                              ("photonIsoSideband","photonIDIsoSideBandPat"),          #7
                                              ("photonNoIsoReq","photonIDNoIsoReqPat"),                #8
-                                             ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [1:2] ),
+                                             ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [2:3] ),
                  "zMode" :            dict([ ("zMode",True), ("",False) ]                              [1:2] ),
                  "vertexMode" :       dict([ ("vertexMode",True), ("",False) ]                         [1:2] ),
                  "jetId" :  ["JetIDloose","JetIDtight"]            [0],
@@ -425,7 +425,8 @@ class photonLook(analysis.analysis) :
 
             if "zMode" in tag :
                 #lumi = 34.7255
-                lumi = 32.78
+                #lumi = 32.78
+                lumi = 100.94
                 org.scale(lumi)
                 print "WARNING: HARD-CODED LUMI FOR Z MODE! (%g)"%lumi
             else :
