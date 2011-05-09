@@ -41,7 +41,8 @@ class photonLook(analysis.analysis) :
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  #"triggerList": ("HLT_HT160_v2","HLT_HT240_v2","HLT_HT260_v2","HLT_HT350_v2","HLT_HT360_v2"),#2011 epoch 0
-                 "triggerList": ("HLT_Photon75_CaloIdVL_v1","HLT_Photon75_CaloIdVL_IsoL_v1","HLT_Photon75_CaloIdVL_v2","HLT_Photon75_CaloIdVL_IsoL_v2"),#2011 epoch 1
+                 "triggerList": ("HLT_Photon75_CaloIdVL_v1","HLT_Photon75_CaloIdVL_v2","HLT_Photon75_CaloIdVL_v3",
+                                 "HLT_Photon75_CaloIdVL_IsoL_v1","HLT_Photon75_CaloIdVL_IsoL_v2", "HLT_Photon75_CaloIdVL_IsoL_v3"),#2011 epoch 1
                  }
 
     def listOfCalculables(self, params) :
@@ -71,8 +72,6 @@ class photonLook(analysis.analysis) :
                  calculables.Muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
                  calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
                  calculables.Photon.Indices(obj["photon"], ptMin = 25, flagName = params["photonId"]),
-                 calculables.Photon.photonWeight(var = "vertexIndices"),
-                 #calculables.Photon.photonWeightChoppedToOne(var = "vertexIndices"),
 
                  calculables.Gen.genIndices( pdgs = [22], label = "Status3Photon", status = [3]),
                  calculables.Gen.genMinDeltaRPhotonOther( label = "Status3Photon"),
@@ -328,24 +327,22 @@ class photonLook(analysis.analysis) :
         zinv_mg_2010   = specify(names = ["z_inv_mg_v12_skim"], color = r.kMagenta+3)
 
         #2011
-        #jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163757_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #153/pb
-        #data = []
-        ##data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim", weights = jw, overrideLumi =  0.0 )
-        #data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim",  weights = jw, overrideLumi =  5.07)
-        #data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted1_noIsoReqSkim",      weights = jw, overrideLumi = 12.27)
-        #data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted2_noIsoReqSkim",      weights = jw, overrideLumi = 83.6 )
+        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163757_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #153/pb
+        data = []
+        #data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim", weights = jw, overrideLumi =  0.0 )
+        data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim",  weights = jw, overrideLumi =  5.07)
+        data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted1_noIsoReqSkim",      weights = jw, overrideLumi = 12.27)
+        data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted2_noIsoReqSkim",      weights = jw, overrideLumi = 83.6 )
         
-        #data = specify(names = ["HT.Run2011A-PromptReco-v1.AOD.Henning_noIsoReqSkim", "HT.Run2011A-PromptReco-v1.AOD.Georgia_noIsoReqSkim"])
-        data = specify(names = ["Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim",
-                                "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim",
-                                "Photon.Run2011A-PromptReco-v2.AOD.Ted_noIsoReqSkim"])
-
         eL = 2000.0
-        qcd_mg          = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdMgNames())
-        #qcd_mg_weighted = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdMgNames(), weightName = "photonWeight")
 
-        g_jets_mg          = specify(effectiveLumi = eL, color = r.kGreen, names = self.gJetsMgNames())
-        #g_jets_mg_weighted = specify(effectiveLumi = eL, color = r.kGreen, names = self.gJetsMgNames(), weightName = "photonWeight")
+        phw = calculables.Photon.photonWeight(var = "vertexIndices")
+        
+        qcd_mg          = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdMgNames())
+        g_jets_mg       = specify(effectiveLumi = eL, color = r.kGreen, names = self.gJetsMgNames())
+
+        qcd_mg_weighted = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdMgNames(), weights = phw)
+        g_jets_mg_weighted = specify(effectiveLumi = eL, color = r.kGreen, names = self.gJetsMgNames(), weights = phw)
 
         qcd_py6         = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdPyNames())
         g_jets_py6      = specify(effectiveLumi = eL, color = r.kGreen, names = self.gJetsPyNames())
@@ -366,10 +363,10 @@ class photonLook(analysis.analysis) :
             ##outList += data_2010_nov4
 
             #2011
-            outList += qcd_mg
-            outList += g_jets_mg
-            #outList += qcd_mg_weighted
-            #outList += g_jets_mg_weighted
+            #outList += qcd_mg
+            #outList += g_jets_mg
+            outList += qcd_mg_weighted
+            outList += g_jets_mg_weighted
             #outList += qcd_py6
             #outList += g_jets_py6
             
@@ -396,15 +393,15 @@ class photonLook(analysis.analysis) :
         #smSources += ["qcd_py6", "g_jets_py6"]
         #org.mergeSamples(targetSpec = {"name":"standard_model",          "color":r.kRed,   "markerStyle":1}, sources = smSources, keepSources = True)
 
-        org.mergeSamples(targetSpec = {"name":"qcd_mg",    "color":r.kBlue+3},  sources = self.qcdMgNames())
-        org.mergeSamples(targetSpec = {"name":"g_jets_mg", "color":r.kGreen+3}, sources = self.gJetsMgNames())
-        smSources += ["qcd_mg", "g_jets_mg"]
-        org.mergeSamples(targetSpec = {"name":"standard_model",          "color":r.kRed+3,   "markerStyle":1}, sources = smSources, keepSources = True)
+        #org.mergeSamples(targetSpec = {"name":"qcd_mg",    "color":r.kBlue+3},  sources = self.qcdMgNames())
+        #org.mergeSamples(targetSpec = {"name":"g_jets_mg", "color":r.kGreen+3}, sources = self.gJetsMgNames())
+        #smSources += ["qcd_mg", "g_jets_mg"]
+        #org.mergeSamples(targetSpec = {"name":"standard_model",          "color":r.kRed+3,   "markerStyle":1}, sources = smSources, keepSources = True)
 
-        #org.mergeSamples(targetSpec = {"name":"qcd_mg_nVtx",    "color":r.kBlue},  sources = [item+".photonWeight" for item in self.qcdMgNames()])
-        #org.mergeSamples(targetSpec = {"name":"g_jets_mg_nVtx", "color":r.kGreen}, sources = [item+".photonWeight" for item in self.gJetsMgNames()])
-        #smSourcesWeighted += ["qcd_mg_nVtx", "g_jets_mg_nVtx"]
-        #org.mergeSamples(targetSpec = {"name":"standard_model_nVtx", "color":r.kRed, "markerStyle":1}, sources = smSourcesWeighted, keepSources = True)
+        org.mergeSamples(targetSpec = {"name":"qcd_mg_nVtx",    "color":r.kBlue},  sources = [item+".photonWeight" for item in self.qcdMgNames()])
+        org.mergeSamples(targetSpec = {"name":"g_jets_mg_nVtx", "color":r.kGreen}, sources = [item+".photonWeight" for item in self.gJetsMgNames()])
+        smSourcesWeighted += ["qcd_mg_nVtx", "g_jets_mg_nVtx"]
+        org.mergeSamples(targetSpec = {"name":"standard_model_nVtx", "color":r.kRed, "markerStyle":1}, sources = smSourcesWeighted, keepSources = True)
 
         org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Photon.Run2011")
             
@@ -449,7 +446,7 @@ class photonLook(analysis.analysis) :
                              sampleLabelsForRatios = ("data","s.m."),
                              
                              #samplesForRatios = ("2011 Data","standard_model"),
-                             #samplesForRatios = ("2011 Data","standard_model_nVtx"),
+                             samplesForRatios = ("2011 Data","standard_model_nVtx"),
                              
                              #samplesForRatios = ("2010 Data","sm_2010"),
                              #samplesForRatios = ("2011 Data","sm_2010"),

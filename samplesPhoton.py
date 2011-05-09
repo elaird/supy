@@ -14,8 +14,10 @@ photon.add("Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim",
            'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v1.AOD.Henning1_*_skim.root", isDirectory = False)'%dir,lumi = 1.188000e+01)
 photon.add("Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim",
            'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v1.AOD.Henning2_*_skim.root", isDirectory = False)'%dir,lumi = 5.070000e+00)
-photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted_noIsoReqSkim",
+photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted1_noIsoReqSkim",
            'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v2.AOD.Ted_*_skim.root", isDirectory = False)'%dir,lumi = 15.83)
+photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted2_noIsoReqSkim",
+           'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v2.AOD.Ted2_*_skim.root", isDirectory = False)'%dir,lumi = 15.83)#lumi ~80/pb, as above
 #MC skims
 photon.add("g_jets_mg_ht_100_200_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_*_skim.root", isDirectory = False)'%dir,
            xs = 8.158440e-02 * 4.414520e+03)
