@@ -179,6 +179,7 @@ class skimmer(analysisStep) :
 class hbheNoiseFilter(analysisStep) :
     def __init__(self, invert = False) :
         self.invert = invert
+        if self.invert : self.moreName = "[INVERTED]"
 
     def select (self,eventVars) :
         return eventVars["hbheNoiseFilterResult"]^self.invert
