@@ -161,6 +161,36 @@ class IndicesBtagged(wrappedChain.calculable) :
         self.value = sorted(self.source[self.Indices],
                             key = self.source[self.tag].__getitem__, reverse = True )
 ###################################
+class IndicesGenB(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["Indices","CorrectedP4"])
+    
+    def matchesGenB(self,index) :
+        genP4s = self.source["genP4"]
+        p4s = self.source[self.CorrectedP4]
+        for iGenB in self.source["genIndicesB"] :
+            bP4 = genP4s[iGenB]
+            p4 = p4s[index]
+            if r.Math.VectorUtil.DeltaR(p4,bP4) < 0.5 and abs(p4.pt()-bP4.pt()) / bP4.pt() < 0.4 : return True
+        return False
+    def update(self,ignored) : self.value = filter(self.matchesGenB, self.source[self.Indices])
+###################################
+class IndicesGenWqq(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["Indices","CorrectedP4"])
+    
+    def matchesGenWqq(self,index) :
+        genP4s = self.source["genP4"]
+        p4s = self.source[self.CorrectedP4]
+        for iGenQ in self.source["genIndicesWqq"] :
+            qP4 = genP4s[iGenQ]
+            p4 = p4s[index]
+            if r.Math.VectorUtil.DeltaR(p4,qP4) < 0.5 and abs(p4.pt()-qP4.pt()) / qP4.pt() < 0.4 : return True
+        return False
+    def update(self,ignored) : self.value = filter(self.matchesGenWqq, self.source[self.Indices])
+###################################
 class NMuonsMatched(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
