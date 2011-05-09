@@ -62,6 +62,17 @@ class genIndices(wrappedChain.calculable) :
         self.value = filter( lambda i: pdg.at(i) in self.PDGs and \
                              status.at(i) in self.status, range(pdg.size()) )
 ##############################
+class genIndicesB(wrappedChain.calculable) :
+    def update(self,ignored) :
+        ids = self.source['genPdgId']
+        self.value = filter(lambda i: abs(ids[i]) is 5, range(len(ids)))
+##############################
+class genIndicesWqq(wrappedChain.calculable) :
+    def update(self,ignored) :
+        ids = self.source['genPdgId']
+        mom = self.source['genMotherPdgId']
+        self.value = filter(lambda i: abs(mom[i]) is 24 and abs(ids[i]) < 5, range(len(ids)))
+##############################
 class genIndicesStatus3NoStatus3Daughter(wrappedChain.calculable) :
     def update(self,ignored) :
         status = self.source["genStatus"]
