@@ -196,7 +196,7 @@ class displayer(analysisStep) :
         glpt     = eventVars["%sIDGlobalMuonPromptTight%s"%muons]
         
         self.printText(self.renamedDesc(muons[0]+muons[1]))
-        self.printText("ID   pT  eta  phi  cIso TGP")
+        self.printText("ID   pT  eta  phi  cIso cat")
         self.printText("---------------------------")
 
         nMuons = p4Vector.size()
@@ -208,7 +208,7 @@ class displayer(analysisStep) :
 
             outString = "%1s%1s"% (" ","T" if tight[iMuon] else " ")
             outString+="%5.0f %4.1f %4.1f %5.2f %3s"%(muon.pt(), muon.eta(), muon.phi(), iso[iMuon],
-                                                      "%s%s%s"%("p" if tr[iMuon] else "f", "p" if gl[iMuon] else "f","p" if glpt[iMuon] else "f"),
+                                                      "%s%s%s"%("T" if tr[iMuon] else " ", "G" if gl[iMuon] else " ","P" if glpt[iMuon] else " "),
                                                       )
             self.printText(outString)
 
@@ -303,7 +303,7 @@ class displayer(analysisStep) :
                  ]
             for i in range(len(l)) :
                 if l[i]==None : l[i] = -1.0
-            self.printText("%14s %4.0f %4.0f %4.0f %6.3f  %4.2f"%tuple([self.renamedDesc(j[0]+j[1])]+l))
+            self.printText("%14s %4.0f %4.0f %4.0f %6.3f %5.2f"%tuple([self.renamedDesc(j[0]+j[1])]+l))
 
         self.printText("jet collection  bin   HT  MHT alphaT Dphi*")
         self.printText("------------------------------------------")
