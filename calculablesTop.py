@@ -259,6 +259,9 @@ class TopReconstruction(wrappedChain.calculable) :
                 "top"  : topP4,
                 "tbar" : tbarP4,
                 "sumP4": sumP4,
+                "iBhad": iBhad,
+                "iBlep": iBlep,
+                "iQQ": iQQ,
                 "residuals" : {"lepB":leptonicFit.residuals.B,
                                "lepS":leptonicFit.residuals.S,
                                "lepL":leptonicFit.residuals.L,
@@ -274,7 +277,8 @@ class TopReconstruction(wrappedChain.calculable) :
     def update(self,ignored) :
         self.hadronicFitCache = {}
 
-        bIndices = set(self.source[self.IndicesBtagged][:3]) #consider the top 3 tags as possible b candidates
+        #bIndices = set(self.source[self.IndicesBtagged][:3]) #consider the top 3 tags as possible b candidates
+        bIndices = set(self.source[self.IndicesBtagged][:4]) #consider the top 3 tags as possible b candidates
         allIndices = set(self.source[self.Indices])
         recos = []
         
@@ -284,8 +288,8 @@ class TopReconstruction(wrappedChain.calculable) :
                 for iP in iOther :
                     for iQ in iOther[iOther.index(iP)+1:] :
                         pts = [self.source[self.CorrectedP4][i].pt() for i in [iBLep,iBHad,iP,iQ]]
-                        if max(pts[:2])<min(pts[2:]) : continue # probability that neither of the two leading in pT is a b-jet is only 7%
-                        if sum(pts[1:])<100 : continue # probability that the sumPt of hadronic side jets is less that 100 is only 4%
+                        #if max(pts[:2])<min(pts[2:]) : continue # probability that neither of the two leading in pT is a b-jet is only 7%
+                        #if sum(pts[1:])<100 : continue # probability that the sumPt of hadronic side jets is less that 100 is only 4%
                         for zPlus in [0,1] :
                             recos.append( self.reconstruct(iBHad,[iP,iQ],iBLep, zPlus))
         if not recos:
