@@ -6,7 +6,7 @@ import ROOT as r
 class topAsymmKinfit(topAsymmShell.topAsymmShell) :
     def parameters(self) :
         pars = super(topAsymmKinfit,self).parameters()
-        pars["effectiveLumi"] = 1000.
+        pars["effectiveLumi"] = None
         return pars
 
     def listOfCalculables(self,pars) :
@@ -26,14 +26,21 @@ class topAsymmKinfit(topAsymmShell.topAsymmShell) :
             steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = "%sIndicesAnyIso%s"%lepton, index = 0),
             ]+topAsymmShell.topAsymmShell.cleanupSteps(pars)+[
             ]+topAsymmShell.topAsymmShell.selectionSteps(pars, withPlots = False) +[
-            steps.Filter.label('kinfit'),  steps.Top.kinFitLook("fitTopRecoIndex"),
+            #steps.Filter.label('kinfit'),  steps.Top.kinFitLook("fitTopRecoIndex"),
             steps.Filter.value("genTopSemiLeptonicWithinAcceptance", min = True),
-            steps.Filter.value("genTopRecoIndex", min = 0),
-            steps.Filter.label('kinfit selected combo'),  steps.Top.kinFitLook("fitTopRecoIndex"),
-            steps.Filter.label('kinfit true combo'),  steps.Top.kinFitLook("genTopRecoIndex"),
-            steps.Filter.label('deltaR true combo'), steps.Top.combinatoricsLook("genTopRecoIndex", jets = "%sIndices%s"%pars['objects']['jet']),
-            steps.Filter.label('deltaR selected combo'), steps.Top.combinatoricsLook("fitTopRecoIndex"),
-            ])
+            #steps.Filter.value("genTopRecoIndex", min = 0),
+            #steps.Filter.label('kinfit selected combo'),  steps.Top.kinFitLook("fitTopRecoIndex"),
+            #steps.Filter.label('kinfit true combo'),  steps.Top.kinFitLook("genTopRecoIndex"),
+            #steps.Filter.label('deltaR true combo'), steps.Top.combinatoricsLook("genTopRecoIndex", jets = obj['jet']),
+            #steps.Filter.label('deltaR selected combo'), steps.Top.combinatoricsLook("fitTopRecoIndex"),
+            ]+sum([[steps.Filter.label(tag),steps.Top.jetProbability(obj['jet'], tag,min,max)] \
+                   for tag,min,max in [("JetProbabilityBJetTags",-0.2,3),
+                                   ("JetBProbabilityBJetTags",-1,12),
+                                   ("CombinedSecondaryVertexBJetTags",-0.1,1),
+                                   ("CombinedSecondaryVertexMVABJetTags",-0.1,1),
+                                   ("TrkCountingHighEffBJetTags",-1,15)
+                                   ]],[])
+                )
     
     def listOfSamples(self,pars) :
         from samples import specify
