@@ -405,8 +405,8 @@ class plotter(object) :
 
             nums = []
             for iYield,k in enumerate(selection.yields()) :
-                s = utils.roundString(*k, width=(colWidth-space), noSci = self.noSci,
-                                      noErr = ("lumi" in self.someOrganizer.samples[iYield] and not self.showErrorsOnDataYields)) if k else "-    "
+                special = "lumi" in self.someOrganizer.samples[iYield] and not self.showErrorsOnDataYields
+                s = utils.roundString(*k, width=(colWidth-space), noSci = self.noSci or special, noErr = special) if k else "-    "
                 nums.append(s.rjust(colWidth))
             text.DrawTextNDC(x, y-0.49, "%s: %s"%(letter, "".join(nums)))
 
