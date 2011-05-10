@@ -267,17 +267,18 @@ class hadronicLook(analysis.analysis) :
         from samples import specify
 
         def data() :
-            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163369_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #40/pb
+            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163757_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #153/pb            
             out = []
             #out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Georgia", weights = jw, overrideLumi =  0.0 )
             out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Henning",  weights = jw, overrideLumi =  5.07)
             out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Arlo",     weights = jw, overrideLumi = 10.7 )
-            out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Arlo2",    weights = jw, overrideLumi = 21.15)
+            out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Arlo2",    weights = jw, overrideLumi = 84.3)
+            out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Robin1",   weights = jw, overrideLumi = 43.1)
 
             #"HT250_skim_calo",
             #"HT300_skim_calo",
-            #"HT350_skim_calo",
             #"bryn_skim_calo",
+            #out += specify(names = "HT350_skim_calo")
             #out += specify(names = "hbhe_noise_skim_calo")
             
             #"Nov4_MJ_skim","Nov4_J_skim","Nov4_J_skim2","Nov4_JM_skim","Nov4_JMT_skim","Nov4_JMT_skim2",
