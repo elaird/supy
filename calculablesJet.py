@@ -835,6 +835,27 @@ class CovariantResolution2(wrappedChain.calculable) :
     def update(self,ignored) : 
         self.value = utils.hackMap(self.matrix , self.source[self.CorrectedP4] , self.source[self.Resolution] )
 #####################################
+class TagProbability(wrappedChain.calculable) :
+    def __init__(self, collection = None, tag = None, jetType = None) :
+        assert jetType in ['b','q','n']
+        self.fixes = (collection[0], str.upper(jetType)+"_"+tag + collection[1])
+        fileName = ("jetProbability_%s"+tag+"%s.txt") % xcStrip(collection)
+        file = open(fileName,"r")
+        lines = file.readlines(4)
+        bins,low,up = tuple(lines[0].split())
+        self.hist = r.TH1D(fileName+jetType,fileName+jetType,int(bins),float(low),float(up))
+        for line in lines[1:] :
+            if line.split()[0] != jetType : continue
+            for i,val in enumerate(line.split()[1:]) :
+                self.hist.SetBinContent(i,float(val))
+
+        self.tag = ("%s"+tag+"%s")%xcStrip(collection)
+        self.moreName = jetType+';'+fileName
+
+    def update(self,ignored) :
+        self.value = [self.hist.GetBinContent(self.hist.FindFixBin(tag)) for tag in self.source[self.tag]]
+        
+#####################################
 class CorrectedP4(wrappedChain.calculable) :
     def __init__(self, genJets = None) : #purposefully not called collection
         self.fixes = genJets
