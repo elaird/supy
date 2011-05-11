@@ -301,13 +301,13 @@ class TopReconstruction(wrappedChain.calculable) :
                         #if sum(pts[1:])<100 : continue # probability that the sumPt of hadronic side jets is less that 100 is only 4%
                         for zPlus in [0,1] :
                             hadKey = tuple(sorted([iBHad,iBLep]) + sorted([iP,iQ]))
-                            if topProbability[hadKey]/maxTopProbability < 0.01 : continue
+                            if topProbability[hadKey] < 0.01 : continue
                             recos.append( self.reconstruct(iBHad,[iP,iQ],iBLep, zPlus))
         if not recos:
             bIndices = self.source[self.IndicesBtagged][:2]
             indices = filter(lambda i: i not in bIndices, self.source[self.Indices])[:2]
             recos = [ self.reconstruct( bIndices[not bLep], indices, bIndices[bLep], zPlus) for bLep in [0,1] for zPlus in [0,1] ]
-        self.value = sorted( recos,  key = lambda x: x["chi2"]*(1-x["probability"]) )
+        self.value = sorted( recos,  key = lambda x: x["chi2"]*(1-x["probability"])**2 )
 
 
 ######################################
@@ -342,14 +342,18 @@ class fitTopRecoIndex(wrappedChain.calculable) :
     value = 0
     def update(self,ignored) : pass
 class genTopRecoIndex(wrappedChain.calculable) :
-    def __init__(self,rMax) : self.rMax = rMax
+    def __init__(self,rMax = 0.6, rMaxNu = 1.0) :
+        for item in ['lep','bLep','bHad','q'] : setattr(self,"rMax"+item, rMax )
+        self.rMaxnu = rMaxNu
+        self.moreName = "deltaR[lep,b,b,q,q] <%0.1f; deltaRnum<%0.1f"%(rMax,rMaxNu)
     def update(self,ignored) :
         self.value = None
         if not self.source['genTopSemiLeptonicWithinAcceptance'] : return        
         indices = range(len(self.source['TopReconstruction']))
-        iPass = reduce(lambda A,B: A.intersection(B),
-                       [set(filter(lambda i: self.source['%sDeltaRTopRecoGen'%s][i]<self.rMax,indices)) for s in ['lep','nu','bLep','bHad','q']])
-        if len(iPass) : self.value = list(iPass)[0]
+        iPass = list(reduce(lambda A,B: A.intersection(B),
+                            [set(filter(lambda i: self.source['%sDeltaRTopRecoGen'%s][i]<getattr(self,"rMax%s"%s),indices)) for s in ['lep','nu','bLep','bHad','q']]))
+        if len(iPass) > 1 : iPass.sort( key = lambda i: sum([self.source['%sDeltaRTopRecoGen'%s][i] for s in ['lep','nu','bLep','bHad','q']]))
+        if len(iPass) : self.value = iPass[0]
 ######################################
 class wTopAsym(wrappedChain.calculable) :
     def __init__(self, rPrime, totalEff = None, intrinsicR = 0) :
@@ -406,27 +410,27 @@ class TopComboProbability(wrappedChain.calculable) :
 class TopComboMaxProbability(wrappedChain.calculable) :
     def update(self,ignored) : self.value = max(self.source["TopComboProbability"].values())
 ######################################
-#class WComboLikelihood(wrappedChain.calculable) :
-#    def __init__(self, jets = None, tag = None) :
-#        self.stash(["Indices"],jets)
-#        self.Q = ("%sTagProbabilityQ_"+tag+"%s") % jets
-#        self.N = ("%sTagProbabilityN_"+tag+"%s") % jets
-#
-#    def update(self,ignored) :
-#        self.value = {}
-#        indices = self.source[self.Indices]
-#        Q = self.source[self.Q]
-#        N = self.source[self.N]
-#
-#        for i in range(len(indices)) :
-#            for j in range(len(indices))[i+1:] :
-#                other = filte(lambda k : k not in [i,j], indices)
-#                self.value(tuple([i,j])) = reduce(operator.mul, [Q[i],Q[j]]+[N[k] for k in other])
-#######################################
-#class TopRatherThanWProbability(wrappedChain.calculable) :
-#    def __init__(self, priorTop = 0.5) : self.priorTop = priorTop
-#
-#    def update(self,ignored) :
-#        topL = self.source["TopComboLikelihood"]
-#        wL = self.source["WComboLikelihood"]
-#        
+class WComboLikelihood(wrappedChain.calculable) :
+    def __init__(self, jets = None, tag = None) :
+        self.stash(["Indices"],jets)
+        self.Q = ("%sTagProbabilityQ_"+tag+"%s") % jets
+        self.N = ("%sTagProbabilityN_"+tag+"%s") % jets
+
+    def update(self,ignored) :
+        self.value = {}
+        indices = self.source[self.Indices]
+        Q = self.source[self.Q]
+        N = self.source[self.N]
+
+        for i in range(len(indices)) :
+            for j in range(len(indices))[i+1:] :
+                other = filte(lambda k : k not in [i,j], indices)
+                self.value[tuple([i,j])] = reduce(operator.mul, [Q[i],Q[j]]+[N[k] for k in other])
+######################################
+class TopRatherThanWProbability(wrappedChain.calculable) :
+    def __init__(self, priorTop = 0.5) : self.priorTop = priorTop
+
+    def update(self,ignored) :
+        topL = self.source["TopComboLikelihood"]
+        wL = self.source["WComboLikelihood"]
+        
