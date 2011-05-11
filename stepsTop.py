@@ -54,6 +54,24 @@ class kinFitLook(analysisStep) :
         self.book.fill( lepX2, "topRecoLogLepChi2"+bound+self.moreName, 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2}_{lep});events / bin')
         self.book.fill( (lepX2,hadX2), "topRecoVsLogX2"+self.moreName, (50,50),(0,0),(10,10), title = ";log(1+#chi^{2}_{lep});log(1+#chi^{2}_{had});events / bin" )
 #####################################
+class topProbLook(analysisStep) :
+    def __init__(self, jets) :
+        self.indicesGenB = "%sIndicesGenB%s"%jets
+        self.indicesGenWqq = "%sIndicesGenWqq%s"%jets
+        self.indices = "%sIndices%s"%jets
+    def uponAcceptance(self,ev) :
+        maxProb = ev["TopComboMaxProbability"]
+        trueCombo = tuple( sorted(ev[self.indicesGenB]) + sorted(ev[self.indicesGenWqq]) )
+        multiplicity = len(ev[self.indices])
+        for key,val in ev["TopComboProbability"].iteritems() :
+            tag = "true" if key == trueCombo else "other"
+            self.book.fill(val, "topProbability"+tag, 100,0,1, title = ";%s top probability;events / bin"%tag)
+            self.book.fill(val/maxProb, "topRelProbability"+tag, 100,0,1, title = ";%s top probability/ maxTopProb;events / bin"%tag)
+            self.book.fill((val/maxProb,multiplicity), "topRelProbabilityByMulti"+tag, (100,10),(0,0),(1,10), title = ";%s top probability/ maxTopProb;jet multiplicity;events / bin"%tag)
+            self.book.fill((maxProb,val), "topProbability_vMax"+tag, (100,100),(0,0),(1,1), title = ";maxTopProb;%s top probability;events / bin"%tag)
+        self.book.fill(maxProb, "TopComboMaxProbability", 100,0,1, title = ';TopComboMaxProbability;events / bin')
+        self.book.fill((maxProb,multiplicity), "TopComboMaxProbabilityLen"+self.indices, (100,10), (0,-0.5), (1,9.5), title = ';TopComboMaxProbability;jet multiplicity;events / bin')
+#####################################
 class combinatoricsLook(analysisStep) :
     def __init__(self,indexName, jets = None) :
         self.moreName = indexName
@@ -64,13 +82,10 @@ class combinatoricsLook(analysisStep) :
         for s in ['lep','nu','bLep','bHad','q'] :
             self.book.fill(ev['%sDeltaRTopRecoGen'%s][index], s+'DeltaRTopRecoGen'+self.moreName, 50,0,3, title = ';%s DeltaR reco gen;events / bin'%s)
         self.book.fill(index, self.moreName, 20, -0.5, 19.5, title = ';%s;events / bin'%self.moreName)
-        self.book.fill(ev["TopComboMaxProbability"], "TopComboMaxProbability", 100,0,1, title = ';TopComboMaProbability;events / bin'),
         self.book.fill(topReco[index]['probability'], self.moreName+"probability", 100,0,1, title = ';%s probability;events / bin'%self.moreName)
-        self.book.fill((ev["TopComboMaxProbability"],topReco[index]['probability']), self.moreName+"probability_vMaxProb", (100,100),(0,0),(1,1), title = ';max probability;%s probability;events / bin'%self.moreName)
 
         if not self.jets : return
         self.book.fill((index,len(ev["%sIndices%s"%self.jets])), self.moreName+"%sMultiplicity%s"%self.jets, (20,10), (-0.5,-0.5), (19.5,9.5), title = ';%s;jet multiplicity;events / bin'%self.moreName)
-        self.book.fill((ev["TopComboMaxProbability"],len(ev["%sIndices%s"%self.jets])), "TopComboMaxProbability%sMultiplicity%s"%self.jets, (100,10), (0,-0.5), (1,9.5), title = ';TopComboMaxProbability;jet multiplicity;events / bin')
 #####################################
 class jetProbability(analysisStep) :
     def __init__(self, jets = None, bvar = None, bins = 30, min = 0 , max = 1, extraName = "") :
