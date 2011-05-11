@@ -1,6 +1,5 @@
 from wrappedChain import *
-import calculables,math,utils,fitKinematic
-
+import calculables,math,utils,fitKinematic,operator
 ######################################
 class TopP4Calculable(wrappedChain.calculable) :
     def __init__(self, collection = None) :
@@ -262,6 +261,7 @@ class TopReconstruction(wrappedChain.calculable) :
                 "iBhad": iBhad,
                 "iBlep": iBlep,
                 "iQQ": iQQ,
+                "probability" : self.source["TopComboProbability"][tuple(sorted([iBhad,iBlep])+sorted(iQQ))],
                 "residuals" : {"lepB":leptonicFit.residuals.B,
                                "lepS":leptonicFit.residuals.S,
                                "lepL":leptonicFit.residuals.L,
@@ -360,3 +360,38 @@ class wTopAsym(wrappedChain.calculable) :
     def update(self,ignored) :
         self.value = None if not self.source['genQQbar'] else self.weight(self.source['genTopBeta'],
                                                                           self.source['genTopAlpha'])
+######################################
+class TopComboLikelihood(wrappedChain.calculable) :
+    def __init__(self, jets = None, tag = None) :
+        self.stash(["Indices"],jets)
+        self.B = ("%sTagProbabilityB_"+tag+"%s") % jets
+        self.Q = ("%sTagProbabilityQ_"+tag+"%s") % jets
+        self.N = ("%sTagProbabilityN_"+tag+"%s") % jets
+
+    def update(self,ignored) :
+        self.value = {}
+        indices = self.source[self.Indices]
+        B = self.source[self.B]
+        Q = self.source[self.Q]
+        N = self.source[self.N]
+
+        for i in range(len(indices)) :
+            for j in range(len(indices))[i+1:] :
+                for m in range(len(indices)) :
+                    if m in [i,j] : continue
+                    for n in range(len(indices))[m+1:] :
+                        if n in [i,j] : continue
+                        other = filter(lambda k: k not in [i,j,m,n], indices)
+                        self.value[tuple([indices[k] for k in [i,j,m,n]])] = reduce(operator.mul, [B[i],B[j],Q[m],Q[n]]+[N[k] for k in other] )
+######################################
+class TopComboProbability(wrappedChain.calculable) :
+    def update(self,ignored) :
+        likelihoods = self.source['TopComboLikelihood']
+        sumL = sum(likelihoods.values())
+        self.value = {}
+        for key,val in likelihoods.iteritems() : self.value[key] = val / sumL
+        return
+######################################
+class TopComboMaxProbability(wrappedChain.calculable) :
+    def update(self,ignored) : self.value = max(self.source["TopComboProbability"].values())
+        

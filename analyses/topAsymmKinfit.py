@@ -6,13 +6,15 @@ import ROOT as r
 class topAsymmKinfit(topAsymmShell.topAsymmShell) :
     def parameters(self) :
         pars = super(topAsymmKinfit,self).parameters()
-        pars["effectiveLumi"] = None
+        pars["effectiveLumi"] = 1000
         return pars
 
     def listOfCalculables(self,pars) :
         calcs = super(topAsymmKinfit,self).listOfCalculables(pars)
         calcs.append( calculables.Top.genTopSemiLeptonicWithinAcceptance( jetPtMin = 20, jetAbsEtaMax=3.5, lepPtMin=21, lepAbsEtaMax = 2.6))
         calcs.append( calculables.Top.genTopRecoIndex(0.5))
+        calcs += [calculables.Jet.TagProbability(pars['objects']['jet'], pars['bVar'], letter) for letter in ['b','q','n']]
+        calcs.append( calculables.Top.TopComboLikelihood(pars['objects']['jet'], pars['bVar']))
         return calcs
 
     def listOfSteps(self, pars) :
@@ -26,25 +28,30 @@ class topAsymmKinfit(topAsymmShell.topAsymmShell) :
             steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = "%sIndicesAnyIso%s"%lepton, index = 0),
             ]+topAsymmShell.topAsymmShell.cleanupSteps(pars)+[
             ]+topAsymmShell.topAsymmShell.selectionSteps(pars, withPlots = False) +[
-            #steps.Filter.label('kinfit'),  steps.Top.kinFitLook("fitTopRecoIndex"),
+            steps.Filter.label('kinfit'),  steps.Top.kinFitLook("fitTopRecoIndex"),
             steps.Filter.value("genTopSemiLeptonicWithinAcceptance", min = True),
-            #steps.Filter.value("genTopRecoIndex", min = 0),
-            #steps.Filter.label('kinfit selected combo'),  steps.Top.kinFitLook("fitTopRecoIndex"),
-            #steps.Filter.label('kinfit true combo'),  steps.Top.kinFitLook("genTopRecoIndex"),
-            #steps.Filter.label('deltaR true combo'), steps.Top.combinatoricsLook("genTopRecoIndex", jets = obj['jet']),
-            #steps.Filter.label('deltaR selected combo'), steps.Top.combinatoricsLook("fitTopRecoIndex"),
-            ]+sum([[steps.Filter.label(tag),steps.Top.jetProbability(obj['jet'], tag,min,max)] \
-                   for tag,min,max in [("JetProbabilityBJetTags",-0.2,3),
-                                   ("JetBProbabilityBJetTags",-1,12),
-                                   ("CombinedSecondaryVertexBJetTags",-0.1,1),
-                                   ("CombinedSecondaryVertexMVABJetTags",-0.1,1),
-                                   ("TrkCountingHighEffBJetTags",-1,15)
-                                   ]],[])
-                )
+            #]+sum([[steps.Filter.label(tag),steps.Top.jetProbability(obj['jet'], tag,bins,min,max)] \
+            #       for tag,bins,min,max in [("JetProbabilityBJetTags",100,-0.2,3),
+            #                                ("JetBProbabilityBJetTags",100,-1,12),
+            #                                ("CombinedSecondaryVertexBJetTags",100,-0.1,1),
+            #                                ("CombinedSecondaryVertexMVABJetTags",100,-0.1,1),
+            #                       ("TrkCountingHighEffBJetTags",100,-1,15)
+            #                                ]],[]) + [
+            steps.Filter.value("genTopRecoIndex", min = 0),
+            steps.Filter.label('kinfit selected combo'),  steps.Top.kinFitLook("fitTopRecoIndex"),
+            steps.Filter.label('kinfit true combo'),  steps.Top.kinFitLook("genTopRecoIndex"),
+            steps.Filter.label('deltaR true combo'), steps.Top.combinatoricsLook("genTopRecoIndex", jets = obj['jet']),
+            steps.Filter.label('deltaR selected combo'), steps.Top.combinatoricsLook("fitTopRecoIndex"),
+            steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=6),
+            steps.Filter.label('deltaR true combo'), steps.Top.combinatoricsLook("genTopRecoIndex", jets = obj['jet']),
+            steps.Filter.label('deltaR selected combo'), steps.Top.combinatoricsLook("fitTopRecoIndex"),
+            ])
     
     def listOfSamples(self,pars) :
         from samples import specify
-        return specify(names = "tt_tauola_mg", effectiveLumi = pars["effectiveLumi"])
+        return (specify(names = "tt_tauola_mg", effectiveLumi = pars["effectiveLumi"], color = r.kRed) +
+                #specify(names = "tt_tauola_pythia", effectiveLumi = pars["effectiveLumi"], color = r.kBlue) +
+                [])
 
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :

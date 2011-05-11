@@ -64,17 +64,21 @@ class combinatoricsLook(analysisStep) :
         for s in ['lep','nu','bLep','bHad','q'] :
             self.book.fill(ev['%sDeltaRTopRecoGen'%s][index], s+'DeltaRTopRecoGen'+self.moreName, 50,0,3, title = ';%s DeltaR reco gen;events / bin'%s)
         self.book.fill(index, self.moreName, 20, -0.5, 19.5, title = ';%s;events / bin'%self.moreName)
+        self.book.fill(ev["TopComboMaxProbability"], "TopComboMaxProbability", 100,0,1, title = ';TopComboMaProbability;events / bin'),
+        self.book.fill(topReco[index]['probability'], self.moreName+"probability", 100,0,1, title = ';%s probability;events / bin'%self.moreName)
+        self.book.fill((ev["TopComboMaxProbability"],topReco[index]['probability']), self.moreName+"probability_vMaxProb", (100,100),(0,0),(1,1), title = ';max probability;%s probability;events / bin'%self.moreName)
+
         if not self.jets : return
         self.book.fill((index,len(ev["%sIndices%s"%self.jets])), self.moreName+"%sMultiplicity%s"%self.jets, (20,10), (-0.5,-0.5), (19.5,9.5), title = ';%s;jet multiplicity;events / bin'%self.moreName)
+        self.book.fill((ev["TopComboMaxProbability"],len(ev["%sIndices%s"%self.jets])), "TopComboMaxProbability%sMultiplicity%s"%self.jets, (100,10), (0,-0.5), (1,9.5), title = ';TopComboMaxProbability;jet multiplicity;events / bin')
 #####################################
 class jetProbability(analysisStep) :
-    def __init__(self, jets = None, bvar = None, min = 0, max = 1) :
+    def __init__(self, jets = None, bvar = None, bins = 30, min = 0 , max = 1, extraName = "") :
         self.indicesGenB = "%sIndicesGenB%s"%jets
         self.indicesGenWqq = "%sIndicesGenWqq%s"%jets
         self.indices = "%sIndices%s"%jets
         self.bvar = ("%s"+bvar+"%s")%xcStrip(jets)
-        self.max = max
-        self.min = min
+        for item in ['bins','min','max','extraName'] : setattr(self,item,eval(item))
     def uponAcceptance(self,ev) :
         indices = ev[self.indices]
         iB = ev[self.indicesGenB]
@@ -85,6 +89,25 @@ class jetProbability(analysisStep) :
             jetType = "b" if i in iB else "q" if i in iQ else "n"
             name = self.bvar+jetType
             self.book.fill(bvar.at(i), name, 30,self.min,self.max, title = ";%s (%s);events / bin"%(self.bvar,jetType))
+
+    def outputSuffix(self) : return "_jetProbability%s_%s.txt"%(self.extraName,self.bvar)
+    def varsToPickle(self) : return ["bvar","extraName"]
+    def mergeFunc(self, products) :
+        file = open(self.outputFileName(),"w")
+        rFile = r.TFile.Open( self._outputFileStem + stepsMaster.Master.outputSuffix(), "READ")
+        hists = [rFile.FindObjectAny(self.bvar+suf) for suf in ['b','q','n']]
+        nBins = hists[0].GetNbinsX()
+        for hist in hists : hist.Scale(1 / hist.Integral(0,nBins+1,"width"))
+
+        print >> file, "%d\t%f\t%f" % ( nBins,
+                                        hists[0].GetBinLowEdge(1),
+                                        hists[0].GetBinLowEdge(nBins+1))
+        for jType, hist in zip(['b','q','n'], hists) :
+            items = [jType] + ["%0.5f"%hist.GetBinContent(i) for i in range(nBins+2)]
+            print >> file, '\t'.join(items)
+        rFile.Close()
+        file.close()
+        print "Wrote %s"%self.outputFileName()
 #####################################
 class discriminateNonTop(analysisStep) :
     def __init__(self, pars) :
