@@ -60,6 +60,7 @@ class minuitLeptonicTop(object) :
         m = minuit.minuit(fnc, db=0, dS=0, dL=0)
         m.mnexcm("MIGRAD", 500, 1)
         result = m.values()
+        del m
         self.chi2_ = fnc(**result)
         if 0 <= self.discriminant : return result
 
@@ -133,6 +134,7 @@ class minuitHadronicTop(object) :
         m = minuit.minuit(fnc)        
         m.mnexcm("MIGRAD", 500, 1)
         fitted = m.values()
+        del m
         self.chi2_ = fnc(**fitted)
         self.J.delta = [fitted[s] for s in ['db','dp','dq']]
         self.J.fitted = [jet*(1+delta) for delta,jet in zip(self.J.delta,self.J.raw)]
