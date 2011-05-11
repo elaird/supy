@@ -184,6 +184,13 @@ class genTopSemiLeptonicWithinAcceptance(wrappedChain.calculable) :
             if abs(genP4[iJet].eta()) > self.jetAbsEtaMax : return
         self.value = True
 ######################################
+class genTopSemiLeptonicAccepted(wrappedChain.calculable) :
+    def __init__(self,jets) :
+        self.indicesGenB = "%sIndicesGenB%s"%jets
+        self.indicesGenWqq = "%sIndicesGenWqq%s"%jets
+    def update(self,ignored) :
+        self.value = len(self.source[self.indicesGenB]) is 2 is len(self.source[self.indicesGenWqq])
+######################################
 class mixedSumP4(wrappedChain.calculable) :
     def __init__(self, transverse = None, longitudinal = None) :
         self.trans = transverse
@@ -275,6 +282,8 @@ class TopReconstruction(wrappedChain.calculable) :
                 }
 
     def update(self,ignored) :
+        topProbability = self.source["TopComboProbability"]
+        maxTopProbability = self.source["TopComboMaxProbability"]
         self.hadronicFitCache = {}
 
         #bIndices = set(self.source[self.IndicesBtagged][:3]) #consider the top 3 tags as possible b candidates
@@ -291,12 +300,14 @@ class TopReconstruction(wrappedChain.calculable) :
                         #if max(pts[:2])<min(pts[2:]) : continue # probability that neither of the two leading in pT is a b-jet is only 7%
                         #if sum(pts[1:])<100 : continue # probability that the sumPt of hadronic side jets is less that 100 is only 4%
                         for zPlus in [0,1] :
+                            hadKey = tuple(sorted([iBHad,iBLep]) + sorted([iP,iQ]))
+                            if topProbability[hadKey]/maxTopProbability < 0.01 : continue
                             recos.append( self.reconstruct(iBHad,[iP,iQ],iBLep, zPlus))
         if not recos:
             bIndices = self.source[self.IndicesBtagged][:2]
             indices = filter(lambda i: i not in bIndices, self.source[self.Indices])[:2]
             recos = [ self.reconstruct( bIndices[not bLep], indices, bIndices[bLep], zPlus) for bLep in [0,1] for zPlus in [0,1] ]
-        self.value = sorted( recos,  key = lambda x: x["chi2"] )
+        self.value = sorted( recos,  key = lambda x: x["chi2"]*(1-x["probability"]) )
 
 
 ######################################
@@ -394,4 +405,28 @@ class TopComboProbability(wrappedChain.calculable) :
 ######################################
 class TopComboMaxProbability(wrappedChain.calculable) :
     def update(self,ignored) : self.value = max(self.source["TopComboProbability"].values())
-        
+######################################
+#class WComboLikelihood(wrappedChain.calculable) :
+#    def __init__(self, jets = None, tag = None) :
+#        self.stash(["Indices"],jets)
+#        self.Q = ("%sTagProbabilityQ_"+tag+"%s") % jets
+#        self.N = ("%sTagProbabilityN_"+tag+"%s") % jets
+#
+#    def update(self,ignored) :
+#        self.value = {}
+#        indices = self.source[self.Indices]
+#        Q = self.source[self.Q]
+#        N = self.source[self.N]
+#
+#        for i in range(len(indices)) :
+#            for j in range(len(indices))[i+1:] :
+#                other = filte(lambda k : k not in [i,j], indices)
+#                self.value(tuple([i,j])) = reduce(operator.mul, [Q[i],Q[j]]+[N[k] for k in other])
+#######################################
+#class TopRatherThanWProbability(wrappedChain.calculable) :
+#    def __init__(self, priorTop = 0.5) : self.priorTop = priorTop
+#
+#    def update(self,ignored) :
+#        topL = self.source["TopComboLikelihood"]
+#        wL = self.source["WComboLikelihood"]
+#        
