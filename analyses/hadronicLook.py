@@ -34,9 +34,10 @@ class hadronicLook(analysis.analysis) :
                  "lowPtName" : "lowPt",
                  "highPtThreshold" : 50.0,
                  "highPtName" : "highPt",
-                 "htBins": (250.0, 300.0, 350.0),
-                 "referenceThresholds": ({"ht": 350.0, "singleJetPt": 50.0, "jet1Pt": 100.0, "jet2Pt":100.0}, {}),
-                 "htBin": dict( [("250",250.0), ("300",300.0), ("350",350.0)][2:3] ),
+                 #"htBins": (275.0, 325.0, 375.0, 475.0, 675.0, 875.0),
+                 "htBins": (275.0, 325.0, 375.0),
+                 "referenceThresholds": ({"ht": 375.0, "singleJetPt": 50.0, "jet1Pt": 100.0, "jet2Pt":100.0}, {}),
+                 "htBin": dict( [("275", 275.0), ("325", 325.0), ("375", 375.0), ("475", 475.0), ("675", 675.0), ("875", 875.0)][2:3]),
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  #"triggerList": ("HLT_HT150_v2","HLT_HT150_v3","HLT_HT160_v2","HLT_HT200_v2","HLT_HT200_v3","HLT_HT240_v2","HLT_HT250_v2","HLT_HT250_v3","HLT_HT260_v2",
@@ -228,6 +229,10 @@ class hadronicLook(analysis.analysis) :
             #steps.Other.passFilter("htLabel2"),
             #steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 20, 0, 1000, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
 
+            steps.Other.variableGreaterFilter(475.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
+            steps.Other.variableGreaterFilter(675.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
+            steps.Other.variableGreaterFilter(875.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
+            
             steps.Other.passFilter("final"),
             
             #steps.Other.skimmer(),
@@ -320,17 +325,19 @@ class hadronicLook(analysis.analysis) :
                      specify(names = "w_jets_mg", effectiveLumi = eL, color = 28         ) )
 
         def susy(eL) :
-            return ( specify(names = "lm0", effectiveLumi = eL, color = r.kRed    ) +
-                     specify(names = "lm1", effectiveLumi = eL, color = r.kMagenta) )
+            return ( specify(names = "lm1", effectiveLumi = eL) +
+                     specify(names = "lm6", effectiveLumi = eL) )
 
         qcd_func,g_jets_func = {"py6": (qcd_py6,g_jets_py6),
                                 "py8": (qcd_py8,g_jets_py6), # no g_jets_py8 available
                                 "mg" : (qcd_mg, g_jets_mg ) }[params["mcSoup"]]
-        eL = 1000 # 1/pb
+        eL = 3000 # 1/pb
+        susyEL = 10*eL
         #return data()
         return ( data() +
                  qcd_func(eL) + #g_jets_func(eL) +
-                 ttbar_mg(eL) + ewk(eL) + susy(eL)
+                 ttbar_mg(eL) + ewk(eL) +
+                 susy(susyEL)
                  )
 
     def mergeSamples(self, org, tag) :
@@ -372,8 +379,8 @@ class hadronicLook(analysis.analysis) :
         else : #Henning's requests
             org.mergeSamples(targetSpec = {"name":"t#bar{t}, W, Z + Jets", "color":r.kBlue, "lineWidth":lineWidth, "goptions":goptions}, sources = ewkSources)
             org.mergeSamples(targetSpec = {"name":"Standard Model ", "color":r.kCyan, "lineWidth":lineWidth, "goptions":goptions}, sources = ["QCD Multijet", "t#bar{t}, W, Z + Jets"], keepSources = True)
-            org.mergeSamples(targetSpec = {"name":"LM0", "color":r.kRed, "lineStyle":10, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="lm0")
             org.mergeSamples(targetSpec = {"name":"LM1", "color":r.kMagenta, "lineStyle":2, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="lm1")
+            org.mergeSamples(targetSpec = {"name":"LM6", "color":r.kRed, "lineStyle":10, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="lm6")
 
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
