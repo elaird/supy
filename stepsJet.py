@@ -211,9 +211,9 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
         ht =  eventVars[self.htName]
         mht = sumP4.pt()
         
-        self.book.fill(           ht,"%sHt%s"       %self.cs, 50, 0.0, 2000.0, title = ";H_{T} (GeV) from %s%s %s_{T}'s;events / bin"%(self.cs[0],self.cs[1],self.letter))
-        self.book.fill(          mht,"%sMht%s"      %self.cs, 50, 0.0,  700.0, title = ";#slash{H}_{T} (GeV) from %s%s;events / bin"%self.cs)
-        self.book.fill(       mht+ht,"%sHtPlusMht%s"%self.cs, 50, 0.0, 2000.0, title = ";H_{T} + #slash{H}_{T} (GeV) from %s%s %s_{T}'s;events / bin"%(self.cs[0],self.cs[1],self.letter))
+        self.book.fill(           ht,"%sHt%s"       %self.cs, 50, 0.0, 2500.0, title = ";H_{T} (GeV) from %s%s %s_{T}'s;events / bin"%(self.cs[0],self.cs[1],self.letter))
+        self.book.fill(          mht,"%sMht%s"      %self.cs, 50, 0.0, 1000.0, title = ";#slash{H}_{T} (GeV) from %s%s;events / bin"%self.cs)
+        self.book.fill(       mht+ht,"%sHtPlusMht%s"%self.cs, 50, 0.0, 2500.0, title = ";H_{T} + #slash{H}_{T} (GeV) from %s%s %s_{T}'s;events / bin"%(self.cs[0],self.cs[1],self.letter))
         self.book.fill( sumP4.mass(),"%sm%s"        %self.cs, 50, 0.0,  7.0e3, title = ";mass (GeV) of system of clean jets;events / bin")
         self.book.fill( (ht,mht), "%smht_vs_ht%s"%self.cs, (50, 50), (0.0, 0.0), (2000.0, 2000.0),
                    title = "; H_{T} (GeV) from clean jets; #slash{H}_{T} (GeV) from clean jet %s_{T}'s;events / bin"%self.letter)
