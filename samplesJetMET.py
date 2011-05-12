@@ -7,8 +7,9 @@ jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Georgia",'%s/georgia//ICF/automated/20
 jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Henning",'%s/henning//ICF/automated/2011_04_13_17_17_19/")'%srm, lumi =  5.07)
 jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Arlo", '%s/arlogb//ICF/automated/2011_04_24_19_07_39/")'%srm, lumi = 15.28) #174/188 complete
 jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Arlo2",'%s/arlogb//ICF/automated/2011_05_01_22_10_08/")'%srm, lumi = 78.61) #406/430 complete
+jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Robin1",'%s/rnandi//ICF/automated/2011_05_07_16_49_05/")'%srm, lumi = 50.0) #343/348 complete; lumi is just a guess
 
-jetmet.add("HT350_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v3/350_bin/calo.root", isDirectory = False)', lumi = 36.9)
+jetmet.add("HT350_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v4/350_bin/calo.root", isDirectory = False)', lumi = 143)
 #jetmet.add("HT350_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v2/350_bin/calo.root", isDirectory = False)', lumi = 32.23)
 #jetmet.add("HT350_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v1/350_bin/calo.root", isDirectory = False)', lumi = 17.0)
 jetmet.add("HT350_skim_pf", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v1/350_bin/pf.root", isDirectory = False)', lumi = 17.0)
