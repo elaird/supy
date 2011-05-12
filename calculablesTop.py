@@ -41,6 +41,10 @@ class DeltaAbsY(TopP4Calculable) :
     def update(self,ignored) :
         self.value = abs(self.source[self.P4]['t'].Rapidity()) - abs(self.source[self.P4]['tbar'].Rapidity())
 ######################################
+class WqqDeltaR(TopP4Calculable) :
+    def update(self,ignored) :
+        self.value = r.Math.VectorUtil.DeltaR(self.source[self.P4]['p'],self.source[self.P4]['q'])
+######################################
 class SignedLeptonRapidity(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
@@ -115,7 +119,10 @@ class genTopP4(wrappedChain.calculable) :
         self.value = { 't':p4[indices['t']],
                        'tbar':p4[indices['tbar']],
                        'quark':p4[qqbar[0] if qqbar else self.source['genIndexStrongerParton']],
-                       'lepton': p4[indices['lplus']] if indices['lplus'] else p4[indices['lminus']] if indices['lminus'] else None}
+                       'lepton': p4[indices['lplus']] if indices['lplus'] else p4[indices['lminus']] if indices['lminus'] else None,
+                       'p' : p4[indices['q'][0]],
+                       'q' : p4[indices['q'][1]]
+                       }
 class genTopLeptonCharge(wrappedChain.calculable) :
     def update(self,ignored) : self.value = (1 if self.source['genTTbarIndices']['lplus'] else \
                                              -1 if self.source['genTTbarIndices']['lminus'] else 0)
@@ -129,7 +136,9 @@ class fitTopP4(wrappedChain.calculable) :
         self.value = {'t':t,
                       'tbar':tbar,
                       'quark': utils.LorentzV().SetPxPyPzE(0,0,q_z,abs(q_z)),
-                      'lepton': reco['lep']}
+                      'lepton': reco['lep'],
+                      'p' : reco['hadP'],
+                      'q' : reco['hadQ']}
 class fitTopLeptonCharge(wrappedChain.calculable) :
     def __init__(self, lepton) :
         self.lepton = lepton

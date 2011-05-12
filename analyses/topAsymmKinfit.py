@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os,topAsymmShell,steps,calculables,samples,organizer,plotter,utils
+import os,topAsymmShell,steps,calculables,samples,organizer,plotter,utils,math
 import ROOT as r
 
 class topAsymmKinfit(topAsymmShell.topAsymmShell) :
@@ -31,7 +31,9 @@ class topAsymmKinfit(topAsymmShell.topAsymmShell) :
             ]+topAsymmShell.topAsymmShell.selectionSteps(pars, withPlots = False) +[
             #steps.Filter.label('kinfit'),  steps.Top.kinFitLook("fitTopRecoIndex"),
             steps.Filter.value("genTopSemiLeptonicWithinAcceptance", min = True),
+            steps.Histos.value("genTopWqqDeltaR",50,0,4),
             steps.Filter.value("genTopSemiLeptonicAccepted", min = True),
+            steps.Histos.value("genTopWqqDeltaR",50,0,4),
             #]+sum([[steps.Filter.label(tag),steps.Top.jetProbability(obj['jet'], tag,bins,min,max)] \
             #       for tag,bins,min,max in [("JetProbabilityBJetTags",100,-0.2,3),
             #                                ("JetBProbabilityBJetTags",100,-1,12),
@@ -42,6 +44,8 @@ class topAsymmKinfit(topAsymmShell.topAsymmShell) :
             steps.Top.topProbLook(obj['jet']),
             steps.Other.assertNotYetCalculated("TopReconstruction"),
             steps.Filter.value("genTopRecoIndex", min = 0),
+            steps.Histos.value("genTopWqqDeltaR",50,0,4),
+            steps.Histos.value("fitTopWqqDeltaR",50,0,4),
             steps.Filter.label('kinfit selected combo'),  steps.Top.kinFitLook("fitTopRecoIndex"),
             steps.Filter.label('kinfit true combo'),  steps.Top.kinFitLook("genTopRecoIndex"),
             steps.Filter.label('deltaR true combo'), steps.Top.combinatoricsLook("genTopRecoIndex", jets = obj['jet']),
