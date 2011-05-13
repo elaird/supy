@@ -120,8 +120,8 @@ class genTopP4(wrappedChain.calculable) :
                        'tbar':p4[indices['tbar']],
                        'quark':p4[qqbar[0] if qqbar else self.source['genIndexStrongerParton']],
                        'lepton': p4[indices['lplus']] if indices['lplus'] else p4[indices['lminus']] if indices['lminus'] else None,
-                       'p' : p4[indices['q'][0]],
-                       'q' : p4[indices['q'][1]]
+                       'p' : p4[indices['q'][0]] if indices['q'] else None,
+                       'q' : p4[indices['q'][1]] if len(indices['q'])>1 else None
                        }
 class genTopLeptonCharge(wrappedChain.calculable) :
     def update(self,ignored) : self.value = (1 if self.source['genTTbarIndices']['lplus'] else \
@@ -180,6 +180,7 @@ class genTTbarIndices(wrappedChain.calculable) :
 class genTopSemiLeptonicWithinAcceptance(wrappedChain.calculable) :
     def __init__(self, jetPtMin = None, jetAbsEtaMax = None, lepPtMin = None, lepAbsEtaMax = None) :
         for item in ['jetPtMin','jetAbsEtaMax','lepPtMin','lepAbsEtaMax'] : setattr(self,item,eval(item))
+        self.moreName = 'jetPt>%0.1f; jet|eta|<%0.1f; lepPt>%0.1f; lep|eta|<%0.1f'%(jetPtMin,jetAbsEtaMax,lepPtMin,lepAbsEtaMax)
     def update(self,ignored) :
         self.value = False
         indices = self.source['genTTbarIndices']
@@ -278,6 +279,8 @@ class TopReconstruction(wrappedChain.calculable) :
                 "iBlep": iBlep,
                 "iQQ": iQQ,
                 "probability" : self.source["TopComboProbability"][tuple(sorted([iBhad,iBlep])+sorted(iQQ))],
+                "sigmaL" : 1.0 / math.sqrt(leptonicFit.nu.invSigmaL2),
+                "sigmaS" : 1.0 / math.sqrt(leptonicFit.nu.invSigmaS2),
                 "residuals" : {"lepB":leptonicFit.residuals.B,
                                "lepS":leptonicFit.residuals.S,
                                "lepL":leptonicFit.residuals.L,
