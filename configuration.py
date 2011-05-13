@@ -55,7 +55,7 @@ def siteSpecs() :
     return {
         "ic"  :{"localOutputDir" : "/vols/cms02/%s/tmp/"%user,
                 "globalOutputDir": "/vols/cms02/%s/tmp/"%user,
-                "dCachePrefix"   : "dcap://gfe02.grid.hep.ph.ic.ac.uk:22128",
+                "dCachePrefix"   : "dcap://gfe02.grid.hep.ph.ic.ac.uk",
                 "srmPrefix"      : "srm://gfe02.grid.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN=/pnfs/hep.ph.ic.ac.uk/data/cms/store/user",
                 "queueHeaders"   : ["job-ID", "prior", "name", "user", "state", "submit1", "submit2", "queue", "slots", "ja-task-ID"],
                 "queueVars"      : {"queue":"queue", "user":"user", "state":"state", "run":"r", "summary":"qstat -u '*'", "sample":"qstat | head"},
