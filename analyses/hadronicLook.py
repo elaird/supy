@@ -141,8 +141,8 @@ class hadronicLook(analysis.analysis) :
             #steps.Other.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin", funcString="lambda x:x.Et()"),
             ]+(
             steps.Other.multiplicityPlotFilter("vertexIndices",                  nMin = 1, xlabel = "N vertices") +
-            steps.Other.multiplicityPlotFilter("%sIndices%s"%_electron,          nMax = 0, xlabel = "N electrons") +
             steps.Other.multiplicityPlotFilter("%sIndices%s"%_muon,              nMax = 0, xlabel = "N muons") +
+            steps.Other.multiplicityPlotFilter("%sIndices%s"%_electron,          nMax = 0, xlabel = "N electrons") +
             steps.Other.multiplicityPlotFilter("%sIndices%s"%_photon,            nMax = 0, xlabel = "N photons") +
             steps.Other.multiplicityPlotFilter("%sIndicesOther%s"%_jet,          nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID or #eta"%_jet) +
             steps.Other.multiplicityPlotFilter("%sIndicesOther%s"%_muon,         nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID or #eta"%_muon) +
@@ -152,7 +152,7 @@ class hadronicLook(analysis.analysis) :
             )+[
             steps.Jet.uniquelyMatchedNonisoMuons(_jet), 
             
-            steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 2000, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
+            steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 2500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
             #steps.Other.variableGreaterFilter(450.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
             
             steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met), 100, 0.0, 3.0,
@@ -229,9 +229,9 @@ class hadronicLook(analysis.analysis) :
             #steps.Other.passFilter("htLabel2"),
             #steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 20, 0, 1000, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
 
-            steps.Other.variableGreaterFilter(475.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
-            steps.Other.variableGreaterFilter(675.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
-            steps.Other.variableGreaterFilter(875.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
+            #steps.Other.variableGreaterFilter(475.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
+            #steps.Other.variableGreaterFilter(675.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
+            #steps.Other.variableGreaterFilter(875.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
             
             steps.Other.passFilter("final"),
             
@@ -325,8 +325,8 @@ class hadronicLook(analysis.analysis) :
                      specify(names = "w_jets_mg", effectiveLumi = eL, color = 28         ) )
 
         def susy(eL) :
-            return ( specify(names = "lm1", effectiveLumi = eL) +
-                     specify(names = "lm6", effectiveLumi = eL) )
+            return ( specify(names = "lm1", effectiveLumi = eL, color = r.kMagenta) +
+                     specify(names = "lm6", effectiveLumi = eL, color = r.kRed) )
 
         qcd_func,g_jets_func = {"py6": (qcd_py6,g_jets_py6),
                                 "py8": (qcd_py8,g_jets_py6), # no g_jets_py8 available
