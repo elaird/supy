@@ -75,6 +75,38 @@ class ParticleCountFilter(analysisStep) :
             if eventVars["GenParticleCategoryCounts"][key]!=value : return False
         return True
 #####################################
+class xsHistogrammer(analysisStep) :
+
+    def __init__(self, tanBeta) :
+        def nBins(lo, hi, stepSize) :
+            return int(1+(hi-lo)/stepSize)
+
+        self.tanBetaThreshold = 0.1
+        self.tanBeta = tanBeta
+        self.moreName = "tanBeta=%g"%self.tanBeta
+
+        self.m0Nbins = 150
+        self.m0Lo =    0.0
+        self.m0Hi = 1500.0
+
+        self.m12Nbins = 100
+        self.m12Lo =    0.0
+        self.m12Hi = 1000.0
+
+        self.bins = (self.m0Nbins, self.m12Nbins)
+        self.lo = (self.m0Lo, self.m12Lo)
+        self.hi = (self.m0Hi, self.m12Hi)
+
+    def uponAcceptance (self,eventVars) :
+        if abs(eventVars["susyScantanbeta"]-self.tanBeta)>self.tanBetaThreshold : return
+
+        xs = eventVars["susyScanCrossSection"]
+        m0 = eventVars["susyScanM0"]
+        m12 = eventVars["susyScanM12"]
+
+        self.book.fill( (m0, m12), "nEvents", self.bins, self.lo, self.hi,         title = "nEvents;m_{0} (GeV);m_{1/2} (GeV)")
+        self.book.fill( (m0, m12), "XS",      self.bins, self.lo, self.hi, w = xs, title = "XS;m_{0} (GeV);m_{1/2} (GeV)")
+#####################################
 class genParticleCountHistogrammer(analysisStep) :
 
     def __init__(self, tanBeta) :
