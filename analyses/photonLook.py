@@ -13,8 +13,8 @@ class photonLook(analysis.analysis) :
         #objects["pfAK5JetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,    ]))
 
         return { "objects": objects,
-                 "htBins": (250.0, 300.0, 350.0),
-                 "referenceThresholds": ({"ht": 350.0, "singleJetPt": 50.0, "jet1Pt": 100.0, "jet2Pt":100.0, "mht":140.0, "photonPt":100.0, "genPhotonPtMin":110.0}, {}),
+                 "htBins": (275.0, 325.0, 375.0),
+                 "referenceThresholds": ({"ht": 375.0, "singleJetPt": 50.0, "jet1Pt": 100.0, "jet2Pt":100.0, "mht":140.0, "photonPt":100.0, "genPhotonPtMin":110.0}, {}),
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
                  "photonId" :         dict([ ("photonIsoRelaxed","photonIDIsoRelaxedPat"),            #0
 
@@ -37,7 +37,7 @@ class photonLook(analysis.analysis) :
                  "lowPtName":"lowPt",
                  "highPtThreshold" : 50.0,
                  "highPtName" : "highPt",
-                 "htBin": dict( [("250",250.0), ("300",300.0), ("350",350.0)][2:3] ),
+                 "htBin": dict( [("275", 275.0), ("325", 325.0), ("375", 375.0)][2:3] ),
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  #"triggerList": ("HLT_HT160_v2","HLT_HT240_v2","HLT_HT260_v2","HLT_HT350_v2","HLT_HT360_v2"),#2011 epoch 0
@@ -232,10 +232,9 @@ class photonLook(analysis.analysis) :
             steps.Other.variableLessFilter(1.25,"%sMht%sOver%s" %(_jet[0], _jet[1]+params["highPtName"], _met if params["zMode"] else _met+"Plus%s%s"%_photon)),
             steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
             
-            steps.Other.histogrammer("%sSumEt%s"%_jet, 16, 250, 650, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
-            steps.Other.variableGreaterFilter(450.0, "%sSumEt%s"%_jet, suffix = "GeV"),
-            steps.Other.variableGreaterFilter(550.0, "%sSumEt%s"%_jet, suffix = "GeV"),
-            
+            steps.Other.histogrammer("%sSumEt%s"%_jet, 40, 0, 1000, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
+            ] + [steps.Other.variableGreaterFilter(375.0+100*iBin, "%sSumEt%s"%_jet, suffix = "GeV") for iBin in range(1,6)] +\
+            [
             #steps.Gen.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
             
             #steps.Other.skimmer(),
@@ -428,7 +427,8 @@ class photonLook(analysis.analysis) :
             if "zMode" in tag :
                 #lumi = 34.7255
                 #lumi = 32.78
-                lumi = 100.94
+                #lumi = 100.94
+                lumi = 164.64
                 org.scale(lumi)
                 print "WARNING: HARD-CODED LUMI FOR Z MODE! (%g)"%lumi
             else :
