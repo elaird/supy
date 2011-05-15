@@ -327,13 +327,15 @@ class photonLook(analysis.analysis) :
         zinv_mg_2010   = specify(names = ["z_inv_mg_v12_skim"], color = r.kMagenta+3)
 
         #2011
-        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163757_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #153/pb
+        #jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163757_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #153/pb
+        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163869_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #193/pb        
         data = []
         #data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim", weights = jw, overrideLumi =  0.0 )
         data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim",  weights = jw, overrideLumi =  5.07)
         data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted1_noIsoReqSkim",      weights = jw, overrideLumi = 12.27)
         data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted2_noIsoReqSkim",      weights = jw, overrideLumi = 83.6 )
-        
+        data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted3_noIsoReqSkim",      weights = jw, overrideLumi = 63.7 )
+
         eL = 2000.0
 
         phw = calculables.Photon.photonWeight(var = "vertexIndices")
