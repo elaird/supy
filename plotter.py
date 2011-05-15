@@ -287,7 +287,7 @@ class plotter(object) :
         if len(calcs)==2 : calcs.append( ("","NONE","") )
         for i,calc in enumerate(calcs) :
             x = 0.02
-            y = 0.98 - 0.6*(i+0.5)/self.nLinesMax
+            y = 0.98 - 0.4*(i+0.5)/self.nLinesMax
             text.DrawTextNDC(x, y, "%s   %s   %s"%(calc[0].rjust(length0+2), calc[1].ljust(length1+2), calc[2]) )
         return text
         
@@ -411,7 +411,7 @@ class plotter(object) :
             text.DrawTextNDC(x, y-0.49, "%s: %s"%(letter, "".join(nums)))
 
         text.DrawTextNDC(x, 0.5, "   "+"".join([s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]))
-        text.DrawTextNDC( 0.8,0.01,"events / %.3f pb^{-1}"% self.someOrganizer.lumi )
+        text.DrawTextNDC( 0.75, 0.01,"events / %.3f pb^{-1}"% self.someOrganizer.lumi )
         self.printCanvas()
         self.canvas.Clear()
 
