@@ -5,7 +5,7 @@ JSONFILENAME=$2
 
 #from https://twiki.cern.ch/twiki/bin/viewauth/CMS/LumiCalc
 export SCRAM_ARCH=slc5_ia32_gcc434
-REL=CMSSW_3_8_1
+REL=CMSSW_3_8_7_patch2
 TAG=V02-01-03
 PKG=RecoLuminosity/LumiDB
 
