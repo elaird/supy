@@ -35,6 +35,10 @@ class kinFitLook(analysisStep) :
 
         for name,val in residuals.iteritems() :
             self.book.fill(val, "topKinFit_residual_%s"%name+self.moreName, 100,-5,5, title = ";residual %s;events / bin"%name)
+
+        #self.book.fill( (topReco["dS"],topReco["dL"]), "topKinFit_DSoverDL"+self.moreName, (100,100), (0,0), (30,30), title = ";ds;dL;events / bin")
+        self.book.fill( (topReco["sigmaS"],topReco["sigmaL"]), "topKinFit_SigmaSoverSigmaL"+self.moreName, (100,100), (0,0), (30,30), title = ";#sigma_{s};#sigma_{L};events / bin")
+
         self.book.fill((residuals["hadP"],residuals["hadQ"]), "topKinFit_residual_had_PQ"+self.moreName, (100,100),(-5,-5),(5,5), title = ';residual hadP;residual hadQ;events / bin')
         self.book.fill((residuals["lepS"],residuals["lepL"]), "topKinFit_residual_lep_SL"+self.moreName, (100,100),(-5,-5),(5,5), title = ';residual lepS;residual lepL;events / bin')
 
@@ -112,13 +116,13 @@ class jetProbability(analysisStep) :
         rFile = r.TFile.Open( self._outputFileStem + stepsMaster.Master.outputSuffix(), "READ")
         hists = [rFile.FindObjectAny(self.bvar+suf) for suf in ['b','q','n']]
         nBins = hists[0].GetNbinsX()
-        for hist in hists : hist.Scale(1 / hist.Integral(0,nBins+1,"width"))
+        for hist in filter(None,hists) : hist.Scale(1 / hist.Integral(0,nBins+1,"width"))
 
         print >> file, "%d\t%f\t%f" % ( nBins,
                                         hists[0].GetBinLowEdge(1),
                                         hists[0].GetBinLowEdge(nBins+1))
         for jType, hist in zip(['b','q','n'], hists) :
-            items = [jType] + ["%0.5f"%hist.GetBinContent(i) for i in range(nBins+2)]
+            items = [jType] + (["%0.5f"%hist.GetBinContent(i) for i in range(nBins+2)] if hist else nBins*["0.0"])
             print >> file, '\t'.join(items)
         rFile.Close()
         file.close()
@@ -268,4 +272,61 @@ class mcTruthTemplates(analysisStep) :
                 self.book.fill(genP4dir * Q * dy, "genTopMezDeltaYlmiss"+suf, 31,-5,5, title = '%s;MEZ Signed #Delta y_{lmiss};events / bin'%suf)
                 self.book.fill(    qdir * Q * lRapidity, "genTopTrueLRapidity"+suf, 31,-5,5, title = "%s;True Signed y_l;events / bin"%suf)
                 self.book.fill(genP4dir * Q * lRapidity, "genTopMezLRapidity"+suf, 31,-5,5, title = "%s;MEZ Signed y_l;events / bin"%suf)
+######################
+class mcTruthAsymmetryBinned(analysisStep) :
+    def __init__(self, binVar, bins, min, max, collection = ("genTop","")) :
+        for item in ['bins', 'min', 'max'] : setattr(self,item,eval(item))
+        self.asymmVar = "%sDeltaY%s"%collection
+        self.binVar = ("%s"+binVar+"%s")%collection
+        self.binName = "%s_%s"%(self.asymmVar, self.binVar) + "%03d"
+        
+    def uponAcceptance(self,ev) :
+        qqbar = ev['genQQbar']
+        genP4 = ev['genP4']
+        qdir = 1 if qqbar and genP4[qqbar[0]].pz()>0 else -1
 
+        binVar = ev[self.binVar]
+        Dy = ev[self.asymmVar] * qdir
+        self.book.fill(binVar, self.binVar, self.bins, self.min, self.max, title = ';%s;events / bin'%self.binVar )
+        bin = min(self.book[self.binVar].FindFixBin(binVar),self.bins)
+        self.book.fill(Dy, self.binName%bin, 2, -50, 50, title = ";%s %d;events / bin"%(self.asymmVar,bin))
+
+    def outputSuffix(self) : return stepsMaster.Master.outputSuffix()
+
+    def varsToPickle(self) :
+        return ["bins","min","max","binName","asymmVar","binVar"]
+
+    @staticmethod
+    def asymmetryFromHist(hist) :
+        if not hist : return 0,0
+        nMinus = hist.GetBinContent(1)
+        nMinusE = hist.GetBinError(1)
+        nPlus = hist.GetBinContent(2)
+        nPlusE = hist.GetBinError(2)
+        S = nPlus + nMinus
+        asymm = float(nPlus - nMinus) / S
+        err = 2./S**2 * math.sqrt((nPlus*nMinusE)**2+(nMinus*nPlusE)**2)
+        return asymm,err
+
+    def mergeFunc(self, products) :
+        file = r.TFile.Open(self.outputFileName(), "UPDATE")
+        master = file.FindObjectAny("Master")
+        asymm = [self.asymmetryFromHist(master.FindObjectAny(self.binName%(bin+1))) for bin in range(self.bins) ]
+        binVarHist = master.FindObjectAny(self.binVar)
+        binVarHist.GetDirectory().cd()
+
+        asymmByBinVar = binVarHist.Clone("%s_%s"%(self.binVar,self.asymmVar))
+        asymmByBinVar.SetTitle(";%s;%s"%(self.binVar,"A_{fb}"))
+        asymmByBinVar.SetMinimum(-0.5)
+        asymmByBinVar.SetMaximum(0.5)
+        
+        for i in range(self.bins) :
+            print asymm[i]
+            asymmByBinVar.SetBinContent(i+1,asymm[i][0])
+            asymmByBinVar.SetBinError(i+1,asymm[i][1])
+        asymmByBinVar.SetBinContent(self.bins+1,0)
+        asymmByBinVar.SetBinError(self.bins+1,0)
+        asymmByBinVar.Write()
+        r.gROOT.cd()
+        file.Close()
+        #print "Output updated with %s."%asymmByBinVar.GetName()
