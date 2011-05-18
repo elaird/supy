@@ -19,7 +19,7 @@ class multiplicity(analysisStep) :
 class value(analysisStep) :
     def __init__(self, var, min = None, max = None, indices = "", index = None) :
         for item in ["var","min","max","indices","index"] : setattr(self,item,eval(item))
-        self.moreName = ( ("%.1f<="%min if min is not None else "") + var +
+        self.moreName = ( ("%.2f<="%min if min is not None else "") + var +
                           ("[i[%s]]" % str(index) if index is not None else "") + self.wrapName() + 
                           ("<=%.1f"%max if max is not None else "") +
                           ("; %s"%indices if indices else ""))
