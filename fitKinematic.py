@@ -6,7 +6,7 @@ class minuitLeptonicTop(object) :
     '''Fit jet, lepton, and missing energy to the hypothesis t-->blv.'''
 
     def __init__(self, bP4, bResolution, muP4, nuX, nuY, nuErr, 
-                 massT = 172.0, widthT = 13.1/2, massW = 80.4, zPlus = True ) :
+                 massT = 172.0, widthT = 2, massW = 80.4, zPlus = True ) :
 
         T,B,mu,nu = tuple( utils.vessel() for i in range(4) )
 
@@ -108,7 +108,7 @@ class minuitHadronicTop(object) :
     Index 0 is the b-jet.
     Resolutions are expected in units of sigma(pT)/pT.'''
 
-    def __init__(self, jetP4s, jetResolutions, massT = 172.0, widthT = 13.1/2, massW = 80.4, widthW = 2.085/2 ) :
+    def __init__(self, jetP4s, jetResolutions, massT = 172.0, widthT = 2, massW = 80.4, widthW = 2.085/2 ) :
         assert len(jetP4s) == 3 == len(jetResolutions), "Please specify 3 and only 3 jets."
         J,W,T = tuple( utils.vessel() for i in range(3) )
 
