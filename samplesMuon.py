@@ -3,6 +3,12 @@ from configuration import srm
 muon = samples.SampleHolder()
 
 #2011
+muon.add("SingleMu.Run2011A-PR-v2.Robin1",'%s/rnandi/ICF/automated/2011_05_02_11_24_48/")'%srm, lumi = 999999.9)
+muon.add("SingleMu.Run2011A-PR-v2.Robin2",'%s/rnandi/ICF/automated/2011_05_07_17_01_57/")'%srm, lumi = 999999.9)
+muon.add("SingleMu.Run2011A-PR-v2.Alex",'%s/as1604/ICF/automated/2011_04_25_17_30_19/")'%srm, lumi = 999999.9)
+muon.add("SingleMu.Run2011A-PR-v2.Burt",'%s/bbetchar/ICF/automated/2011_05_18_22_24_58/")'%srm, lumi = 999999.9)
+
+
 muon.add("MuHad.Run2011A-PromptReco-v1.Burt",    '%s/bbetchar//ICF/automated/2011_04_02_22_12_10/")'%srm, lumi = 5.81 ) #/pb
 muon.add("SingleMu.Run2011A-PromptReco-v1.Burt", '%s/bbetchar//ICF/automated/2011_04_02_22_55_59/")'%srm, lumi = 5.81 ) #/pb
 
