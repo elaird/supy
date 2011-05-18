@@ -95,6 +95,7 @@ class plotter(object) :
                  compactOutput = False,
                  noSci = False,
                  showErrorsOnDataYields = True,
+                 linYAfter = None,
                  nLinesMax = 17,
                  nColumnsMax = 67,
                  shiftUnderOverFlows = True,
@@ -102,7 +103,7 @@ class plotter(object) :
                  blackList = [],
                  whiteList = []
                  ) :
-        for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog",
+        for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox"] :
             setattr(self,item,eval(item))
@@ -131,13 +132,14 @@ class plotter(object) :
         text4 = self.printCalculables(selectImperfect = True)
         self.printCanvas()
         self.canvas.Clear()
-    
+
         self.selectionsSoFar=[]
         for iSelection,selection in enumerate(self.someOrganizer.selections) :
             if selection.name != "" :
                 self.selectionsSoFar.append(selection)
                 if (not self.compactOutput and len(selection)>1) or iSelection==len(self.someOrganizer.selections)-1:
                     self.printSelections(self.selectionsSoFar, printAll = self.compactOutput)
+            if (selection.name, selection.title)==self.linYAfter : self.doLog = False
             if self.compactOutput and not self.whiteList : continue
             for plotName in sorted(selection.keys()) :
                 if self.useWhiteList and plotName not in self.whiteList : continue
