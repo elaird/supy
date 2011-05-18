@@ -429,7 +429,7 @@ class plotter(object) :
                     error   = histo.GetBinError(iBinX)
                     valueUp   = content + error
                     if valueUp>0.0 and valueUp>globalMax : globalMax = valueUp
-                    if content>0.0 and content<globalMin : globalMin = content
+                    globalMin = min(globalMin,content-error)
             if dimension==2 :
                 for iBinX in range(histo.GetNbinsX()+2) :
                     for iBinY in range(histo.GetNbinsY()+2) :
@@ -447,7 +447,7 @@ class plotter(object) :
                 histo.SetMaximum(2.0*globalMax)
             else :
                 histo.SetMaximum(1.1*globalMax)
-                histo.SetMinimum(0.0)
+                histo.SetMinimum(1.1*globalMin if globalMin<0 else 0)
 
     def prepareCanvas(self,histos,dimension) :
         self.canvas.cd(0)
