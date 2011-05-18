@@ -92,7 +92,7 @@ class organizer(object) :
     def drop(self,sampleName) :
         index = self.indexOfSampleWithName(sampleName)
         if index is None :
-            print "%s is no present: cannot drop"%sampleName
+            print "%s is not present: cannot drop"%sampleName
             return
         self.samples = self.samples[:index] + self.samples[index+1:]
         for selection in self.selections:
