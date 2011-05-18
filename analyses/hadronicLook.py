@@ -29,15 +29,18 @@ class hadronicLook(analysis.analysis) :
         return { "objects": objects,
                  "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
                  "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ] [0:1] ),
-                 "etRatherThanPt" : [True,False]        [0],
+                 "etRatherThanPt" : [True,False][0],
                  "lowPtThreshold" : 30.0,
                  "lowPtName" : "lowPt",
                  "highPtThreshold" : 50.0,
                  "highPtName" : "highPt",
-                 #"htBins": (275.0, 325.0, 375.0, 475.0, 675.0, 875.0),
-                 "htBins": (275.0, 325.0, 375.0),
-                 "referenceThresholds": ({"ht": 375.0, "singleJetPt": 50.0, "jet1Pt": 100.0, "jet2Pt":100.0}, {}),
-                 "htBin": dict( [("275", 275.0), ("325", 325.0), ("375", 375.0), ("475", 475.0), ("675", 675.0), ("875", 875.0)][2:3]),
+                 "tanBeta" : [None, 3, 10, 50][0],
+                 "thresholds": dict( [("275",        (275.0, 325.0, 100.0, 50.0)),#0
+                                      ("325",        (325.0, 375.0, 100.0, 50.0)),#1
+                                      ("375",        (375.0, None,  100.0, 50.0)),#2
+                                      ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#3
+                                      ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#4
+                                      ][:] ),
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  #"triggerList": ("HLT_HT150_v2","HLT_HT150_v3","HLT_HT160_v2","HLT_HT200_v2","HLT_HT200_v3","HLT_HT240_v2","HLT_HT250_v2","HLT_HT250_v3","HLT_HT260_v2",
@@ -48,7 +51,7 @@ class hadronicLook(analysis.analysis) :
 
     def ra1Cosmetics(self) : return True
     
-    def calcListJet(self, obj, etRatherThanPt, htBins, referenceThresholds, lowPtThreshold, lowPtName, highPtThreshold, highPtName) :
+    def calcListJet(self, obj, etRatherThanPt, ptMin, lowPtThreshold, lowPtName, highPtThreshold, highPtName) :
         def calcList(jet, met, photon, muon, electron, muonsInJets, jetIdFlag) :
             outList = [
                 calculables.XClean.xcJet(jet,
@@ -60,9 +63,8 @@ class hadronicLook(analysis.analysis) :
                                          correctForMuons = not muonsInJets,
                                          electron = electron,
                                          electronDR = 0.5),
-                calculables.Jet.Indices( jet, etaMax = 3.0, flagName = jetIdFlag,
-                                         scaleThresholds = True, htBins = htBins, referenceThresholds = referenceThresholds),
-                calculables.Jet.Indices( jet, ptMin = lowPtThreshold, etaMax = 3.0, flagName = jetIdFlag, extraName = lowPtName),
+                calculables.Jet.Indices( jet, ptMin = ptMin,           etaMax = 3.0, flagName = jetIdFlag),
+                calculables.Jet.Indices( jet, ptMin = lowPtThreshold,  etaMax = 3.0, flagName = jetIdFlag, extraName = lowPtName),
                 calculables.Jet.Indices( jet, ptMin = highPtThreshold, etaMax = 3.0, flagName = jetIdFlag, extraName = highPtName),
                 
                 calculables.Jet.SumP4(jet),
@@ -104,7 +106,7 @@ class hadronicLook(analysis.analysis) :
         outList += calculables.fromCollections(calculables.Electron, [obj["electron"]])
         outList += calculables.fromCollections(calculables.Photon, [obj["photon"]])
         outList += self.calcListOther(obj, params["triggerList"])
-        outList += self.calcListJet(obj, params["etRatherThanPt"], params["htBins"], params["referenceThresholds"][0],
+        outList += self.calcListJet(obj, params["etRatherThanPt"], params["thresholds"][3],
                                     params["lowPtThreshold"], params["lowPtName"], params["highPtThreshold"], params["highPtName"])
         return outList
     
@@ -117,7 +119,11 @@ class hadronicLook(analysis.analysis) :
         _etRatherThanPt = params["etRatherThanPt"]
         _et = "Et" if _etRatherThanPt else "Pt"
 
-        return [
+        scanBefore = [steps.Other.passFilter("scanBefore"), steps.Gen.scanHistogrammer(tanBeta = params["tanBeta"])] if params["tanBeta"]!=None else []
+        scanAfter = [steps.Other.passFilter("scanAfter"),
+                     steps.Gen.scanHistogrammer(tanBeta = params["tanBeta"], htVar = "%sSum%s%s"%(_jet[0], _et, _jet[1]))] if params["tanBeta"]!=None else []
+        htUpper = [steps.Other.variableLessFilter(params["thresholds"][1],"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV")] if params["thresholds"][1]!=None else []
+        return scanBefore + [
             steps.Print.progressPrinter(),
             steps.Trigger.lowestUnPrescaledTrigger(),
             steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
@@ -129,13 +135,15 @@ class hadronicLook(analysis.analysis) :
             steps.Trigger.hltPrescaleHistogrammer(params["triggerList"]),
             
             #steps.Other.cutSorter([
-            ##for signal efficiency calculation
-            #steps.Other.passFilter("htLabel1"),
-            #steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 20, 0, 1000, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
 
-            steps.Jet.htBinFilter(_jet, min = params["htBin"], max = params["htBin"]),
-            steps.Jet.jetSelector(_jet, params["referenceThresholds"][0], 0),
-            steps.Jet.jetSelector(_jet, params["referenceThresholds"][0], 1),
+            ##when using full scaling
+            #steps.Jet.htBinFilter(_jet, min = params["htBin"], max = params["htBin"]),
+            #steps.Jet.jetSelector(_jet, params["thresholds"][2], 0),
+            #steps.Jet.jetSelector(_jet, params["thresholds"][2], 1),
+
+            #otherwise
+            steps.Jet.jetPtSelector(_jet, params["thresholds"][2], 0),
+            steps.Jet.jetPtSelector(_jet, params["thresholds"][2], 1),
             steps.Jet.jetEtaSelector(_jet,2.5,0),
             
             #steps.Other.iterHistogrammer("ecalDeadTowerTrigPrimP4", 256, 0.0, 128.0, title=";E_{T} of ECAL TP in each dead region (GeV);TPs / bin", funcString="lambda x:x.Et()"),
@@ -153,8 +161,8 @@ class hadronicLook(analysis.analysis) :
             steps.Jet.uniquelyMatchedNonisoMuons(_jet), 
             
             steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 2500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
-            #steps.Other.variableGreaterFilter(450.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
-            
+            steps.Other.variableGreaterFilter(params["thresholds"][0],"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
+            ] + htUpper + [
             steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met), 100, 0.0, 3.0,
                                      title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1]+params["highPtName"],_met)),
             steps.Other.variableLessFilter(1.25,"%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met)),
@@ -224,12 +232,9 @@ class hadronicLook(analysis.analysis) :
             steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
-            
-            ##for signal efficiency calculation
-            #steps.Other.passFilter("htLabel2"),
-            #steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 20, 0, 1000, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
-            ] + [steps.Other.variableGreaterFilter(375.0+100*iBin, "%sSumEt%s"%_jet, suffix = "GeV") for iBin in range(1,6)] + [
 
+            ] + scanAfter + [steps.Other.variableGreaterFilter(375.0+100*iBin, "%sSumEt%s"%_jet, suffix = "GeV") for iBin in range(1,6)] +\
+            [
             steps.Other.passFilter("final"),
             
             #steps.Other.skimmer(),
@@ -327,6 +332,9 @@ class hadronicLook(analysis.analysis) :
             return ( specify(names = "lm1", effectiveLumi = eL, color = r.kMagenta) +
                      specify(names = "lm6", effectiveLumi = eL, color = r.kRed) )
 
+        def scan(tanBeta) :
+            return specify(names = "scan_tanbeta%d"%tanBeta, color = r.kMagenta, nFilesMax = 1)
+                     
         qcd_func,g_jets_func = {"py6": (qcd_py6,g_jets_py6),
                                 "py8": (qcd_py8,g_jets_py6), # no g_jets_py8 available
                                 "mg" : (qcd_mg, g_jets_mg ) }[params["mcSoup"]]
@@ -337,7 +345,7 @@ class hadronicLook(analysis.analysis) :
                  qcd_func(eL) + #g_jets_func(eL) +
                  ttbar_mg(eL) + ewk(eL) +
                  susy(susyEL)
-                 )
+                 ) if params["tanBeta"]==None else scan(params["tanBeta"])
 
     def mergeSamples(self, org, tag) :
         def py8(org, smSources) :
@@ -390,7 +398,7 @@ class hadronicLook(analysis.analysis) :
             #organize
             org=organizer.organizer( self.sampleSpecs(tag) )
             self.mergeSamples(org, tag)
-            org.scale()
+            org.scale() if not self.parameters()["tanBeta"] else org.scale(100.0)
             
             #plot
             pl = plotter.plotter(org,
@@ -403,6 +411,7 @@ class hadronicLook(analysis.analysis) :
                                  #compactOutput = True,
                                  #noSci = True,
                                  showErrorsOnDataYields = False,
+                                 linYAfter = ("variableGreaterFilter", "xcak5JetAlphaTEtPat>=0.550 "),
                                  pegMinimum = 0.1,
                                  blackList = ["lumiHisto","xsHisto","nJobsHisto"],
                                  )
