@@ -15,12 +15,17 @@ class SumPt(TopP4Calculable) :
     def update(self,ignored) :
         self.value = self.source[self.P4]['t'].pt() + self.source[self.P4]['tbar'].pt()
 ######################################
+class Pt(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(['SumP4'])
+    def update(self,ignored) : self.value = self.source[self.SumP4].pt()
+######################################
 class PtOverSumPt(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
-        self.stash(['SumP4','SumPt'])
-    def update(self,ignored) :
-        self.value = self.source[self.SumP4].pt() / self.source[self.SumPt]
+        self.stash(['Pt','SumPt'])
+    def update(self,ignored) : self.value = self.source[self.Pt] / self.source[self.SumPt]
 ######################################
 class BoostZ(wrappedChain.calculable) :
     def __init__(self, collection = None) :
@@ -183,6 +188,7 @@ class genTopSemiLeptonicWithinAcceptance(wrappedChain.calculable) :
         self.moreName = 'jetPt>%0.1f; jet|eta|<%0.1f; lepPt>%0.1f; lep|eta|<%0.1f'%(jetPtMin,jetAbsEtaMax,lepPtMin,lepAbsEtaMax)
     def update(self,ignored) :
         self.value = False
+        if not self.source["genTopTTbar"] : return
         indices = self.source['genTTbarIndices']
         if not bool(indices['lplus'])^bool(indices['lminus']) : return
         iLep = max(indices['lplus'],indices['lminus'])
@@ -422,27 +428,25 @@ class TopComboProbability(wrappedChain.calculable) :
 class TopComboMaxProbability(wrappedChain.calculable) :
     def update(self,ignored) : self.value = max(self.source["TopComboProbability"].values())
 ######################################
-class WComboLikelihood(wrappedChain.calculable) :
+class OtherJetsLikelihood(wrappedChain.calculable) :
     def __init__(self, jets = None, tag = None) :
         self.stash(["Indices"],jets)
-        self.Q = ("%sTagProbabilityQ_"+tag+"%s") % jets
         self.N = ("%sTagProbabilityN_"+tag+"%s") % jets
 
     def update(self,ignored) :
-        self.value = {}
         indices = self.source[self.Indices]
-        Q = self.source[self.Q]
         N = self.source[self.N]
-
-        for i in range(len(indices)) :
-            for j in range(len(indices))[i+1:] :
-                other = filte(lambda k : k not in [i,j], indices)
-                self.value[tuple([i,j])] = reduce(operator.mul, [Q[i],Q[j]]+[N[k] for k in other])
+        self.value = reduce(operator.mul, [N[k] for k in indices])
 ######################################
 class TopRatherThanWProbability(wrappedChain.calculable) :
-    def __init__(self, priorTop = 0.5) : self.priorTop = priorTop
-
+    def __init__(self, priorTop = 0.05) :
+        self.invPriorTopMinusOne =  ( 1.0 / priorTop  - 1)
+        self.moreName = "priorTop = %0.3f"%priorTop
+        
     def update(self,ignored) :
-        topL = self.source["TopComboLikelihood"]
-        wL = self.source["WComboLikelihood"]
+        topLikes = self.source["TopComboLikelihood"]
+        topL = sum(topLikes.values()) / float(len(topLikes))
+        wL = self.source["OtherJetsLikelihood"]
+        self.value = topL / (topL + wL * self.invPriorTopMinusOne)
+        
         
