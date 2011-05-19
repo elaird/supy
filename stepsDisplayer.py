@@ -26,7 +26,7 @@ class displayer(analysisStep) :
         if len(self.flagsToPrint)>3 : print "WARNING: More than three flags specified in the displayer.  The list will run off the page."
         self.jetRadius = 0.7 if "ak7Jet" in self.jets[0] else 0.5
         self.genJets = "gen%sGenJetsP4"%(self.jets[0].replace("xc","")[:3])
-        self.genMet  = self.met.replace("P4","GenMetP4") if self.met else self.met
+        self.genMet  = "genmetP4True"
         self.deltaHtName = "%sDeltaPseudoJetEt%s"%self.jets if etRatherThanPt else "%sDeltaPseudoJetPt%s"%self.jets
         
         self.doReco = not self.doGenParticles
@@ -797,7 +797,7 @@ class displayer(analysisStep) :
                                       motherList = [22], label = "status 1 photon w/photon as mother")
             else :
                 self.drawGenJets    (eventVars, coords,r.kBlack   , defWidth, defArrowSize)
-                #self.drawGenMet     (eventVars, coords,r.kMagenta , defWidth, defArrowSize*2/6.0)
+                self.drawGenMet     (eventVars, coords,r.kMagenta , defWidth, defArrowSize*2/6.0)
             
         if self.doReco : 
             #self.drawP4(eventVars["%sLongP4%s"%self.jets],r.kGray,defWidth,defArrowSize*1/100.0)
