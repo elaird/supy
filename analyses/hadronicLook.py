@@ -16,10 +16,10 @@ class hadronicLook(analysis.analysis) :
                                                                    ("muon","Pat"),     ("electron","Pat"),  ("photon","Pat"),           "Calo",
                                                                    ]))
         
-        objects["pfAK5JetMet_recoLepPhot"]     = dict(zip(fields, [("xcak5JetPF","Pat"),     "JetIDtight",              True,        "metP4PF",
-                                                                   ("xcak5Jet","Pat"),       "JetIDloose",             False, "metP4AK5TypeII",
-                                                                   ("muon","Pat"),     ("electron","Pat"),  ("photon","Pat"),             "PF",
-                                                                   ]))
+        #objects["pfAK5JetMet_recoLepPhot"]     = dict(zip(fields, [("xcak5JetPF","Pat"),     "JetIDtight",              True,        "metP4PF",
+        #                                                           ("xcak5Jet","Pat"),       "JetIDloose",             False, "metP4AK5TypeII",
+        #                                                           ("muon","Pat"),     ("electron","Pat"),  ("photon","Pat"),             "PF",
+        #                                                           ]))
         
         #objects["pf2patAK5JetMetLep_recoPhot"] = dict(zip(fields, [("xcak5JetPF2PAT","Pat"), "PFJetIDtight",            True,        "metP4PF",
         #                                                           ("xcak5JetPF","Pat"),     "JetIDtight",              True,        "metP4PF",
@@ -27,7 +27,7 @@ class hadronicLook(analysis.analysis) :
         #                                                           ]))
         
         return { "objects": objects,
-                 "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
+                 "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)),  ("3",(3,3)) ]       [0:1] ),
                  "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ] [0:1] ),
                  "etRatherThanPt" : [True,False][0],
                  "lowPtThreshold" : 30.0,
@@ -40,7 +40,7 @@ class hadronicLook(analysis.analysis) :
                                       ("375",        (375.0, None,  100.0, 50.0)),#2
                                       ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#3
                                       ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#4
-                                      ][:] ),
+                                      ][2:3] ),
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  #"triggerList": ("HLT_HT150_v2","HLT_HT150_v3","HLT_HT160_v2","HLT_HT200_v2","HLT_HT200_v3","HLT_HT240_v2","HLT_HT250_v2","HLT_HT250_v3","HLT_HT260_v2",
@@ -232,11 +232,8 @@ class hadronicLook(analysis.analysis) :
             steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
-
-            ] + scanAfter + [steps.Other.variableGreaterFilter(375.0+100*iBin, "%sSumEt%s"%_jet, suffix = "GeV") for iBin in range(1,6)] +\
-            [
-            steps.Other.passFilter("final"),
-            
+            steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met), 100, 0.0, 3.0,
+                                     title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1]+params["highPtName"],_met)),
             #steps.Other.skimmer(),
             #steps.Other.cutBitHistogrammer(self.togglePfJet(_jet), self.togglePfMet(_met)),
             #steps.Print.eventPrinter(),
@@ -265,7 +262,8 @@ class hadronicLook(analysis.analysis) :
             #                          metOtherAlgo  = params["objects"]["compMet"],
             #                          markusMode = False,
             #                          ),
-            ]
+            ] + scanAfter + [steps.Other.variableGreaterFilter(bin, "%sSumEt%s"%_jet, suffix = "GeV") for bin in [425, 475, 575, 675, 775, 875]] +\
+            [ steps.Other.passFilter("final") ]
     
     def listOfSampleDictionaries(self) :
         return [samples.mc, samples.jetmet, samples.signalSkim]
@@ -284,6 +282,11 @@ class hadronicLook(analysis.analysis) :
             out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe1",     weights = jw, overrideLumi = 2.34)
             out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe2",     weights = jw, overrideLumi = 5.78)
 
+            #out += specify(names = "darrens_event")
+            #out += specify(names = "calo_325_scaled")
+            #w = calculables.Jet.nJetsWeight(jets = params["objects"]["jet"], nJets = [3])
+            #out += specify(names = "calo_325_scaled", weights = w, color = r.kRed)
+            
             #"HT250_skim_calo",
             #"HT300_skim_calo",
             #"bryn_skim_calo",
@@ -378,8 +381,6 @@ class hadronicLook(analysis.analysis) :
 
         #org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="Nov4")
         org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="HT.Run2011A")
-        #org.mergeSamples(targetSpec = {"name":"50 ns data (3 inv pb)",  "color":r.kRed, "markerStyle":20}, sources=["HT.Run2011A-PromptReco-v2.AOD.Arlo"])
-        #org.mergeSamples(targetSpec = {"name":"75 ns data (17 inv pb)", "color":r.kBlack, "markerStyle":20}, sources = ["HT.Run2011A-PromptReco-v1.AOD.Georgia","HT.Run2011A-PromptReco-v1.AOD.Henning"])
 
         if not self.ra1Cosmetics() : 
             org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)        
@@ -405,6 +406,8 @@ class hadronicLook(analysis.analysis) :
                                  psFileName = self.psFileName(tag),
                                  samplesForRatios = ("2011 Data","standard_model" if not self.ra1Cosmetics() else "Standard Model "),
                                  sampleLabelsForRatios = ("data","s.m."),
+                                 #samplesForRatios = ("calo_325_scaled.xcak5JetnJetsWeightPat", "calo_325_scaled"),
+                                 #sampleLabelsForRatios = ("3jet","Njet"),
                                  showStatBox = not self.ra1Cosmetics(),
                                  #whiteList = ["lowestUnPrescaledTrigger"],
                                  #doLog = False,
