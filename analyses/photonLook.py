@@ -37,7 +37,7 @@ class photonLook(analysis.analysis) :
                  "lowPtName":"lowPt",
                  "highPtThreshold" : 50.0,
                  "highPtName" : "highPt",
-                 "htBin": dict( [("275", 275.0), ("325", 325.0), ("375", 375.0)][2:3] ),
+                 "htBin": dict( [("275", 275.0), ("325", 325.0), ("375", 375.0)][:] ),
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  #"triggerList": ("HLT_HT160_v2","HLT_HT240_v2","HLT_HT260_v2","HLT_HT350_v2","HLT_HT360_v2"),#2011 epoch 0
@@ -65,7 +65,7 @@ class photonLook(analysis.analysis) :
                                            correctForMuons = not obj["muonsInJets"],
                                            electron = obj["electron"], electronDR = 0.5
                                            ),
-                 calculables.Jet.Indices( obj["jet"], etaMax = 3.0, flagName = params["jetId"],
+                 calculables.Jet.Indices( obj["jet"], etaMax = 3.0, flagName = params["jetId"], 
                                           scaleThresholds = True, htBins = params["htBins"], referenceThresholds = params["referenceThresholds"][0]),
                  calculables.Jet.Indices( obj["jet"], ptMin = params["lowPtThreshold"], etaMax = 3.0, flagName = params["jetId"], extraName = params["lowPtName"]),
                  calculables.Jet.Indices( obj["jet"], ptMin = params["highPtThreshold"], etaMax = 3.0, flagName = params["jetId"], extraName = params["highPtName"]),
@@ -327,7 +327,7 @@ class photonLook(analysis.analysis) :
 
         #2011
         #jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163757_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #153/pb
-        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163869_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #193/pb        
+        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163869_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #193/pb
         data = []
         #data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim", weights = jw, overrideLumi =  0.0 )
         data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim",  weights = jw, overrideLumi =  5.07)
@@ -403,7 +403,7 @@ class photonLook(analysis.analysis) :
         org.mergeSamples(targetSpec = {"name":"g_jets_mg_nVtx", "color":r.kGreen}, sources = [item+".photonWeight" for item in self.gJetsMgNames()])
         smSourcesWeighted += ["qcd_mg_nVtx", "g_jets_mg_nVtx"]
         org.mergeSamples(targetSpec = {"name":"standard_model_nVtx", "color":r.kRed, "markerStyle":1}, sources = smSourcesWeighted, keepSources = True)
-
+        
         org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Photon.Run2011")
             
         ##org.mergeSamples(targetSpec = {"name":"MG TT+EWK", "color":r.kOrange}, sources = ewkSources])
