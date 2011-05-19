@@ -125,3 +125,24 @@ class LeadingPt(wrappedChain.calculable) :
     def update(self,ignored) :
         indices = self.source[self.Indices]
         self.value = 0 if not indices else self.source[self.P4][indices[0]].pt()
+##############################
+class DiMuon(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","P4"])
+    def update(self,ignored) :
+        indices = self.source[self.Indices]
+        if len(indices)!= 2 :
+            self.value = None
+        else :
+            p4s = self.source[self.P4]
+            self.value = p4s.at(indices[0])+p4s.at(indices[1])
+##############################
+class DiMuonMass(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["DiMuon"])
+    def update(self,ignored) :
+        Z = self.source[self.DiMuon]
+        self.value = 0 if not Z else Z.mass()
+##############################
