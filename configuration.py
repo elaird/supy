@@ -22,7 +22,7 @@ def samplesFiles() :
     return ["MC", "JetMET", "Muon", "Electron", "Photon", "SignalSkim", "WPol"]
 
 def stepsFiles() :
-    return ["Other", "Filter", "Histos", "Jet", "Trigger", "Photon", "Top", "Print", "Gen", "Xclean", "Displayer", "Master"]
+    return ["Other", "Filter", "Histos", "Jet", "Trigger", "Photon", "Top", "Print", "Gen", "Xclean", "Displayer", "Master", "Muon"]
 
 def stepsToDisableForData() :
     return ["genMotherHistogrammer", "photonPurityPlots", "photonEfficiencyPlots"]
