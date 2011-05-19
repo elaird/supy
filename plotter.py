@@ -94,7 +94,7 @@ class plotter(object) :
                  doColzFor2D = True,
                  compactOutput = False,
                  noSci = False,
-                 showErrorsOnDataYields = True,
+                 showErrorsOnDataYields = False,
                  linYAfter = None,
                  nLinesMax = 17,
                  nColumnsMax = 67,
