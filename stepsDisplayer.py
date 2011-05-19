@@ -25,7 +25,7 @@ class displayer(analysisStep) :
 
         if len(self.flagsToPrint)>3 : print "WARNING: More than three flags specified in the displayer.  The list will run off the page."
         self.jetRadius = 0.7 if "ak7Jet" in self.jets[0] else 0.5
-        self.genJets = self.jets
+        self.genJets = "gen%sGenJetsP4"%(self.jets[0].replace("xc","")[:3])
         self.genMet  = self.met.replace("P4","GenMetP4") if self.met else self.met
         self.deltaHtName = "%sDeltaPseudoJetEt%s"%self.jets if etRatherThanPt else "%sDeltaPseudoJetPt%s"%self.jets
         
@@ -414,11 +414,9 @@ class displayer(analysisStep) :
             self.legendList.append( (color, self.renamedDesc(desc), "l") )
 
     def drawGenJets(self, eventVars, coords, color, lineWidth, arrowSize) :
-        self.legendFunc(color, name = "genJet", desc = "GEN jets (%s%s)"%self.genJets)
+        self.legendFunc(color, name = "genJet", desc = "GEN jets (%s)"%self.genJets)
 
-        genJets = "%sGenJetP4%s"%self.genJets
-        if genJets[:2] == "xc": genJets = genJets[2:]
-        p4s = eventVars[genJets]
+        p4s = eventVars[self.genJets]
         if self.tipToTail :
             phiOrder = utils.phiOrder(p4s, range(len(p4s)))
             partials = utils.partialSumP4(p4s, phiOrder)
@@ -426,8 +424,8 @@ class displayer(analysisStep) :
             for i in range(len(phiOrder)) :
                 self.drawP4( coords, p4s.at(phiOrder[i]), color, lineWidth, 0.3*arrowSize, partials[i]-mean)
             return
-        for jet in p4s :
-            self.drawP4(coords, jet, color, lineWidth, arrowSize)
+        for iJet in range(len(p4s)) :
+            self.drawP4(coords, p4s.at(iJet), color, lineWidth, arrowSize)
             
     def drawGenParticles(self, eventVars, coords, color, lineWidth, arrowSize, statusList = None, pdgIdList = None, motherList = None, label = "", circleRadius = None) :
         self.legendFunc(color, name = "genParticle"+label, desc = label)
@@ -799,7 +797,7 @@ class displayer(analysisStep) :
                                       motherList = [22], label = "status 1 photon w/photon as mother")
             else :
                 self.drawGenJets    (eventVars, coords,r.kBlack   , defWidth, defArrowSize)
-                self.drawGenMet     (eventVars, coords,r.kMagenta , defWidth, defArrowSize*2/6.0)
+                #self.drawGenMet     (eventVars, coords,r.kMagenta , defWidth, defArrowSize*2/6.0)
             
         if self.doReco : 
             #self.drawP4(eventVars["%sLongP4%s"%self.jets],r.kGray,defWidth,defArrowSize*1/100.0)
