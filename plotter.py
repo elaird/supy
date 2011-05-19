@@ -429,7 +429,7 @@ class plotter(object) :
                     error   = histo.GetBinError(iBinX)
                     valueUp   = content + error
                     if valueUp>0.0 and valueUp>globalMax : globalMax = valueUp
-                    globalMin = min(globalMin,content-error)
+                    if content-error >0 or not self.doLog : globalMin = min(globalMin,content-error)
             if dimension==2 :
                 for iBinX in range(histo.GetNbinsX()+2) :
                     for iBinY in range(histo.GetNbinsY()+2) :
