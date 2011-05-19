@@ -392,7 +392,7 @@ class photonLook(analysis.analysis) :
         #org.mergeSamples(targetSpec = {"name":"qcd_py6",    "color":r.kBlue},  sources = self.qcdPyNames())
         #org.mergeSamples(targetSpec = {"name":"g_jets_py6", "color":r.kGreen}, sources = self.gJetsPyNames())
         #smSources += ["qcd_py6", "g_jets_py6"]
-        #org.mergeSamples(targetSpec = {"name":"standard_model",          "color":r.kRed,   "markerStyle":1}, sources = smSources, keepSources = True)
+        #org.mergeSamples(targetSpec = {"name":"standard_model_py6",         "color":r.kRed,   "markerStyle":1}, sources = smSources, keepSources = True)
 
         #org.mergeSamples(targetSpec = {"name":"qcd_mg",    "color":r.kBlue+3},  sources = self.qcdMgNames())
         #org.mergeSamples(targetSpec = {"name":"g_jets_mg", "color":r.kGreen+3}, sources = self.gJetsMgNames())
@@ -450,6 +450,7 @@ class photonLook(analysis.analysis) :
                              
                              #samplesForRatios = ("2011 Data","standard_model"),
                              samplesForRatios = ("2011 Data","standard_model_nVtx"),
+                             #samplesForRatios = ("2011 Data","standard_model_py6"),
                              
                              #samplesForRatios = ("2010 Data","sm_2010"),
                              #samplesForRatios = ("2011 Data","sm_2010"),
