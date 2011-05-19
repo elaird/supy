@@ -14,6 +14,7 @@ jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Robin1",'%s/rnandi//ICF/automated/2011
 jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Zoe1", '%s/zph04//ICF/automated/2011_05_11_22_25_40/")'%srm, lumi = 1.0)
 jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Zoe2", '%s/zph04//ICF/automated/2011_05_11_22_32_01/")'%srm, lumi = 1.0) #50/58 complete; lumi is just a guess
 
+jetmet.add("calo_325_scaled", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v5/calo_325_scaled.root", isDirectory = False)', lumi = 189)
 jetmet.add("HT350_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v4/350_bin/calo.root", isDirectory = False)', lumi = 143)
 #jetmet.add("HT350_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v2/350_bin/calo.root", isDirectory = False)', lumi = 32.23)
 #jetmet.add("HT350_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v1/350_bin/calo.root", isDirectory = False)', lumi = 17.0)
@@ -25,6 +26,7 @@ jetmet.add("HT250_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elai
 jetmet.add("zoe_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/76_zoe_sync/zoes_events.root", isDirectory = False)', lumi = 17.0)
 jetmet.add("bryn_skim_calo", 'utils.fileListFromDisk(location = "/vols/cms03/bm409/ICFSkims/18Events_040511.root", isDirectory = False)', lumi = 36.9)#lumi is a guess
 jetmet.add("hbhe_noise_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/80_hbhe_noise/calo_selection/hbheNoise.root", isDirectory = False)', lumi = 36.9)
+jetmet.add("darrens_event", 'utils.fileListFromDisk(location = "/home/hep/elaird1/84_darrens_event/event.root", isDirectory = False)', xs = 1.0) #fake xs
 
 #NOV.4 RE-RECO SKIMS
 dir = "/vols/cms02/elaird1/16_skims/"
