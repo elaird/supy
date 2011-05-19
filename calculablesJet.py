@@ -43,7 +43,8 @@ class HtBin(wrappedChain.calculable) :
         self.stash(["HtBinContainer"])
 
     def update(self,ignored) :
-        self.value = self.source[self.HtBinContainer][0]
+        l = self.source[self.HtBinContainer]
+        self.value = l[0] if len(l) else None
 ##############################
 class Indices(wrappedChain.calculable) :
     def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None, extraName = "",
@@ -869,3 +870,11 @@ class P4(wrappedChain.calculable) :
         self.stash(["P4"], ("gen%sJets"%(self.fixes[0].replace("Jet","").replace("PF","").replace("JPT","")), "") )
     def update(self, ignored) :
         self.value = self.source[self.P4]
+#####################################
+class nJetsWeight(wrappedChain.calculable) :
+    def __init__(self, jets, nJets = []) :
+        self.fixes = jets
+        self.stash(["Indices"])
+        self.nJets = nJets
+    def update(self, ignored) :
+        self.value = 1.0 if len(self.source[self.Indices]) in self.nJets else None
