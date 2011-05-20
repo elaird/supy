@@ -146,3 +146,11 @@ class DiMuonMass(wrappedChain.calculable) :
         Z = self.source[self.DiMuon]
         self.value = 0 if not Z else Z.mass()
 ##############################
+class DiMuonPt(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["DiMuon"])
+    def update(self,ignored) :
+        Z = self.source[self.DiMuon]
+        self.value = 0 if not Z else Z.pt()
+##############################
