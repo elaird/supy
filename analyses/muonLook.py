@@ -32,9 +32,10 @@ class muonLook(analysis.analysis) :
                  "thresholds": dict( [("275",        (275.0, 325.0, 100.0, 50.0)),#0
                                       ("325",        (325.0, 375.0, 100.0, 50.0)),#1
                                       ("375",        (375.0, None,  100.0, 50.0)),#2
-                                      ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#3
-                                      ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#4
-                                      ][2:3] ),
+                                      ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#3
+                                      ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#4
+                                      ("225_scaled", (225.0, 275.0,  60.0, 30.0)),#5
+                                      ][2:] ),
                  "triggerList": ("HLT_Mu3_v3", "HLT_Mu3_v4", "HLT_Mu5_v3", "HLT_Mu5_v4", "HLT_Mu8_v1", "HLT_Mu8_v2",
                                  "HLT_Mu12_v1", "HLT_Mu12_v2", "HLT_Mu15_v2", "HLT_Mu15_v3", "HLT_Mu20_v1", "HLT_Mu20_v2",
                                  "HLT_Mu24_v1", "HLT_Mu24_v2", "HLT_Mu30_v1", "HLT_Mu30_v2"),
@@ -108,6 +109,7 @@ class muonLook(analysis.analysis) :
         _etRatherThanPt = params["etRatherThanPt"]
         _et = "Et" if _etRatherThanPt else "Pt"
 
+        htUpper = [steps.Other.variableLessFilter(params["thresholds"][1],"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV")] if params["thresholds"][1]!=None else []
         return [
             steps.Print.progressPrinter(),
             steps.Trigger.lowestUnPrescaledTrigger(),
@@ -137,22 +139,28 @@ class muonLook(analysis.analysis) :
             steps.Jet.singleJetHistogrammer(_jet, 1),
             steps.Other.passFilter("jetSumPlots1"), 
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
+            steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 2500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
+            steps.Other.variableGreaterFilter(params["thresholds"][0],"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
+            ] + htUpper + [
+            steps.Jet.jetPtSelector(_jet, params["thresholds"][2], 0),
+            steps.Jet.jetPtSelector(_jet, params["thresholds"][2], 1),
+            steps.Jet.jetEtaSelector(_jet,2.5,0),
+            steps.Filter.value("%sMhtOverHt%s"%_jet, min = 0.4),
+            steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
             #steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
             #steps.Other.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
             #steps.Other.passFilter("kinematicPlots1"),
             #
             #steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
             #
-            #steps.Jet.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
+            steps.Jet.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
             #steps.Jet.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt, metName = _met),
             #
-            ##signal selection
-            ##steps.Other.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
-            #steps.Other.variableGreaterFilter(0.55,"%sAlphaT%s%s"%(_jet[0],"Et" if _etRatherThanPt else "Pt",_jet[1])),
+            steps.Other.variableGreaterFilter(0.55,"%sAlphaT%s%s"%(_jet[0],"Et" if _etRatherThanPt else "Pt",_jet[1])),
             ##]), #end cutSorter
             #
             #steps.Other.histogrammer("vertexIndices", 20, -0.5, 19.5, title=";N vertices;events / bin", funcString="lambda x:len(x)"),
-            #steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
+            steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
             #steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             #steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
             #steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met), 100, 0.0, 3.0,
@@ -230,7 +238,7 @@ class muonLook(analysis.analysis) :
             pl = plotter.plotter(org,
                                  psFileName = self.psFileName(tag),
                                  samplesForRatios = ("2011 Data","DY->ll"),
-                                 sampleLabelsForRatios = ("data","DY->ll"),
+                                 sampleLabelsForRatios = ("data","DY"),
                                  #samplesForRatios = ("calo_325_scaled.xcak5JetnJetsWeightPat", "calo_325_scaled"),
                                  #sampleLabelsForRatios = ("3jet","Njet"),
                                  showStatBox = True,
@@ -238,7 +246,7 @@ class muonLook(analysis.analysis) :
                                  #doLog = False,
                                  #compactOutput = True,
                                  #noSci = True,
-                                 linYAfter = ("variableGreaterFilter", "xcak5JetAlphaTEtPat>=0.550 "),
+                                 linYAfter = ("value", "0.40<=xcak5JetMhtOverHtPat"),
                                  pegMinimum = 0.1,
                                  blackList = ["lumiHisto","xsHisto","nJobsHisto"],
                                  )
