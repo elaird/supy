@@ -8,7 +8,7 @@ class Asymmetry(analysisStep) :
     def __init__(self, collection) :
         self.collection = collection
         for item in ["LeptonCharge","SignedLeptonRapidity","RelativeLeptonRapidity",
-                     "DeltaAbsY","DeltaY","PtOverSumPt","Beta"] :
+                     "DeltaAbsY","DeltaY","DirectedDeltaY","PtOverSumPt","Beta"] :
             setattr(self,item,("%s"+item+"%s")%collection)
         self.bins = 31
 
@@ -18,9 +18,9 @@ class Asymmetry(analysisStep) :
             self.book.fill(ev[self.RelativeLeptonRapidity], "leptonRelativeY"+charge, self.bins,-5,5, title = "%s;#Delta y;events / bin"%charge)
 
         
-        self.book.fill( ev[self.DeltaAbsY],   'ttbarDeltaAbsY',    31, -4, 4, title = ';#Delta|Y|_{ttbar};events / bin' )
-        self.book.fill( ev[self.DeltaY],      'ttbarSignedDeltaY', 31, -4, 4, title = ';sumP4dir * #Delta Y_{ttbar};events / bin' )
-        self.book.fill( ev[self.Beta],        'ttbarBeta',  21, -math.sqrt(2), math.sqrt(2), title = ';#beta_{ttbar};events / bin')
+        self.book.fill( ev[self.DeltaAbsY],      'ttbarDeltaAbsY',    31, -4, 4, title = ';#Delta|Y|_{ttbar};events / bin' )
+        self.book.fill( ev[self.DirectedDeltaY], 'ttbarSignedDeltaY', 31, -4, 4, title = ';sumP4dir * #Delta Y_{ttbar};events / bin' )
+        self.book.fill( ev[self.Beta],           'ttbarBeta',  21, -math.sqrt(2), math.sqrt(2), title = ';#beta_{ttbar};events / bin')
 #####################################
 class kinFitLook(analysisStep) :
     def __init__(self,indexName) : self.moreName = indexName
@@ -131,11 +131,14 @@ class jetProbability(analysisStep) :
 class discriminateNonTop(analysisStep) :
     def __init__(self, pars) :
         obj = pars['objects']
-        self.mixed = "%sMt%s"%obj[pars['lepton']['name']]+"mixedSumP4"
+        lepCollection = obj[pars['lepton']['name']]
+        self.mixed = "%sMt%s"%lepCollection+"mixedSumP4"
         self.sumPt = obj["sumPt"]
         self.jetP4 = "%sCorrectedP4%s"%obj["jet"]
         self.iJet = "%sIndices%s"%obj["jet"]
         self.bJet = "%sIndicesBtagged%s"%obj["jet"]        
+        self.lepP4 = "%sP4%s"%lepCollection
+        self.iLep = "%sSemileptonicTopIndex%s"%lepCollection
 
     @staticmethod
     def phiMod(phi) : return phi + 2*math.pi*int(phi<0)
@@ -144,15 +147,19 @@ class discriminateNonTop(analysisStep) :
         jetP4 = ev[self.jetP4]
         iJet = ev[self.iJet]
         bJet = ev[self.bJet]
-
-        self.book.fill(ev[self.sumPt],self.sumPt,50,0,1000, title = ';%s;events / bin'%self.sumPt),
-        self.book.fill(ev[self.mixed],self.mixed,30,0,180, title = "M_{T}"),
+        lepP4 = ev[self.lepP4][ev[self.iLep]]
+        
+        self.book.fill( lepP4.pt(), "leptonPt", 50, 0, 100, title = ';lepton Pt;events / bin')
+        self.book.fill( lepP4.eta(), "leptonEta", 50, -3, 3, title = ';lepton #eta;events / bin')
+        self.book.fill( ev["mixedSumP4"].pt(), "met", 50, 0, 100, title = ';met;events / bin')
+        self.book.fill(ev[self.sumPt],self.sumPt,50,0,1000, title = ';%s;events / bin'%self.sumPt)
+        self.book.fill(ev[self.mixed],self.mixed,30,0,180, title = ";M_{T};events / bin")
         self.book.fill(jetP4[iJet[0]].pt(), "jetPtI0", 40,0,400, title = ';pT jets[0] pt;events / bin')
         self.book.fill(jetP4[bJet[0]].pt(), "jetPtB0", 40,0,400, title = ';b- jets[0] pt;events / bin')
         self.book.fill( self.phiMod(r.Math.VectorUtil.DeltaPhi(jetP4[bJet[0]],jetP4[bJet[1]])), "dphiBjets", 30,0,2*math.pi,
                         title = ";#Delta#phi leading b-tagged jets;events / bin" )
         for i in range(3) :
-            self.book.fill(jetP4[i].eta(), "jetEtaI%d"%i, 50,-5,5, title = ';pT jets[%d] eta;events / bin'%i)
+            self.book.fill(jetP4[iJet[i]].eta(), "jetEtaI%d"%i, 50,-5,5, title = ';pT jets[%d] eta;events / bin'%i)
                 
 #####################################
 class discriminateQQbar(analysisStep) :
@@ -241,6 +248,7 @@ class mcTruthTemplates(analysisStep) :
         alpha = '_alpha%02d'%int(10*ev['genTopAlpha'])
 
         self.book.fill(ev['genTopCosThetaStarAvg'], 'cosThetaStarAvg%s'%alpha, 20, -1, 1, title = ';cosThetaStarAvg;events / bin')
+        self.book.fill(ev['genTopCosThetaStarAngle'], 'cosThetaStarAngle%s'%alpha, 30, 0, 0.5*math.pi, title = ';cosThetaStarAngle;events / bin')
 
         self.book.fill(ev['genTopBeta'], 'genTopBeta', 20,-2,2, title = ";beta;events / bin")
         #self.book.fill( (ev['genTopCosThetaStar'],ev['genTopCosThetaStarBar']), 'cts_v_ctsbar%s'%alpha, (100,100),(-1,-1),(1,1), title = ';costhetaQT;cosThetaQbarTbar;events/bin')
