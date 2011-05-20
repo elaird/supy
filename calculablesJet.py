@@ -341,7 +341,8 @@ class Mht(wrappedChain.calculable) :
         self.fixes = collection
         self.stash(["SumP4"])
     def update(self,ignored) :
-        self.value = self.source[self.SumP4].pt()
+        SumP4 = self.source[self.SumP4]
+        self.value = SumP4.pt() if SumP4 else None
 ####################################
 class MhtIgnored(wrappedChain.calculable) :
     def __init__(self,collection) :
@@ -472,7 +473,9 @@ class MhtOverHt(wrappedChain.calculable) :
         self.fixes = collection
         self.stash(["Mht","SumEt"])
     def update(self,ignored) :
-        self.value = self.source[self.Mht]/self.source[self.SumEt]
+        mht = self.source[self.Mht]
+        ht = self.source[self.SumEt]
+        self.value = mht/ht if (ht!=None and mht!=None) else None
 ##############################
 class AlphaT(wrappedChain.calculable) :
     def __init__(self, collection = None, etRatherThanPt = None) :
