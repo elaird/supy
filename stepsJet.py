@@ -287,6 +287,7 @@ class alphaHistogrammer(analysisStep) :
         self.moreName = "%s%s" % cs
         
     def uponAcceptance (self,eventVars) :
+        if not eventVars[self.SumP4] : return
         mht = eventVars[self.SumP4].pt()
         ht  = eventVars[self.Sum]
         deltaHt = eventVars[self.DeltaPseudoJet]
