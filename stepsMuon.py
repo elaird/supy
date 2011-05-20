@@ -25,6 +25,8 @@ class muonHistogrammer(analysisStep) :
             for j,jMuon in list(enumerate(indices))[i+1:self.maxIndex+1] :
                 self.book.fill(abs(r.Math.VectorUtil.DeltaPhi(muon,p4s.at(jMuon))), "%s%sdphi%d%d"%(self.cs+(i+1,j+1)), 50,0, r.TMath.Pi(),
                                title = ";#Delta#phi_{muon%d,muon%d};events / bin"%(i+1,j+1))
+                self.book.fill(abs(r.Math.VectorUtil.DeltaR(muon,p4s.at(jMuon))), "%s%sdr%d%d"%(self.cs+(i+1,j+1)), 50,0, r.TMath.Pi(),
+                               title = ";#DeltaR_{muon%d,muon%d};events / bin"%(i+1,j+1))
 #####################################
 class diMuonHistogrammer(analysisStep) :
     def __init__(self, cs) :
