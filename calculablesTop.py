@@ -34,6 +34,13 @@ class BoostZ(wrappedChain.calculable) :
     def update(self,ignored) :
         self.value = r.Math.BoostZ( self.source[self.SumP4].BoostToCM().z())
 ######################################
+class BoostZAlt(TopP4Calculable) :
+    def update(self,ignored) :
+        t,tbar = tuple(self.source[self.P4][i] for i in ['t','tbar'])
+        pt = t.pt()
+        ptbar = tbar.pt()
+        self.value = r.Math.BoostZ( - (t.z()/pt + tbar.z()/ptbar) / (t.E()/pt + tbar.E()/ptbar) )
+######################################
 class DeltaPhi(TopP4Calculable) :
     def update(self,ignored) :
         self.value = r.Math.VectorUtil.DeltaPhi(self.source[self.P4]['t'], self.source[self.P4]['tbar'])
@@ -103,16 +110,18 @@ class Beta(wrappedChain.calculable) :
         self.value = self.source[self.CosThetaStarAvg] * math.sqrt(self.source[self.Alpha])
 ######################################
 class __CosThetaStar__(wrappedChain.calculable) :
-    def __init__(self, collection = None, topKey = 't') :
+    def __init__(self, collection = None, topKey = 't', boostz = "BoostZ") :
         self.fixes = collection
-        self.stash(['BoostZ','P4'])
+        self.stash(['P4'])
+        self.boostz = ("%s"+boostz+"%s")%collection
         self.TopKey = topKey
     def update(self,ignored) :
         p4 = self.source[self.P4] 
-        boost = self.source[self.BoostZ]
         sign = ( 1 if self.TopKey=='t' else -1)
-        self.value = sign * r.Math.VectorUtil.CosTheta( self.source[self.BoostZ](p4[self.TopKey]),  p4['quark'] ) 
+        self.value = sign * r.Math.VectorUtil.CosTheta( self.source[self.boostz](p4[self.TopKey]),  p4['quark'] ) 
 ######################################
+class CosThetaStarAlt(__CosThetaStar__) :
+    def __init__(self, collection = None) : super(CosThetaStarAlt,self).__init__(collection,'t','BoostZAlt')
 class CosThetaStar(__CosThetaStar__) :
     def __init__(self, collection = None) : super(CosThetaStar,self).__init__(collection, 't')
 class CosThetaStarBar(__CosThetaStar__) :
