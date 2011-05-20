@@ -29,6 +29,9 @@ muon.add("tt_tauola_mg_2muskim", 'utils.fileListFromDisk(location = "%s/tt_tauol
 muon.add("w_jets_mg_2muskim", 'utils.fileListFromDisk(location = "%s/w_jets_mg_1muskim_*_skim.root", isDirectory = False)'%dir, xs = 2.163140e-05 * 5.664588e+03)
 muon.add("dyll_jets_mg_2muskim", 'utils.fileListFromDisk(location = "%s/dyll_jets_mg_1muskim_*_skim.root", isDirectory = False)'%dir, xs = 5.612258e-01 * 7.730713e+02)
 
+muon.add("325_scaled_data", 'utils.fileListFromDisk(location = "/home/hep/elaird1/85_muonLook/07_displays/325_scaled_data.root", isDirectory = False)', lumi = 1.0)
+
+########## 2010 #############
 #38X SKIMS
 muon.add("Mu.Run2010B_skim", 'utils.fileListFromDisk(location="/vols/cms02/bbetchar/01_skims/Mu.Run2010B-Nov4ReReco.RECO.Jad/")',lumi = 32.96)
 muon.add("Mu.Run2010A_skim", 'utils.fileListFromDisk(location = "/vols/cms02/bbetchar/01_skims/Mu.Run2010A-Nov4ReReco.RECO.Jad/")',lumi = 3.18)
