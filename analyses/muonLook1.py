@@ -35,7 +35,7 @@ class muonLook1(analysis.analysis) :
                                       ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#3
                                       ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#4
                                       ("225_scaled", (225.0, 275.0,  60.0, 30.0)),#5
-                                      ][3:] ),
+                                      ][2:] ),
                  "triggerList": ("HLT_Mu3_v3", "HLT_Mu3_v4", "HLT_Mu5_v3", "HLT_Mu5_v4", "HLT_Mu8_v1", "HLT_Mu8_v2",
                                  "HLT_Mu12_v1", "HLT_Mu12_v2", "HLT_Mu15_v2", "HLT_Mu15_v3", "HLT_Mu20_v1", "HLT_Mu20_v2",
                                  "HLT_Mu24_v1", "HLT_Mu24_v2", "HLT_Mu30_v1", "HLT_Mu30_v2"),
