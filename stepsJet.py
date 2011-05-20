@@ -209,17 +209,34 @@ class cleanJetHtMhtHistogrammer(analysisStep) :
     def uponAcceptance (self,eventVars) :
         sumP4 = eventVars["%sSumP4%s"%self.cs]
         ht =  eventVars[self.htName]
-        mht = sumP4.pt()
+        mht = sumP4.pt() if sumP4 else 0.0
+        m = sumP4.mass() if sumP4 else 0.0
         
         self.book.fill(           ht,"%sHt%s"       %self.cs, 50,275.0, 2775.0, title = ";H_{T} (GeV) from %s%s %s_{T}'s;events / bin"%(self.cs[0],self.cs[1],self.letter))
         self.book.fill(          mht,"%sMht%s"      %self.cs, 50,  0.0, 1000.0, title = ";#slash{H}_{T} (GeV) from %s%s;events / bin"%self.cs)
         self.book.fill(       mht+ht,"%sHtPlusMht%s"%self.cs, 50,  0.0, 2500.0, title = ";H_{T} + #slash{H}_{T} (GeV) from %s%s %s_{T}'s;events / bin"%(self.cs[0],self.cs[1],self.letter))
-        self.book.fill( sumP4.mass(),"%sm%s"        %self.cs, 50, 0.0,  7.0e3, title = ";mass (GeV) of system of clean jets;events / bin")
+        self.book.fill(        m,"%sm%s"         %self.cs, 50, 0.0,  7.0e3, title = ";mass (GeV) of system of clean jets;events / bin")
         self.book.fill( (ht,mht), "%smht_vs_ht%s"%self.cs, (50, 50), (0.0, 0.0), (2000.0, 2000.0),
                    title = "; H_{T} (GeV) from clean jets; #slash{H}_{T} (GeV) from clean jet %s_{T}'s;events / bin"%self.letter)
 
         value = mht / ht  if ht>0.0 else -1.0
         self.book.fill(value, "%smHtOverHt%s"%self.cs, 50, 0.0, 1.1, title = "; MHT / H_{T} (GeV) from clean jet %s_{T}'s;events / bin"%self.letter )
+#####################################
+class htMultiHistogrammer(analysisStep) :
+    def __init__(self, cs, bins):
+        self.cs = cs
+        self.bins = bins
+        self.htName = "%sSumEt%s"%self.cs
+        self.moreName="%s%s"%self.cs
+        self.binZip = zip(self.bins, self.bins[1:]+[""])
+    def uponAcceptance (self,eventVars) :
+        ht =  eventVars[self.htName]
+        nJets = len(eventVars["%sIndices%s"%self.cs])
+        for bin,next in self.binZip :
+            if ht<bin : continue
+            if next!=None and next<ht : continue
+            self.book.fill(nJets, "%sNjets%s_%s_%s"%(self.cs[0], self.cs[1], str(bin), str(next)), 20, -0.5, 19.5,
+                           title=";number of %s%s jets; %s<HT<%s;events / bin"%(self.cs[0], self.cs[1], str(bin), str(next)))
 #####################################
 class singleJetHistogrammer(analysisStep) :
 
