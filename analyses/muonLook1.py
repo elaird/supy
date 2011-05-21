@@ -144,8 +144,12 @@ class muonLook1(analysis.analysis) :
             steps.Jet.jetPtSelector(_jet, params["thresholds"][2], 1),
             steps.Jet.jetEtaSelector(_jet,2.5,0),
 
+            #steps.Trigger.hltTurnOnHistogrammer( "%sMht%s"%_jet,   (20, 0.0, 200.0), "HLT_HT250_MHT60_v3", ["HLT_Mu24_v2"]),
+
             #mht/ht cut
             steps.Filter.value("%sMhtOverHt%s"%_jet, min = 0.4),
+            #steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet, (20, params["thresholds"][0], 100+params["thresholds"][0]), "HLT_HT250_MHT60_v3", ["HLT_Mu24_v2"]),
+            
             steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5,
                                      title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
             
@@ -259,10 +263,7 @@ class muonLook1(analysis.analysis) :
                                  samplesForRatios = ("2011 Data","SM"),
                                  sampleLabelsForRatios = ("data","s.m."),
                                  showStatBox = True,
-                                 #whiteList = ["lowestUnPrescaledTrigger"],
                                  #doLog = False,
-                                 #compactOutput = True,
-                                 #noSci = True,
                                  linYAfter = ("value", "0.40<=xcak5JetMhtOverHtPat"),
                                  pegMinimum = 0.1,
                                  blackList = ["lumiHisto","xsHisto","nJobsHisto"],
