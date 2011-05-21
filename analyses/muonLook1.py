@@ -211,7 +211,8 @@ class muonLook1(analysis.analysis) :
             #                          metOtherAlgo  = params["objects"]["compMet"],
             #                          markusMode = False,
             #                          ),
-            steps.Other.passFilter("final") ]
+            ] + [steps.Other.variableGreaterFilter(bin, "%sSumEt%s"%_jet, suffix = "GeV") for bin in [425, 475, 575, 675, 775, 875]] +\
+            [ steps.Other.passFilter("final") ]
     
     def listOfSampleDictionaries(self) :
         return [samples.mc, samples.muon]
