@@ -132,7 +132,6 @@ class muonLook(analysis.analysis) :
             steps.Filter.value("%sDiMuonMass%s"%_muon, min = 80.0, max = 110.0),
             steps.Other.histogrammer("%sDiMuonMass%s"%_muon, 80, 50., 130., title = ";#mu#mu mass (GeV);events / bin"),
             
-            #DiMuonMass(wrappedChain.calculable) :            
             #many plots
             steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
             steps.Other.passFilter("singleJetPlots1"),
@@ -147,12 +146,13 @@ class muonLook(analysis.analysis) :
             steps.Jet.jetPtSelector(_jet, params["thresholds"][2], 0),
             steps.Jet.jetPtSelector(_jet, params["thresholds"][2], 1),
             steps.Jet.jetEtaSelector(_jet,2.5,0),
-
+            
             #mht/ht cut
             steps.Filter.value("%sMhtOverHt%s"%_jet, min = 0.4),
             steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5,
                                      title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
-            
+
+            #some histograms
             #steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 20, 0.0, r.TMath.Pi(),
             #                         title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
             #steps.Other.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
@@ -260,13 +260,8 @@ class muonLook(analysis.analysis) :
                                  psFileName = self.psFileName(tag),
                                  samplesForRatios = ("2011 Data","DY->ll"),
                                  sampleLabelsForRatios = ("data","DY"),
-                                 #samplesForRatios = ("calo_325_scaled.xcak5JetnJetsWeightPat", "calo_325_scaled"),
-                                 #sampleLabelsForRatios = ("3jet","Njet"),
                                  showStatBox = True,
-                                 #whiteList = ["lowestUnPrescaledTrigger"],
                                  #doLog = False,
-                                 #compactOutput = True,
-                                 #noSci = True,
                                  linYAfter = ("value", "0.40<=xcak5JetMhtOverHtPat"),
                                  pegMinimum = 0.1,
                                  blackList = ["lumiHisto","xsHisto","nJobsHisto"],
