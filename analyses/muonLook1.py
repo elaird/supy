@@ -10,8 +10,8 @@ class muonLook1(analysis.analysis) :
                                                                     "compJet",                "compJetId", "compMuonsInJets",        "compMet",
                                                                     "muon",                    "electron",          "photon",         "rechit"]
 
-        objects["caloAK5JetMet_recoLepPhot"]   = dict(zip(fields, [("xcak5Jet","Pat"),       "JetIDloose",             False, "metP4AK5TypeII",
-                                                                   ("xcak5JetPF","Pat"),     "JetIDtight",              True,        "metP4PF",
+        objects["caloAK5JetMet_recoLepPhot"]   = dict(zip(fields, [("xcak5Jet","Pat"),       "JetIDloose",             False,        "metP4PF",
+                                                                   ("xcak5JetPF","Pat"),     "JetIDtight",              True,               "",
                                                                    ("muon","Pat"),     ("electron","Pat"),  ("photon","Pat"),           "Calo",
                                                                    ]))
         
@@ -64,7 +64,7 @@ class muonLook1(analysis.analysis) :
                 calculables.Jet.DeltaPseudoJet(jet, etRatherThanPt),
                 calculables.Jet.AlphaT(jet, etRatherThanPt),
                 calculables.Jet.AlphaTMet(jet, etRatherThanPt, met),
-                calculables.Jet.MhtOverMet((jet[0], jet[1]+highPtName), met),
+                calculables.Jet.MhtOverMet((jet[0], jet[1]+highPtName), met = "%sPlus%s%s"%(obj["met"], obj["muon"][0], obj["muon"][1])),
                 calculables.Jet.deadEcalDR(jet, extraName = lowPtName, minNXtals = 10),
                 ]
             return outList+calculables.fromCollections(calculables.Jet, [jet])
@@ -83,7 +83,11 @@ class muonLook1(analysis.analysis) :
             calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
             calculables.Photon.Indices(obj["photon"],  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
             #calculables.Photon.Indices(obj["photon"],  ptMin = 25, flagName = "photonIDTightFromTwikiPat"),
-            
+
+            calculables.Other.minDeltaRToJet(obj["muon"], obj["jet"]),
+            calculables.Other.metPlusParticles(met = obj["met"], particles = obj["muon"]),
+            calculables.Other.Mt(obj["muon"], obj["met"]),
+            calculables.Other.SumP4(obj["muon"]),
             calculables.Vertex.ID(),
             calculables.Vertex.Indices(),
             calculables.Other.lowestUnPrescaledTrigger(triggers),
@@ -157,27 +161,21 @@ class muonLook1(analysis.analysis) :
             #                         title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
             #steps.Other.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
             #steps.Other.passFilter("kinematicPlots1"),
-            #
-            #steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
-            #
 
-            ##play with boson pT
-            #steps.Filter.pt("%sDiMuon%s"%_muon, min =   0.0),
-            #steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
-            #steps.Filter.pt("%sDiMuon%s"%_muon, min =  50.0),
-            #steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
-            #steps.Filter.pt("%sDiMuon%s"%_muon, min = 100.0),
-            #steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
-            #steps.Filter.pt("%sDiMuon%s"%_muon, min = 150.0),
-            #steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
+            steps.Other.histogrammer("%sMht%sOver%s" %(_jet[0], _jet[1]+params["highPtName"], _met+"Plus%s%s"%_muon), 100, 0.0, 3.0,
+                                     title = ";MHT %s%s / %s;events / bin"%(_jet[0], _jet[1], _met+"Plus%s%s"%_muon)),
+            steps.Other.variableLessFilter(1.25,"%sMht%sOver%s" %(_jet[0], _jet[1]+params["highPtName"], _met+"Plus%s%s"%_muon)),
+
+            steps.Other.histogrammer("%sMt%s%s"%(_muon[0], _muon[1], _met), 50, 0, 200, title = ";M_{T} (GeV) of %s%s,%s;events / bin"%(_muon[0], _muon[1], _met)),
+            steps.Filter.value("%sMt%s%s"%(_muon[0], _muon[1], _met), min = 30.),
+            steps.Filter.DeltaRGreaterSelector(jets = _jet, particles = _muon, minDeltaR = 0.5, particleIndex = 0),
             
+            steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
+
             #alphaT cut
             steps.Jet.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
-            #steps.Jet.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt, metName = _met),
-            #
             steps.Other.variableGreaterFilter(0.55,"%sAlphaT%s%s"%(_jet[0],"Et" if _etRatherThanPt else "Pt",_jet[1])),
-            ##]), #end cutSorter
-            #
+
             #steps.Other.histogrammer("vertexIndices", 20, -0.5, 19.5, title=";N vertices;events / bin", funcString="lambda x:len(x)"),
             steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
 
