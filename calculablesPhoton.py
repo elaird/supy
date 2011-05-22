@@ -23,56 +23,6 @@ class Indices(wrappedChain.calculable) :
             elif ids[i] : self.value.append(i)
             else: other.append(i)
 ##############################
-class SumP4(wrappedChain.calculable) :
-    def __init__(self, collection = None) :
-        self.fixes = collection
-        self.stash(["Indices","P4"])
-    def update(self, ignored) :
-        p4s = self.source[self.P4]
-        indices = self.source[self.Indices]
-        self.value = reduce( lambda x,i: x+p4s.at(i), indices, utils.LorentzV()) if len(indices) else None
-##############################
-class SumEt(wrappedChain.calculable) :
-    def __init__(self, collection = None) :
-        self.fixes = collection
-        self.stash(["Indices","P4"])
-    def update(self, ignored) :
-        p4s = self.source[self.P4]
-        indices = self.source[self.Indices]
-        self.value = reduce( lambda x,i: x+p4s.at(i).Et(), indices , 0)
-##############################
-class metPlusPhotons(wrappedChain.calculable) :
-    def name(self) :
-        return "%sPlus%s%s"%(self.met, self.photons[0], self.photons[1])
-    def __init__(self, met, photons) :
-        self.met = met
-        self.photons = photons
-        self.moreName = "%s + %s%s"%(self.met, self.photons[0], self.photons[1])
-    def update(self, ignored) :
-        self.value = self.source[self.met] + self.source["%sSumP4%s"%self.photons]
-##############################
-class minDeltaRToJet(wrappedChain.calculable) :
-    def name(self) : return "%s%sMinDeltaRToJet%s%s"% (self.photons[0], self.photons[1], self.jets[0], self.jets[1])
-
-    def __init__(self, photons, jets) :
-        for item in ["photons","jets"] :
-            setattr(self,item,eval(item))
-        self.photonIndices = "%sIndices%s"%self.photons
-        self.photonP4s     = "%sP4%s"     %self.photons
-
-        self.jetIndices = "%sIndices%s"    %self.jets
-        self.jetP4s     = "%sCorrectedP4%s"%self.jets
-
-    def update(self, ignored) :
-        self.value = {}
-        photonIndices = self.source[self.photonIndices]
-        photons       = self.source[self.photonP4s]
-
-        jetIndices    = self.source[self.jetIndices]
-        jets          = self.source[self.jetP4s]
-        for iPhoton in photonIndices :
-            self.value[iPhoton] = min([r.Math.VectorUtil.DeltaR( photons.at(iPhoton), jets.at(iJet) ) for iJet in jetIndices]) if len(jetIndices) else None
-##############################
 class leadingPt(wrappedChain.calculable) :
     def name(self) : return "%sLeadingPt%s"%self.photons
 

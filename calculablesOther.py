@@ -1,5 +1,5 @@
 from wrappedChain import *
-import calculables,math
+import calculables,math,utils
 #####################################
 class localEntry(wrappedChain.calculable) :
     def update(self,localEntry) :
@@ -62,6 +62,56 @@ class Mt(wrappedChain.calculable) :
             self.value = math.sqrt( 2.0*lep.pt()*met.pt()*(1.0 - math.cos(r.Math.VectorUtil.DeltaPhi(lep, met))) )
         else :
             self.value = (lep+met).Mt()
+##############################
+class SumP4(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","P4"])
+    def update(self, ignored) :
+        p4s = self.source[self.P4]
+        indices = self.source[self.Indices]
+        self.value = reduce( lambda x,i: x+p4s.at(i), indices, utils.LorentzV()) if len(indices) else None
+##############################
+class SumEt(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","P4"])
+    def update(self, ignored) :
+        p4s = self.source[self.P4]
+        indices = self.source[self.Indices]
+        self.value = reduce( lambda x,i: x+p4s.at(i).Et(), indices , 0)
+##############################
+class metPlusParticles(wrappedChain.calculable) :
+    def name(self) :
+        return "%sPlus%s%s"%(self.met, self.particles[0], self.particles[1])
+    def __init__(self, met, particles) :
+        self.met = met
+        self.particles = particles
+        self.moreName = "%s + %s%s"%(self.met, self.particles[0], self.particles[1])
+    def update(self, ignored) :
+        self.value = self.source[self.met] + self.source["%sSumP4%s"%self.particles]
+##############################
+class minDeltaRToJet(wrappedChain.calculable) :
+    def name(self) : return "%s%sMinDeltaRToJet%s%s"% (self.particles[0], self.particles[1], self.jets[0], self.jets[1])
+
+    def __init__(self, particles, jets) :
+        for item in ["particles","jets"] :
+            setattr(self,item,eval(item))
+        self.particleIndices = "%sIndices%s"%self.particles
+        self.particleP4s     = "%sP4%s"     %self.particles
+
+        self.jetIndices = "%sIndices%s"    %self.jets
+        self.jetP4s     = "%sCorrectedP4%s"%self.jets
+
+    def update(self, ignored) :
+        self.value = {}
+        particleIndices = self.source[self.particleIndices]
+        particles       = self.source[self.particleP4s]
+
+        jetIndices    = self.source[self.jetIndices]
+        jets          = self.source[self.jetP4s]
+        for iParticle in particleIndices :
+            self.value[iParticle] = min([r.Math.VectorUtil.DeltaR( particles.at(iParticle), jets.at(iJet) ) for iJet in jetIndices]) if len(jetIndices) else None
 #####################################
 class jsonWeight(wrappedChain.calculable) :
     def __init__(self, fileName = "", acceptFutureRuns = False) :
