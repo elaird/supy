@@ -220,22 +220,6 @@ class singlePhotonHistogrammer(analysisStep) :
                 #          (50, 50), (0.0, 0.0), (500.0, 0.1),
                 #          title=";photon%s p_{T} (GeV) [photon in endcap];sigma i#eta i#eta;events / bin"%photonLabel)
 #####################################
-class photonDeltaRGreaterSelector(analysisStep) :
-
-    def __init__(self, jets = None, photons = None, minDeltaR = None, photonIndex = None):
-        self.photonIndex = photonIndex
-        self.minDeltaR = minDeltaR
-        self.photonIndicesName = "%sIndices%s"%photons
-
-        self.moreName = "%s%s; %s%s; DR(ph.index[%d], jet) > %.2f"%(jets[0], jets[1], photons[0], photons[1], photonIndex, minDeltaR)
-        self.minDeltaRVar = "%s%sMinDeltaRToJet%s%s"%(photons[0], photons[1], jets[0], jets[1])
-        
-    def select (self,eventVars) :
-        indices = eventVars[self.photonIndicesName]
-        if len(indices) <= self.photonIndex : return False
-        index = indices[self.photonIndex]
-        return eventVars[self.minDeltaRVar][index]>self.minDeltaR
-#####################################
 class photonPtGreaterSelector(analysisStep) :
 
     def __init__(self, cs, photonPtThreshold, photonIndex):

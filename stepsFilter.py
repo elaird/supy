@@ -140,6 +140,22 @@ class deadHcal(analysisStep) :
                 return False
         return True
 #####################################
+class DeltaRGreaterSelector(analysisStep) :
+
+    def __init__(self, jets = None, particles = None, minDeltaR = None, particleIndex = None):
+        self.particleIndex = particleIndex
+        self.minDeltaR = minDeltaR
+        self.particleIndicesName = "%sIndices%s"%particles
+
+        self.moreName = "%s%s; DR(%s%s[i[%d]], jet) > %.2f"%(jets[0], jets[1], particles[0], particles[1], particleIndex, minDeltaR)
+        self.minDeltaRVar = "%s%sMinDeltaRToJet%s%s"%(particles[0], particles[1], jets[0], jets[1])
+        
+    def select (self,eventVars) :
+        indices = eventVars[self.particleIndicesName]
+        if len(indices) <= self.particleIndex : return False
+        index = indices[self.particleIndex]
+        return eventVars[self.minDeltaRVar][index]>self.minDeltaR
+#####################################
 class deadEcalIncludingPhotons(analysisStep) :
     def __init__(self, jets = None, extraName = "", photons = None, dR = None, dPhiStarCut = None, nXtalThreshold = None) :
         for item in ["jets","photons","dR","dPhiStarCut","nXtalThreshold"] :
