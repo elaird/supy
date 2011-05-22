@@ -80,7 +80,7 @@ class photonLook(analysis.analysis) :
                  calculables.Gen.genIsolations(label = "Status1Photon", coneSize = 0.4),
                  calculables.Gen.genPhotonCategory(label = "Status1Photon"),
 
-                 calculables.Photon.minDeltaRToJet(obj["photon"], obj["jet"]),
+                 calculables.Other.minDeltaRToJet(obj["photon"], obj["jet"]),
                  
                  calculables.XClean.IndicesUnmatched(collection = obj["photon"], xcjets = obj["jet"], DR = 0.5),
                  calculables.XClean.IndicesUnmatched(collection = obj["electron"], xcjets = obj["jet"], DR = 0.5)
@@ -96,7 +96,7 @@ class photonLook(analysis.analysis) :
                      calculables.Jet.AlphaTMet(obj["jet"], _etRatherThanPt, obj["met"]),
                      calculables.Jet.MhtOverMet((obj["jet"][0], obj["jet"][1]+params["highPtName"]), met = obj["met"]),
                      calculables.Jet.MhtOverMet((obj["jet"][0], obj["jet"][1]+params["highPtName"]), met = "%sPlus%s%s"%(obj["met"], obj["photon"][0], obj["photon"][1])),
-                     calculables.Photon.metPlusPhotons(met = obj["met"], photons = obj["photon"]),
+                     calculables.Other.metPlusParticles(met = obj["met"], particles = obj["photon"]),
                      calculables.Vertex.ID(),
                      calculables.Vertex.Indices(),
                      calculables.Jet.deadEcalDR(obj["jet"], extraName = params["lowPtName"], minNXtals = 10),
@@ -157,7 +157,7 @@ class photonLook(analysis.analysis) :
                 
                 steps.Photon.photonSelector(_photon, _jet, params["referenceThresholds"][0], 0),
                 steps.Photon.photonEtaSelector(_photon, 1.45, 0),
-                steps.Photon.photonDeltaRGreaterSelector(jets = _jet, photons = _photon, minDeltaR = 1.0, photonIndex = 0),
+                steps.Filter.DeltaRGreaterSelector(jets = _jet, particles = _photon, minDeltaR = 1.0, particleIndex = 0),
                 
                 steps.Other.multiplicityFilter("%sIndices%s"%_photon, nMin = 1, nMax = 1),
 
