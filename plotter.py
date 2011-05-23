@@ -98,13 +98,14 @@ class plotter(object) :
                  linYAfter = None,
                  nLinesMax = 17,
                  nColumnsMax = 67,
+                 pageNumbers = True,
                  shiftUnderOverFlows = True,
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
                  blackList = [],
                  whiteList = []
                  ) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter",
-                     "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput",
+                     "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox"] :
             setattr(self,item,eval(item))
 
@@ -113,7 +114,8 @@ class plotter(object) :
         self.plotRatios = self.samplesForRatios!=("","")        
         self.psOptions = "Landscape"
         self.canvas = r.TCanvas("canvas", "canvas", 500, 500) if self.anMode else r.TCanvas()
-
+        self.pageNumber = -1
+        
     def plotAll(self) :
         print utils.hyphens
         setupStyle()
@@ -374,7 +376,15 @@ class plotter(object) :
         printOneType( 0.52, *loopOneType(True)  )
         return text
     
-    def printCanvas(self,extra="") :
+    def printCanvas(self, extra = "") :
+        self.pageNumber += 1
+        if self.pageNumbers and self.pageNumber>1 :
+            text = r.TText()
+            text.SetNDC()
+            text.SetTextFont(102)
+            text.SetTextSize(0.45*text.GetTextSize())
+            text.SetTextAlign(33)
+            text.DrawText(0.95, 0.03, "page %3d"%self.pageNumber)
         self.canvas.Print(self.psFileName+extra,self.psOptions)
 
     def makePdf(self) :
@@ -413,7 +423,8 @@ class plotter(object) :
             text.DrawTextNDC(x, y-0.49, "%s: %s"%(letter, "".join(nums)))
 
         text.DrawTextNDC(x, 0.5, "   "+"".join([s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]))
-        text.DrawTextNDC( 0.75, 0.01,"events / %.3f pb^{-1}"% self.someOrganizer.lumi )
+        text.SetTextAlign(33)
+        text.DrawTextNDC(0.95, 0.05,"events / %.3f pb^{-1}"% self.someOrganizer.lumi )
         self.printCanvas()
         self.canvas.Clear()
 
