@@ -37,7 +37,7 @@ class photonLook(analysis.analysis) :
                  "lowPtName":"lowPt",
                  "highPtThreshold" : 50.0,
                  "highPtName" : "highPt",
-                 "htBin": dict( [("275", 275.0), ("325", 325.0), ("375", 375.0)][:] ),
+                 "htBin": dict( [("275", 275.0), ("325", 325.0), ("375", 375.0)][2:] ),
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  #"triggerList": ("HLT_HT160_v2","HLT_HT240_v2","HLT_HT260_v2","HLT_HT350_v2","HLT_HT360_v2"),#2011 epoch 0
@@ -80,8 +80,6 @@ class photonLook(analysis.analysis) :
                  calculables.Gen.genIsolations(label = "Status1Photon", coneSize = 0.4),
                  calculables.Gen.genPhotonCategory(label = "Status1Photon"),
 
-                 calculables.Other.minDeltaRToJet(obj["photon"], obj["jet"]),
-                 
                  calculables.XClean.IndicesUnmatched(collection = obj["photon"], xcjets = obj["jet"], DR = 0.5),
                  calculables.XClean.IndicesUnmatched(collection = obj["electron"], xcjets = obj["jet"], DR = 0.5)
                  ] \
@@ -97,6 +95,8 @@ class photonLook(analysis.analysis) :
                      calculables.Jet.MhtOverMet((obj["jet"][0], obj["jet"][1]+params["highPtName"]), met = obj["met"]),
                      calculables.Jet.MhtOverMet((obj["jet"][0], obj["jet"][1]+params["highPtName"]), met = "%sPlus%s%s"%(obj["met"], obj["photon"][0], obj["photon"][1])),
                      calculables.Other.metPlusParticles(met = obj["met"], particles = obj["photon"]),
+                     calculables.Other.minDeltaRToJet(obj["photon"], obj["jet"]),
+                     calculables.Other.SumP4(obj["photon"]),
                      calculables.Vertex.ID(),
                      calculables.Vertex.Indices(),
                      calculables.Jet.deadEcalDR(obj["jet"], extraName = params["lowPtName"], minNXtals = 10),
