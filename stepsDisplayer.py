@@ -253,6 +253,7 @@ class displayer(analysisStep) :
         if not isPf :
             jetEmfVector  = eventVars['%sEmEnergyFraction%s'%jets2]
             jetFHpdVector = eventVars['%sJetIDFHPD%s'       %jets2]
+            jetFRbxVector = eventVars['%sJetIDFRBX%s'       %jets2]
             jetN90Vector  = eventVars['%sJetIDN90Hits%s'    %jets2]
             
             loose = eventVars["%sJetIDloose%s"%jets2]
@@ -272,8 +273,8 @@ class displayer(analysisStep) :
             tight = eventVars["%sPFJetIDtight%s"%jets2]
             
         self.printText(self.renamedDesc(jets[0]+jets[1]))
-        self.printText("ID   pT  eta  phi%s"%("   EMF  fHPD N90 corr" if not isPf else "   CHF  NHF  CEF  NEF CM corr"))
-        self.printText("-----------------%s"%("---------------------" if not isPf else "-----------------------------"))
+        self.printText("ID   pT  eta  phi%s"%("   EMF  fHPD  fRBX N90 corr" if not isPf else "   CHF  NHF  CEF  NEF CM corr"))
+        self.printText("-----------------%s"%("---------------------------" if not isPf else "-----------------------------"))
 
         nJets = p4Vector.size()
         for iJet in range(nJets) :
@@ -286,7 +287,7 @@ class displayer(analysisStep) :
             outString+="%5.0f %4.1f %4.1f"%(jet.pt(), jet.eta(), jet.phi())
 
             if not isPf :
-                outString+=" %5.2f %5.2f %3d %4.2f"%(jetEmfVector.at(iJet), jetFHpdVector.at(iJet), jetN90Vector.at(iJet), corrVector.at(iJet))
+                outString+=" %5.2f %5.2f %5.2f %3d %4.2f"%(jetEmfVector.at(iJet), jetFHpdVector.at(iJet), jetFRbxVector.at(iJet), jetN90Vector.at(iJet), corrVector.at(iJet))
             else :
                 outString+=" %5.3f %4.2f %4.2f %4.2f%3d %4.2f"%(chf.at(iJet), nhf.at(iJet), cef.at(iJet), nef.at(iJet), cm.at(iJet), corrVector.at(iJet))
             self.printText(outString)
