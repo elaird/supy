@@ -94,7 +94,6 @@ class photonLook(analysis.analysis) :
                      calculables.Jet.AlphaTWithPhoton1PtRatherThanMht(obj["jet"], photons = obj["photon"], etRatherThanPt = _etRatherThanPt),
                      calculables.Jet.AlphaT(obj["jet"], _etRatherThanPt),
                      calculables.Jet.AlphaTMet(obj["jet"], _etRatherThanPt, obj["met"]),
-                     calculables.Jet.MhtOverMet((obj["jet"][0], obj["jet"][1]+params["highPtName"]), met = obj["met"]),
                      calculables.Jet.MhtOverMet((obj["jet"][0], obj["jet"][1]+params["highPtName"]), met = "%sPlus%s%s"%(obj["met"], obj["photon"][0], obj["photon"][1])),
                      calculables.Other.metPlusParticles(met = obj["met"], particles = obj["photon"]),
                      calculables.Other.minDeltaRToJet(obj["photon"], obj["jet"]),
@@ -248,6 +247,7 @@ class photonLook(analysis.analysis) :
             steps.Photon.singlePhotonHistogrammer(_photon, _jet),
             
             steps.Other.variableGreaterFilter(0.55,"%sAlphaTEt%s"%_jet),
+
             
             steps.Jet.photon1PtOverHtHistogrammer(jets = _jet, photons = _photon, etRatherThanPt = _etRatherThanPt),            
             steps.Other.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
@@ -263,13 +263,18 @@ class photonLook(analysis.analysis) :
                                      title = ";MHT %s%s / %s;events / bin"%(_jet[0], _jet[1], _met if params["zMode"] else _met+"Plus%s%s"%_photon)),
             steps.Other.variableLessFilter(1.25,"%sMht%sOver%s" %(_jet[0], _jet[1]+params["highPtName"], _met if params["zMode"] else _met+"Plus%s%s"%_photon)),
             steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
-            
-            steps.Other.histogrammer("%sSumEt%s"%_jet, 40, 0, 1000, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
-            ] + [steps.Other.variableGreaterFilter(375.0+100*iBin, "%sSumEt%s"%_jet, suffix = "GeV") for iBin in range(1,6)] +\
-            [
-            #steps.Gen.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
-            
+
+            steps.Other.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
+                               funcString="lambda x:len(x)"),
+
+            steps.Histos.pt("%sCorrectedP4%s"%_jet, 20, 0.0, 5*params["thresholds"][2], indices = "%sIndices%s"%_jet, index = 0, xtitle = "jet 1 p_{T} (GeV)"),
+            steps.Histos.pt("%sCorrectedP4%s"%_jet, 20, 0.0, 4*params["thresholds"][2], indices = "%sIndices%s"%_jet, index = 1, xtitle = "jet 2 p_{T} (GeV)"),
+            steps.Histos.pt("%sCorrectedP4%s"%_jet, 20, 0.0, 2*params["thresholds"][2], indices = "%sIndices%s"%_jet, index = 2, xtitle = "jet 3 p_{T} (GeV)"),
+            steps.Histos.eta("%sCorrectedP4%s"%_jet, 6, -3.0, 3.0, indices = "%sIndices%s"%_jet, index = 2, xtitle = "jet 3"),
+
             #steps.Other.skimmer(),
+            
+            #steps.Gen.genMotherHistogrammer("genIndicesPhoton", specialPtThreshold = 100.0),
             #steps.Print.eventPrinter(),
             #steps.Print.vertexPrinter(),
             #steps.Jet.jetPrinter(_jet),
@@ -291,11 +296,11 @@ class photonLook(analysis.analysis) :
             #                          #doGenParticles = True,
             #                          deltaPhiStarExtraName = params["lowPtName"],
             #                          #deltaPhiStarExtraName = "%s%s"%("","PlusPhotons"),
-            #                          mhtOverMetExtraName = params["highPtName"],
+            #                          mhtOverMetName = "%sMht%sOver%s"%(_jet[0], _jet[1]+params["highPtName"], _met if params["zMode"] else _met+"Plus%s%s"%_photon),
             #                          ),
-            
-            ]
 
+            steps.Other.histogrammer("%sSumEt%s"%_jet, 40, 0, 1000, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
+            ] + [steps.Other.variableGreaterFilter(375.0+100*iBin, "%sSumEt%s"%_jet, suffix = "GeV") for iBin in range(1,6)]
         return outList
 
     def listOfSampleDictionaries(self) :
@@ -367,7 +372,8 @@ class photonLook(analysis.analysis) :
         data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted2_noIsoReqSkim",      weights = jw, overrideLumi = 83.6 )
         data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted3_noIsoReqSkim",      weights = jw, overrideLumi = 63.7 )
 
-        freaks = specify(names = "photon200_3jet")
+        #freaks = specify(names = "photon200_3jet")
+        cands = specify(names = "325_scaled_photons")
         
         eL = 2000.0
 
@@ -407,6 +413,7 @@ class photonLook(analysis.analysis) :
             
             outList += data
             #outList += freaks
+            #outList += cands
 
             #outList += ewk_mg
             #outList += ttbar_mg
