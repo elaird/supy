@@ -577,7 +577,7 @@ class photon1PtOverHtHistogrammer(analysisStep) :
         if not len(eventVars[self.photonIndices]) : return
         index = eventVars[self.photonIndices][0]
         self.book.fill( eventVars[self.photonP4][index].pt()/eventVars[self.ht], "photon1PtOverHt",
-                        20, 0.0, 2.0, title = ";photon1 pT / HT [%s%s];events / bin"%self.jets)
+                        15, 0.0, 1.5, title = ";photon1 pT / HT [%s%s];events / bin"%self.jets)
 #####################################
 class sensitivityHistogrammer(analysisStep) :
     def __init__(self, jets = None) :
