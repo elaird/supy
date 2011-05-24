@@ -413,7 +413,6 @@ class hadronicLook(analysis.analysis) :
                                  #doLog = False,
                                  #compactOutput = True,
                                  #noSci = True,
-                                 showErrorsOnDataYields = False,
                                  linYAfter = ("variableGreaterFilter", "xcak5JetAlphaTEtPat>=0.550 "),
                                  pegMinimum = 0.1,
                                  blackList = ["lumiHisto","xsHisto","nJobsHisto"],
