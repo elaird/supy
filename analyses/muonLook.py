@@ -64,7 +64,7 @@ class muonLook(analysis.analysis) :
                 calculables.Jet.DeltaPseudoJet(jet, etRatherThanPt),
                 calculables.Jet.AlphaT(jet, etRatherThanPt),
                 calculables.Jet.AlphaTMet(jet, etRatherThanPt, met),
-                calculables.Jet.MhtOverMet((jet[0], jet[1]+highPtName), met),
+                calculables.Jet.MhtOverMet((jet[0], jet[1]+highPtName), met = "%sPlus%s%s"%(obj["met"], obj["muon"][0], obj["muon"][1])),                
                 calculables.Jet.deadEcalDR(jet, extraName = lowPtName, minNXtals = 10),
                 ]
             return outList+calculables.fromCollections(calculables.Jet, [jet])
@@ -83,6 +83,9 @@ class muonLook(analysis.analysis) :
             calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
             calculables.Photon.Indices(obj["photon"],  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
             #calculables.Photon.Indices(obj["photon"],  ptMin = 25, flagName = "photonIDTightFromTwikiPat"),
+
+            calculables.Other.metPlusParticles(met = obj["met"], particles = obj["muon"]),
+            calculables.Other.SumP4(obj["muon"]),
             
             calculables.Vertex.ID(),
             calculables.Vertex.Indices(),
@@ -131,6 +134,17 @@ class muonLook(analysis.analysis) :
             steps.Muon.diMuonHistogrammer(_muon),
             steps.Filter.value("%sDiMuonMass%s"%_muon, min = 80.0, max = 110.0),
             steps.Other.histogrammer("%sDiMuonMass%s"%_muon, 80, 50., 130., title = ";#mu#mu mass (GeV);events / bin"),
+
+            ]+(
+            steps.Other.multiplicityPlotFilter("%sIndices%s"%_electron,          nMax = 0, xlabel = "N electrons") +
+            steps.Other.multiplicityPlotFilter("%sIndices%s"%_photon,            nMax = 0, xlabel = "N photons") +
+            steps.Other.multiplicityPlotFilter("%sIndicesOther%s"%_jet,          nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID or #eta"%_jet) +
+            steps.Other.multiplicityPlotFilter("%sIndicesOther%s"%_muon,         nMax = 0, xlabel = "number of %s%s above p_{T}#semicolon failing ID or #eta"%_muon) +
+            steps.Other.multiplicityPlotFilter("%sIndicesUnmatched%s"%_electron, nMax = 0, xlabel = "N electrons unmatched") +
+            steps.Other.multiplicityPlotFilter("%sIndicesUnmatched%s"%_photon,   nMax = 0, xlabel = "N photons unmatched") +
+            steps.Other.multiplicityPlotFilter("%sIndices%s"%_jet, nMin = 2, xlabel="number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts"%_jet)
+            )+[
+            steps.Jet.uniquelyMatchedNonisoMuons(_jet), 
             
             #many plots
             steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
@@ -158,8 +172,7 @@ class muonLook(analysis.analysis) :
             #steps.Other.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
             #steps.Other.passFilter("kinematicPlots1"),
             #
-            #steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
-            #
+            steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
 
             ##play with boson pT
             #steps.Filter.pt("%sDiMuon%s"%_muon, min =   0.0),
@@ -170,7 +183,11 @@ class muonLook(analysis.analysis) :
             #steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
             #steps.Filter.pt("%sDiMuon%s"%_muon, min = 150.0),
             #steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
-            
+
+            steps.Other.histogrammer("%sMht%sOver%s" %(_jet[0], _jet[1]+params["highPtName"], _met+"Plus%s%s"%_muon), 100, 0.0, 3.0,
+                                     title = ";MHT %s%s / %s;events / bin"%(_jet[0], _jet[1], _met+"Plus%s%s"%_muon)),
+            steps.Other.variableLessFilter(1.25,"%sMht%sOver%s" %(_jet[0], _jet[1]+params["highPtName"], _met+"Plus%s%s"%_muon)),
+
             #alphaT cut
             steps.Jet.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
             #steps.Jet.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt, metName = _met),
@@ -184,8 +201,6 @@ class muonLook(analysis.analysis) :
             #out of stats
             #steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             #steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
-            #steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met), 100, 0.0, 3.0,
-            #                         title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1]+params["highPtName"],_met)),
 
             #steps.Other.skimmer(),
             #steps.Other.cutBitHistogrammer(self.togglePfJet(_jet), self.togglePfMet(_met)),
@@ -210,7 +225,7 @@ class muonLook(analysis.analysis) :
             #                          deltaPhiStarExtraName = params["lowPtName"],
             #                          deltaPhiStarCut = 0.5,
             #                          deltaPhiStarDR = 0.3,
-            #                          mhtOverMetExtraName = params["highPtName"],
+            #                          mhtOverMetName = "%sMht%sOver%s"%(_jet[0], _jet[1]+params["highPtName"], _met+"Plus%s%s"%_muon),
             #                          jetsOtherAlgo = params["objects"]["compJet"],
             #                          metOtherAlgo  = params["objects"]["compMet"],
             #                          markusMode = False,
@@ -229,6 +244,8 @@ class muonLook(analysis.analysis) :
             out += specify(names = "SingleMu.Run2011A-PR-v2.Alex_2muskim"  , weights = jw, overrideLumi = 12.27)
             out += specify(names = "SingleMu.Run2011A-PR-v2.Robin1_2muskim", weights = jw, overrideLumi = 87.31)
             out += specify(names = "SingleMu.Run2011A-PR-v2.Robin2_2muskim", weights = jw, overrideLumi = 79.34)
+
+            #out += specify(names = "325_scaled_data")
             return out
 
         eL = 3000 # 1/pb
