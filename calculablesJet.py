@@ -50,8 +50,8 @@ class Indices(wrappedChain.calculable) :
     def __init__(self, collection = None, ptMin = None, etaMax = None, flagName = None, extraName = "",
                  scaleThresholds = False, htBins = None, referenceThresholds = None):
         self.fixes = (collection[0],collection[1]+extraName)
-        self.stash(["IndicesOther","IndicesKilled"])
-        self.stash(["CorrectedP4"],collection)
+        self.stash(["IndicesOther"])
+        self.stash(["CorrectedP4", "IndicesKilled"],collection)
         self.flag = None if not flagName else \
                     ( "%s"+flagName+"%s" if xcStrip(collection)[0][-2:] != "PF" else \
                       "%sPF"+flagName+"%s" ) % xcStrip(collection)
@@ -99,8 +99,8 @@ class Indices(wrappedChain.calculable) :
         self.value = []
         p4s    = self.source[self.CorrectedP4]
         htBinContainer = self.source[self.HtBinContainer] if not self.extraName else None
-        other  = self.source[self.IndicesOther]  if not self.extraName else []
-        killed = self.source[self.IndicesKilled] if not self.extraName else []
+        other  = self.source[self.IndicesOther] if not self.extraName else []
+        killed = self.source[self.IndicesKilled]
         jetIds = self.source[self.flag] if self.flag else p4s.size()*[1]
 
         #print
@@ -119,8 +119,8 @@ class Indices(wrappedChain.calculable) :
     def updateSimple(self) :
         self.value = []
         p4s    = self.source[self.CorrectedP4]
-        other  = self.source[self.IndicesOther]  if not self.extraName else []
-        killed = self.source[self.IndicesKilled] if not self.extraName else []
+        other  = self.source[self.IndicesOther] if not self.extraName else []
+        killed = self.source[self.IndicesKilled]
         jetIds = self.source[self.flag] if self.flag else p4s.size()*[1]
         pt2s    = []
 
