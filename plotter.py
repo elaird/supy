@@ -423,8 +423,8 @@ class plotter(object) :
             text.DrawTextNDC(x, y-0.49, "%s: %s"%(letter, "".join(nums)))
 
         text.DrawTextNDC(x, 0.5, "   "+"".join([s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]))
-        text.SetTextAlign(33)
-        text.DrawTextNDC(0.95, 0.05,"events / %.3f pb^{-1}"% self.someOrganizer.lumi )
+        text.SetTextAlign(13)
+        text.DrawTextNDC(0.05, 0.03, "events / %.3f pb^{-1}"% self.someOrganizer.lumi )
         self.printCanvas()
         self.canvas.Clear()
 
