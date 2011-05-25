@@ -373,7 +373,9 @@ class photonLook(analysis.analysis) :
         data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted3_noIsoReqSkim",      weights = jw, overrideLumi = 63.7 )
 
         #freaks = specify(names = "photon200_3jet")
-        cands = specify(names = "325_scaled_photons")
+        #cands1 = specify(names = "375_photons")
+        #cands2 = specify(names = "325_photons")
+        #cands3 = specify(names = "275_photons")
         
         eL = 2000.0
 
@@ -388,9 +390,10 @@ class photonLook(analysis.analysis) :
         qcd_py6         = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdPyNames())
         g_jets_py6      = specify(effectiveLumi = eL, color = r.kGreen, names = self.gJetsPyNames())
 
-        ttbar_mg = specify(effectiveLumi = eL, color = r.kOrange, names = ["tt_tauola_mg"])
-        ewk_mg = specify(effectiveLumi = eL, color = r.kYellow-3, names = ["z_jets_mg"]) + specify(effectiveLumi = eL, color = 28, names = ["w_jets_mg"])
-        zinv_mg = specify(effectiveLumi = eL, color = r.kMagenta, names = ["zinv_jets_mg"])
+        ttbar_mg = specify(effectiveLumi = eL, color = r.kOrange, names = ["tt_tauola_mg_noIsoReqSkim"])
+        zjets_mg = specify(effectiveLumi = eL, color = r.kYellow-3, names = ["dyll_jets_mg_noIsoReqSkim"])
+        wjets_mg = specify(effectiveLumi = eL, color = 28, names = ["w_jets_mg_noIsoReqSkim"])
+        zinv_mg  = specify(effectiveLumi = eL, color = r.kMagenta, names = ["zinv_jets_mg"])
 
         zinv_py6 = specify(effectiveLumi = eL, color = r.kMagenta, names = ["z_nunu"])
         
@@ -404,19 +407,24 @@ class photonLook(analysis.analysis) :
             ##outList += data_2010_nov4
 
             #2011
+            #outList += qcd_py6
+            #outList += g_jets_py6
+            
+            #outList += zjets_mg
+            #outList += wjets_mg
+            #outList += ttbar_mg
+
             #outList += qcd_mg
             #outList += g_jets_mg
             outList += qcd_mg_weighted
             outList += g_jets_mg_weighted
-            #outList += qcd_py6
-            #outList += g_jets_py6
             
             outList += data
-            #outList += freaks
-            #outList += cands
 
-            #outList += ewk_mg
-            #outList += ttbar_mg
+            #outList += freaks
+            #outList += cands1
+            #outList += cands2
+            #outList += cands3
         else :
             #outList += zinv_mg_2010
             outList += zinv_mg
