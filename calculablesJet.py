@@ -734,23 +734,32 @@ class deadEcalDR(wrappedChain.calculable) :
         for item in ["jets","extraName","minNXtals"] :
             setattr(self,item,eval(item))
         self.dps = "%sDeltaPhiStar%s%s"%(self.jets[0], self.jets[1], self.extraName)
-        self.badJet = utils.LorentzV()
         self.moreName = "%s%s; nXtal>=%d"%(self.jets[0], self.jets[1], self.minNXtals)
         
     def update(self, ignored) :
-        index = self.source[self.dps]["DeltaPhiStarJetIndex"]
-        if index!=None :
-            jet = self.source["%sCorrectedP4%s"%self.jets].at(index)
-            self.badJet.SetCoordinates(jet.pt(),jet.eta(),jet.phi(),jet.mass())
+        self.value = None
 
-            dRs = []
-            for iRegion in range(self.source["ecalDeadTowerTrigPrimP4"].size()) :
-                region = self.source["ecalDeadTowerTrigPrimP4"].at(iRegion)
-                if self.source["ecalDeadTowerNBadXtals"].at(iRegion)<self.minNXtals : continue
-                dRs.append(r.Math.VectorUtil.DeltaR(self.badJet,region))
-            self.value = min(dRs) if len(dRs) else None
-        else :
-            self.value = None
+        index = self.source[self.dps]["DeltaPhiStarJetIndex"]
+        if index is None : return
+        
+        questionableJet = self.source["%sCorrectedP4%s"%self.jets].at(index)
+        dRs = []
+        for iRegion in range(self.source["ecalDeadTowerTrigPrimP4"].size()) :
+            region = self.source["ecalDeadTowerTrigPrimP4"].at(iRegion)
+            nDeadXtals = self.source["ecalDeadTowerNBadXtals"].at(iRegion)
+            dRs.append( (r.Math.VectorUtil.DeltaR(questionableJet, region), nDeadXtals) )
+            
+        #check cracks
+        eta = questionableJet.eta()
+        dRs.append( (abs(eta-1.5), self.minNXtals) )
+        dRs.append( (abs(eta+1.5), self.minNXtals) )
+        
+        nDeadXtals = 0
+        for dr,nDead in sorted(dRs) :
+            nDeadXtals += nDead
+            if nDeadXtals>=self.minNXtals :
+                self.value = dr
+                return
 ##############################
 class ResidualCorrectionsFromFile(wrappedChain.calculable) :
     def __init__(self, collection = None) :
