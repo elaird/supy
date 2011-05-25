@@ -28,7 +28,9 @@ class photonSkim(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify
-        return specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted3")
+        return specify(names = "tt_tauola_mg") +\
+               specify(names = "w_jets_mg") +\
+               specify(names = "dyll_jets_mg")
 
     def listOfSampleDictionaries(self) :
         return [samples.jetmet, samples.photon, samples.mc]
