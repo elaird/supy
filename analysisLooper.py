@@ -57,6 +57,7 @@ class analysisLooper :
                                                      useSetBranchAddress = useSetBranchAddress,
                                                      leavesToBlackList = self.leavesToBlackList,
                                                      maxArrayLength = configuration.maxArrayLength(),
+                                                     trace = configuration.trace(),
                                                      )
             map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
             self.makeListsOfLeavesAndCalcsUsed( chainWrapper.activeKeys() )

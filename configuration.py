@@ -1,5 +1,8 @@
 import os,socket
 
+def trace() :
+    return False
+
 def useCachedFileLists() :
     return True
 

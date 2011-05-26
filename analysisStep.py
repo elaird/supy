@@ -1,4 +1,6 @@
 from bisect import bisect
+from wrappedChain import keyTracer
+import configuration
 #####################################
 class analysisStep(object) :
     """generic analysis step"""
@@ -11,6 +13,7 @@ class analysisStep(object) :
 
     disabled = False
     quietMode = False
+    tracer = keyTracer(None) if configuration.trace() else None
     
     def go(self,eventVars) :
         if self.disabled :
@@ -20,7 +23,7 @@ class analysisStep(object) :
             self.uponAcceptance(eventVars)
             return True
 
-        passed = bool(self.select(eventVars))
+        passed = bool(self.select(self.tracer(eventVars) if self.tracer else eventVars))
         self.increment(passed)
         return passed
     def increment(self, passed, w = None) : self.book.fill(passed, "counts", 2, 0, 2, w = w)

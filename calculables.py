@@ -17,7 +17,7 @@ class indicesOther(wrappedChain.calculable) :
 
     def update(self,ignored) :
         self.value = []
-        if not dict.__getitem__(self.source,self.indices).updated :
+        if not self.source.node(self.indices).updated :
             self.source[self.indices]
 ##############################
 def zeroArgs() :

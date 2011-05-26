@@ -34,7 +34,7 @@ class HtBinContainer(wrappedChain.calculable) :
 
     def update(self,ignored) : #copied from calculables.indicesOther
         self.value = []
-        if not dict.__getitem__(self.source,self.indices).updated :
+        if not self.source.node(self.indices).updated :
             self.source[self.indices]
 ##############################
 class HtBin(wrappedChain.calculable) :
@@ -199,7 +199,7 @@ class NMuonsMatched(wrappedChain.calculable) :
         self.multiplicity = "%sCorrectedP4%s"%xcStrip(collection)
     def update(self,ignored) :
         self.value = [0] * len(self.source[self.multiplicity])
-        if not dict.__getitem__(self.source,self.CorrectedP4).updated :
+        if not self.source.node(self.CorrectedP4).updated :
             self.source[self.CorrectedP4] #xc modifies values
 ###################################
 class Nmuon(wrappedChain.calculable) :

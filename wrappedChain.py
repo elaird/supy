@@ -2,9 +2,21 @@ import copy,array
 import ROOT as r
 from collections import defaultdict
 
+class keyTracer(object) :
+    def __init__(self,someDict) :
+        self.someDict = someDict
+        self.keys = set()
+    def node(self,key) : return self.someDict.node(key)
+    def __getitem__(self,key) :
+        if key not in self.keys : self.keys.add(key)
+        return self.someDict[key]
+    def __call__(self,someDict) :
+        self.someDict = someDict
+        return self
+
 class wrappedChain(dict) : 
 
-    def __init__(self, chain, calculables = [], useSetBranchAddress = True, leavesToBlackList = [], preferredCalcs = [], maxArrayLength = 256) :
+    def __init__(self, chain, calculables = [], useSetBranchAddress = True, leavesToBlackList = [], preferredCalcs = [], maxArrayLength = 256, trace = False) :
         """Set up the nodes"""
         self.__activeNodes = defaultdict(int)
         self.__activeNodeList = []
@@ -26,7 +38,7 @@ class wrappedChain(dict) :
             name = calc.name()
             if name in self and name not in preferredCalcs : continue
             dict.__setitem__(self, name, copy.deepcopy(calc) )
-            dict.__getitem__(self, name).source = self
+            dict.__getitem__(self, name).source = keyTracer(self) if trace else self
             dict.__getitem__(self, name).updated = False
 
     def activeKeys(self) : return [( key, node.isLeaf(), str(type(node.value)).split("'")[1].replace("wrappedChain.","") ) for key,node in self.__activeNodes.iteritems()]
@@ -53,6 +65,7 @@ class wrappedChain(dict) :
                 yield self
             iTreeFirstEntry += nTreeEntries
 
+    def node(self,key) : return dict.__getitem__(self,key)
     def __getitem__(self,key) :
         """Access the value of the branch or calculable specified by 'key' for the current entry"""
         node = self.__activeNodes[key]
