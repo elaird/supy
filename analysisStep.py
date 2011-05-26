@@ -1,6 +1,4 @@
 from bisect import bisect
-from wrappedChain import keyTracer
-import configuration
 #####################################
 class analysisStep(object) :
     """generic analysis step"""
@@ -13,7 +11,6 @@ class analysisStep(object) :
 
     disabled = False
     quietMode = False
-    tracer = keyTracer(None) if configuration.trace() else None
     
     def go(self,eventVars) :
         if self.disabled :

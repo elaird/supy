@@ -65,7 +65,7 @@ class organizer(object) :
             
         dirs = [ s['dir'] for s in self.samples]
         while dirs[0] :
-            keysets = [set([key.GetName() for key in dir.GetListOfKeys()]) for dir in dirs]
+            keysets = [set(filter(lambda name: name!="Calculables",[key.GetName() for key in dir.GetListOfKeys()])) for dir in dirs]
             keys = reduce( lambda x,y: x|y ,keysets,set())
 
             subdirNames = map(lambda d,keys:  filter(lambda k: ( type(d.Get(k)) is r.TDirectoryFile), keys),  dirs,keysets)

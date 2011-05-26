@@ -60,8 +60,8 @@ class analysisLooper :
                                                      trace = configuration.trace(),
                                                      )
             map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
-            self.makeListsOfLeavesAndCalcsUsed( chainWrapper.activeKeys() )
-        else : self.makeListsOfLeavesAndCalcsUsed([])
+            self.makeListsOfLeavesAndCalcsUsed( chainWrapper.activeKeys(), chainWrapper.calcDependencies() )
+        else : self.makeListsOfLeavesAndCalcsUsed([], {})
 
         self.endSteps()
         self.pickleStepAndCalculableData()
@@ -151,6 +151,7 @@ class analysisLooper :
                 current = current.mkdir(step.name())
                 book = autoBook(current)
             step.book = book
+            step.tracer = wrappedChain.keyTracer(None) if configuration.trace() else None
             if minimal : continue
             if self.quietMode : step.makeQuiet()
             step.isSelector = hasattr(step,"select")            
@@ -164,9 +165,10 @@ class analysisLooper :
         r.gROOT.cd()
         return returnValue
 
-    def makeListsOfLeavesAndCalcsUsed(self, activeKeys) :
+    def makeListsOfLeavesAndCalcsUsed(self, activeKeys, calculableDependencies) :
+        self.calculableDependencies = calculableDependencies
         self.listOfLeavesUsed = []
-        self.listOfCalculablesUsed = []        
+        self.listOfCalculablesUsed = []
         for key,isLeaf,keyType in activeKeys :
             if isLeaf :
                 self.listOfLeavesUsed.append((key, keyType))
@@ -180,7 +182,7 @@ class analysisLooper :
         
         self.listOfLeavesUsed.sort()
         self.listOfCalculablesUsed.sort()
-
+        
     def printStats(self) :
         print utils.hyphens
         print self.name
@@ -216,7 +218,12 @@ class analysisLooper :
                 if wroteSlash: continue
                 wroteSlash = True
             elif not step.isSelector: continue
-            else: r.gDirectory.mkdir(name,step.moreName+step.moreName2).cd()
+            else:
+                r.gDirectory.mkdir(name,step.moreName+step.moreName2).cd()
+                if configuration.trace() :
+                    r.gDirectory.mkdir("Calculables").cd()
+                    for key in step.tracer.keys : r.gDirectory.mkdir(key)
+                    r.gDirectory.GetMother().cd()
             
             for item in step.book.fillOrder :
                 object = step.book[item]
@@ -230,7 +237,10 @@ class analysisLooper :
         for leaf in self.listOfLeavesUsed: r.gDirectory.mkdir(*leaf)
         r.gDirectory.GetMother().cd()
         r.gDirectory.mkdir("Calculables",".").cd()
-        for calc in self.listOfCalculablesUsed : r.gDirectory.mkdir(*calc)
+        for calc in self.listOfCalculablesUsed :
+            r.gDirectory.mkdir(*calc).cd()
+            for dep in self.calculableDependencies[calc[0]] : r.gDirectory.mkdir(dep)
+            r.gDirectory.GetMother().cd()
         r.gDirectory.GetMother().cd()
 
     def writeHistos(self) :
