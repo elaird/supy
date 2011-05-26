@@ -122,9 +122,10 @@ class displayer(analysisStep) :
         self.prepareText(params, coords)
         for message in ["Run   %#10d"%eventVars["run"],
                         "Ls    %#10d"%eventVars["lumiSection"],
-                        "Event %#10d"%eventVars["event"]
+                        "Event %#10d"%eventVars["event"],
+                        "PtHat(GeV) %#5.1f"%eventVars["genpthat"] if not eventVars["isRealData"] else "",
                         ] :
-            self.printText(message)
+            if message : self.printText(message)
         for item in self.triggersToPrint :
             self.printText("%s"%(item if eventVars["triggered"][item] else ""))
         
@@ -631,6 +632,10 @@ class displayer(analysisStep) :
                 deltaPhiStar = d["DeltaPhiStar"]
 
             suspiciousJetLegendEntry = False
+            if not eventVars["isRealData"] :
+                genJets = eventVars[self.genJets]
+                for index in range(genJets.size()) :
+                    self.drawCircle(genJets.at(index), r.kBlack, lineWidth = 2, circleRadius = self.jetRadius, lineStyle = suspiciousJetStyle)
             jets = eventVars["%sCorrectedP4%s"%self.jets]
             for index in range(jets.size()) :
                 jet = jets.at(index)
