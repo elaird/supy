@@ -38,7 +38,7 @@ class organizer(object) :
         self.alternateConfigurations = [] if configurationId else \
                                        [organizer(sampleSpecs,i) for i in range(1,len(sampleSpecs[0]["outputFileNames"]))]
 
-        self.calculables = self.__nameTitlesIn()
+        self.calculables = self.__calculables()
             
     def __inititialSelectionsList(self) :
         """Scan samples in parallel to ensure consistency and build list of selection dicts"""
@@ -175,28 +175,27 @@ class organizer(object) :
     def keysMatching(self,inKeys) :
         return filter(lambda k: any([i in k for i in inKeys]), set(sum([sel.keys() for sel in self.selections],[])))
 
-    def __nameTitlesIn(self) :
-        def things(dir, isLeaf) :
-            def code(isLeaf, title) :
-                if isLeaf : return "leaf"
-                if title[-len(configuration.fakeString()):]==configuration.fakeString() : return "fake"
-                else : return  "calc"
-            return [(key.GetName(),key.GetTitle() if key.GetTitle()!=key.GetName() else "", code(isLeaf, key.GetTitle())) for key in dir.GetListOfKeys()] if dir else []
+    def __calculables(self) :
+        
+        def nodes(dir, isLeaf) :
+            def category(isLeaf, title) :
+                return ("leaf" if isLeaf else 
+                        "fake" if title[-len(configuration.fakeString()):]==configuration.fakeString() else 
+                        "calc" )
+            return [(key.GetName(),
+                     key.GetTitle().replace(key.GetName(),""),
+                     category(isLeaf, key.GetTitle()))         for key in dir.GetListOfKeys()] if dir else []
 
         def calcs(sample) :
-            l = []
-            l += things(sample['file'].Get("Calculables"), isLeaf = False)
-            l += things(sample['file'].Get("Leaves"), isLeaf = True)
-            return l
+            return ( nodes(sample['file'].Get("Calculables"), isLeaf = False) +
+                     nodes(sample['file'].Get("Leaves"), isLeaf = True) )
         
-        allCalcs = sorted(list(reduce( lambda x,y: x|y, [set(calcs(sample)) for sample in self.samples])))
+        samplesCalcs = [set(calcs(sample)) for sample in self.samples]
+        allCalcs = reduce( lambda x,y: x|y, samplesCalcs)
 
-        stuff = []
-        for sample in self.samples :
-            theseCalcs = calcs(sample)
-            thisStuff = []
-            for c in allCalcs :
-                category = "absent" if c not in theseCalcs else c[2]
-                thisStuff.append( (c[0], c[1], category) )
-            stuff.append(thisStuff)
-        return stuff
+        for calc in allCalcs :
+            for scalcs in samplesCalcs :
+                if calc not in scalcs :
+                    scalcs.add((calc[0],calc[1],"absent"))
+        return [sorted(list(s)) for s in samplesCalcs]
+        
