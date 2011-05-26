@@ -3,12 +3,19 @@ import ROOT as r
 from analysisStep import analysisStep
 import utils
 #####################################
+pdgLookupExists = False
+try:
+    import pdgLookup
+    pdgLookupExists = True
+except ImportError:
+    pass
+#####################################
 class displayer(analysisStep) :
     
     def __init__(self, jets = None, met = None, muons = None, electrons = None, photons = None, taus = None,
-                 recHits = None, recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False,
+                 recHits = None, recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False, doGenJets = False,
                  doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "", deltaPhiStarCut = None, deltaPhiStarDR = None, mhtOverMetName = "",
-                 showAlphaTMet = True, jetsOtherAlgo = None, metOtherAlgo = None, printExtraText = True,                 
+                 showAlphaTMet = True, jetsOtherAlgo = None, metOtherAlgo = None, printExtraText = True,
                  ra1Mode = True, ra1CutBits = True, markusMode = False, tipToTail = False, triggersToPrint = [],
                  flagsToPrint = ["logErrorTooManyClusters","logErrorTooManySeeds",
                                  #"beamHaloCSCLooseHaloId","beamHaloCSCTightHaloId","beamHaloEcalLooseHaloId","beamHaloEcalTightHaloId",
@@ -18,7 +25,7 @@ class displayer(analysisStep) :
 
         self.moreName = "(see below)"
 
-        for item in ["scale","jets","met","muons","electrons","photons","taus","recHits","recHitPtThreshold","doGenParticles",
+        for item in ["scale","jets","met","muons","electrons","photons","taus","recHits","recHitPtThreshold","doGenParticles", "doGenJets",
                      "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "deltaPhiStarCut", "deltaPhiStarDR", "mhtOverMetName", "showAlphaTMet",
                      "jetsOtherAlgo", "metOtherAlgo", "printExtraText", "ra1Mode", "ra1CutBits", "markusMode","tipToTail", "triggersToPrint", "flagsToPrint"] :
             setattr(self,item,eval(item))
@@ -248,7 +255,8 @@ class displayer(analysisStep) :
         self.prepareText(params, coords)
         jets2 = (jets[0].replace("xc",""),jets[1])
         isPf = "PF" in jets[0]
-        p4Vector         = eventVars['%sCorrectedP4%s'     %jets]
+        
+        p4Vector         = eventVars['%sCorrectedP4%s'%jets]
         corrVector       = eventVars['%sCorrFactor%s'      %jets2]
 
         if not isPf :
@@ -293,6 +301,45 @@ class displayer(analysisStep) :
                 outString+=" %5.3f %4.2f %4.2f %4.2f%3d %4.2f"%(chf.at(iJet), nhf.at(iJet), cef.at(iJet), nef.at(iJet), cm.at(iJet), corrVector.at(iJet))
             self.printText(outString)
 
+    def printGenJets(self, eventVars, params, coords, nMax) :
+        self.prepareText(params, coords)
+        p4Vector = eventVars[self.genJets]
+            
+        self.printText(self.renamedDesc(self.genJets))
+        self.printText("   pT  eta  phi")
+        self.printText("---------------")
+
+        nJets = p4Vector.size()
+        for iJet in range(nJets) :
+            if nMax<=iJet :
+                self.printText("[%d more not listed]"%(nJets-nMax))
+                break
+            jet = p4Vector[iJet]
+            self.printText("%5.0f %4.1f %4.1f"%(jet.pt(), jet.eta(), jet.phi()))
+
+    def printGenParticles(self, eventVars, params, coords, nMax) :
+        self.prepareText(params, coords)
+        p4s    = eventVars["genP4"]
+        status = eventVars["genStatus"]
+        ids    = eventVars["genPdgId"]
+        
+        self.printText("Status 1 Gen Particles")
+        self.printText("  name  pdgId   pT  eta  phi")
+        self.printText("----------------------------")
+
+        particles = reversed(sorted([(i, p4s[i]) for i in range(p4s.size())], key = lambda x:x[1].pt()))
+        nStatus1 = sum([status[i]==1 for i in range(status.size())])
+        iPrint = 0
+        for iParticle,p4 in particles :
+            if status.at(iParticle)!=1 : continue
+            if nMax<=iPrint :
+                self.printText("[%d more not listed]"%(nStatus1-nMax))
+                break
+            pdgId = ids.at(iParticle)
+            self.printText("%6s %6d%5.0f %4.1f %4.1f"%(pdgLookup.pdgid_to_name(pdgId) if pdgLookupExists else "", pdgId, p4.pt(), p4.eta(), p4.phi()))
+            iPrint += 1
+        return
+    
     def printKinematicVariables(self, eventVars, params, coords, jets, jets2) :
         self.prepareText(params, coords)
         
@@ -873,6 +920,9 @@ class displayer(analysisStep) :
             self.printVertices(eventVars, params = defaults, coords = {"x":x1, "y":yy}, nMax = 3)
             self.printJets(    eventVars, params = defaults, coords = {"x":x0, "y":yy-7*s}, jets = self.jets, nMax = 7)
 
+            if self.doGenJets :
+                self.printGenJets(  eventVars, params = defaults, coords = {"x":x0,      "y":yy-18*s}, nMax = 7)
+                self.printGenParticles(eventVars,params=defaults, coords = {"x":x0+0.40, "y":yy-18*s}, nMax = 7)
             if self.jetsOtherAlgo :
                 self.printJets(     eventVars, params = defaults, coords = {"x":x0,      "y":yy-18*s}, jets = self.jetsOtherAlgo, nMax = 7)
             if self.photons :
