@@ -238,31 +238,33 @@ class hadronicLook(analysis.analysis) :
             #steps.Other.cutBitHistogrammer(self.togglePfJet(_jet), self.togglePfMet(_met)),
             #steps.Print.eventPrinter(),
             #steps.Print.jetPrinter(_jet),
+
             #steps.Print.particleP4Printer(_muon),
             #steps.Print.particleP4Printer(_photon),
             #steps.Print.recHitPrinter("clusterPF","Ecal"),
             #steps.Print.htMhtPrinter(_jet),
             #steps.Print.alphaTPrinter(_jet,_etRatherThanPt),
-            #steps.Gen.genParticlePrinter(minPt=10.0,minStatus=3),
-            #       
+            #steps.Gen.genParticlePrinter(minPt = 10.0, minStatus = 3),
+                   
             #steps.Other.pickEventSpecMaker(),
             #steps.Displayer.displayer(jets = _jet,
             #                          muons = _muon,
             #                          met       = params["objects"]["met"],
             #                          electrons = params["objects"]["electron"],
             #                          photons   = params["objects"]["photon"],                            
-            #                          recHits   = params["objects"]["rechit"],recHitPtThreshold=1.0,#GeV
+            #                          recHits   = params["objects"]["rechit"], recHitPtThreshold = 1.0,#GeV
             #                          scale = 400.0,#GeV
             #                          etRatherThanPt = _etRatherThanPt,
             #                          deltaPhiStarExtraName = params["lowPtName"],
             #                          deltaPhiStarCut = 0.5,
             #                          deltaPhiStarDR = 0.3,
-            #                          mhtOverMetExtraName = params["highPtName"],
-            #                          jetsOtherAlgo = params["objects"]["compJet"],
+            #                          mhtOverMetName = "%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met),
             #                          metOtherAlgo  = params["objects"]["compMet"],
+            #                          jetsOtherAlgo = params["objects"]["compJet"],
+            #                          #doGenJets = True,
             #                          markusMode = False,
             #                          ),
-            ] + scanAfter + [steps.Other.variableGreaterFilter(bin, "%sSumEt%s"%_jet, suffix = "GeV") for bin in [425, 475, 575, 675, 775, 875]] +\
+            ] + scanAfter + [steps.Other.variableGreaterFilter(bin, "%sSumEt%s"%_jet, suffix = "GeV") for bin in [475, 575, 675, 775, 875]] +\
             [ steps.Other.passFilter("final") ]
     
     def listOfSampleDictionaries(self) :
@@ -286,6 +288,10 @@ class hadronicLook(analysis.analysis) :
             #out += specify(names = "calo_325_scaled")
             #w = calculables.Jet.nJetsWeight(jets = params["objects"]["jet"], nJets = [3])
             #out += specify(names = "calo_325_scaled", weights = w, color = r.kRed)
+
+            #out += specify(names = "qcd_py6_275")
+            #out += specify(names = "qcd_py6_325")
+            #out += specify(names = "qcd_py6_375")
             
             #"HT250_skim_calo",
             #"HT300_skim_calo",
