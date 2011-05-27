@@ -38,8 +38,8 @@ class hadronicLook(analysis.analysis) :
                  "thresholds": dict( [("275",        (275.0, 325.0, 100.0, 50.0)),#0
                                       ("325",        (325.0, 375.0, 100.0, 50.0)),#1
                                       ("375",        (375.0, None,  100.0, 50.0)),#2
-                                      ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#3
-                                      ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#4
+                                      ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#3
+                                      ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#4
                                       ][2:3] ),
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
@@ -283,6 +283,10 @@ class hadronicLook(analysis.analysis) :
             out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Robin1",   weights = jw, overrideLumi = 80.7)
             out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe1",     weights = jw, overrideLumi = 2.34)
             out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe2",     weights = jw, overrideLumi = 5.78)
+
+            #out += specify(names = "calo_275_scaled")
+            #out += specify(names = "calo_325_scaled")
+            #out += specify(names = "calo_375"       )
 
             #out += specify(names = "darrens_event")
             #out += specify(names = "calo_325_scaled")
