@@ -232,60 +232,30 @@ class plotter(object) :
         text.SetTextFont(102)
         text.SetTextSize(0.45*text.GetTextSize())
 
-        def theCalcs(selectImperfect) :
-            def theCounts() :
-                out = {}
-                for category in ["leaf","calc","fake","absent"] :
-                    out[category] = collections.defaultdict(int)
+        allCalcs = sum(self.someOrganizer.calculables, [])
 
-                for l in lists :
-                    for calc in l :
-                        out[calc[2]][calc[0]]+=1
-                return out
+        def genuineCalcs() :
+            '''the list of genuine calculables which have a moreName'''
+            return [(c[0],c[1],"") for c in filter(lambda c: c[1] and c[2]=="calc", set(allCalcs))]
 
+        def imperfectCalcs() :
+            def type1(c) : return c[2]=="fake"
+            def type2(c) : return c[2]=="calc" and not (bool(counts["leaf"][c[0]])^bool(counts["calc"][c[0]]))
             def statString(counts, name) :
-                out = ""
-                for item in ["leaf","calc","fake"] :
-                    out += "%4d  "%counts[item][name]
-                return out
+                return (3*"%4d  ")%tuple([counts[item][name] for item in ["leaf","calc","fake"]])
+            def histogram(item) :
+                itemCalcs = [c[0] for c in filter(lambda c: c[2]==item, allCalcs)]
+                return collections.defaultdict(int, [(c,itemCalcs.count(c)) for c in set(itemCalcs)])
+            counts = dict([(item,histogram(item)) for item in ["leaf","calc","fake","absent"]])
 
-            def allCalcs(lists) :
-                out = []
-                for l in lists :
-                    for calc in l :
-                        out.append(calc)
-                return list(set(out))
+            return [ ( c[0],
+                       c[1].replace(configuration.fakeString(),""),
+                       statString(counts,c[0])
+                       ) for c in filter(lambda c: type1(c) or type2(c), set(allCalcs))]
                 
-            def imperfect(lists) :
-                d = theCounts()
-                out = []
-                for calc in allCalcs(lists) :
-                    n = calc[0]
-                    fake = d["fake"][n]>0
-                    homogeneous = d["leaf"][n]==0 or d["calc"][n]==0
-
-                    if fake and calc[2]=="fake" :
-                        out.append( (calc[0], calc[1][:-len(configuration.fakeString())], statString(d, calc[0])) )
-                    elif not homogeneous and calc[2]=="calc" :
-                        out.append( (calc[0], calc[1], statString(d, calc[0])) )
-                return list(set(out))
-
-            def genuine(lists) :
-                out = []
-                for l in lists :
-                    for calc in l :
-                        if calc[1]!="" and calc[2]=="calc" :
-                            out.append( (calc[0], calc[1], "") )
-                return list(set(out)) #the list of genuine calculables which have a moreName
-
-            lists = [l for l in self.someOrganizer.calculables]
-            if not selectImperfect : return genuine(lists)
-            else : return imperfect(lists)
-                
-        calcs = theCalcs(selectImperfect)
-        calcs.sort()
+        calcs = sorted( imperfectCalcs() if selectImperfect else genuineCalcs() )
         calcs.insert(0, ("","",""))
-        calcs.insert(0, ("Calculables", "(imperfect)" if selectImperfect else "", "leaf  calc  fake" if selectImperfect else ""))
+        calcs.insert(0, ("Calculables",)+(("(imperfect)","leaf  calc  fake") if selectImperfect else ("", "") ))
         length0 = max([len(calc[0]) for calc in calcs])
         length1 = max([len(calc[1]) for calc in calcs])
         if len(calcs)==2 : calcs.append( ("","NONE","") )
