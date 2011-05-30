@@ -128,12 +128,18 @@ class hltFilter(analysisStep) :
 #####################################
 class hltFail(analysisStep) :
 
-    def __init__(self,hltPathName):
-        self.hltPathName = hltPathName
-        self.moreName = self.hltPathName
+    def __init__(self, paths):
+        self.paths = paths
+        self.moreName = str(self.paths)
 
     def select (self,eventVars) :
-        return not eventVars["triggered"][self.hltPathName]
+        fired = False
+        inMenu = False
+        for path in self.paths :
+            if path not in eventVars["triggered"] : continue
+            inMenu = True
+            if eventVars["triggered"][path] : fired = True
+        return inMenu and (not fired)
 #####################################
 class hltFilterList(analysisStep) :
 
