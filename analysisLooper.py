@@ -222,7 +222,7 @@ class analysisLooper :
                 r.gDirectory.mkdir(name,step.moreName+step.moreName2).cd()
                 if configuration.trace() :
                     r.gDirectory.mkdir("Calculables").cd()
-                    for key in step.tracer.keys : r.gDirectory.mkdir(key)
+                    for key in step.tracer.tracedKeys : r.gDirectory.mkdir(key)
                     r.gDirectory.GetMother().cd()
             
             for item in step.book.fillOrder :

@@ -5,10 +5,10 @@ from collections import defaultdict
 class keyTracer(object) :
     def __init__(self,someDict) :
         self.someDict = someDict
-        self.keys = set()
+        self.tracedKeys = set()
     def node(self,key) : return self.someDict.node(key)
     def __getitem__(self,key) :
-        if key not in self.keys : self.keys.add(key)
+        if key not in self.tracedKeys : self.tracedKeys.add(key)
         return self.someDict[key]
     def __call__(self,someDict) :
         self.someDict = someDict
@@ -42,7 +42,7 @@ class wrappedChain(dict) :
             dict.__getitem__(self, name).updated = False
 
     def activeKeys(self) : return [( key, node.isLeaf(), str(type(node.value)).split("'")[1].replace("wrappedChain.","") ) for key,node in self.__activeNodes.iteritems()]
-    def calcDependencies(self) : return dict([(node.name(),node.source.keys() if hasattr(node.source,"someDict") else set()) for node in filter(lambda n: hasattr(n,"source"), self.__activeNodes.values()) ])
+    def calcDependencies(self) : return dict([(node.name(),node.source.tracedKeys if hasattr(node.source,"tracedKeys") else set()) for node in filter(lambda n: hasattr(n,"source"), self.__activeNodes.values()) ])
 
     def entries(self, nEntries = None ) :
         """Generate the access dictionary (self) for each entry in TTree."""
