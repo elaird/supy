@@ -456,3 +456,9 @@ def cmsswFuncData(fileName = None, par = None) :
         funcs.append( (binLo,binHi,f) )
     funcs.sort()
     return funcs
+#####################################
+def splitList(List,item) :
+    if item not in List: return [List]
+    i = List.index(item)
+    return [List[:i]] + splitList(List[i+1:],item)
+
