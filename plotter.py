@@ -99,6 +99,7 @@ class plotter(object) :
                  nLinesMax = 17,
                  nColumnsMax = 67,
                  pageNumbers = True,
+                 detailedCalculables = False,
                  shiftUnderOverFlows = True,
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
                  blackList = [],
@@ -106,7 +107,7 @@ class plotter(object) :
                  ) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
-                     "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox"] :
+                     "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox","detailedCalculables"] :
             setattr(self,item,eval(item))
 
         self.useWhiteList = len(self.whiteList)>0
@@ -127,13 +128,26 @@ class plotter(object) :
         self.printCanvas()
         self.canvas.Clear()
 
-        text3 = self.printCalculables(selectImperfect = False)
-        self.printCanvas()
-        self.canvas.Clear()
-    
-        text4 = self.printCalculables(selectImperfect = True)
-        self.printCanvas()
-        self.canvas.Clear()
+        if self.detailedCalculables :
+            lines = self.someOrganizer.formattedCalculablesGraph()
+            mark = ('','','')
+            indices = [0,0]
+            for iLine,line in enumerate(lines) :
+                if line!=mark : continue
+                elif iLine - indices[-2] < 50 : indices[-1] = iLine
+                else : indices.append(iLine)
+            for start,finish in zip(indices[:-1],indices[1:]):
+                self.printCalculablesDetailed(filter(None,utils.splitList(lines[start:finish],mark)))
+                self.printCanvas()
+                self.canvas.Clear()
+        else :
+            text3 = self.printCalculables(selectImperfect = False)
+            self.printCanvas()
+            self.canvas.Clear()
+            
+            text4 = self.printCalculables(selectImperfect = True)
+            self.printCanvas()
+            self.canvas.Clear()
 
         self.selectionsSoFar=[]
         for iSelection,selection in enumerate(self.someOrganizer.selections) :
@@ -226,13 +240,29 @@ class plotter(object) :
             self.printOnePage(spec["plotName"], tight = self.anMode)
         print utils.hyphens
 
+    def printCalculablesDetailed(self, blocks) :
+        text = r.TText()
+        text.SetNDC()
+        text.SetTextFont(102)
+        text.SetTextSize(0.35*text.GetTextSize())
+        
+        iLine = 0
+        for block in blocks :
+            iLine += 1
+            maxLenName = max([len(line[1]) for line in block])
+            for line in block :
+                x=0.00
+                y=1.0 - 0.35*(iLine+0.5)/self.nLinesMax
+                text.DrawTextNDC(x,y, "%s%s  %s"%(line[0],line[1].ljust(maxLenName),line[2]))
+                iLine += 1
+
     def printCalculables(self, selectImperfect) :
         text = r.TText()
         text.SetNDC()
         text.SetTextFont(102)
         text.SetTextSize(0.45*text.GetTextSize())
 
-        allCalcs = sum(self.someOrganizer.calculables, [])
+        allCalcs = sum([s.keys() for s in self.someOrganizer.calculables], [])
 
         def genuineCalcs() :
             '''the list of genuine calculables which have a moreName'''

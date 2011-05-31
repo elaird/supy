@@ -37,7 +37,7 @@ class organizer(object) :
         self.lumi = 1.0
         self.alternateConfigurations = [] if configurationId else \
                                        [organizer(sampleSpecs,i) for i in range(1,len(sampleSpecs[0]["outputFileNames"]))]
-        self.calculablesGraph
+        self.calculablesGraphs
             
     def __inititialSelectionsList(self) :
         """Scan samples in parallel to ensure consistency and build list of selection dicts"""
@@ -177,77 +177,107 @@ class organizer(object) :
     @property
     def calculables(self) :
         if not hasattr(self,"__calculables") :
-            def nodes(dir, isLeaf) :
-                def category(isLeaf, title) :
-                    return ("leaf" if isLeaf else 
+            def nodes(file, dirName) :
+                dir = file.Get(dirName)
+                def category(title) :
+                    return ("fltr" if dirName=="Master" else
+                            "leaf" if dirName=="Leaves" else 
                             "fake" if title.count(configuration.fakeString()) else 
                             "calc" )
-                return [(key.GetName(),
-                         key.GetTitle().replace(key.GetName(),""),
-                         category(isLeaf, key.GetTitle()),
-                         frozenset([tkey.GetName() for tkey in dir.Get(key.GetName()).GetListOfKeys()])
-                         )  for key in dir.GetListOfKeys()] if dir else []
+                def keyNames(path,descend=False) :
+                    dirs = filter(lambda name: type(file.Get(path+name)) is r.TDirectoryFile and name!="Calculables", [k.GetName() for k in file.Get(path[:-1]).GetListOfKeys()])
+                    return [path+dir for dir in dirs] + (sum([keyNames(path+dir+"/",descend) for dir in dirs],[]) if dirs and descend else [])
+
+                calcDirs = [file.Get(name) for name in keyNames(dirName+'/',descend=(dirName=="Master"))]
+                return [(calcDir.GetName(),
+                         calcDir.GetTitle().replace(calcDir.GetName(),""),
+                         category(calcDir.GetTitle()),
+                         frozenset([tkey.GetName() for tkey in (
+                    (calcDir.GetListOfKeys() if dirName!="Master" else calcDir.Get("Calculables").GetListOfKeys() if calcDir.Get("Calculables") else []))])
+                         )  for calcDir in calcDirs]
             
             def calcs(sample) :
-                return ( nodes(sample['file'].Get("Calculables"), isLeaf = False) +
-                         nodes(sample['file'].Get("Leaves"), isLeaf = True) )
-        
-            samplesCalcs = [set(calcs(sample)) for sample in self.samples]
-            allCalcs = reduce( lambda x,y: x|y, samplesCalcs)
+                return ( nodes(sample['file'], "Calculables") +
+                         nodes(sample['file'], "Leaves") +
+                         filter(lambda c: c[3], nodes(sample['file'], "Master"))
+                         )
+            
+            samplesCalcs = [dict([(c[:3],c[3]) for c in calcs(sample)]) for sample in self.samples]
+            allCalcs = reduce( lambda x,y: x|y, [set(s.keys()) for s in samplesCalcs])
 
-            for calc in sorted(allCalcs) :
+            for calc in allCalcs :
                 for scalcs in samplesCalcs :
                     if calc not in scalcs :
-                        scalcs.add((calc[0],calc[1],"absent",frozenset()))
-            setattr(self,"__calculables", [sorted(list(s)) for s in samplesCalcs])
+                        scalcs[(calc[0],calc[1],"absent")] = frozenset()
+            setattr(self,"__calculables", samplesCalcs)
         return getattr(self,"__calculables")
 
     @property
-    def calculablesGraph(self) :
-        if not hasattr(self,"__calculablesGraph") :
-            allCalcs = set(sum(self.calculables,[]))
-            deps = dict([(c[0],c[3]) for c in allCalcs])
+    def calculablesGraphs(self) :
+        if not hasattr(self,"__calculablesGraphs") :
+            def graph(scalcs) :
+                calcs = filter(lambda c: c[2]!="absent", scalcs)
+                calcByName = dict([(c[0],c) for c in calcs])
+                nodes = {}
+                def addNode(calc) :
+                    if calc in nodes : return
+                    nodes[calc] = utils.vessel()
+                    nodes[calc].deps = set([calcByName[depName] for depName in scalcs[calc]])
+                    nodes[calc].feeds = set()
+                    for dep in nodes[calc].deps :
+                        addNode(dep)
+                        nodes[dep].feeds.add(calc)
+                    nodes[calc].depLevel = 0 if not nodes[calc].deps else 1+max([nodes[dep].depLevel for dep in nodes[calc].deps])
+                for calc in calcs : addNode(calc)
+                return nodes
+            setattr(self,"__calculablesGraphs",[graph(scalcs) for scalcs in self.calculables])
+        return getattr(self,"__calculablesGraphs")
 
+    @property
+    def mergedGraph(self) :
+        if not hasattr(self,"__mergedGraph") :
             nodes = {}
-            def addNode(name) :
-                if name in nodes : return
-                nodes[name] = utils.vessel()
-                nodes[name].deps = deps[name]
-                nodes[name].feeds = set()
-                for dep in deps[name] :
-                    addNode(dep)
-                    nodes[dep].feeds.add(name)
-                nodes[name].depLevel = 0 if not nodes[name].deps else 1+max([nodes[dep].depLevel for dep in nodes[name].deps])
-            for calc in allCalcs : addNode(calc[0])
+            for snodes in self.calculablesGraphs :
+                for node in snodes:
+                    if node not in nodes : nodes[node] = snodes[node]
+                    else :
+                        nodes[node].deps |= snodes[node].deps
+                        nodes[node].feeds|= snodes[node].feeds
+            setattr(self,"__mergedGraph",nodes)
+        return getattr(self,"__mergedGraph")
         
-            setattr(self,"__calculablesGraph",nodes)
-        return getattr(self,"__calculablesGraph")
+    def formattedCalculablesGraph(self) :
 
-    def printCalculablesGraph(self) :
-        print
-        nodes = self.calculablesGraph
-        allCalcs = dict([(c[0],c) for c in set(sum(self.calculables,[]))])
-        printed = set()
+        def leafStrip(moreName) :
+            for rep in [("ROOT",""),("::Math::",""),("<PtEtaPhiM4D<float> >",""),(r",.*allocator<.*> >",">"),("unsigned int","unsigned")] :
+                moreName = re.sub(rep[0],rep[1],moreName)
+            return moreName.lstrip(".")
 
-        topNames = self.calculablesGraph.keys()
-        topNames.sort(reverse=True, key = lambda name: self.calculablesGraph[name].depLevel)
+        def writeNow(dep) : return len(nodes[dep].feeds)==1 or not nodes[dep].deps
 
-        def show(name,indent="", filterPrinted = True) :
-            if filterPrinted and name in printed : return []
-            tab = 6*" "
-            print "%s(%s) %s  %s"%(indent, allCalcs[name][2], name.ljust(30),allCalcs[name][1].replace("ROOT","").replace("::Math::","")[:50])
-            printed.add(name)
-            node = nodes[name]
-            unprinted = []
-            for dep in sorted(node.deps, key = lambda dep: len(nodes[dep].deps) + (0.5 if len(nodes[dep].feeds)==1 else 0)) :
-                if len(nodes[dep].feeds)==1 or not nodes[dep].deps :
-                    unprinted += show(dep,indent+tab, filterPrinted=False)
-                else :
-                    print "%s%s(%d|>%d) %s"%(indent,tab,len(nodes[dep].deps),len(nodes[dep].feeds),dep)
-                    unprinted.append(dep)
-            if not indent: print
-            return unprinted
-        
-        for name in topNames :
-            for dep in show(name) :
-                show(dep)
+        def write(calc,indent="", filterWritten = True) :
+            if filterWritten and calc in written : return
+            written.add(calc)
+            if not indent : lines.append(("","","") )
+            lines.append( (indent, "(%s) %s"%(calc[2].upper()[0], calc[0]), leafStrip(calc[1])) )
+            for dep in sorted(nodes[calc].deps, key = lambda dep: (dep[2]!='leaf', writeNow(dep), nodes[dep].depLevel,len(dep[0]),dep)) :
+                if writeNow(dep) : write(dep,indent+tab, filterWritten=False)
+                else : lines.append( (indent+tab, "|%d| %s"%(nodes[dep].depLevel,dep[0]), dep[1] ) )
+            return
+ 
+        nodes = self.mergedGraph
+        written = set()
+        lines = []
+        tab = 3*" "
+        ordered = (filter(lambda calc: len(nodes[calc].feeds)>1 and nodes[calc].depLevel, sorted(nodes.keys(), key = lambda calc: (nodes[calc].depLevel,len(nodes[calc].feeds),calc))) +
+                   filter(lambda calc: len(nodes[calc].feeds)<1 and nodes[calc].depLevel, sorted(nodes.keys(), key = lambda calc: (-nodes[calc].depLevel,len(nodes[calc].deps),calc))) +
+                   filter(lambda calc: len(nodes[calc].feeds)==1 or not nodes[calc].depLevel, nodes.keys())
+                   )
+        for calc in ordered : write(calc)
+        return lines
+
+    def printFormattedCalculablesGraph(self) :
+        for block in filter(None,utils.splitList(self.formattedCalculablesGraph(), ("","","") )) :
+            print
+            maxLenName = max([len(line[1]) for line in block])
+            for line in block : print "%s%s  %s"%(line[0],line[1].ljust(maxLenName),line[2])
