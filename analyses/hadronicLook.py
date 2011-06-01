@@ -40,13 +40,15 @@ class hadronicLook(analysis.analysis) :
                                       ("375",        (375.0, None,  100.0, 50.0)),#2
                                       ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#3
                                       ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#4
-                                      ][2:3] ),
+                                      ][2:] ),
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  #"triggerList": ("HLT_HT150_v2","HLT_HT150_v3","HLT_HT160_v2","HLT_HT200_v2","HLT_HT200_v3","HLT_HT240_v2","HLT_HT250_v2","HLT_HT250_v3","HLT_HT260_v2",
                  #                "HLT_HT300_v2","HLT_HT300_v3","HLT_HT300_v4","HLT_HT350_v2","HLT_HT350_v3","HLT_HT360_v2","HLT_HT400_v2","HLT_HT400_v3","HLT_HT440_v2",
                  #                "HLT_HT450_v2","HLT_HT450_v3","HLT_HT500_v2","HLT_HT500_v3","HLT_HT520_v2","HLT_HT550_v2","HLT_HT550_v3")#2011 HT mania
-                 "triggerList": ("HLT_HT250_MHT60_v2","HLT_HT250_MHT60_v3","HLT_HT260_MHT60_v2","HLT_HT300_MHT75_v2","HLT_HT300_MHT75_v3","HLT_HT300_MHT75_v4"),#2011 epoch 2
+                 #"triggerList": ("HLT_HT250_AlphaT0p55_v1","HLT_HT250_AlphaT0p55_v2","HLT_HT250_MHT60_v2","HLT_HT250_MHT60_v3","HLT_HT260_MHT60_v2","HLT_HT300_MHT75_v2","HLT_HT300_MHT75_v3","HLT_HT300_MHT75_v4"),#alphaT trigger test
+                 "triggerList": ("HLT_HT250_MHT60_v2","HLT_HT250_MHT60_v3","HLT_HT250_MHT60_v4","HLT_HT260_MHT60_v2","HLT_HT250_MHT70_v1",
+                                 "HLT_HT300_MHT75_v2","HLT_HT300_MHT75_v3","HLT_HT300_MHT75_v4","HLT_HT300_MHT75_v5", "HLT_HT300_PFMHT55_v2"),
                  }
 
     def ra1Cosmetics(self) : return True
@@ -131,6 +133,7 @@ class hadronicLook(analysis.analysis) :
             steps.Trigger.physicsDeclared(),
             steps.Other.monsterEventFilter(),
             steps.Other.hbheNoiseFilter(),
+
             steps.Other.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
             steps.Trigger.hltPrescaleHistogrammer(params["triggerList"]),
             
@@ -222,7 +225,7 @@ class hadronicLook(analysis.analysis) :
             
             steps.Jet.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
             steps.Jet.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt, metName = _met),
-            
+
             #signal selection
             #steps.Other.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
             steps.Other.variableGreaterFilter(0.55,"%sAlphaT%s%s"%(_jet[0],"Et" if _etRatherThanPt else "Pt",_jet[1])),
@@ -234,6 +237,7 @@ class hadronicLook(analysis.analysis) :
             steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
             steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met), 100, 0.0, 3.0,
                                      title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1]+params["highPtName"],_met)),
+
             #steps.Other.skimmer(),
             #steps.Other.cutBitHistogrammer(self.togglePfJet(_jet), self.togglePfMet(_met)),
             #steps.Print.eventPrinter(),
@@ -274,7 +278,7 @@ class hadronicLook(analysis.analysis) :
         from samples import specify
 
         def data() :
-            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163869_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #193/pb
+            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-165542_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #252/pb
             out = []
             out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Arlo",     weights = jw, overrideLumi =  5.07)
             #out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Zoe",      weights = jw, overrideLumi =  0.0)
@@ -283,6 +287,7 @@ class hadronicLook(analysis.analysis) :
             out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Robin1",   weights = jw, overrideLumi = 80.7)
             out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe1",     weights = jw, overrideLumi = 2.34)
             out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe2",     weights = jw, overrideLumi = 5.78)
+            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn",     weights = jw, overrideLumi = 59.2)
 
             #out += specify(names = "calo_275_scaled")
             #out += specify(names = "calo_325_scaled")
