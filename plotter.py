@@ -148,13 +148,18 @@ class plotter(object) :
             text4 = self.printCalculables(selectImperfect = True)
             self.printCanvas()
             self.canvas.Clear()
-
+            
+        unprintedSelections = True
+        finalSelection = filter(lambda s: any(s.rawFailPass), self.someOrganizer.selections)[-1]
         self.selectionsSoFar=[]
-        for iSelection,selection in enumerate(self.someOrganizer.selections) :
-            if selection.name != "" :
-                self.selectionsSoFar.append(selection)
-                if (not self.compactOutput and len(selection)>1) or iSelection==len(self.someOrganizer.selections)-1:
-                    self.printSelections(self.selectionsSoFar, printAll = self.compactOutput)
+        for selection in self.someOrganizer.selections :
+            isSelector = (not len(selection)>1) or any(selection.rawFailPass)
+
+            self.selectionsSoFar.append(selection)
+            if isSelector : unprintedSelections = True
+            if selection==finalSelection or (unprintedSelections and not isSelector and not self.compactOutput) :
+                self.printSelections(self.selectionsSoFar, printAll = self.compactOutput)
+                unprintedSelections = False
             if (selection.name, selection.title)==self.linYAfter : self.doLog = False
             if self.compactOutput and not self.whiteList : continue
             for plotName in sorted(selection.keys()) :
@@ -408,7 +413,7 @@ class plotter(object) :
         space = 1
 
         nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in self.someOrganizer.selections]))
-        for i,selection in enumerate(selections[-self.nLinesMax:]) :
+        for i,selection in enumerate(filter(lambda s: any(s.rawFailPass),selections[-self.nLinesMax:])) :
             absI = i + (0 if len(selections) <= self.nLinesMax else len(selections)-self.nLinesMax)
             letter = string.ascii_letters[absI]
             x = 0.01
