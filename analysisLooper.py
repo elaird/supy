@@ -143,14 +143,11 @@ class analysisLooper :
         returnValue = True
         r.gROOT.cd()
         current = r.gDirectory
-        book = autoBook(current)
 
         for step in self.steps :
             step.setOutputFileStem(self.outputFileStem())            
-            if hasattr(step,"select") :
-                current = current.mkdir(step.name())
-                book = autoBook(current)
-            step.book = book
+            current = current.mkdir(step.name())
+            step.book = autoBook(current)
             step.tracer = wrappedChain.keyTracer(None) if configuration.trace() else None
             if minimal : continue
             if self.quietMode : step.makeQuiet()
@@ -217,10 +214,9 @@ class analysisLooper :
             if '/' in name :
                 if wroteSlash: continue
                 wroteSlash = True
-            elif not step.isSelector: continue
             else:
                 r.gDirectory.mkdir(name,step.moreName+step.moreName2).cd()
-                if configuration.trace() :
+                if configuration.trace() and step.isSelector :
                     r.gDirectory.mkdir("Calculables").cd()
                     for key in step.tracer.tracedKeys : r.gDirectory.mkdir(key)
                     r.gDirectory.GetMother().cd()
@@ -230,7 +226,7 @@ class analysisLooper :
                 object.Write()
                 object.Delete()
         while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
-                    
+
     def writeNodesUsed(self) :
         while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
         r.gDirectory.mkdir("Leaves",".").cd()
