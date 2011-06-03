@@ -44,9 +44,10 @@ class photonLook(analysis.analysis) :
                                       ][2:] ),
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
-                 #"triggerList": ("HLT_HT160_v2","HLT_HT240_v2","HLT_HT260_v2","HLT_HT350_v2","HLT_HT360_v2"),#2011 epoch 0
-                 "triggerList": ("HLT_Photon75_CaloIdVL_v1","HLT_Photon75_CaloIdVL_v2","HLT_Photon75_CaloIdVL_v3",
-                                 "HLT_Photon75_CaloIdVL_IsoL_v1","HLT_Photon75_CaloIdVL_IsoL_v2", "HLT_Photon75_CaloIdVL_IsoL_v3"),#2011 epoch 1
+                 "triggerList": ("HLT_Photon75_CaloIdVL_v1","HLT_Photon75_CaloIdVL_v2","HLT_Photon75_CaloIdVL_v3","HLT_Photon75_CaloIdVL_v4",
+                                 "HLT_Photon75_CaloIdVL_IsoL_v1","HLT_Photon75_CaloIdVL_IsoL_v2", "HLT_Photon75_CaloIdVL_IsoL_v3","HLT_Photon75_CaloIdVL_IsoL_v4",
+                                 "HLT_Photon90_CaloIdVL_v1", "HLT_Photon90_CaloIdVL_IsoL_v1", "HLT_Photon125_v1"
+                                 ),#2011 epoch 1
                  }
 
     def listOfCalculables(self, params) :
@@ -371,7 +372,7 @@ class photonLook(analysis.analysis) :
         data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted1_noIsoReqSkim",      weights = jw, overrideLumi = 12.27)
         data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted2_noIsoReqSkim",      weights = jw, overrideLumi = 83.6 )
         data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted3_noIsoReqSkim",      weights = jw, overrideLumi = 63.7 )
-        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe",                    weights = jw, overrideLumi = 57.1 )
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe_noIsoReqSkim",       weights = jw, overrideLumi = 57.1 )
 
         #freaks = specify(names = "photon200_3jet")
         #cands1 = specify(names = "375_photons")
