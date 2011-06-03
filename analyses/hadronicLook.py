@@ -239,6 +239,7 @@ class hadronicLook(analysis.analysis) :
                                      title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1]+params["highPtName"],_met)),
 
             #steps.Other.skimmer(),
+            #steps.Other.duplicateEventCheck(),
             #steps.Other.cutBitHistogrammer(self.togglePfJet(_jet), self.togglePfMet(_met)),
             #steps.Print.eventPrinter(),
             #steps.Print.jetPrinter(_jet),
@@ -278,7 +279,8 @@ class hadronicLook(analysis.analysis) :
         from samples import specify
 
         def data() :
-            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-165542_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #252/pb
+            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-165970_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #263/pb
+
             out = []
             out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Arlo",     weights = jw, overrideLumi =  5.07)
             #out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Zoe",      weights = jw, overrideLumi =  0.0)
@@ -287,11 +289,12 @@ class hadronicLook(analysis.analysis) :
             out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Robin1",   weights = jw, overrideLumi = 80.7)
             out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe1",     weights = jw, overrideLumi = 2.34)
             out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe2",     weights = jw, overrideLumi = 5.78)
-            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn",     weights = jw, overrideLumi = 59.2)
+            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn",     weights = jw, overrideLumi = 70.48)
 
             #out += specify(names = "calo_275_scaled")
             #out += specify(names = "calo_325_scaled")
             #out += specify(names = "calo_375"       )
+            #out += specify(names = "bryns_events"       )
 
             #out += specify(names = "darrens_event")
             #out += specify(names = "calo_325_scaled")
