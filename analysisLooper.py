@@ -143,15 +143,19 @@ class analysisLooper :
         returnValue = True
         r.gROOT.cd()
         current = r.gDirectory
+        priorFilters = []
 
         for step in self.steps :
-            step.setOutputFileStem(self.outputFileStem())            
+            step.isSelector = hasattr(step,"select")            
+            if step.isSelector : priorFilters.append((step.name(),step.moreName+step.moreName2))
+            step.setOutputFileStem(self.outputFileStem())
             current = current.mkdir(step.name())
             step.book = autoBook(current)
             step.tracer = wrappedChain.keyTracer(None) if configuration.trace() else None
+            step.priorFilters = set(priorFilters)
+
             if minimal : continue
             if self.quietMode : step.makeQuiet()
-            step.isSelector = hasattr(step,"select")            
             assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.name()
             if step.requiresNoSetBranchAddress() : returnValue = False
             step.setup(self.inputChain, self.fileDirectory)
