@@ -29,6 +29,7 @@ class photonLook(analysis.analysis) :
                                              ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [2:3] ),
                  "zMode" :            dict([ ("zMode",True), ("",False) ]                              [1:2] ),
                  "vertexMode" :       dict([ ("vertexMode",True), ("",False) ]                         [1:2] ),
+                 "subdet" :           dict([ ("barrel", (0.0, 1.444)), ("endcap", (1.566, 2.5)) ]      [:1] ),
                  "jetId" :  ["JetIDloose","JetIDtight"]            [0],
                  "etRatherThanPt" : [True,False]                   [0],
                  "lowPtThreshold": 30.0,
@@ -168,9 +169,9 @@ class photonLook(analysis.analysis) :
                 #steps.Other.passFilter("photonEfficiencyPlots1"),
                 #steps.Gen.photonEfficiencyPlots(label = "Status1Photon", ptCut = params["thresholds"]["genPhotonPtMin"],
                 #                                etaCut = 1.4, isoCut = 5.0, deltaRCut = 1.1, jets = _jet, photons = _photon),
-                
-                steps.Photon.photonPtSelector(_photon, params["thresholds"][2], 0),
-                steps.Photon.photonEtaSelector(_photon, 1.45, 0),
+
+                steps.Filter.pt("%sP4%s"%_photon, min = params["thresholds"][2], indices = "%sIndices%s"%_photon, index = 0),
+                steps.Filter.absEta("%sP4%s"%_photon, min = params["subdet"][0], max = params["subdet"][1], indices = "%sIndices%s"%_photon, index = 0),
                 steps.Filter.DeltaRGreaterSelector(jets = _jet, particles = _photon, minDeltaR = 1.0, particleIndex = 0),
                 
                 steps.Other.multiplicityFilter("%sIndices%s"%_photon, nMin = 1, nMax = 1),
@@ -363,14 +364,14 @@ class photonLook(analysis.analysis) :
         zinv_mg_2010   = specify(names = ["z_inv_mg_v12_skim"], color = r.kMagenta+3)
 
         #2011
-        #jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163757_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #153/pb
-        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163869_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #193/pb
+        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-165970_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #336/pb
         data = []
         #data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim", weights = jw, overrideLumi =  0.0 )
         data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim",  weights = jw, overrideLumi =  5.07)
         data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted1_noIsoReqSkim",      weights = jw, overrideLumi = 12.27)
         data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted2_noIsoReqSkim",      weights = jw, overrideLumi = 83.6 )
         data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted3_noIsoReqSkim",      weights = jw, overrideLumi = 63.7 )
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe",                    weights = jw, overrideLumi = 57.1 )
 
         #freaks = specify(names = "photon200_3jet")
         #cands1 = specify(names = "375_photons")
