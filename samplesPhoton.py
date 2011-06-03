@@ -4,9 +4,10 @@ photon = samples.SampleHolder()
 
 photon.add("Photon.Run2011A-PromptReco-v1.AOD.Henning1", '%s/henning//ICF/automated/2011_04_11_22_38_56/")'%srm, lumi = 11.88)
 photon.add("Photon.Run2011A-PromptReco-v1.AOD.Henning2", '%s/henning//ICF/automated/2011_04_13_15_50_13/")'%srm, lumi =  5.07)
-photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted1", '%s/elaird//ICF/automated/2011_04_25_12_22_07/")'%srm, lumi = 15.83) #85/86 jobs complete
-photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted2", '%s/elaird//ICF/automated/2011_05_02_08_33_41/")'%srm, lumi = 15.83) #306/326 jobs complete; lumi ~80/pb
-photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted3", '%s/elaird//ICF/automated/2011_05_07_19_24_37/")'%srm, lumi = 15.83) #85/86 jobs complete; lumi ~64/pb
+photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted1", '%s/elaird//ICF/automated/2011_04_25_12_22_07/")'%srm, lumi = 1.0) #85/86 jobs complete
+photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted2", '%s/elaird//ICF/automated/2011_05_02_08_33_41/")'%srm, lumi = 1.0) #306/326 jobs complete; lumi ~80/pb
+photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted3", '%s/elaird//ICF/automated/2011_05_07_19_24_37/")'%srm, lumi = 1.0) #85/86 jobs complete; lumi ~64/pb
+photon.add("Photon.Run2011A-PromptReco-v4.AOD.Zoe", '%s/zph04//ICF/automated/2011_05_30_09_22_27/")'%srm, lumi = 1.0) #159/182 jobs complete; lumi ~57/pb
 
 photon.add("photon200_3jet", 'utils.fileListFromDisk(location = "/home/hep/elaird1/72_photonLook/14_3jet_investigation/02_calo_skim/photon_pt200_300_3jets.root", isDirectory = False)', lumi = 1.0)
 photon.add("375_photons", 'utils.fileListFromDisk(location = "/home/hep/elaird1/72_photonLook/v16_improve_indices/375_photons.root", isDirectory = False)', lumi = 1.0)
@@ -25,7 +26,8 @@ photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted2_noIsoReqSkim",
            'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v2.AOD.Ted2_*_skim.root", isDirectory = False)'%dir,lumi = 15.83)#lumi ~80/pb, as above
 photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted3_noIsoReqSkim",
            'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v2.AOD.Ted3_*_skim.root", isDirectory = False)'%dir,lumi = 15.83)#lumi ~64/pb, as above
-
+photon.add("Photon.Run2011A-PromptReco-v4.AOD.Zoe_noIsoReqSkim",
+           'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v4.AOD.Zoe_*_skim.root", isDirectory = False)'%dir,lumi = 1.0)#lumi ~57/pb, as above
 #MC skims
 #MG G jets
 photon.add("g_jets_mg_ht_100_200_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_*_skim.root", isDirectory = False)'%dir,
