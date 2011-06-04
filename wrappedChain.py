@@ -134,7 +134,12 @@ class wrappedChain(dict) :
 
     class calculable(object) :
         """Inherit wrappedChain.calculable and define update(self,localEntry) for a calculable node"""
-
+        moreName = ""
+        moreName2 = ""
+        def isLeaf(self) : return False
+        def isFake(self) : return False
+        def setAddress(self) : pass
+        
         def update(self,localEntry) :
             """Set self.value according to dictionary self.source.
 
@@ -147,17 +152,9 @@ class wrappedChain(dict) :
             if not hasattr(self,"fixes") : self.fixes = ("","")
             return self.fixes[0] + self.__class__.__name__ + self.fixes[1]
 
-        def setAddress(self) :
-            pass
-
         def stash(self,leafNames, fixes=None) :
             Name = self.name()
             for leaf in leafNames:
                 assert not hasattr(self,leaf), "%s already has attribute %s"%(Name,leaf)
                 setattr(self,leaf,("%s"+leaf+"%s")%(fixes if fixes else self.fixes))
 
-        def isLeaf(self) :
-            return False
-
-        def isFake(self) :
-            return False
