@@ -172,7 +172,7 @@ class analysis(object) :
                     listOfFileLists.append([])
                 index = listOfSamples.index(triplet)
                 looper.setupSteps(minimal = True)
-                listOfFileLists[index].append( looper.steps[0].outputFileName() )
+                listOfFileLists[index].append( looper.steps[0].outputFileName )
 
         return [ dict(zip(["name","color","markerStyle"],sample[:3])+[("outputFileNames",fileList)]) \
                  for sample,fileList in zip(listOfSamples,listOfFileLists) ]
@@ -326,7 +326,7 @@ def mergeFunc(looper, listOfSlices) :
             os.remove(fileName)
         
     def stuff(iSlice) :
-        pDataFileName = looper.outputStepAndCalculableDataFileName().replace(looper.name, looper.childName(iSlice))
+        pDataFileName = looper.pickleFileName.replace(looper.name, looper.childName(iSlice))
         pDataFile = open(pDataFileName)
         dataList,calcsUsed,leavesUsed = cPickle.load(pDataFile)
         pDataFile.close()
