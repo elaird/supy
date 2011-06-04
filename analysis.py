@@ -4,26 +4,6 @@ import utils,steps,samples,configuration,calculables
 from analysisLooper import analysisLooper
 import ROOT as r
 #####################################
-def listOfConfigurations(params) :
-    configs = [{"tag":"","codeString":""}]
-    
-    for key in sorted(params.keys()) :
-        variations = params[key]
-        if type(variations) not in [list, dict] : variations = [variations]
-        isDict = type(variations) is dict
-
-        baseLen = len(configs)
-        configs = sum([copy.deepcopy(configs) for i in range(len( variations.keys() if isDict else variations ))],[])
-
-        for iConf in range(baseLen) :
-            for iVar,kval in enumerate(sorted(variations.keys()) if isDict else variations) :
-                i = iVar*baseLen + iConf
-                conf = configs[i]
-                conf[key] = variations[kval] if isDict else kval
-                if isDict : conf["tag"] += ("%s"+kval) % ("_" if len(conf["tag"]) else "")
-                else : conf["codeString"] += str(iVar)
-    return configs
-#####################################
 class analysis(object) :
     """base class for an analysis"""
 
@@ -44,7 +24,6 @@ class analysis(object) :
         map(self.sampleDict.update,self.listOfSampleDictionaries())
 
         self.fileDirectory,self.treeName = self.mainTree()
-        self._configurations = listOfConfigurations(self.parameters())
 
         if self._loop!=None :
             os.system("mkdir -p %s"%self.localStem)
@@ -54,7 +33,7 @@ class analysis(object) :
 
         self._listsOfLoopers = []
         self._jobs = []
-        for iConf,conf in enumerate(self._configurations) :
+        for iConf,conf in enumerate(self.configurations) :
             self._listsOfLoopers.append( self.sampleLoopers(conf) )
             for iSample in range(len(self._listsOfLoopers[-1])) :
                 for iSlice in range(self._nSlices) :
@@ -63,8 +42,30 @@ class analysis(object) :
         if self._jobId==None and self._loop!=None :
             self.pickleJobs()
 
-    def sideBySideAnalysisTags(self) : return sorted(list(set([conf["tag"] for conf in self._configurations])))
-    def configurations(self) : return self._configurations
+    @property
+    def configurations(self) :
+        if hasattr(self,"__configurations") : return getattr(self,"__configurations")
+        configs = [{"tag":"","codeString":""}]
+        params = self.parameters()
+        for key in sorted(params.keys()) :
+            variations = params[key]
+            if type(variations) not in [list, dict] : variations = [variations]
+            isDict = type(variations) is dict
+            
+            baseLen = len(configs)
+            configs = sum([copy.deepcopy(configs) for i in range(len( variations.keys() if isDict else variations ))],[])
+            
+            for iConf in range(baseLen) :
+                for iVar,kval in enumerate(sorted(variations.keys()) if isDict else variations) :
+                    i = iVar*baseLen + iConf
+                    conf = configs[i]
+                    conf[key] = variations[kval] if isDict else kval
+                    if isDict : conf["tag"] += ("%s"+kval) % ("_" if len(conf["tag"]) else "")
+                    else : conf["codeString"] += str(iVar)
+        setattr(self,"__configurations",configs)
+        return getattr(self,"__configurations")
+
+    def sideBySideAnalysisTags(self) : return sorted(list(set([conf["tag"] for conf in self.configurations])))
     def jobs(self) : return self._jobs
 
     def jobsFile(self) : return "%s/%s.jobs"%(self.globalStem, self.name)
@@ -126,7 +127,7 @@ class analysis(object) :
             return listOfSamples
 
         commands = {}
-        for iConf,conf in enumerate(self._configurations) :
+        for iConf,conf in enumerate(self.configurations) :
             for sampleSpec in checkNames(self.listOfSamples(conf)) :
                 commands[sampleSpec.name] = self.sampleDict[sampleSpec.name].filesCommand
 
@@ -162,7 +163,7 @@ class analysis(object) :
         listOfSamples   = []
         listOfFileLists = []
         for iConfig,listOfLoopers in enumerate(self._listsOfLoopers) :
-            conf = self._configurations[iConfig]
+            conf = self.configurations[iConfig]
             if conf["tag"]!=tag : continue
             for looper in listOfLoopers :
                 triplet = (looper.name, looper.color, looper.markerStyle)
