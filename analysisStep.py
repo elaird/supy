@@ -25,7 +25,7 @@ class analysisStep(object) :
         return passed
     def increment(self, passed, w = None) : self.book.fill(passed, "counts", 2, 0, 2, w = w)
     def setup(self, inputChain, fileDirectory) : return
-    def endFunc(self, otherChainDict) : return
+    def endFunc(self, chains) : return
     def mergeFunc(self, products) : return
     def name(self) : return self.__class__.__name__
     def name1(self) : return self.name().ljust(self.docWidth)+self.moreName.ljust(self.moreWidth)
@@ -34,22 +34,29 @@ class analysisStep(object) :
 
     def setOutputFileStem(self, stem) : self._outputFileStem = stem
     def outputSuffix(self) : return "_%s.txt"%self.name()
+
+    @property
     def outputFileName(self) : return "%s%s"%(self._outputFileStem, self.outputSuffix())
-    
-    def requiresNoSetBranchAddress(self) : return False
-    def disable(self) : self.disabled = True
-    def makeQuiet(self) : self.quietMode = True
+    @property
+    def isSelector(self) : return hasattr(self,"select")
+    @property
+    def nFail(self) :  return int(self.nFromCountsHisto(1))
+    @property
+    def nPass(self) :  return int(self.nFromCountsHisto(2))
+
     def nFromCountsHisto(self, bin) :
         if not self.book : return 0.0
         if "counts" not in self.book : return 0.0
         if not self.book["counts"] : return 0.0
         return self.book["counts"].GetBinContent(bin)
-    def nFail(self) :  return int(self.nFromCountsHisto(1))
-    def nPass(self) :  return int(self.nFromCountsHisto(2))
+    
+    def requiresNoSetBranchAddress(self) : return False
+    def disable(self) : self.disabled = True
+    def makeQuiet(self) : self.quietMode = True
         
     def printStatistics(self) :
-        passString="-" if self.disabled else str(self.nPass())
-        failString="-" if self.disabled else str(self.nFail())
+        passString="-" if self.disabled else str(self.nPass)
+        failString="-" if self.disabled else str(self.nFail)
 
         statString = "" if not hasattr(self,"select") else \
                      "  %s %s" % ( passString.rjust(self.integerWidth), ("("+failString+")").rjust(self.integerWidth+2) )
