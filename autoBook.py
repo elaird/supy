@@ -3,10 +3,12 @@ import ROOT as r
 class autoBook(dict) :
     def __init__(self, arg = None) :
         self.__directory = r.TDirectory(arg,arg) if type(arg)==str else arg if arg else 0
-        self.title = self.__directory.GetName() if self.__directory else ""
         self.fillOrder = []
         self.weight = 1
-        
+
+    @property
+    def title(self) : return self.__directory.GetName() if self.__directory else ""
+    
     def fill(self, x, name, N, low, up, w = None, title = "", xAxisLabels = [], yAxisLabels = []) :
         if w is None : w = self.weight
         if not name in self :
