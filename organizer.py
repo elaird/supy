@@ -246,6 +246,26 @@ class organizer(object) :
             setattr(self,"__mergedGraph",nodes)
         return getattr(self,"__mergedGraph")
         
+    @property
+    def calculablesDotFile(self) :
+        def nodeName(key) : return filter(lambda c: c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", (''.join([key[0]] if key[2]=='leaf' else key[:2])))
+        def nodeColor(key) : return ("green" if "muon" in key[0] else
+                                     "blue" if "ak5Jet" in key[0] else
+                                     "red" if "electron" in key[0] else
+                                     "orange" if "photon" in key[0] else
+                                     "brown" if "vertex" in key[0] else
+                                     "purple" if "track" in key[0] else "black")
+        def nodeFontSize(node) : return 10 + 2*(len(node.deps) + len(node.feeds))
+        def nodeTexts(nodes) :
+            return ['%s [label="%s" shape="%s" fontcolor="%s" color="%s" fontsize="%s"];'%(nodeName(node),node[0][:30],{"fltr":"box","calc":"ellipse","leaf":"plaintext"}[node[2]], nodeColor(node), nodeColor(node), nodeFontSize(nodes[node])) for node in nodes]
+        def edgeTexts(nodes) :
+            return sum([["%s -> %s;"%(nodeName(node),nodeName(feed)) for feed in nodes[node].feeds] for node in nodes], [])
+        if not hasattr(self,"__calculablesDotFile") :
+            lines = nodeTexts(self.mergedGraph) + edgeTexts(self.mergedGraph)
+            text = "\n".join(['digraph calculables {',"\trankdir=LR","\trotate=90"]+['\t'+L for L in lines]+['}'])
+            setattr(self,"__calculablesDotFile",text)
+        return getattr(self,"__calculablesDotFile")
+
     def formattedCalculablesGraph(self) :
 
         def leafStrip(moreName) :
@@ -281,3 +301,5 @@ class organizer(object) :
             print
             maxLenName = max([len(line[1]) for line in block])
             for line in block : print "%s%s  %s"%(line[0],line[1].ljust(maxLenName),line[2])
+
+        
