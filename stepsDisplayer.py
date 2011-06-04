@@ -63,7 +63,7 @@ class displayer(analysisStep) :
     
     def setup(self, chain, fileDir) :
         someDir = r.gDirectory
-        self.outputFile = r.TFile(self.outputFileName(), "RECREATE")
+        self.outputFile = r.TFile(self.outputFileName, "RECREATE")
         someDir.cd()
 
         self.canvas = utils.canvas("canvas")
@@ -106,7 +106,7 @@ class displayer(analysisStep) :
         self.mhtLlHisto.SetDirectory(0)
         self.metLlHisto.SetDirectory(0)
 
-    def endFunc(self, otherChainDict) :
+    def endFunc(self, chains) :
         self.outputFile.Write()
         self.outputFile.Close()
         del self.canvas
@@ -1005,5 +1005,5 @@ class displayer(analysisStep) :
             os.system("gzip -f "+outFileName)
             print "The display file \""+pdfFileName+"\" has been written."    
         
-        psFromRoot(products["outputFileName"], self.outputFileName().replace(".root", ".ps"))
+        psFromRoot(products["outputFileName"], self.outputFileName.replace(".root", ".ps"))
         print utils.hyphens

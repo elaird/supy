@@ -47,7 +47,7 @@ class vetoLists(analysisStep) :
                 self.lists[key] += lists[key]
 
         for key in self.lists:
-            out = open("%s_%sVetos.txt"%(self.outputFileName(),key), "w")
+            out = open("%s_%sVetos.txt"%(self.outputFileName,key), "w")
             for RLE in sorted(self.lists[key]) : print >> out, "%d, %d, %d" % RLE
             out.close()
         print "The vetoLists have been written."

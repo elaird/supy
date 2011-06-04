@@ -112,7 +112,7 @@ class jetProbability(analysisStep) :
     def outputSuffix(self) : return "_jetProbability%s_%s.txt"%(self.extraName,self.bvar)
     def varsToPickle(self) : return ["bvar","extraName"]
     def mergeFunc(self, products) :
-        file = open(self.outputFileName(),"w")
+        file = open(self.outputFileName,"w")
         rFile = r.TFile.Open( self._outputFileStem + stepsMaster.Master.outputSuffix(), "READ")
         hists = [rFile.FindObjectAny(self.bvar+suf) for suf in ['b','q','n']]
         nBins = hists[0].GetNbinsX()
@@ -126,7 +126,7 @@ class jetProbability(analysisStep) :
             print >> file, '\t'.join(items)
         rFile.Close()
         file.close()
-        print "Wrote %s"%self.outputFileName()
+        print "Wrote %s"%self.outputFileName
 #####################################
 class discriminateNonTop(analysisStep) :
     def __init__(self, pars) :
@@ -250,8 +250,9 @@ class mcTruthTemplates(analysisStep) :
         self.book.fill(ev['genTopCosThetaStarAvg'], 'cosThetaStarAvg%s'%alpha, 20, -1, 1, title = ';cosThetaStarAvg;events / bin')
         self.book.fill(ev['genTopCosThetaStarAngle'], 'cosThetaStarAngle%s'%alpha, 30, 0, 0.5*math.pi, title = ';cosThetaStarAngle;events / bin')
 
+        self.book.fill(ev['genTopBoostZAlt'].Beta(), "boostz", 20, -1, 1, title = ';boost z;events / bin')
         self.book.fill(ev['genTopBeta'], 'genTopBeta', 20,-2,2, title = ";beta;events / bin")
-        #self.book.fill( (ev['genTopCosThetaStar'],ev['genTopCosThetaStarBar']), 'cts_v_ctsbar%s'%alpha, (100,100),(-1,-1),(1,1), title = ';costhetaQT;cosThetaQbarTbar;events/bin')
+        self.book.fill( (ev['genTopCosThetaStarAvg'],ev['genTopCosThetaStarAlt']), 'cts_v_ctsbar%s'%alpha, (100,100),(-1,-1),(1,1), title = ';costhetaQT;cosThetaQbarTbar;events/bin')
         #self.book.fill( (ev['genTopCosThetaStar'],ev['genTopAlpha']), 'cts_v_alpha', (25,25),(-1,0),(1,1), title = ';costhetaQT;#alpha;events/bin')
         #self.book.fill( (ev['genTopCosThetaStarAvg'],ev['genTopAlpha']), 'ctsavg_v_alpha', (25,25),(-1,0),(1,1), title = ';costhetaAvg;#alpha;%s events/bin')
         #self.book.fill(ev['genTopTTbarSumP4'].M(), "genttbarinvmass", 40,0,1000, title = ';ttbar invariant mass;events / bin' )
@@ -317,7 +318,7 @@ class mcTruthAsymmetryBinned(analysisStep) :
         return asymm,err
 
     def mergeFunc(self, products) :
-        file = r.TFile.Open(self.outputFileName(), "UPDATE")
+        file = r.TFile.Open(self.outputFileName, "UPDATE")
         master = file.FindObjectAny("Master")
         asymm = [self.asymmetryFromHist(master.FindObjectAny(self.binName%(bin+1))) for bin in range(self.bins) ]
         binVarHist = master.FindObjectAny(self.binVar)

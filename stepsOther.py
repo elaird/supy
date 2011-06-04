@@ -83,7 +83,7 @@ class skimmer(analysisStep) :
 
     def setup(self, chain, fileDir) :
         self.fileDir = fileDir
-        self.outputFile = r.TFile(self.outputFileName(), "RECREATE")
+        self.outputFile = r.TFile(self.outputFileName, "RECREATE")
         self.setupMainChain(chain)
         self.initExtraTree()
 
@@ -98,8 +98,9 @@ class skimmer(analysisStep) :
         self.outputTree.SetDirectory(r.gDirectory)#put output tree in correct place
         chain.CopyAddresses(self.outputTree)      #associate branch addresses
 
-    def writeOtherChains(self, otherChainDict) :
-        for (dirName,treeName),chain in otherChainDict.iteritems() :
+    def writeOtherChains(self, chains) :
+        for (dirName,treeName),chain in chains.iteritems() :
+            if dirName==self.fileDir and self.outputTree and treeName==self.outputTree.GetName() : continue
             self.outputFile.mkdir(dirName).cd()
             if chain and chain.GetEntry(0)>0 :
                 outChain = chain.CloneTree()
@@ -161,11 +162,11 @@ class skimmer(analysisStep) :
         for key in self.arrayDictionary :
             self.arrayDictionary[key][0]=eventVars["crock"][key]
         
-    def endFunc(self, otherChainDict) :
+    def endFunc(self, chains) :
         self.outputFile.cd(self.fileDir)                          #cd to file
         if self.outputTree :         self.outputTree.Write()      #write main tree
         if self.alsoWriteExtraTree : self.outputTreeExtra.Write() #write a tree with "extra" variables
-        self.writeOtherChains(otherChainDict)
+        self.writeOtherChains(chains)
         self.outputFile.Close()
 
     def outputSuffix(self) :
@@ -338,12 +339,12 @@ class pickEventSpecMaker(analysisStep) :
         return ["events"]
 
     def mergeFunc(self, products) :
-        out = open(self.outputFileName(), "w")
+        out = open(self.outputFileName, "w")
         for events in products["events"] :
             for event in events :
                 out.write("%14d:%6d:%14d\n"%event)
         out.close()
-        print "The pick events spec. file %s has been written."%self.outputFileName()
+        print "The pick events spec. file %s has been written."%self.outputFileName
 #####################################
 class jsonMaker(analysisStep) :
 
@@ -399,10 +400,10 @@ class jsonMaker(analysisStep) :
                 outDict[str(run)] = newList
             return str(outDict).replace("'",'"')
 
-        outFile = open(self.outputFileName(),"w")
+        outFile = open(self.outputFileName,"w")
         outFile.write(aJson(mergedDict(products["runLsDict"])))
         outFile.close()
-        print "The json file %s has been written."%self.outputFileName()
+        print "The json file %s has been written."%self.outputFileName
         print utils.hyphens
 #####################################
 class duplicateEventCheck(analysisStep) :
@@ -530,7 +531,7 @@ class cutSorter(analysisStep) :
                                   self.bins, -0.5, self.bins-0.5, title = ";cutConfiguration;events / bin")
         return (not self.applySelections) or all(selections)
         
-    def endFunc(self, otherChainDict) :
+    def endFunc(self, chains) :
         bins = len(self.selectors)
         self.book.fill(1, "cutSorterNames", bins, 0, bins, title = ";cutName", xAxisLabels = [sel.__class__.__name__ for sel in self.selectors])
         self.book.fill(1, "cutSorterMoreNames", bins, 0, bins, title = ";cutMoreName", xAxisLabels = [sel.moreName for sel in self.selectors])
@@ -656,7 +657,7 @@ class smsMedianHistogrammer(analysisStep) :
     def outputSuffix(self) : return stepsMaster.Master.outputSuffix()
 
     def oneHisto(self, name, zAxisTitle) :
-        f = r.TFile(self.outputFileName(), "UPDATE")
+        f = r.TFile(self.outputFileName, "UPDATE")
         h = f.Get("Master/orFilter/%s"%name)
         outName = "%s_median"%name
         out = r.TH2D(outName, h.GetTitle(),

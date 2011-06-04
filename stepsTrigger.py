@@ -80,14 +80,14 @@ class Counts(analysisStep) :
             return out
 
         counts = mergedCounts(products["counts"])
-        outFile = open(self.outputFileName(),"w")
+        outFile = open(self.outputFileName,"w")
 
         maxNameLength = max([len(key) for key in counts.keys()])
         maxCountLength = max([len(str(value)) for value in counts.values()])
         for key in sorted(counts.keys()) :
             outFile.write("%s    %s\n"%(key.ljust(maxNameLength), str(counts[key]).ljust(maxCountLength)))
         outFile.close()
-        print "The trigger counts file %s has been written."%self.outputFileName()
+        print "The trigger counts file %s has been written."%self.outputFileName
         print utils.hyphens
 #####################################
 class lowestUnPrescaledTrigger(analysisStep) :
@@ -192,7 +192,7 @@ class hltTurnOnHistogrammer(analysisStep) :
     def outputSuffix(self) : return stepsMaster.Master.outputSuffix()
 
     def mergeFunc(self, products) :
-        file = r.TFile.Open(self.outputFileName(), "UPDATE")
+        file = r.TFile.Open(self.outputFileName, "UPDATE")
         probe = file.FindObjectAny(self.probeTitle[0])
         if not probe : return
         probe.GetDirectory().cd()
@@ -296,7 +296,7 @@ class triggerScan(analysisStep) :
                 j = names.index(name)
                 hist.SetBinContent(i+1,j+1,iCount)
 
-        file = r.TFile.Open(self.outputFileName(),"UPDATE")
+        file = r.TFile.Open(self.outputFileName,"UPDATE")
         if not file.FindKey("triggerScan") : file.mkdir("triggerScan")
         file.cd("triggerScan")
         hist.Write()

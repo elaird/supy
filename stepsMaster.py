@@ -21,7 +21,7 @@ class Master(analysisStep) :
     # 'None' weight counts toward the total cross section with weight = 1,
     # but is not processed.  This is useful for sub-sampling and pthat-filtering
 
-    def endFunc(self, otherChainDict) :
+    def endFunc(self, chains) :
         self.select({"weight":1.0})
         self.book.fill(0.0, "nJobsHisto", 1, -0.5, 0.5, title = ";dummy axis;N_{jobs}")        
         if self.xs   : self.book.fill(0.0, "xsHisto",   1, -0.5, 0.5, title = ";dummy axis;#sigma (pb)", w = self.xs)
@@ -46,7 +46,7 @@ class Master(analysisStep) :
             for fileName in files :
                 os.remove(fileName)
 
-        hAdd = utils.getCommandOutput("hadd -f %s %s"%(self.outputFileName(), " ".join(products["outputFileName"])))
+        hAdd = utils.getCommandOutput("hadd -f %s %s"%(self.outputFileName, " ".join(products["outputFileName"])))
         
         printComment(hAdd["stdout"])
         cleanUp(hAdd["stderr"], products["outputFileName"])
