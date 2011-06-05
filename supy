@@ -96,7 +96,7 @@ def doBatch(someInstance) :
 def finish(someInstance) :
     someInstance.mergeOutput()
     try:
-        someInstance.conclude()
+        someInstance.concludeAll()
     except AssertionError as foo:
         print
         print foo
