@@ -10,36 +10,36 @@ class analysis(object) :
     def __init__(self, options) :
         self.name = self.__class__.__name__
 
-        self._batch   = options.batch
-        self._loop    = int(options.loop)   if options.loop!=None else None
-        self._nSlices = int(options.slices) if options.slices!=None else 1
-        self._profile = options.profile
-        self._jobId   = options.jobId
-        self._site    = options.site if options.site!=None else configuration.sitePrefix()
+        self.__batch   = options.batch
+        self.__loop    = int(options.loop)   if options.loop!=None else None
+        self.__nSlices = int(options.slices) if options.slices!=None else 1
+        self.__profile = options.profile
+        self.__jobId   = options.jobId
+        self.__site    = options.site if options.site!=None else configuration.sitePrefix()
 
-        self.localStem  = "%s/%s"%(configuration.siteInfo(site = self._site, key = "localOutputDir" ), self.name)
-        self.globalStem = "%s/%s"%(configuration.siteInfo(site = self._site, key = "globalOutputDir"), self.name)
+        self.localStem  = "%s/%s"%(configuration.siteInfo(site = self.__site, key = "localOutputDir" ), self.name)
+        self.globalStem = "%s/%s"%(configuration.siteInfo(site = self.__site, key = "globalOutputDir"), self.name)
     
         self.sampleDict = samples.SampleHolder()
         map(self.sampleDict.update,self.listOfSampleDictionaries())
 
         self.fileDirectory,self.treeName = self.mainTree()
 
-        if self._loop!=None :
+        if self.__loop!=None :
             os.system("mkdir -p %s"%self.localStem)
-            if self._jobId==None :
+            if self.__jobId==None :
                 os.system("mkdir -p %s"%self.globalStem)
                 self.makeInputFileLists()
 
-        self._listsOfLoopers = []
-        self._jobs = []
+        self.__listsOfLoopers = []
+        self.__jobs = []
         for iConf,conf in enumerate(self.configurations) :
-            self._listsOfLoopers.append( self.sampleLoopers(conf) )
-            for iSample in range(len(self._listsOfLoopers[-1])) :
-                for iSlice in range(self._nSlices) :
-                    self._jobs.append({"iConfig":iConf,"iSample":iSample,"iSlice":iSlice})
+            self.__listsOfLoopers.append( self.sampleLoopers(conf) )
+            for iSample in range(len(self.__listsOfLoopers[-1])) :
+                for iSlice in range(self.__nSlices) :
+                    self.__jobs.append({"iConfig":iConf,"iSample":iSample,"iSlice":iSlice})
 
-        if self._jobId==None and self._loop!=None :
+        if self.__jobId==None and self.__loop!=None :
             self.pickleJobs()
 
     @property
@@ -66,7 +66,7 @@ class analysis(object) :
         return getattr(self,"__configurations")
 
     def sideBySideAnalysisTags(self) : return sorted(list(set([conf["tag"] for conf in self.configurations])))
-    def jobs(self) : return self._jobs
+    def jobs(self) : return self.__jobs
 
     def jobsFile(self) : return "%s/%s.jobs"%(self.globalStem, self.name)
     def inputFilesListFile(self, sampleName) : return "%s/%s.inputFiles"%(self.globalStem, sampleName)
@@ -85,7 +85,7 @@ class analysis(object) :
 
     def pickleJobs(self) :
         outFile=open(self.jobsFile(),"w")
-        cPickle.dump( (self._loop,self._jobs), outFile )
+        cPickle.dump( (self.__loop,self.__jobs), outFile )
         outFile.close()
 
     def globalToLocal(self, globalFileName) :
@@ -94,7 +94,7 @@ class analysis(object) :
         return tmpDir,localFileName,globalFileName
 
     def localToGlobal(self, tmpDir, localFileName, globalFileName) :
-        os.system(configuration.mvCommand(site = self._site, src = localFileName, dest = globalFileName))
+        os.system(configuration.mvCommand(site = self.__site, src = localFileName, dest = globalFileName))
         os.system("rm -r %s"%tmpDir)
         
     def makeInputFileLists(self) :
@@ -132,25 +132,25 @@ class analysis(object) :
                 commands[sampleSpec.name] = self.sampleDict[sampleSpec.name].filesCommand
 
         #execute in parallel commands to make file lists
-        utils.operateOnListUsingQueue(self._loop,inputFilesEvalWorker,commands.iteritems())
+        utils.operateOnListUsingQueue(self.__loop,inputFilesEvalWorker,commands.iteritems())
 
     def loop(self) :
         listOfLoopers = []
-        for iJob,job in enumerate(self._jobs) :
-            if self._jobId!=None and int(self._jobId)!=iJob : continue
-            looper = self._listsOfLoopers[job["iConfig"]][job["iSample"]].slice(job["iSlice"], self._nSlices)
+        for iJob,job in enumerate(self.__jobs) :
+            if self.__jobId!=None and int(self.__jobId)!=iJob : continue
+            looper = self.__listsOfLoopers[job["iConfig"]][job["iSample"]].slice(job["iSlice"], self.__nSlices)
             listOfLoopers.append(looper)
 
-        if self._jobId!=None :
+        if self.__jobId!=None :
             listOfLoopers[0].go()
 
-        elif self._profile :
+        elif self.__profile :
             self.listOfLoopersForProf = listOfLoopers
             import cProfile
             cProfile.run("someInstance.goLoop()","resultProfile.out")
 
         else :
-            utils.operateOnListUsingQueue(self._loop, utils.goWorker, listOfLoopers)
+            utils.operateOnListUsingQueue(self.__loop, utils.goWorker, listOfLoopers)
 
     def goLoop(self) :
         for looper in self.listOfLoopersForProf : looper.go()
@@ -162,7 +162,7 @@ class analysis(object) :
 
         listOfSamples   = []
         listOfFileLists = []
-        for iConfig,listOfLoopers in enumerate(self._listsOfLoopers) :
+        for iConfig,listOfLoopers in enumerate(self.__listsOfLoopers) :
             conf = self.configurations[iConfig]
             if conf["tag"]!=tag : continue
             for looper in listOfLoopers :
@@ -234,7 +234,7 @@ class analysis(object) :
             sampleTuple = self.sampleDict[sampleName]
             isMc = sampleTuple.lumi==None
             inputFiles = fileList(sampleSpec)
-            nEventsMax,nFilesMax = parseForNumberEvents(sampleSpec, sampleTuple, len(inputFiles), self._nSlices)
+            nEventsMax,nFilesMax = parseForNumberEvents(sampleSpec, sampleTuple, len(inputFiles), self.__nSlices)
             inputFiles = inputFiles[:nFilesMax]
 
             if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
@@ -256,7 +256,7 @@ class analysis(object) :
                                              inputFiles = inputFiles,
                                              name = ".".join([sampleName]+[w.name() for w in sampleSpec.weights]),
                                              nEventsMax = nEventsMax,
-                                             quietMode = quietMode(self._loop),
+                                             quietMode = quietMode(self.__loop),
                                              color = sampleSpec.color,
                                              markerStyle = sampleSpec.markerStyle
                                              )
@@ -314,7 +314,7 @@ class analysis(object) :
         for key,listOfSlices in mergeDict.iteritems() :
             iConfig = key[0]
             iSample = key[1]
-            looper = self._listsOfLoopers[iConfig][iSample]
+            looper = self.__listsOfLoopers[iConfig][iSample]
             workList.append( (looper,listOfSlices) )
         
         utils.operateOnListUsingQueue(nCores, mergeWorker, workList)
