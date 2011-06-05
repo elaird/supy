@@ -131,13 +131,11 @@ class analysis(object) :
             assert len(names) == len(set(names)), "Duplicate sample names are not allowed."
             return listOfSamples
 
-        commands = {}
-        for iConf,conf in enumerate(self.configurations) :
-            for sampleSpec in checkNames(self.listOfSamples(conf)) :
-                commands[sampleSpec.name] = self.sampleDict[sampleSpec.name].filesCommand
+        sampleNames = set(sum([[sampleSpec.name for sampleSpec in checkNames(self.listOfSamples(conf))] for conf in self.configurations],[]))
+        argsList = [(name, self.sampleDict[name].filesCommand) for name in sampleNames]
 
         #execute in parallel commands to make file lists
-        utils.operateOnListUsingQueue(self.__loop,inputFilesEvalWorker,commands.iteritems())
+        utils.operateOnListUsingQueue(self.__loop,inputFilesEvalWorker,argsList)
 
     def loop(self) :
         listOfLoopers = [ self.__listsOfLoopers[job["iConfig"]][job["iSample"]].slice(job["iSlice"], self.__nSlices)
@@ -152,27 +150,16 @@ class analysis(object) :
 
     def goLoop(self) : [ looper.go() for looper in self.listOfLoopersForProf ]
         
-    def sampleSpecs(self, tag = None) :
-        condition = tag or (len(self.sideBySideAnalysisTags)==1 and self.sideBySideAnalysisTags[0]=="")
-        assert condition,"There are side-by-side analyses specified, but sampleSpecs() was not passed a tag."
-        if not tag : tag = ""
-
-        listOfSamples   = []
-        listOfFileLists = []
-        for iConfig,listOfLoopers in enumerate(self.__listsOfLoopers) :
-            conf = self.configurations[iConfig]
-            if conf["tag"]!=tag : continue
-            for looper in listOfLoopers :
-                triplet = (looper.name, looper.color, looper.markerStyle)
-                if triplet not in listOfSamples :
-                    listOfSamples.append(triplet)
-                    listOfFileLists.append([])
-                index = listOfSamples.index(triplet)
-                looper.setupSteps(minimal = True)
-                listOfFileLists[index].append( looper.steps[0].outputFileName )
-
+    def sampleSpecs(self, tag = "") :
+        assert tag in self.sideBySideAnalysisTags
+        iLooper = [conf["tag"] for conf in self.configurations].index(tag)
+        samplesFiles = collections.defaultdict(list)
+        for looper in self.__listsOfLoopers[iLooper] :
+            looper.setupSteps(minimal = True)
+            samplesFiles[(looper.name,looper.color,looper.markerStyle)].append(looper.steps[0].outputFileName)
+        
         return [ dict(zip(["name","color","markerStyle"],sample[:3])+[("outputFileNames",fileList)]) \
-                 for sample,fileList in zip(listOfSamples,listOfFileLists) ]
+                 for sample,fileList in samplesFiles.iteritems() ]
 
     def sampleLoopers(self, conf) :
         listOfCalculables = self.listOfCalculables(conf)
