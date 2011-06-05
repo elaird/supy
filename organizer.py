@@ -27,7 +27,7 @@ class organizer(object) :
         def yields(self) : return tuple(map(lambda h: (h.GetBinContent(2),h.GetBinError(2)) if h else None, self["counts"]))
 
 
-    def __init__(self, sampleSpecs = [] , configurationId = 0 ) :
+    def __init__(self, tag, sampleSpecs = [] , configurationId = 0 ) :
         self.configurationId = configurationId
         r.gROOT.cd()
         r.gDirectory.mkdir("config%d"%self.configurationId)
@@ -35,8 +35,9 @@ class organizer(object) :
         self.selections = tuple(self.__inititialSelectionsList())  # rows
         self.scaled = False
         self.lumi = 1.0
+        self.tag = tag
         self.alternateConfigurations = [] if configurationId else \
-                                       [organizer(sampleSpecs,i) for i in range(1,len(sampleSpecs[0]["outputFileNames"]))]
+                                       [organizer(tag,sampleSpecs,i) for i in range(1,len(sampleSpecs[0]["outputFileNames"]))]
         self.calculablesGraphs
             
     def __inititialSelectionsList(self) :
