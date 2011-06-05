@@ -140,25 +140,17 @@ class analysis(object) :
         utils.operateOnListUsingQueue(self.__loop,inputFilesEvalWorker,commands.iteritems())
 
     def loop(self) :
-        listOfLoopers = []
-        for iJob,job in enumerate(self.jobs) :
-            if self.__jobId!=None and int(self.__jobId)!=iJob : continue
-            looper = self.__listsOfLoopers[job["iConfig"]][job["iSample"]].slice(job["iSlice"], self.__nSlices)
-            listOfLoopers.append(looper)
+        listOfLoopers = [ self.__listsOfLoopers[job["iConfig"]][job["iSample"]].slice(job["iSlice"], self.__nSlices)
+                          for iJob,job in filter(lambda j: self.__jobId==None or int(self.__jobId)==j[0], enumerate(self.jobs)) ]
 
-        if self.__jobId!=None :
-            listOfLoopers[0].go()
-
-        elif self.__profile :
-            self.listOfLoopersForProf = listOfLoopers
+        if self.__jobId!=None : listOfLoopers[0].go()
+        elif not self.__profile : utils.operateOnListUsingQueue(self.__loop, utils.goWorker, listOfLoopers)
+        else :
             import cProfile
+            self.listOfLoopersForProf = listOfLoopers
             cProfile.run("someInstance.goLoop()","resultProfile.out")
 
-        else :
-            utils.operateOnListUsingQueue(self.__loop, utils.goWorker, listOfLoopers)
-
-    def goLoop(self) :
-        for looper in self.listOfLoopersForProf : looper.go()
+    def goLoop(self) : [ looper.go() for looper in self.listOfLoopersForProf ]
         
     def sampleSpecs(self, tag = None) :
         condition = tag or (len(self.sideBySideAnalysisTags)==1 and self.sideBySideAnalysisTags[0]=="")
