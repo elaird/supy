@@ -176,66 +176,65 @@ class organizer(object) :
 
     @property
     def calculables(self) :
-        if not hasattr(self,"__calculables") :
-            def nodes(file, dirName) :
-                dir = file.Get(dirName)
-                def category(title) :
-                    return ("fltr" if dirName=="Master" else
-                            "leaf" if dirName=="Leaves" else 
-                            "fake" if title.count(configuration.fakeString()) else 
-                            "calc" )
-                def keyNames(path,descend=False) :
-                    dirs = filter(lambda name: type(file.Get(path+name)) is r.TDirectoryFile and name!="Calculables", [k.GetName() for k in file.Get(path[:-1]).GetListOfKeys()])
-                    return [path+dir for dir in dirs] + (sum([keyNames(path+dir+"/",descend) for dir in dirs],[]) if dirs and descend else [])
+        def nodes(file, dirName) :
+            dir = file.Get(dirName)
+            def category(title) :
+                return ("fltr" if dirName=="Master" else
+                        "leaf" if dirName=="Leaves" else 
+                        "fake" if title.count(configuration.fakeString()) else 
+                        "calc" )
+            def keyNames(path,descend=False) :
+                dirs = filter(lambda name: type(file.Get(path+name)) is r.TDirectoryFile and name!="Calculables", [k.GetName() for k in file.Get(path[:-1]).GetListOfKeys()])
+                return [path+dir for dir in dirs] + (sum([keyNames(path+dir+"/",descend) for dir in dirs],[]) if dirs and descend else [])
 
-                calcDirs = [file.Get(name) for name in keyNames(dirName+'/',descend=(dirName=="Master"))]
-                return [(calcDir.GetName(),
-                         calcDir.GetTitle().replace(calcDir.GetName(),""),
-                         category(calcDir.GetTitle()),
-                         frozenset([tkey.GetName() for tkey in (
-                    (calcDir.GetListOfKeys() if dirName!="Master" else calcDir.Get("Calculables").GetListOfKeys() if calcDir.Get("Calculables") else []))])
-                         )  for calcDir in calcDirs]
-            
-            def calcs(sample) :
-                return ( nodes(sample['file'], "Calculables") +
-                         nodes(sample['file'], "Leaves") +
-                         filter(lambda c: c[3], nodes(sample['file'], "Master"))
-                         )
-            
-            samplesCalcs = [dict([(c[:3],c[3]) for c in calcs(sample)]) for sample in self.samples]
-            allCalcs = reduce( lambda x,y: x|y, [set(s.keys()) for s in samplesCalcs])
+            calcDirs = [file.Get(name) for name in keyNames(dirName+'/',descend=(dirName=="Master"))]
+            return [(calcDir.GetName(),
+                     calcDir.GetTitle().replace(calcDir.GetName(),""),
+                     category(calcDir.GetTitle()),
+                     frozenset([tkey.GetName() for tkey in (
+                (calcDir.GetListOfKeys() if dirName!="Master" else calcDir.Get("Calculables").GetListOfKeys() if calcDir.Get("Calculables") else []))])
+                     )  for calcDir in calcDirs]
+        
+        def calcs(sample) :
+            return ( nodes(sample['file'], "Calculables") +
+                     nodes(sample['file'], "Leaves") +
+                     filter(lambda c: c[3], nodes(sample['file'], "Master"))
+                     )
+        
+        if not hasattr(self,"_organizer__calculables") :
+            self.__calculables = [dict([(c[:3],c[3]) for c in calcs(sample)]) for sample in self.samples]
+            allCalcs = reduce( lambda x,y: x|y, [set(s.keys()) for s in self.__calculables])
 
             for calc in allCalcs :
-                for scalcs in samplesCalcs :
+                for scalcs in self.__calculables :
                     if calc not in scalcs :
                         scalcs[(calc[0],calc[1],"absent")] = frozenset()
-            setattr(self,"__calculables", samplesCalcs)
-        return getattr(self,"__calculables")
+        return self.__calculables
 
     @property
     def calculablesGraphs(self) :
-        if not hasattr(self,"__calculablesGraphs") :
-            def graph(scalcs) :
-                calcs = filter(lambda c: c[2]!="absent", scalcs)
-                calcByName = dict([(c[0],c) for c in calcs])
-                nodes = {}
-                def addNode(calc) :
-                    if calc in nodes : return
-                    nodes[calc] = utils.vessel()
-                    nodes[calc].deps = set([calcByName[depName] for depName in scalcs[calc]])
-                    nodes[calc].feeds = set()
-                    for dep in nodes[calc].deps :
-                        addNode(dep)
-                        nodes[dep].feeds.add(calc)
-                    nodes[calc].depLevel = 0 if not nodes[calc].deps else 1+max([nodes[dep].depLevel for dep in nodes[calc].deps])
-                for calc in calcs : addNode(calc)
-                return nodes
-            setattr(self,"__calculablesGraphs",[graph(scalcs) for scalcs in self.calculables])
-        return getattr(self,"__calculablesGraphs")
+        def graph(scalcs) :
+            calcs = filter(lambda c: c[2]!="absent", scalcs)
+            calcByName = dict([(c[0],c) for c in calcs])
+            nodes = {}
+            def addNode(calc) :
+                if calc in nodes : return
+                nodes[calc] = utils.vessel()
+                nodes[calc].deps = set([calcByName[depName] for depName in scalcs[calc]])
+                nodes[calc].feeds = set()
+                for dep in nodes[calc].deps :
+                    addNode(dep)
+                    nodes[dep].feeds.add(calc)
+                nodes[calc].depLevel = 0 if not nodes[calc].deps else 1+max([nodes[dep].depLevel for dep in nodes[calc].deps])
+            for calc in calcs : addNode(calc)
+            return nodes
+        if not hasattr(self,"_organizer__calculablesGraphs") :
+            self.__calculablesGraphs = [graph(scalcs) for scalcs in self.calculables]
+        return self.__calculablesGraphs
 
     @property
     def mergedGraph(self) :
-        if not hasattr(self,"__mergedGraph") :
+        if not hasattr(self,"_organizer__mergedGraph") :
             nodes = {}
             for snodes in self.calculablesGraphs :
                 for node in snodes:
@@ -243,8 +242,8 @@ class organizer(object) :
                     else :
                         nodes[node].deps |= snodes[node].deps
                         nodes[node].feeds|= snodes[node].feeds
-            setattr(self,"__mergedGraph",nodes)
-        return getattr(self,"__mergedGraph")
+            self.__mergedGraph = nodes
+        return self.__mergedGraph
         
     @property
     def calculablesDotFile(self) :
@@ -260,11 +259,11 @@ class organizer(object) :
             return ['%s [label="%s" shape="%s" fontcolor="%s" color="%s" fontsize="%s"];'%(nodeName(node),node[0][:30],{"fltr":"box","calc":"ellipse","leaf":"plaintext"}[node[2]], nodeColor(node), nodeColor(node), nodeFontSize(nodes[node])) for node in nodes]
         def edgeTexts(nodes) :
             return sum([["%s -> %s;"%(nodeName(node),nodeName(feed)) for feed in nodes[node].feeds] for node in nodes], [])
-        if not hasattr(self,"__calculablesDotFile") :
+        if not hasattr(self,"_organizer__calculablesDotFile") :
             lines = nodeTexts(self.mergedGraph) + edgeTexts(self.mergedGraph)
             text = "\n".join(['digraph calculables {',"\trankdir=LR","\trotate=90"]+['\t'+L for L in lines]+['}'])
-            setattr(self,"__calculablesDotFile",text)
-        return getattr(self,"__calculablesDotFile")
+            self.__calculablesDotFile = text
+        return self.__calculablesDotFile
 
     def formattedCalculablesGraph(self) :
 
