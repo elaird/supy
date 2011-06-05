@@ -89,7 +89,7 @@ def doBatch(someInstance) :
     os.system("chmod +x "+subScript)
 
     site = configuration.sitePrefix()
-    for iJob,listOfIndices in enumerate( someInstance.jobs() ) :
+    for iJob,listOfIndices in enumerate( someInstance.jobs ) :
         submitBatchJob("%s --jobid %d --site %s"%(baseCmd, iJob, site),
                        iJob, listOfIndices, scriptDir = scriptDir, subScript = subScript, jobScript = jobScript, condorTemplate = condorTemplate)
 ############################################
