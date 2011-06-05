@@ -5,7 +5,22 @@ from analysisLooper import analysisLooper
 import ROOT as r
 #####################################
 class analysis(object) :
-    """base class for an analysis"""
+    """base class for an analysis
+
+    Methods before __init__ can be overridden in inheriting class.
+    """
+
+    def listOfSteps(self,config) :       raise Exception("NotImplemented", "Implement a member function %s"%"listOfSteps(self,config)")
+    def listOfCalculables(self,config) : raise Exception("NotImplemented", "Implement a member function %s"%"listOfCalculables(self,config)")
+    def listOfSampleDictionaries(self) : raise Exception("NotImplemented", "Implement a member function %s"%"sampleDict(self)")
+    def listOfSamples(self,config) :     raise Exception("NotImplemented", "Implement a member function %s"%"listOfSamples(self,config)")
+
+    def mainTree(self) : return ("susyTree","tree")
+    def otherTreesToKeepWhenSkimming(self) : return [("lumiTree","tree")]
+    def leavesToBlackList(self) : return []
+    def parameters(self) : return {}
+    def conclude(self) : return
+
 
     def __init__(self, options) :
         self.name = self.__class__.__name__
@@ -39,53 +54,40 @@ class analysis(object) :
                 for iSlice in range(self.__nSlices) :
                     self.__jobs.append({"iConfig":iConf,"iSample":iSample,"iSlice":iSlice})
 
-        if self.__jobId==None and self.__loop!=None :
-            self.pickleJobs()
+        if self.__jobId==None and self.__loop!=None : self.pickleJobs()
 
     @property
-    def configurations(self) :
-        if hasattr(self,"__configurations") : return getattr(self,"__configurations")
-        configs = [{"tag":"","codeString":""}]
-        params = self.parameters()
-        for key in sorted(params.keys()) :
-            variations = params[key]
-            if type(variations) not in [list, dict] : variations = [variations]
-            isDict = type(variations) is dict
-            
-            baseLen = len(configs)
-            configs = sum([copy.deepcopy(configs) for i in range(len( variations.keys() if isDict else variations ))],[])
-            
-            for iConf in range(baseLen) :
-                for iVar,kval in enumerate(sorted(variations.keys()) if isDict else variations) :
-                    i = iVar*baseLen + iConf
-                    conf = configs[i]
-                    conf[key] = variations[kval] if isDict else kval
-                    if isDict : conf["tag"] += ("%s"+kval) % ("_" if len(conf["tag"]) else "")
-                    else : conf["codeString"] += str(iVar)
-        setattr(self,"__configurations",configs)
-        return getattr(self,"__configurations")
-
     def sideBySideAnalysisTags(self) : return sorted(list(set([conf["tag"] for conf in self.configurations])))
+    @property
     def jobs(self) : return self.__jobs
-
+    @property
     def jobsFile(self) : return "%s/%s.jobs"%(self.globalStem, self.name)
+    @property
+    def configurations(self) :
+        if not hasattr(self,"_analysis__configs") : 
+            self.__configs = [{"tag":"","codeString":""}]
+            for key,variations in sorted(self.parameters().iteritems()) :
+                if type(variations) not in [list, dict] : variations = [variations]
+                isDict = type(variations) is dict
+                
+                baseLen = len(self.__configs)
+                self.__configs = sum([copy.deepcopy(self.__configs) for i in range(len(variations))],[])
+                
+                for iConf in range(baseLen) :
+                    for iVar,kval in enumerate(sorted(variations)) :
+                        i = iVar*baseLen + iConf
+                        conf = self.__configs[i]
+                        conf[key] = variations[kval] if isDict else kval
+                        if isDict : conf["tag"] = '_'.join(filter(None,[conf['tag'],str(kval)]))
+                        else : conf["codeString"] += str(iVar)
+        return self.__configs
     def inputFilesListFile(self, sampleName) : return "%s/%s.inputFiles"%(self.globalStem, sampleName)
     def psFileName(self,tag="") : return "%s/%s%s.ps"%(self.globalStem, self.name, "_"+tag if len(tag) else "")
+
         
-    def listOfSteps(self,config) :       raise Exception("NotImplemented", "Implement a member function %s"%"listOfSteps(self,config)")
-    def listOfCalculables(self,config) : raise Exception("NotImplemented", "Implement a member function %s"%"listOfCalculables(self,config)")
-    def listOfSampleDictionaries(self) : raise Exception("NotImplemented", "Implement a member function %s"%"sampleDict(self)")
-    def listOfSamples(self,config) :     raise Exception("NotImplemented", "Implement a member function %s"%"listOfSamples(self,config)")
-
-    def mainTree(self) : return ("susyTree","tree")
-    def otherTreesToKeepWhenSkimming(self) : return [("lumiTree","tree")]
-    def leavesToBlackList(self) : return []
-    def parameters(self) : return {}
-    def conclude(self) : return
-
     def pickleJobs(self) :
-        outFile=open(self.jobsFile(),"w")
-        cPickle.dump( (self.__loop,self.__jobs), outFile )
+        outFile=open(self.jobsFile,"w")
+        cPickle.dump( (self.__loop,self.jobs), outFile )
         outFile.close()
 
     def globalToLocal(self, globalFileName) :
@@ -136,7 +138,7 @@ class analysis(object) :
 
     def loop(self) :
         listOfLoopers = []
-        for iJob,job in enumerate(self.__jobs) :
+        for iJob,job in enumerate(self.jobs) :
             if self.__jobId!=None and int(self.__jobId)!=iJob : continue
             looper = self.__listsOfLoopers[job["iConfig"]][job["iSample"]].slice(job["iSlice"], self.__nSlices)
             listOfLoopers.append(looper)
@@ -156,7 +158,7 @@ class analysis(object) :
         for looper in self.listOfLoopersForProf : looper.go()
         
     def sampleSpecs(self, tag = None) :
-        condition = tag or (len(self.sideBySideAnalysisTags())==1 and self.sideBySideAnalysisTags()[0]=="")
+        condition = tag or (len(self.sideBySideAnalysisTags)==1 and self.sideBySideAnalysisTags[0]=="")
         assert condition,"There are side-by-side analyses specified, but sampleSpecs() was not passed a tag."
         if not tag : tag = ""
 
@@ -298,14 +300,14 @@ class analysis(object) :
         return
     
     def mergeOutput(self) :
-        if not os.path.exists(self.jobsFile()) : return
+        if not os.path.exists(self.jobsFile) : return
 
         def mergeWorker(q):
             while True:
                 mergeFunc(*q.get())
                 q.task_done()
 
-        inFile=open(self.jobsFile())
+        inFile=open(self.jobsFile)
         nCores,jobs = cPickle.load(inFile)
         inFile.close()
         mergeDict = collections.defaultdict(list)
@@ -318,7 +320,7 @@ class analysis(object) :
             workList.append( (looper,listOfSlices) )
         
         utils.operateOnListUsingQueue(nCores, mergeWorker, workList)
-        os.remove(self.jobsFile())
+        os.remove(self.jobsFile)
 #############################################
 def mergeFunc(looper, listOfSlices) :
     def cleanUp(l) :
