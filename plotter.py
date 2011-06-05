@@ -149,23 +149,23 @@ class plotter(object) :
             self.printCanvas()
             self.canvas.Clear()
             
-        unprintedSelections = True
-        finalSelection = filter(lambda s: any(s.rawFailPass), self.someOrganizer.selections)[-1]
-        self.selectionsSoFar=[]
-        for selection in self.someOrganizer.selections :
-            isSelector = (not len(selection)>1) or any(selection.rawFailPass)
+        unprintedSteps = True
+        finalStep = filter(lambda s: any(s.rawFailPass), self.someOrganizer.steps)[-1]
+        self.stepsSoFar=[]
+        for step in self.someOrganizer.steps :
+            isSelector = (not len(step)>1) or any(step.rawFailPass)
 
-            self.selectionsSoFar.append(selection)
-            if isSelector : unprintedSelections = True
-            if selection==finalSelection or (unprintedSelections and not isSelector and not self.compactOutput) :
-                self.printSelections(self.selectionsSoFar, printAll = self.compactOutput)
-                unprintedSelections = False
-            if (selection.name, selection.title)==self.linYAfter : self.doLog = False
+            self.stepsSoFar.append(step)
+            if isSelector : unprintedSteps = True
+            if step==finalStep or (unprintedSteps and not isSelector and not self.compactOutput) :
+                self.printSteps(self.stepsSoFar, printAll = self.compactOutput)
+                unprintedSteps = False
+            if (step.name, step.title)==self.linYAfter : self.doLog = False
             if self.compactOutput and not self.whiteList : continue
-            for plotName in sorted(selection.keys()) :
+            for plotName in sorted(step.keys()) :
                 if self.useWhiteList and plotName not in self.whiteList : continue
                 if plotName in self.blackList : continue
-                self.onePlotFunction(selection[plotName])
+                self.onePlotFunction(step[plotName])
 
         self.printCanvas("]")
         self.makePdf()
@@ -192,10 +192,10 @@ class plotter(object) :
             for item in ["selName", "selDesc", "plotName"] :
                 if item not in spec : return
             
-            for selection in self.someOrganizer.selections :
-                if (selection.name, selection.title) != (spec["selName"], spec["selDesc"]) : continue
-                if spec["plotName"] not in selection : continue
-                histos = selection[spec["plotName"]]
+            for step in self.someOrganizer.steps :
+                if (step.name, step.title) != (spec["selName"], spec["selDesc"]) : continue
+                if spec["plotName"] not in step : continue
+                histos = step[spec["plotName"]]
                 break
 
             if "sampleWhiteList" not in spec :
@@ -398,8 +398,8 @@ class plotter(object) :
         os.system("gzip -f "+self.psFileName)
         print "The output file \""+pdfFile+"\" has been written."
 
-    def printSelections(self,selections, printAll=False) :
-        if printAll and len(selections)>self.nLinesMax : self.printSelections(selections[:1-self.nLinesMax],printAll)
+    def printSteps(self,steps, printAll=False) :
+        if printAll and len(steps)>self.nLinesMax : self.printSteps(steps[:1-self.nLinesMax],printAll)
         self.canvas.cd(0)
         self.canvas.Clear()
         
@@ -412,16 +412,16 @@ class plotter(object) :
         colWidth = min(25, pageWidth/len(self.someOrganizer.samples))
         space = 1
 
-        nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in self.someOrganizer.selections]))
-        for i,selection in enumerate(filter(lambda s: any(s.rawFailPass),selections[-self.nLinesMax:])) :
-            absI = i + (0 if len(selections) <= self.nLinesMax else len(selections)-self.nLinesMax)
+        nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in self.someOrganizer.steps]))
+        for i,step in enumerate(filter(lambda s: any(s.rawFailPass),steps[-self.nLinesMax:])) :
+            absI = i + (0 if len(steps) <= self.nLinesMax else len(steps)-self.nLinesMax)
             letter = string.ascii_letters[absI]
             x = 0.01
             y = 0.98 - 0.33*(i+0.5+absI/5)/self.nLinesMax
-            text.DrawTextNDC(x, y, nametitle.format(letter, selection.name, selection.title ))
+            text.DrawTextNDC(x, y, nametitle.format(letter, step.name, step.title ))
 
             nums = []
-            for iYield,k in enumerate(selection.yields()) :
+            for iYield,k in enumerate(step.yields()) :
                 special = "lumi" in self.someOrganizer.samples[iYield] and not self.showErrorsOnDataYields
                 s = utils.roundString(*k, width=(colWidth-space), noSci = self.noSci or special, noErr = special) if k else "-    "
                 nums.append(s.rjust(colWidth))

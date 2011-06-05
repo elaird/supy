@@ -3,8 +3,8 @@ import ROOT as r
 class cutSorter(object) :
 
     @classmethod
-    def fromOrganizer(cls, organizer, iSelection, iSample) :
-        ConfigCounts,Names,MoreNames = tuple([organizer.selections[iSelection][key][iSample]
+    def fromOrganizer(cls, organizer, iStep, iSample) :
+        ConfigCounts,Names,MoreNames = tuple([organizer.steps[iStep][key][iSample]
                                               for key in ["cutSorterConfigurationCounts","cutSorterNames","cutSorterMoreNames"]])
         return cls.fromHistograms(ConfigCounts,Names,MoreNames)
 
@@ -79,7 +79,7 @@ class cutSorter(object) :
         binHeights = [self.counts[i] for i in self.orderedConfigCountIndices]
         yBoundaries = array.array('d',[sum(binHeights[:i]) for i in range(len(binHeights)+1)])
         yBoundaries[0] = 0.5
-        histo = r.TH2D("histo",";selection;events",len(self.indices),array.array('d',range(len(self.indices)+1)), len(binHeights), yBoundaries)
+        histo = r.TH2D("histo",";step;events",len(self.indices),array.array('d',range(len(self.indices)+1)), len(binHeights), yBoundaries)
         bits = len(self.indices)
         for i in range(len(binHeights)) :
             for j in range(bits):

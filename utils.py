@@ -284,13 +284,13 @@ def roundString(val, err, width=None, noSci = False, noErr = False) :
 def printSkimResults(org) :
     def indicesFromName(name) :
         out = []
-        for i,selection in enumerate(org.selections) :
-            if selection.name == name : out.append(i)
+        for i,step in enumerate(org.steps) :
+            if step.name == name : out.append(i)
         return out
 
     def numDict(index) :
         out = {}
-        for sample,failPass in zip(org.samples, org.selections[index].rawFailPass) :
+        for sample,failPass in zip(org.samples, org.steps[index].rawFailPass) :
             key = sample["name"]
             out[key] = {}
             if failPass!=None :

@@ -3,13 +3,13 @@ import copy,re
 import configuration,utils
 
 class organizer(object) :
-    """Organize selection and histograms.
+    """Organize step and histograms.
 
     samples is a tuple of dicts, each of which describes a sample.
-    selections is a tuple of named dicts, keyed with histogram names (see class 'selection')
+    steps is a tuple of named dicts, keyed with histogram names (see class 'step')
     histograms of each sample remain in independent TDirectory structures.
     """
-    class selection(dict) : 
+    class step(dict) : 
         """Keys are histogram names, values are tuples of histograms, parallel to samples."""
         def __init__(self,samples,dirs,keys) :
             for key in keys: self[key] = tuple( map(lambda d: d.Get(key), dirs) )
@@ -32,7 +32,7 @@ class organizer(object) :
         r.gROOT.cd()
         r.gDirectory.mkdir("config%d"%self.configurationId)
         self.samples = tuple([copy.deepcopy(spec) for spec in sampleSpecs]) # columns
-        self.selections = tuple(self.__inititialSelectionsList())  # rows
+        self.steps = tuple(self.__inititialStepsList())  # rows
         self.scaled = False
         self.lumi = 1.0
         self.tag = tag
@@ -40,9 +40,9 @@ class organizer(object) :
                                        [organizer(tag,sampleSpecs,i) for i in range(1,len(sampleSpecs[0]["outputFileNames"]))]
         self.calculablesGraphs
             
-    def __inititialSelectionsList(self) :
-        """Scan samples in parallel to ensure consistency and build list of selection dicts"""
-        selections = []
+    def __inititialStepsList(self) :
+        """Scan samples in parallel to ensure consistency and build list of step dicts"""
+        steps = []
 
         for sample in self.samples :
             assert len(sample["outputFileNames"]) > self.configurationId, \
@@ -79,10 +79,10 @@ class organizer(object) :
                 assert len(nameTitles)==1,"Subdirectory names,titles must be identical. %s"%str(nameTitles)
             else: subdirs = [None]*len(dirs)
             
-            selections.append( self.selection(self.samples,dirs,keys) )
+            steps.append( self.step(self.samples,dirs,keys) )
             dirs = subdirs
 
-        return selections
+        return steps
 
     def indexOfSampleWithName(self,name) :
         someList = [sample["name"] for sample in self.samples]
@@ -95,9 +95,9 @@ class organizer(object) :
             print "%s is not present: cannot drop"%sampleName
             return
         self.samples = self.samples[:index] + self.samples[index+1:]
-        for selection in self.selections:
-            for key,val in selection.iteritems():
-                selection[key] = val[:index] + val[index+1:]
+        for step in self.steps:
+            for key,val in step.iteritems():
+                step[key] = val[:index] + val[index+1:]
 
     def mergeSamples(self,sources = [], targetSpec = {}, keepSources = False, allWithPrefix = None) :
         for org in self.alternateConfigurations :
@@ -132,15 +132,15 @@ class organizer(object) :
         r.gROOT.cd()
         r.gDirectory.cd("config%d"%self.configurationId)
         dir = target["dir"] = r.gDirectory.mkdir(target["name"])
-        for selection in self.selections :
-            if selection.name is not "": dir = dir.mkdir(*selection.nameTitle)
+        for step in self.steps :
+            if step.name is not "": dir = dir.mkdir(*step.nameTitle)
             dir.cd()
-            for key,val in selection.iteritems():
+            for key,val in step.iteritems():
                 sources = filter(None, map(val.__getitem__,sourceIndices))
                 hist = sources[0].Clone(key) if len(sources) else None
                 for h in sources[1:]: hist.Add(h)
-                selection[key] = tuplePopInsert( val, hist )
-            selection.rawFailPass = tuplePopInsert( selection.rawFailPass, None )
+                step[key] = tuplePopInsert( val, hist )
+            step.rawFailPass = tuplePopInsert( step.rawFailPass, None )
         self.samples = tuplePopInsert( self.samples, target )
         return
 
@@ -157,8 +157,8 @@ class organizer(object) :
                "You need to have a data sample or specify the lumi to use."
         if type(self.lumi) is list : self.lumi = sum(self.lumi)
 
-        for sel in self.selections :
-            for key,hists in sel.iteritems() :
+        for step in self.steps :
+            for key,hists in step.iteritems() :
                 if key in ["lumiHisto","xsHisto","nJobsHisto","nEventsHisto"] : continue
                 for i,h in enumerate(hists):
                     if not h: continue
@@ -169,11 +169,11 @@ class organizer(object) :
                     if axis: axis.SetTitle("p.d.f." if toPdf else "%s / %s pb^{-1}"%(axis.GetTitle(),str(self.lumi)))
         self.scaled = True
 
-    def indicesOfSelectionsWithKey(self,key) :
-        return filter( lambda i: key in self.selections[i], range(len(self.selections)))
+    def indicesOfStepsWithKey(self,key) :
+        return filter( lambda i: key in self.steps[i], range(len(self.steps)))
 
     def keysMatching(self,inKeys) :
-        return filter(lambda k: any([i in k for i in inKeys]), set(sum([sel.keys() for sel in self.selections],[])))
+        return filter(lambda k: any([i in k for i in inKeys]), set(sum([step.keys() for step in self.steps],[])))
 
     @property
     def calculables(self) :

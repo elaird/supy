@@ -520,7 +520,7 @@ class vertexHistogrammer(analysisStep) :
 #####################################
 class cutSorter(analysisStep) :
     def __init__(self, listOfSteps = [], applySelections = True ) :
-        self.selectors = filter(lambda s: hasattr(s,"select") and type(s)!=passFilter, listOfSteps)
+        self.selectors = filter(lambda s: s.isSelector, listOfSteps)
         self.applySelections = applySelections
         self.moreName = "Applied" if applySelections else "Not Applied"
         self.bins = 1 << len(self.selectors)
