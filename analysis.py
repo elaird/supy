@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os,sys,copy,cPickle,collections,tempfile
-import utils,steps,samples,configuration,calculables
+import utils,steps,samples,configuration,calculables,organizer
 from analysisLooper import analysisLooper
 import ROOT as r
 #####################################
@@ -19,7 +19,10 @@ class analysis(object) :
     def otherTreesToKeepWhenSkimming(self) : return [("lumiTree","tree")]
     def leavesToBlackList(self) : return []
     def parameters(self) : return {}
-    def conclude(self) : return
+    def conclude(self, org) : return
+    def concludeAll(self) :
+        for tag in self.sideBySideAnalysisTags :
+            self.conclude( organizer.organizer( tag, self.sampleSpecs(tag)))
 
 
     def __init__(self, options) :
