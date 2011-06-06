@@ -1,5 +1,5 @@
 from multiprocessing import Process,JoinableQueue
-import os,collections,array,math,subprocess
+import os,collections,array,math,subprocess,cPickle
 import ROOT as r
 #####################################
 hyphens="-"*95
@@ -461,4 +461,14 @@ def splitList(List,item) :
     if item not in List: return [List]
     i = List.index(item)
     return [List[:i]] + splitList(List[i+1:],item)
-
+#####################################
+def readPickle(fileName) :
+    pickleFile = open(fileName)
+    payload = cPickle.load(pickleFile)
+    pickleFile.close()
+    return payload
+def writePickle(fileName, payload) :
+    pickleFile = open(fileName,"w")
+    cPickle.dump(payload, pickleFile)
+    pickleFile.close()
+#####################################
