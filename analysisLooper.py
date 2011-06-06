@@ -8,11 +8,11 @@ class analysisLooper :
 
     def __init__(self, fileDirectory = None, treeName = None, otherTreesToKeepWhenSkimming = None, leavesToBlackList = None,
                  localStem = None, globalStem = None, subDir = None, steps = None, calculables = None, inputFiles = None, name = None,
-                 nEventsMax = None, quietMode = None, color = None, markerStyle = None) :
+                 nEventsMax = None, quietMode = None) :
 
         for arg in ["steps", "calculables"] : setattr(self, arg, eval("copy.deepcopy(%s)"%arg))
         for arg in ["fileDirectory", "treeName", "otherTreesToKeepWhenSkimming", "leavesToBlackList",
-                    "localStem", "globalStem", "subDir", "inputFiles", "name", "nEventsMax", "quietMode", "color", "markerStyle"] :
+                    "localStem", "globalStem", "subDir", "inputFiles", "name", "nEventsMax", "quietMode"] :
             setattr(self, arg, eval(arg))
 
         self.outputDir = self.globalDir #the value will be modified in self.prepareOutputDirectory()

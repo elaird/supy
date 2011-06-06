@@ -128,11 +128,13 @@ class analysis(object) :
         
     def sampleSpecs(self, tag = "") :
         assert tag in self.sideBySideAnalysisTags
-        iLooper = [conf["tag"] for conf in self.configurations].index(tag)
+        iConf = [conf["tag"] for conf in self.configurations].index(tag)
+        samples = self.listOfSamples(self.configurations[iConf])
         samplesFiles = collections.defaultdict(list)
-        for looper in self.__listsOfLoopers[iLooper] :
+        for looper in self.__listsOfLoopers[iConf] :
             looper.setupSteps(minimal = True)
-            samplesFiles[(looper.name,looper.color,looper.markerStyle)].append(looper.steps[0].outputFileName)
+            sampleSpec = filter(lambda s: looper.name == '.'.join([s.name]+[w.name() for w in s.weights]), samples)[0]
+            samplesFiles[(looper.name,sampleSpec.color,sampleSpec.markerStyle)].append(looper.steps[0].outputFileName)
         
         return [ dict(zip(["name","color","markerStyle"],sample[:3])+[("outputFileNames",fileList)]) \
                  for sample,fileList in samplesFiles.iteritems() ]
@@ -204,8 +206,6 @@ class analysis(object) :
                                              name = ".".join([sampleName]+[w.name() for w in sampleSpec.weights]),
                                              nEventsMax = nEventsMax,
                                              quietMode = self.__loop>1,
-                                             color = sampleSpec.color,
-                                             markerStyle = sampleSpec.markerStyle
                                              )
                               )
             
