@@ -30,7 +30,7 @@ class analysisLooper :
     def checkSteps(self) :
         for iStep,step in enumerate(self.steps) :
             if iStep : continue
-            assert step.name()=="Master", "The master step must occur first."
+            assert step.name=="Master", "The master step must occur first."
             assert step.isSelector, "The master step must be a selector."
 
     def childName(self, iSlice) : return "%s_%d"%(self.name, iSlice)
@@ -123,17 +123,17 @@ class analysisLooper :
 
         for step in self.steps :
             step.setOutputFileStem(self.outputFileStem)
-            current = current.mkdir(step.name())
+            current = current.mkdir(step.name)
             step.book = autoBook(current)
             step.tracer = wrappedChain.keyTracer(None) if configuration.trace() else None
             step.priorFilters = set(priorFilters)
 
             self.steps[0].books.append(step.book)
-            if step.isSelector : priorFilters.append((step.name(),step.moreName+step.moreName2))
+            if step.isSelector : priorFilters.append((step.name,step.moreName+step.moreName2))
 
             if minimal : continue
             if self.quietMode : step.makeQuiet()
-            assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.name()
+            assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.name
             step.setup(self.chains[self.mainTree], self.fileDirectory)
 
     def endSteps(self) : [ step.endFunc(self.chains) for step in self.steps ]
@@ -171,7 +171,7 @@ class analysisLooper :
     def writePickle(self) :
         def pickleJar(step) :
             inter = set(step.varsToPickle()).intersection(set(['nPass','nFail','outputFileName']))
-            assert not inter, "%s is trying to pickle %s, which %s reserved for use by analysisStep."%(step.name(), str(inter), "is" if len(inter)==1 else "are")
+            assert not inter, "%s is trying to pickle %s, which %s reserved for use by analysisStep."%(step.name, str(inter), "is" if len(inter)==1 else "are")
             return dict([ (item, getattr(step,item)) for item in step.varsToPickle()+['nPass','nFail']] +
                         [('outputFileName', getattr(step,'outputFileName').replace(self.outputDir, self.globalDir))])
 

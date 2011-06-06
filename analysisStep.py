@@ -27,13 +27,14 @@ class analysisStep(object) :
     def setup(self, inputChain, fileDirectory) : return
     def endFunc(self, chains) : return
     def mergeFunc(self, products) : return
+    @property
     def name(self) : return self.__class__.__name__
-    def name1(self) : return self.name().ljust(self.docWidth)+self.moreName.ljust(self.moreWidth)
+    def name1(self) : return self.name.ljust(self.docWidth)+self.moreName.ljust(self.moreWidth)
     def name2(self) : return "" if self.moreName2=="" else "\n"+"".ljust(self.docWidth)+self.moreName2.ljust(self.moreWidth)
     def varsToPickle(self) : return []
 
     def setOutputFileStem(self, stem) : self._outputFileStem = stem
-    def outputSuffix(self) : return "_%s.txt"%self.name()
+    def outputSuffix(self) : return "_%s.txt"%self.name
 
     @property
     def outputFileName(self) : return "%s%s"%(self._outputFileStem, self.outputSuffix())

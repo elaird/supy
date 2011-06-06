@@ -51,7 +51,7 @@ class absEta(value) :
 class OR(analysisStep) :
     def __init__(self, listOfSelectorSteps = []) :
         self.steps = listOfSelectorSteps
-        self.moreName = '|'.join(["%s:%s"%(step.name(),step.moreName) for step in self.steps])
+        self.moreName = '|'.join(["%s:%s"%(step.name,step.moreName) for step in self.steps])
     def select(self,eventVars) :
         for step in self.steps :
             if step.select(eventVars) : return True

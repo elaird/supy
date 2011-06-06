@@ -60,7 +60,7 @@ def multiplicityPlotFilter(var, nMin=0, nMax=None, xlabel="") :
 class orFilter(analysisStep) :
     def __init__(self, listOfSelectorSteps = []) :
         self.steps = listOfSelectorSteps
-        self.moreName = '|'.join(["%s:%s"%(step.name(),step.moreName) for step in self.steps])
+        self.moreName = '|'.join(["%s:%s"%(step.name,step.moreName) for step in self.steps])
     def select(self,eventVars) :
         for step in self.steps :
             if step.select(eventVars) : return True

@@ -26,8 +26,6 @@ class analysis(object) :
 
 
     def __init__(self, options) :
-        self.name = self.__class__.__name__
-
         self.__batch   = options.batch
         self.__loop    = int(options.loop)   if options.loop!=None else None
         self.__nSlices = int(options.slices) if options.slices!=None else 1
@@ -59,7 +57,8 @@ class analysis(object) :
 
         if self.__jobId==None and self.__loop!=None : utils.writePickle( self.jobsFile, (self.__loop,self.jobs) )
 
-
+    @property
+    def name(self) : return self.__class__.__name__
     @property
     def sideBySideAnalysisTags(self) : return sorted(list(set([conf["tag"] for conf in self.configurations])))
     @property
@@ -148,12 +147,8 @@ class analysis(object) :
         listOfSteps = self.listOfSteps(conf)
         listOfSamples = self.listOfSamples(conf)
 
-        selectors = filter(lambda s: hasattr(s,"select") and type(s)!=steps.Filter.label, listOfSteps)
-        assert len(selectors) == len(set([(s.__class__.__name__,s.moreName,s.moreName2) for s in selectors])), \
-               "Duplicate selectors are not allowed."
-        #checked already during makeInputFileLists
-        #names = [s.name for s in listOfSamples]
-        #assert len(names) == len(set(names)), "Duplicate sample names are not allowed."
+        selectors = [(s.name,s.moreName,s.moreName2) for s in filter(lambda s: s.isSelector, listOfSteps)]
+        for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s,%s) is not allowed."%sel
 
         def parseForNumberEvents(ss,sampletuple,nFiles,nSlices) :
             if not ss.effectiveLumi :
@@ -168,7 +163,7 @@ class analysis(object) :
 
         def checkLumi(isMc, nEventsMax, nFilesMax) :
             if (not isMc) and (nEventsMax>=0 or nFilesMax>=0) :
-                print "Warning, not running over full data sample: wrong lumi?"
+                print "Warning: Not running over full data sample: wrong lumi?"
                 return True
             return False
 
@@ -182,7 +177,7 @@ class analysis(object) :
             calcNames = [c.name() for c in calcs]
             for w in weights :
                 if w.name() in calcNames :
-                    print "Warn: weight %s is already a listed calculable."%w.name()
+                    print "Warning: Weight %s is already a listed calculable."%w.name()
                     for c in calcs:
                         assert c.name() != w.name() or type(c) == type(w), "Weight and listed calculables of differing types share a name!"
             return calcs + [calculables.weight(weights)] + filter(lambda c: c.name() not in calcNames, weights)
@@ -237,7 +232,7 @@ class analysis(object) :
                 if sampleName==looper.name :
                     out = iLooper
                 for step in looper.steps :
-                    if step.name()=="skimmer" :
+                    if step.name=="skimmer" :
                         print "WARNING: you are skimming inclusive samples.  The skims of all but the highest bin will be exclusive.  Use utils.printSkimResults()."
             return out
         

@@ -9,7 +9,7 @@ def adjustSteps(inSteps, dataOrMc = None) :
     histoBlackList = getattr(configuration, "histogramsToDisableFor%s"%dataOrMc)()
     for step in inSteps :
         disable = False
-        if step.name() in blackList : disable = True
+        if step.name in blackList : disable = True
         if isinstance(step, Other.histogrammer) :
             for matchString in histoBlackList :
                 vars = [step.var] if type(step.var) is str else step.var
