@@ -305,50 +305,25 @@ class analysis(object) :
         os.remove(self.jobsFile)
 #############################################
 def mergeFunc(looper, listOfSlices) :
-    def cleanUp(l) :
-        for fileName in l :
-            os.remove(fileName)
-        
-    def stuff(iSlice) :
-        pDataFileName = looper.pickleFileName.replace(looper.name, looper.childName(iSlice))
-        pDataFile = open(pDataFileName)
-        dataList,calcsUsed,leavesUsed = cPickle.load(pDataFile)
-        pDataFile.close()
-        return dataList,calcsUsed,leavesUsed,pDataFileName
-
-    def products() :
-        prods = [[] for step in looper.steps]
-        calcs = []
-        leaves = []
-        
-        for iSlice in listOfSlices :
-            dataList,calcsUsed,leavesUsed,pDataFileName = stuff(iSlice)
-            cleanUpList.append(pDataFileName)
-        
-            for step,data,prod in zip(looper.steps, dataList, prods) :
-                prod.append(data)
-                if hasattr(step, "select") :
-                    step.increment(True,  w = data["nPass"])
-                    step.increment(False, w = data["nFail"])
-        
-            calcs.extend(calcsUsed)
-            calcs = list(set(calcs))
-            leaves.extend(leavesUsed)
-            leaves = list(set(leaves))
-        return prods,calcs,leaves
-
-    def rearrangedProducts(prods) :
-        out = collections.defaultdict(list)
-        for d in prods :
-            for key,value in d.iteritems() :
-                out[key].append(value)
-        return out
-
     cleanUpList = []
     looper.setupSteps(minimal = True)
-    prods, looper.listOfCalculablesUsed, looper.listOfLeavesUsed = products()
+    looper.calculablesUsed = set()
+    looper.leavesUsed = set()
+    products = [collections.defaultdict(list) for step in looper.steps]
+    
+    for iSlice in listOfSlices :
+        cleanUpList.append( looper.pickleFileName.replace(looper.name, looper.childName(iSlice)) )
+        dataByStep,calcsUsed,leavesUsed = utils.readPickle( cleanUpList[-1] )
+        looper.calculablesUsed |= calcsUsed
+        looper.leavesUsed |= leavesUsed
+        for stepDict,data in zip(products, dataByStep) :
+            for key,val in data.iteritems() : stepDict[key].append(val)
+
+    for step,stepDict in filter(lambda s: s[0].isSelector, zip(looper.steps, products)) :
+        step.increment(True, w = sum(stepDict["nPass"]))
+        step.increment(False, w = sum(stepDict["nFail"]))
+            
     looper.printStats()
     print utils.hyphens
-    for step,productList in zip(looper.steps, prods) :
-        step.mergeFunc(rearrangedProducts(productList))
-    cleanUp(cleanUpList)
+    for step,stepDict in zip(looper.steps, products) : step.mergeFunc(stepDict)
+    for fileName in cleanUpList : os.remove(fileName)
