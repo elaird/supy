@@ -178,6 +178,14 @@ class analysisLooper :
         utils.writePickle( self.pickleFileName,
                            [ [pickleJar(step) for step in self.steps], self.calculablesUsed, self.leavesUsed] )
 
+    def readyMerge(self, listOfSlices) :
+        foundAll = True
+        for pickleFileName in [ self.pickleFileName.replace(self.name, self.childName(iSlice)) for iSlice in listOfSlices ] :
+            if not os.path.exists(pickleFileName) :
+                print "Can't find file : %s"%pickleFileName
+                foundAll = False
+        return foundAll
+
     def mergeFunc(self, listOfSlices) :
         cleanUpList = []
         self.setupSteps(minimal = True)

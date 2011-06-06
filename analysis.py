@@ -255,14 +255,10 @@ class analysis(object) :
 
         nCores,jobs = utils.readPickle(self.jobsFile)
         mergeDict = collections.defaultdict(list)
-        for job in jobs : mergeDict[(job["iConfig"],job["iSample"])].append(job["iSlice"])
-        workList = []
-        for key,listOfSlices in mergeDict.iteritems() :
-            iConfig = key[0]
-            iSample = key[1]
-            looper = self.__listsOfLoopers[iConfig][iSample]
-            workList.append( (looper,listOfSlices) )
-        
+        for job in jobs : mergeDict[(job['iConfig'],job['iSample'])].append(job['iSlice'])
+        workList = [ (self.__listsOfLoopers[key[0]][key[1]], val) for key,val in mergeDict.iteritems() ]
+
+        if not all([looper.readyMerge(slices) for looper,slices in workList]) : sys.exit(0)
         utils.operateOnListUsingQueue(nCores, mergeWorker, workList)
         os.remove(self.jobsFile)
 #############################################
