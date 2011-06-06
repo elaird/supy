@@ -151,37 +151,32 @@ class analysis(object) :
         for sample in samples : assert 1==samples.count(sample), "Duplicate sample name %s is not allowed."%sample
 
         def parseForNumberEvents(ss,sampletuple,nFiles,nSlices) :
-            if not ss.effectiveLumi :
-                return (ss.nEventsMax,nFiles)
-            else :
-                if ss.nEventsMax>=0: print "Warning: %s nEventsMax ignored in favor of effectiveLumi "%ss.name
-                assert not sampletuple.lumi, "Cannot calculate effectiveLumi for _data_ sample %s"%ss.name
-                nJobs = min(nFiles, nSlices)
-                nEventsTotal = ss.effectiveLumi*sampletuple.xs
-                if nEventsTotal < nJobs : return (1,int(nEventsTotal+0.9))
-                return (1+int(nEventsTotal/nJobs), nFiles)
+            if not ss.effectiveLumi : return (ss.nEventsMax,nFiles)
+            if ss.nEventsMax>=0: print "Warning: %s nEventsMax ignored in favor of effectiveLumi "%ss.name
+            assert not sampletuple.lumi, "Cannot calculate effectiveLumi for _data_ sample %s"%ss.name
+            nJobs = min(nFiles, nSlices)
+            nEventsTotal = ss.effectiveLumi*sampletuple.xs
+            if nEventsTotal < nJobs : return (1,int(nEventsTotal+0.9))
+            return (1+int(nEventsTotal/nJobs), nFiles)
 
-        def checkLumi(isMc, nEventsMax, nFilesMax) :
-            if (not isMc) and (nEventsMax>=0 or nFilesMax>=0) :
-                print "Warning: Not running over full data sample: wrong lumi?"
-                return True
-            return False
+        def lumiWarn(isData, nEventsMax, nFilesMax) :
+            invalid = isData and (nEventsMax>=0 or nFilesMax>=0)
+            if invalid : print "Warning: Not running over full data sample: wrong lumi?"
+            return invalid
 
         def allCalculables(calcs,weights) :
-            calcNames = [c.name() for c in calcs]
-            for w in weights :
-                if w.name() in calcNames :
-                    print "Warning: Weight %s is already a listed calculable."%w.name()
-                    for c in calcs:
-                        assert c.name() != w.name() or type(c) == type(w), "Weight and listed calculables of differing types share a name!"
-            return calcs + [calculables.weight(weights)] + filter(lambda c: c.name() not in calcNames, weights)
+            intersect = set([c.name() for c in calcs]).intersection(set([w.name() for w in weights]))
+            mismatch = sum([ filter(lambda c: c.name()==w.name() and type(c)!=type(w), calcs) for w in weights],[])
+            if intersect : print "Warning: Weights { %s } are already listed."%','.join(intersect)
+            assert not mismatch, "Error: type(weight)!=type(calc): { %s }"%','.join([c.name() for c in mismatch])
+            return calcs + [calculables.weight(weights)] + filter(lambda w: w.name() not in intersect, weights)
 
         ptHatMinDict = {}
         outLoopers = []
         for sampleSpec in listOfSamples :
             sampleName = sampleSpec.name
             sampleTuple = self.sampleDict[sampleName]
-            isMc = sampleTuple.lumi==None
+            isData = bool(sampleTuple.lumi)
             inputFiles = utils.readPickle(self.inputFilesListFile(sampleSpec.name))[:sampleSpec.nFilesMax]
             nEventsMax,nFilesMax = parseForNumberEvents(sampleSpec, sampleTuple, len(inputFiles), self.__nSlices)
             inputFiles = inputFiles[:nFilesMax]
@@ -189,9 +184,9 @@ class analysis(object) :
             if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
             adjustedListOfSteps = [steps.Master.Master(xs = sampleTuple.xs,
                                                        lumi = sampleSpec.overrideLumi if sampleSpec.overrideLumi!=None else sampleTuple.lumi,
-                                                       lumiWarn = checkLumi(isMc, nEventsMax, sampleSpec.nFilesMax),
+                                                       lumiWarn = lumiWarn(isData, nEventsMax, sampleSpec.nFilesMax),
                                                        )
-                                   ]+(steps.adjustStepsForMc(listOfSteps) if isMc else steps.adjustStepsForData(listOfSteps))
+                                   ]+(steps.adjustStepsForData(listOfSteps) if isData else steps.adjustStepsForMc(listOfSteps))
 
             outLoopers.append(analysisLooper(fileDirectory = self.fileDirectory,
                                              treeName = self.treeName,
