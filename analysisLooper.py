@@ -6,20 +6,18 @@ import ROOT as r
 class analysisLooper :
     """class to set up and loop over events"""
 
-    def __init__(self, fileDirectory = None, treeName = None, otherTreesToKeepWhenSkimming = None, leavesToBlackList = None,
+    def __init__(self, mainTree = None, otherTreesToKeepWhenSkimming = None, leavesToBlackList = None,
                  localStem = None, globalStem = None, subDir = None, steps = None, calculables = None, inputFiles = None, name = None,
                  nEventsMax = None, quietMode = None) :
 
         for arg in ["steps", "calculables"] : setattr(self, arg, eval("copy.deepcopy(%s)"%arg))
-        for arg in ["fileDirectory", "treeName", "otherTreesToKeepWhenSkimming", "leavesToBlackList",
+        for arg in ["mainTree", "otherTreesToKeepWhenSkimming", "leavesToBlackList",
                     "localStem", "globalStem", "subDir", "inputFiles", "name", "nEventsMax", "quietMode"] :
             setattr(self, arg, eval(arg))
 
         self.outputDir = self.globalDir #the value will be modified in self.prepareOutputDirectory()
         self.checkSteps()
 
-    @property
-    def mainTree(self) : return (self.fileDirectory,self.treeName)
     @property
     def globalDir(self) : return "%s/%s/"%(self.globalStem, self.subDir)
     @property
@@ -134,7 +132,7 @@ class analysisLooper :
             if minimal : continue
             if self.quietMode : step.makeQuiet()
             assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.name
-            step.setup(self.chains[self.mainTree], self.fileDirectory)
+            step.setup(self.chains[self.mainTree], self.mainTree[0])
 
     def endSteps(self) : [ step.endFunc(self.chains) for step in self.steps ]
         

@@ -39,8 +39,6 @@ class analysis(object) :
         self.sampleDict = samples.SampleHolder()
         map(self.sampleDict.update,self.listOfSampleDictionaries())
 
-        self.fileDirectory,self.treeName = self.mainTree()
-
         if self.__loop!=None :
             os.system("mkdir -p %s"%self.localStem)
             if self.__jobId==None :
@@ -188,8 +186,7 @@ class analysis(object) :
                                                        )
                                    ]+(steps.adjustStepsForData(listOfSteps) if isData else steps.adjustStepsForMc(listOfSteps))
 
-            outLoopers.append(analysisLooper(fileDirectory = self.fileDirectory,
-                                             treeName = self.treeName,
+            outLoopers.append(analysisLooper(mainTree = self.mainTree(),
                                              otherTreesToKeepWhenSkimming = self.otherTreesToKeepWhenSkimming(),
                                              leavesToBlackList = self.leavesToBlackList(),
                                              localStem  = self.localStem,
