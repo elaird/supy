@@ -63,8 +63,8 @@ class analysisLooper :
                                                       trace = configuration.trace(),
                                                       )
             map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
-            self.makeListsOfLeavesAndCalcsUsed( chainWrapper.activeKeys(), chainWrapper.calcDependencies() )
-        else : self.makeListsOfLeavesAndCalcsUsed([], {})
+            self.recordLeavesAndCalcsUsed( chainWrapper.activeKeys(), chainWrapper.calcDependencies() )
+        else : self.recordLeavesAndCalcsUsed([], {})
 
     def processEvent(self,eventVars) :
         for step in self.steps :
@@ -78,17 +78,12 @@ class analysisLooper :
                 print e.__class__.__name__,":", e
                 sys.exit(0)
 
-    def makeListsOfLeavesAndCalcsUsed(self, activeKeys, calculableDependencies) :
+    def recordLeavesAndCalcsUsed(self, activeKeys, calculableDependencies) :
         calcs = dict([(calc.name(),calc) for calc in self.calculables])
+        def calcTitle(key) : return "%s%s%s"%(calcs[key].moreName, calcs[key].moreName2, configuration.fakeString() if calcs[key].isFake() else "")
+        self.calculablesUsed = set([ (key,calcTitle(key)) for key,isLeaf,keyType in filter(lambda k:not k[1], activeKeys)])
+        self.leavesUsed      = set([ (key,       keyType) for key,isLeaf,keyType in filter(lambda k:k[1], activeKeys)])
         self.calculableDependencies = calculableDependencies
-        self.listOfLeavesUsed = []
-        self.listOfCalculablesUsed = []
-        for key,isLeaf,keyType in activeKeys :
-            if isLeaf : self.listOfLeavesUsed.append((key, keyType))
-            else : self.listOfCalculablesUsed.append( (key, "%s%s%s" % (calcs[key].moreName, calcs[key].moreName2,
-                                                                        configuration.fakeString() if calcs[key].isFake() else "") ) )        
-        self.listOfLeavesUsed.sort()
-        self.listOfCalculablesUsed.sort()
         
     def prepareOutputDirectory(self) :
         utils.mkdir(self.localStem)
@@ -150,9 +145,8 @@ class analysisLooper :
             return dict([ (item, getattr(step,item)) for item in step.varsToPickle()+['nPass','nFail']] +
                         [('outputFileName', getattr(step,'outputFileName').replace(self.outputDir, self.globalDir))])
 
-        outFile = open(self.pickleFileName, "w")
-        cPickle.dump([ [pickleJar(step) for step in self.steps], self.listOfCalculablesUsed, self.listOfLeavesUsed], outFile)
-        outFile.close()
+        utils.writePickle( self.pickleFileName,
+                           [ [pickleJar(step) for step in self.steps], self.calculablesUsed, self.leavesUsed] )
 
     def writeRoot(self) :
         def writeFromSteps() :
@@ -170,10 +164,10 @@ class analysisLooper :
         def writeNodesUsed() :
             while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
             r.gDirectory.mkdir("Leaves",".").cd()
-            for leaf in self.listOfLeavesUsed: r.gDirectory.mkdir(*leaf)
+            for leaf in self.leavesUsed: r.gDirectory.mkdir(*leaf)
             r.gDirectory.GetMother().cd()
             r.gDirectory.mkdir("Calculables",".").cd()
-            for calc in self.listOfCalculablesUsed :
+            for calc in self.calculablesUsed :
                 r.gDirectory.mkdir(*calc).cd()
                 for dep in self.calculableDependencies[calc[0]] : r.gDirectory.mkdir(dep)
                 r.gDirectory.GetMother().cd()
@@ -193,14 +187,14 @@ class analysisLooper :
         if configuration.printNodesUsed() :
             print utils.hyphens
             print "Leaves accessed:"
-            print str([x[0] for x in self.listOfLeavesUsed]).replace("'","")
+            print str([x[0] for x in self.leavesUsed]).replace("'","")
             print utils.hyphens
             print "Calculables accessed:"
-            print str([x[0] for x in self.listOfCalculablesUsed]).replace("'","")
+            print str([x[0] for x in self.calculablesUsed]).replace("'","")
 
         print utils.hyphens
         print "Calculables' configuration:"
-        for calc in filter( lambda x: x[1]!="", self.listOfCalculablesUsed) :
+        for calc in filter( lambda x: x[1]!="", self.calculablesUsed) :
             print "%s\t\t%s"%calc
                 
         #print step statistics
