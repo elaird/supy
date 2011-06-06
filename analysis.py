@@ -169,7 +169,6 @@ class analysis(object) :
             assert not mismatch, "Error: type(weight)!=type(calc): { %s }"%','.join([c.name() for c in mismatch])
             return calcs + [calculables.weight(weights)] + filter(lambda w: w.name() not in intersect, weights)
 
-        ptHatMinDict = {}
         outLoopers = []
         for sampleSpec in listOfSamples :
             sampleName = sampleSpec.name
@@ -179,7 +178,6 @@ class analysis(object) :
             nEventsMax,nFilesMax = parseForNumberEvents(sampleSpec, sampleTuple, len(inputFiles), self.__nSlices)
             inputFiles = inputFiles[:nFilesMax]
 
-            if sampleTuple.ptHatMin : ptHatMinDict[sampleName] = sampleTuple.ptHatMin
             adjustedListOfSteps = [steps.Master.Master(xs = sampleTuple.xs,
                                                        lumi = sampleSpec.overrideLumi if sampleSpec.overrideLumi!=None else sampleTuple.lumi,
                                                        lumiWarn = lumiWarn(isData, nEventsMax, sampleSpec.nFilesMax),
@@ -201,11 +199,9 @@ class analysis(object) :
                                              )
                               )
             
+        ptHatMinDict = dict(filter(lambda tup: tup[1], [(ss.name,self.sampleDict[ss.name].ptHatMin) for ss in listOfSamples]))
         for thing in self.sampleDict.overlappingSamples :
-            minPtHatsAndNames = []
-            for sampleName in thing.samples :
-                if sampleName not in ptHatMinDict : continue
-                minPtHatsAndNames.append( (ptHatMinDict[sampleName],sampleName) )
+            minPtHatsAndNames = [(ptHatMinDict[name],name) for name in filter(lambda n: n in ptHatMinDict, thing.samples)]
             self.manageInclusiveSamples(minPtHatsAndNames, outLoopers)
         return outLoopers
 
