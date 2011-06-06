@@ -52,16 +52,14 @@ class organizer(object) :
             def extract(histName,bin=1) :
                 hist = sample['dir'].Get(histName)
                 return hist.GetBinContent(bin) if hist and hist.GetEntries() else 0
-            lumiNjobs,xsNjobs,sample['nJobs'] = map(extract, ["lumiHisto","xsHisto","nJobsHisto"])
+            lumiNjobs,xsPreNjobs,xsPostNjobs,sample['nJobs'] = map(extract, ["lumiHisto","xsHisto","xsPostWeightsHisto","nJobsHisto"])
             sample['nEvents'] = extract('counts',bin=2)
-            nEventsRejected = extract('counts')
+            nEventsTotal = sample['nEvents'] + extract('counts')
+            xsNjobs = xsPostNjobs if xsPostNjobs else xsPreNjobs *( 1 if not nEventsTotal else sample['nEvents'] / nEventsTotal)
 
+            if xsNjobs : sample["xs"] = xsNjobs / sample['nJobs']
             if lumiNjobs: sample["lumi"] = lumiNjobs/sample['nJobs']
-            if xsNjobs:
-                sample["xs"] = (xsNjobs/sample['nJobs'])
-                if (sample['nEvents']+nEventsRejected) : sample["xs"] *= (sample['nEvents']/(sample['nEvents']+nEventsRejected))
-            assert ("xs" in sample)^("lumi" in sample), \
-                   "Sample %s should have one and only one of {xs,lumi}."% sample["name"]
+            assert ("xs" in sample)^("lumi" in sample), "Error: Sample %s has both lumi and xs."% sample["name"]
             
         dirs = [ s['dir'] for s in self.samples]
         while dirs[0] :

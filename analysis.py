@@ -179,6 +179,7 @@ class analysis(object) :
             inputFiles = inputFiles[:nFilesMax]
 
             adjustedListOfSteps = [steps.Master.Master(xs = sampleTuple.xs,
+                                                       xsPostWeights = sampleSpec.xsPostWeights,
                                                        lumi = sampleSpec.overrideLumi if sampleSpec.overrideLumi!=None else sampleTuple.lumi,
                                                        lumiWarn = lumiWarn(isData, nEventsMax, sampleSpec.nFilesMax),
                                                        )

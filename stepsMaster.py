@@ -2,9 +2,9 @@ from analysisStep import analysisStep
 import utils,os
 #####################################
 class Master(analysisStep) :
-    def __init__(self, xs, lumi, lumiWarn) :
+    def __init__(self, xs, xsPostWeights, lumi, lumiWarn) :
         self.maxPtHat = None
-        for item in ["xs", "lumi", "lumiWarn"] :
+        for item in ["xs", "xsPostWeights", "lumi", "lumiWarn"] :
             setattr(self, item, eval(item))
         
     def activatePtHatFilter(self, maxPtHat) :
@@ -24,8 +24,9 @@ class Master(analysisStep) :
         self.select({"weight":1.0})
         self.book.fill(0.0, "nJobsHisto", 1, -0.5, 0.5, title = ";dummy axis;N_{jobs}")        
         if self.xs   : self.book.fill(0.0, "xsHisto",   1, -0.5, 0.5, title = ";dummy axis;#sigma (pb)", w = self.xs)
+        if self.xsPostWeights : self.book.fill(0.0, "xsPostWeightsHisto",   1, -0.5, 0.5, title = ";dummy axis;#sigma (pb)", w = self.xsPostWeights)
         if self.lumi : self.book.fill(0.0, "lumiHisto", 1, -0.5, 0.5, title = "%s;dummy axis;integrated luminosity (pb^{-1})"%\
-                                        ("" if not self.lumiWarn else "WARNING: lumi value is probably wrong!"), w = self.lumi)
+                                      ("" if not self.lumiWarn else "WARNING: lumi value is probably wrong!"), w = self.lumi)
 
     @staticmethod
     def outputSuffix() : return "_plots.root"
