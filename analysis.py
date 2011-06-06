@@ -57,7 +57,8 @@ class analysis(object) :
                 for iSlice in range(self.__nSlices) :
                     self.__jobs.append({"iConfig":iConf,"iSample":iSample,"iSlice":iSlice})
 
-        if self.__jobId==None and self.__loop!=None : self.pickleJobs()
+        if self.__jobId==None and self.__loop!=None : utils.writePickle( self.jobsFile, (self.__loop,self.jobs) )
+
 
     @property
     def sideBySideAnalysisTags(self) : return sorted(list(set([conf["tag"] for conf in self.configurations])))
@@ -88,11 +89,6 @@ class analysis(object) :
     def psFileName(self,tag="") : return "%s/%s%s.ps"%(self.globalStem, self.name, "_"+tag if len(tag) else "")
 
         
-    def pickleJobs(self) :
-        outFile=open(self.jobsFile,"w")
-        cPickle.dump( (self.__loop,self.jobs), outFile )
-        outFile.close()
-
     def globalToLocal(self, globalFileName) :
         tmpDir = tempfile.mkdtemp(dir = self.localStem)
         localFileName = globalFileName.replace(self.globalStem, tmpDir)
@@ -103,27 +99,15 @@ class analysis(object) :
         os.system("rm -r %s"%tmpDir)
         
     def makeInputFileLists(self) :
-        #define a helper function
         def inputFilesEvalWorker(q):
-            def fileList(command) :
-                outList = eval(command)
-                assert outList, "The command '%s' produced an empty list of files"%command
-                return outList
-
-            def writeFile(fileName, fileList) :
-                outFile = open(fileName, "w")
-                cPickle.dump(fileList, outFile)
-                outFile.close()
-
             while True:
                 sampleName,command = q.get()
                 if not (os.path.exists(self.inputFilesListFile(sampleName)) and configuration.useCachedFileLists()) :
-                    #write file locally
+                    fileNames = eval(command)
+                    assert fileNames, "The command '%s' produced an empty list of files"%command
                     tmpDir,localFileName,globalFileName = self.globalToLocal(self.inputFilesListFile(sampleName))
-                    writeFile(localFileName, fileList(command))
-                    #transfer it and clean up
+                    utils.writePickle(localFileName, fileNames)
                     self.localToGlobal(tmpDir, localFileName, globalFileName)
-                #notify queue
                 q.task_done()
 
         def checkNames(listOfSamples) :
@@ -133,8 +117,6 @@ class analysis(object) :
 
         sampleNames = set(sum([[sampleSpec.name for sampleSpec in checkNames(self.listOfSamples(conf))] for conf in self.configurations],[]))
         argsList = [(name, self.sampleDict[name].filesCommand) for name in sampleNames]
-
-        #execute in parallel commands to make file lists
         utils.operateOnListUsingQueue(self.__loop,inputFilesEvalWorker,argsList)
 
     def loop(self) :
@@ -191,10 +173,7 @@ class analysis(object) :
             return False
 
         def fileList(ss) :
-            f = open(self.inputFilesListFile(ss.name))
-            l = cPickle.load(f)
-            f.close()
-            return l[:ss.nFilesMax]
+            return utils.readPickle(self.inputFilesListFile(ss.name))[:ss.nFilesMax]
 
         def subDir(conf) :
             return "%s/config%s"%(conf["tag"], conf["codeString"])
@@ -287,9 +266,7 @@ class analysis(object) :
                 looper.mergeFunc(slices)
                 q.task_done()
 
-        inFile=open(self.jobsFile)
-        nCores,jobs = cPickle.load(inFile)
-        inFile.close()
+        nCores,jobs = utils.readPickle(self.jobsFile)
         mergeDict = collections.defaultdict(list)
         for job in jobs : mergeDict[(job["iConfig"],job["iSample"])].append(job["iSlice"])
         workList = []
