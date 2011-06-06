@@ -196,9 +196,6 @@ class analysis(object) :
             f.close()
             return l[:ss.nFilesMax]
 
-        def quietMode(nWorkers) :
-            return nWorkers!=None and nWorkers>1
-
         def subDir(conf) :
             return "%s/config%s"%(conf["tag"], conf["codeString"])
 
@@ -240,7 +237,7 @@ class analysis(object) :
                                              inputFiles = inputFiles,
                                              name = ".".join([sampleName]+[w.name() for w in sampleSpec.weights]),
                                              nEventsMax = nEventsMax,
-                                             quietMode = quietMode(self.__loop),
+                                             quietMode = self.__loop>1,
                                              color = sampleSpec.color,
                                              markerStyle = sampleSpec.markerStyle
                                              )
