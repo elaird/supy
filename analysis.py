@@ -109,12 +109,7 @@ class analysis(object) :
                     self.localToGlobal(tmpDir, localFileName, globalFileName)
                 q.task_done()
 
-        def checkNames(listOfSamples) :
-            names = ['.'.join([s.name]+[w.name() for w in s.weights]) for s in listOfSamples]
-            assert len(names) == len(set(names)), "Duplicate sample names are not allowed."
-            return listOfSamples
-
-        sampleNames = set(sum([[sampleSpec.name for sampleSpec in checkNames(self.listOfSamples(conf))] for conf in self.configurations],[]))
+        sampleNames = set(sum([[sampleSpec.name for sampleSpec in self.listOfSamples(conf)] for conf in self.configurations],[]))
         argsList = [(name, self.sampleDict[name].filesCommand) for name in sampleNames]
         utils.operateOnListUsingQueue(self.__loop,inputFilesEvalWorker,argsList)
 
@@ -147,8 +142,11 @@ class analysis(object) :
         listOfSteps = self.listOfSteps(conf)
         listOfSamples = self.listOfSamples(conf)
 
-        selectors = [(s.name,s.moreName,s.moreName2) for s in filter(lambda s: s.isSelector, listOfSteps)]
+        selectors = [ (s.name,s.moreName,s.moreName2) for s in filter(lambda s: s.isSelector, listOfSteps) ]
         for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s,%s) is not allowed."%sel
+
+        samples = [ s.name for s in listOfSamples ]
+        for sample in samples : assert 1==samples.count(sample), "Duplicate sample name %s is not allowed."%sample
 
         def parseForNumberEvents(ss,sampletuple,nFiles,nSlices) :
             if not ss.effectiveLumi :
