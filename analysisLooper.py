@@ -1,4 +1,4 @@
-import copy,array,os,cPickle,tempfile,sys
+import copy,array,os,cPickle,tempfile,sys,collections
 import wrappedChain,utils,steps,configuration
 from autoBook import autoBook
 import ROOT as r
@@ -47,8 +47,8 @@ class analysisLooper :
         self.setupSteps()
         self.loop()
         self.endSteps()
-        self.writePickle()
         self.writeRoot()
+        self.writePickle()
         self.deleteChains()
         self.moveFiles()
         if not self.quietMode : print utils.hyphens
@@ -138,16 +138,6 @@ class analysisLooper :
 
     def endSteps(self) : [ step.endFunc(self.chains) for step in self.steps ]
         
-    def writePickle(self) :
-        def pickleJar(step) :
-            inter = set(step.varsToPickle()).intersection(set(['nPass','nFail','outputFileName']))
-            assert not inter, "%s is trying to pickle %s, which %s reserved for use by analysisStep."%(step.name(), str(inter), "is" if len(inter)==1 else "are")
-            return dict([ (item, getattr(step,item)) for item in step.varsToPickle()+['nPass','nFail']] +
-                        [('outputFileName', getattr(step,'outputFileName').replace(self.outputDir, self.globalDir))])
-
-        utils.writePickle( self.pickleFileName,
-                           [ [pickleJar(step) for step in self.steps], self.calculablesUsed, self.leavesUsed] )
-
     def writeRoot(self) :
         def writeFromSteps() :
             while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
@@ -178,7 +168,39 @@ class analysisLooper :
         writeFromSteps()
         outputFile.Close()
 
+    def writePickle(self) :
+        def pickleJar(step) :
+            inter = set(step.varsToPickle()).intersection(set(['nPass','nFail','outputFileName']))
+            assert not inter, "%s is trying to pickle %s, which %s reserved for use by analysisStep."%(step.name(), str(inter), "is" if len(inter)==1 else "are")
+            return dict([ (item, getattr(step,item)) for item in step.varsToPickle()+['nPass','nFail']] +
+                        [('outputFileName', getattr(step,'outputFileName').replace(self.outputDir, self.globalDir))])
 
+        utils.writePickle( self.pickleFileName,
+                           [ [pickleJar(step) for step in self.steps], self.calculablesUsed, self.leavesUsed] )
+
+    def mergeFunc(self, listOfSlices) :
+        cleanUpList = []
+        self.setupSteps(minimal = True)
+        self.calculablesUsed = set()
+        self.leavesUsed = set()
+        products = [collections.defaultdict(list) for step in self.steps]
+        
+        for iSlice in listOfSlices :
+            cleanUpList.append( self.pickleFileName.replace(self.name, self.childName(iSlice)) )
+            dataByStep,calcsUsed,leavesUsed = utils.readPickle( cleanUpList[-1] )
+            self.calculablesUsed |= calcsUsed
+            self.leavesUsed |= leavesUsed
+            for stepDict,data in zip(products, dataByStep) :
+                for key,val in data.iteritems() : stepDict[key].append(val)
+    
+        for step,stepDict in filter(lambda s: s[0].isSelector, zip(self.steps, products)) :
+            step.increment(True, w = sum(stepDict["nPass"]))
+            step.increment(False, w = sum(stepDict["nFail"]))
+                
+        self.printStats()
+        print utils.hyphens
+        for step,stepDict in zip(self.steps, products) : step.mergeFunc(stepDict)
+        for fileName in cleanUpList : os.remove(fileName)
 
     def printStats(self) :
         print utils.hyphens

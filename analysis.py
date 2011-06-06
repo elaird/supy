@@ -286,7 +286,8 @@ class analysis(object) :
 
         def mergeWorker(q):
             while True:
-                mergeFunc(*q.get())
+                looper,slices = q.get()
+                looper.mergeFunc(slices)
                 q.task_done()
 
         inFile=open(self.jobsFile)
@@ -304,26 +305,3 @@ class analysis(object) :
         utils.operateOnListUsingQueue(nCores, mergeWorker, workList)
         os.remove(self.jobsFile)
 #############################################
-def mergeFunc(looper, listOfSlices) :
-    cleanUpList = []
-    looper.setupSteps(minimal = True)
-    looper.calculablesUsed = set()
-    looper.leavesUsed = set()
-    products = [collections.defaultdict(list) for step in looper.steps]
-    
-    for iSlice in listOfSlices :
-        cleanUpList.append( looper.pickleFileName.replace(looper.name, looper.childName(iSlice)) )
-        dataByStep,calcsUsed,leavesUsed = utils.readPickle( cleanUpList[-1] )
-        looper.calculablesUsed |= calcsUsed
-        looper.leavesUsed |= leavesUsed
-        for stepDict,data in zip(products, dataByStep) :
-            for key,val in data.iteritems() : stepDict[key].append(val)
-
-    for step,stepDict in filter(lambda s: s[0].isSelector, zip(looper.steps, products)) :
-        step.increment(True, w = sum(stepDict["nPass"]))
-        step.increment(False, w = sum(stepDict["nFail"]))
-            
-    looper.printStats()
-    print utils.hyphens
-    for step,stepDict in zip(looper.steps, products) : step.mergeFunc(stepDict)
-    for fileName in cleanUpList : os.remove(fileName)
