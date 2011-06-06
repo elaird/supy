@@ -3,7 +3,6 @@ import utils,os
 #####################################
 class Master(analysisStep) :
     def __init__(self, xs, lumi, lumiWarn) :
-        self.moreName = ""
         self.maxPtHat = None
         for item in ["xs", "lumi", "lumiWarn"] :
             setattr(self, item, eval(item))
@@ -29,22 +28,17 @@ class Master(analysisStep) :
                                         ("" if not self.lumiWarn else "WARNING: lumi value is probably wrong!"), w = self.lumi)
 
     @staticmethod
-    def outputSuffix() :
-        return "_plots.root"
+    def outputSuffix() : return "_plots.root"
     
     def mergeFunc(self, products) :
         def printComment(lines) :
-            for line in lines.split("\n") :
-                if 'Source file' in line or \
-                   'Target path' in line or \
-                   'Found subdirectory' in line : continue
-                print line.replace("Target","The output")+" has been written."
-                break
+            skip = ['Source file','Target path','Found subdirectory']
+            line = filter( lambda line: not any(item in line for item in skip), lines.split('\n'))[0]
+            print line.replace("Target","The output") + " has been written." 
 
         def cleanUp(stderr, files) :
             assert not stderr, "hadd had this stderr: %s"%stderr
-            for fileName in files :
-                os.remove(fileName)
+            for fileName in files : os.remove(fileName)
 
         hAdd = utils.getCommandOutput("hadd -f %s %s"%(self.outputFileName, " ".join(products["outputFileName"])))
         
