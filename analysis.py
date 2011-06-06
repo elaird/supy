@@ -165,12 +165,6 @@ class analysis(object) :
                 return True
             return False
 
-        def fileList(ss) :
-            return utils.readPickle(self.inputFilesListFile(ss.name))[:ss.nFilesMax]
-
-        def subDir(conf) :
-            return "%s/config%s"%(conf["tag"], conf["codeString"])
-
         def allCalculables(calcs,weights) :
             calcNames = [c.name() for c in calcs]
             for w in weights :
@@ -186,7 +180,7 @@ class analysis(object) :
             sampleName = sampleSpec.name
             sampleTuple = self.sampleDict[sampleName]
             isMc = sampleTuple.lumi==None
-            inputFiles = fileList(sampleSpec)
+            inputFiles = utils.readPickle(self.inputFilesListFile(sampleSpec.name))[:sampleSpec.nFilesMax]
             nEventsMax,nFilesMax = parseForNumberEvents(sampleSpec, sampleTuple, len(inputFiles), self.__nSlices)
             inputFiles = inputFiles[:nFilesMax]
 
@@ -203,7 +197,7 @@ class analysis(object) :
                                              leavesToBlackList = self.leavesToBlackList(),
                                              localStem  = self.localStem,
                                              globalStem = self.globalStem,
-                                             subDir = subDir(conf),
+                                             subDir = "%(tag)s/config%(codeString)s"%conf,
                                              steps = adjustedListOfSteps,
                                              calculables = allCalculables( listOfCalculables, sampleSpec.weights ),
                                              inputFiles = inputFiles,
