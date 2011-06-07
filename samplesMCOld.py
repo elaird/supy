@@ -71,7 +71,7 @@ mcOld.add("v12_qcd_py6_pt300", '%s/gouskos//ICF/automated/2010_07_09_19_13_09/")
 mcOld.add("v12_qcd_py6_pt470", '%s/gouskos//ICF/automated/2010_07_10_04_22_06/")'%srm, xs = 8.798e+01, ptHatMin =  470 )
 mcOld.add("v12_qcd_py6_pt800", '%s/gouskos//ICF/automated/2010_07_10_04_37_56/")'%srm, xs = 2.186e+00, ptHatMin =  800 )
 mcOld.add("v12_qcd_py6_pt1400",'%s/gouskos//ICF/automated/2010_07_10_04_47_48/")'%srm, xs = 1.122e-02, ptHatMin = 1400 )
-mcOld.adjustOverlappingSamples( ["v12_qcd_py6_pt%d"%i for i in [15,30,80,170,300,470,800,1400] ] )
+mcOld.addInclusiveGroup( ["v12_qcd_py6_pt%d"%i for i in [15,30,80,170,300,470,800,1400] ] )
 
 #PY 8 QCD
 py8Dir = "/bm409//ICF/automated/2010_07_26_10_23_33/"
@@ -138,7 +138,7 @@ mcOld.add("v12_g_jets_py6_pt800" , rnString%800 , xs = 3.477e-03, ptHatMin =  80
 mcOld.add("v12_g_jets_py6_pt1400", rnString%1400, xs = 1.286e-05, ptHatMin = 1400)
 mcOld.add("v12_g_jets_py6_pt2200", rnString%2200, xs = 4.035e-09, ptHatMin = 2200)
 mcOld.add("v12_g_jets_py6_pt3000", rnString%3000, xs = 1.779e-14, ptHatMin = 3000)
-mcOld.adjustOverlappingSamples( ["v12_g_jets_py6_pt%d"%i for i in [15,30,80,170,300,470,800,1400,2200,3000] ] )
+mcOld.addInclusiveGroup( ["v12_g_jets_py6_pt%d"%i for i in [15,30,80,170,300,470,800,1400,2200,3000] ] )
 
 mgKFactor = 3048.0/2400.0 #Z+jets NNLO/LO
 
