@@ -150,7 +150,7 @@ class analysis(object) :
 
         def parseForNumberEvents(ss,sampletuple,nFiles,nSlices) :
             if not ss.effectiveLumi : return (ss.nEventsMax,nFiles)
-            if ss.nEventsMax>=0: print "Warning: %s nEventsMax ignored in favor of effectiveLumi "%ss.name
+            if ss.nEventsMax>=0: print "Warning: %s nEventsMax ignored in favor of effectiveLumi."%ss.name
             assert not sampletuple.lumi, "Cannot calculate effectiveLumi for _data_ sample %s"%ss.name
             nJobs = min(nFiles, nSlices)
             nEventsTotal = ss.effectiveLumi*sampletuple.xs
@@ -200,38 +200,38 @@ class analysis(object) :
                                              )
                               )
             
-        ptHatMinDict = dict(filter(lambda tup: tup[1], [(ss.name,self.sampleDict[ss.name].ptHatMin) for ss in listOfSamples]))
-        for thing in self.sampleDict.overlappingSamples :
-            minPtHatsAndNames = [(ptHatMinDict[name],name) for name in filter(lambda n: n in ptHatMinDict, thing.samples)]
-            self.manageInclusiveSamples(minPtHatsAndNames, outLoopers)
+        # ptHatMinDict = dict(filter(lambda tup: tup[1], [(ss.name,self.sampleDict[ss.name].ptHatMin) for ss in listOfSamples]))
+        # for thing in self.sampleDict.overlappingSamples :
+        #     minPtHatsAndNames = [(ptHatMinDict[name],name) for name in filter(lambda n: n in ptHatMinDict, thing.samples)]
+        #     self.manageInclusiveSamples(minPtHatsAndNames, outLoopers)
         return outLoopers
 
-    def manageInclusiveSamples(self, ptHatLowerThresholdsAndSampleNames = [], loopers = []) :
-        def findLooper(ptHatLowerThreshold, sampleName) :
-            out = None
-            for iLooper,looper in enumerate(loopers) :
-                if sampleName==looper.name :
-                    out = iLooper
-                for step in looper.steps :
-                    if step.name=="skimmer" :
-                        print "WARNING: you are skimming inclusive samples.  The skims of all but the highest bin will be exclusive.  Use utils.printSkimResults()."
-            return out
-        
-        looperIndexDict = {}
-        for item in ptHatLowerThresholdsAndSampleNames :
-            looperIndexDict[item[0]] = findLooper(*item)
-
-        ptHatLowerThresholdsAndSampleNames.sort()
-        for iItem in range(len(ptHatLowerThresholdsAndSampleNames)) :
-            thisPtHatLowerThreshold = ptHatLowerThresholdsAndSampleNames[iItem][0]
-            thisLooperIndex = looperIndexDict[thisPtHatLowerThreshold]
-
-            #adjust cross sections and enable ptHatFilter in Master step
-            if iItem<len(ptHatLowerThresholdsAndSampleNames)-1 :
-                nextPtHatLowerThreshold = ptHatLowerThresholdsAndSampleNames[iItem+1][0]
-                loopers[thisLooperIndex].steps[0].activatePtHatFilter(maxPtHat = nextPtHatLowerThreshold)
-
-        return
+    # def manageInclusiveSamples(self, ptHatLowerThresholdsAndSampleNames = [], loopers = []) :
+    #     def findLooper(ptHatLowerThreshold, sampleName) :
+    #         out = None
+    #         for iLooper,looper in enumerate(loopers) :
+    #             if sampleName==looper.name :
+    #                 out = iLooper
+    #             for step in looper.steps :
+    #                 if step.name=="skimmer" :
+    #                     print "WARNING: you are skimming inclusive samples.  The skims of all but the highest bin will be exclusive.  Use utils.printSkimResults()."
+    #         return out
+    #     
+    #     looperIndexDict = {}
+    #     for item in ptHatLowerThresholdsAndSampleNames :
+    #         looperIndexDict[item[0]] = findLooper(*item)
+    # 
+    #     ptHatLowerThresholdsAndSampleNames.sort()
+    #     for iItem in range(len(ptHatLowerThresholdsAndSampleNames)) :
+    #         thisPtHatLowerThreshold = ptHatLowerThresholdsAndSampleNames[iItem][0]
+    #         thisLooperIndex = looperIndexDict[thisPtHatLowerThreshold]
+    # 
+    #         #adjust cross sections and enable ptHatFilter in Master step
+    #         if iItem<len(ptHatLowerThresholdsAndSampleNames)-1 :
+    #             nextPtHatLowerThreshold = ptHatLowerThresholdsAndSampleNames[iItem+1][0]
+    #             loopers[thisLooperIndex].steps[0].activatePtHatFilter(maxPtHat = nextPtHatLowerThreshold)
+    # 
+    #     return
     
     def mergeOutput(self) :
         if not os.path.exists(self.jobsFile) : return

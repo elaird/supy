@@ -3,17 +3,10 @@ import utils,os
 #####################################
 class Master(analysisStep) :
     def __init__(self, xs, xsPostWeights, lumi, lumiWarn) :
-        self.maxPtHat = None
-        for item in ["xs", "xsPostWeights", "lumi", "lumiWarn"] :
-            setattr(self, item, eval(item))
+        for item in ["xs", "xsPostWeights", "lumi", "lumiWarn"] : setattr(self, item, eval(item))
         
-    def activatePtHatFilter(self, maxPtHat) :
-        self.maxPtHat = maxPtHat
-        self.moreName += "(pthat<%.1f)"%self.maxPtHat
-
     def select (self, eventVars) :
         weight = eventVars["weight"]
-        if self.maxPtHat and self.maxPtHat<eventVars["genpthat"] : weight = None
         for book in self.books: book.weight = weight
         if weight is None : self.books[0].weight = 1
         return weight is not None
