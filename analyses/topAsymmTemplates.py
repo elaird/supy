@@ -7,7 +7,7 @@ class topAsymmTemplates(analysis.analysis) :
     def parameters(self) :
         return {"sample" : {#"compare":["mg","pythia"],
                             "mg":"mg",
-                            "pythia":"pythia"
+                            #"pythia":"pythia"
                             },
                 "effectiveLumi" : None# 100
                 }
@@ -48,7 +48,7 @@ class topAsymmTemplates(analysis.analysis) :
                   (r.kRed,   0.3)]
         intrinsicR = -0.05 if pars['sample'] == "mg" else 0.0
         return (
-            specify( names = sample, effectiveLumi = eL, color = r.kBlack,     weights = calculables.Gen.wNonQQbar()) +
+            #specify( names = sample, effectiveLumi = 500, color = r.kBlack,     weights = calculables.Gen.wNonQQbar()) +
             #specify( names = sample, effectiveLumi = eL, color = r.kRed,       weights = calculables.Gen.wQQbar()) +
             sum([specify(names = sample, effectiveLumi = eL, color = col, weights = calculables.Top.wTopAsym(A,intrinsicR=intrinsicR)) for col,A in asymms],[]) +
             [])

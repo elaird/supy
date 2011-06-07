@@ -24,8 +24,8 @@ class topAsymmShell(analysis.analysis) :
                  "nJets" :  [{"min":4,"max":None}],
                  "bVar" : bVar,
                  "sample" : {"top" : {"bCut":bCut["normal"],  "lIso":lIso["normal"]},
-                             "Wlv" : {"bCut":bCut["inverted"],"lIso":lIso["normal"]},
-                             "QCD" : {"bCut":bCut["normal"],  "lIso":lIso["inverted"]}
+                             #"Wlv" : {"bCut":bCut["inverted"],"lIso":lIso["normal"]},
+                             #"QCD" : {"bCut":bCut["normal"],  "lIso":lIso["inverted"]}
                              }
                  }
 
