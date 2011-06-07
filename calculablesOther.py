@@ -36,6 +36,12 @@ class lowestUnPrescaledTrigger(wrappedChain.calculable) :
                     break
         self.value = self.cached[key]
 ##############################
+class pthatLess(wrappedChain.calculable) :
+    def __init__(self, maxPtHat = None) :
+        self.fixes = ("","%d"%maxPtHat)
+        self.maxPtHat = maxPtHat
+    def update(self,ignored) : self.value = None if self.maxPtHat < self.source["genpthat"] else 1
+##############################
 class Mt(wrappedChain.calculable) :
     def name(self) :
         return "%sMt%s%s"%(self.fixes[0], self.fixes[1], self.met)
