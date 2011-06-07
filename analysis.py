@@ -127,26 +127,26 @@ class analysis(object) :
     def sampleSpecs(self, tag = "") :
         assert tag in self.sideBySideAnalysisTags
         iConf = [conf["tag"] for conf in self.configurations].index(tag)
-        samples = self.listOfSamples(self.configurations[iConf])
+        confSamples = self.listOfSamples(self.configurations[iConf])
         samplesFiles = collections.defaultdict(list)
         for looper in self.__listsOfLoopers[iConf] :
             looper.setupSteps(minimal = True)
-            sampleSpec = filter(lambda s: looper.name == '.'.join([s.name]+[w.name() for w in s.weights]), samples)[0]
+            sampleSpec = filter(lambda s: looper.name == '.'.join([s.name]+[w.name() for w in s.weights]), confSamples)[0]
             samplesFiles[(looper.name,sampleSpec.color,sampleSpec.markerStyle)].append(looper.steps[0].outputFileName)
         
         return [ dict(zip(["name","color","markerStyle"],sample[:3])+[("outputFileNames",fileList)]) \
                  for sample,fileList in samplesFiles.iteritems() ]
 
     def sampleLoopers(self, conf) :
-        listOfCalculables = self.listOfCalculables(conf)
-        listOfSteps = self.listOfSteps(conf)
-        listOfSamples = self.listOfSamples(conf)
+        confCalcs = self.listOfCalculables(conf)
+        confSteps = self.listOfSteps(conf)
+        confSamples = self.listOfSamples(conf)
 
-        selectors = [ (s.name,s.moreName,s.moreName2) for s in filter(lambda s: s.isSelector, listOfSteps) ]
+        selectors = [ (s.name,s.moreName,s.moreName2) for s in filter(lambda s: s.isSelector, confSteps) ]
         for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s,%s) is not allowed."%sel
 
-        samples = [ s.name for s in listOfSamples ]
-        for sample in samples : assert 1==samples.count(sample), "Duplicate sample name %s is not allowed."%sample
+        sampleNames = [ s.name for s in confSamples ]
+        for sample in sampleNames : assert 1==sampleNames.count(sample), "Duplicate sample name %s is not allowed."%sample
 
         def parseForNumberEvents(ss,sampletuple,nFiles,nSlices) :
             if not ss.effectiveLumi : return (ss.nEventsMax,nFiles)
@@ -170,7 +170,7 @@ class analysis(object) :
             return calcs + [calculables.weight(weights)] + filter(lambda w: w.name() not in intersect, weights)
 
         outLoopers = []
-        for sampleSpec in listOfSamples :
+        for sampleSpec in confSamples :
             sampleName = sampleSpec.name
             sampleTuple = self.sampleDict[sampleName]
             isData = bool(sampleTuple.lumi)
@@ -183,7 +183,7 @@ class analysis(object) :
                                                        lumi = sampleSpec.overrideLumi if sampleSpec.overrideLumi!=None else sampleTuple.lumi,
                                                        lumiWarn = lumiWarn(isData, nEventsMax, sampleSpec.nFilesMax),
                                                        )
-                                   ]+(steps.adjustStepsForData(listOfSteps) if isData else steps.adjustStepsForMc(listOfSteps))
+                                   ]+(steps.adjustStepsForData(confSteps) if isData else steps.adjustStepsForMc(confSteps))
 
             outLoopers.append(analysisLooper(mainTree = self.mainTree(),
                                              otherTreesToKeepWhenSkimming = self.otherTreesToKeepWhenSkimming(),
@@ -192,46 +192,14 @@ class analysis(object) :
                                              globalStem = self.globalStem,
                                              subDir = "%(tag)s/config%(codeString)s"%conf,
                                              steps = adjustedListOfSteps,
-                                             calculables = allCalculables( listOfCalculables, sampleSpec.weights ),
+                                             calculables = allCalculables( confCalcs, sampleSpec.weights ),
                                              inputFiles = inputFiles,
                                              name = ".".join([sampleName]+[w.name() for w in sampleSpec.weights]),
                                              nEventsMax = nEventsMax,
                                              quietMode = self.__loop>1,
                                              )
-                              )
-            
-        # ptHatMinDict = dict(filter(lambda tup: tup[1], [(ss.name,self.sampleDict[ss.name].ptHatMin) for ss in listOfSamples]))
-        # for thing in self.sampleDict.overlappingSamples :
-        #     minPtHatsAndNames = [(ptHatMinDict[name],name) for name in filter(lambda n: n in ptHatMinDict, thing.samples)]
-        #     self.manageInclusiveSamples(minPtHatsAndNames, outLoopers)
+                              )            
         return outLoopers
-
-    # def manageInclusiveSamples(self, ptHatLowerThresholdsAndSampleNames = [], loopers = []) :
-    #     def findLooper(ptHatLowerThreshold, sampleName) :
-    #         out = None
-    #         for iLooper,looper in enumerate(loopers) :
-    #             if sampleName==looper.name :
-    #                 out = iLooper
-    #             for step in looper.steps :
-    #                 if step.name=="skimmer" :
-    #                     print "WARNING: you are skimming inclusive samples.  The skims of all but the highest bin will be exclusive.  Use utils.printSkimResults()."
-    #         return out
-    #     
-    #     looperIndexDict = {}
-    #     for item in ptHatLowerThresholdsAndSampleNames :
-    #         looperIndexDict[item[0]] = findLooper(*item)
-    # 
-    #     ptHatLowerThresholdsAndSampleNames.sort()
-    #     for iItem in range(len(ptHatLowerThresholdsAndSampleNames)) :
-    #         thisPtHatLowerThreshold = ptHatLowerThresholdsAndSampleNames[iItem][0]
-    #         thisLooperIndex = looperIndexDict[thisPtHatLowerThreshold]
-    # 
-    #         #adjust cross sections and enable ptHatFilter in Master step
-    #         if iItem<len(ptHatLowerThresholdsAndSampleNames)-1 :
-    #             nextPtHatLowerThreshold = ptHatLowerThresholdsAndSampleNames[iItem+1][0]
-    #             loopers[thisLooperIndex].steps[0].activatePtHatFilter(maxPtHat = nextPtHatLowerThreshold)
-    # 
-    #     return
     
     def mergeOutput(self) :
         if not os.path.exists(self.jobsFile) : return
