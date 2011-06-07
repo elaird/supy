@@ -13,7 +13,7 @@ class organizer(object) :
         """Keys are histogram names, values are tuples of histograms, parallel to samples."""
         def __init__(self,samples,dirs,keys) :
             for key in keys: self[key] = tuple( map(lambda d: d.Get(key), dirs) )
-            self.nameTitle  = ("","") if "/" in dirs[0].GetName() else (dirs[0].GetName(),dirs[0].GetTitle())
+            self.nameTitle = (dirs[0].GetName(),dirs[0].GetTitle())
             self.name,self.title = self.nameTitle
             if "counts" not in self: self["counts"] = tuple([None]*len(dirs))
             self.rawFailPass = tuple(map(lambda h: (h.GetBinContent(1),h.GetBinContent(2)) if h else None, self["counts"]))
@@ -58,7 +58,7 @@ class organizer(object) :
             xsNjobs = xsPostNjobs if xsPostNjobs else xsPreNjobs *( 1 if not nEventsTotal else sample['nEvents'] / nEventsTotal)
 
             if xsNjobs : sample["xs"] = xsNjobs / sample['nJobs']
-            if lumiNjobs: sample["lumi"] = lumiNjobs/sample['nJobs']
+            if lumiNjobs: sample["lumi"] = lumiNjobs / sample['nJobs']
             assert ("xs" in sample)^("lumi" in sample), "Error: Sample %s has both lumi and xs."% sample["name"]
             
         dirs = [ s['dir'] for s in self.samples]
@@ -84,7 +84,6 @@ class organizer(object) :
 
     def indexOfSampleWithName(self,name) :
         someList = [sample["name"] for sample in self.samples]
-        #assert name in someList,"organizer: sample %s not found"%name
         return someList.index(name) if name in someList else None
 
     def drop(self,sampleName) :
