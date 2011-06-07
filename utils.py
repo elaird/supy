@@ -282,55 +282,23 @@ def roundString(val, err, width=None, noSci = False, noErr = False) :
     return returnVal
 #####################################
 def printSkimResults(org) :
-    def indicesFromName(name) :
-        out = []
-        for i,step in enumerate(org.steps) :
-            if step.name == name : out.append(i)
-        return out
-
-    def numDict(index) :
-        out = {}
-        for sample,failPass in zip(org.samples, org.steps[index].rawFailPass) :
-            key = sample["name"]
-            out[key] = {}
-            if failPass!=None :
-                out[key]["fail"] = failPass[0]
-                out[key]["pass"] = failPass[1]
-            else :
-                out[key]["fail"] = 0.0
-                out[key]["pass"] = 0.0
-        return out
-
-    def aDict(var) :
-        out = {}
-        for sample in org.samples :
-            if var in sample : out[sample["name"]] = sample[var]
-        return out
-        
-    def maxLength(l) : return max([len(s) for s in l])
-    
-    nEventsIn = numDict(0)
-    nameStrings = []
-    dirStrings  = []
-    effStrings  = []
-    for index in indicesFromName("skimmer") :
-        print "efficiencies for skimmer with index",index
+    for iSkimmer,skimmer in filter(lambda tup: tup[1].name=="skimmer", enumerate(org.steps) ) :
+        print "efficiencies for skimmer with index",iSkimmer
         print "-"*40
-        d = numDict(index)
-        for name in sorted(nEventsIn.keys()) :
-            eff = 0.0
-            denom = nEventsIn[name]["pass"]
-            if denom > 0.0 : eff = d[name]["pass"] / denom
+        names = tuple([sample["name"] for sample in org.samples])
+        denom = tuple([failPass[1] for failPass in steps[0].rawFailPass])
+        numer = tuple([failPass[1] for failPass in steps[iSkimmer].rawFailPass])
+        effic = tuple([num/float(den) for num,den in zip(numer,denom)])
+        lumis =  tuple([sample["lumi"] for sample in org.samples])
+        xss  =   tuple([sample["xs"] for sample in org.samples])
 
-            #format output
-            nameStrings.append( 'foo.add("%s_skim", '%name )
-            dirStrings.append( '\'utils.fileListFromDisk(location = "%s/'+name+'_*_skim.root", isDirectory = False)\'%dir,')
-            if name in aDict("xs") : 
-                effStrings.append( 'xs = %e * %e)'%(eff,aDict("xs")[name]) )
-            elif name in aDict("lumi") :
-                effStrings.append( 'lumi = %e)'%aDict("lumi")[name] )
-            else :
-                assert False,"failed to find either xs or lumi"
+        assert all([lumi or xs for lumi,xs in zip(lumis,xss)]), "Failed to find either xs or lumi"
+
+        nameStrings = ['foo.add("%s_skim", '%name for name in names]
+        dirStrings = ['\'utils.fileListFromDisk(location = "%s/'+name+'_*_skim.root", isDirectory = False)\'%dir,' for name in names]
+        effStrings = [('lumi = %e)'%lumi if lumi else 'xs = %e * %e'%(eff,xs)) for eff,lumi,xs in zip(effic,lumis,xss)]
+        
+        def maxLength(l) : return max([len(s) for s in l])
         nameLength = maxLength(nameStrings)
         dirLength  = maxLength(dirStrings)
         effLength  = maxLength(effStrings)
