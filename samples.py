@@ -42,8 +42,9 @@ class SampleHolder(dict) :
             greaterPtHat = group[ 1 + group.index(spec.name) : ]
 
             if not greaterPtHat : continue
-            if spec.xsPostWeights : print "Warning: %s has already specified xsPostWeights : Unsafe to manage inclusive samples!"%spec.name
-            if spec.weights : print "Warning: %s already has weights { %s } : Unsafe to manage inclusive samples if other weights can be None!"%(spec.name,','.join(["%s %s"%(w.name(),w.moreName) for w in spec.weights]))
+            if applyPostWeightXS :
+                if spec.xsPostWeights : print "Warning: %s has already specified xsPostWeights : Unsafe to manage inclusive samples!"%spec.name
+                if spec.weights : print "Warning: %s already has weights { %s } : Unsafe to manage inclusive samples if other weights can be None!"%(spec.name,','.join(["%s %s"%(w.name(),w.moreName) for w in spec.weights]))
             
             nextPtHat = self[greaterPtHat[0]]
             modArgs = dict([(item,getattr(spec,item)) for item in spec._fields])
