@@ -138,15 +138,12 @@ class analysis(object) :
                  for sample,fileList in samplesFiles.iteritems() ]
 
     def sampleLoopers(self, conf) :
-        confCalcs = self.listOfCalculables(conf)
-        confSteps = self.listOfSteps(conf)
-        confSamples = self.listOfSamples(conf)
 
-        selectors = [ (s.name,s.moreName,s.moreName2) for s in filter(lambda s: s.isSelector, confSteps) ]
-        for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s,%s) is not allowed."%sel
-
-        sampleNames = [ s.name for s in confSamples ]
-        for sample in sampleNames : assert 1==sampleNames.count(sample), "Duplicate sample name %s is not allowed."%sample
+        def warnings() :
+            sampleNames = [ s.name for s in confSamples ]
+            for sample in sampleNames : assert 1==sampleNames.count(sample), "Duplicate sample name %s is not allowed."%sample
+            selectors = [ (s.name,s.moreName,s.moreName2) for s in filter(lambda s: s.isSelector, confSteps) ]
+            for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s,%s) is not allowed."%sel
 
         def parseForNumberEvents(ss,sampletuple,nFiles,nSlices) :
             if not ss.effectiveLumi : return (ss.nEventsMax,nFiles)
@@ -169,8 +166,7 @@ class analysis(object) :
             assert not mismatch, "Error: type(weight)!=type(calc): { %s }"%','.join([c.name() for c in mismatch])
             return calcs + [calculables.weight(weights)] + filter(lambda w: w.name() not in intersect, weights)
 
-        outLoopers = []
-        for sampleSpec in confSamples :
+        def looper(sampleSpec) :
             sampleName = sampleSpec.name
             sampleTuple = self.sampleDict[sampleName]
             isData = bool(sampleTuple.lumi)
@@ -178,28 +174,24 @@ class analysis(object) :
             nEventsMax,nFilesMax = parseForNumberEvents(sampleSpec, sampleTuple, len(inputFiles), self.__nSlices)
             inputFiles = inputFiles[:nFilesMax]
 
-            adjustedListOfSteps = [steps.Master.Master(xs = sampleTuple.xs,
-                                                       xsPostWeights = sampleSpec.xsPostWeights,
+            adjustedListOfSteps = [steps.Master.Master(xs = sampleTuple.xs, xsPostWeights = sampleSpec.xsPostWeights,
                                                        lumi = sampleSpec.overrideLumi if sampleSpec.overrideLumi!=None else sampleTuple.lumi,
-                                                       lumiWarn = lumiWarn(isData, nEventsMax, sampleSpec.nFilesMax),
-                                                       )
+                                                       lumiWarn = lumiWarn(isData, nEventsMax, sampleSpec.nFilesMax) )
                                    ]+(steps.adjustStepsForData(confSteps) if isData else steps.adjustStepsForMc(confSteps))
 
-            outLoopers.append(analysisLooper(mainTree = self.mainTree(),
-                                             otherTreesToKeepWhenSkimming = self.otherTreesToKeepWhenSkimming(),
-                                             leavesToBlackList = self.leavesToBlackList(),
-                                             localStem  = self.localStem,
-                                             globalStem = self.globalStem,
-                                             subDir = "%(tag)s/config%(codeString)s"%conf,
-                                             steps = adjustedListOfSteps,
-                                             calculables = allCalculables( confCalcs, sampleSpec.weights ),
-                                             inputFiles = inputFiles,
-                                             name = ".".join([sampleName]+[w.name() for w in sampleSpec.weights]),
-                                             nEventsMax = nEventsMax,
-                                             quietMode = self.__loop>1,
-                                             )
-                              )            
-        return outLoopers
+            return analysisLooper( mainTree = self.mainTree(),   otherTreesToKeepWhenSkimming = self.otherTreesToKeepWhenSkimming(),
+                                   nEventsMax = nEventsMax,      leavesToBlackList = self.leavesToBlackList(),
+                                   steps = adjustedListOfSteps,  calculables = allCalculables( confCalcs, sampleSpec.weights ),
+                                   inputFiles = inputFiles,      name = ".".join([sampleName]+[w.name() for w in sampleSpec.weights]),
+                                   localStem  = self.localStem,  subDir = "%(tag)s/config%(codeString)s"%conf,
+                                   globalStem = self.globalStem, quietMode = self.__loop>1 )                                   
+        
+        confCalcs = self.listOfCalculables(conf)
+        confSteps = self.listOfSteps(conf)
+        confSamples = self.listOfSamples(conf)
+        warnings()
+        return [ looper(sampleSpec) for sampleSpec in confSamples ]
+
     
     def mergeOutput(self) :
         if not os.path.exists(self.jobsFile) : return
