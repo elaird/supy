@@ -150,10 +150,10 @@ class plotter(object) :
             self.canvas.Clear()
             
         unprintedSteps = True
-        finalStep = filter(lambda s: any(s.rawFailPass), self.someOrganizer.steps)[-1]
+        finalStep = filter(lambda s: any(s.yields()), self.someOrganizer.steps)[-1]
         self.stepsSoFar=[]
         for step in self.someOrganizer.steps :
-            isSelector = (not len(step)>1) or any(step.rawFailPass)
+            isSelector = (not len(step)>1) or any(step.yields())
 
             self.stepsSoFar.append(step)
             if isSelector : unprintedSteps = True
@@ -372,8 +372,8 @@ class plotter(object) :
                 
             nSamples = len(sampleNames)
             if nSamples == 1 : return
-            for i in range(nSamples) :
-                y = 0.9 - 0.55*(i+0.5)/self.nLinesMax
+            for j,i in enumerate(sorted(range(nSamples), key=lambda i: (sampleNames[i][:5],float(lumis[i]) if lumis[i] and "lumi" not in lumis[i] else None, sampleNames[i][5:] ))) :
+                y = 0.9 - 0.55*(j+0.5)/self.nLinesMax
                 out = sampleNames[i].ljust(sLength)+nEventsIn[i].rjust(nLength+3)+lumis[i].rjust(lLength+3)
                 text.DrawTextNDC(x, y, out)
 
@@ -413,7 +413,7 @@ class plotter(object) :
         space = 1
 
         nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in self.someOrganizer.steps]))
-        for i,step in enumerate(filter(lambda s: any(s.rawFailPass),steps[-self.nLinesMax:])) :
+        for i,step in enumerate(filter(lambda s: any(s.yields()),steps[-self.nLinesMax:])) :
             absI = i + (0 if len(steps) <= self.nLinesMax else len(steps)-self.nLinesMax)
             letter = string.ascii_letters[absI]
             x = 0.01
