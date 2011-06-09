@@ -10,8 +10,8 @@ class analysisLooper :
                  localStem = None, globalStem = None, subDir = None, steps = None, calculables = None, inputFiles = None, name = None,
                  nEventsMax = None, quietMode = None) :
 
-        for arg in ["steps", "calculables"] : setattr(self, arg, eval("copy.deepcopy(%s)"%arg))
         for arg in ["mainTree", "otherTreesToKeepWhenSkimming", "leavesToBlackList",
+                    "steps", "calculables",
                     "localStem", "globalStem", "subDir", "inputFiles", "name", "nEventsMax", "quietMode"] :
             setattr(self, arg, eval(arg))
 
@@ -77,11 +77,13 @@ class analysisLooper :
                 sys.exit(0)
 
     def recordLeavesAndCalcsUsed(self, activeKeys, calculableDependencies) :
-        calcs = dict([(calc.name(),calc) for calc in self.calculables])
+        calcs = dict([(calc.name,calc) for calc in self.calculables])
         def calcTitle(key) : return "%s%s%s"%(calcs[key].moreName, calcs[key].moreName2, configuration.fakeString() if calcs[key].isFake() else "")
         self.calculablesUsed = set([ (key,calcTitle(key)) for key,isLeaf,keyType in filter(lambda k:not k[1], activeKeys)])
         self.leavesUsed      = set([ (key,       keyType) for key,isLeaf,keyType in filter(lambda k:k[1], activeKeys)])
-        self.calculableDependencies = calculableDependencies
+        self.calculableDependencies = {}
+        for key,val in calculableDependencies.iteritems() :
+            self.calculableDependencies[key] = set(map(lambda c: c if type(c)==tuple else (c,c),val))
         
     def prepareOutputDirectory(self) :
         utils.mkdir(self.localStem)
@@ -157,7 +159,7 @@ class analysisLooper :
             r.gDirectory.mkdir("Calculables",".").cd()
             for calc in self.calculablesUsed :
                 r.gDirectory.mkdir(*calc).cd()
-                for dep in self.calculableDependencies[calc[0]] : r.gDirectory.mkdir(dep)
+                for dep in self.calculableDependencies[calc[0]] : r.gDirectory.mkdir(*dep)
                 r.gDirectory.GetMother().cd()
             r.gDirectory.GetMother().cd()
 

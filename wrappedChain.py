@@ -29,20 +29,20 @@ class wrappedChain(dict) :
             if nameL in leavesToBlackList : continue
             dict.__setitem__(self, nameL, self.__branchNode( nameL, nameB, chain, useSetBranchAddress, maxArrayLength) )
 
-        names = [c.name() for c in calculables]
+        names = [c.name for c in calculables]
         if len(names)!=len(set(names)) :
             for name in names :
                 assert names.count(name)==1,"Duplicate calculable name: %s"%name
 
         for calc in calculables :
-            name = calc.name()
+            name = calc.name
             if name in self and name not in preferredCalcs : continue
-            dict.__setitem__(self, name, copy.deepcopy(calc) )
+            dict.__setitem__(self, name, calc )
             dict.__getitem__(self, name).source = keyTracer(self) if trace else self
             dict.__getitem__(self, name).updated = False
 
     def activeKeys(self) : return [( key, node.isLeaf(), str(type(node.value)).split("'")[1].replace("wrappedChain.","") ) for key,node in self.__activeNodes.iteritems()]
-    def calcDependencies(self) : return dict([(node.name(),node.source.tracedKeys if hasattr(node.source,"tracedKeys") else set()) for node in filter(lambda n: hasattr(n,"source"), self.__activeNodes.values()) ])
+    def calcDependencies(self) : return dict([(node.name,node.source.tracedKeys if hasattr(node.source,"tracedKeys") else set()) for node in filter(lambda n: hasattr(n,"source"), self.__activeNodes.values()) ])
 
     def entries(self, nEntries = None ) :
         """Generate the access dictionary (self) for each entry in TTree."""
@@ -148,12 +148,13 @@ class wrappedChain(dict) :
             """
             raise Exception("Not Implemented!")
 
+        @property
         def name(self) :
             if not hasattr(self,"fixes") : self.fixes = ("","")
             return self.fixes[0] + self.__class__.__name__ + self.fixes[1]
 
         def stash(self,leafNames, fixes=None) :
-            Name = self.name()
+            Name = self.name
             for leaf in leafNames:
                 assert not hasattr(self,leaf), "%s already has attribute %s"%(Name,leaf)
                 setattr(self,leaf,("%s"+leaf+"%s")%(fixes if fixes else self.fixes))

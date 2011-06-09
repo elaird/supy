@@ -15,7 +15,7 @@ def adjustSteps(inSteps, dataOrMc = None) :
                 vars = [step.var] if type(step.var) is str else step.var
                 for var in vars :
                     if re.search(matchString, var) : disable = True
-        outSteps.append(copy.deepcopy(step))
+        outSteps.append(step)
         if disable : outSteps[-1].disable()
     return outSteps
 #####################################
