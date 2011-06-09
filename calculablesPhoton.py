@@ -24,6 +24,7 @@ class Indices(wrappedChain.calculable) :
             else: other.append(i)
 ##############################
 class leadingPt(wrappedChain.calculable) :
+    @property
     def name(self) : return "%sLeadingPt%s"%self.photons
 
     def __init__(self, collection = ("photon","Pat")) :
@@ -34,6 +35,7 @@ class leadingPt(wrappedChain.calculable) :
         self.value = self.source["%sP4%s"%self.photons].at(indices[0]).pt() if len(indices) else None
 ####################################
 class photonID(wrappedChain.calculable) :
+    @property
     def name(self) : return self.idName
     
     # following https://twiki.cern.ch/twiki/bin/viewauth/CMS/PhotonID
@@ -154,6 +156,7 @@ class photonID(wrappedChain.calculable) :
         return True
 ####################################    
 class HcalTowSumEtConeDR04(wrappedChain.calculable) :
+    @property
     def name(self) : return "%sHcalTowSumEtConeDR04%s"%self.collection
     def __init__(self, collection = None) :
         self.collection = collection
@@ -165,6 +168,7 @@ class HcalTowSumEtConeDR04(wrappedChain.calculable) :
         self.value = [self.source[self.var1].at(i)+self.source[self.var2].at(i) for i in range(size)]
 ####################################    
 class SeedTime(wrappedChain.calculable) :
+    @property
     def name(self) : return "%sSeedTime%s"%self.collection
     def __init__(self, collection = None) :
         self.collection = collection

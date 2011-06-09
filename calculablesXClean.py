@@ -4,6 +4,7 @@ import copy,bisect,math
 import ROOT as r
 ##############################
 class xcJet(wrappedChain.calculable) :
+    @property
     def name(self) : return "%sCorrectedP4%s"%self.xcjets
 
     def __init__(self,xcjets = None, applyResidualCorrectionsToData = None,

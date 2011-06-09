@@ -10,6 +10,7 @@ class entry(wrappedChain.calculable) :
         self.value = self.source.entry
 #####################################
 class chain_access(wrappedChain.calculable) :
+    @property
     def name(self) : return "chain"
     def update(self,ignored) : self.value = self.source._wrappedChain__chain
 #####################################
@@ -43,6 +44,7 @@ class pthatLess(wrappedChain.calculable) :
     def update(self,ignored) : self.value = None if self.maxPtHat < self.source["genpthat"] else 1
 ##############################
 class Mt(wrappedChain.calculable) :
+    @property
     def name(self) :
         return "%sMt%s%s"%(self.fixes[0], self.fixes[1], self.met)
     
@@ -88,6 +90,7 @@ class SumEt(wrappedChain.calculable) :
         self.value = reduce( lambda x,i: x+p4s.at(i).Et(), indices , 0)
 ##############################
 class metPlusParticles(wrappedChain.calculable) :
+    @property
     def name(self) :
         return "%sPlus%s%s"%(self.met, self.particles[0], self.particles[1])
     def __init__(self, met, particles) :
@@ -98,6 +101,7 @@ class metPlusParticles(wrappedChain.calculable) :
         self.value = self.source[self.met] + self.source["%sSumP4%s"%self.particles]
 ##############################
 class minDeltaRToJet(wrappedChain.calculable) :
+    @property
     def name(self) : return "%s%sMinDeltaRToJet%s%s"% (self.particles[0], self.particles[1], self.jets[0], self.jets[1])
 
     def __init__(self, particles, jets) :

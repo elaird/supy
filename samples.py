@@ -35,7 +35,7 @@ class SampleHolder(dict) :
         assert not inter, "Samples { %s } already in other group."%",".join(inter)
         self.inclusiveGroups.append( tuple(sorted(samplesGroup, key = lambda name: self[name].ptHatMin) ) )
 
-    def manageInclusive(self, sampleSpecs = [], applyPostWeightXS = True) :
+    def manageInclusive(self, sampleSpecs = [], applyPostWeightXS = False) :
         inclusiveSpecs = filter(lambda ss: ss.name in self.inclusiveNames, sampleSpecs )
         for spec in inclusiveSpecs :
             group = filter(lambda g: spec.name in g, self.inclusiveGroups)[0]
@@ -44,7 +44,7 @@ class SampleHolder(dict) :
             if not greaterPtHat : continue
             if applyPostWeightXS :
                 if spec.xsPostWeights : print "Warning: %s has already specified xsPostWeights : Unsafe to manage inclusive samples!"%spec.name
-                if spec.weights : print "Warning: %s already has weights { %s } : Unsafe to manage inclusive samples if other weights can be None!"%(spec.name,','.join(["%s %s"%(w.name(),w.moreName) for w in spec.weights]))
+                if spec.weights : print "Warning: %s already has weights { %s } : Unsafe to manage inclusive samples if other weights can be None!"%(spec.name,','.join([w if type(w) is str else "%s %s"%(w.name(),w.moreName) for w in spec.weights]))
             
             nextPtHat = self[greaterPtHat[0]]
             modArgs = dict([(item,getattr(spec,item)) for item in spec._fields])

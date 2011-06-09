@@ -488,6 +488,7 @@ class AlphaT(wrappedChain.calculable) :
         self.value = 0.5 * ( ht - self.source[self.DeltaPseudoJet] ) / math.sqrt( ht*ht - sumP4.Perp2() ) if sumP4 else 0
 ##############################
 class AlphaTWithPhoton1PtRatherThanMht(wrappedChain.calculable) :
+    @property
     def name(self) : return "%sAlphaTWithPhoton1PtRatherThanMht%s" % self.cs
 
     def __init__(self, collection = None, photons = None, photonIndices = None, etRatherThanPt = None) :
@@ -668,6 +669,7 @@ class MaxProjMht(wrappedChain.calculable) :
         self.value = None if not indices else max([mhtProj[i] for i in indices])
 #####################################
 class MhtOverMet(wrappedChain.calculable) :
+    @property
     def name(self) : return "%sMht%sOver%s" %(self.fixes[0], self.fixes[1], self.met)
 
     def __init__(self, jets, met) :
@@ -679,6 +681,7 @@ class MhtOverMet(wrappedChain.calculable) :
         self.value = self.source[self.SumP4].pt()/self.source[self.met].pt() if self.source[self.SumP4] else None
 #####################################
 class MhtMinusMetOverMeff(wrappedChain.calculable) :
+    @property
     def name(self) : return "%sMhtMinus%sOverMeff%s"%(self.fixes[0], self.met, self.fixes[1])
     
     def __init__(self, jets, etRatherThanPt, met) :
@@ -709,6 +712,7 @@ class DeadEcalIndices(wrappedChain.calculable) :
         self.value = map( self.deadEcalIndices, self.source[self.CorrectedP4] )
 #####################################
 class ecalDeadTowerMatchedJetIndices(wrappedChain.calculable) :
+    @property
     def name(self) : return "ecalDeadTowerMatched%sIndices%s"%self.cs
 
     def __init__(self, collection) :
@@ -728,6 +732,7 @@ class ecalDeadTowerMatchedJetIndices(wrappedChain.calculable) :
         self.value = map(self.matchingJetIndex,self.source["ecalDeadTowerTrigPrimP4"])
 #####################################
 class deadEcalDR(wrappedChain.calculable) :
+    @property
     def name(self) : return "%sDeadEcalDR%s%s"%(self.jets[0], self.jets[1], self.extraName)
     
     def __init__(self, jets = None, extraName = "", minNXtals = None) :

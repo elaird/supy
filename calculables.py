@@ -4,13 +4,14 @@ import configuration,operator
 ##############################
 class weight(wrappedChain.calculable) :
     def __init__(self, weights) :
-        self.calcNames = [w.name() for w in weights]
+        self.calcNames = [w.name for w in weights]
         self.moreName = ".".join(["1"]+sorted(self.calcNames))
     def update(self, ignored) :
         weights = [self.source[n] for n in self.calcNames]
         self.value = reduce(operator.mul, weights, 1) if None not in weights else None
 ##############################
 class indicesOther(wrappedChain.calculable) :
+    @property
     def name(self) : return self.indicesOther
     
     def __init__(self, collection = None) :

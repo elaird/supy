@@ -61,3 +61,6 @@ class SumP3(wrappedChain.calculable) :
     def update(self, ignored) :
         self.value = self.sumP3s
 #####################################
+class nVertex(wrappedChain.calculable) :
+    def update(self,ignored) : self.value = len(self.source["vertexIndices"])
+#####################################

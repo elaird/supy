@@ -48,6 +48,7 @@ class genMotherIndex(wrappedChain.calculable) :
         return -1 if not (hasMom and momStored) else mom
 ##############################
 class genIndices(wrappedChain.calculable) :
+    @property
     def name(self) : return "genIndices" + self.label
 
     def __init__(self, pdgs = None, label = None, status = None ) :
@@ -83,6 +84,7 @@ class genIndicesStatus3NoStatus3Daughter(wrappedChain.calculable) :
         self.value = filter( lambda i: i not in motherIndices, status3List )
 ##############################
 class genMinDeltaRPhotonOther(wrappedChain.calculable) :
+    @property
     def name(self) : return "genMinDeltaRPhotonOther"+self.label
     
     def __init__(self, label) :
@@ -101,6 +103,7 @@ class genMinDeltaRPhotonOther(wrappedChain.calculable) :
         self.value = min( [minDeltaR(photonIndex) for photonIndex in photonIndices] )[0] if len(photonIndices) else None
 ##############################
 class genIsolations(wrappedChain.calculable) :
+    @property
     def name(self) : return "genIsolation"+self.label
     
     def __init__(self, label = None, coneSize = None) :
@@ -123,6 +126,7 @@ class genIsolations(wrappedChain.calculable) :
             self.value[genIndex] = iso
 ##############################
 class genPhotonCategory(wrappedChain.calculable) :
+    @property
     def name(self) :
         return "category"+self.label
 
@@ -142,6 +146,7 @@ class genPhotonCategory(wrappedChain.calculable) :
                 self.value[index] = "otherMother"
 ##############################
 class genParticleCounter(wrappedChain.calculable) :
+    @property
     def name(self) : return "GenParticleCategoryCounts"
 
     def __init__(self) :
