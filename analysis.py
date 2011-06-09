@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os,sys,copy,cPickle,collections,tempfile
-import utils,steps,samples,configuration,calculables,organizer
+import utils,steps,samples,configuration,calculables,organizer,wrappedChain
 from analysisLooper import analysisLooper
 import ROOT as r
 #####################################
@@ -131,19 +131,13 @@ class analysis(object) :
         samplesFiles = collections.defaultdict(list)
         for looper in self.__listsOfLoopers[iConf] :
             looper.setupSteps(minimal = True)
-            sampleSpec = filter(lambda s: looper.name == '.'.join([s.name]+[w.name() for w in s.weights]), confSamples)[0]
+            sampleSpec = filter(lambda s: looper.name == '.'.join([s.name]+[w if type(w)==str else w.name for w in s.weights]), confSamples)[0]
             samplesFiles[(looper.name,sampleSpec.color,sampleSpec.markerStyle)].append(looper.steps[0].outputFileName)
         
         return [ dict(zip(["name","color","markerStyle"],sample[:3])+[("outputFileNames",fileList)]) \
                  for sample,fileList in samplesFiles.iteritems() ]
 
     def sampleLoopers(self, conf) :
-
-        def warnings() :
-            sampleNames = [ s.name for s in confSamples ]
-            for sample in sampleNames : assert 1==sampleNames.count(sample), "Duplicate sample name %s is not allowed."%sample
-            selectors = [ (s.name,s.moreName,s.moreName2) for s in filter(lambda s: s.isSelector, confSteps) ]
-            for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s,%s) is not allowed."%sel
 
         def parseForNumberEvents(ss,sampletuple,nFiles,nSlices) :
             if not ss.effectiveLumi : return (ss.nEventsMax,nFiles)
@@ -159,37 +153,45 @@ class analysis(object) :
             if invalid : print "Warning: Not running over full data sample: wrong lumi?"
             return invalid
 
-        def allCalculables(calcs,weights) :
-            intersect = set([c.name() for c in calcs]).intersection(set([w.name() for w in weights]))
-            mismatch = sum([ filter(lambda c: c.name()==w.name() and type(c)!=type(w), calcs) for w in weights],[])
-            if intersect : print "Warning: Weights { %s } are already listed."%','.join(intersect)
-            assert not mismatch, "Error: type(weight)!=type(calc): { %s }"%','.join([c.name() for c in mismatch])
-            return calcs + [calculables.weight(weights)] + filter(lambda w: w.name() not in intersect, weights)
+        def allCalculables(calcs,weights,adjustedSteps) :
+            secondaries = filter(lambda s: issubclass(type(s),wrappedChain.wrappedChain.calculable),adjustedSteps)
+            weightsAlready = [filter(lambda c: c.name==w, secondaries+calcs)[0] for w in filter(lambda w: type(w)==str, weights)]
+            weightsAdditional = filter(lambda w: type(w)!=str, weights)
+            def check(As,Bs) :
+                intersect = set([a.name for a in As]).intersection(set([b.name for b in Bs]))
+                assert not intersect, "Warning: { %s } are already listed in listOfCalculables."%','.join(intersect)
+            check(calcs,weightsAdditional)
+            check(calcs,secondaries)
+            check(weightsAdditional,secondaries)
+            return calcs + [calculables.weight(weightsAdditional+weightsAlready)] + weightsAdditional + secondaries
 
-        def looper(sampleSpec) :
-            sampleName = sampleSpec.name
-            sampleTuple = self.sampleDict[sampleName]
+        def looper(spec) :
+            pars = {"rawSample":spec.name, "sample":'.'.join([spec.name]+[w if type(w)==str else w.name for w in spec.weights]) }
+            pars.update(conf)
+            sampleTuple = self.sampleDict[pars["rawSample"]]
             isData = bool(sampleTuple.lumi)
-            inputFiles = utils.readPickle(self.inputFilesListFile(sampleSpec.name))[:sampleSpec.nFilesMax]
-            nEventsMax,nFilesMax = parseForNumberEvents(sampleSpec, sampleTuple, len(inputFiles), self.__nSlices)
+            inputFiles = utils.readPickle(self.inputFilesListFile(spec.name))[:spec.nFilesMax]
+            nEventsMax,nFilesMax = parseForNumberEvents(spec, sampleTuple, len(inputFiles), self.__nSlices)
             inputFiles = inputFiles[:nFilesMax]
 
-            adjustedListOfSteps = [steps.Master.Master(xs = sampleTuple.xs, xsPostWeights = sampleSpec.xsPostWeights,
-                                                       lumi = sampleSpec.overrideLumi if sampleSpec.overrideLumi!=None else sampleTuple.lumi,
-                                                       lumiWarn = lumiWarn(isData, nEventsMax, sampleSpec.nFilesMax) )
-                                   ]+(steps.adjustStepsForData(confSteps) if isData else steps.adjustStepsForMc(confSteps))
+            adjustedSteps = [ steps.Master.Master(xs = sampleTuple.xs, xsPostWeights = spec.xsPostWeights,
+                                                  lumi = spec.overrideLumi if spec.overrideLumi!=None else sampleTuple.lumi,
+                                                  lumiWarn = lumiWarn(isData, nEventsMax, spec.nFilesMax) )
+                              ] + steps.adjustSteps(self.listOfSteps(pars), "Data" if isData else "Mc")
+            selectors = [ (s.name,s.moreName,s.moreName2) for s in filter(lambda s: s.isSelector, adjustedSteps) ]
+            for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s,%s) is not allowed."%sel
 
             return analysisLooper( mainTree = self.mainTree(),   otherTreesToKeepWhenSkimming = self.otherTreesToKeepWhenSkimming(),
                                    nEventsMax = nEventsMax,      leavesToBlackList = self.leavesToBlackList(),
-                                   steps = adjustedListOfSteps,  calculables = allCalculables( confCalcs, sampleSpec.weights ),
-                                   inputFiles = inputFiles,      name = ".".join([sampleName]+[w.name() for w in sampleSpec.weights]),
+                                   steps = adjustedSteps,        calculables = allCalculables( self.listOfCalculables(pars), spec.weights, adjustedSteps ),
+                                   inputFiles = inputFiles,      name = pars["sample"],
                                    localStem  = self.localStem,  subDir = "%(tag)s/config%(codeString)s"%conf,
-                                   globalStem = self.globalStem, quietMode = self.__loop>1 )                                   
+                                   globalStem = self.globalStem, quietMode = self.__loop>1 )
         
-        confCalcs = self.listOfCalculables(conf)
-        confSteps = self.listOfSteps(conf)
         confSamples = self.listOfSamples(conf)
-        warnings()
+        sampleKeys = [ (s.name,)+tuple([w if type(w)==str else w.name for w in s.weights]) for s in confSamples ]
+        for key in sampleKeys : assert 1==sampleKeys.count(key), "Duplicate sample name %s is not allowed."%'.'.join(key)
+
         return [ looper(sampleSpec) for sampleSpec in confSamples ]
 
     
