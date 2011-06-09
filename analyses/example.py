@@ -61,12 +61,11 @@ class example(analysis.analysis) :
         return (samples.specify(names = "Example_Skimmed_900_GeV_Data", color = r.kBlack, markerStyle = 20) +
                 samples.specify(names = "Example_Skimmed_900_GeV_MC", color = r.kRed, effectiveLumi = 0.5) )
 
-    def conclude(self) :
+    def conclude(self,org) :
         #make a pdf file with plots from the histograms created above
-        org = organizer.organizer( self.sampleSpecs() )
         org.scale()
         plotter.plotter( org,
-                         psFileName = self.psFileName(),
+                         psFileName = self.psFileName(org.tag),
                          samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
                          sampleLabelsForRatios = ("data","sim"),
                          ).plotAll()
