@@ -20,7 +20,7 @@ class organizer(object) :
 
             for key in self :
                 if key in ["nJobsHisto"] : continue
-                elif key in ["lumiHisto","xsHisto"] :
+                elif key in ["lumiHisto","xsHisto","xsPostWeightsHisto"] :
                     [ hist.Scale(  1.0 / sample['nJobs'] ) for hist,sample in zip(self[key],samples) if hist ]
                 else: [ hist.Scale(sample["xs"]/sample['nEvents']) for hist,sample in zip(self[key],samples)
                         if hist and sample['nEvents'] and "xs" in sample ]
