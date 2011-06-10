@@ -69,7 +69,7 @@ class analysisLooper :
     def processEvent(self,eventVars) :
         for step in self.steps :
             try:
-                if not step.go(eventVars) : break
+                if not step(eventVars) : break
             except Exception as e:
                 print "\nProblem with %s\n%s\n"%(type(step),step.moreName)
                 import traceback
@@ -109,7 +109,7 @@ class analysisLooper :
             nEventsString = str(self.chains[self.mainTree].GetEntries()) if configuration.computeEntriesForReport() else "(number not computed)"
             print utils.hyphens
             print "The %d \"%s\" input file%s:"%(nFiles, self.name, "s" if nFiles>1 else '')
-            print '\n'.join(self.inputFiles[:2]+["..."]+self.inputFiles[2:][-2:])
+            print '\n'.join(self.inputFiles[:2]+["..."][:len(self.inputFiles)-1]+self.inputFiles[2:][-2:])
             print "contain%s %s events."%(("s" if nFiles==1 else ""), nEventsString)
             print utils.hyphens
 
@@ -145,9 +145,7 @@ class analysisLooper :
             while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
             for step in self.steps :
                 r.gDirectory.mkdir(step.book.title, step.moreName+step.moreName2).cd()
-                for hist in [step.book[name] for name in step.book.fillOrder] :
-                    hist.Write()
-                    hist.Delete()
+                for hist in [step.book[name] for name in step.book.fillOrder] : hist.Write()
                 if configuration.trace() and step.isSelector :
                     r.gDirectory.mkdir("Calculables").cd()
                     for key in step.tracer.tracedKeys : r.gDirectory.mkdir(key)
