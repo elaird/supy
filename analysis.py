@@ -21,10 +21,10 @@ class analysis(object) :
     def parameters(self) : return {}
     def conclude(self, org) : return
     def concludeAll(self) :
-        for tag in self.sideBySideAnalysisTags :
-            self.conclude( organizer.organizer( tag, self.sampleSpecs(tag)))
+        for conf in self.configurations :
+            self.conclude( organizer.organizer( conf['tag'], self.sampleSpecs(conf['tag'])))
 
-
+############
     def __init__(self, options) :
         self.__batch   = options.batch
         self.__loop    = int(options.loop)   if options.loop!=None else None
@@ -55,37 +55,42 @@ class analysis(object) :
 
         if self.__jobId==None and self.__loop!=None : utils.writePickle( self.jobsFile, (self.__loop,self.jobs) )
 
+############
     @property
     def name(self) : return self.__class__.__name__
-    @property
-    def sideBySideAnalysisTags(self) : return sorted(list(set([conf["tag"] for conf in self.configurations])))
     @property
     def jobs(self) : return self.__jobs
     @property
     def jobsFile(self) : return "%s/%s.jobs"%(self.globalStem, self.name)
     @property
     def configurations(self) :
-        if not hasattr(self,"_analysis__configs") : 
-            self.__configs = [{"tag":"","codeString":""}]
-            for key,variations in sorted(self.parameters().iteritems()) :
-                if type(variations) not in [list, dict] : variations = [variations]
-                isDict = type(variations) is dict
-                
-                baseLen = len(self.__configs)
-                self.__configs = sum([copy.deepcopy(self.__configs) for i in range(len(variations))],[])
-                
-                for iConf in range(baseLen) :
-                    for iVar,kval in enumerate(sorted(variations)) :
-                        i = iVar*baseLen + iConf
-                        conf = self.__configs[i]
-                        conf[key] = variations[kval] if isDict else kval
-                        if isDict : conf["tag"] = '_'.join(filter(None,[conf['tag'],str(kval)]))
-                        else : conf["codeString"] += str(iVar)
+        if not hasattr(self,"_analysis__configs") :
+            parameters = self.parameters()
+            assert "tag" not in parameters
+            self.__configs = [ dict( [("tag",[])] + [(key,val) for key,val in parameters.iteritems() if type(val)!=dict] ) ]
+            for param,variations in parameters.iteritems() :
+                if type(variations) is dict :
+                    self.__configs = sum([[ dict( list(conf.iteritems()) + [ (param,val), ("tag",conf["tag"]+[str(key)]) ] )
+                                            for key,val in variations.iteritems()] for conf in self.__configs],[])
+            for conf in self.__configs : conf['tag'] = '_'.join(conf['tag'])
         return self.__configs
-    def inputFilesListFile(self, sampleName) : return "%s/%s.inputFiles"%(self.globalStem, sampleName)
-    def psFileName(self,tag="") : return "%s/%s%s.ps"%(self.globalStem, self.name, "_"+tag if len(tag) else "")
-
         
+############
+    def psFileName(self,tag = "") : return "%s/%s%s.ps"%(self.globalStem, self.name, "_"+tag if len(tag) else "")
+
+    def sampleSpecs(self, tag = "") :
+        iConf = [conf["tag"] for conf in self.configurations].index(tag)
+        confSamples = self.listOfSamples(self.configurations[iConf])
+        def sampleSpecDict(looper) :
+            looper.setupSteps(minimal = True)
+            sampleSpec = next( s for s in confSamples if s.weightedName == looper.name ) 
+            return {"name":looper.name, "outputFileName":looper.steps[0].outputFileName,
+                    "color":sampleSpec.color, "markerStyle":sampleSpec.markerStyle }
+        return [ sampleSpecDict(looper) for looper in self.__listsOfLoopers[iConf]]
+    
+############
+    def inputFilesListFile(self, sampleName) : return "%s/%s.inputFiles"%(self.globalStem, sampleName)
+
     def globalToLocal(self, globalFileName) :
         tmpDir = tempfile.mkdtemp(dir = self.localStem)
         localFileName = globalFileName.replace(self.globalStem, tmpDir)
@@ -94,7 +99,7 @@ class analysis(object) :
     def localToGlobal(self, tmpDir, localFileName, globalFileName) :
         os.system(configuration.mvCommand(site = self.__site, src = localFileName, dest = globalFileName))
         os.system("rm -r %s"%tmpDir)
-        
+
     def makeInputFileLists(self) :
         def inputFilesEvalWorker(q):
             while True:
@@ -111,9 +116,10 @@ class analysis(object) :
         argsList = [(name, self.sampleDict[name].filesCommand) for name in sampleNames]
         utils.operateOnListUsingQueue(self.__loop,inputFilesEvalWorker,argsList)
 
+############
     def loop(self) :
         listOfLoopers = [ self.__listsOfLoopers[job["iConfig"]][job["iSample"]].slice(job["iSlice"], self.__nSlices)
-                          for iJob,job in filter(lambda j: self.__jobId==None or int(self.__jobId)==j[0], enumerate(self.jobs)) ]
+                          for iJob,job in enumerate(self.jobs) if self.__jobId==None or int(self.__jobId)==iJob ]
 
         if self.__jobId!=None : listOfLoopers[0].go()
         elif not self.__profile : utils.operateOnListUsingQueue(self.__loop, utils.goWorker, listOfLoopers)
@@ -124,27 +130,15 @@ class analysis(object) :
 
     def goLoop(self) : [ looper.go() for looper in self.listOfLoopersForProf ]
         
-    def sampleSpecs(self, tag = "") :
-        assert tag in self.sideBySideAnalysisTags
-        iConf = [conf["tag"] for conf in self.configurations].index(tag)
-        confSamples = self.listOfSamples(self.configurations[iConf])
-        samplesFiles = collections.defaultdict(list)
-        for looper in self.__listsOfLoopers[iConf] :
-            looper.setupSteps(minimal = True)
-            sampleSpec = filter(lambda s: looper.name == '.'.join([s.name]+[w if type(w)==str else w.name for w in s.weights]), confSamples)[0]
-            samplesFiles[(looper.name,sampleSpec.color,sampleSpec.markerStyle)].append(looper.steps[0].outputFileName)
-        
-        return [ dict(zip(["name","color","markerStyle"],sample[:3])+[("outputFileNames",fileList)]) \
-                 for sample,fileList in samplesFiles.iteritems() ]
-
+############
     def sampleLoopers(self, conf) :
 
-        def parseForNumberEvents(ss,sampletuple,nFiles,nSlices) :
-            if not ss.effectiveLumi : return (ss.nEventsMax,nFiles)
-            if ss.nEventsMax>=0: print "Warning: %s nEventsMax ignored in favor of effectiveLumi."%ss.name
-            assert not sampletuple.lumi, "Cannot calculate effectiveLumi for _data_ sample %s"%ss.name
+        def parseForNumberEvents(spec,tup,nFiles,nSlices) :
+            if not spec.effectiveLumi : return (spec.nEventsMax,nFiles)
+            if spec.nEventsMax>=0: print "Warning: %s nEventsMax ignored in favor of effectiveLumi."%spec.weightedName
+            assert not tup.lumi, "Cannot calculate effectiveLumi for _data_ sample %s"%spec.weightedName
             nJobs = min(nFiles, nSlices)
-            nEventsTotal = ss.effectiveLumi*sampletuple.xs
+            nEventsTotal = spec.effectiveLumi * tup.xs
             if nEventsTotal < nJobs : return (1,int(nEventsTotal+0.9))
             return (1+int(nEventsTotal/nJobs), nFiles)
 
@@ -154,9 +148,9 @@ class analysis(object) :
             return invalid
 
         def allCalculables(calcs,weights,adjustedSteps) :
-            secondaries = filter(lambda s: issubclass(type(s),wrappedChain.wrappedChain.calculable),adjustedSteps)
-            weightsAlready = [filter(lambda c: c.name==w, secondaries+calcs)[0] for w in filter(lambda w: type(w)==str, weights)]
-            weightsAdditional = filter(lambda w: type(w)!=str, weights)
+            secondaries = [ s for s in adjustedSteps if issubclass(type(s),wrappedChain.wrappedChain.calculable) ]
+            weightsAlready = [next(c for c in secondaries+calcs if c.name==w) for w in weights if type(w)==str ]
+            weightsAdditional = [ w for w in weights if type(w)!=str ]
             def check(As,Bs) :
                 intersect = set([a.name for a in As]).intersection(set([b.name for b in Bs]))
                 assert not intersect, "Warning: { %s } are already listed in listOfCalculables."%','.join(intersect)
@@ -166,35 +160,28 @@ class analysis(object) :
             return calcs + [calculables.weight(weightsAdditional+weightsAlready)] + weightsAdditional + secondaries
 
         def looper(spec) :
-            pars = {"rawSample":spec.name, "sample":'.'.join([spec.name]+[w if type(w)==str else w.name for w in spec.weights]) }
-            pars.update(conf)
-            sampleTuple = self.sampleDict[pars["rawSample"]]
-            isData = bool(sampleTuple.lumi)
+            assert spec.weightedName not in sampleNames,"Duplicate sample name %s is not allowed."%spec.weightedName ; sampleNames.add(spec.weightedName)
+            pars = dict( list(conf.iteritems()) + [("baseSample",spec.name), ("sample",spec.weightedName) ] )
+            tup = self.sampleDict[spec.name]
             inputFiles = utils.readPickle(self.inputFilesListFile(spec.name))[:spec.nFilesMax]
-            nEventsMax,nFilesMax = parseForNumberEvents(spec, sampleTuple, len(inputFiles), self.__nSlices)
+            nEventsMax,nFilesMax = parseForNumberEvents(spec, tup, len(inputFiles), self.__nSlices)
             inputFiles = inputFiles[:nFilesMax]
 
-            adjustedSteps = [ steps.Master.Master(xs = sampleTuple.xs, xsPostWeights = spec.xsPostWeights,
-                                                  lumi = spec.overrideLumi if spec.overrideLumi!=None else sampleTuple.lumi,
-                                                  lumiWarn = lumiWarn(isData, nEventsMax, spec.nFilesMax) )
-                              ] + steps.adjustSteps(self.listOfSteps(pars), "Data" if isData else "Mc")
-            selectors = [ (s.name,s.moreName,s.moreName2) for s in filter(lambda s: s.isSelector, adjustedSteps) ]
-            for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s,%s) is not allowed."%sel
+            adjustedSteps = [ steps.Master.Master(xs = tup.xs, xsPostWeights = spec.xsPostWeights,
+                                                  lumi = spec.overrideLumi if spec.overrideLumi!=None else tup.lumi,
+                                                  lumiWarn = lumiWarn(tup.lumi, nEventsMax, spec.nFilesMax) )
+                              ] + steps.adjustSteps(self.listOfSteps(pars), "Data" if tup.lumi else "Mc")
 
             return analysisLooper( mainTree = self.mainTree(),   otherTreesToKeepWhenSkimming = self.otherTreesToKeepWhenSkimming(),
                                    nEventsMax = nEventsMax,      leavesToBlackList = self.leavesToBlackList(),
                                    steps = adjustedSteps,        calculables = allCalculables( self.listOfCalculables(pars), spec.weights, adjustedSteps ),
                                    inputFiles = inputFiles,      name = pars["sample"],
-                                   localStem  = self.localStem,  subDir = "%(tag)s/config%(codeString)s"%conf,
+                                   localStem  = self.localStem,  subDir = "%(tag)s"%conf,
                                    globalStem = self.globalStem, quietMode = self.__loop>1 )
-        
-        confSamples = self.listOfSamples(conf)
-        sampleKeys = [ (s.name,)+tuple([w if type(w)==str else w.name for w in s.weights]) for s in confSamples ]
-        for key in sampleKeys : assert 1==sampleKeys.count(key), "Duplicate sample name %s is not allowed."%'.'.join(key)
-
-        return [ looper(sampleSpec) for sampleSpec in confSamples ]
-
+        sampleNames = set()
+        return [ looper(sampleSpec) for sampleSpec in self.listOfSamples(conf) ]
     
+############
     def mergeOutput(self) :
         if not os.path.exists(self.jobsFile) : return
 
@@ -212,4 +199,3 @@ class analysis(object) :
         if not all([looper.readyMerge(slices) for looper,slices in workList]) : sys.exit(0)
         utils.operateOnListUsingQueue(nCores, mergeWorker, workList)
         os.remove(self.jobsFile)
-#############################################

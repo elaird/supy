@@ -27,27 +27,22 @@ class organizer(object) :
         def yields(self) : return tuple(map(lambda h: (h.GetBinContent(2),h.GetBinError(2)) if h else None, self["counts"]))
 
 
-    def __init__(self, tag, sampleSpecs = [] , configurationId = 0 ) :
-        self.configurationId = configurationId
+    def __init__(self, tag, sampleSpecs = [] ) :
         r.gROOT.cd()
-        r.gDirectory.mkdir("config%d"%self.configurationId)
         self.samples = tuple([copy.deepcopy(spec) for spec in sampleSpecs]) # columns
         self.steps = tuple(self.__inititialStepsList())  # rows
         self.scaled = False
         self.lumi = 1.0
         self.tag = tag
-        self.alternateConfigurations = [] if configurationId else \
-                                       [organizer(tag,sampleSpecs,i) for i in range(1,len(sampleSpecs[0]["outputFileNames"]))]
-        self.calculablesGraphs
+        self.calculables
+        #self.calculablesGraphs
             
     def __inititialStepsList(self) :
         """Scan samples in parallel to ensure consistency and build list of step dicts"""
         steps = []
 
         for sample in self.samples :
-            assert len(sample["outputFileNames"]) > self.configurationId, \
-                   "You cannot request a configurationId >= than the number of outputFileNames in the sample."
-            sample['file'] = r.TFile(sample["outputFileNames"][self.configurationId])
+            sample['file'] = r.TFile(sample["outputFileName"])
             sample['dir'] = sample['file'].Get("Master")
             def extract(histName,bin=1) :
                 hist = sample['dir'].Get(histName)
@@ -97,9 +92,6 @@ class organizer(object) :
                 step[key] = val[:index] + val[index+1:]
 
     def mergeSamples(self,sources = [], targetSpec = {}, keepSources = False, allWithPrefix = None) :
-        for org in self.alternateConfigurations :
-            org.mergeSamples(sources,targetSpec,keepSources,allWithPrefix)
-
         assert not self.scaled, "Merge must be called before calling scale."
 
         if not sources and allWithPrefix:
@@ -127,7 +119,6 @@ class organizer(object) :
             return tuple(val)
 
         r.gROOT.cd()
-        r.gDirectory.cd("config%d"%self.configurationId)
         dir = target["dir"] = r.gDirectory.mkdir(target["name"])
         for step in self.steps :
             if step.name is not "": dir = dir.mkdir(*step.nameTitle)
@@ -142,9 +133,6 @@ class organizer(object) :
         return
 
     def scale(self, lumiToUseInAbsenceOfData = None, toPdf = False) :
-        for org in self.alternateConfigurations :
-            org.scale(lumiToUseInAbsenceOfData, toPdf)
-
         dataIndices = filter(lambda i: "lumi" in self.samples[i], range(len(self.samples))) if not toPdf else []
         assert len(dataIndices)<2, \
                "What should I do with more than one data sample?"
