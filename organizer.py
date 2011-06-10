@@ -21,21 +21,21 @@ class organizer(object) :
             for key in self :
                 if key in ["nJobsHisto"] : continue
                 elif key in ["lumiHisto","xsHisto"] :
-                    map(  lambda hs: hs[0].Scale(  1.0  /hs[1]['nJobs']),       filter(lambda hs: hs[0],                   zip(self[key],samples)) )
-                else: map(lambda hs: hs[0].Scale(hs[1]["xs"]/hs[1]['nEvents']), filter(lambda hs: hs[0] and hs[1]["nEvents"] and "xs" in hs[1], zip(self[key],samples)) )
+                    [ hist.Scale(  1.0 / sample['nJobs'] ) for hist,sample in zip(self[key],samples) if hist ]
+                else: [ hist.Scale(sample["xs"]/sample['nEvents']) for hist,sample in zip(self[key],samples)
+                        if hist and sample['nEvents'] and "xs" in sample ]
 
-        def yields(self) : return tuple(map(lambda h: (h.GetBinContent(2),h.GetBinError(2)) if h else None, self["counts"]))
+        def yields(self) : return tuple([(h.GetBinContent(2),h.GetBinError(2)) if h else None for h in self["counts"]])
 
 
     def __init__(self, tag, sampleSpecs = [] ) :
         r.gROOT.cd()
-        self.samples = tuple([copy.deepcopy(spec) for spec in sampleSpecs]) # columns
-        self.steps = tuple(self.__inititialStepsList())  # rows
         self.scaled = False
         self.lumi = 1.0
         self.tag = tag
-        self.calculables
-        #self.calculablesGraphs
+        self.samples = tuple([copy.deepcopy(spec) for spec in sampleSpecs]) # columns
+        self.steps = tuple(self.__inititialStepsList())  # rows
+        self.calculablesGraphs
             
     def __inititialStepsList(self) :
         """Scan samples in parallel to ensure consistency and build list of step dicts"""
@@ -57,24 +57,13 @@ class organizer(object) :
             assert ("xs" in sample)^("lumi" in sample), "Error: Sample %s has both lumi and xs."% sample["name"]
             
         dirs = [ s['dir'] for s in self.samples]
-        while dirs[0] :
-            keysets = [set(filter(lambda name: name!="Calculables",[key.GetName() for key in dir.GetListOfKeys()])) for dir in dirs]
-            keys = reduce( lambda x,y: x|y ,keysets,set())
-
-            subdirNames = map(lambda d,keys:  filter(lambda k: ( type(d.Get(k)) is r.TDirectoryFile), keys),  dirs,keysets)
-            subdirLens = map(len,subdirNames)
-            if sum(subdirLens) :
-                keys.remove(subdirNames[0][0])
-                subdirs = map(lambda d,names: d.Get(names[0]), dirs,subdirNames)
-                assert subdirLens == [1]*len(dirs), \
-                       "Organizer can only interpret a single subdirectory in any given directory.\n%s"%str(subdirNames)
-                nameTitles = set(map(lambda sd: (sd.GetName(),sd.GetTitle()), subdirs))
-                assert len(nameTitles)==1,"Subdirectory names,titles must be identical. %s"%str(nameTitles)
-            else: subdirs = [None]*len(dirs)
-            
+        while any(dirs) :
+            keysets = [ [key.GetName() for key in dir.GetListOfKeys() if key.GetName()!="Calculables"] for dir in dirs ]
+            keys = set(sum(keysets,[]))
+            subdirs = map(lambda d,keys: next((d.Get(k) for k in keys if type(d.Get(k)) is r.TDirectoryFile), None), dirs,keysets)
+            if any(subdirs) : keys.remove(next(iter(subdirs)).GetName())
             steps.append( self.step(self.samples,dirs,keys) )
             dirs = subdirs
-
         return steps
 
     def indexOfSampleWithName(self,name) :
@@ -83,9 +72,7 @@ class organizer(object) :
 
     def drop(self,sampleName) :
         index = self.indexOfSampleWithName(sampleName)
-        if index is None :
-            print "%s is not present: cannot drop"%sampleName
-            return
+        if index is None : print "%s is not present: cannot drop"%sampleName; return
         self.samples = self.samples[:index] + self.samples[index+1:]
         for step in self.steps:
             for key,val in step.iteritems():
@@ -94,21 +81,21 @@ class organizer(object) :
     def mergeSamples(self,sources = [], targetSpec = {}, keepSources = False, allWithPrefix = None) :
         assert not self.scaled, "Merge must be called before calling scale."
 
-        if not sources and allWithPrefix:
-            sources = filter(lambda n: re.match(allWithPrefix,n), [s["name"] for s in self.samples])
+        if not sources and allWithPrefix: sources = [s["name"] for s in self.samples if re.match(allWithPrefix,s["name"])]
+        sourceIndices = [i for i in range(len(self.samples)) if self.samples[i]["name"] in sources]
+        sources = [s for s in self.samples if s["name"] in sources]
+        if not len(sourceIndices) : print "None of the samples you want merged are specified, no action taken : "%str(allWithPrefix); return
+        else: print ''.join("You have requested to merge unspecified sample %s\n"%src["name"]
+                            for src in sources if src not in self.samples),
 
-        for src in sources:
-            if not src in map(lambda s: s["name"], self.samples): print "You have requested to merge unspecified sample %s"%src
-        sourceIndices = filter(lambda i: self.samples[i]["name"] in sources, range(len(self.samples)))
-        if not len(sourceIndices) : print "None of the samples you want merged are specified, no action taken." ;return
         target = copy.deepcopy(targetSpec)
-        target['sources'] = map(lambda i: self.samples[i]["name"], sourceIndices)
-        target['nEvents'] = map(lambda i: self.samples[i]['nEvents'], sourceIndices)
-        if all(["xs" in self.samples[i] for i in sourceIndices]) : 
-            target["xsOfSources"] = [self.samples[i]["xs"] for i in sourceIndices ]
+        target['sources'] = [s["name"] for s in sources]
+        target['nEvents'] = [s['nEvents'] for s in sources]
+        if all(["xs" in s for s in sources]) : 
+            target["xsOfSources"] = [s["xs"] for s in sources ]
             target["xs"] = sum(target["xsOfSources"])
-        elif all(["lumi" in self.samples[i] for i in sourceIndices]):
-            target["lumiOfSources"] = [self.samples[i]["lumi"] for i in sourceIndices ]
+        elif all(["lumi" in s for s in sources]):
+            target["lumiOfSources"] = [s["lumi"] for s in sources ]
             target["lumi"] = sum(target['lumiOfSources'])
         else: raise Exception("Cannot merge data with sim")
         
@@ -119,10 +106,10 @@ class organizer(object) :
             return tuple(val)
 
         r.gROOT.cd()
-        dir = target["dir"] = r.gDirectory.mkdir(target["name"])
+        r.gDirectory.mkdir(target["name"]).cd()
+        target["dir"] = r.gDirectory
         for step in self.steps :
-            if step.name is not "": dir = dir.mkdir(*step.nameTitle)
-            dir.cd()
+            r.gDirectory.mkdir(*step.nameTitle).cd()
             for key,val in step.iteritems():
                 sources = filter(None, map(val.__getitem__,sourceIndices))
                 hist = sources[0].Clone(key) if len(sources) else None
@@ -133,18 +120,16 @@ class organizer(object) :
         return
 
     def scale(self, lumiToUseInAbsenceOfData = None, toPdf = False) :
-        dataIndices = filter(lambda i: "lumi" in self.samples[i], range(len(self.samples))) if not toPdf else []
-        assert len(dataIndices)<2, \
-               "What should I do with more than one data sample?"
-        iData = dataIndices[0] if len(dataIndices) else None
+        dataIndices = [i for i,sample in enumerate(self.samples) if "lumi" in sample and not toPdf ]
+        iData = next( iter(dataIndices), None)
         self.lumi = self.samples[iData]["lumi"] if iData!=None else 0.0 if toPdf else lumiToUseInAbsenceOfData
-        assert self.lumi or toPdf, \
-               "You need to have a data sample or specify the lumi to use."
         if type(self.lumi) is list : self.lumi = sum(self.lumi)
+        assert len(dataIndices)<2, "What should I do with more than one data sample?"
+        assert self.lumi or toPdf, "You need to have a data sample or specify the lumi to use."
 
         for step in self.steps :
             for key,hists in step.iteritems() :
-                if key in ["lumiHisto","xsHisto","nJobsHisto","nEventsHisto"] : continue
+                if key in ["lumiHisto","xsHisto","xsPostWeightsHisto","nJobsHisto","nEventsHisto"] : continue
                 for i,h in enumerate(hists):
                     if not h: continue
                     if toPdf : h.Scale(1/h.Integral("width") if h.Integral() else 1.0)
@@ -163,15 +148,15 @@ class organizer(object) :
     @property
     def calculables(self) :
         def nodes(file, dirName) :
-            dir = file.Get(dirName)
             def category(title) :
                 return ("fltr" if dirName=="Master" else
                         "leaf" if dirName=="Leaves" else 
                         "fake" if title.count(configuration.fakeString()) else 
                         "calc" )
             def keyNames(path,descend=False) :
-                dirs = filter(lambda name: type(file.Get(path+name)) is r.TDirectoryFile and name!="Calculables", [k.GetName() for k in file.Get(path[:-1]).GetListOfKeys()])
-                return [path+dir for dir in dirs] + (sum([keyNames(path+dir+"/",descend) for dir in dirs],[]) if dirs and descend else [])
+                dirs = [ k.GetName() for k in file.Get(path[:-1]).GetListOfKeys()
+                         if type(file.Get(path+k.GetName())) is r.TDirectoryFile and k.GetName()!="Calculables" ]
+                return [path+dir for dir in dirs] + sum([keyNames(path+dir+"/",descend) for dir in dirs if descend],[])
 
             calcDirs = [file.Get(name) for name in keyNames(dirName+'/',descend=(dirName=="Master"))]
             return [(calcDir.GetName(),
