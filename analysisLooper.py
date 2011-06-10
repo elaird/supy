@@ -62,21 +62,9 @@ class analysisLooper :
                                                       maxArrayLength = configuration.maxArrayLength(),
                                                       trace = configuration.trace(),
                                                       )
-            map( self.processEvent, chainWrapper.entries(self.nEventsMax) )
+            [ all(step(eventVars) for step in self.steps) for eventVars in chainWrapper.entries(self.nEventsMax) ]
             self.recordLeavesAndCalcsUsed( chainWrapper.activeKeys(), chainWrapper.calcDependencies() )
         else : self.recordLeavesAndCalcsUsed([], {})
-
-    def processEvent(self,eventVars) :
-        for step in self.steps :
-            try:
-                if not step(eventVars) : break
-            except Exception as e:
-                print "\nProblem with %s\n%s\n"%(type(step),step.moreName)
-                import traceback
-                tb = sys.exc_info()[2]
-                traceback.print_tb(tb, limit=20, file=sys.stdout)
-                print e.__class__.__name__,":", e
-                sys.exit(0)
 
     def recordLeavesAndCalcsUsed(self, activeKeys, calculableDependencies) :
         calcs = dict([(calc.name,calc) for calc in self.calculables])
@@ -202,8 +190,8 @@ class analysisLooper :
                 for key,val in data.iteritems() : stepDict[key].append(val)
     
         for step,stepDict in filter(lambda s: s[0].isSelector, zip(self.steps, products)) :
-            step.increment(True, w = sum(stepDict["nPass"]))
-            step.increment(False, w = sum(stepDict["nFail"]))
+            step.increment(True, sum(stepDict["nPass"]))
+            step.increment(False,sum(stepDict["nFail"]))
                 
         self.printStats()
         print utils.hyphens

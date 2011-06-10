@@ -1,4 +1,4 @@
-from bisect import bisect
+import traceback
 #####################################
 class analysisStep(object) :
     """Base class for analysis steps.
@@ -17,12 +17,16 @@ class analysisStep(object) :
     def outputSuffix(self) : return "_%s.txt"%self.name
 
     def __call__(self,eventVars) :
-        if self.disabled : return True
-        if not self.isSelector : return self.uponAcceptance(eventVars) or True
-        passed = bool(self.select(self.tracer(eventVars) if self.tracer else eventVars))
-        self.increment(passed)
-        return passed
-    def increment(self, passed, w = None) : self.book.fill(passed, "counts", 2, 0, 2, w = w)
+        try:
+            if self.disabled : return True
+            if not self.isSelector : return self.uponAcceptance(eventVars) or True
+            passed = bool(self.select(self.tracer(eventVars) if self.tracer else eventVars))
+            self.increment(passed)
+            return passed
+        except Exception as e:
+            traceback.print_tb(sys.exc_info()[2], limit=20, file=sys.stdout)
+            print e.__class__.__name__,":", e, "\nProblem with %s\n%s\n"%(type(self),self.moreName)
+            sys.exit(0)
 
     @property
     def name(self) : return self.__class__.__name__
@@ -31,14 +35,11 @@ class analysisStep(object) :
     @property
     def isSelector(self) : return hasattr(self,"select")
     @property
-    def nFail(self) :  return self.nFromCountsHisto(1)
+    def nFail(self) : return self.book["counts"].GetBinContent(1) if "counts" in self.book else 0.0
     @property
-    def nPass(self) :  return self.nFromCountsHisto(2)
+    def nPass(self) : return self.book["counts"].GetBinContent(2) if "counts" in self.book else 0.0
 
-    def nFromCountsHisto(self, bin) :
-        if "counts" not in self.book : return 0.0
-        return self.book["counts"].GetBinContent(bin)
-    
+    def increment(self, passed, w = None) : self.book.fill(passed, "counts", 2, 0, 2, w = w)
     def setOutputFileStem(self, stem) : self.__outputFileStem = stem
     def requiresNoSetBranchAddress(self) : return False
     def disable(self) : self.disabled = True
