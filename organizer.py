@@ -35,7 +35,8 @@ class organizer(object) :
         self.tag = tag
         self.samples = tuple(copy.deepcopy(sampleSpecs)) # columns
         self.steps # rows
-        self.calculablesGraphs
+        self.calculables
+        #self.calculablesGraphs
         
     @property
     def steps(self) :
