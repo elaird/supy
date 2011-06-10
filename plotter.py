@@ -150,10 +150,10 @@ class plotter(object) :
             self.canvas.Clear()
             
         unprintedSteps = True
-        finalStep = filter(lambda s: any(s.yields()), self.someOrganizer.steps)[-1]
+        finalStep = filter(lambda s: any(s.yields), self.someOrganizer.steps)[-1]
         self.stepsSoFar=[]
         for step in self.someOrganizer.steps :
-            isSelector = (not len(step)>1) or any(step.yields())
+            isSelector = (not len(step)>1) or any(step.yields)
 
             self.stepsSoFar.append(step)
             if isSelector : unprintedSteps = True
@@ -413,7 +413,7 @@ class plotter(object) :
         space = 1
 
         nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in self.someOrganizer.steps]))
-        for i,step in enumerate(filter(lambda s: any(s.yields()),steps[-self.nLinesMax:])) :
+        for i,step in enumerate(filter(lambda s: any(s.yields),steps[-self.nLinesMax:])) :
             absI = i + (0 if len(steps) <= self.nLinesMax else len(steps)-self.nLinesMax)
             letter = string.ascii_letters[absI]
             x = 0.01
@@ -421,7 +421,7 @@ class plotter(object) :
             text.DrawTextNDC(x, y, nametitle.format(letter, step.name, step.title ))
 
             nums = []
-            for iYield,k in enumerate(step.yields()) :
+            for iYield,k in enumerate(step.yields) :
                 special = "lumi" in self.someOrganizer.samples[iYield] and not self.showErrorsOnDataYields
                 s = utils.roundString(*k, width=(colWidth-space), noSci = self.noSci or special, noErr = special) if k else "-    "
                 nums.append(s.rjust(colWidth))

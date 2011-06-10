@@ -24,7 +24,7 @@ class organizer(object) :
                     [ hist.Scale(  1.0 / sample['nJobs'] ) for hist,sample in zip(self[key],samples) if hist ]
                 else: [ hist.Scale(sample["xs"]/sample['nEvents']) for hist,sample in zip(self[key],samples)
                         if hist and sample['nEvents'] and "xs" in sample ]
-
+        @property
         def yields(self) : return tuple([(h.GetBinContent(2),h.GetBinError(2)) if h else None for h in self["counts"]])
 
 
@@ -33,12 +33,13 @@ class organizer(object) :
         self.scaled = False
         self.lumi = 1.0
         self.tag = tag
-        self.samples = tuple([copy.deepcopy(spec) for spec in sampleSpecs]) # columns
-        self.steps = tuple(self.__inititialStepsList())  # rows
+        self.samples = tuple(copy.deepcopy(sampleSpecs)) # columns
+        self.steps # rows
         self.calculablesGraphs
-            
-    def __inititialStepsList(self) :
-        """Scan samples in parallel to ensure consistency and build list of step dicts"""
+        
+    @property
+    def steps(self) :
+        if hasattr(self,"_organizer__steps") : return self.__steps
         steps = []
 
         for sample in self.samples :
@@ -64,19 +65,8 @@ class organizer(object) :
             if any(subdirs) : keys.remove(next(iter(subdirs)).GetName())
             steps.append( self.step(self.samples,dirs,keys) )
             dirs = subdirs
-        return steps
-
-    def indexOfSampleWithName(self,name) :
-        someList = [sample["name"] for sample in self.samples]
-        return someList.index(name) if name in someList else None
-
-    def drop(self,sampleName) :
-        index = self.indexOfSampleWithName(sampleName)
-        if index is None : print "%s is not present: cannot drop"%sampleName; return
-        self.samples = self.samples[:index] + self.samples[index+1:]
-        for step in self.steps:
-            for key,val in step.iteritems():
-                step[key] = val[:index] + val[index+1:]
+        self.__steps = tuple(steps)
+        return self.__steps
 
     def mergeSamples(self,sources = [], targetSpec = {}, keepSources = False, allWithPrefix = None) :
         assert not self.scaled, "Merge must be called before calling scale."
@@ -138,6 +128,18 @@ class organizer(object) :
                     axis = h.GetYaxis() if dim==1 else h.GetZaxis() if dim==2 else None
                     if axis: axis.SetTitle("p.d.f." if toPdf else "%s / %s pb^{-1}"%(axis.GetTitle(),str(self.lumi)))
         self.scaled = True
+
+    def drop(self,sampleName) :
+        index = self.indexOfSampleWithName(sampleName)
+        if index is None : print "%s is not present: cannot drop"%sampleName; return
+        self.samples = self.samples[:index] + self.samples[index+1:]
+        for step in self.steps:
+            for key,val in step.iteritems():
+                step[key] = val[:index] + val[index+1:]
+
+    def indexOfSampleWithName(self,name) :
+        someList = [sample["name"] for sample in self.samples]
+        return someList.index(name) if name in someList else None
 
     def indicesOfStepsWithKey(self,key) :
         return filter( lambda i: key in self.steps[i], range(len(self.steps)))
