@@ -75,7 +75,7 @@ class organizer(object) :
         if not sources and allWithPrefix: sources = [s["name"] for s in self.samples if re.match(allWithPrefix,s["name"])]
         sourceIndices = [i for i in range(len(self.samples)) if self.samples[i]["name"] in sources]
         sources = [s for s in self.samples if s["name"] in sources]
-        if not len(sourceIndices) : print "None of the samples you want merged are specified, no action taken : "%str(allWithPrefix); return
+        if not len(sourceIndices) : print "None of the samples you want merged are specified, no action taken : %s"%str(allWithPrefix); return
         else: print ''.join("You have requested to merge unspecified sample %s\n"%src["name"]
                             for src in sources if src not in self.samples),
 
