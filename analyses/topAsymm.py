@@ -61,8 +61,8 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                             names = ["qcd_mg_ht_%s_%s"%t for t in zip(qM,qM[1:]+["inf"])])
         def ttbar_mg(eL) :
             intrinsicR = -0.05
-            return (specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kBlue,  weights = calculables.Gen.wNonQQbar()) +
-                    #specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kRed,  weights = calculables.Gen.wQQbar()) +
+            return (specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kBlue,  weights = "wNonQQbar") +
+                    #specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kRed,  weights = "wQQbar") +
                     #specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kOrange,   weights = calculables.Top.wTopAsym(-0.30, intrinsicR = intrinsicR)) +
                     #specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kYellow-3, weights = calculables.Top.wTopAsym( 0.00, intrinsicR = intrinsicR)) +
                     #specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kRed,      weights = calculables.Top.wTopAsym( 0.30, intrinsicR = intrinsicR)) +
@@ -85,8 +85,8 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                   ttbar_mg(5) +
                   [])
 
-    def conclude(self,org) :
-        #organize
+    def conclude(self,pars) :
+        org = self.organizer(pars)
         org.mergeSamples(targetSpec = {"name":"Data 2011", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu")
         org.mergeSamples(targetSpec = {"name":"qcd_mg", "color":r.kBlue}, allWithPrefix="qcd_mg")
         #org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")

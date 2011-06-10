@@ -3,12 +3,12 @@ import analysis,samples,calculables,steps
 class topAsymmShell(analysis.analysis) :
 
     def parameters(self) :
-        objects = {}
+        objects = self.vary()
         fields =                           [ "jet",              "met",           "sumP4",                "sumPt",                 "muon",       "electron",        "photon",        "muonsInJets"]
         #objects["calo"] = dict(zip(fields, [("xcak5Jet","Pat"),  "metP4AK5TypeII","xcSumP4",              "xcSumPt",               ("muon","Pat"),("electron","Pat"),("photon","Pat"), False]))
         objects["pf"]   = dict(zip(fields, [("xcak5JetPF","Pat"),"metP4PF",       "xcak5JetPFRawSumP4Pat","xcak5JetPFRawSumPtPat", ("muon","PF"),("electron","PF"),("photon","Pat"),   True]))
 
-        leptons = {}
+        leptons = self.vary()
         fieldsLepton    =                            ["name","ptMin",              "isoVar", "triggerList"]
         leptons["muon"]     = dict(zip(fieldsLepton, ["muon",     25, "CombinedRelativeIso", ("HLT_Mu24_v1","HLT_Mu24_v2")]))
         #leptons["electron"] = dict(zip(fieldsLepton, ["electron", 30,         "IsoCombined", ("FIX","ME")]))
@@ -21,12 +21,12 @@ class topAsymmShell(analysis.analysis) :
         
         return { "objects": objects,
                  "lepton" : leptons,
-                 "nJets" :  [{"min":4,"max":None}],
+                 "nJets" :  {"min":4,"max":None},
                  "bVar" : bVar,
-                 "sample" : {"top" : {"bCut":bCut["normal"],  "lIso":lIso["normal"]},
-                             #"Wlv" : {"bCut":bCut["inverted"],"lIso":lIso["normal"]},
-                             #"QCD" : {"bCut":bCut["normal"],  "lIso":lIso["inverted"]}
-                             }
+                 "selection" : self.vary({"top" : {"bCut":bCut["normal"],  "lIso":lIso["normal"]},
+                                          #"Wlv" : {"bCut":bCut["inverted"],"lIso":lIso["normal"]},
+                                          #"QCD" : {"bCut":bCut["normal"],  "lIso":lIso["inverted"]}
+                                          })
                  }
 
     def listOfCalculables(self, pars) :
@@ -112,14 +112,14 @@ class topAsymmShell(analysis.analysis) :
              steps.Filter.pt("mixedSumP4",min=20),
              
              topAsymmShell.lepIso(0,pars), topAsymmShell.lepIso(1,pars),
-             steps.Filter.multiplicity("%sIndices%s"%lepton, max = pars["sample"]["lIso"]["nMaxIso"]),
-             steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = ("%s"+pars["sample"]["lIso"]["indices"]+"%s")%lepton, index = 0),
+             steps.Filter.multiplicity("%sIndices%s"%lepton, max = pars["selection"]["lIso"]["nMaxIso"]),
+             steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = ("%s"+pars["selection"]["lIso"]["indices"]+"%s")%lepton, index = 0),
              
              ]+[steps.Histos.value(bVar, 60,0,15, indices = "%sIndicesBtagged%s"%obj["jet"], index = i) for i in range(3)]+[
             steps.Histos.value("TopRatherThanWProbability", 100,0,1),
             #steps.Filter.value("TopRatherThanWProbability", min = 0.02),
             steps.Filter.value(bVar, indices = "%sIndicesBtagged%s"%obj["jet"], index = 1, min = 0.0),
-            steps.Filter.value(bVar, indices = "%sIndicesBtagged%s"%obj["jet"], **pars["sample"]["bCut"]),
+            steps.Filter.value(bVar, indices = "%sIndicesBtagged%s"%obj["jet"], **pars["selection"]["bCut"]),
             ])
         if not withPlots : selections = filter(lambda s: hasattr(s,"select"), selections)
         return selections
