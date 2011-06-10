@@ -46,11 +46,14 @@ def operateOnListUsingQueue(nCores,workerFunc,inList) :
     for process in listOfProcesses :
         process.terminate()
 #####################################
-def goWorker(q):
-    while True:
-        item = q.get()
-        item.go()
-        q.task_done()
+class qWorker(object) :
+    def __init__(self,func = None) : self.func = func
+    def __call__(self,q) :
+        while True:
+            item = q.get()
+            if self.func : self.func(*item)
+            else: item()
+            q.task_done()
 #####################################
 def canvas(name) :
     c = r.TCanvas(name,name, 260*2, 200*2)

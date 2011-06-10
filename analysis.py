@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import os,sys,copy,cPickle,collections,tempfile
 import utils,steps,samples,configuration,calculables,organizer,wrappedChain
 from analysisLooper import analysisLooper
@@ -54,7 +53,6 @@ class analysis(object) :
                     self.__jobs.append({"iConfig":iConf,"iSample":iSample,"iSlice":iSlice})
 
         if self.__jobId==None and self.__loop!=None : utils.writePickle( self.jobsFile, (self.__loop,self.jobs) )
-
 ############
     @property
     def name(self) : return self.__class__.__name__
@@ -101,34 +99,30 @@ class analysis(object) :
         os.system("rm -r %s"%tmpDir)
 
     def makeInputFileLists(self) :
-        def inputFilesEvalWorker(q):
-            while True:
-                sampleName,command = q.get()
-                if not (os.path.exists(self.inputFilesListFile(sampleName)) and configuration.useCachedFileLists()) :
-                    fileNames = eval(command)
-                    assert fileNames, "The command '%s' produced an empty list of files"%command
-                    tmpDir,localFileName,globalFileName = self.globalToLocal(self.inputFilesListFile(sampleName))
-                    utils.writePickle(localFileName, fileNames)
-                    self.localToGlobal(tmpDir, localFileName, globalFileName)
-                q.task_done()
+        def makeFileList(name) :
+            if os.path.exists(self.inputFilesListFile(name)) and configuration.useCachedFileLists() : return
+            fileNames = eval(self.sampleDict[name].filesCommand)
+            assert fileNames, "The command '%s' produced an empty list of files"%command
+            tmpDir,localFileName,globalFileName = self.globalToLocal(self.inputFilesListFile(name))
+            utils.writePickle(localFileName, fileNames)
+            self.localToGlobal(tmpDir, localFileName, globalFileName)
 
         sampleNames = set(sum([[sampleSpec.name for sampleSpec in self.listOfSamples(conf)] for conf in self.configurations],[]))
-        argsList = [(name, self.sampleDict[name].filesCommand) for name in sampleNames]
-        utils.operateOnListUsingQueue(self.__loop,inputFilesEvalWorker,argsList)
+        utils.operateOnListUsingQueue(self.__loop, utils.qWorker(makeFileList), [(name,) for name in sampleNames] )
 
 ############
     def loop(self) :
         listOfLoopers = [ self.__listsOfLoopers[job["iConfig"]][job["iSample"]].slice(job["iSlice"], self.__nSlices)
                           for iJob,job in enumerate(self.jobs) if self.__jobId==None or int(self.__jobId)==iJob ]
 
-        if self.__jobId!=None : listOfLoopers[0].go()
-        elif not self.__profile : utils.operateOnListUsingQueue(self.__loop, utils.goWorker, listOfLoopers)
+        if self.__jobId!=None : listOfLoopers[0]()
+        elif not self.__profile : utils.operateOnListUsingQueue(self.__loop, utils.qWorker(), listOfLoopers)
         else :
             import cProfile
             self.listOfLoopersForProf = listOfLoopers
-            cProfile.run("someInstance.goLoop()","resultProfile.out")
+            cProfile.run("someInstance.profileLoop()","resultProfile.out")
 
-    def goLoop(self) : [ looper.go() for looper in self.listOfLoopersForProf ]
+    def profileLoop(self) : [ looper() for looper in self.listOfLoopersForProf ]
         
 ############
     def sampleLoopers(self, conf) :
@@ -185,17 +179,11 @@ class analysis(object) :
     def mergeOutput(self) :
         if not os.path.exists(self.jobsFile) : return
 
-        def mergeWorker(q):
-            while True:
-                looper,slices = q.get()
-                looper.mergeFunc(slices)
-                q.task_done()
-
         nCores,jobs = utils.readPickle(self.jobsFile)
         mergeDict = collections.defaultdict(list)
         for job in jobs : mergeDict[(job['iConfig'],job['iSample'])].append(job['iSlice'])
         workList = [ (self.__listsOfLoopers[key[0]][key[1]], val) for key,val in mergeDict.iteritems() ]
 
         if not all([looper.readyMerge(slices) for looper,slices in workList]) : sys.exit(0)
-        utils.operateOnListUsingQueue(nCores, mergeWorker, workList)
+        utils.operateOnListUsingQueue(nCores, utils.qWorker(lambda looper,slices: looper.mergeFunc(slices)), workList)
         os.remove(self.jobsFile)

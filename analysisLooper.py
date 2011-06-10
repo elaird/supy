@@ -41,7 +41,7 @@ class analysisLooper :
         return out
 
         
-    def go(self) :
+    def __call__(self) :
         self.prepareOutputDirectory()
         self.setupChains()
         self.setupSteps()
