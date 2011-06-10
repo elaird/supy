@@ -1,5 +1,5 @@
 import os
-import analysis,utils,calculables,steps,samples,organizer,plotter,samplesMCOld
+import analysis,utils,calculables,steps,samples,plotter,samplesMCOld
 import ROOT as r
 
 class exampleInclusive(analysis.analysis) :
@@ -19,7 +19,8 @@ class exampleInclusive(analysis.analysis) :
                                                                  color = r.kBlue, effectiveLumi = 500) ,
                                                 applyPostWeightXS = pars["xsPostWeights"])
     
-    def conclude(self,org) :
+    def conclude(self,pars) :
+        org = self.organizer(pars)
         org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="v12_qcd_py6")
         org.scale(100)
         plotter.plotter( org,

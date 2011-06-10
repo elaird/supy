@@ -18,10 +18,9 @@ class analysis(object) :
     def otherTreesToKeepWhenSkimming(self) : return [("lumiTree","tree")]
     def leavesToBlackList(self) : return []
     def parameters(self) : return {}
-    def conclude(self, org) : return
-    def concludeAll(self) :
-        for conf in self.configurations :
-            self.conclude( organizer.organizer( conf['tag'], self.sampleSpecs(conf['tag'])))
+    def conclude(self, config) : return
+    def concludeAll(self) : utils.operateOnListUsingQueue( 4, utils.qWorker(self.conclude), [(conf,) for conf in self.configurations] )
+    def organizer(self, config) : return organizer.organizer(config['tag'], self.sampleSpecs(config['tag']))
 
 ############
     def __init__(self, options) :

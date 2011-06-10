@@ -61,8 +61,9 @@ class example(analysis.analysis) :
         return (samples.specify(names = "Example_Skimmed_900_GeV_Data", color = r.kBlack, markerStyle = 20) +
                 samples.specify(names = "Example_Skimmed_900_GeV_MC", color = r.kRed, effectiveLumi = 0.5) )
 
-    def conclude(self,org) :
+    def conclude(self,pars) :
         #make a pdf file with plots from the histograms created above
+        org = self.organizer(pars)
         org.scale()
         plotter.plotter( org,
                          psFileName = self.psFileName(org.tag),
