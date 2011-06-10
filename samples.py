@@ -1,11 +1,12 @@
 import collections, configuration, calculables, copy
 
-def specify(names = [], overrideLumi = None, xsPostWeights = None, effectiveLumi = None, nFilesMax = None, nEventsMax = None, weights = [], color = 1, markerStyle = 1 ) :
+def specify(names = [], overrideLumi = None, xsPostWeights = None, effectiveLumi = None, nFilesMax = None, nEventsMax = None, weights = [], color = 1, markerStyle = 1 , weightedName = None) :
     assert not (overrideLumi and type(names)==list)
     if type(names) != list : names = [names]
     if type(weights) != list : weights = [weights]
-    samplespec = collections.namedtuple("samplespec", "name overrideLumi xsPostWeights effectiveLumi nFilesMax nEventsMax weights color markerStyle")
-    return [samplespec(name,overrideLumi,xsPostWeights,effectiveLumi,nFilesMax,nEventsMax,weights,color,markerStyle) for name in names]
+    samplespec = collections.namedtuple("samplespec", "name weightedName overrideLumi xsPostWeights effectiveLumi nFilesMax nEventsMax weights color markerStyle")
+    weightNames = [w if type(w)==str else w.name for w in weights]
+    return [samplespec(name,'.'.join([name]+weightNames),overrideLumi,xsPostWeights,effectiveLumi,nFilesMax,nEventsMax,weights,color,markerStyle) for name in names]
     
 class SampleHolder(dict) :
     sample = collections.namedtuple("sample", "filesCommand xs lumi ptHatMin")
