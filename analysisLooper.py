@@ -30,6 +30,8 @@ class analysisLooper :
             if iStep : continue
             assert step.name=="Master", "The master step must occur first."
             assert step.isSelector, "The master step must be a selector."
+        selectors = [ (s.name,s.moreName,s.moreName2) for s in filter(lambda s: s.isSelector, self.steps) ]
+        for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s,%s) is not allowed."%sel
 
     def childName(self, iSlice) : return "%s_%d"%(self.name, iSlice)
     def slice(self, iSlice, nSlices) :
