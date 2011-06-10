@@ -4,7 +4,7 @@ import ROOT as r
 
 class exampleInclusive(analysis.analysis) :
     def parameters(self) :
-        return {"xsPostWeights" : {"exact":True,"approx":False}}
+        return {"xsPostWeights" : self.vary({"exact":True,"approx":False})}
 
     def listOfSteps(self,pars) :
         return [ steps.Print.progressPrinter(),
