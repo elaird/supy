@@ -858,8 +858,7 @@ class TagProbability(wrappedChain.calculable) :
         assert jetType in ['b','q','n']
         self.fixes = (collection[0], str.upper(jetType)+"_"+tag + collection[1])
         fileName = ("jetProbability_%s"+tag+"%s.txt") % xcStrip(collection)
-        file = open(fileName,"r")
-        lines = file.readlines(4)
+        with open(fileName,"r") as file : lines = file.readlines(4)
         bins,low,up = tuple(lines[0].split())
         self.hist = r.TH1D(fileName+jetType,fileName+jetType,int(bins),float(low),float(up))
         for line in lines[1:] :
