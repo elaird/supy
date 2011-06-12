@@ -10,8 +10,7 @@ class analysisLooper :
                  localStem = None, globalStem = None, subDir = None, steps = None, calculables = None, inputFiles = None, name = None,
                  nEventsMax = None, quietMode = None) :
 
-        for arg in ["mainTree", "otherTreesToKeepWhenSkimming", "leavesToBlackList",
-                    "steps", "calculables",
+        for arg in ["mainTree", "otherTreesToKeepWhenSkimming", "leavesToBlackList", "steps", "calculables",
                     "localStem", "globalStem", "subDir", "inputFiles", "name", "nEventsMax", "quietMode"] :
             setattr(self, arg, eval(arg))
 
@@ -30,7 +29,7 @@ class analysisLooper :
             if iStep : continue
             assert step.name=="Master", "The master step must occur first."
             assert step.isSelector, "The master step must be a selector."
-        selectors = [ (s.name,s.moreName,s.moreName2) for s in filter(lambda s: s.isSelector, self.steps) ]
+        selectors = [ (s.name,s.moreName,s.moreName2) for s in self.steps if s.isSelector ]
         for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s,%s) is not allowed."%sel
 
     def childName(self, iSlice) : return "%s_%d"%(self.name, iSlice)
@@ -39,7 +38,6 @@ class analysisLooper :
         out.inputFiles = out.inputFiles[iSlice::nSlices]
         out.name = self.childName(iSlice)
         return out
-
         
     def __call__(self) :
         self.prepareOutputDirectory()
@@ -69,8 +67,8 @@ class analysisLooper :
     def recordLeavesAndCalcsUsed(self, activeKeys, calculableDependencies) :
         calcs = dict([(calc.name,calc) for calc in self.calculables])
         def calcTitle(key) : return "%s%s%s"%(calcs[key].moreName, calcs[key].moreName2, configuration.fakeString() if calcs[key].isFake() else "")
-        self.calculablesUsed = set([ (key,calcTitle(key)) for key,isLeaf,keyType in filter(lambda k:not k[1], activeKeys)])
-        self.leavesUsed      = set([ (key,       keyType) for key,isLeaf,keyType in filter(lambda k:k[1], activeKeys)])
+        self.calculablesUsed = set([ (key,calcTitle(key)) for key,isLeaf,keyType in activeKeys if not isLeaf ])
+        self.leavesUsed      = set([ (key,       keyType) for key,isLeaf,keyType in activeKeys if isLeaf ])
         self.calculableDependencies = {}
         for key,val in calculableDependencies.iteritems() :
             self.calculableDependencies[key] = set(map(lambda c: c if type(c)==tuple else (c,c),val))
@@ -103,8 +101,11 @@ class analysisLooper :
 
     def deleteChains(self) : #free up memory (http://wlav.web.cern.ch/wlav/pyroot/memory.html)
         for chain in self.chains.values() : chain.IsA().Destructor( chain )        
-
-
+        for step in self.steps :
+            for name,hist in list(step.book.iteritems()) :
+                del hist
+                del step.book[name]
+        
     def setupSteps(self, minimal = False) :
         r.gROOT.cd()
         current = r.gDirectory
@@ -212,8 +213,7 @@ class analysisLooper :
 
         print utils.hyphens
         print "Calculables' configuration:"
-        for calc in filter( lambda x: x[1]!="", self.calculablesUsed) :
-            print "%s\t\t%s"%calc
+        print '\n'.join("%s\t\t%s"%calc for calc in self.calculablesUsed if calc[1])
                 
         #print step statistics
         if not len(self.steps) : return

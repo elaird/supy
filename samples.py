@@ -39,7 +39,7 @@ class SampleHolder(dict) :
     def manageInclusive(self, sampleSpecs = [], applyPostWeightXS = False) :
         inclusiveSpecs = filter(lambda ss: ss.name in self.inclusiveNames, sampleSpecs )
         for spec in inclusiveSpecs :
-            group = filter(lambda g: spec.name in g, self.inclusiveGroups)[0]
+            group = next( g for g in self.inclusiveGroups if spec.name in g )
             greaterPtHat = group[ 1 + group.index(spec.name) : ]
 
             if not greaterPtHat : continue

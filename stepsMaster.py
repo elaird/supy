@@ -27,7 +27,7 @@ class Master(analysisStep) :
     def mergeFunc(self, products) :
         def printComment(lines) :
             skip = ['Source file','Target path','Found subdirectory']
-            line = filter( lambda line: not any(item in line for item in skip), lines.split('\n'))[0]
+            line = next(L for L in lines.split('\n') if not any(item in L for item in skip))
             print line.replace("Target","The output") + " has been written." 
 
         def cleanUp(stderr, files) :
