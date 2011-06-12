@@ -105,8 +105,9 @@ def fileListFromSrmLs(dCachePrefix = None, location = None, itemsToSkip = [], si
     offset = 0
     output = []
     #print cmd
-    while len(output) >= 1000*offset :
-        cmd="srmls --count 1000 --offset %d %s"% (1000*offset,location)
+    maxSrmls = 500
+    while len(output) >= maxSrmls*offset :
+        cmd="srmls --count %d --offset %d %s"% (maxSrmls,maxSrmls*offset,location)
         output += getCommandOutput(cmd)["stdout"].split('\n')
         offset += 1
     for line in output :
