@@ -22,18 +22,21 @@ class jsonMaker(analysis.analysis) :
         #out += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted2",     weights = jw)
         #out += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted3",     weights = jw)
         
-        out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Arlo",     weights = jw)
-        #out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Zoe",      weights = jw)
-        out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Arlo",     weights = jw)
-        out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Arlo2",    weights = jw)
-        out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Robin1",   weights = jw)
-        #out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe1",     weights = jw)
-        #out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe2",     weights = jw)
+        # out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Arlo",     weights = jw)
+        # #out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Zoe",      weights = jw)
+        # out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Arlo",     weights = jw)
+        # out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Arlo2",    weights = jw)
+        # out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Robin1",   weights = jw)
+        # #out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe1",     weights = jw)
+        # #out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe2",     weights = jw)
+        # 
+        # # out += specify(names = "SingleMu.Run2011A-PR-v2.Robin1", weights = jw )
+        # # out += specify(names = "SingleMu.Run2011A-PR-v2.Robin2", weights = jw )
+        # # out += specify(names = "SingleMu.Run2011A-PR-v2.Alex", weights = jw )
+        # # #out += specify(names = "SingleMu.Run2011A-PR-v2.Burt", weights = jw )
 
-        # out += specify(names = "SingleMu.Run2011A-PR-v2.Robin1", weights = jw )
-        # out += specify(names = "SingleMu.Run2011A-PR-v2.Robin2", weights = jw )
-        # out += specify(names = "SingleMu.Run2011A-PR-v2.Alex", weights = jw )
-        # #out += specify(names = "SingleMu.Run2011A-PR-v2.Burt", weights = jw )
+        out += specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt" ) # no json filtering necessary, golden json used
+        out += specify(names = "SingleMu.Run2011A-May10-v1.FJ.Burt" ) # no json filtering necessary, golden json used
 
         return out
 
