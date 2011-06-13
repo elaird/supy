@@ -1,4 +1,4 @@
-import copy,array,os,cPickle,tempfile,sys,collections
+import copy,array,os,cPickle,tempfile,collections
 import wrappedChain,utils,steps,configuration
 from autoBook import autoBook
 import ROOT as r
@@ -69,7 +69,7 @@ class analysisLooper :
         def calcTitle(key) : return "%s%s%s"%(calcs[key].moreName, calcs[key].moreName2, configuration.fakeString() if calcs[key].isFake() else "")
         self.calculablesUsed = set([ (key,calcTitle(key)) for key,isLeaf,keyType in activeKeys if not isLeaf ])
         self.leavesUsed      = set([ (key,       keyType) for key,isLeaf,keyType in activeKeys if isLeaf ])
-        self.calculableDependencies = {}
+        self.calculableDependencies = collections.defaultdict(set)
         for key,val in calculableDependencies.iteritems() :
             self.calculableDependencies[key] = set(map(lambda c: c if type(c)==tuple else (c,c),val))
         
@@ -133,7 +133,7 @@ class analysisLooper :
         def writeFromSteps() :
             while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
             for step in self.steps :
-                r.gDirectory.mkdir(step.book.title, step.moreName+step.moreName2).cd()
+                r.gDirectory.mkdir(step.name, step.moreName+step.moreName2).cd()
                 for hist in [step.book[name] for name in step.book.fillOrder] : hist.Write()
                 if configuration.trace() and step.isSelector :
                     r.gDirectory.mkdir("Calculables").cd()
