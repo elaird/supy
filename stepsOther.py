@@ -1,7 +1,7 @@
 import copy,array,os,collections
 import ROOT as r
 from analysisStep import analysisStep
-import stepsMaster
+import stepsMaster,configuration
 import utils
 #####################################
 class histogrammer(analysisStep) :
@@ -73,6 +73,7 @@ class assertNotYetCalculated(analysisStep) :
 class skimmer(analysisStep) :
     
     def __init__(self) :
+        assert not configuration.trace(), "Skimmer works in non-traced mode; turn off configuration.trace() for now."
         self.outputTree=0
         self.moreName="(see below)"
         self.alsoWriteExtraTree=False #hard-code until this functionality is fixed
