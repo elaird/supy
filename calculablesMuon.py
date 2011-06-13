@@ -61,6 +61,22 @@ class CombinedRelativeIso(wrappedChain.calculable) :
                          self.source[self.HcalIso],
                          self.source[self.P4])
 ##############################
+class TrackRelIso(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["TrackIso","P4"])
+    def trackreliso(self,iso,p4) : return iso/(iso+p4.pt()) if iso or p4.pt() else 1
+    def update(self,ignored) :
+        self.value = utils.hackMap(self.trackreliso, self.source[self.TrackIso],self.source[self.P4] )
+##############################
+class HcalRelIso(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["HcalIso","P4"])
+    def hcalreliso(self,iso,p4) : return iso/(iso+p4.pt()) if iso or p4.pt() else 1
+    def update(self,ignored) :
+        self.value = utils.hackMap(self.hcalreliso, self.source[self.HcalIso],self.source[self.P4] )
+##############################
 class IndicesOther(calculables.indicesOther) :
     def __init__(self, collection = None) :
         super(IndicesOther, self).__init__(collection)
@@ -125,6 +141,26 @@ class LeadingPt(wrappedChain.calculable) :
     def update(self,ignored) :
         indices = self.source[self.Indices]
         self.value = 0 if not indices else self.source[self.P4][indices[0]].pt()
+class LeadingPtAny(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["IndicesAnyIso","P4"])
+
+    def update(self,ignored) :
+        indices = self.source[self.IndicesAnyIso]
+        self.value = 0 if not indices else self.source[self.P4][indices[0]].pt()
+class LeadingIsoAny(wrappedChain.calculable) :
+    def __init__(self, collection = None, ptMin = None, iso = None) :
+        self.fixes = collection
+        self.stash(["IndicesAnyIsoIsoOrder","P4"])
+        self.iso = ("%s"+iso+"%s")%self.fixes
+        self.ptMin = ptMin
+        self.moreName = "%s of most isolated w/ pt>%.1f"%(iso,ptMin)
+
+    def update(self,ignored) :
+        p4 = self.source[self.P4]
+        indices = filter(lambda i: p4[i].pt()>self.ptMin, self.source[self.IndicesAnyIsoIsoOrder])
+        self.value = 10e10 if not indices else self.source[self.iso][indices[0]]
 ##############################
 class DiMuon(wrappedChain.calculable) :
     def __init__(self, collection = None) :
