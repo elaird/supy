@@ -2,6 +2,13 @@ import samples
 from configuration import srm
 muon = samples.SampleHolder()
 
+#L1Fast 2011
+muon.add("SingleMu.Run2011A-PR-v4.FJ.Burt",'%s/bbetchar/ICF/automated/2011_06_11_17_10_04/")'%srm, lumi = 294.45 )
+muon.add("SingleMu.Run2011A-May10-v1.FJ.Burt",'%s/bbetchar/ICF/automated/2011_06_11_17_16_01/")'%srm, lumi = 186.55 )
+#skims, have pf muon |eta|<2.2, pt>24
+muon.add("SingleMu.Run2011A-PR-v4.FJ.Burt_skim",    'utils.fileListFromDisk(location = "/vols/cms02/bbetchar/01_skims/SingleMu.Run2011A-PR-v4.FJ.Burt/SingleMu.Run2011A-PR-v4.FJ.Burt_*_skim.root", isDirectory = False)',   lumi = 2.944500e+02)
+muon.add("SingleMu.Run2011A-May10-v1.FJ.Burt_skim", 'utils.fileListFromDisk(location = "/vols/cms02/bbetchar/01_skims/SingleMu.Run2011A-May10-v1.FJ.Burt/SingleMu.Run2011A-May10-v1.FJ.Burt_*_skim.root", isDirectory = False)',lumi = 1.865500e+02)
+
 #2011
 muon.add("SingleMu.Run2011A-PR-v2.Robin1",'%s/rnandi/ICF/automated/2011_05_02_11_24_48/")'%srm, lumi = 999999.9)
 muon.add("SingleMu.Run2011A-PR-v2.Robin2",'%s/rnandi/ICF/automated/2011_05_07_17_01_57/")'%srm, lumi = 999999.9)
