@@ -13,24 +13,45 @@ mc.add("qcd_mg_ht_250_500",  '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"250To500"), x
 mc.add("qcd_mg_ht_500_1000", '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"500To1000"),xs = {"LO":5200, "fakeNLO":5200*mgKFactor}["fakeNLO"])
 mc.add("qcd_mg_ht_1000_inf", '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"1000"),     xs = {"LO":83, "fakeNLO":83*mgKFactor}["fakeNLO"])
 
+binsXs = [(  15, 8.159e+08),
+         (  30, 5.312e+07),
+         (  50, 6.359e+06),
+         (  80, 7.843e+05),
+         ( 120, 1.151e+05),
+         ( 170, 2.426e+04),
+         ( 300, 1.168e+03),
+         ( 470, 7.022e+01),
+         ( 600, 1.555e+01),
+         ( 800, 1.844e+00),
+         (1000, 3.321e-01),
+         (1400, 1.087e-02),
+         (1800, 3.575e-04),
+          (None,None)]
+xss  = [bxs[1] for bxs in binsXs]
+bins = [bxs[0] for bxs in binsXs]
+
 py6Loc = '/bbetchar//ICF/automated/2011_04_07_19_50_45/'
 py6Dset = "/QCD_Pt_%s_TuneZ2_7TeV_pythia6.Spring11-PU_S1_START311_V1G1-v1.AODSIM"
+for low,high,xs in zip(bins[:-1],bins[1:],xss) :
+    mc.add("qcd_py6_pt_%s"%("%d_%d"%(low,high) if high else "%d"%low),
+           '%s/%s/%s")'%(srm,py6Loc,py6Dset%("%dto%d"%(low,high) if high else "%d"%low)),
+           xs = xs)
 
-mc.add("qcd_py6_pt_15_30",     '%s/%s/%s")'%(srm,py6Loc,py6Dset%"15to30"),     xs = 8.159e+08)
-mc.add("qcd_py6_pt_30_50",     '%s/%s/%s")'%(srm,py6Loc,py6Dset%"30to50"),     xs = 5.312e+07)
-mc.add("qcd_py6_pt_50_80",     '%s/%s/%s")'%(srm,py6Loc,py6Dset%"50to80"),     xs = 6.359e+06)
-mc.add("qcd_py6_pt_80_120",    '%s/%s/%s")'%(srm,py6Loc,py6Dset%"80to120"),    xs = 7.843e+05)
-mc.add("qcd_py6_pt_120_170",   '%s/%s/%s")'%(srm,py6Loc,py6Dset%"120to170"),   xs = 1.151e+05)
-mc.add("qcd_py6_pt_170_300",   '%s/%s/%s")'%(srm,py6Loc,py6Dset%"170to300"),   xs = 2.426e+04)
-mc.add("qcd_py6_pt_300_470",   '%s/%s/%s")'%(srm,py6Loc,py6Dset%"300to470"),   xs = 1.168e+03)
-mc.add("qcd_py6_pt_470_600",   '%s/%s/%s")'%(srm,py6Loc,py6Dset%"470to600"),   xs = 7.022e+01)
-mc.add("qcd_py6_pt_600_800",   '%s/%s/%s")'%(srm,py6Loc,py6Dset%"600to800"),   xs = 1.555e+01)
-mc.add("qcd_py6_pt_800_1000",  '%s/%s/%s")'%(srm,py6Loc,py6Dset%"800to1000"),  xs = 1.844e+00)
-mc.add("qcd_py6_pt_1000_1400", '%s/%s/%s")'%(srm,py6Loc,py6Dset%"1000to1400"), xs = 3.321e-01)
-mc.add("qcd_py6_pt_1400_1800", '%s/%s/%s")'%(srm,py6Loc,py6Dset%"1400to1800"), xs = 1.087e-02)
-mc.add("qcd_py6_pt_1800",      '%s/%s/%s")'%(srm,py6Loc,py6Dset%"1800"),       xs = 3.575e-04)
+py6FJLoc = '/bbetchar//ICF/automated/2011_06_12_05_20_30/'
+py6Summer11Dset = "/QCD_Pt-%s_TuneZ2_7TeV_pythia6.Summer11-PU_S3_START42_V11-v2.AODSIM"
+for low,high,xs in zip(bins[:-1],bins[1:],xss) :
+    mc.add("qcd_py6fj_pt_%s"%("%d_%d"%(low,high) if high else "%d"%low),
+           '%s/%s/%s")'%(srm,py6FJLoc,py6Summer11Dset%("%dto%d"%(low,high) if high else "%d"%low)),
+           xs = xs)
 
 ######### TT / EWK ############
+pyFJLoc = '/bbetchar/ICF/automated/2011_06_12_04_28_39/'
+summer11pu = '.Summer11-PU_S3_START42_V11-v2.AODSIM/'
+mc.add("tt_tauola_fj", '%s/%s/TT_TuneZ2_7TeV-pythia6-tauola%s")'%(srm,pyFJLoc,summer11pu),    xs = {"LO":94,    "BurtGuessNLO":150}["BurtGuessNLO"])   
+mc.add("w_enu_fj",     '%s/%s/WToENu_TuneZ2_7TeV-pythia6%s")'%(srm,pyFJLoc,summer11pu),       xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
+mc.add("w_munu_fj",    '%s/%s/WToMuNu_TuneZ2_7TeV-pythia6%s")'%(srm,pyFJLoc,summer11pu),       xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
+mc.add("w_taunu_fj",   '%s/%s/WToTauNu_TuneZ2_7TeV-pythia6-tauola%s")'%(srm,pyFJLoc,summer11pu),xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
+
 burt_ttbar = '/bbetchar//ICF/automated/2011_04_07_19_30_01/'
 burt_ewk = '/bbetchar//ICF/automated/2011_04_07_19_40_51/'
 spring11pu = "Spring11-PU_S1_START311_V1G1-v1.AODSIM"
