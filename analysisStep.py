@@ -1,4 +1,4 @@
-import traceback
+import traceback,sys
 #####################################
 class analysisStep(object) :
     """Base class for analysis steps.
