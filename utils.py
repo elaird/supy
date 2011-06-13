@@ -275,11 +275,11 @@ def printSkimResults(org) :
         print "efficiencies for skimmer with index",iSkimmer
         print "-"*40
         names = tuple([sample["name"] for sample in org.samples])
-        denom = tuple([failPass[1] for failPass in steps[0].rawFailPass])
-        numer = tuple([failPass[1] for failPass in steps[iSkimmer].rawFailPass])
+        denom = tuple([failPass[1] for failPass in org.steps[0].rawFailPass])
+        numer = tuple([failPass[1] for failPass in org.steps[iSkimmer].rawFailPass])
         effic = tuple([num/float(den) for num,den in zip(numer,denom)])
-        lumis =  tuple([sample["lumi"] for sample in org.samples])
-        xss  =   tuple([sample["xs"] for sample in org.samples])
+        lumis =  tuple([sample["lumi"] if "lumi" in sample else None for sample in org.samples])
+        xss  =   tuple([sample["xs"] if "xs" in sample else None for sample in org.samples])
 
         assert all([lumi or xs for lumi,xs in zip(lumis,xss)]), "Failed to find either xs or lumi"
 
