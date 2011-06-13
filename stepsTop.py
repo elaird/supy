@@ -113,7 +113,7 @@ class jetProbability(analysisStep) :
     def varsToPickle(self) : return ["bvar","extraName"]
     def mergeFunc(self, products) :
         file = open(self.outputFileName,"w")
-        rFile = r.TFile.Open( self._outputFileStem + stepsMaster.Master.outputSuffix(), "READ")
+        rFile = r.TFile.Open( self.__outputFileStem + stepsMaster.Master.outputSuffix(), "READ")
         hists = [rFile.FindObjectAny(self.bvar+suf) for suf in ['b','q','n']]
         nBins = hists[0].GetNbinsX()
         for hist in filter(None,hists) : hist.Scale(1 / hist.Integral(0,nBins+1,"width"))
