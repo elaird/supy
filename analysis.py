@@ -42,14 +42,15 @@ class analysis(object) :
             if self.__jobId==None :
                 os.system("mkdir -p %s"%self.globalStem)
                 self.makeInputFileLists()
+                for conf in self.configurations : os.system("mkdir -p %s/%s"%(self.globalStem,conf['tag']))
 
-        self.__listsOfLoopers = []
+        self.__listsOfLoopers = {}
         self.__jobs = []
         for iConf,conf in enumerate(self.configurations) :
-            self.__listsOfLoopers.append( self.sampleLoopers(conf) )
-            for iSample in range(len(self.__listsOfLoopers[-1])) :
+            self.__listsOfLoopers[conf['tag']] = self.sampleLoopers(conf)
+            for iSample in range(len(self.__listsOfLoopers[conf['tag']])) :
                 for iSlice in range(self.__nSlices) :
-                    self.__jobs.append({"iConfig":iConf,"iSample":iSample,"iSlice":iSlice})
+                    self.__jobs.append({"tag":conf['tag'],"iSample":iSample,"iSlice":iSlice})
         for iJob,job in enumerate(self.__jobs) : job['iJob'] = iJob
         if self.__jobId==None and self.__loop!=None : utils.writePickle( self.jobsFile, (self.__loop,self.jobs) )
 ############
@@ -76,14 +77,13 @@ class analysis(object) :
     def psFileName(self,tag = "") : return "%s/%s%s.ps"%(self.globalStem, self.name, "_"+tag if len(tag) else "")
 
     def sampleSpecs(self, tag = "") :
-        iConf = [conf["tag"] for conf in self.configurations].index(tag)
-        confSamples = self.listOfSamples(self.configurations[iConf])
+        confSamples = self.listOfSamples(next(conf for conf in self.configurations if conf['tag']==tag))
         def sampleSpecDict(looper) :
             looper.setupSteps(minimal = True)
             sampleSpec = next( s for s in confSamples if s.weightedName == looper.name ) 
             return {"name":looper.name, "outputFileName":looper.steps[0].outputFileName,
                     "color":sampleSpec.color, "markerStyle":sampleSpec.markerStyle }
-        return [ sampleSpecDict(looper) for looper in self.__listsOfLoopers[iConf]]
+        return [ sampleSpecDict(looper) for looper in self.__listsOfLoopers[tag] ]
     
 ############
     def inputFilesListFile(self, sampleName) : return "%s/%s.inputFiles"%(self.globalStem, sampleName)
@@ -111,7 +111,7 @@ class analysis(object) :
 
 ############
     def loop(self) :
-        listOfLoopers = [ self.__listsOfLoopers[job["iConfig"]][job["iSample"]].slice(job["iSlice"], self.__nSlices)
+        listOfLoopers = [ self.__listsOfLoopers[job["tag"]][job["iSample"]].slice(job["iSlice"], self.__nSlices)
                           for job in self.jobs if self.__jobId==None or int(self.__jobId)==job['iJob'] ]
 
         if self.__jobId!=None : listOfLoopers[0]()
@@ -180,7 +180,7 @@ class analysis(object) :
 
         nCores,jobs = utils.readPickle(self.jobsFile)
         mergeDict = collections.defaultdict(list)
-        for job in jobs : mergeDict[(job['iConfig'],job['iSample'])].append((job['iSlice'],"job%(iJob)d___%(iConfig)d_%(iSample)d_%(iSlice)d.sh"%job))
+        for job in jobs : mergeDict[(job['tag'],job['iSample'])].append((job['iSlice'],"%(tag)s/job%(iJob)d___%(iSample)d_%(iSlice)d.sh"%job))
         workList = [ (self.__listsOfLoopers[key[0]][key[1]], zip(*val)[0], zip(*val)[1]) for key,val in mergeDict.iteritems() ]
 
         if not all([looper.readyMerge(slices,jobs) for looper,slices,jobs in workList]) : sys.exit(0)
@@ -189,7 +189,8 @@ class analysis(object) :
 
 ############
     def manageSecondaries(self) :
-        for conf,looper in zip(self.configurations,self.__listsOfLoopers) :
+        for conf in self.configurations :
+            loopers = self.__listsOfLoopers[conf['tag']]
             org = self.organizer(conf)
             calcDeps = org.self.calculablesGraphs
             secondaries = filter(lambda s: issubclass(s,calculables.secondary), looper.steps)

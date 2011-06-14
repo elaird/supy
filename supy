@@ -55,11 +55,8 @@ def importedClass(module) :
     assert module==theClass.__name__,"module name %s != class name %s"%(module, theClass.__name__)
     return theClass
 ############################################
-def submitBatchJob(jobCmd, iJob, indexDict, scriptDir, subScript, jobScript, condorTemplate) :
-    jobScriptFileName  = scriptDir+"/job"+str(iJob)+"__"
-    for key in ["iConfig","iSample","iSlice"] :
-        jobScriptFileName +="_%s"%str(indexDict[key])
-    jobScriptFileName +=".sh"
+def submitBatchJob(jobCmd, iJob, indexDict, subScript, jobScript, condorTemplate) :
+    jobScriptFileName = "%(base)s/%(tag)s/job%(iJob)d___%(iSample)d_%(iSlice)d.sh"%indexDict
 
     os.system("cp -p "+jobScript+" "+jobScriptFileName)
     outJobScript = open(jobScriptFileName,"a")
@@ -90,12 +87,14 @@ def doBatch(someInstance) :
 
     site = configuration.sitePrefix()
     for iJob,listOfIndices in enumerate( someInstance.jobs ) :
+        listOfIndices["base"] = scriptDir
         submitBatchJob("%s --jobid %d --site %s"%(baseCmd, iJob, site),
-                       iJob, listOfIndices, scriptDir = scriptDir, subScript = subScript, jobScript = jobScript, condorTemplate = condorTemplate)
+                       iJob, listOfIndices, subScript = subScript, jobScript = jobScript, condorTemplate = condorTemplate)
 ############################################
 def finish(someInstance) :
     someInstance.mergeOutput()
     try:
+        #someInstance.manageSecondaries()
         someInstance.concludeAll()
     except AssertionError as foo:
         print
