@@ -43,12 +43,13 @@ class hadronicLook(analysis.analysis) :
                                       ][2:] ),
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
-                 #"triggerList": ("HLT_HT150_v2","HLT_HT150_v3","HLT_HT160_v2","HLT_HT200_v2","HLT_HT200_v3","HLT_HT240_v2","HLT_HT250_v2","HLT_HT250_v3","HLT_HT260_v2",
-                 #                "HLT_HT300_v2","HLT_HT300_v3","HLT_HT300_v4","HLT_HT350_v2","HLT_HT350_v3","HLT_HT360_v2","HLT_HT400_v2","HLT_HT400_v3","HLT_HT440_v2",
-                 #                "HLT_HT450_v2","HLT_HT450_v3","HLT_HT500_v2","HLT_HT500_v3","HLT_HT520_v2","HLT_HT550_v2","HLT_HT550_v3")#2011 HT mania
                  #"triggerList": ("HLT_HT250_AlphaT0p55_v1","HLT_HT250_AlphaT0p55_v2","HLT_HT250_MHT60_v2","HLT_HT250_MHT60_v3","HLT_HT260_MHT60_v2","HLT_HT300_MHT75_v2","HLT_HT300_MHT75_v3","HLT_HT300_MHT75_v4"),#alphaT trigger test
-                 "triggerList": ("HLT_HT250_MHT60_v2","HLT_HT250_MHT60_v3","HLT_HT250_MHT60_v4","HLT_HT260_MHT60_v2","HLT_HT250_MHT70_v1",
-                                 "HLT_HT300_MHT75_v2","HLT_HT300_MHT75_v3","HLT_HT300_MHT75_v4","HLT_HT300_MHT75_v5", "HLT_HT300_PFMHT55_v2"),
+                 "triggerList": tuple(["HLT_HT250_MHT60_v%d"%i for i in [2,3,4,6]  ]+
+                                      ["HLT_HT250_MHT70_v%d"%i for i in [1,3]      ]+
+                                      ["HLT_HT250_MHT80_v%d"%i for i in [3]        ]+
+                                      ["HLT_HT260_MHT60_v%d"%i for i in [2]        ]+
+                                      ["HLT_HT300_MHT75_v%d"%i for i in [2,3,4,5,7]]
+                                      )
                  }
 
     def ra1Cosmetics(self) : return True
@@ -279,18 +280,13 @@ class hadronicLook(analysis.analysis) :
         from samples import specify
 
         def data() :
-            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-165970_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #263/pb
+            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-166502_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #485/pb
 
             out = []
-            out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Arlo",     weights = jw, overrideLumi =  5.07)
-            #out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Zoe",      weights = jw, overrideLumi =  0.0)
-            out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Arlo",     weights = jw, overrideLumi = 10.6 )
-            out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Arlo2",    weights = jw, overrideLumi = 84.6)
-            out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Robin1",   weights = jw, overrideLumi = 80.7)
-            out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe1",     weights = jw, overrideLumi = 2.34)
-            out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe2",     weights = jw, overrideLumi = 5.78)
-            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn",     weights = jw, overrideLumi = 70.48)
-
+            out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.Bryn", weights = jw, overrideLumi = 183.0)
+            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn1", weights = jw, overrideLumi =  70.2)
+            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn2", weights = jw, overrideLumi = 101.3)
+            
             #out += specify(names = "calo_275_scaled")
             #out += specify(names = "calo_325_scaled")
             #out += specify(names = "calo_375"       )
