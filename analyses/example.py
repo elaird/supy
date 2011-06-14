@@ -18,7 +18,7 @@ class example(analysis.analysis) :
         outList=[
             steps.Print.progressPrinter(),
             steps.Trigger.techBitFilter([0],True),
-            steps.Trigger.physicsDeclared(),
+            steps.Trigger.physicsDeclaredFilter(),
             steps.Other.vertexRequirementFilter(),
             steps.Other.monsterEventFilter(),
             
