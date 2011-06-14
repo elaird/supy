@@ -57,7 +57,7 @@ class photonLook(analysis.analysis) :
 
     def listOfCalculables(self, params) :
         if params["vertexMode"] :
-            assert params["photonId"] in ["photonIDIsoRelaxedPat","photonIDNoIsoReqPat"],"In vertexMode but requested %s"%params["photonId"]
+            assert params["photonId"] in ["photonIDTightFromTwikiPat"],"In vertexMode but requested %s"%params["photonId"]
 
         obj = params["objects"]
         _etRatherThanPt = params["etRatherThanPt"]
@@ -334,7 +334,7 @@ class photonLook(analysis.analysis) :
 
     def gJetsMgNames(self) :
         l = ["40", "100", "200", "inf"]
-        return ["g_jets_mg_ht_%s_%s_noIsoReqSkim"%(a,b) for a,b in zip(l[:-1], l[1:])]
+        return ["g_jets_mg_ht_%s_%s_skim"%(a,b) for a,b in zip(l[:-1], l[1:])]
 
     #def qcdPyNames(self) : #full samples
     #    l = ["15", "30", "50", "80", "120", "170", "300", "470", "600", "800", "1000", "1400", "1800"]
