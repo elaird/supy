@@ -23,19 +23,14 @@ class triggerLook(analysis.analysis) :
             ]
 
     def listOfSampleDictionaries(self) :
-        return [samples.jetmet, samples.photon]
+        return [samples.jetmet, samples.photon, samples.muon]
 
     def listOfSamples(self,params) :
         from samples import specify
         out = []
-        out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Arlo",  )
-        #out += specify(names = "HT.Run2011A-PromptReco-v1.AOD.Zoe",  )
-        out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Arlo",  )
-        out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Arlo2", )
-        out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Robin1",)
-        out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe1",  )
-        out += specify(names = "HT.Run2011A-PromptReco-v2.AOD.Zoe2",  )
-        
+        out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.Bryn")
+        out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn1")
+        out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn2")
         return out
         
     def conclude(self) :
