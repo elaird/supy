@@ -130,7 +130,7 @@ class photonLook(analysis.analysis) :
             steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
             steps.Trigger.physicsDeclared(),
             steps.Other.monsterEventFilter(),
-            #steps.Other.hbheNoiseFilter(),
+            steps.Other.hbheNoiseFilter(),
             steps.Trigger.hltPrescaleHistogrammer(params["triggerList"]),            
             #steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
             steps.Trigger.lowestUnPrescaledTrigger(),
