@@ -32,7 +32,7 @@ class analysisLooper :
         selectors = [ (s.name,s.moreName,s.moreName2) for s in self.steps if s.isSelector ]
         for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s,%s) is not allowed."%sel
         inter = set(s.name for s in self.steps).intersection(set(c.name for c in self.calculables))
-        assert not inter, "Steps and calculables cannot share names { %s }"%', '.join(n for n in inter)
+        if inter: print "Steps and calculables cannot share names { %s }"%', '.join(n for n in inter)
         
     def childName(self, iSlice) : return "%s_%d"%(self.name, iSlice)
     def slice(self, iSlice, nSlices) :
@@ -169,11 +169,11 @@ class analysisLooper :
         utils.writePickle( self.pickleFileName,
                            [ [pickleJar(step) for step in self.steps], self.calculablesUsed, self.leavesUsed] )
 
-    def readyMerge(self, listOfSlices, jobIds) :
+    def readyMerge(self, listOfSlices, jobs) :
         foundAll = True
-        for pickleFileName,iJob in [ (self.pickleFileName.replace(self.name, self.childName(iSlice)),iJob) for iSlice,iJob in zip(listOfSlices,jobIds) ] :
+        for pickleFileName,job in [ (self.pickleFileName.replace(self.name, self.childName(iSlice)),job) for iSlice,job in zip(listOfSlices,jobs) ] :
             if not os.path.exists(pickleFileName) :
-                print "Can't find file : %s  (job %d)"%(pickleFileName,iJob)
+                print "Can't find file : %s  (%s)"%(pickleFileName,job)
                 foundAll = False
         return foundAll
 

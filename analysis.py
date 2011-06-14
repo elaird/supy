@@ -50,7 +50,7 @@ class analysis(object) :
             for iSample in range(len(self.__listsOfLoopers[-1])) :
                 for iSlice in range(self.__nSlices) :
                     self.__jobs.append({"iConfig":iConf,"iSample":iSample,"iSlice":iSlice})
-
+        for iJob,job in enumerate(self.__jobs) : job['iJob'] = iJob
         if self.__jobId==None and self.__loop!=None : utils.writePickle( self.jobsFile, (self.__loop,self.jobs) )
 ############
     @property
@@ -112,7 +112,7 @@ class analysis(object) :
 ############
     def loop(self) :
         listOfLoopers = [ self.__listsOfLoopers[job["iConfig"]][job["iSample"]].slice(job["iSlice"], self.__nSlices)
-                          for iJob,job in enumerate(self.jobs) if self.__jobId==None or int(self.__jobId)==iJob ]
+                          for job in self.jobs if self.__jobId==None or int(self.__jobId)==job['iJob'] ]
 
         if self.__jobId!=None : listOfLoopers[0]()
         elif not self.__profile : utils.operateOnListUsingQueue(self.__loop, utils.qWorker(), listOfLoopers)
@@ -180,11 +180,10 @@ class analysis(object) :
 
         nCores,jobs = utils.readPickle(self.jobsFile)
         mergeDict = collections.defaultdict(list)
-        for iJob,job in enumerate(jobs) : mergeDict[(job['iConfig'],job['iSample'])].append((job['iSlice'],iJob))
+        for job in jobs : mergeDict[(job['iConfig'],job['iSample'])].append((job['iSlice'],"job%(iJob)d___%(iConfig)d_%(iSample)d_%(iSlice)d.sh"%job))
         workList = [ (self.__listsOfLoopers[key[0]][key[1]], zip(*val)[0], zip(*val)[1]) for key,val in mergeDict.iteritems() ]
 
-
-        if not all([looper.readyMerge(slices,iJobs) for looper,slices,iJobs in workList]) : sys.exit(0)
+        if not all([looper.readyMerge(slices,jobs) for looper,slices,jobs in workList]) : sys.exit(0)
         utils.operateOnListUsingQueue(nCores, utils.qWorker(lambda looper,slices: looper.mergeFunc(slices)), zip(zip(*workList)[0],zip(*workList)[1]))
         os.remove(self.jobsFile)
 
