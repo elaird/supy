@@ -3,7 +3,7 @@ from analysisStep import analysisStep
 import stepsMaster
 import math,collections,os,utils,re
 #####################################
-class physicsDeclared(analysisStep) :
+class physicsDeclaredFilter(analysisStep) :
 
     def select (self,eventVars) :
         return eventVars["physicsDeclared"]
