@@ -101,7 +101,7 @@ class analysis(object) :
         def makeFileList(name) :
             if os.path.exists(self.inputFilesListFile(name)) and configuration.useCachedFileLists() : return
             fileNames = eval(self.sampleDict[name].filesCommand)
-            assert fileNames, "The command '%s' produced an empty list of files"%command
+            assert fileNames, "The command '%s' produced an empty list of files"%self.sampleDict[name].filesCommand
             tmpDir,localFileName,globalFileName = self.globalToLocal(self.inputFilesListFile(name))
             utils.writePickle(localFileName, fileNames)
             self.localToGlobal(tmpDir, localFileName, globalFileName)
@@ -180,9 +180,30 @@ class analysis(object) :
 
         nCores,jobs = utils.readPickle(self.jobsFile)
         mergeDict = collections.defaultdict(list)
-        for job in jobs : mergeDict[(job['iConfig'],job['iSample'])].append(job['iSlice'])
-        workList = [ (self.__listsOfLoopers[key[0]][key[1]], val) for key,val in mergeDict.iteritems() ]
+        for iJob,job in enumerate(jobs) : mergeDict[(job['iConfig'],job['iSample'])].append((job['iSlice'],iJob))
+        workList = [ (self.__listsOfLoopers[key[0]][key[1]], zip(*val)[0], zip(*val)[1]) for key,val in mergeDict.iteritems() ]
 
-        if not all([looper.readyMerge(slices) for looper,slices in workList]) : sys.exit(0)
-        utils.operateOnListUsingQueue(nCores, utils.qWorker(lambda looper,slices: looper.mergeFunc(slices)), workList)
+
+        if not all([looper.readyMerge(slices,iJobs) for looper,slices,iJobs in workList]) : sys.exit(0)
+        utils.operateOnListUsingQueue(nCores, utils.qWorker(lambda looper,slices: looper.mergeFunc(slices)), zip(zip(*workList)[0],zip(*workList)[1]))
         os.remove(self.jobsFile)
+
+############
+    def manageSecondaries(self) :
+        for conf,looper in zip(self.configurations,self.__listsOfLoopers) :
+            org = self.organizer(conf)
+            calcDeps = org.self.calculablesGraphs
+            secondaries = filter(lambda s: issubclass(s,calculables.secondary), looper.steps)
+            for secondary in secondaries :
+                for iSample in enumerate(len(org.samples)) :
+                    orgStep = next(s for s in org.steps if s.nameTitle == (secondary.name,secondary.moreName+secondary.moreName2)  )
+                    hists = dict([(name,orgStep[name][iSample]) for name in orgStep])
+                    deps = calcDeps[iSample]
+                    sample = org.samples[iSample]
+                    secondary.checkForUpdates(conf['tag'],sample['name'],deps,hists)
+                    secondary.update(conf['tag'],sample['name'],deps,hists)
+
+# Secondaries :
+#  * name1 : better stats available
+#  * name2 : was updated : rerun
+#  * name3 : deps changed {} : update and rerun
