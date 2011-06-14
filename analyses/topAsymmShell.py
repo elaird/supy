@@ -4,13 +4,14 @@ class topAsymmShell(analysis.analysis) :
 
     def parameters(self) :
         objects = self.vary()
-        fields =                           [ "jet",              "met",           "sumP4",                "sumPt",                 "muon",       "electron",        "photon",        "muonsInJets"]
-        #objects["calo"] = dict(zip(fields, [("xcak5Jet","Pat"),  "metP4AK5TypeII","xcSumP4",              "xcSumPt",               ("muon","Pat"),("electron","Pat"),("photon","Pat"), False]))
-        objects["pf"]   = dict(zip(fields, [("xcak5JetPF","Pat"),"metP4PF",       "xcak5JetPFRawSumP4Pat","xcak5JetPFRawSumPtPat", ("muon","PF"),("electron","PF"),("photon","Pat"),   True]))
+        fields =                           [ "jet",               "met",           "sumP4",    "sumPt",       "muon",         "electron",         "photon",         "muonsInJets"]
+        objects["pf"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",       "pfSumP4",  "metSumEtPF",  ("muon","PF"),  ("electron","PF"),  ("photon","Pat"),  True]))
+        #objects["calo"] = dict(zip(fields, [("xcak5Jet","Pat"),  "metP4AK5TypeII", "xcSumP4", "xcSumPt",     ("muon","Pat"), ("electron","Pat"), ("photon","Pat"),  False]))
 
         leptons = self.vary()
         fieldsLepton    =                            ["name","ptMin",              "isoVar", "triggerList"]
-        leptons["muon"]     = dict(zip(fieldsLepton, ["muon",     25, "CombinedRelativeIso", ("HLT_Mu24_v1","HLT_Mu24_v2")]))
+        leptons["muon"]     = dict(zip(fieldsLepton, ["muon",     31, "CombinedRelativeIso", ("HLT_Mu24_v1","HLT_Mu24_v2","HLT_Mu30_v3","HLT_Mu30_v4")]))
+        #leptons["muon"]     = dict(zip(fieldsLepton, ["muon",     25, "CombinedRelativeIso", ("HLT_IsoMu24_v4","HLT_IsoMu24_v5","HLT_IsoMu24_v6")]))
         #leptons["electron"] = dict(zip(fieldsLepton, ["electron", 30,         "IsoCombined", ("FIX","ME")]))
         
         bVar = "TrkCountingHighEffBJetTags"
@@ -21,11 +22,12 @@ class topAsymmShell(analysis.analysis) :
         
         return { "objects": objects,
                  "lepton" : leptons,
-                 "nJets" :  {"min":4,"max":None},
+                 "nJets" :  {"min":3,"max":None},
+                 "nJets2" : {"min":4,"max":None},
                  "bVar" : bVar,
                  "selection" : self.vary({"top" : {"bCut":bCut["normal"],  "lIso":lIso["normal"]},
-                                          #"Wlv" : {"bCut":bCut["inverted"],"lIso":lIso["normal"]},
-                                          #"QCD" : {"bCut":bCut["normal"],  "lIso":lIso["inverted"]}
+                                          "Wlv" : {"bCut":bCut["inverted"],"lIso":lIso["normal"]},
+                                          "QCD" : {"bCut":bCut["normal"],  "lIso":lIso["inverted"]}
                                           })
                  }
 
@@ -69,7 +71,7 @@ class topAsymmShell(analysis.analysis) :
         outList += [calculables.Jet.TagProbability(pars['objects']['jet'], pars['bVar'], letter) for letter in ['b','q','n']]
         outList.append( calculables.Top.TopComboLikelihood(pars['objects']['jet'], pars['bVar']))
         outList.append( calculables.Top.OtherJetsLikelihood(pars['objects']['jet'], pars['bVar']))
-        outList.append( calculables.Top.TopRatherThanWProbability() )
+        outList.append( calculables.Top.TopRatherThanWProbability(priorTop=0.5) )
         return outList
 
     def listOfSampleDictionaries(self) :
@@ -80,12 +82,13 @@ class topAsymmShell(analysis.analysis) :
     def cleanupSteps(pars) :
         obj = pars['objects']
         return ([
-            steps.Filter.multiplicity("vertexIndices",min=1),
-            steps.Filter.monster(),
             steps.Filter.hbheNoise(),
-            #steps.Trigger.techBitFilter([0],True), #FIXME
-            steps.Trigger.physicsDeclared(),            
+            steps.Trigger.physicsDeclaredFilter(),
+            steps.Filter.monster(),
+            steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
             steps.Trigger.lowestUnPrescaledTrigger(), #FIXME ele
+            steps.Histos.multiplicity("vertexIndices", max=15),
+            steps.Filter.multiplicity("vertexIndices",min=1),
             ]+[
             steps.Filter.multiplicity(s, max = 0) for s in ["%sIndices%s"%obj["photon"],
                                                             "%sIndicesUnmatched%s"%obj["photon"],
