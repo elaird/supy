@@ -45,12 +45,20 @@ photon.add("Photon.Run2011A-PromptReco-v4.AOD.Zoe3_skim", 'utils.fileListFromDis
 
 #MC skims
 #MG G jets
-photon.add("g_jets_mg_ht_100_200_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_*_skim.root", isDirectory = False)'%dir,
-           xs = 8.158440e-02 * 4.414520e+03)
-photon.add("g_jets_mg_ht_200_inf_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_200_inf_*_skim.root", isDirectory = False)'%dir,
-           xs = 1.554971e-01 * 6.159500e+02)
-photon.add("g_jets_mg_ht_40_100_noIsoReqSkim",  'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_40_100_*_skim.root", isDirectory = False)'%dir,
-           xs = 4.606359e-03 * 2.999740e+04)
+#dir = "/vols/cms02/elaird1/29_skims/04_photons/v1"
+#photon.add("g_jets_mg_ht_100_200_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_*_skim.root", isDirectory = False)'%dir,
+#           xs = 8.158440e-02 * 4.414520e+03)
+#photon.add("g_jets_mg_ht_200_inf_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_200_inf_*_skim.root", isDirectory = False)'%dir,
+#           xs = 1.554971e-01 * 6.159500e+02)
+#photon.add("g_jets_mg_ht_40_100_noIsoReqSkim",  'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_40_100_*_skim.root", isDirectory = False)'%dir,
+#           xs = 4.606359e-03 * 2.999740e+04)
+
+dir = "/vols/cms02/elaird1/29_skims/04_photons/v2"
+photon.add("g_jets_mg_ht_100_200_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_*_skim.root", isDirectory = False)'%dir,xs = 8.149830e-02 * 4.414520e+03)
+photon.add("g_jets_mg_ht_200_inf_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_200_inf_*_skim.root", isDirectory = False)'%dir,xs = 1.552981e-01 * 6.159500e+02)
+photon.add("g_jets_mg_ht_40_100_skim",  'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_40_100_*_skim.root", isDirectory = False)'%dir, xs = 4.607037e-03 * 2.999740e+04)
+
+dir = "/vols/cms02/elaird1/29_skims/04_photons/v1"
 #MG QCD
 photon.add("qcd_mg_ht_1000_inf_noIsoReqSkim",   'utils.fileListFromDisk(location = "%s/qcd_mg_ht_1000_inf_*_skim.root", isDirectory = False)'%dir,
            xs = 4.445170e-03 * 1.054100e+02)
