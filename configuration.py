@@ -31,7 +31,7 @@ def stepsToDisableForData() :
     return ["genMotherHistogrammer", "photonPurityPlots", "photonEfficiencyPlots"]
 
 def stepsToDisableForMc() :
-    return ["l1Filter", "hltFilter", "hltFilterList", "lowestUnPrescaledTrigger", "lowestUnPrescaledTriggerHistogrammer", "hbheNoiseFilter", "bxFilter", "physicsDeclaredFilter", "techBitFilter", "hbheNoise"]
+    return ["l1Filter", "hltFilter", "hltFilterList", "lowestUnPrescaledTriggerFilter", "lowestUnPrescaledTriggerHistogrammer", "hbheNoiseFilter", "bxFilter", "physicsDeclaredFilter", "techBitFilter", "hbheNoise"]
 
 def histogramsToDisableForData() :
     return ["^gen"]

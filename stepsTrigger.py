@@ -90,7 +90,7 @@ class Counts(analysisStep) :
         print "The trigger counts file %s has been written."%self.outputFileName
         print utils.hyphens
 #####################################
-class lowestUnPrescaledTrigger(analysisStep) :
+class lowestUnPrescaledTriggerFilter(analysisStep) :
     def __init__(self) :
         self.moreName = "lowest unprescaled of triggers in calculable"
         
