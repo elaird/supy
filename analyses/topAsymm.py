@@ -101,10 +101,10 @@ class topAsymm(topAsymmShell.topAsymmShell) :
     def conclude(self,pars) :
         org = self.organizer(pars)
         org.mergeSamples(targetSpec = {"name":"Data 2011", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu")
-        org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kBlue+1}, sources=["tt_tauola_fj.wNonQQbar","tt_tauola_fj.wTopAsymmP00"])
+        org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kBlue+1}, sources=["tt_tauola_fj.wNonQQbar","tt_tauola_fj.wTopAsymP00"])
         org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
-        org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.N30", "color":r.kRed}, sources = ["tt_tauola_fj.wTopAsymN30","tt_tauola_mg.wNonQQbar"][:1])
-        org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.P30", "color":r.kGreen}, sources = ["tt_tauola_fj.wTopAsymP30","tt_tauola_mg.wNonQQbar"][:1])
+        org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.N30", "color":r.kRed}, sources = ["tt_tauola_fj.wTopAsymN30","tt_tauola_fj.wNonQQbar"][:1])
+        org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.P30", "color":r.kGreen}, sources = ["tt_tauola_fj.wTopAsymP30","tt_tauola_fj.wNonQQbar"][:1])
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+2}, sources = ["qcd_py6","w_munu_fj","t#bar{t}"], keepSources = True)
         org.scale()#toPdf=True)
         
