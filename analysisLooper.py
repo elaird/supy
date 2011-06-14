@@ -31,7 +31,9 @@ class analysisLooper :
             assert step.isSelector, "The master step must be a selector."
         selectors = [ (s.name,s.moreName,s.moreName2) for s in self.steps if s.isSelector ]
         for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s,%s) is not allowed."%sel
-
+        inter = set(s.name for s in self.steps).intersection(set(c.name for c in self.calculables))
+        assert not inter, "Steps and calculables cannot share names { %s }"%', '.join(n for n in inter)
+        
     def childName(self, iSlice) : return "%s_%d"%(self.name, iSlice)
     def slice(self, iSlice, nSlices) :
         out = copy.deepcopy(self)
