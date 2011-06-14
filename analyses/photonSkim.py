@@ -28,9 +28,15 @@ class photonSkim(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify
-        return specify(names = "tt_tauola_mg") +\
-               specify(names = "w_jets_mg") +\
-               specify(names = "dyll_jets_mg")
+        out = []
+        out += specify(names = "g_jets_mg_ht_40_100" )
+        out += specify(names = "g_jets_mg_ht_100_200")
+        out += specify(names = "g_jets_mg_ht_200_inf")
+        return out
+    
+        #return specify(names = "tt_tauola_mg") +\
+        #       specify(names = "w_jets_mg") +\
+        #       specify(names = "dyll_jets_mg")
 
     def listOfSampleDictionaries(self) :
         return [samples.jetmet, samples.photon, samples.mc]
