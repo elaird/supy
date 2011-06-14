@@ -177,7 +177,7 @@ class photonLook(analysis.analysis) :
                 #steps.Gen.photonEfficiencyPlots(label = "Status1Photon", ptCut = params["thresholds"]["genPhotonPtMin"],
                 #                                etaCut = 1.4, isoCut = 5.0, deltaRCut = 1.1, jets = _jet, photons = _photon),
 
-                steps.Filter.pt("%sP4%s"%_photon, min = params["thresholds"][2], indices = "%sIndices%s"%_photon, index = 0),
+                steps.Filter.pt("%sP4%s"%_photon, min = 100.0, indices = "%sIndices%s"%_photon, index = 0),
                 steps.Filter.absEta("%sP4%s"%_photon, min = params["subdet"][0], max = params["subdet"][1], indices = "%sIndices%s"%_photon, index = 0),
                 steps.Filter.DeltaRGreaterSelector(jets = _jet, particles = _photon, minDeltaR = 1.0, particleIndex = 0),
                 
@@ -464,7 +464,7 @@ class photonLook(analysis.analysis) :
         org.mergeSamples(targetSpec = {"name":"qcd_mg_nVtx",    "color":r.kBlue},  sources = [item+".photonWeight" for item in self.qcdMgNames()])
         org.mergeSamples(targetSpec = {"name":"g_jets_mg_nVtx", "color":r.kGreen}, sources = [item+".photonWeight" for item in self.gJetsMgNames()])
         smSourcesWeighted += ["qcd_mg_nVtx", "g_jets_mg_nVtx"]
-        org.mergeSamples(targetSpec = {"name":"standard_model_nVtx", "color":r.kRed, "markerStyle":1}, sources = smSourcesWeighted, keepSources = True)
+        org.mergeSamples(targetSpec = {"name":"standard_model_nVtx", "color":r.kRed}, sources = smSourcesWeighted, keepSources = True)
         
         org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Photon.Run2011")
             
@@ -544,9 +544,9 @@ class photonLook(analysis.analysis) :
                              anMode = True,
                              )
         pl.individualPlots(plotSpecs = [{"plotName":"xcak5JetAlphaTFewBinsPat",
-                                         "selName" :"variablePtGreaterFilter",
-                                         "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
-                                         "newTitle":";#alpha_{T};events / bin / 35 pb^{-1}"},
+                                         "selName" :"value",
+                                         "selDesc" :"0.40<=xcak5JetMhtOverHtPat",
+                                         "newTitle":";#alpha_{T};events / bin / 469 pb^{-1}"},
                                         
                                         #{"plotName":"xcak5JetAlphaTRoughPat",
                                         # "selName" :"variablePtGreaterFilter",
@@ -554,9 +554,9 @@ class photonLook(analysis.analysis) :
                                         # "newTitle":";#alpha_{T};events / bin / 35 pb^{-1}"},
                                         
                                         {"plotName":"xcak5JetIndicesPat",
-                                         "selName" :"variablePtGreaterFilter",
-                                         "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
-                                         "newTitle":";N_{jets};events / bin / 35 pb^{-1}"},
+                                         "selName" :"value",
+                                         "selDesc" :"0.40<=xcak5JetMhtOverHtPat",
+                                         "newTitle":";N_{jets};events / bin / 469 pb^{-1}"},
                                         
                                         #{"plotName":"photonPat1MinDRToJet",
                                         # "selName" :"passFilter",
@@ -581,12 +581,12 @@ class photonLook(analysis.analysis) :
                                         # "onlyDumpToFile":True},
 
                                         ],
-                           newSampleNames = {"qcd_mg_v12": "Madgraph QCD",
-                                             "g_jets_mg_v12": "Madgraph #gamma + jets",
-                                             "2010 Data": "Data",
-                                             "standard_model": "Standard Model",
+                           newSampleNames = {"qcd_mg_nVtx": "Madgraph QCD",
+                                             "g_jets_mg_nVtx": "Madgraph #gamma + jets",
+                                             "2011 Data": "Data",
+                                             "standard_model_nVtx": "Standard Model",
                                              },
-                           preliminary = False,
+                           preliminary = True,
                            )
 
     def makeNVertexWeights(self, org, tag, chopToOne = False) :
