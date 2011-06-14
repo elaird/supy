@@ -313,7 +313,7 @@ class TopReconstruction(wrappedChain.calculable) :
                 "iBhad": iBhad,
                 "iBlep": iBlep,
                 "iQQ": iQQ,
-                "probability" : self.source["TopComboProbability"][tuple(sorted([iBhad,iBlep])+sorted(iQQ))],
+                "probability" : self.source["TopComboProbability"][tuple(sorted([iBhad,iBlep])+sorted(iQQ))] if self.source["TopComboProbability"] else 0,
                 "sigmaL" : 1.0 / math.sqrt(leptonicFit.nu.invSigmaL2),
                 "sigmaS" : 1.0 / math.sqrt(leptonicFit.nu.invSigmaS2),
                 "residuals" : {"lepB":leptonicFit.residuals.B,
@@ -330,7 +330,7 @@ class TopReconstruction(wrappedChain.calculable) :
 
     def update(self,ignored) :
         topProbability = self.source["TopComboProbability"]
-        maxTopProbability = self.source["TopComboMaxProbability"]
+        #maxTopProbability = self.source["TopComboMaxProbability"]
         self.hadronicFitCache = {}
 
         #bIndices = set(self.source[self.IndicesBtagged][:3]) #consider the top 3 tags as possible b candidates
@@ -348,7 +348,7 @@ class TopReconstruction(wrappedChain.calculable) :
                         #if sum(pts[1:])<100 : continue # probability that the sumPt of hadronic side jets is less that 100 is only 4%
                         for zPlus in [0,1] :
                             hadKey = tuple(sorted([iBHad,iBLep]) + sorted([iP,iQ]))
-                            if topProbability[hadKey] < 0.01 : continue
+                            if hadKey not in topProbability or topProbability[hadKey] < 0.01 : continue
                             recos.append( self.reconstruct(iBHad,[iP,iQ],iBLep, zPlus))
         if not recos:
             bIndices = self.source[self.IndicesBtagged][:2]
@@ -474,6 +474,8 @@ class TopRatherThanWProbability(wrappedChain.calculable) :
         
     def update(self,ignored) :
         topLikes = self.source["TopComboLikelihood"]
+        if not topLikes :
+            self.value = 1.0/ (self.invPriorTopMinusOne + 1); return
         topL = sum(topLikes.values()) / float(len(topLikes))
         wL = self.source["OtherJetsLikelihood"]
         self.value = topL / (topL + wL * self.invPriorTopMinusOne)
