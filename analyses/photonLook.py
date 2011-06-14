@@ -44,10 +44,15 @@ class photonLook(analysis.analysis) :
                                       ][2:] ),
                  #required to be a sorted tuple with length>1
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
-                 "triggerList": ("HLT_Photon75_CaloIdVL_v1","HLT_Photon75_CaloIdVL_v2","HLT_Photon75_CaloIdVL_v3","HLT_Photon75_CaloIdVL_v4",
-                                 "HLT_Photon75_CaloIdVL_IsoL_v1","HLT_Photon75_CaloIdVL_IsoL_v2", "HLT_Photon75_CaloIdVL_IsoL_v3","HLT_Photon75_CaloIdVL_IsoL_v4",
-                                 "HLT_Photon90_CaloIdVL_v1", "HLT_Photon90_CaloIdVL_IsoL_v1", "HLT_Photon125_v1"
-                                 ),#2011 epoch 1
+                 "triggerList": tuple(#["HLT_Photon50_CaloIdVL_v%d"%i for i in range(1,3)] +
+                                      #["HLT_Photon50_CaloIdVL_IsoL_v%d"%i for i in range(1,5)]+
+                                      ["HLT_Photon75_CaloIdVL_v%d"%i for i in range(1,6)]+
+                                      ["HLT_Photon75_CaloIdVL_IsoL_v%d"%i for i in range(1,6)]+
+                                      ["HLT_Photon90_CaloIdVL_v1", "HLT_Photon90_CaloIdVL_v2"]+
+                                      ["HLT_Photon90_CaloIdVL_IsoL_v1","HLT_Photon90_CaloIdVL_IsoL_v2"]
+                                      #["HLT_Photon125_v1","HLT_Photon125_v2"]+
+                                      #["HLT_Photon125_NoSpikeFilter_v1","HLT_Photon125_NoSpikeFilter_v2","HLT_Photon125_NoSpikeFilter_v3"]
+                                      ),#2011 epoch 1
                  }
 
     def listOfCalculables(self, params) :
@@ -365,14 +370,18 @@ class photonLook(analysis.analysis) :
         zinv_mg_2010   = specify(names = ["z_inv_mg_v12_skim"], color = r.kMagenta+3)
 
         #2011
-        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-165970_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #336/pb
+        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-166502_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #485/pb
         data = []
-        #data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim", weights = jw, overrideLumi =  0.0 )
-        data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim",  weights = jw, overrideLumi =  5.07)
-        data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted1_noIsoReqSkim",      weights = jw, overrideLumi = 12.27)
-        data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted2_noIsoReqSkim",      weights = jw, overrideLumi = 83.6 )
-        data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted3_noIsoReqSkim",      weights = jw, overrideLumi = 63.7 )
-        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe_noIsoReqSkim",       weights = jw, overrideLumi = 57.1 )
+        ##data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim", weights = jw, overrideLumi =   0.0 )
+        #data += specify(names = "Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim",  weights = jw, overrideLumi =   5.07)
+        #data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted1_noIsoReqSkim",      weights = jw, overrideLumi =  12.27)
+        #data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted2_noIsoReqSkim",      weights = jw, overrideLumi =  83.6 )
+        #data += specify(names = "Photon.Run2011A-PromptReco-v2.AOD.Ted3_noIsoReqSkim",      weights = jw, overrideLumi =  63.7 )
+
+        data += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Zoe_skim", weights = jw, overrideLumi = 188.9)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe1_skim", weights = jw, overrideLumi =  70.0)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe2_skim", weights = jw, overrideLumi = 135.5)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe3_skim", weights = jw, overrideLumi =  74.4)
 
         #freaks = specify(names = "photon200_3jet")
         #cands1 = specify(names = "375_photons")
