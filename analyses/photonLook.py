@@ -101,6 +101,7 @@ class photonLook(analysis.analysis) :
                      calculables.Jet.AlphaTWithPhoton1PtRatherThanMht(obj["jet"], photons = obj["photon"], etRatherThanPt = _etRatherThanPt),
                      calculables.Jet.AlphaT(obj["jet"], _etRatherThanPt),
                      calculables.Jet.AlphaTMet(obj["jet"], _etRatherThanPt, obj["met"]),
+                     calculables.Jet.MhtOverMet((obj["jet"][0], obj["jet"][1]+params["highPtName"]), met = obj["met"]),
                      calculables.Jet.MhtOverMet((obj["jet"][0], obj["jet"][1]+params["highPtName"]), met = "%sPlus%s%s"%(obj["met"], obj["photon"][0], obj["photon"][1])),
                      calculables.Other.metPlusParticles(met = obj["met"], particles = obj["photon"]),
                      calculables.Other.minDeltaRToJet(obj["photon"], obj["jet"]),
@@ -486,10 +487,7 @@ class photonLook(analysis.analysis) :
             org = organizer.organizer( self.sampleSpecs(tag) )
 
             if "zMode" in tag :
-                #lumi = 34.7255
-                #lumi = 32.78
-                #lumi = 100.94
-                lumi = 164.64
+                lumi = 468.8
                 org.scale(lumi)
                 print "WARNING: HARD-CODED LUMI FOR Z MODE! (%g)"%lumi
             else :
