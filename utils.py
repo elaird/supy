@@ -1,5 +1,5 @@
 from multiprocessing import Process,JoinableQueue
-import os,collections,array,math,subprocess,cPickle
+import os,collections,array,math,subprocess,cPickle,traceback,sys
 import ROOT as r
 #####################################
 hyphens="-"*115
@@ -51,8 +51,12 @@ class qWorker(object) :
     def __call__(self,q) :
         while True:
             item = q.get()
-            if self.func : self.func(*item)
-            else: item()
+            try:
+                if self.func : self.func(*item)
+                else: item()
+            except Exception as e:
+                traceback.print_tb(sys.exc_info()[2], limit=20, file=sys.stdout)
+                print e.__class__.__name__,":", e
             q.task_done()
 #####################################
 def canvas(name) :
