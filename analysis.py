@@ -19,7 +19,7 @@ class analysis(object) :
     def leavesToBlackList(self) : return []
     def parameters(self) : return {}
     def conclude(self, config) : return
-    def concludeAll(self) : utils.operateOnListUsingQueue( 4, utils.qWorker(self.conclude), [(conf,) for conf in self.configurations] )
+    def concludeAll(self) : utils.operateOnListUsingQueue( 4, utils.qWorker(self.conclude), [(conf,) for conf in self.configurations if not os.path.exists(self.jobsFile(conf['tag']))] )
     def organizer(self, config) : return organizer.organizer(config['tag'], self.sampleSpecs(config['tag']))
 
 ############
@@ -29,6 +29,7 @@ class analysis(object) :
         self.__nSlices = int(options.slices) if options.slices!=None else 1
         self.__profile = options.profile
         self.__jobId   = options.jobId
+        self.__tag     = options.tag
         self.__site    = options.site if options.site!=None else configuration.sitePrefix()
 
         self.localStem  = "%s/%s"%(configuration.siteInfo(site = self.__site, key = "localOutputDir" ), self.name)
@@ -42,24 +43,26 @@ class analysis(object) :
             if self.__jobId==None :
                 os.system("mkdir -p %s"%self.globalStem)
                 self.makeInputFileLists()
-                for conf in self.configurations : os.system("mkdir -p %s/%s"%(self.globalStem,conf['tag']))
 
         self.__listsOfLoopers = {}
-        self.__jobs = []
+        self.__jobs = collections.defaultdict(list)
         for iConf,conf in enumerate(self.configurations) :
-            self.__listsOfLoopers[conf['tag']] = self.sampleLoopers(conf)
-            for iSample in range(len(self.__listsOfLoopers[conf['tag']])) :
+            tag = conf['tag']
+            self.__listsOfLoopers[tag] = self.sampleLoopers(conf)
+            for iSample in range(len(self.__listsOfLoopers[tag])) :
                 for iSlice in range(self.__nSlices) :
-                    self.__jobs.append({"tag":conf['tag'],"iSample":iSample,"iSlice":iSlice})
-        for iJob,job in enumerate(self.__jobs) : job['iJob'] = iJob
-        if self.__jobId==None and self.__loop!=None : utils.writePickle( self.jobsFile, (self.__loop,self.jobs) )
+                    self.__jobs[tag].append({"tag":tag,"iSample":iSample,"iSlice":iSlice})
+            for iJob,job in enumerate(self.__jobs[tag]) : job['iJob'] = iJob
+            if self.__jobId==None and self.__loop!=None : utils.writePickle( self.jobsFile(tag), (self.__loop,self.jobs[tag]) )
+
 ############
     @property
     def name(self) : return self.__class__.__name__
     @property
     def jobs(self) : return self.__jobs
     @property
-    def jobsFile(self) : return "%s/%s.jobs"%(self.globalStem, self.name)
+    def tagsFile(self) : return "%s/%s.tags"%(self.globalStem,self.name)
+    def jobsFile(self,tag) : return "%s/%s"%(self.globalStem, '.'.join([self.name,tag,"jobs"]))
     @property
     def configurations(self) :
         if not hasattr(self,"_analysis__configs") :
@@ -71,6 +74,9 @@ class analysis(object) :
                     self.__configs = sum([[ dict( list(conf.iteritems()) + [ (param,val), ("tag",conf["tag"]+[str(key)]) ] )
                                             for key,val in variations.iteritems()] for conf in self.__configs],[])
             for conf in self.__configs : conf['tag'] = '_'.join(conf['tag'])
+            if self.__tag!=None :
+                self.__configs = [c for c in self.__configs if c['tag']==self.__tag]
+                if not self.__configs : print "No such tag: %s"%self.__tag; sys.exit(0)
         return self.__configs
     class vary(dict) : pass
 ############
@@ -111,9 +117,9 @@ class analysis(object) :
 
 ############
     def loop(self) :
-        listOfLoopers = [ self.__listsOfLoopers[job["tag"]][job["iSample"]].slice(job["iSlice"], self.__nSlices)
-                          for job in self.jobs if self.__jobId==None or int(self.__jobId)==job['iJob'] ]
-
+        listOfLoopers = [ self.__listsOfLoopers[job["tag"]][job["iSample"]].slice(job["iSlice"], self.__nSlices) for job in sum(self.jobs.values(),[]) 
+                          if self.__jobId==None or int(self.__jobId)==job['iJob'] ]
+        
         if self.__jobId!=None : listOfLoopers[0]()
         elif not self.__profile : utils.operateOnListUsingQueue(self.__loop, utils.qWorker(), listOfLoopers)
         else :
@@ -175,17 +181,19 @@ class analysis(object) :
         return [ looper(sampleSpec) for sampleSpec in self.listOfSamples(conf) ]
     
 ############
-    def mergeOutput(self) :
-        if not os.path.exists(self.jobsFile) : return
-
-        nCores,jobs = utils.readPickle(self.jobsFile)
+    def mergeAllOutput(self) : utils.operateOnListUsingQueue(4, utils.qWorker(self.mergeOutput), [(conf['tag'],) for conf in self.configurations])
+    def mergeOutput(self,tag) :
+        if not os.path.exists(self.jobsFile(tag)) : return
+        
+        nCores,jobs = utils.readPickle(self.jobsFile(tag))
         mergeDict = collections.defaultdict(list)
-        for job in jobs : mergeDict[(job['tag'],job['iSample'])].append((job['iSlice'],"%(tag)s/job%(iJob)d___%(iSample)d_%(iSlice)d.sh"%job))
-        workList = [ (self.__listsOfLoopers[key[0]][key[1]], zip(*val)[0], zip(*val)[1]) for key,val in mergeDict.iteritems() ]
+        for job in jobs :
+            mergeDict[job['iSample']].append((job['iSlice'],"%(tag)s/job%(iJob)d___%(iSample)d_%(iSlice)d.sh"%job))
+        workList = [ (self.__listsOfLoopers[tag][iSample], zip(*val)[0], zip(*val)[1]) for iSample,val in mergeDict.iteritems() ]
 
-        if not all([looper.readyMerge(slices,jobs) for looper,slices,jobs in workList]) : sys.exit(0)
-        utils.operateOnListUsingQueue(nCores, utils.qWorker(lambda looper,slices: looper.mergeFunc(slices)), zip(zip(*workList)[0],zip(*workList)[1]))
-        os.remove(self.jobsFile)
+        if all([looper.readyMerge(slices,jobs) for looper,slices,jobs in workList]) : 
+            for looper,slices,jobs in workList : looper.mergeFunc(slices)
+            os.remove(self.jobsFile(tag))
 
 ############
     def manageSecondaries(self) :
