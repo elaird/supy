@@ -34,12 +34,14 @@ class analysisLooper :
         inter = set(s.name for s in self.steps).intersection(set(c.name for c in self.calculables))
         if inter: print "Steps and calculables cannot share names { %s }"%', '.join(n for n in inter)
         
-    def childName(self, iSlice) : return "%s_%d"%(self.name, iSlice)
-    def slice(self, iSlice, nSlices) :
+    def childName(self, nSlices, iSlice) : return "%s_%d_%d"%(self.name,nSlices,iSlice)
+    def slice(self, nSlices, iSlice) :
         assert iSlice<nSlices, "How did you do this?"
         out = copy.deepcopy(self)
         out.inputFiles = out.inputFiles[iSlice::nSlices]
-        out.name = self.childName(iSlice)
+        out.globalDir = "%s/%s"%(self.globalDir,self.name)
+        out.outputDir = "%s/%s"%(self.outputDir,self.name)
+        out.name = self.childName(nSlices,iSlice)
         return out
         
     def __call__(self) :
@@ -173,7 +175,10 @@ class analysisLooper :
     def readyMerge(self, nSlices) :
         foundAll = True
         for iSlice in range(nSlices) :
-            pickleFileName = self.pickleFileName.replace(self.name,self.childName(iSlice))
+            pickleFileBlocks = self.pickleFileName.split('/')
+            pickleFileBlocks.insert(-1,self.name)
+            pickleFileBlocks[-1] = pickleFileBlocks[-1].replace(self.name,self.childName(nSlices,iSlice))
+            pickleFileName = '/'.join(pickleFileBlocks)
             if not os.path.exists(pickleFileName) :
                 print "Can't find file : %s"%pickleFileName
                 foundAll = False
@@ -187,8 +192,11 @@ class analysisLooper :
         products = [collections.defaultdict(list) for step in self.steps]
         
         for iSlice in range(nSlices) :
-            cleanUpList.append( self.pickleFileName.replace(self.name, self.childName(iSlice)) )
-            dataByStep,calcsUsed,leavesUsed = utils.readPickle( cleanUpList[-1] )
+            pickleFileBlocks = self.pickleFileName.split('/')
+            pickleFileBlocks.insert(-1,self.name)
+            pickleFileBlocks[-1] = pickleFileBlocks[-1].replace(self.name,self.childName(nSlices,iSlice))
+            cleanUpList.append( '/'.join(pickleFileBlocks[:-1]) )
+            dataByStep,calcsUsed,leavesUsed = utils.readPickle( '/'.join(pickleFileBlocks) )
             self.calculablesUsed |= calcsUsed
             self.leavesUsed |= leavesUsed
             for stepDict,data in zip(products, dataByStep) :
@@ -201,7 +209,7 @@ class analysisLooper :
         self.printStats()
         print utils.hyphens
         for step,stepDict in zip(self.steps, products) : step.mergeFunc(stepDict)
-        for fileName in cleanUpList : os.remove(fileName)
+        for dirName in cleanUpList : os.system("rm -fr %s"%dirName)
 
     def printStats(self) :
         print utils.hyphens
