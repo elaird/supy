@@ -10,6 +10,7 @@ def opts() :
     parser.add_option("--batch",   dest = "batch",   default = False, action  = "store_true", help = "submit to batch queue")
     parser.add_option("--jobid",   dest = "jobId",   default = None,  metavar = "id",         help = "[for internal use only]")
     parser.add_option("--tag",     dest = "tag",     default = None,                          help = "[for internal use only]")
+    parser.add_option("--sample",  dest = "sample",  default = None,                          help = "[for internal use only]")
     parser.add_option("--site",    dest = "site",    default = None,  metavar = "prefix",     help = "[for internal use only]")
     options,args = parser.parse_args()
 
@@ -57,7 +58,7 @@ def importedClass(module) :
     return theClass
 ############################################
 def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
-    jobScriptFileName = "%(base)s/%(tag)s/job%(iJob)d___%(iSample)d_%(iSlice)d.sh"%indexDict
+    jobScriptFileName = "%(base)s/%(tag)s/%(sample)s/job%(iSlice)d.sh"%indexDict
 
     os.system("cp -p "+jobScript+" "+jobScriptFileName)
     outJobScript = open(jobScriptFileName,"a")
@@ -80,25 +81,32 @@ def doBatch(someInstance) :
     argsAndOptions.remove("--batch")
     baseCmd = "./supy "+" ".join(argsAndOptions)
 
-    scriptDir = someInstance.globalStem
-    os.system("mkdir -p "+scriptDir)
-    for conf in someInstance.configurations : os.system("mkdir -p %s/%s"%(scriptDir,conf['tag']))
-
     subScript,jobScript,condorTemplate = configuration.batchScripts()
     os.system("chmod +x "+subScript)
 
     site = configuration.sitePrefix()
-    for listOfIndices in sum(someInstance.jobs.values(),[]) :
-        listOfIndices["base"] = scriptDir
-        submitBatchJob(baseCmd + " --site %s"%site + " --jobid %(iJob)d --tag %(tag)s"%listOfIndices,
-                       listOfIndices, subScript = subScript, jobScript = jobScript, condorTemplate = condorTemplate)
+
+    scriptDir = someInstance.globalStem
+    os.system("mkdir -p "+scriptDir)
+
+    for conf in someInstance.configurations :
+        for looper in someInstance.listsOfLoopers[conf['tag']] :
+            os.system("mkdir -p %s/%s/%s"%(scriptDir,conf['tag'],looper.name))
+            for iSlice in range(int(options.slices)) :
+                listOfIndices = {"base":scriptDir,
+                                 "tag":conf['tag'],
+                                 "sample":looper.name,
+                                 "iSlice":iSlice,
+                                 "site":site}
+                submitBatchJob(baseCmd + " --site %(site)s --jobid %(iSlice)d --tag %(tag)s --sample %(sample)s"%listOfIndices,
+                               listOfIndices, subScript = subScript, jobScript = jobScript, condorTemplate = condorTemplate)
 ############################################
 def finish(someInstance) :
     try:
         someInstance.mergeAllOutput()
         #someInstance.manageSecondaries()
         someInstance.concludeAll()
-    except Exception as foo:
+    except AssertionError as foo:
         print
         print foo
         #print "Have you looped?"

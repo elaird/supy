@@ -36,6 +36,7 @@ class analysisLooper :
         
     def childName(self, iSlice) : return "%s_%d"%(self.name, iSlice)
     def slice(self, iSlice, nSlices) :
+        assert iSlice<nSlices, "How did you do this?"
         out = copy.deepcopy(self)
         out.inputFiles = out.inputFiles[iSlice::nSlices]
         out.name = self.childName(iSlice)
@@ -169,22 +170,23 @@ class analysisLooper :
         utils.writePickle( self.pickleFileName,
                            [ [pickleJar(step) for step in self.steps], self.calculablesUsed, self.leavesUsed] )
 
-    def readyMerge(self, listOfSlices, jobs) :
+    def readyMerge(self, nSlices) :
         foundAll = True
-        for pickleFileName,job in [ (self.pickleFileName.replace(self.name, self.childName(iSlice)),job) for iSlice,job in zip(listOfSlices,jobs) ] :
+        for iSlice in range(nSlices) :
+            pickleFileName = self.pickleFileName.replace(self.name,self.childName(iSlice))
             if not os.path.exists(pickleFileName) :
-                print "Can't find file : %s  (%s)"%(pickleFileName,job)
+                print "Can't find file : %s"%pickleFileName
                 foundAll = False
         return foundAll
 
-    def mergeFunc(self, listOfSlices) :
+    def mergeFunc(self, nSlices) :
         cleanUpList = []
         self.setupSteps(minimal = True)
         self.calculablesUsed = set()
         self.leavesUsed = set()
         products = [collections.defaultdict(list) for step in self.steps]
         
-        for iSlice in listOfSlices :
+        for iSlice in range(nSlices) :
             cleanUpList.append( self.pickleFileName.replace(self.name, self.childName(iSlice)) )
             dataByStep,calcsUsed,leavesUsed = utils.readPickle( cleanUpList[-1] )
             self.calculablesUsed |= calcsUsed
