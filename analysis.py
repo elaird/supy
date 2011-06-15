@@ -124,9 +124,9 @@ class analysis(object) :
 
 ############
     def loop(self) :
-        listOfLoopers = [looper.slice(iJob,self.__nSlices) for looper in sum(self.listsOfLoopers.values(),[])
-                         for iJob in (range(self.__nSlices) if self.__jobId==None else [int(self.__jobId)])]
-
+        listOfLoopers = [looper.slice(self.__nSlices,iSlice) for looper in sum(self.listsOfLoopers.values(),[])
+                         for iSlice in (range(self.__nSlices) if self.__jobId==None else [int(self.__jobId)])]
+        
         if self.__jobId!=None : listOfLoopers[0]()
         elif not self.__profile : utils.operateOnListUsingQueue(self.__loop, utils.qWorker(), listOfLoopers)
         else :
@@ -195,7 +195,6 @@ class analysis(object) :
         nSlices = utils.readPickle(self.jobsFile(tag,looper.name))
         if looper.readyMerge(nSlices) : 
             looper.mergeFunc(nSlices)
-            os.remove(self.jobsFile(tag,looper.name))
 
 ############
     def manageSecondaries(self) :
