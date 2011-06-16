@@ -450,7 +450,11 @@ class deadEcalFilter(analysisStep) :
         self.moreName = "%s%s; dR>%5.3f when deltaPhiStar<%5.3f"%(self.jets[0], self.jets[1], self.dR, self.dPhiStarCut)
         
     def select(self, eventVars) :
-        return (eventVars[self.dps]["DeltaPhiStar"]>self.dPhiStarCut or eventVars[self.deadEcalDR]>self.dR)
+        passFilter = eventVars[self.dps]["DeltaPhiStar"]>self.dPhiStarCut or eventVars[self.deadEcalDR]>self.dR
+        if not passFilter :
+            jet = eventVars["%sCorrectedP4%s"%self.jets].at(eventVars[self.dps]["DeltaPhiStarJetIndex"])
+            self.book.fill(jet.pt(), "ptOfJetCausingDPhiVeto", 10, 0.0, 100.0, title = ";p_{T} of jet causing #Delta#phi* veto (GeV);events / bin")
+        return passFilter
 #####################################
 class deadHcalFilter(analysisStep) :
     def __init__(self, jets = None, extraName = "", dR = None, dPhiStarCut = None, nXtalThreshold = None) :
