@@ -48,9 +48,9 @@ for low,high,xs in zip(bins[:-1],bins[1:],xss) :
 pyFJLoc = '/bbetchar/ICF/automated/2011_06_12_04_28_39/'
 summer11pu = '.Summer11-PU_S3_START42_V11-v2.AODSIM/'
 mc.add("tt_tauola_fj", '%s/%s/TT_TuneZ2_7TeV-pythia6-tauola%s")'%(srm,pyFJLoc,summer11pu),    xs = {"LO":94,    "BurtGuessNLO":150}["BurtGuessNLO"])   
-mc.add("w_enu_fj",     '%s/%s/WToENu_TuneZ2_7TeV-pythia6%s")'%(srm,pyFJLoc,summer11pu),       xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
-mc.add("w_munu_fj",    '%s/%s/WToMuNu_TuneZ2_7TeV-pythia6%s")'%(srm,pyFJLoc,summer11pu),       xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
-mc.add("w_taunu_fj",   '%s/%s/WToTauNu_TuneZ2_7TeV-pythia6-tauola%s")'%(srm,pyFJLoc,summer11pu),xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
+mc.add("w_enu_fj",     '%s/%s/WToENu_TuneZ2_7TeV-pythia6%s")'%(srm,pyFJLoc,summer11pu),       xs = {"LO": 7899, "BurtGuessNNLO": 15639}["BurtGuessNNLO"])
+mc.add("w_munu_fj",    '%s/%s/WToMuNu_TuneZ2_7TeV-pythia6%s")'%(srm,pyFJLoc,summer11pu),       xs = {"LO": 7899, "BurtGuessNNLO": 15639}["BurtGuessNNLO"])
+mc.add("w_taunu_fj",   '%s/%s/WToTauNu_TuneZ2_7TeV-pythia6-tauola%s")'%(srm,pyFJLoc,summer11pu),xs = {"LO": 7899, "BurtGuessNNLO": 15639}["BurtGuessNNLO"])
 
 burt_ttbar = '/bbetchar//ICF/automated/2011_04_07_19_30_01/'
 burt_ewk = '/bbetchar//ICF/automated/2011_04_07_19_40_51/'
