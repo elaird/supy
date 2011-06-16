@@ -6,7 +6,6 @@
 * in/dependence shotgun
 * consider uncertainty on zero
 
-* config parameter interface
 * config sample interface
 * multi-site samples handles
 * protect against samples collisions
@@ -14,14 +13,7 @@
 * make 1/10 configurable
 
 * continue clean-up of hadronicLook
-
 * consider threshold for adding muons to jets
-* in analysis.py: looper.setupSteps(minimal = True) #determine why this is needed
-* consider arguments to analysisLooper
-* jobsList by sample
-* specify one sample in command line supy switch
-* fnalbatch
-* lxbatch
 
 (ongoing)
 * profile
@@ -30,6 +22,9 @@
 * xs by event
 
 (low priority)
+* fnalbatch
+* lxbatch
+* in analysis.py: looper.setupSteps(minimal = True) #determine why this is needed
 * store inputFileList in root file?
 * move ratio marker
 * 2D ratios
