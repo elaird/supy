@@ -735,11 +735,11 @@ class deadEcalDR(wrappedChain.calculable) :
     @property
     def name(self) : return "%sDeadEcalDR%s%s"%(self.jets[0], self.jets[1], self.extraName)
     
-    def __init__(self, jets = None, extraName = "", minNXtals = None) :
-        for item in ["jets","extraName","minNXtals"] :
+    def __init__(self, jets = None, extraName = "", minNXtals = None, checkCracks = True) :
+        for item in ["jets","extraName","minNXtals","checkCracks"] :
             setattr(self,item,eval(item))
         self.dps = "%sDeltaPhiStar%s%s"%(self.jets[0], self.jets[1], self.extraName)
-        self.moreName = "%s%s; nXtal>=%d"%(self.jets[0], self.jets[1], self.minNXtals)
+        self.moreName = "%s%s; nXtal>=%d; cracks %schecked"%(self.jets[0], self.jets[1], self.minNXtals, "" if self.checkCracks else "NOT ")
         
     def update(self, ignored) :
         self.value = None
@@ -754,10 +754,10 @@ class deadEcalDR(wrappedChain.calculable) :
             nDeadXtals = self.source["ecalDeadTowerNBadXtals"].at(iRegion)
             dRs.append( (r.Math.VectorUtil.DeltaR(questionableJet, region), nDeadXtals) )
             
-        #check cracks
-        eta = questionableJet.eta()
-        dRs.append( (abs(eta-1.5), self.minNXtals) )
-        dRs.append( (abs(eta+1.5), self.minNXtals) )
+        if self.checkCracks :
+            eta = questionableJet.eta()
+            dRs.append( (abs(eta-1.5), self.minNXtals) )
+            dRs.append( (abs(eta+1.5), self.minNXtals) )
         
         nDeadXtals = 0
         for dr,nDead in sorted(dRs) :
