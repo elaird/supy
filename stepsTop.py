@@ -149,18 +149,21 @@ class discriminateNonTop(analysisStep) :
         bJet = ev[self.bJet]
         lepP4 = ev[self.lepP4][ev[self.iLep]]
         
-        self.book.fill( lepP4.pt(), "leptonPt", 50, 0, 100, title = ';lepton Pt;events / bin')
+        self.book.fill( lepP4.pt(), "leptonPt", 50, 0, 200, title = ';lepton Pt;events / bin')
         self.book.fill( lepP4.eta(), "leptonEta", 50, -3, 3, title = ';lepton #eta;events / bin')
         self.book.fill( ev["mixedSumP4"].pt(), "met", 50, 0, 100, title = ';met;events / bin')
-        self.book.fill(ev[self.sumPt],self.sumPt,50,0,1000, title = ';%s;events / bin'%self.sumPt)
+        self.book.fill(ev[self.sumPt],self.sumPt,50,0,1500, title = ';%s;events / bin'%self.sumPt)
         self.book.fill(ev[self.mixed],self.mixed,30,0,180, title = ";M_{T};events / bin")
-        self.book.fill(jetP4[iJet[0]].pt(), "jetPtI0", 40,0,400, title = ';pT jets[0] pt;events / bin')
-        self.book.fill(jetP4[bJet[0]].pt(), "jetPtB0", 40,0,400, title = ';b- jets[0] pt;events / bin')
+        self.book.fill(jetP4[iJet[0]].pt(), "jetPtI0", 40,0,600, title = ';pT jets[0] pt;events / bin')
+        self.book.fill(jetP4[bJet[0]].pt(), "jetPtB0", 40,0,600, title = ';b- jets[0] pt;events / bin')
         self.book.fill( self.phiMod(r.Math.VectorUtil.DeltaPhi(jetP4[bJet[0]],jetP4[bJet[1]])), "dphiBjets", 30,0,2*math.pi,
                         title = ";#Delta#phi leading b-tagged jets;events / bin" )
         for i in range(3) :
-            self.book.fill(jetP4[iJet[i]].eta(), "jetEtaI%d"%i, 50,-5,5, title = ';pT jets[%d] eta;events / bin'%i)
-                
+            self.book.fill(jetP4[iJet[i]].eta(), "jetEtaI%d"%i, 50,-4,4, title = ';pT jets[%d] eta;events / bin'%i)
+
+        dphiLnu = self.phiMod(r.Math.VectorUtil.DeltaPhi(lepP4,ev["mixedSumP4"]))
+        self.book.fill( dphiLnu, "dphiLnu", 30,0,2*math.pi, title = ";#Delta#phi l#nu;events / bin" )
+        self.book.fill( (dphiLnu,ev[self.mixed]), "dphiLnu_v_mt", (30,30),(0,0),(2*math.pi,180), title = ";#Delta#phi l#nu;M_{T};events / bin" )
 #####################################
 class discriminateQQbar(analysisStep) :
     def __init__(self, collection) :
