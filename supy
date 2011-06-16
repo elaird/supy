@@ -89,6 +89,7 @@ def doBatch(someInstance) :
     scriptDir = someInstance.globalStem
     os.system("mkdir -p "+scriptDir)
 
+    args = []
     for conf in someInstance.configurations :
         for looper in someInstance.listsOfLoopers[conf['tag']] :
             os.system("mkdir -p %s/%s/%s"%(scriptDir,conf['tag'],looper.name))
@@ -98,8 +99,9 @@ def doBatch(someInstance) :
                                  "sample":looper.name,
                                  "iSlice":iSlice,
                                  "site":site}
-                submitBatchJob(baseCmd + " --site %(site)s --jobid %(iSlice)d --tag %(tag)s --sample %(sample)s"%listOfIndices,
-                               listOfIndices, subScript = subScript, jobScript = jobScript, condorTemplate = condorTemplate)
+                args.append( (baseCmd + " --site %(site)s --jobid %(iSlice)d --tag %(tag)s --sample %(sample)s"%listOfIndices,
+                               listOfIndices, subScript, jobScript, condorTemplate) )
+    utils.operateOnListUsingQueue(8, utils.qWorker(submitBatchJob), args)
 ############################################
 def finish(someInstance) :
     try:
