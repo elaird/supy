@@ -101,7 +101,7 @@ def doBatch(someInstance) :
                                  "site":site}
                 args.append( (baseCmd + " --site %(site)s --jobid %(iSlice)d --tag %(tag)s --sample %(sample)s"%listOfIndices,
                                listOfIndices, subScript, jobScript, condorTemplate) )
-    utils.operateOnListUsingQueue(8, utils.qWorker(submitBatchJob), args)
+    utils.operateOnListUsingQueue(utils.nCoresDefault(), utils.qWorker(submitBatchJob), args)
 ############################################
 def finish(someInstance) :
     try:

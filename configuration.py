@@ -3,6 +3,9 @@ import os,socket
 def trace() :
     return False
 
+def nCoresDefault() :
+    return 4
+
 def useCachedFileLists() :
     return True
 
