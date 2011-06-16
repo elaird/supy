@@ -132,7 +132,7 @@ class photonLook(analysis.analysis) :
             steps.Other.monsterEventFilter(),
             steps.Other.hbheNoiseFilter(),
             steps.Trigger.hltPrescaleHistogrammer(params["triggerList"]),            
-            #steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
+            steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
             steps.Trigger.lowestUnPrescaledTriggerFilter(),
             ]
 
