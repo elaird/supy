@@ -6,7 +6,7 @@ import ROOT as r
 
 class hadronicLook(analysis.analysis) :
     def parameters(self) :
-        objects = {}
+        objects = self.vary()
         fields =                                                  [ "jet",                        "jetId",     "muonsInJets",           "met",
                                                                     "compJet",                "compJetId", "compMuonsInJets",        "compMet",
                                                                     "muon",                    "electron",          "photon",         "rechit"]
@@ -27,21 +27,21 @@ class hadronicLook(analysis.analysis) :
         #                                                           ]))
         
         return { "objects": objects,
-                 "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)),  ("3",(3,3)) ]       [0:1] ),
-                 "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ] [0:1] ),
+                 "nJetsMinMax" :      self.vary(dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)),  ("3",(3,3)) ]       [0:1] )),
+                 "mcSoup" :           self.vary(dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ] [0:1] )),
                  "etRatherThanPt" : [True,False][0],
                  "lowPtThreshold" : 30.0,
                  "lowPtName" : "lowPt",
                  "highPtThreshold" : 50.0,
                  "highPtName" : "highPt",
                  "tanBeta" : [None, 3, 10, 50][0],
-                 "thresholds": dict( [("275",        (275.0, 325.0, 100.0, 50.0)),#0
-                                      ("325",        (325.0, 375.0, 100.0, 50.0)),#1
-                                      ("375",        (375.0, None,  100.0, 50.0)),#2
-                                      ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#3
-                                      ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#4
-                                      ][2:] ),
-                 #required to be a sorted tuple with length>1
+                 "thresholds": self.vary(dict( [("275",        (275.0, 325.0, 100.0, 50.0)),#0
+                                                ("325",        (325.0, 375.0, 100.0, 50.0)),#1
+                                                ("375",        (375.0, None,  100.0, 50.0)),#2
+                                                ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#3
+                                                ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#4
+                                                ][2:] )),
+                 #required to be sorted
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  #"triggerList": ("HLT_HT250_AlphaT0p55_v1","HLT_HT250_AlphaT0p55_v2","HLT_HT250_MHT60_v2","HLT_HT250_MHT60_v3","HLT_HT260_MHT60_v2","HLT_HT300_MHT75_v2","HLT_HT300_MHT75_v3","HLT_HT300_MHT75_v4"),#alphaT trigger test
                  "triggerList": tuple(["HLT_HT250_MHT60_v%d"%i for i in [2,3,4,6]  ]+
@@ -128,10 +128,10 @@ class hadronicLook(analysis.analysis) :
         htUpper = [steps.Other.variableLessFilter(params["thresholds"][1],"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV")] if params["thresholds"][1]!=None else []
         return scanBefore + [
             steps.Print.progressPrinter(),
-            steps.Trigger.lowestUnPrescaledTrigger(),
+            steps.Trigger.lowestUnPrescaledTriggerFilter(),
             steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
             
-            steps.Trigger.physicsDeclared(),
+            steps.Trigger.physicsDeclaredFilter(),
             steps.Other.monsterEventFilter(),
             steps.Other.hbheNoiseFilter(),
 
@@ -364,7 +364,7 @@ class hadronicLook(analysis.analysis) :
                  susy(susyEL)
                  ) if params["tanBeta"]==None else scan(params["tanBeta"])
 
-    def mergeSamples(self, org, tag) :
+    def mergeSamples(self, org) :
         def py8(org, smSources) :
             org.mergeSamples(targetSpec = {"name":"qcd_py8", "color":r.kBlue}, allWithPrefix="qcd_py8")
             org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen}, allWithPrefix="v12_g_jets_py6")
@@ -384,9 +384,9 @@ class hadronicLook(analysis.analysis) :
 
         lineWidth = 3
         goptions = "hist"
-        if "pythia8"  in tag : py8(org, smSources)
-        if "madgraph" in tag : mg (org, smSources)
-        if "pythia6"  in tag :
+        if "pythia8"  in org.tag : py8(org, smSources)
+        if "madgraph" in org.tag : mg (org, smSources)
+        if "pythia6"  in org.tag :
             if not self.ra1Cosmetics() :
                 org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
                 smSources.append("qcd_py6")
@@ -404,35 +404,32 @@ class hadronicLook(analysis.analysis) :
             org.mergeSamples(targetSpec = {"name":"LM1", "color":r.kMagenta, "lineStyle":2, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="lm1")
             org.mergeSamples(targetSpec = {"name":"LM6", "color":r.kRed, "lineStyle":10, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="lm6")
 
-    def conclude(self) :
-        for tag in self.sideBySideAnalysisTags() :
-            ##for skimming only
-            #org = organizer.organizer( self.sampleSpecs(tag) )
-            #utils.printSkimResults(org)            
-            
-            #organize
-            org=organizer.organizer( self.sampleSpecs(tag) )
-            self.mergeSamples(org, tag)
-            org.scale() if not self.parameters()["tanBeta"] else org.scale(100.0)
-            
-            #plot
-            pl = plotter.plotter(org,
-                                 psFileName = self.psFileName(tag),
-                                 samplesForRatios = ("2011 Data","standard_model" if not self.ra1Cosmetics() else "Standard Model "),
-                                 sampleLabelsForRatios = ("data","s.m."),
-                                 #samplesForRatios = ("calo_325_scaled.xcak5JetnJetsWeightPat", "calo_325_scaled"),
-                                 #sampleLabelsForRatios = ("3jet","Njet"),
-                                 showStatBox = not self.ra1Cosmetics(),
-                                 #whiteList = ["lowestUnPrescaledTrigger"],
-                                 #doLog = False,
-                                 #compactOutput = True,
-                                 #noSci = True,
-                                 linYAfter = ("variableGreaterFilter", "xcak5JetAlphaTEtPat>=0.550 "),
-                                 pegMinimum = 0.1,
-                                 blackList = ["lumiHisto","xsHisto","nJobsHisto"],
-                                 )
-            pl.plotAll()
-            #self.makeEfficiencyPlots(org, tag, sampleName = "LM1")
+    def conclude(self, conf) :
+        org = self.organizer(conf)
+        ##for skimming only
+        #utils.printSkimResults(org)            
+        
+        self.mergeSamples(org)
+        org.scale() if not self.parameters()["tanBeta"] else org.scale(100.0)
+        
+        #plot
+        pl = plotter.plotter(org,
+                             psFileName = self.psFileName(org.tag),
+                             samplesForRatios = ("2011 Data","standard_model" if not self.ra1Cosmetics() else "Standard Model "),
+                             sampleLabelsForRatios = ("data","s.m."),
+                             #samplesForRatios = ("calo_325_scaled.xcak5JetnJetsWeightPat", "calo_325_scaled"),
+                             #sampleLabelsForRatios = ("3jet","Njet"),
+                             showStatBox = not self.ra1Cosmetics(),
+                             #whiteList = ["lowestUnPrescaledTrigger"],
+                             #doLog = False,
+                             #compactOutput = True,
+                             #noSci = True,
+                             linYAfter = ("variableGreaterFilter", "xcak5JetAlphaTEtPat>=0.550 "),
+                             pegMinimum = 0.1,
+                             blackList = ["lumiHisto","xsHisto","nJobsHisto"],
+                             )
+        pl.plotAll()
+        #self.makeEfficiencyPlots(org, tag, sampleName = "LM1")
 
     def makeEfficiencyPlots(self, org, tag, sampleName) :
         def sampleIndex(org, name) :
