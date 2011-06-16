@@ -6,43 +6,43 @@ import ROOT as r
 
 class photonLook(analysis.analysis) :
     def parameters(self) :
-        objects = {}
+        objects = self.vary()
         fields =                                             [ "jet",             "met",            "muon",        "electron",        "photon",       "rechit", "muonsInJets"]
         objects["caloAK5Jet_recoLepPhot"] = dict(zip(fields, [("xcak5Jet","Pat"), "metP4AK5TypeII",("muon","Pat"),("electron","Pat"),("photon","Pat"), "Calo" ,    False,    ]))
         #objects["pfAK5Jet_recoLepPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",     ("muon","Pat"),("electron","Pat"),("photon","Pat"),  "PF"  ,    True ,    ]))
         #objects["pfAK5JetLep_recoPhot"]   = dict(zip(fields, [("xcak5JetPF","Pat"), "metP4PF",     ("muon","PF"), ("electron","PF"), ("photon","Pat"), "PF"  ,     True ,    ]))
 
         return { "objects": objects,
-                 "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
-                 "photonId" :         dict([ ("photonIsoRelaxed","photonIDIsoRelaxedPat"),            #0
+                 "nJetsMinMax" :      self.vary(dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] )),
+                 "photonId" :         self.vary(dict([ ("photonIsoRelaxed","photonIDIsoRelaxedPat"),            #0
 
-                                             ("photonLoose","photonIDLooseFromTwikiPat"),             #1
-                                             ("photonTight","photonIDTightFromTwikiPat"),             #2
-
-                                             ("photonEGM-10-006-Loose","photonIDEGM_10_006_LoosePat"),#3
-                                             ("photonEGM-10-006-Tight","photonIDEGM_10_006_TightPat"),#4
-
-                                             ("photonTrkIsoRelaxed","photonIDTrkIsoRelaxedPat"),      #5
-                                             ("photonTrkIsoSideband","photonIDTrkIsoSideBandPat"),    #6
-                                             ("photonIsoSideband","photonIDIsoSideBandPat"),          #7
-                                             ("photonNoIsoReq","photonIDNoIsoReqPat"),                #8
-                                             ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [2:3] ),
-                 "zMode" :            dict([ ("zMode",True), ("",False) ]                              [1:2] ),
-                 "vertexMode" :       dict([ ("vertexMode",True), ("",False) ]                         [1:2] ),
-                 "subdet" :           dict([ ("barrel", (0.0, 1.444)), ("endcap", (1.566, 2.5)) ]      [:1] ),
+                                                       ("photonLoose","photonIDLooseFromTwikiPat"),             #1
+                                                       ("photonTight","photonIDTightFromTwikiPat"),             #2
+                                                       
+                                                       ("photonEGM-10-006-Loose","photonIDEGM_10_006_LoosePat"),#3
+                                                       ("photonEGM-10-006-Tight","photonIDEGM_10_006_TightPat"),#4
+                                                       
+                                                       ("photonTrkIsoRelaxed","photonIDTrkIsoRelaxedPat"),      #5
+                                                       ("photonTrkIsoSideband","photonIDTrkIsoSideBandPat"),    #6
+                                                       ("photonIsoSideband","photonIDIsoSideBandPat"),          #7
+                                                       ("photonNoIsoReq","photonIDNoIsoReqPat"),                #8
+                                                       ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [2:3] )),
+                 "zMode" :            self.vary(dict([ ("zMode",True), ("",False) ]                              [1:2] )),
+                 "vertexMode" :       self.vary(dict([ ("vertexMode",True), ("",False) ]                         [1:2] )),
+                 "subdet" :           self.vary(dict([ ("barrel", (0.0, 1.444)), ("endcap", (1.566, 2.5)) ]      [:1 ] )),
                  "jetId" :  ["JetIDloose","JetIDtight"]            [0],
                  "etRatherThanPt" : [True,False]                   [0],
                  "lowPtThreshold": 30.0,
                  "lowPtName":"lowPt",
                  "highPtThreshold" : 50.0,
                  "highPtName" : "highPt",
-                 "thresholds": dict( [("275",        (275.0, 325.0, 100.0, 50.0)),#0
-                                      ("325",        (325.0, 375.0, 100.0, 50.0)),#1
-                                      ("375",        (375.0, None,  100.0, 50.0)),#2
-                                      ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#3
-                                      ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#4
-                                      ][2:] ),
-                 #required to be a sorted tuple with length>1
+                 "thresholds": self.vary(dict( [("275",        (275.0, 325.0, 100.0, 50.0)),#0
+                                                ("325",        (325.0, 375.0, 100.0, 50.0)),#1
+                                                ("375",        (375.0, None,  100.0, 50.0)),#2
+                                                ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#3
+                                                ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#4
+                                                ][2:] )),
+                 #required to be sorted
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  "triggerList": tuple(#["HLT_Photon50_CaloIdVL_v%d"%i for i in range(1,3)] +
                                       #["HLT_Photon50_CaloIdVL_IsoL_v%d"%i for i in range(1,5)]+
@@ -128,12 +128,12 @@ class photonLook(analysis.analysis) :
             steps.Print.progressPrinter(),
             steps.Other.histogrammer("genpthat", 200, 0, 1000, title = ";#hat{p_{T}} (GeV);events / bin"),
             steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
-            steps.Trigger.physicsDeclared(),
+            steps.Trigger.physicsDeclaredFilter(),
             steps.Other.monsterEventFilter(),
             steps.Other.hbheNoiseFilter(),
             steps.Trigger.hltPrescaleHistogrammer(params["triggerList"]),            
             #steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
-            steps.Trigger.lowestUnPrescaledTrigger(),
+            steps.Trigger.lowestUnPrescaledTriggerFilter(),
             ]
 
         if params["vertexMode"] :
@@ -444,7 +444,7 @@ class photonLook(analysis.analysis) :
             
         return outList
 
-    def mergeSamples(self, org, tag) :
+    def mergeSamples(self, org) :
         smSources = []
         smSources2010 = []
         smSourcesWeighted = []
@@ -477,34 +477,31 @@ class photonLook(analysis.analysis) :
         ##org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Nov4")
         #org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Run2010")
 
-    def conclude(self) :
-        for tag in self.sideBySideAnalysisTags() :
-            ##for skimming only
-            #org = organizer.organizer( self.sampleSpecs(tag) )
-            #utils.printSkimResults(org)            
+    def conclude(self, conf) :
+        org = self.organizer(conf)
+        
+        ##for skimming only
+        #utils.printSkimResults(org)
             
-            #organize
-            org = organizer.organizer( self.sampleSpecs(tag) )
-
-            if "zMode" in tag :
-                lumi = 468.8
-                org.scale(lumi)
-                print "WARNING: HARD-CODED LUMI FOR Z MODE! (%g)"%lumi
-            else :
-                self.mergeSamples(org, tag)
-                org.scale()
-                
-            self.makeStandardPlots(org, tag)
-            #self.makeIndividualPlots(org, tag)
-            #self.makePurityPlots(org, tag)
-            #self.makeEfficiencyPlots(org, tag)
-            #self.makeNVertexWeights(org, tag)
+        if "zMode" in org.tag :
+            lumi = 468.8
+            org.scale(lumi)
+            print "WARNING: HARD-CODED LUMI FOR Z MODE! (%g)"%lumi
+        else :
+            self.mergeSamples(org)
+            org.scale()
+            
+        self.makeStandardPlots(org)
+        #self.makeIndividualPlots(org, tag)
+        #self.makePurityPlots(org, tag)
+        #self.makeEfficiencyPlots(org, tag)
+        #self.makeNVertexWeights(org, tag)
         #self.makeMultiModePlots(34.7255)
 
-    def makeStandardPlots(self, org, tag) :
+    def makeStandardPlots(self, org) :
         #plot all
         pl = plotter.plotter(org,
-                             psFileName = self.psFileName(tag),
+                             psFileName = self.psFileName(org.tag),
                              sampleLabelsForRatios = ("data","s.m."),
                              
                              #samplesForRatios = ("2011 Data","standard_model"),
