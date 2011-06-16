@@ -19,7 +19,7 @@ class analysis(object) :
     def leavesToBlackList(self) : return []
     def parameters(self) : return {}
     def conclude(self, config) : return
-    def concludeAll(self) : utils.operateOnListUsingQueue( 4, utils.qWorker(self.conclude), [(conf,) for conf in self.configurations if not any(os.path.exists(self.jobsFile(conf['tag'],looper.name)) for looper in self.listsOfLoopers[conf['tag']])] )
+    def concludeAll(self) : utils.operateOnListUsingQueue( configuration.nCoresDefault(), utils.qWorker(self.conclude), [(conf,) for conf in self.configurations if not any(os.path.exists(self.jobsFile(conf['tag'],looper.name)) for looper in self.listsOfLoopers[conf['tag']])] )
     def organizer(self, config) : return organizer.organizer(config['tag'], self.sampleSpecs(config['tag']))
 
 ############
@@ -188,7 +188,7 @@ class analysis(object) :
         return [ looper(sampleSpec) for sampleSpec in self.filteredSamples(conf) ]
     
 ############
-    def mergeAllOutput(self) : utils.operateOnListUsingQueue(4, utils.qWorker(self.mergeOutput),
+    def mergeAllOutput(self) : utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(self.mergeOutput),
                                                              sum([[(conf['tag'],looper) for looper in self.listsOfLoopers[conf['tag']]] for conf in self.configurations],[]))
     def mergeOutput(self,tag,looper) :
         if not os.path.exists(self.jobsFile(tag,looper.name)) : return
