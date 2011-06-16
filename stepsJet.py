@@ -107,14 +107,14 @@ class jetPtVetoer(analysisStep) :
         if p4s.size() <= self.jetIndex : return True
         return p4s.at(self.jetIndex).pt() < self.jetPtThreshold
 #####################################
-class forwardJetVeto(analysisStep) :
+class forwardFailedJetVeto(analysisStep) :
     def __init__(self,cs, ptAbove=None, etaAbove=None) :
         self.cs = cs
         self.pt = ptAbove
         self.eta = etaAbove
-        self.indices= "%sIndices%s"%self.cs
+        self.indices= "%sIndicesOther%s"%self.cs
         self.jetP4s = "%sCorrectedP4%s"%self.cs
-        self.moreName = "%s%s with pt>%.1f and |eta|>%.2f"%(cs+(self.pt,self.eta))
+        self.moreName = "%s%s indicesOther with pt>%.1f and |eta|>%.2f"%(cs+(self.pt,self.eta))
     def select(self,eventVars) :
         indices = eventVars[self.indices]
         p4s = eventVars[self.jetP4s]
