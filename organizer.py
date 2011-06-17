@@ -11,12 +11,12 @@ class organizer(object) :
     """
     class step(dict) : 
         """Keys are histogram names, values are tuples of histograms, parallel to samples."""
-        def __init__(self,samples,dirs,keys) :
+        def __init__(self,samples,dirs = None,keys = []) :
+            if not dirs : dirs = [s['dir'] for s in samples]
             self.N = len(dirs)
             for key in keys: self[key] = tuple( map(lambda d: d.Get(key), dirs) )
             self.nameTitle = (dirs[0].GetName(),dirs[0].GetTitle())
             self.name,self.title = self.nameTitle
-            #if "counts" not in self: self["counts"] = tuple([None]*self.N)
             self.rawFailPass = tuple(map(lambda h: (h.GetBinContent(1),h.GetBinContent(2)) if h else None, self["counts"] if "counts" in self else self.N*[None]))
 
             for key in self :
@@ -69,7 +69,7 @@ class organizer(object) :
             if any(subdirs) : keys.remove(next(iter(subdirs)).GetName())
             steps.append( self.step(self.samples,dirs,keys) )
             dirs = subdirs
-        self.__steps = tuple(steps)
+        self.__steps = tuple(steps + [self.step(self.samples)])
         return self.__steps
 
     def mergeSamples(self,sources = [], targetSpec = {}, keepSources = False, allWithPrefix = None) :
