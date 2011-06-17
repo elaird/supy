@@ -17,7 +17,7 @@ class organizer(object) :
             self.nameTitle = (dirs[0].GetName(),dirs[0].GetTitle())
             self.name,self.title = self.nameTitle
             #if "counts" not in self: self["counts"] = tuple([None]*self.N)
-            self.rawFailPass = tuple(map(lambda h: (h.GetBinContent(1),h.GetBinContent(2)) if h else None, self["counts"] if "counts" in self else self.N*[0]))
+            self.rawFailPass = tuple(map(lambda h: (h.GetBinContent(1),h.GetBinContent(2)) if h else None, self["counts"] if "counts" in self else self.N*[None]))
 
             for key in self :
                 if key in ["nJobsHisto"] : continue
@@ -25,10 +25,12 @@ class organizer(object) :
                     [ hist.Scale(  1.0 / sample['nJobs'] ) for hist,sample in zip(self[key],samples) if hist ]
                 else: [ hist.Scale(sample["xs"]/sample['nEvents']) for hist,sample in zip(self[key],samples)
                         if hist and sample['nEvents'] and "xs" in sample ]
+
         @property
         def yields(self) : return ( tuple([(h.GetBinContent(2),h.GetBinError(2)) if h else None for h in self["counts"] ]) \
-                                    if "counts" in self else tuple(self.N*[0]) )
-
+                                    if "counts" in self else tuple(self.N*[None]) )
+        @property
+        def isSelector(self) : return "counts" in self
 
     def __init__(self, tag, sampleSpecs = [] ) :
         r.gROOT.cd()
