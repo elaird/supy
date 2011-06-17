@@ -287,12 +287,7 @@ class hadronicLook(analysis.analysis) :
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn1", weights = jw, overrideLumi =  70.2)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn2", weights = jw, overrideLumi = 101.3)
             
-            #out += specify(names = "calo_275_scaled")
-            #out += specify(names = "calo_325_scaled")
-            #out += specify(names = "calo_375"       )
-            #out += specify(names = "bryns_events"       )
-
-            #out += specify(names = "darrens_event")
+            #out += specify(names = "darrens_events")
             #out += specify(names = "calo_325_scaled")
             #w = calculables.Jet.nJetsWeight(jets = params["objects"]["jet"], nJets = [3])
             #out += specify(names = "calo_325_scaled", weights = w, color = r.kRed)
@@ -301,14 +296,9 @@ class hadronicLook(analysis.analysis) :
             #out += specify(names = "qcd_py6_325")
             #out += specify(names = "qcd_py6_375")
             
-            #"HT250_skim_calo",
-            #"HT300_skim_calo",
-            #"bryn_skim_calo",
             #out += specify(names = "HT350_skim_calo")
             #out += specify(names = "hbhe_noise_skim_calo")
             
-            #"Nov4_MJ_skim","Nov4_J_skim","Nov4_J_skim2","Nov4_JM_skim","Nov4_JMT_skim","Nov4_JMT_skim2",
-            #, #nFilesMax = 4, nEventsMax = 2000)
             return out
 
         def qcd_py6(eL) :
