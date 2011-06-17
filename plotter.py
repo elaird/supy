@@ -110,7 +110,6 @@ class plotter(object) :
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox","detailedCalculables"] :
             setattr(self,item,eval(item))
 
-        self.useWhiteList = len(self.whiteList)>0
         self.blackList.append("counts")
         self.plotRatios = self.samplesForRatios!=("","")        
         self.psOptions = "Landscape"
@@ -149,21 +148,16 @@ class plotter(object) :
             self.printCanvas()
             self.canvas.Clear()
             
-        unprintedSteps = True
-        finalStep = filter(lambda s: any(s.yields), self.someOrganizer.steps)[-1]
-        self.stepsSoFar=[]
+        nSelectionsPrinted = 0
+        selectionsSoFar=[]
         for step in self.someOrganizer.steps :
-            isSelector = (not len(step)>1) or any(step.yields)
-
-            self.stepsSoFar.append(step)
-            if isSelector : unprintedSteps = True
-            if step==finalStep or (unprintedSteps and not isSelector and not self.compactOutput) :
-                self.printSteps(self.stepsSoFar, printAll = self.compactOutput)
-                unprintedSteps = False
+            if step.isSelector : selectionsSoFar.append(step)
+            elif nSelectionsPrinted<len(selectionsSoFar) and not self.compactOutput :
+                self.printSteps(selectionsSoFar, printAll = self.compactOutput)
+                nSelectionsPrinted = len(selectionsSoFar)
             if (step.name, step.title)==self.linYAfter : self.doLog = False
-            if self.compactOutput and not self.whiteList : continue
             for plotName in sorted(step.keys()) :
-                if self.useWhiteList and plotName not in self.whiteList : continue
+                if self.compactOutput and plotName not in self.whiteList : continue
                 if plotName in self.blackList : continue
                 self.onePlotFunction(step[plotName])
 
@@ -412,8 +406,8 @@ class plotter(object) :
         colWidth = min(25, pageWidth/len(self.someOrganizer.samples))
         space = 1
 
-        nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in self.someOrganizer.steps]))
-        for i,step in enumerate(filter(lambda s: any(s.yields),steps[-self.nLinesMax:])) :
+        nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in steps]))
+        for i,step in enumerate(steps[-self.nLinesMax:]) :
             absI = i + (0 if len(steps) <= self.nLinesMax else len(steps)-self.nLinesMax)
             letter = string.ascii_letters[absI]
             x = 0.01
@@ -421,8 +415,8 @@ class plotter(object) :
             text.DrawTextNDC(x, y, nametitle.format(letter, step.name, step.title ))
 
             nums = []
-            for iYield,k in enumerate(step.yields) :
-                special = "lumi" in self.someOrganizer.samples[iYield] and not self.showErrorsOnDataYields
+            for k,sample in zip(step.yields,self.someOrganizer.samples) :
+                special = "lumi" in sample and not self.showErrorsOnDataYields
                 s = utils.roundString(*k, width=(colWidth-space), noSci = self.noSci or special, noErr = special) if k else "-    "
                 nums.append(s.rjust(colWidth))
             text.DrawTextNDC(x, y-0.49, "%s: %s"%(letter, "".join(nums)))
