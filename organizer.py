@@ -12,11 +12,12 @@ class organizer(object) :
     class step(dict) : 
         """Keys are histogram names, values are tuples of histograms, parallel to samples."""
         def __init__(self,samples,dirs,keys) :
+            self.N = len(dirs)
             for key in keys: self[key] = tuple( map(lambda d: d.Get(key), dirs) )
             self.nameTitle = (dirs[0].GetName(),dirs[0].GetTitle())
             self.name,self.title = self.nameTitle
-            if "counts" not in self: self["counts"] = tuple([None]*len(dirs))
-            self.rawFailPass = tuple(map(lambda h: (h.GetBinContent(1),h.GetBinContent(2)) if h else None, self["counts"]))
+            #if "counts" not in self: self["counts"] = tuple([None]*self.N)
+            self.rawFailPass = tuple(map(lambda h: (h.GetBinContent(1),h.GetBinContent(2)) if h else None, self["counts"] if "counts" in self else self.N*[0]))
 
             for key in self :
                 if key in ["nJobsHisto"] : continue
@@ -25,7 +26,8 @@ class organizer(object) :
                 else: [ hist.Scale(sample["xs"]/sample['nEvents']) for hist,sample in zip(self[key],samples)
                         if hist and sample['nEvents'] and "xs" in sample ]
         @property
-        def yields(self) : return tuple([(h.GetBinContent(2),h.GetBinError(2)) if h else None for h in self["counts"]])
+        def yields(self) : return ( tuple([(h.GetBinContent(2),h.GetBinError(2)) if h else None for h in self["counts"] ]) \
+                                    if "counts" in self else tuple(self.N*[0]) )
 
 
     def __init__(self, tag, sampleSpecs = [] ) :
@@ -142,7 +144,8 @@ class organizer(object) :
         return someList.index(name) if name in someList else None
 
     def indicesOfStepsWithKey(self,key) :
-        return filter( lambda i: key in self.steps[i], range(len(self.steps)))
+        for iStep,step in enumerate(self.steps) :
+            if key in step : yield iStep
 
     def keysMatching(self,inKeys) :
         return filter(lambda k: any([i in k for i in inKeys]), set(sum([step.keys() for step in self.steps],[])))
@@ -195,6 +198,7 @@ class organizer(object) :
                 nodes[calc] = utils.vessel()
                 nodes[calc].deps = set([calcByName[depName] for depName in scalcs[calc]])
                 nodes[calc].feeds = set()
+                nodes[calc].depLevel = 0
                 for dep in nodes[calc].deps :
                     addNode(dep)
                     nodes[dep].feeds.add(calc)
