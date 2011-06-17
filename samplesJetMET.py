@@ -27,6 +27,8 @@ jetmet.add("zoe_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird
 jetmet.add("bryn_skim_calo", 'utils.fileListFromDisk(location = "/vols/cms03/bm409/ICFSkims/18Events_040511.root", isDirectory = False)', lumi = 36.9)#lumi is a guess
 jetmet.add("hbhe_noise_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/80_hbhe_noise/calo_selection/hbheNoise.root", isDirectory = False)', lumi = 36.9)
 jetmet.add("darrens_event", 'utils.fileListFromDisk(location = "/home/hep/elaird1/84_darrens_event/event.root", isDirectory = False)', xs = 1.0) #fake xs
+jetmet.add("darrens_events", 'utils.fileListFromDisk(location = "/home/hep/elaird1/91_darrens_events/Skim.root", isDirectory = False)', xs = 1.0) #fake xs
+
 jetmet.add("qcd_py6_325", 'utils.fileListFromDisk(location = "/home/hep/elaird1/87_qcd_hunt/01_ht325/py6/skims_alphaT.gt.0.55/all.root", isDirectory = False)', xs = 1.0) #fake xs
 jetmet.add("qcd_py6_375", 'utils.fileListFromDisk(location = "/home/hep/elaird1/87_qcd_hunt/02_ht375/py6/skims_alphaT.gt.0.55/all.root", isDirectory = False)', xs = 1.0) #fake xs
 jetmet.add("qcd_py6_275", 'utils.fileListFromDisk(location = "/home/hep/elaird1/87_qcd_hunt/03_ht275/py6/skims_alphaT.gt.0.55/all.root", isDirectory = False)', xs = 1.0) #fake xs
