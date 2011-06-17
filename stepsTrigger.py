@@ -303,3 +303,20 @@ class triggerScan(analysisStep) :
         r.gROOT.cd()
         file.Close()
         print "Output updated with triggerScans %s."%self.tag
+#####################################
+class prescaleScan(analysisStep) :
+    def __init__(self, trigger = None, unprescaledTrigger = "") :
+        self.trigger = trigger
+        self.unprescaledTrigger = unprescaledTrigger
+        self.moreName = "; ".join([trigger, unprescaledTrigger])
+
+        self.triggerNames = collections.defaultdict(set)
+        self.counts = collections.defaultdict(int)
+
+    def uponAcceptance(self,ev) :
+        if self.unprescaledTrigger and not ev['triggered'][self.unprescaledTrigger] : return
+        prescale = ev["prescaled"][self.trigger]
+        if not prescale : return
+        name = self.trigger+"_p%d"%prescale
+        self.book.fill( ev['triggered'][self.trigger], name, 2,0,1, title = '%s;Fail / Pass;event / bin'%(name))
+        
