@@ -168,14 +168,24 @@ class HcalTowSumEtConeDR04(wrappedChain.calculable) :
         self.value = [self.source[self.var1].at(i)+self.source[self.var2].at(i) for i in range(size)]
 ####################################    
 class SeedTime(wrappedChain.calculable) :
-    @property
-    def name(self) : return "%sSeedTime%s"%self.collection
-    def __init__(self, collection = None) :
-        self.collection = collection
-        self.p4s = "%sP4%s"%self.collection
+    def __init__(self, collection) :
+        self.fixes = collection
+        self.stash(["P4"])
     def isFake(self) : return True
     def update(self, ignored) :
-        self.value = [-100.0]*len(self.source[self.p4s])
+        self.value = [-100.0]*len(self.source[self.P4])
+####################################    
+class WrappedSeedTime(wrappedChain.calculable) :
+    def __init__(self, collection) :
+        self.fixes = collection
+        self.stash(["P4","SeedTime"])
+    def update(self, ignored) :
+        nPhot  = len(self.source[self.P4])
+        nSeeds = len(self.source[self.SeedTime])
+        if nPhot!=nSeeds :
+            self.value = [-100.0]*len(self.source[self.P4])
+        else :
+            self.value = self.source[self.SeedTime]
 ####################################
 class photonIDEmFromTwiki(photonID) :
     def __init__(self, collection = None) :

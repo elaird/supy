@@ -96,7 +96,7 @@ class singlePhotonHistogrammer(analysisStep) :
         self.moreName="%s%s through index %d" % (self.cs+(maxIndex,))
         self.photonIndicesName = "%sIndices%s" % self.cs
         self.p4sName = "%sP4%s" % self.cs
-        self.seedTimes = "%sSeedTime%s" % self.cs
+        self.seedTimes = "%sWrappedSeedTime%s" % self.cs
 
         self.jetIndicesName = "%sIndices%s" % self.jetCs
         self.jetP4Name = "%sCorrectedP4%s" % self.jetCs
