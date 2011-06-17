@@ -190,3 +190,20 @@ class DiMuonPt(wrappedChain.calculable) :
         Z = self.source[self.DiMuon]
         self.value = 0 if not Z else Z.pt()
 ##############################
+class TriggeringIndex(wrappedChain.calculable) :
+    def __init__(self, collection = None, ptMin = None) :
+        self.fixes = collection
+        self.stash(["P4","IndicesAnyIso"])
+        self.absEtaMax = 2.1
+        self.ptMin = ptMin
+        self.moreName = "any %s%s; |eta|<%.1f; %.1f<pt"%(collection + (self.absEtaMax,self.ptMin))
+
+    def update(self,ignored) :
+        self.value = None
+        p4 = self.source[self.P4]
+        for i in self.source[self.IndicesAnyIso] :
+            if p4[i].pt() < self.ptMin : break
+            if abs(p4[i].eta()) < self.absEtaMax :
+                self.value = i
+                break
+#####################################
