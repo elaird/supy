@@ -73,7 +73,7 @@ class analysis(object) :
                     self.__configs = sum([[ dict( list(conf.iteritems()) + [ (param,val), ("tag",conf["tag"]+[str(key)]) ] )
                                             for key,val in variations.iteritems()] for conf in self.__configs],[])
             for conf in self.__configs : conf['tag'] = '_'.join(conf['tag'])
-            if self.__tag!=None :
+            if self.__tag!="" :
                 self.__configs = [c for c in self.__configs if c['tag']==self.__tag]
                 if not self.__configs : print "No such tag: %s"%self.__tag; sys.exit(0)
         return self.__configs

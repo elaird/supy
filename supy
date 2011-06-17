@@ -9,7 +9,7 @@ def opts() :
     parser.add_option("--profile", dest = "profile", default = False, action  = "store_true", help = "profile the code")
     parser.add_option("--batch",   dest = "batch",   default = False, action  = "store_true", help = "submit to batch queue")
     parser.add_option("--jobid",   dest = "jobId",   default = None,  metavar = "id",         help = "[for internal use only]")
-    parser.add_option("--tag",     dest = "tag",     default = None,                          help = "[for internal use only]")
+    parser.add_option("--tag",     dest = "tag",     default = "",                            help = "[for internal use only]")
     parser.add_option("--sample",  dest = "sample",  default = None,                          help = "[for internal use only]")
     parser.add_option("--site",    dest = "site",    default = None,  metavar = "prefix",     help = "[for internal use only]")
     options,args = parser.parse_args()
@@ -99,7 +99,7 @@ def doBatch(someInstance) :
                                  "sample":looper.name,
                                  "iSlice":iSlice,
                                  "site":site}
-                args.append( (baseCmd + " --site %(site)s --jobid %(iSlice)d --tag %(tag)s --sample %(sample)s"%listOfIndices,
+                args.append( (baseCmd + " --site %(site)s --jobid %(iSlice)d --tag '%(tag)s' --sample %(sample)s"%listOfIndices,
                                listOfIndices, subScript, jobScript, condorTemplate) )
     utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(submitBatchJob), args)
 ############################################
