@@ -50,7 +50,8 @@ class prescales2(analysis.analysis) :
         org.mergeSamples(targetSpec = {"name":"SingleMu"}, allWithPrefix="SingleMu")
         pl = plotter.plotter(org,
                              psFileName = self.psFileName(org.tag),
-                             blackList = ["lumiHisto","xsHisto","nJobsHisto"]
+                             blackList = ["lumiHisto","xsHisto","nJobsHisto"],
+                             detailedCalculables = True
                              )
         pl.plotAll()
 
