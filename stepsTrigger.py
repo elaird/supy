@@ -305,18 +305,23 @@ class triggerScan(analysisStep) :
         print "Output updated with triggerScans %s."%self.tag
 #####################################
 class prescaleScan(analysisStep) :
-    def __init__(self, trigger = None, unprescaledTrigger = "") :
+    def __init__(self, trigger = None, ptMin = None, triggeringPt = "") :
         self.trigger = trigger
-        self.unprescaledTrigger = unprescaledTrigger
-        self.moreName = "; ".join([trigger, unprescaledTrigger])
-
-        self.triggerNames = collections.defaultdict(set)
-        self.counts = collections.defaultdict(int)
+        self.triggeringPt = triggeringPt
+        self.ptMin = ptMin
+        self.moreName = "%s; %.1f<pt mu"%(trigger, ptMin)
 
     def uponAcceptance(self,ev) :
-        if self.unprescaledTrigger and not ev['triggered'][self.unprescaledTrigger] : return
+        if not self.ptMin < ev[self.triggeringPt] : return
         prescale = ev["prescaled"][self.trigger]
         if not prescale : return
         name = self.trigger+"_p%d"%prescale
         self.book.fill( ev['triggered'][self.trigger], name, 2,0,1, title = '%s;Fail / Pass;event / bin'%(name))
+#####################################
+class anyTrigger(analysisStep) :
+    def __init__(self, sortedListOfPaths = []) :
+        self.sortedListOfPaths = sortedListOfPaths
+        self.moreName = "any of "+','.join(self.sortedListOfPaths).replace("HLT_","")
         
+    def select(self, ev) :
+        return any(ev['triggered'][item] for item in self.sortedListOfPaths)
