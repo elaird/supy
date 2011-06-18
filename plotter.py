@@ -110,7 +110,7 @@ class plotter(object) :
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox","detailedCalculables"] :
             setattr(self,item,eval(item))
 
-        self.blackList.append("counts")
+        if "counts" not in self.whiteList : self.blackList.append("counts")
         self.plotRatios = self.samplesForRatios!=("","")        
         self.psOptions = "Landscape"
         self.canvas = r.TCanvas("canvas", "canvas", 500, 500) if self.anMode else r.TCanvas()
