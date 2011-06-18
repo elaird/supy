@@ -1,7 +1,7 @@
 import os,socket
 
 def trace() :
-    return True
+    return False
 
 def nCoresDefault() :
     return 4
