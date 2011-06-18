@@ -207,3 +207,18 @@ class TriggeringIndex(wrappedChain.calculable) :
                 self.value = i
                 break
 #####################################
+class TriggeringPt(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["P4","IndicesAnyIso"])
+        self.absEtaMax = 2.1
+        self.moreName = "ptMax; any %s%s; |eta|<%.1f"%(collection + (self.absEtaMax,))
+
+    def update(self,ignored) :
+        self.value = 0
+        p4 = self.source[self.P4]
+        for i in self.source[self.IndicesAnyIso] :
+            if abs(p4[i].eta()) < self.absEtaMax :
+                self.value = p4[i].pt()
+                break
+#####################################
