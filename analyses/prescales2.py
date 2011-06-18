@@ -31,8 +31,9 @@ class prescales2(analysis.analysis) :
             steps.Trigger.physicsDeclaredFilter(),
             steps.Filter.monster(),
             steps.Filter.hbheNoise(),
-            steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
             steps.Trigger.hltPrescaleHistogrammer(pars["triggers"]),
+            steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
+            steps.Trigger.lowestUnPrescaledTriggerFilter(),
             steps.Filter.value( "%sTriggeringIndex%s"%pars['muon'],min = 0),
             ]+[ steps.Trigger.prescaleScan(trig) for trig in pars['triggers']]
 

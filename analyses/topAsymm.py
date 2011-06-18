@@ -9,31 +9,32 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         obj = pars["objects"]
         lepton = obj[pars["lepton"]["name"]]
         lPtMin = pars["lepton"]["ptMin"]
+        lEtaMax = pars["lepton"]["etaMax"]
         bVar = ("%s"+pars["bVar"]+"%s")%calculables.Jet.xcStrip(obj["jet"])
         
         return ([
             steps.Print.progressPrinter(),
             steps.Other.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
-
             steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = "%sIndicesAnyIso%s"%lepton, index = 0),
-            steps.Filter.absEta("%sP4%s"%lepton, max = 2.1, indices = "%sIndicesAnyIso%s"%lepton, index = 0),
-            ]+topAsymmShell.topAsymmShell.cleanupSteps(pars)+[ #]+sum([[step,topAsymmShell.topAsymmShell.lepIso(0,pars)][:1] for step in topAsymmShell.topAsymmShell.cleanupSteps(pars)],[])+[
+            steps.Filter.absEta("%sP4%s"%lepton, max = lEtaMax, indices = "%sIndicesAnyIso%s"%lepton, index = 0),
+            ]+topAsymmShell.topAsymmShell.cleanupSteps(pars)+[ 
             
-            steps.Histos.value(obj["sumPt"],50,0,1000),
-            steps.Other.compareMissing([obj["sumP4"],obj["met"]]),
+            steps.Histos.value(obj["sumPt"],50,0,1500),
+            #steps.Other.compareMissing([obj["sumP4"],obj["met"]]),
             
             ]+topAsymmShell.topAsymmShell.selectionSteps(pars) +[
-            
+            steps.Filter.label("selection complete"),
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             steps.Top.discriminateNonTop(pars),     steps.Other.assertNotYetCalculated("TopReconstruction"),
             #steps.Filter.label('dNonQQ'),  steps.Top.discriminateQQbar(('fitTop','')),
-            steps.Top.Asymmetry(('fitTop','')),
+            #steps.Top.Asymmetry(('fitTop','')),
             
-            steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
-            steps.Filter.multiplicity("%sIndices%s"%obj["jet"], **pars["nJets2"]),
-            steps.Filter.label('kinfit'),  steps.Top.kinFitLook("fitTopRecoIndex"),
-            steps.Top.discriminateNonTop(pars),
-            steps.Top.Asymmetry(('fitTop','')),
+            #steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
+            #]+([steps.Filter.multiplicity("%sIndices%s"%obj["jet"], **pars["nJets2"])] \
+            #   if tuple(sorted(pars["nJets2"].values()))!=tuple(sorted(pars["nJets"].values())) else [])+[
+            #steps.Filter.label('kinfit'),  steps.Top.kinFitLook("fitTopRecoIndex"),
+            #steps.Top.discriminateNonTop(pars),
+            #steps.Top.Asymmetry(('fitTop','')),
             #steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
             #steps.Filter.value(bVar, max=2.0, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
             #steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
@@ -109,7 +110,6 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         org.scale()#toPdf=True)
         
         #plot
-        org.printFormattedCalculablesGraph()
         pl = plotter.plotter(org,
                              psFileName = self.psFileName(org.tag),
                              samplesForRatios = ("Data 2011","standard_model"),
@@ -124,6 +124,28 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                              )
         pl.plotAll()
 
-        file = open("topAsymm.gv","write")
-        print>>file, org.calculablesDotFile
-        file.close
+        self.optimizeCut(org,signal = "t#bar{t}", background = "standard_model", var = "TopRatherThanWProbability")
+        #org.printFormattedCalculablesGraph()
+        #with open("topAsymm.gv","write") as file : print>>file, org.calculablesDotFile
+
+    def optimizeCut(org, signal = "", background = "", var = "", FOM = lambda s,b: s/math.sqrt(s+b) ) :
+        
+        iSignal = org.indexOfSampleWithName(signal)
+        iBack = org.indexOfSampleWithName(background)
+        iStep = next( org.indicesOfStepsWithKey(var) )
+
+        sHist = org.steps[iStep][var][iSignal]
+        bHist = org.steps[iStep][var][iBack]
+        bins = sHist.GetNbins()+2
+        S = [sHist.GetBinContent(i) for i in range(bins)]
+        B = [bHist.GetBinContent(i) for i in range(bins)]
+        
+
+        mDist = bHist.Clone("%s_fom"%var)
+        mDist.Reset()
+        iSeed = max((FOM(s,b),i) for i,s,b in zip(range(bins),S,B))[1]
+
+        iL = iR = iSeed
+        
+            
+        

@@ -13,8 +13,8 @@ class triggers(analysis.analysis) :
         outList += calculables.fromCollections(calculables.Muon, [pars["muon"]])
         outList += calculables.fromCollections(calculables.Electron, [pars["electron"]])
         outList +=[calculables.Muon.Indices( pars["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
-                   calculables.Muon.IndicesAnyIsoIsoOrder(pars['muon'], "TrackRelIso"),#"CombinedRelativeIso"),
-                   calculables.Muon.LeadingIsoAny(pars['muon'], ptMin = 18, iso = "TrackRelIso"),#"CombinedRelativeIso"),
+                   calculables.Muon.IndicesAnyIsoIsoOrder(pars['muon'], "CombinedRelativeIso"),
+                   calculables.Muon.LeadingIsoAny(pars['muon'], ptMin = 18, iso = "CombinedRelativeIso"),
                    calculables.Electron.Indices( pars["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True)
                    ]
         return outList
