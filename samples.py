@@ -22,6 +22,7 @@ class SampleHolder(dict) :
         for group in other.inclusiveGroups : self.addInclusiveGroup(group)
 
     def add(self, name, filesCommand = None, xs = None, lumi = None, ptHatMin = None) :
+        assert name not in self,  "%s already specified" % name
         assert lumi or xs,                      "Underspecified sample: %s"%name
         assert not (lumi and (xs or ptHatMin)), "Overspecified sample: %s"%name
         self[name] = self.sample(filesCommand, xs, lumi, ptHatMin)
