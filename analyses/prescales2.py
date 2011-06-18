@@ -5,8 +5,17 @@ import ROOT as r
 
 class prescales2(analysis.analysis) :
     def mutriggers(self) :
-        ptv = {5:(3,),8:(1,),12:(1,),15:(2,),20:(1,),24:(1,2,3),30:(1,2,3,4),40:(1,2),100:(1,2)}
-        return sum([["HLT_Mu%d_v%d"%(pt,v) for v in vs] for pt,vs in sorted(ptv.iteritems())],[])
+        ptv = {   3:(3,4),
+                  5:(3,4,5,6),
+                  8:(1,2,3,4),
+                 12:(1,2,3,4),
+                 15:(2,3,4,5),
+                 20:(1,2,3,4),
+                 24:(1,2,3,4),
+                 30:(1,2,3,4),
+                 40:(1,2),
+                100:(1,2) }
+        return sum([[("HLT_Mu%d_v%d"%(pt,v),pt+1) for v in vs] for pt,vs in sorted(ptv.iteritems())],[])
 
     def parameters(self) :
         return {"muon" : ("muon","PF"),
@@ -18,7 +27,7 @@ class prescales2(analysis.analysis) :
                 calculables.fromCollections(calculables.Muon,[pars["muon"]]) +
                 [calculables.Muon.Indices( pars["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
                  calculables.Muon.TriggeringIndex(pars['muon'], ptMin = 31),
-                 calculables.Other.lowestUnPrescaledTrigger(pars["triggers"]),
+                 calculables.Other.lowestUnPrescaledTrigger(zip(*pars["triggers"])[0]),
                  calculables.Vertex.ID(),
                  calculables.Vertex.Indices(),
                  ])
@@ -31,11 +40,15 @@ class prescales2(analysis.analysis) :
             steps.Trigger.physicsDeclaredFilter(),
             steps.Filter.monster(),
             steps.Filter.hbheNoise(),
-            steps.Trigger.hltPrescaleHistogrammer(pars["triggers"]),
+            steps.Filter.value("%sTriggeringPt%s"%pars["muon"],min=10),
+            steps.Trigger.anyTrigger(zip(*pars['triggers'])[0]),
+            steps.Histos.value("%sTriggeringPt%s"%pars["muon"],100,0,200),
+            steps.Trigger.hltPrescaleHistogrammer(zip(*pars["triggers"])[0]),
             steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
             steps.Trigger.lowestUnPrescaledTriggerFilter(),
-            steps.Filter.value( "%sTriggeringIndex%s"%pars['muon'],min = 0),
-            ]+[ steps.Trigger.prescaleScan(trig) for trig in pars['triggers']]
+            steps.Histos.value("%sTriggeringPt%s"%pars["muon"],100,0,200),
+            ]+[ steps.Trigger.prescaleScan(trig,ptMin,"%sTriggeringPt%s"%pars['muon']) for trig,ptMin in pars['triggers']]+[
+            steps.Filter.value( "%sTriggeringIndex%s"%pars['muon'],min = 0)]
 
     def listOfSampleDictionaries(self) : return [samples.muon]
 
@@ -60,5 +73,9 @@ class prescales2(analysis.analysis) :
         for step in org.steps :
             if step.name != "prescaleScan" : continue
             for hist in sorted(step,key = lambda h: int(h.split("_")[3][1:])) :
-                    label =''.join(part.strip('p').rjust(8) for part in hist.split('_'))
-                    print label, ("%.1f" % (step[hist][0].GetEntries() / step[hist][0].GetBinContent(2))).rjust(8), ("%d"%step[hist][0].GetBinContent(2)).rjust(20)
+                if not step[hist][0].GetBinContent(2) : continue
+                label =''.join(part.strip('p').rjust(8) for part in hist.split('_'))
+                listed = int(hist.split("_")[3][1:])
+                observed = step[hist][0].GetEntries() / step[hist][0].GetBinContent(2)
+                print label, ("%.1f" % observed).ljust(10), ("%.1f"%(observed/listed)).rjust(7), ("%d"%step[hist][0].GetBinContent(2)).rjust(20)
+                
