@@ -3,6 +3,7 @@ from configuration import srm
 muon = samples.SampleHolder()
 
 #L1Fast 2011
+muon.add("SingleMu.Run2011A-PR-v4.FJ.Burt2",'%s/bbetchar//ICF/automated/2011_06_18_17_11_12/")'%srm, lumi = 216.43 )
 muon.add("SingleMu.Run2011A-PR-v4.FJ.Burt",'%s/bbetchar/ICF/automated/2011_06_11_17_10_04/")'%srm, lumi = 294.45 )
 muon.add("SingleMu.Run2011A-May10-v1.FJ.Burt",'%s/bbetchar/ICF/automated/2011_06_11_17_16_01/")'%srm, lumi = 186.55 )
 #skims, have pf muon |eta|<2.2, pt>24
