@@ -34,6 +34,7 @@ class Master(analysisStep) :
             assert not stderr, "hadd had this stderr: %s"%stderr
             for fileName in files : os.remove(fileName)
 
+        if not all(os.path.exists(fileName) for fileName in products["outputFileName"]) : return
         hAdd = utils.getCommandOutput("hadd -f %s %s"%(self.outputFileName, " ".join(products["outputFileName"])))
         
         printComment(hAdd["stdout"])
