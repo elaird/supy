@@ -72,7 +72,7 @@ mc.add("w_taunu", '%s%s/WToTauNu_TuneZ2_7TeV-pythia6-tauola.%s)'%(srm,burt_ewk,s
 mc.add("z_nunu",  '%s/henning//ICF/automated/2011_04_15_10_55_57/")'%srm, xs = 4292)
 
 ##### G + jets #########
-#MG
+#MG (L2L3)
 #gJetMg = "/elaird//ICF/automated/2011_04_04_11_45_04/"
 gJetMg = "/bm409//ICF/automated/2011_06_08_16_42_46/"
 mc.add("g_jets_mg_ht_40_100",'%s/%s/GJets_TuneD6T_HT-40To100_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
@@ -80,6 +80,15 @@ mc.add("g_jets_mg_ht_40_100",'%s/%s/GJets_TuneD6T_HT-40To100_7TeV-madgraph.Sprin
 mc.add("g_jets_mg_ht_100_200",'%s/%s/GJets_TuneD6T_HT-100To200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
        xs = {"LO":3476, "fakeNLO":3476*mgKFactor}["fakeNLO"])
 mc.add("g_jets_mg_ht_200_inf"   ,'%s/%s/GJets_TuneD6T_HT-200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
+       xs = {"LO":485, "fakeNLO":485*mgKFactor}["fakeNLO"])
+
+#MG (L1OffsetL2L3)
+gJetMg = "/bm409//ICF/automated/2011_06_16_17_15_39/"
+mc.add("g_jets_mg_ht_40_100.L1",'%s/%s/_.GJets_TuneD6T_HT-40To100_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
+       xs = {"LO":23620, "fakeNLO":23620*mgKFactor}["fakeNLO"])
+mc.add("g_jets_mg_ht_100_200.L1",'%s/%s/GJets_TuneD6T_HT-100To200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
+       xs = {"LO":3476, "fakeNLO":3476*mgKFactor}["fakeNLO"])
+mc.add("g_jets_mg_ht_200_inf.L1"   ,'%s/%s/GJets_TuneD6T_HT-200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
        xs = {"LO":485, "fakeNLO":485*mgKFactor}["fakeNLO"])
 
 #PYTHIA
