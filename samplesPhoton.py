@@ -2,14 +2,13 @@ import samples
 from configuration import srm
 photon = samples.SampleHolder()
 
-photon.add("Photon.Run2011A-PromptReco-v1.AOD.Henning1", '%s/henning//ICF/automated/2011_04_11_22_38_56/")'%srm, lumi = 11.88)
-photon.add("Photon.Run2011A-PromptReco-v1.AOD.Henning2", '%s/henning//ICF/automated/2011_04_13_15_50_13/")'%srm, lumi =  5.07)
-photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted1", '%s/elaird//ICF/automated/2011_04_25_12_22_07/")'%srm, lumi = 1.0) #85/86 jobs complete
-photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted2", '%s/elaird//ICF/automated/2011_05_02_08_33_41/")'%srm, lumi = 1.0) #306/326 jobs complete; lumi ~80/pb
-photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted3", '%s/elaird//ICF/automated/2011_05_07_19_24_37/")'%srm, lumi = 1.0) #85/86 jobs complete; lumi ~64/pb
+#L1OffsetL2L3
+photon.add("Photon.Run2011A-May10ReReco-v1.AOD.Henning.L1", '%s/henning//ICF/automated/2011_06_10_17_00_01/")'%srm, lumi = 1.0)
+photon.add("Photon.Run2011A-PromptReco-v4.AOD.Ted1.L1", '%s/elaird//ICF/automated/2011_06_10_17_41_18/")'%srm, lumi = 1.0)
+photon.add("Photon.Run2011A-PromptReco-v4.AOD.Ted2.L1", '%s/elaird//ICF/automated/2011_06_16_17_41_37/")'%srm, lumi = 1.0)
 
+#L2L3
 photon.add("Photon.Run2011A-May10ReReco-v1.AOD.Zoe", '%s/zph04//ICF/automated/2011_05_26_12_19_06/", alwaysUseLastAttempt = True)'%srm, lumi = 1.0) #1517/1607 jobs complete
-
 photon.add("Photon.Run2011A-PromptReco-v4.AOD.Zoe1", '%s/zph04//ICF/automated/2011_06_07_17_56_18/")'%srm, lumi = 1.0)
 photon.add("Photon.Run2011A-PromptReco-v4.AOD.Zoe2", '%s/zph04//ICF/automated/2011_06_06_14_16_17/")'%srm, lumi = 1.0)
 photon.add("Photon.Run2011A-PromptReco-v4.AOD.Zoe3", '%s/zph04//ICF/automated/2011_06_09_14_54_39/")'%srm, lumi = 1.0)
@@ -19,40 +18,15 @@ photon.add("375_photons", 'utils.fileListFromDisk(location = "/home/hep/elaird1/
 photon.add("325_photons", 'utils.fileListFromDisk(location = "/home/hep/elaird1/72_photonLook/v16_improve_indices/325_photons.root", isDirectory = False)', lumi = 1.0)
 photon.add("275_photons", 'utils.fileListFromDisk(location = "/home/hep/elaird1/72_photonLook/v16_improve_indices/275_photons.root", isDirectory = False)', lumi = 1.0)
 
-#data skims
-
-#v1
-dir = "/vols/cms02/elaird1/29_skims/04_photons/v1"
-photon.add("Photon.Run2011A-PromptReco-v1.AOD.Henning1_noIsoReqSkim",
-           'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v1.AOD.Henning1_*_skim.root", isDirectory = False)'%dir,lumi = 1.188000e+01)
-photon.add("Photon.Run2011A-PromptReco-v1.AOD.Henning2_noIsoReqSkim",
-           'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v1.AOD.Henning2_*_skim.root", isDirectory = False)'%dir,lumi = 5.070000e+00)
-photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted1_noIsoReqSkim",
-           'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v2.AOD.Ted_*_skim.root", isDirectory = False)'%dir,lumi = 15.83)
-photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted2_noIsoReqSkim",
-           'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v2.AOD.Ted2_*_skim.root", isDirectory = False)'%dir,lumi = 15.83)#lumi ~80/pb, as above
-photon.add("Photon.Run2011A-PromptReco-v2.AOD.Ted3_noIsoReqSkim",
-           'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v2.AOD.Ted3_*_skim.root", isDirectory = False)'%dir,lumi = 15.83)#lumi ~64/pb, as above
-photon.add("Photon.Run2011A-PromptReco-v4.AOD.Zoe_noIsoReqSkim",
-           'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v4.AOD.Zoe_*_skim.root", isDirectory = False)'%dir,lumi = 1.0)#lumi ~57/pb, as above
-
-#v2
+#data skims (L2L3)
 dir = "/vols/cms02/elaird1/29_skims/04_photons/v2"
 photon.add("Photon.Run2011A-May10ReReco-v1.AOD.Zoe_skim", 'utils.fileListFromDisk(location = "%s/Photon.Run2011A-May10ReReco-v1.AOD.Zoe_*_skim.root", isDirectory = False)'%dir,lumi = 1.000000e+00)
 photon.add("Photon.Run2011A-PromptReco-v4.AOD.Zoe1_skim", 'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v4.AOD.Zoe1_*_skim.root", isDirectory = False)'%dir,lumi = 1.000000e+00)
 photon.add("Photon.Run2011A-PromptReco-v4.AOD.Zoe2_skim", 'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v4.AOD.Zoe2_*_skim.root", isDirectory = False)'%dir,lumi = 1.000000e+00)
 photon.add("Photon.Run2011A-PromptReco-v4.AOD.Zoe3_skim", 'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v4.AOD.Zoe3_*_skim.root", isDirectory = False)'%dir,lumi = 1.000000e+00)
 
-#MC skims
+#MC skims (L2L3)
 #MG G jets
-#dir = "/vols/cms02/elaird1/29_skims/04_photons/v1"
-#photon.add("g_jets_mg_ht_100_200_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_*_skim.root", isDirectory = False)'%dir,
-#           xs = 8.158440e-02 * 4.414520e+03)
-#photon.add("g_jets_mg_ht_200_inf_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_200_inf_*_skim.root", isDirectory = False)'%dir,
-#           xs = 1.554971e-01 * 6.159500e+02)
-#photon.add("g_jets_mg_ht_40_100_noIsoReqSkim",  'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_40_100_*_skim.root", isDirectory = False)'%dir,
-#           xs = 4.606359e-03 * 2.999740e+04)
-
 dir = "/vols/cms02/elaird1/29_skims/04_photons/v2"
 photon.add("g_jets_mg_ht_100_200_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_*_skim.root", isDirectory = False)'%dir,xs = 8.149830e-02 * 4.414520e+03)
 photon.add("g_jets_mg_ht_200_inf_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_200_inf_*_skim.root", isDirectory = False)'%dir,xs = 1.552981e-01 * 6.159500e+02)
