@@ -188,13 +188,15 @@ class analysis(object) :
         return [ looper(sampleSpec) for sampleSpec in self.filteredSamples(conf) ]
     
 ############
-    def mergeAllOutput(self) : utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(self.mergeOutput),
-                                                             sum([[(conf['tag'],looper) for looper in self.listsOfLoopers[conf['tag']]] for conf in self.configurations],[]))
+    def mergeAllOutput(self) :
+        args = sum([[(conf['tag'],looper) for looper in self.listsOfLoopers[conf['tag']]] for conf in self.configurations],[])
+        utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(self.mergeOutput), args)
+        #for arg in args : self.mergeOutput(*arg)
+    
     def mergeOutput(self,tag,looper) :
         if not os.path.exists(self.jobsFile(tag,looper.name)) : return
         nSlices = utils.readPickle(self.jobsFile(tag,looper.name))
-        if looper.readyMerge(nSlices) : 
-            looper.mergeFunc(nSlices)
+        if looper.readyMerge(nSlices) : looper.mergeFunc(nSlices)
 
 ############
     def manageSecondaries(self) :
