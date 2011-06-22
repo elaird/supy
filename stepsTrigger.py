@@ -312,11 +312,12 @@ class prescaleScan(analysisStep) :
         self.moreName = "%s; %.1f<pt mu"%(trigger, ptMin)
 
     def uponAcceptance(self,ev) :
+        
         if not self.ptMin < ev[self.triggeringPt] : return
         prescale = ev["prescaled"][self.trigger]
         if not prescale : return
         name = self.trigger+"_p%d"%prescale
-        self.book.fill( ev['triggered'][self.trigger], name, 2,0,1, title = '%s;Fail / Pass;event / bin'%(name))
+        self.book.fill( ev['triggered'][self.trigger], name, 2,0,2, title = '%s;Fail / Pass;event / bin'%(name))
 #####################################
 class anyTrigger(analysisStep) :
     def __init__(self, sortedListOfPaths = []) :
@@ -325,3 +326,58 @@ class anyTrigger(analysisStep) :
         
     def select(self, ev) :
         return any(ev['triggered'][item] for item in self.sortedListOfPaths)
+
+#####################################
+class prescaleLumiEpochs(analysisStep) :
+    def __init__(self, triggers) :
+        self.triggers = triggers
+
+    def setup(self,ignored1,ignored2) :
+        dd = collections.defaultdict
+        self.epochLumis = dd(lambda : dd(set)) #set of lumis by run by (prescale set)
+        self.lumis = dd(set) #set of lumis by run
+    
+    def uponAcceptance(self,ev) :
+        run,lumi = (ev["run"],ev["lumiSection"])
+        if lumi in self.lumis[run] : return
+        key = tuple([ev["prescaled"][trigger] for trigger in self.triggers])
+        self.epochLumis[key][run].add(lumi)
+        self.lumis[run].add(lumi)
+        
+    def varsToPickle(self) : return ["staticEpochLumis"]
+
+    @property
+    def staticEpochLumis(self) :
+        static = {}
+        for epoch in self.epochLumis :
+            static[epoch] = {}
+            static[epoch].update(self.epochLumis[epoch])
+        return static
+
+    def mergeFunc(self,products) :
+        self.setup(None,None)
+        for eLumis in products["staticEpochLumis"] :
+            for epoch in eLumis :
+                for run in eLumis[epoch] :
+                    self.epochLumis[epoch][run] |= eLumis[epoch][run]
+
+        with open(self.outputFileName,"w") as file :
+            print >> file, self.triggers
+            print >> file, ""
+            for epoch in sorted(self.epochLumis,reverse = True) :
+                print >> file, epoch
+                print >> file, self.json(self.epochLumis[epoch])
+                print >> file, ""
+        print "Wrote prescale jsons by epoch : "+self.outputFileName
+
+    def json(self,runDict) :
+        json = {}
+        for run,lumis in runDict.iteritems() :
+            blocks = []
+            for lumi in sorted(lumis) :
+                if (not blocks) or lumi-blocks[-1][-1]!=1: blocks.append([lumi])
+                else : blocks[-1].append(lumi)
+            for i,block in enumerate(blocks) :
+                blocks[i] = [block[0],block[-1]]
+            json[str(run)] = blocks
+        return json
