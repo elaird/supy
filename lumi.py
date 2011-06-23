@@ -1,5 +1,6 @@
 import sys,os
-sys.path.extend(["/vols/sl5_exp_software/cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_1_3/src/"])
+import configuration
+sys.path.extend([configuration.siteInfo(key="CMSSW_lumi")])
 
 from RecoLuminosity.LumiDB import lumiQueryAPI,inputFilesetParser
 
