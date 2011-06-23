@@ -1,14 +1,14 @@
-import sys,os
+import sys,os,tempfile
 import configuration
 sys.path.extend([configuration.siteInfo(key="CMSSW_lumi")])
 
 from RecoLuminosity.LumiDB import lumiQueryAPI,inputFilesetParser
 
 def jsonToIFP(json) :
-    fileName = "temporaryInputFilesetParserFileBogusHappyBunniesHopping"
-    with open(fileName,"w") as file : print >> file, str(json).replace("'",'"')
-    ifp = inputFilesetParser.inputFilesetParser(fileName)
-    os.remove(fileName)
+    with tempfile.NamedTemporaryFile() as file :
+        print >> file, str(json).replace("'",'"')
+        file.flush()
+        ifp = inputFilesetParser.inputFilesetParser(file.name)
     return ifp
 
 def recordedInvMicrobarns(json) :
