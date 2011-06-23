@@ -1,5 +1,5 @@
 from multiprocessing import Process,JoinableQueue
-import os,collections,array,math,subprocess,cPickle,traceback,sys
+import os,collections,array,math,subprocess,cPickle,traceback,sys,itertools,operator
 import ROOT as r
 #####################################
 hyphens="-"*115
@@ -433,3 +433,5 @@ def writePickle(fileName, payload) :
     cPickle.dump(payload, pickleFile)
     pickleFile.close()
 #####################################
+def unionProbability(indPs) :
+    return sum([ (-1)**r * sum([reduce(operator.mul,ps,1) for ps in itertools.combinations(indPs, r+1)]) for r in range(len(indPs))])
