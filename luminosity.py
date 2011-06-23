@@ -8,8 +8,7 @@ def jsonToIFP(json) :
     with tempfile.NamedTemporaryFile() as file :
         print >> file, str(json).replace("'",'"')
         file.flush()
-        ifp = inputFilesetParser.inputFilesetParser(file.name)
-    return ifp
+        return inputFilesetParser.inputFilesetParser(file.name)
 
 def recordedInvMicrobarns(json) :
     pars = lumiQueryAPI.ParametersObject()
