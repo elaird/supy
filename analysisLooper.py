@@ -208,7 +208,11 @@ class analysisLooper :
                 
         self.printStats()
         print utils.hyphens
-        for step,stepDict in zip(self.steps, products) : step.mergeFunc(stepDict)
+        for iStep,step,stepDict in zip(range(len(self.steps)),self.steps,products) :
+            if iStep : rootFile.cd('/'.join(step.name for step in self.steps[:iStep+1] ))
+            step.mergeFunc(stepDict)
+            if not iStep: rootFile = r.TFile.Open(self.steps[0].outputFileName, "UPDATE")
+        rootFile.Close()
         for dirName in cleanUpList : os.system("rm -fr %s"%dirName)
 
     def printStats(self) :
