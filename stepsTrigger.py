@@ -1,6 +1,6 @@
 import ROOT as r
 from analysisStep import analysisStep
-import stepsMaster
+import stepsMaster,luminosity
 import math,collections,os,utils,re
 #####################################
 class physicsDeclaredFilter(analysisStep) :
@@ -192,14 +192,10 @@ class hltTurnOnHistogrammer(analysisStep) :
     def outputSuffix(self) : return stepsMaster.Master.outputSuffix()
 
     def mergeFunc(self, products) :
-        file = r.TFile.Open(self.outputFileName, "UPDATE")
-        probe = file.FindObjectAny(self.probeTitle[0])
-        if not probe : return
-        probe.GetDirectory().cd()
-        tag = file.FindObjectAny(self.tagTitle[0])
-        if tag.GetDirectory() != probe.GetDirectory() :
-            print "Warning: hltTurnOnHistogrammer could not complete mergeFunc"
-            print self.tagTitle[0]
+        probe = r.gDirectory.Get(self.probeTitle[0])
+        tag = r.gDirectory.Get(self.tagTitle[0])
+        if not (tag and probe) :
+            print self.name+": Could not find tag or probe."
             return
         efficiency = probe.Clone(self.effTitle[0])
         efficiency.SetTitle(self.effTitle[1])
@@ -208,8 +204,6 @@ class hltTurnOnHistogrammer(analysisStep) :
             efficiency.SetBinContent(bin,0)
             efficiency.SetBinError(bin,0)
         efficiency.Write()
-        r.gROOT.cd()
-        file.Close()
         print "Output updated with TurnOn %s."%self.effTitle[0]
 #####################################
 class jetMetTriggerHistogrammer(analysisStep) :
@@ -296,12 +290,7 @@ class triggerScan(analysisStep) :
                 j = names.index(name)
                 hist.SetBinContent(i+1,j+1,iCount)
 
-        file = r.TFile.Open(self.outputFileName,"UPDATE")
-        if not file.FindKey("triggerScan") : file.mkdir("triggerScan")
-        file.cd("triggerScan")
         hist.Write()
-        r.gROOT.cd()
-        file.Close()
         print "Output updated with triggerScans %s."%self.tag
 #####################################
 class prescaleScan(analysisStep) :
@@ -330,7 +319,8 @@ class anyTrigger(analysisStep) :
 #####################################
 class prescaleLumiEpochs(analysisStep) :
     def __init__(self, triggers) :
-        self.triggers = triggers
+        self.triggers = zip(*triggers)[0]
+        self.thresh = zip(*triggers)[1]
 
     def setup(self,ignored1,ignored2) :
         dd = collections.defaultdict
@@ -347,12 +337,7 @@ class prescaleLumiEpochs(analysisStep) :
     def varsToPickle(self) : return ["staticEpochLumis"]
 
     @property
-    def staticEpochLumis(self) :
-        static = {}
-        for epoch in self.epochLumis :
-            static[epoch] = {}
-            static[epoch].update(self.epochLumis[epoch])
-        return static
+    def staticEpochLumis(self) : return dict((epoch,dict(self.epochLumis[epoch].iteritems())) for epoch in self.epochLumis)
 
     def mergeFunc(self,products) :
         self.setup(None,None)
@@ -364,12 +349,23 @@ class prescaleLumiEpochs(analysisStep) :
         with open(self.outputFileName,"w") as file :
             print >> file, self.triggers
             print >> file, ""
-            for epoch in sorted(self.epochLumis,reverse = True) :
+            for epoch in self.epochLumis:
+                json = self.json(self.epochLumis[epoch])
+                lumi = luminosity.recordedInvMicrobarns(json)
+                probs = [(thresh,1./prescale) for thresh,prescale in zip(self.thresh,epoch)[:epoch.index(1.0)+1] if prescale]
+                inclusive = [(probs[i][0],utils.unionProbability(zip(*probs[:i+1])[1])) for i in range(len(probs))]
                 print >> file, epoch
-                print >> file, self.json(self.epochLumis[epoch])
+                print >> file, json
+                print >> file, lumi
+                print >> file, [(thresh,"%.4f"%w) for thresh,w in inclusive]
                 print >> file, ""
         print "Wrote prescale jsons by epoch : "+self.outputFileName
-
+        hist = r.TH1D("hist","hist",2,0,2)
+        hist.Fill(1)
+        hist.Write()
+        print "Wrote %s to %s."%(hist.GetName(),r.gDirectory.GetName())
+        return
+            
     def json(self,runDict) :
         json = {}
         for run,lumis in runDict.iteritems() :
