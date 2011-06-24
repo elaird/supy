@@ -1,7 +1,7 @@
 import ROOT as r
 from analysisStep import analysisStep
-import stepsMaster,luminosity
-import math,collections,os,utils,re
+import luminosity,utils
+import math,collections,os,re
 #####################################
 class physicsDeclaredFilter(analysisStep) :
 
