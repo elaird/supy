@@ -1,8 +1,7 @@
 import copy,array,os,collections
 import ROOT as r
 from analysisStep import analysisStep
-import stepsMaster,configuration
-import utils
+import stepsMaster,configuration,utils,luminosity
 #####################################
 class histogrammer(analysisStep) :
 
@@ -349,62 +348,33 @@ class pickEventSpecMaker(analysisStep) :
 #####################################
 class jsonMaker(analysisStep) :
 
-    def __init__(self) :
-        self.runLsDict=collections.defaultdict(list)
+    def __init__(self, calculateLumi = True) :
+        self.lumisByRun = collections.defaultdict(list)
+        self.calculateLumi = calculateLumi
         self.moreName="see below"
 
     def uponAcceptance(self,eventVars) :
-        self.runLsDict[eventVars["run"]].append(eventVars["lumiSection"])
+        self.lumisByRun[eventVars["run"]].append(eventVars["lumiSection"])
     
-    def varsToPickle(self) :
-        return ["runLsDict"]
+    def varsToPickle(self) : return ["lumisByRun"]
 
-    def outputSuffix(self) :
-        return ".json"
+    def outputSuffix(self) : return ".json"
     
     def mergeFunc(self, products) :
-        def mergedDict(runLsDicts) :
-            #merge results into one dictionary
-            out = collections.defaultdict(list)
-            for d in runLsDicts :
-                for run,lsList in d.iteritems() :
-                    out[run].extend(lsList)
-            return out
+        for lumisByRun in products["lumisByRun"] :
+            for run,lumis in lumisByRun.iteritems() :
+                self.lumisByRun[run] += lumis
 
-        def trimmedList(run, lsList) :
-            #check for duplicates
-            out = list(set(lsList))
-            nDuplicates = len(lsList)-len(out)
-            if nDuplicates!=0 :
-                for ls in out :
-                    lsList.remove(ls)
-                lsList.sort()
-                print "In run %d, these lumi sections appear multiple times in the lumiTree: %s"%(run, str(lsList))
-            return sorted(out)
+        for run,lumis in self.lumisByRun.iteritems() :
+            self.lumisByRun[run] = sorted(set(lumis))
+            for ls in self.lumisByRun[run] :
+                if 1 < lumis.count(ls) :
+                    print "Run %d ls %d appears %d times in the lumiTree."%(run,ls,lumis.count(ls))
 
-        def aJson(inDict) :
-            #make a json
-            outDict = {}
-            for run,lsList in inDict.iteritems() :
-                trimList = trimmedList(run, lsList)
-
-                newList = []
-                lowerBound = trimList[0]
-                for iLs in range(len(trimList)-1) :
-                    thisLs = trimList[iLs  ]
-                    nextLs = trimList[iLs+1]
-                    if nextLs!=thisLs+1 :
-                        newList.append([lowerBound, thisLs])
-                        lowerBound = nextLs
-                    if iLs==len(trimList)-2 :
-                        newList.append([lowerBound, nextLs])
-                outDict[str(run)] = newList
-            return str(outDict).replace("'",'"')
-
-        outFile = open(self.outputFileName,"w")
-        outFile.write(aJson(mergedDict(products["runLsDict"])))
-        outFile.close()
-        print "The json file %s has been written."%self.outputFileName
+        json = utils.jsonFromRunDict( self.lumisByRun )
+        lumi = luminosity.recordedInvMicrobarns(json)/1e6 if self.calculateLumi else -1.0
+        with open(self.outputFileName,"w") as file: print >> file, str(json).replace("'",'"')
+        print "Wrote %.4f/pb json to : %s"%(lumi,self.outputFileName)
         print utils.hyphens
 #####################################
 class duplicateEventCheck(analysisStep) :
@@ -414,8 +384,7 @@ class duplicateEventCheck(analysisStep) :
     def uponAcceptance(self,ev) :
         self.events[(ev["run"], ev["lumiSection"])].append(ev["event"])
 
-    def varsToPickle(self) :
-        return ["events"]
+    def varsToPickle(self) : return ["events"]
 
     def mergeFunc(self, products) :
         def mergedEventDicts(l) :
