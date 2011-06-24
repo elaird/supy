@@ -435,3 +435,15 @@ def writePickle(fileName, payload) :
 #####################################
 def unionProbability(indPs) :
     return sum([ (-1)**r * sum([reduce(operator.mul,ps,1) for ps in itertools.combinations(indPs, r+1)]) for r in range(len(indPs))])
+#####################################
+def jsonFromRunDict(runDict) :
+    json = {}
+    for run,lumis in runDict.iteritems() :
+        blocks = []
+        for lumi in sorted(lumis) :
+            if (not blocks) or lumi-blocks[-1][-1]!=1: blocks.append([lumi])
+            else : blocks[-1].append(lumi)
+        for i,block in enumerate(blocks) :
+            blocks[i] = [block[0],block[-1]]
+        json[str(run)] = blocks
+    return json
