@@ -189,14 +189,10 @@ class hltTurnOnHistogrammer(analysisStep) :
         for t in ([self.tagTitle] if not eventVars["triggered"][self.probe] else [self.tagTitle,self.probeTitle]) :
             self.book.fill( eventVars[self.var], t[0], self.binsMinMax[0],self.binsMinMax[1],self.binsMinMax[2], title = t[1] )
     
-    def outputSuffix(self) : return stepsMaster.Master.outputSuffix()
-
     def mergeFunc(self, products) :
         probe = r.gDirectory.Get(self.probeTitle[0])
         tag = r.gDirectory.Get(self.tagTitle[0])
-        if not (tag and probe) :
-            print self.name+": Could not find tag or probe."
-            return
+        if not (tag and probe) : return
         efficiency = probe.Clone(self.effTitle[0])
         efficiency.SetTitle(self.effTitle[1])
         efficiency.Divide(probe,tag,1,1,"B")
@@ -261,8 +257,6 @@ class triggerScan(analysisStep) :
 
     def varsToPickle(self) : return ["triggerNames","counts"]
         
-    def outputSuffix(self) : return stepsMaster.Master.outputSuffix()
-
     def mergeFunc(self,products) :
         def update(a,b) : a.update(b); return a;
         self.triggerNames = reduce(update, products["triggerNames"], dict())
@@ -346,34 +340,33 @@ class prescaleLumiEpochs(analysisStep) :
                 for run in eLumis[epoch] :
                     self.epochLumis[epoch][run] |= eLumis[epoch][run]
 
+        lumiProbs = []
         with open(self.outputFileName,"w") as file :
             print >> file, self.triggers
             print >> file, ""
             for epoch in self.epochLumis:
-                json = self.json(self.epochLumis[epoch])
-                lumi = luminosity.recordedInvMicrobarns(json)
+                json = utils.jsonFromRunDict(self.epochLumis[epoch])
+                lumi = luminosity.recordedInvMicrobarns(json)/1e6
                 probs = [(thresh,1./prescale) for thresh,prescale in zip(self.thresh,epoch)[:epoch.index(1.0)+1] if prescale]
-                inclusive = [(probs[i][0],utils.unionProbability(zip(*probs[:i+1])[1])) for i in range(len(probs))]
+                inclusive = [(probs[i][0],probs[i+1][0] if (i<len(probs)-1) else None,utils.unionProbability(zip(*probs[:i+1])[1])) for i in range(len(probs))]
+                lumiProbs.append((lumi,inclusive))
                 print >> file, epoch
                 print >> file, json
-                print >> file, lumi
-                print >> file, [(thresh,"%.4f"%w) for thresh,w in inclusive]
+                print >> file, lumi, " /pb"
+                print >> file, [(thresh,"%.4f"%w) for thresh,nextThresh,w in inclusive]
                 print >> file, ""
         print "Wrote prescale jsons by epoch : "+self.outputFileName
-        hist = r.TH1D("hist","hist",2,0,2)
-        hist.Fill(1)
-        hist.Write()
-        print "Wrote %s to %s."%(hist.GetName(),r.gDirectory.GetName())
-        return
-            
-    def json(self,runDict) :
-        json = {}
-        for run,lumis in runDict.iteritems() :
-            blocks = []
-            for lumi in sorted(lumis) :
-                if (not blocks) or lumi-blocks[-1][-1]!=1: blocks.append([lumi])
-                else : blocks[-1].append(lumi)
-            for i,block in enumerate(blocks) :
-                blocks[i] = [block[0],block[-1]]
-            json[str(run)] = blocks
-        return json
+
+        lumiVal = sum(lumi for lumi,probs in lumiProbs)
+        lumiHist = r.TH1D("susyTreeLumi","luminosity from susyTree;;1/pb",1,0,1)
+        lumiHist.Fill(0.5,lumiVal)
+        lumiHist.Write()
+        
+        ptMax = 10+max(self.thresh)
+        weight = r.TH1D("prescaleWeight","prescaleWeight",ptMax,0,ptMax)
+        for lumi,probs in lumiProbs :
+            epochWeight = lumi / lumiVal
+            for thresh,nextThresh,prob in probs:
+                for bin in range(thresh,nextThresh if nextThresh else ptMax) :
+                    weight.Fill(bin, epochWeight * prob)
+        weight.Write()
