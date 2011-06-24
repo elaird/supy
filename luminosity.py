@@ -26,6 +26,7 @@ def recordedInvMicrobarns(json) :
 
 
 if __name__=='__main__' :
+    print
     import utils
     if len(sys.argv)<2 : print 'Pass list of "{json}" and/or filenames as argument'; sys.exit(0)
 
