@@ -443,7 +443,5 @@ def jsonFromRunDict(runDict) :
         for lumi in sorted(lumis) :
             if (not blocks) or lumi-blocks[-1][-1]!=1: blocks.append([lumi])
             else : blocks[-1].append(lumi)
-        for i,block in enumerate(blocks) :
-            blocks[i] = [block[0],block[-1]]
-        json[str(run)] = blocks
+        json[str(run)] = [[block[0], block[-1]] for block in blocks]
     return json

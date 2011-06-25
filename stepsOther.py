@@ -361,17 +361,19 @@ class jsonMaker(analysisStep) :
     def outputSuffix(self) : return ".json"
     
     def mergeFunc(self, products) :
+        d = collections.defaultdict(list)
         for lumisByRun in products["lumisByRun"] :
             for run,lumis in lumisByRun.iteritems() :
-                self.lumisByRun[run] += lumis
+                d[run] += lumis
 
-        for run,lumis in self.lumisByRun.iteritems() :
-            self.lumisByRun[run] = sorted(set(lumis))
-            for ls in self.lumisByRun[run] :
+        d2 = {}
+        for run,lumis in d.iteritems() :
+            d2[run] = sorted(set(lumis))
+            for ls in d[run] :
                 if 1 < lumis.count(ls) :
                     print "Run %d ls %d appears %d times in the lumiTree."%(run,ls,lumis.count(ls))
 
-        json = utils.jsonFromRunDict( self.lumisByRun )
+        json = utils.jsonFromRunDict(d2)
         lumi = luminosity.recordedInvMicrobarns(json)/1e6 if self.calculateLumi else -1.0
         with open(self.outputFileName,"w") as file: print >> file, str(json).replace("'",'"')
         print "Wrote %.4f/pb json to : %s"%(lumi,self.outputFileName)
