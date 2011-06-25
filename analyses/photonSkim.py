@@ -16,7 +16,7 @@ class photonSkim(analysis.analysis) :
     def listOfCalculables(self,params) :
         return calculables.zeroArgs() +\
                calculables.fromCollections(calculables.Photon,[params["photon"]]) +\
-               [calculables.Photon.Indices(collection = params["photon"], ptMin = 80, flagName = "photonIDNoIsoReqPat")]
+               [calculables.Photon.Indices(collection = params["photon"], ptMin = 100, flagName = "photonIDNoIsoReqPat")]
 
     def qcdPyNames(self) :
         l = ["80", "120", "170", "300", "470", "600", "800"]
@@ -29,9 +29,18 @@ class photonSkim(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         out = []
-        out += specify(names = "g_jets_mg_ht_40_100" )
-        out += specify(names = "g_jets_mg_ht_100_200")
-        out += specify(names = "g_jets_mg_ht_200_inf")
+
+        #out += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Henning.L1")
+        #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Ted1.L1"    )
+        #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Ted2.L1"    )
+
+        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe2")
+        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob1")
+        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob2")
+        
+        #out += specify(names = "g_jets_mg_ht_40_100.L1" )
+        #out += specify(names = "g_jets_mg_ht_100_200.L1")
+        #out += specify(names = "g_jets_mg_ht_200_inf.L1")
         return out
     
         #return specify(names = "tt_tauola_mg") +\
@@ -41,6 +50,6 @@ class photonSkim(analysis.analysis) :
     def listOfSampleDictionaries(self) :
         return [samples.jetmet, samples.photon, samples.mc]
 
-    def conclude(self) :
-        org = organizer.organizer( self.sampleSpecs() )
+    def conclude(self, conf) :
+        org = self.organizer(conf)
         utils.printSkimResults(org)
