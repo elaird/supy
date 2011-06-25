@@ -5,7 +5,7 @@ import ROOT as r
 
 class muonLook(analysis.analysis) :
     def parameters(self) :
-        objects = {}
+        objects = self.vary()
         fields =                                                  [ "jet",                        "jetId",     "muonsInJets",           "met",
                                                                     "compJet",                "compJetId", "compMuonsInJets",        "compMet",
                                                                     "muon",                    "electron",          "photon",         "rechit"]
@@ -29,16 +29,20 @@ class muonLook(analysis.analysis) :
                  "highPtThreshold" : 50.0,
                  "highPtName" : "highPt",
                  "tanBeta" : [None, 3, 10, 50][0],
-                 "thresholds": dict( [("275",        (275.0, 325.0, 100.0, 50.0)),#0
-                                      ("325",        (325.0, 375.0, 100.0, 50.0)),#1
-                                      ("375",        (375.0, None,  100.0, 50.0)),#2
-                                      ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#3
-                                      ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#4
-                                      ("225_scaled", (225.0, 275.0,  60.0, 30.0)),#5
-                                      ][2:] ),
-                 "triggerList": ("HLT_Mu3_v3", "HLT_Mu3_v4", "HLT_Mu5_v3", "HLT_Mu5_v4", "HLT_Mu8_v1", "HLT_Mu8_v2",
-                                 "HLT_Mu12_v1", "HLT_Mu12_v2", "HLT_Mu15_v2", "HLT_Mu15_v3", "HLT_Mu20_v1", "HLT_Mu20_v2",
-                                 "HLT_Mu24_v1", "HLT_Mu24_v2", "HLT_Mu30_v1", "HLT_Mu30_v2"),
+                 "thresholds": self.vary(dict( [("275",        (275.0, 325.0, 100.0, 50.0)),#0
+                                                ("325",        (325.0, 375.0, 100.0, 50.0)),#1
+                                                ("375",        (375.0, None,  100.0, 50.0)),#2
+                                                ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#3
+                                                ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#4
+                                                ("225_scaled", (225.0, 275.0,  60.0, 30.0)),#5
+                                                ][2:] )),
+
+                 "triggerList":tuple(["HLT_Mu15_v%d" %i for i in range(2,7)]+
+                                     ["HLT_Mu20_v%d" %i for i in range(1,6)]+
+                                     ["HLT_Mu24_v%d" %i for i in range(1,6)]+
+                                     ["HLT_Mu30_v%d" %i for i in range(1,6)]+
+                                     ["HLT_Mu40_v%d" %i for i in range(1,4)]+
+                                     ["HLT_Mu100_v%d"%i for i in range(1,4)])
                  }
 
     def calcListJet(self, obj, etRatherThanPt, ptMin, lowPtThreshold, lowPtName, highPtThreshold, highPtName) :
@@ -104,7 +108,7 @@ class muonLook(analysis.analysis) :
         return outList
     
     def listOfSteps(self, params) :
-        _jet  = params["objects"]["jet"]
+        _jet = params["objects"]["jet"]
         _electron = params["objects"]["electron"]
         _muon = params["objects"]["muon"]
         _photon = params["objects"]["photon"]
@@ -115,15 +119,15 @@ class muonLook(analysis.analysis) :
         htUpper = [steps.Other.variableLessFilter(params["thresholds"][1],"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV")] if params["thresholds"][1]!=None else []
         return [
             steps.Print.progressPrinter(),
-            steps.Trigger.lowestUnPrescaledTrigger(),
+            steps.Trigger.lowestUnPrescaledTriggerFilter(),
             steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
             
-            steps.Trigger.physicsDeclared(),
+            steps.Trigger.physicsDeclaredFilter(),
             steps.Other.monsterEventFilter(),
             steps.Other.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
             steps.Trigger.hltPrescaleHistogrammer(params["triggerList"]),
 
-            steps.Filter.pt ("%sP4%s"%_muon, min = 25.0,            indices = "%sIndices%s"%_muon, index = 0),
+            steps.Filter.pt ("%sP4%s"%_muon, min = 32.0,            indices = "%sIndices%s"%_muon, index = 0),
             steps.Filter.eta("%sP4%s"%_muon, min = -2.1, max = 2.1, indices = "%sIndices%s"%_muon, index = 0),
             ]+(
             steps.Other.multiplicityPlotFilter("vertexIndices",     nMin = 1,           xlabel = "N vertices") +
@@ -239,13 +243,11 @@ class muonLook(analysis.analysis) :
         from samples import specify
 
         def data() :
-            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-163869_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #193/pb
+            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-167151_7TeV_PromptReco_Collisions11_JSON.txt") #869/pb            
             out = []
-            out += specify(names = "SingleMu.Run2011A-PR-v2.Alex_2muskim"  , weights = jw, overrideLumi = 12.27)
-            out += specify(names = "SingleMu.Run2011A-PR-v2.Robin1_2muskim", weights = jw, overrideLumi = 87.31)
-            out += specify(names = "SingleMu.Run2011A-PR-v2.Robin2_2muskim", weights = jw, overrideLumi = 79.34)
-
-            #out += specify(names = "325_scaled_data")
+            out += specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt2",   weights = jw, overrideLumi = 216.43)
+            out += specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt",    weights = jw, overrideLumi = 294.45)
+            out += specify(names = "SingleMu.Run2011A-May10-v1.FJ.Burt", weights = jw, overrideLumi = 186.55)
             return out
 
         eL = 3000 # 1/pb
@@ -256,33 +258,29 @@ class muonLook(analysis.analysis) :
                 specify(names = "w_jets_mg_2muskim",    effectiveLumi = eL)
                 )
     
-    def conclude(self) :
-        for tag in self.sideBySideAnalysisTags() :
-            #for skimming only
-            org = organizer.organizer( self.sampleSpecs(tag) )
-            utils.printSkimResults(org)            
+    def conclude(self, conf) :
+        org = self.organizer(conf)
 
-            #organize
-            org = organizer.organizer( self.sampleSpecs(tag) )
-            lineWidth = 3; goptions = "hist"
-            org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu.Run2011A")
-            org.mergeSamples(targetSpec = {"name":"t#bar{t}",  "color":r.kOrange, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="tt")
-            org.mergeSamples(targetSpec = {"name":"DY->ll",    "color":r.kBlue,   "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="dyll")
-            org.mergeSamples(targetSpec = {"name":"W + jets",  "color":r.kRed,    "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="w_jets")
+        ##for skimming only
+        #utils.printSkimResults(org)            
+
+        lineWidth = 3; goptions = "hist"
+        org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu.Run2011A")
+        org.mergeSamples(targetSpec = {"name":"t#bar{t}",  "color":r.kOrange, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="tt")
+        org.mergeSamples(targetSpec = {"name":"DY->ll",    "color":r.kBlue,   "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="dyll")
+        org.mergeSamples(targetSpec = {"name":"W + jets",  "color":r.kRed,    "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="w_jets")
+        
+        org.scale() if not self.parameters()["tanBeta"] else org.scale(100.0)
             
-            org.scale() if not self.parameters()["tanBeta"] else org.scale(100.0)
-            
-            #plot
-            pl = plotter.plotter(org,
-                                 psFileName = self.psFileName(tag),
-                                 samplesForRatios = ("2011 Data","DY->ll"),
-                                 sampleLabelsForRatios = ("data","DY"),
-                                 showStatBox = True,
-                                 #doLog = False,
-                                 linYAfter = ("value", "0.40<=xcak5JetMhtOverHtPat"),
-                                 pegMinimum = 0.1,
-                                 blackList = ["lumiHisto","xsHisto","nJobsHisto"],
-                                 )
-            pl.plotAll()
-            #self.makeEfficiencyPlots(org, tag, sampleName = "LM1")
-            
+        #plot
+        pl = plotter.plotter(org,
+                             psFileName = self.psFileName(org.tag),
+                             samplesForRatios = ("2011 Data","DY->ll"),
+                             sampleLabelsForRatios = ("data","DY"),
+                             showStatBox = True,
+                             #doLog = False,
+                             linYAfter = ("value", "0.40<=xcak5JetMhtOverHtPat"),
+                             pegMinimum = 0.1,
+                             blackList = ["lumiHisto","xsHisto","nJobsHisto"],
+                             )
+        pl.plotAll()
