@@ -172,9 +172,15 @@ class skimmer(analysisStep) :
     def outputSuffix(self) :
         return "_skim.root"
     
+    def modifiedFileName(self, s) :
+        l = s.split("/")
+        return "/".join(l[:-2]+l[-1:])
+
     def mergeFunc(self, products) :
         print "The %d skim files have been written."%len(products["outputFileName"])
-        print "( e.g. %s )"%products["outputFileName"][0]
+        for fileName in products["outputFileName"] :
+            os.system("mv %s %s"%(fileName, self.modifiedFileName(fileName)))
+        print "( e.g. %s )"%self.modifiedFileName(products["outputFileName"][0])
         print utils.hyphens
 #####################################
 class hbheNoiseFilter(analysisStep) :
