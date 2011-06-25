@@ -12,10 +12,15 @@ jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Robin1",'%s/rnandi//ICF/automated/2011
 jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Zoe1", '%s/zph04//ICF/automated/2011_05_11_22_25_40/")'%srm, lumi = 1.0)
 jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Zoe2", '%s/zph04//ICF/automated/2011_05_11_22_32_01/")'%srm, lumi = 1.0) #50/58 complete; lumi is just a guess
 jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Bryn0", '%s/bm409//ICF/automated/2011_05_28_08_32_26/")'%srm, lumi = 1.0) #225/226 complete; lumi ~60/pb
+
 #take 2
-jetmet.add("HT.Run2011A-May10ReReco-v1.AOD.Bryn", '%s/bm409//ICF/automated/2011_06_08_19_31_55/")'%srm, lumi = 1.0)
-jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Bryn1", '%s/bm409//ICF/automated/2011_06_08_10_14_46/", alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
-jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Bryn2", '%s/bm409//ICF/automated/2011_06_04_19_40_33/")'%srm, lumi = 1.0)
+jetmet.add("HT.Run2011A-May10ReReco-v1.AOD.Bryn",   '%s/bm409//ICF/automated/2011_06_08_19_31_55/")'                               %srm, lumi = 1.0)
+jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Bryn1",   '%s/bm409//ICF/automated/2011_06_08_10_14_46/",   alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
+jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Bryn2",   '%s/bm409//ICF/automated/2011_06_04_19_40_33/",   alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
+jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Bryn3",   '%s/bm409//ICF/automated/2011_06_10_15_13_48/",   alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
+jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Darren1", '%s/dburton//ICF/automated/2011_06_16_10_30_36/", alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
+jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Darren2", '%s/dburton//ICF/automated/2011_06_22_13_44_34/", alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
+jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Darren3", '%s/dburton//ICF/automated/2011_06_23_09_27_46/", alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
 
 jetmet.add("calo_275_scaled", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v6/275_scaled.root", isDirectory = False)', lumi = 189)
 jetmet.add("calo_325_scaled", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v6/325_scaled.root", isDirectory = False)', lumi = 189)
