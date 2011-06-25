@@ -133,12 +133,13 @@ class muonLook(analysis.analysis) :
             steps.Other.multiplicityPlotFilter("vertexIndices",     nMin = 1,           xlabel = "N vertices") +
             steps.Other.multiplicityPlotFilter("%sIndices%s"%_muon, nMin = 2, nMax = 2, xlabel = "N muons")
             )+[
+            #steps.Other.skimmer(),            
             
             steps.Muon.muonHistogrammer(_muon, 1),
             steps.Muon.diMuonHistogrammer(_muon),
             steps.Filter.value("%sDiMuonMass%s"%_muon, min = 80.0, max = 110.0),
             steps.Other.histogrammer("%sDiMuonMass%s"%_muon, 80, 50., 130., title = ";#mu#mu mass (GeV);events / bin"),
-
+            
             ]+(
             steps.Other.multiplicityPlotFilter("%sIndices%s"%_electron,          nMax = 0, xlabel = "N electrons") +
             steps.Other.multiplicityPlotFilter("%sIndices%s"%_photon,            nMax = 0, xlabel = "N photons") +
@@ -157,7 +158,7 @@ class muonLook(analysis.analysis) :
             steps.Other.passFilter("jetSumPlots1"), 
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             steps.Other.histogrammer("%sSum%s%s"%(_jet[0], _et, _jet[1]), 50, 0, 2500, title = ";H_{T} (GeV) from %s%s %ss;events / bin"%(_jet[0], _jet[1], _et)),
-
+            
             #ht and leading jet cuts
             steps.Other.variableGreaterFilter(params["thresholds"][0],"%sSum%s%s"%(_jet[0], _et, _jet[1]), "GeV"),
             ] + htUpper + [
@@ -169,7 +170,7 @@ class muonLook(analysis.analysis) :
             steps.Filter.value("%sMhtOverHt%s"%_jet, min = 0.4),
             steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5,
                                      title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
-
+            
             #some histograms
             #steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 20, 0.0, r.TMath.Pi(),
             #                         title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
@@ -177,7 +178,7 @@ class muonLook(analysis.analysis) :
             #steps.Other.passFilter("kinematicPlots1"),
             #
             steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
-
+            
             ##play with boson pT
             #steps.Filter.pt("%sDiMuon%s"%_muon, min =   0.0),
             #steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
@@ -187,11 +188,11 @@ class muonLook(analysis.analysis) :
             #steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
             #steps.Filter.pt("%sDiMuon%s"%_muon, min = 150.0),
             #steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
-
+            
             steps.Other.histogrammer("%sMht%sOver%s" %(_jet[0], _jet[1]+params["highPtName"], _met+"Plus%s%s"%_muon), 100, 0.0, 3.0,
                                      title = ";MHT %s%s / %s;events / bin"%(_jet[0], _jet[1], _met+"Plus%s%s"%_muon)),
             steps.Other.variableLessFilter(1.25,"%sMht%sOver%s" %(_jet[0], _jet[1]+params["highPtName"], _met+"Plus%s%s"%_muon)),
-
+            
             #alphaT cut
             steps.Jet.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
             #steps.Jet.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt, metName = _met),
@@ -201,11 +202,11 @@ class muonLook(analysis.analysis) :
             #
             #steps.Other.histogrammer("vertexIndices", 20, -0.5, 19.5, title=";N vertices;events / bin", funcString="lambda x:len(x)"),
             steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
-
+            
             #out of stats
             #steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             #steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x["DeltaPhiStar"]'),
-
+            
             #steps.Other.skimmer(),
             #steps.Other.cutBitHistogrammer(self.togglePfJet(_jet), self.togglePfMet(_met)),
             #steps.Print.eventPrinter(),
@@ -245,17 +246,17 @@ class muonLook(analysis.analysis) :
         def data() :
             jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-167151_7TeV_PromptReco_Collisions11_JSON.txt") #869/pb            
             out = []
-            out += specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt2",   weights = jw, overrideLumi = 216.43)
-            out += specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt",    weights = jw, overrideLumi = 294.45)
-            out += specify(names = "SingleMu.Run2011A-May10-v1.FJ.Burt", weights = jw, overrideLumi = 186.55)
+            out += specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt2_2mu_skim",   weights = jw, overrideLumi = 216.43)
+            out += specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt_2mu_skim",    weights = jw, overrideLumi = 294.45)
+            out += specify(names = "SingleMu.Run2011A-May10-v1.FJ.Burt_2mu_skim", weights = jw, overrideLumi = 186.55)
             return out
 
         eL = 3000 # 1/pb
         #return data()
         return (data() +\
-                specify(names = "tt_tauola_mg_2muskim", effectiveLumi = eL) +\
-                specify(names = "dyll_jets_mg_2muskim", effectiveLumi = eL) +\
-                specify(names = "w_jets_mg_2muskim",    effectiveLumi = eL)
+                specify(names = "tt_tauola_mg_2mu_skim", effectiveLumi = eL) +\
+                specify(names = "dyll_jets_mg_2mu_skim", effectiveLumi = eL) +\
+                specify(names = "w_jets_mg_2mu_skim",    effectiveLumi = eL)
                 )
     
     def conclude(self, conf) :
