@@ -289,8 +289,7 @@ class hadronicLook(analysis.analysis) :
         from samples import specify
 
         def data() :
-            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-166502_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #485/pb
-
+            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-167151_7TeV_PromptReco_Collisions11_JSON.txt") #869/pb
             out = []
             out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.Bryn",   weights = jw, overrideLumi = 183.0)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn1",   weights = jw, overrideLumi =  70.2)
