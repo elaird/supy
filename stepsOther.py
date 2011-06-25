@@ -369,7 +369,7 @@ class jsonMaker(analysisStep) :
         d2 = {}
         for run,lumis in d.iteritems() :
             d2[run] = sorted(set(lumis))
-            for ls in d[run] :
+            for ls in d2[run] :
                 if 1 < lumis.count(ls) :
                     print "Run %d ls %d appears %d times in the lumiTree."%(run,ls,lumis.count(ls))
 
