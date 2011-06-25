@@ -85,7 +85,7 @@ class analysis(object) :
         return samples
 ############
     def jobsFile(self,tag,sample) :
-        os.system("mkdir -p %s/%s/%s"%(self.globalStem,tag,sample))
+        if self.__loop : os.system("mkdir -p %s/%s/%s"%(self.globalStem,tag,sample))
         return "/".join([self.globalStem, tag, sample,"jobs"])
     def psFileName(self,tag = "") : return "%s/%s%s.ps"%(self.globalStem, self.name, "_"+tag if len(tag) else "")
 
