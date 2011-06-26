@@ -6,13 +6,13 @@ class prescales2(analysis.analysis) :
         ptv = {   #3:(3,4),
                   #5:(3,4,5,6),
                   #8:(1,2,3,4),
-                 12:(1,2,3,4),
-                 15:(2,3,4,5),
-                 20:(1,2,3,4),
-                 24:(1,2,3,4),
-                 30:(1,2,3,4),
-                 40:(1,2),
-                 #100:(1,2),
+                 12:(1,2,3,4,5),
+                 15:(2,3,4,5,6),
+                 20:(1,2,3,4,5),
+                 24:(1,2,3,4,5),
+                 30:(1,2,3,4,5),
+                 40:(1,2,3),
+                 #100:(1,2,3),
                  }
         return sum([[("HLT_Mu%d_v%d"%(pt,v),pt+1) for v in vs] for pt,vs in sorted(ptv.iteritems())],[])
 
@@ -53,8 +53,9 @@ class prescales2(analysis.analysis) :
     def listOfSampleDictionaries(self) : return [samples.muon]
 
     def listOfSamples(self,params) :
-        return ( samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt2", color = r.kBlack) +
-                 samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt", color = r.kRed) +
+        return ( samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt3", color = r.kBlack) +
+                 samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt2", color = r.kGreen) +
+                 samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt1", color = r.kRed) +
                  samples.specify( names = "SingleMu.Run2011A-May10-v1.FJ.Burt", color = r.kBlue) )
     
     def conclude(self,pars) :
