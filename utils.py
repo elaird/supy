@@ -86,7 +86,7 @@ def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = 
         versionDict[ (fields[0],fields[1]) ].append( (int(fields[2]), size, fields[3]) )
 
     resolved = 0
-    abandoned = 0
+    abandoned = []
     outList = []
     for key,val in versionDict.iteritems() :
         front,job = key
@@ -97,10 +97,12 @@ def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = 
             fileName = recombine % (front,job,attempt,rnd)
             outList.append(fileName)
             if len(val) > 1 : resolved += 1
-        else: abandoned += 1
+        else: abandoned.append((key,val))
 
-    if abandoned>0 or resolved>0 :
-        print "File duplications, unresolved(%d), resolved(%d) %s" % (abandoned, resolved, location)
+    if abandoned or resolved :
+        print "File duplications, unresolved(%d), resolved(%d) %s" % (len(abandoned), resolved, location)
+        if abandoned : print "Rerun with 'alwaysUseLastAttempt = True' in order to recover the following:"
+        for key,val in abandoned : print '\t', key[1], "{ %s }"%'|'.join(str((attempt,size)) for attempt,size,rnd in val)
     return outList
 #####################################
 def fileListFromSrmLs(dCachePrefix = None, location = None, itemsToSkip = [], sizeThreshold = -1, pruneList = True, alwaysUseLastAttempt = False) :
