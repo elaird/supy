@@ -3,9 +3,10 @@ from configuration import srm
 muon = samples.SampleHolder()
 
 #L1Fast 2011
+muon.add("SingleMu.Run2011A-PR-v4.FJ.Burt3",'%s/bbetchar//ICF/automated/2011_06_24_18_49_40/",alwaysUseLastAttempt = True)'%srm, lumi = 166.73 )
 muon.add("SingleMu.Run2011A-PR-v4.FJ.Burt2",'%s/bbetchar//ICF/automated/2011_06_18_17_11_12/")'%srm, lumi = 216.43 )
-muon.add("SingleMu.Run2011A-PR-v4.FJ.Burt",'%s/bbetchar/ICF/automated/2011_06_11_17_10_04/")'%srm, lumi = 294.45 )
-muon.add("SingleMu.Run2011A-May10-v1.FJ.Burt",'%s/bbetchar/ICF/automated/2011_06_11_17_16_01/")'%srm, lumi = 186.55 )
+muon.add("SingleMu.Run2011A-PR-v4.FJ.Burt1",'%s/bbetchar/ICF/automated/2011_06_11_17_10_04/")'%srm, lumi = 294.45 )
+muon.add("SingleMu.Run2011A-May10-v1.FJ.Burt",'%s/bbetchar/ICF/automated/2011_06_11_17_16_01/")'%srm, lumi = 186.71 )
 #skims, have pf muon |eta|<2.2, pt>24
 muon.add("SingleMu.Run2011A-PR-v4.FJ.Burt_skim",    'utils.fileListFromDisk(location = "/vols/cms02/bbetchar/01_skims/SingleMu.Run2011A-PR-v4.FJ.Burt/SingleMu.Run2011A-PR-v4.FJ.Burt_*_skim.root", isDirectory = False)',   lumi = 2.944500e+02)
 muon.add("SingleMu.Run2011A-May10-v1.FJ.Burt_skim", 'utils.fileListFromDisk(location = "/vols/cms02/bbetchar/01_skims/SingleMu.Run2011A-May10-v1.FJ.Burt/SingleMu.Run2011A-May10-v1.FJ.Burt_*_skim.root", isDirectory = False)',lumi = 1.865500e+02)
