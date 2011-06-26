@@ -235,7 +235,8 @@ class muonLook(analysis.analysis) :
             #                          metOtherAlgo  = params["objects"]["compMet"],
             #                          markusMode = False,
             #                          ),
-            steps.Other.passFilter("final") ]
+            steps.Other.histogrammer("%sSumEt%s"%_jet, 40, 0, 1000, title = ";H_{T} (GeV) from %s%s E_{T}s;events / bin"%_jet),
+            ] + [steps.Other.variableGreaterFilter(375.0+100*iBin, "%sSumEt%s"%_jet, suffix = "GeV") for iBin in range(1,6)]
     
     def listOfSampleDictionaries(self) :
         return [samples.mc, samples.muon]
@@ -270,6 +271,8 @@ class muonLook(analysis.analysis) :
         org.mergeSamples(targetSpec = {"name":"t#bar{t}",  "color":r.kOrange, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="tt")
         org.mergeSamples(targetSpec = {"name":"DY->ll",    "color":r.kBlue,   "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="dyll")
         org.mergeSamples(targetSpec = {"name":"W + jets",  "color":r.kRed,    "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="w_jets")
+        org.mergeSamples(targetSpec = {"name":"s.m.",      "color":r.kGreen,  "lineWidth":lineWidth, "goptions":goptions},
+                         sources = ["t#bar{t}", "DY->ll", "W + jets"], keepSources = True)
         
         org.scale() if not self.parameters()["tanBeta"] else org.scale(100.0)
             
