@@ -487,6 +487,17 @@ class AlphaT(wrappedChain.calculable) :
         ht = self.source[self.Sum]
         self.value = 0.5 * ( ht - self.source[self.DeltaPseudoJet] ) / math.sqrt( ht*ht - sumP4.Perp2() ) if sumP4 else 0
 ##############################
+class AlphaTCpp(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = (collection[0], "Et"+ collection[1])
+        self.stash(["Sum"])
+        self.stash(["CorrectedP4", "Indices", "SumP4"], collection)
+    def update(self,ignored) :
+        ETs = r.std.vector("double")()
+        for iJet in self.source[self.Indices] :
+            ETs.push_back(self.source[self.CorrectedP4].at(iJet).Et())
+        self.value = r.alphaT(self.source[self.Sum], r.deltaHt(ETs), self.source[self.SumP4].pt())
+##############################
 class AlphaTWithPhoton1PtRatherThanMht(wrappedChain.calculable) :
     @property
     def name(self) : return "%sAlphaTWithPhoton1PtRatherThanMht%s" % self.cs
