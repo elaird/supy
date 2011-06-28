@@ -275,6 +275,12 @@ class singleJetHistogrammer(analysisStep) :
                 self.book.fill(abs(r.Math.VectorUtil.DeltaPhi(jet,p4s.at(jJet))), "%s%sdphi%d%d"%(self.cs+(i+1,j+1)), 50,0, r.TMath.Pi(),
                                title = ";#Delta#phi_{jet%d,jet%d};events / bin"%(i+1,j+1))
 #####################################
+class alphaTtest(analysisStep) :
+    def __init__(self, cs = None) :
+        self.cs = cs
+    def uponAcceptance (self, eventVars) :
+        print "py: %g; cpp: %g"%(eventVars["%sAlphaTEt%s"%self.cs], eventVars["%sAlphaTCppEt%s"%self.cs])
+#####################################
 class alphaHistogrammer(analysisStep) :
 
     def __init__(self, cs = None, deltaPhiStarExtraName = "", etRatherThanPt = None) :
