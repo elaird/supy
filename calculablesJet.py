@@ -453,7 +453,7 @@ class DeltaPseudoJet(wrappedChain.calculable) :
         indices = self.source[self.Indices]
         p4s = self.source[self.CorrectedP4]
         
-        diff = [0.] * (1<<len(indices))
+        diff = [0.] * (1<<(len(indices)-1))
         for j in indices :
             pt = p4s.at(j).pt() if not self.etRatherThanPt else p4s.at(j).Et()
             for i in range( len(diff) ) :
