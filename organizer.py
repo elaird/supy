@@ -15,7 +15,7 @@ class organizer(object) :
             if not dirs : dirs = [s['dir'] for s in samples]
             self.N = len(dirs)
             for key in keys: self[key] = tuple( map(lambda d: d.Get(key), dirs) )
-            self.nameTitle = (dirs[0].GetName(),dirs[0].GetTitle())
+            self.nameTitle = (dirs[0].GetName(),dirs[0].GetTitle()) if dirs else ("","")
             self.name,self.title = self.nameTitle
             self.rawFailPass = tuple(map(lambda h: (h.GetBinContent(1),h.GetBinContent(2)) if h else None, self["counts"] if "counts" in self else self.N*[None]))
 
@@ -32,6 +32,18 @@ class organizer(object) :
         @property
         def isSelector(self) : return "counts" in self
 
+        @classmethod
+        def melded(cls, nameTitle, sizes, steps = [] ) :
+            blanks = [tuple(size*[None]) for size in sizes]
+            instance = cls(sum(sizes)*[{"dir":r.gDirectory}])
+            instance.clear()
+            instance.nameTitle = nameTitle
+            instance.name,instance.title = nameTitle
+            instance.rawFailPass = sum([s.rawFailPass if s else blank for s,blank in zip(steps,blanks)],())
+            for key in set(sum([s.keys() for s in filter(None,steps)],[])) :
+                instance[key] = sum([s[key] if s and key in s else blank for s,blank in zip(steps,blanks)],())
+            return instance
+        
     def __init__(self, tag, sampleSpecs = [] ) :
         r.gROOT.cd()
         self.scaled = False
@@ -40,11 +52,38 @@ class organizer(object) :
         self.samples = tuple(copy.deepcopy(sampleSpecs)) # columns
         self.steps # rows
         self.calculablesGraphs
+
+    @classmethod
+    def meld(cls, tag, organizers = []) :
+        if len(set(org.lumi for org in organizers if org.lumi))!=1 :
+            print "Warning: melding organizers with distinct lumi values, using max."
+            print [org.lumi for org in organizers if org.lumi]
+        sizes = [len(org.samples) for org in organizers]
         
+        instance = cls(tag)
+        instance.scaled = any(org.scaled for org in organizers)
+        instance.lumi = max(org.lumi for org in organizers)
+        instance.samples = sum( tuple( tuple( dict(list(s.iteritems())+[("name",org.tag +'.'+ s["name"])]) for s in org.samples) for org in organizers),())
+        
+        shared = sorted( set.intersection(*tuple(set(s.nameTitle for s in org.steps if s.isSelector) for org in organizers)),
+                         key = lambda s: next(next(iter(organizers)).indicesOfStep(*s)) )
+
+        instance.__steps = [cls.step.melded(("melded",', '.join(org.tag for org in organizers)), sizes)]
+        for start,stop in zip(shared,shared[1:]+[None]) :
+            slices = [org.steps[next(org.indicesOfStep(*start)):
+                                next(org.indicesOfStep(*stop)) if stop else None] for org in organizers]
+            order = utils.topologicalSort([tuple(step.nameTitle for step in slice) for slice in slices])
+            for step in order :
+                steps = [next((s for s in slice if s.nameTitle==step),None) for slice in slices]
+                instance.__steps.append( cls.step.melded(step, sizes, steps ) )
+        instance.__steps.append( cls.step(instance.samples) )
+        instance.__steps = tuple(instance.__steps)
+
+        return instance
+    
     @property
     def steps(self) :
         if hasattr(self,"_organizer__steps") : return self.__steps
-        steps = []
 
         for sample in self.samples :
             sample['file'] = r.TFile(sample["outputFileName"])
@@ -61,6 +100,7 @@ class organizer(object) :
             if lumiNjobs: sample["lumi"] = lumiNjobs / sample['nJobs']
             assert ("xs" in sample)^("lumi" in sample), "Error: Sample %s has both lumi and xs."% sample["name"]
             
+        steps = []
         dirs = [ s['dir'] for s in self.samples]
         while any(dirs) :
             keysets = [ [key.GetName() for key in dir.GetListOfKeys() if key.GetName()!="Calculables"] for dir in dirs ]
@@ -149,6 +189,10 @@ class organizer(object) :
         for iStep,step in enumerate(self.steps) :
             if key in step : yield iStep
 
+    def indicesOfStep(self,name,title=None) :
+        for iStep,step in enumerate(self.steps) :
+            if name==step.name and title in [step.title,None] : yield iStep
+
     def keysMatching(self,inKeys) :
         return filter(lambda k: any([i in k for i in inKeys]), set(sum([step.keys() for step in self.steps],[])))
 
@@ -181,7 +225,7 @@ class organizer(object) :
         
         if not hasattr(self,"_organizer__calculables") :
             self.__calculables = [dict([(c[:3],c[3]) for c in calcs(sample)]) for sample in self.samples]
-            allCalcs = reduce( lambda x,y: x|y, [set(s.keys()) for s in self.__calculables])
+            allCalcs = reduce( lambda x,y: x|y, [set(s.keys()) for s in self.__calculables],set())
 
             for calc in allCalcs :
                 for scalcs in self.__calculables :
