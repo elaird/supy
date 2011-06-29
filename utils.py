@@ -447,3 +447,22 @@ def jsonFromRunDict(runDict) :
             else : blocks[-1].append(lumi)
         json[str(run)] = [[block[0], block[-1]] for block in blocks]
     return json
+#####################################
+def topologicalSort(paths) :
+    '''Algorithm first described by Kahn (1962).
+
+    See http://en.wikipedia.org/wiki/Topological_ordering'''
+    edges = set(sum([zip(p[:-1],p[1:]) for p in paths],[]))
+    sources,sinks = zip(*edges)
+    singles = set(p[0] for p in paths if len(p)==1)
+    begins = list( (set(sources)|singles) - set(sinks) )
+    ordered = []
+    while begins :
+        ordered.append(begins.pop())
+        for edge in filter(lambda e: e[0]==ordered[-1], edges) :
+            edges.remove(edge)
+            if not any(edge[1]==e[1] for e in edges) :
+                begins.append(edge[1])
+    assert not edges, "graph described by paths contains a cycle: no partial ordering possible.\n edges: %s"%str(edges)
+    return ordered
+#####################################
