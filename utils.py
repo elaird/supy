@@ -453,16 +453,16 @@ def topologicalSort(paths) :
 
     See http://en.wikipedia.org/wiki/Topological_ordering'''
     edges = set(sum([zip(p[:-1],p[1:]) for p in paths],[]))
-    sources,sinks = zip(*edges)
+    sources,sinks = zip(*edges) if edges else ([],[])
     singles = set(p[0] for p in paths if len(p)==1)
-    begins = list( (set(sources)|singles) - set(sinks) )
+    seeds = list( (set(sources)|singles) - set(sinks) )
     ordered = []
-    while begins :
-        ordered.append(begins.pop())
+    while seeds :
+        ordered.append(seeds.pop())
         for edge in filter(lambda e: e[0]==ordered[-1], edges) :
             edges.remove(edge)
             if not any(edge[1]==e[1] for e in edges) :
-                begins.append(edge[1])
+                seeds.append(edge[1])
     assert not edges, "graph described by paths contains a cycle: no partial ordering possible.\n edges: %s"%str(edges)
     return ordered
 #####################################
