@@ -105,7 +105,7 @@ def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = 
         for key,val in abandoned : print '\t', key[1], "{ %s }"%'|'.join(str((attempt,size)) for attempt,size,rnd in val)
     return outList
 #####################################
-def fileListFromSrmLs(dCachePrefix = None, location = None, itemsToSkip = [], sizeThreshold = -1, pruneList = True, alwaysUseLastAttempt = False) :
+def fileListFromSrmLs(dCachePrefix = None, dCacheTrim = None, location = None, itemsToSkip = [], sizeThreshold = -1, pruneList = True, alwaysUseLastAttempt = False) :
     fileList=[]
     sizes=[]
     offset = 0
@@ -127,7 +127,7 @@ def fileListFromSrmLs(dCachePrefix = None, location = None, itemsToSkip = [], si
         for item in itemsToSkip :
             if item in fileName : acceptFile=False
         if acceptFile :
-            fileList.append(dCachePrefix+fileName)
+            fileList.append( (dCachePrefix+fileName) if not dCacheTrim else (dCachePrefix+fileName).replace(dCacheTrim, "") )
             sizes.append(size)
 
     if pruneList :   fileList=pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)

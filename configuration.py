@@ -61,7 +61,10 @@ def siteSpecs() :
     return {
         "ic"  :{"localOutputDir" : "/vols/cms02/%s/tmp/"%user,
                 "globalOutputDir": "/vols/cms02/%s/tmp/"%user,
-                "dCachePrefix"   : "dcap://gfe02.grid.hep.ph.ic.ac.uk",
+                #"dCachePrefix"   : "dcap://gfe02.grid.hep.ph.ic.ac.uk",
+                #"dCacheTrim"     : "",
+                "dCachePrefix"   : "root://gfe02.grid.hep.ph.ic.ac.uk",
+                "dCacheTrim"     : "/pnfs/hep.ph.ic.ac.uk/data/cms",
                 "srmPrefix"      : "srm://gfe02.grid.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN=/pnfs/hep.ph.ic.ac.uk/data/cms/store/user",
                 "queueHeaders"   : ["job-ID", "prior", "name", "user", "state", "submit1", "submit2", "queue", "slots", "ja-task-ID"],
                 "queueVars"      : {"queue":"queue", "user":"user", "state":"state", "run":"r", "summary":"qstat -u '*'", "sample":"qstat | head"},
@@ -70,6 +73,7 @@ def siteSpecs() :
         "pu"  :{"localOutputDir" : "/tmp/%s"%user,
                 "globalOutputDir": "/tigress-hsm/%s/tmp/"%user,
                 "dCachePrefix"   : "",
+                "dCacheTrim"     : "",
                 "srmPrefix"      : "",
                 "queueHeaders"   : ["Job id","Name","User","Time Use","S","Queue"],
                 "queueVars"      : {"queueName":"hep", "queue": "Queue", "user":"User", "state":"S", "run":"R", "summary":"qstat", "sample": "qstat -u %s | head"%user},
@@ -78,6 +82,7 @@ def siteSpecs() :
         "cern":{"localOutputDir" : "/tmp/%s"%user,
                 "globalOutputDir": "/tmp/%s"%user,
                 "dCachePrefix"   : "",
+                "dCacheTrim"     : "",
                 "srmPrefix"      : "",
                 "queueHeaders"   : ["JOBID", "USER", "STAT", "QUEUE", "FROM_HOST", "EXEC_HOST", "JOB_NAME", "SUBMIT_TIME"],
                 "queueVars"      : {"queueName":"8nm", "queue":"QUEUE", "user":"USER", "state":"STAT", "run":"RUN", "summary":"bjobs -u all", "sample": "bjobs | head"},
@@ -87,6 +92,7 @@ def siteSpecs() :
                 "globalOutputDir": "%s/supyOutput/"%os.environ["HOME"],
                 #"globalOutputDir":"/pnfs/cms/WAX/resilient/%s/tmp/"%user,
                 "dCachePrefix"   : "dcap://cmsgridftp.fnal.gov:24125/pnfs/fnal.gov/usr/cms/WAX/",
+                "dCacheTrim"     : "",
                 "srmPrefix"      : "srm://cmssrm.fnal.gov:8443/",
                 "queueHeaders"   : ["ID", "OWNER", "SUBMITTED1", "SUBMITTED2", "RUN_TIME", "ST", "PRI", "SIZE", "CMD"],
                 "queueVars"      : {"user":"OWNER", "state":"ST", "run":"R", "summary":"condor_q -global", "sample": "condor_q -global -submitter %s | head"%user},
@@ -95,6 +101,7 @@ def siteSpecs() :
         "other":{"localOutputDir" : "/tmp/%s"%user,
                  "globalOutputDir": "/tmp/%s"%user,
                  "dCachePrefix"   : "",
+                 "dCacheTrim"     : "",
                  "srmPrefix"      : "",
                  "queueHeaders"   : [],
                  "queueVars"      : {},
@@ -139,4 +146,4 @@ def dictionariesToGenerate() :
         ("vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> > >", "vector;Math/LorentzVector.h"),
         ]
 
-srm = 'utils.fileListFromSrmLs(dCachePrefix = "%s", location="%s'%(siteInfo(key = "dCachePrefix"), siteInfo(key = "srmPrefix"))
+srm = 'utils.fileListFromSrmLs(dCachePrefix = "%s", dCacheTrim = "%s", location="%s'%(siteInfo(key = "dCachePrefix"), siteInfo(key = "dCacheTrim"), siteInfo(key = "srmPrefix"))
