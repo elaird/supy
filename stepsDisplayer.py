@@ -15,7 +15,7 @@ class displayer(analysisStep) :
     def __init__(self, jets = None, met = None, muons = None, electrons = None, photons = None, taus = None,
                  recHits = None, recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False, doGenJets = False,
                  doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "", deltaPhiStarCut = None, deltaPhiStarDR = None, mhtOverMetName = "",
-                 showAlphaTMet = True, jetsOtherAlgo = None, metOtherAlgo = None, printExtraText = True,
+                 showAlphaTMet = True, jetsOtherAlgo = None, metOtherAlgo = None, printExtraText = True, j2Factor = None,
                  ra1Mode = True, ra1CutBits = True, markusMode = False, tipToTail = False, triggersToPrint = [],
                  flagsToPrint = ["logErrorTooManyClusters","logErrorTooManySeeds",
                                  #"beamHaloCSCLooseHaloId","beamHaloCSCTightHaloId","beamHaloEcalLooseHaloId","beamHaloEcalTightHaloId",
@@ -27,7 +27,8 @@ class displayer(analysisStep) :
 
         for item in ["scale","jets","met","muons","electrons","photons","taus","recHits","recHitPtThreshold","doGenParticles", "doGenJets",
                      "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "deltaPhiStarCut", "deltaPhiStarDR", "mhtOverMetName", "showAlphaTMet",
-                     "jetsOtherAlgo", "metOtherAlgo", "printExtraText", "ra1Mode", "ra1CutBits", "markusMode","tipToTail", "triggersToPrint", "flagsToPrint"] :
+                     "jetsOtherAlgo", "metOtherAlgo", "printExtraText", "j2Factor", "ra1Mode", "ra1CutBits", "markusMode","tipToTail",
+                     "triggersToPrint", "flagsToPrint"] :
             setattr(self,item,eval(item))
 
         if len(self.flagsToPrint)>3 : print "WARNING: More than three flags specified in the displayer.  The list will run off the page."
@@ -375,12 +376,14 @@ class displayer(analysisStep) :
             HT = eventVars["%sSumEt%s"%j]
             aT = eventVars["%sAlphaTEt%s"%j]
             MM = eventVars[self.mhtOverMetName]
-            DE = eventVars["%sDeltaPhiStar%s%s"%(j[0], j[1], self.deltaPhiStarExtraName)]["DeltaPhiStar"]>0.5 or \
-                 eventVars["%sDeadEcalDR%s%s"  %(j[0], j[1], self.deltaPhiStarExtraName)]                >0.3
+            DE = eventVars["%sDeltaPhiStar%s%s"%(j[0], j[1], self.deltaPhiStarExtraName)]["DeltaPhiStar"] > self.deltaPhiStarCut or \
+                 eventVars["%sDeadEcalDR%s%s"  %(j[0], j[1], self.deltaPhiStarExtraName)] > self.deltaPhiStarDR
 
-            htBin = eventVars["%sHtBin%s"%j]
+            htBin = None
+            if eventVars["%sHtBin%s"%j] : htBin = eventVars["%sHtBin%s"%j]
+            elif eventVars["%sFixedHtBin%s"%j] : htBin = eventVars["%sFixedHtBin%s"%j]
 
-            j2Bit = J2!=None and htBin!=None and J2 > 100.0*htBin/350.0
+            j2Bit = J2!=None and htBin!=None and J2 > self.j2Factor*htBin
             htBit = HT!=None and htBin!=None and HT > htBin
             atBit = aT!=None and aT > 0.550
             deBit = DE!=None and DE
