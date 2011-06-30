@@ -25,10 +25,10 @@ class ra1Displays(analysis.analysis) :
                  "thresholds": self.vary(dict( [("375",        (375.0, None,  100.0, 50.0)),#0
                                                 ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#1
                                                 ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#2
-                                                ][0:1] )),
+                                                ][2:3] )),
                  }
 
-    def calcListJet(self, obj, etRatherThanPt, ptMin, lowPtThreshold, lowPtName, highPtThreshold, highPtName) :
+    def calcListJet(self, obj, etRatherThanPt, ptMin, lowPtThreshold, lowPtName, highPtThreshold, highPtName, htThreshold) :
         def calcList(jet, met, photon, muon, electron, muonsInJets, jetIdFlag) :
             outList = [
                 calculables.XClean.xcJet(jet,
@@ -53,6 +53,7 @@ class ra1Displays(analysis.analysis) :
                 calculables.Jet.AlphaTMet(jet, etRatherThanPt, met),
                 calculables.Jet.MhtOverMet((jet[0], jet[1]+highPtName), met),
                 calculables.Jet.deadEcalDR(jet, extraName = lowPtName, minNXtals = 10),
+                calculables.Other.FixedValue("%sFixedHtBin%s"%jet, htThreshold),
                 ]
             return outList+calculables.fromCollections(calculables.Jet, [jet])
 
@@ -66,11 +67,11 @@ class ra1Displays(analysis.analysis) :
             calculables.XClean.IndicesUnmatched(collection = obj["photon"], xcjets = obj["jet"], DR = 0.5),
             calculables.XClean.IndicesUnmatched(collection = obj["electron"], xcjets = obj["jet"], DR = 0.5),
 
-            calculables.Muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
-            calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
+            calculables.Muon.Indices(obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
+            calculables.Electron.Indices(obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
             calculables.Photon.Indices(obj["photon"],  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
             #calculables.Photon.Indices(obj["photon"],  ptMin = 25, flagName = "photonIDTightFromTwikiPat"),
-            
+
             calculables.Vertex.ID(),
             calculables.Vertex.Indices(),
             ]
@@ -83,7 +84,7 @@ class ra1Displays(analysis.analysis) :
         outList += calculables.fromCollections(calculables.Photon, [obj["photon"]])
         outList += self.calcListOther(obj)
         outList += self.calcListJet(obj, params["etRatherThanPt"], params["thresholds"][3],
-                                    params["lowPtThreshold"], params["lowPtName"], params["highPtThreshold"], params["highPtName"])
+                                    params["lowPtThreshold"], params["lowPtName"], params["highPtThreshold"], params["highPtName"], params["thresholds"][0])
         return outList
     
     def listOfSteps(self, params) :
@@ -100,6 +101,7 @@ class ra1Displays(analysis.analysis) :
                                       deltaPhiStarExtraName = params["lowPtName"],
                                       deltaPhiStarCut = 0.5,
                                       deltaPhiStarDR = 0.3,
+                                      j2Factor = params["thresholds"][2]/params["thresholds"][0],
                                       mhtOverMetName = "%sMht%sOver%s"%(params["objects"]["jet"][0], params["objects"]["jet"][1]+params["highPtName"], params["objects"]["met"]),
                                       metOtherAlgo  = params["objects"]["compMet"],
                                       jetsOtherAlgo = params["objects"]["compJet"],
@@ -111,7 +113,7 @@ class ra1Displays(analysis.analysis) :
     def listOfSampleDictionaries(self) :
         sampleDict = samples.SampleHolder()
         sampleDict.add("Data_275", '["/home/hep/db1110/public_html/DefaultAnalysisSkims/275-325/Dataskims/275data.root"]', lumi = 602.) #/pb
-        sampleDict.add("MG_QCD", '["/home/hep/db1110/public_html/DefaultAnalysisSkims/275-325/MCskims/Madgraph275.root"]', xs = 1.0) #dummy xs
+        sampleDict.add("MG_QCD", '["/home/hep/db1110/public_html/DefaultAnalysisSkims/275-325/MCskims/275madgraph.root"]', xs = 1.0) #dummy xs
         return [sampleDict]
     
     def listOfSamples(self,params) :
