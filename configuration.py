@@ -7,7 +7,7 @@ def nCoresDefault() :
     return 4
 
 def useCachedFileLists() :
-    return True
+    return False
 
 def maxArrayLength() :
     return 256
