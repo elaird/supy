@@ -156,3 +156,13 @@ class jsonWeight(wrappedChain.calculable) :
     def update(self, ignored) :
         self.value = 1.0 if self.inJson() else None
 #####################################
+class FixedValue(wrappedChain.calculable) :
+    @property
+    def name(self) :
+        return self.label
+    def __init__(self, label = "", value = None) :
+        self.label = label
+        self.value = value
+    def update(self, ignored) :
+        pass
+#####################################
