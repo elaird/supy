@@ -1,4 +1,4 @@
-import os,collections
+import os,collections,copy
 import ROOT as r
 from analysisStep import analysisStep
 import utils
@@ -224,8 +224,8 @@ class displayer(analysisStep) :
         self.prepareText(params, coords)
         
         self.printText(self.renamedDesc("cleaned%sRecHits"%recHits))
-        self.printText("  det   pT  eta  phi")
-        self.printText("--------------------")
+        self.printText("  det   pT  eta  phi%s"%(" sl" if recHits=="Calo" else ""))
+        self.printText("--------------------%s"%("---" if recHits=="Calo" else ""))
 
         subDetectors=[]
         if recHits=="Calo" :
@@ -236,12 +236,14 @@ class displayer(analysisStep) :
         hits = []
         for detector in subDetectors :
             for collectionName in ["","cluster"] :
-                varName = "rechit"+collectionName+recHits+"P4"+detector
-                if varName not in eventVars : continue
-                for iHit in range(len(eventVars[varName])) :
-                    hit = eventVars[varName].at(iHit)
-                    hits.append( (hit.pt(), hit.eta(), hit.phi(), detector) )
-
+                p4Var = "rechit"+collectionName+recHits+"P4"+detector
+                slVar = "rechit"+collectionName+recHits+"SeverityLevel"+detector
+                #if p4Var not in eventVars : continue
+                for iHit in range(len(eventVars[p4Var])) :
+                    hit = eventVars[p4Var].at(iHit)
+                    l = [hit.pt(), hit.eta(), hit.phi(), detector]
+                    if recHits=="Calo" : l.append(eventVars[slVar].at(iHit))
+                    hits.append( tuple(l) )
         
         for iHit,hit in enumerate(reversed(sorted(hits))) :
             if nMax<=iHit :
@@ -249,6 +251,7 @@ class displayer(analysisStep) :
                 break
             outString = "%5s"%hit[3]
             outString+="%5.0f %4.1f %4.1f"%(hit[0], hit[1], hit[2])
+            if recHits=="Calo" : outString +=" %2d"%hit[4]
             self.printText(outString)
 
     def printJets(self, eventVars, params, coords, jets, nMax) :
@@ -911,6 +914,9 @@ class displayer(analysisStep) :
         defaults["slope"] = 0.017
         s = defaults["slope"]
 
+        smaller = copy.copy(defaults)
+        smaller["size"] = 0.034
+        
         yy = 0.98
         x0 = 0.01
         x1 = 0.45
@@ -932,7 +938,7 @@ class displayer(analysisStep) :
             if self.muons :
                 self.printMuons(    eventVars, params = defaults, coords = {"x":x0,      "y":yy-47*s}, muons = self.muons, nMax = 3)
             if self.recHits :
-                self.printRecHits(  eventVars, params = defaults, coords = {"x":x0+0.575,"y":yy-47*s}, recHits = self.recHits, nMax = 3)
+                self.printRecHits(  eventVars, params = smaller,  coords = {"x":x0+0.575, "y":yy-47*s}, recHits = self.recHits, nMax = 3)
             if self.flagsToPrint :
                 self.printFlags(    eventVars, params = defaults, coords = {"x":x0,      "y":yy-55*s}, flags = self.flagsToPrint)
             if self.ra1Mode :
