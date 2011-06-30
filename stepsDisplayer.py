@@ -238,7 +238,7 @@ class displayer(analysisStep) :
             for collectionName in ["","cluster"] :
                 p4Var = "rechit"+collectionName+recHits+"P4"+detector
                 slVar = "rechit"+collectionName+recHits+"SeverityLevel"+detector
-                #if p4Var not in eventVars : continue
+                if p4Var not in eventVars : continue
                 for iHit in range(len(eventVars[p4Var])) :
                     hit = eventVars[p4Var].at(iHit)
                     l = [hit.pt(), hit.eta(), hit.phi(), detector]
