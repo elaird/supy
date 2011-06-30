@@ -16,6 +16,7 @@ class analysis(object) :
 
     def mainTree(self) : return ("susyTree","tree")
     def otherTreesToKeepWhenSkimming(self) : return [("lumiTree","tree")]
+    def useCachedFileLists(self) : return configuration.useCachedFileLists()
     def leavesToBlackList(self) : return []
     def parameters(self) : return {}
     def conclude(self, config) : return
@@ -112,7 +113,7 @@ class analysis(object) :
 
     def makeInputFileLists(self) :
         def makeFileList(name) :
-            if os.path.exists(self.inputFilesListFile(name)) and configuration.useCachedFileLists() : return
+            if os.path.exists(self.inputFilesListFile(name)) and self.useCachedFileLists() : return
             fileNames = eval(self.sampleDict[name].filesCommand)
             assert fileNames, "The command '%s' produced an empty list of files"%self.sampleDict[name].filesCommand
             tmpDir,localFileName,globalFileName = self.globalToLocal(self.inputFilesListFile(name))
