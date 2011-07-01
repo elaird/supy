@@ -1,7 +1,7 @@
 import os,collections,copy
 import ROOT as r
 from analysisStep import analysisStep
-import utils
+import utils,configuration
 #####################################
 pdgLookupExists = False
 try:
@@ -14,7 +14,7 @@ class displayer(analysisStep) :
     
     def __init__(self, jets = None, met = None, muons = None, electrons = None, photons = None, taus = None,
                  recHits = None, recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False, doGenJets = False,
-                 doEtaPhiPlot = True, hotTpThreshold = 63.5, deltaPhiStarExtraName = "", deltaPhiStarCut = None, deltaPhiStarDR = None, mhtOverMetName = "",
+                 doEtaPhiPlot = True, deltaPhiStarExtraName = "", deltaPhiStarCut = None, deltaPhiStarDR = None, mhtOverMetName = "",
                  showAlphaTMet = True, jetsOtherAlgo = None, metOtherAlgo = None, printExtraText = True, j2Factor = None,
                  ra1Mode = True, ra1CutBits = True, markusMode = False, tipToTail = False, triggersToPrint = [],
                  flagsToPrint = ["logErrorTooManyClusters","logErrorTooManySeeds",
@@ -26,12 +26,15 @@ class displayer(analysisStep) :
         self.moreName = "(see below)"
 
         for item in ["scale","jets","met","muons","electrons","photons","taus","recHits","recHitPtThreshold","doGenParticles", "doGenJets",
-                     "doEtaPhiPlot","hotTpThreshold","deltaPhiStarExtraName", "deltaPhiStarCut", "deltaPhiStarDR", "mhtOverMetName", "showAlphaTMet",
+                     "doEtaPhiPlot","deltaPhiStarExtraName", "deltaPhiStarCut", "deltaPhiStarDR", "mhtOverMetName", "showAlphaTMet",
                      "jetsOtherAlgo", "metOtherAlgo", "printExtraText", "j2Factor", "ra1Mode", "ra1CutBits", "markusMode","tipToTail",
                      "triggersToPrint", "flagsToPrint"] :
             setattr(self,item,eval(item))
 
         if len(self.flagsToPrint)>3 : print "WARNING: More than three flags specified in the displayer.  The list will run off the page."
+        self.etaBE = configuration.detectorSpecs()["cms"]["etaBE"]
+        self.subdetectors = configuration.detectorSpecs()["cms"]["%sSubdetectors"%self.recHits] if self.recHits else []
+        
         self.jetRadius = 0.7 if "ak7Jet" in self.jets[0] else 0.5
         self.genJets = "gen%sGenJetsP4"%(self.jets[0].replace("xc","")[:3])
         self.genMet  = "genmetP4True"
@@ -75,17 +78,13 @@ class displayer(analysisStep) :
         self.ellipse.SetFillStyle(0)
 
         self.deadBox = r.TBox()
-        self.deadBox.SetFillColor(r.kBlack)
-        self.deadBox.SetLineColor(r.kBlack)
+        self.deadBox.SetFillColor(r.kMagenta)
+        self.deadBox.SetLineColor(r.kMagenta)
 
         self.coldBox = r.TBox()
-        self.coldBox.SetFillColor(r.kOrange-6)
-        self.coldBox.SetLineColor(r.kOrange-6)
+        self.coldBox.SetFillColor(r.kOrange+7)
+        self.coldBox.SetLineColor(r.kOrange+7)
 
-        self.hotBox = r.TBox()
-        self.hotBox.SetFillColor(r.kRed)
-        self.hotBox.SetLineColor(r.kRed)
-        
         self.hcalBox = r.TBox()
         self.hcalBox.SetFillColor(r.kGreen)
         self.hcalBox.SetLineColor(r.kGreen)
@@ -228,14 +227,8 @@ class displayer(analysisStep) :
         self.printText("  det   pT  eta  phi%s"%(" sl" if recHits=="Calo" else ""))
         self.printText("--------------------%s"%("---" if recHits=="Calo" else ""))
 
-        subDetectors=[]
-        if recHits=="Calo" :
-            subDetectors=["Eb","Ee","Hbhe","Hf"]
-        if recHits=="PF" :
-            subDetectors=["Ecal","Hcal","Hfem","Hfhad","Ps"]
-
         hits = []
-        for detector in subDetectors :
+        for detector in self.subdetectors :
             for collectionName in ["","cluster"] :
                 p4Var = "rechit"+collectionName+recHits+"P4"+detector
                 slVar = "rechit"+collectionName+recHits+"SeverityLevel"+detector
@@ -602,13 +595,7 @@ class displayer(analysisStep) :
     def drawCleanedRecHits(self, eventVars, coords, color, lineWidth, arrowSize) :
         self.legendFunc(color, name = "cleanedRecHits%s"%self.recHits, desc = "cleaned RecHits (%s)"%self.recHits)
 
-        subDetectors=[]
-        if self.recHits=="Calo" :
-            subDetectors=["Eb","Ee","Hbhe","Hf"]
-        if self.recHits=="PF" :
-            subDetectors=["Ecal","Hcal","Hfem","Hfhad","Ps"]
-
-        for detector in subDetectors :
+        for detector in self.subdetectors :
             for collectionName in ["","cluster"] :
                 varName = "rechit"+collectionName+self.recHits+"P4"+detector
                 if varName not in eventVars : continue
@@ -636,10 +623,9 @@ class displayer(analysisStep) :
         etaPhiPlot.SetStats(False)
         etaPhiPlot.Draw()
 
-        ebEe = 1.479
         self.line.SetLineColor(r.kBlack)
-        self.line.DrawLine(-ebEe, etaPhiPlot.GetYaxis().GetXmin(), -ebEe, etaPhiPlot.GetYaxis().GetXmax() )
-        self.line.DrawLine( ebEe, etaPhiPlot.GetYaxis().GetXmin(),  ebEe, etaPhiPlot.GetYaxis().GetXmax() )
+        self.line.DrawLine(-self.etaBE, etaPhiPlot.GetYaxis().GetXmin(), -self.etaBE, etaPhiPlot.GetYaxis().GetXmax() )
+        self.line.DrawLine( self.etaBE, etaPhiPlot.GetYaxis().GetXmin(),  self.etaBE, etaPhiPlot.GetYaxis().GetXmax() )
         suspiciousJetColor = r.kRed
         suspiciousJetStyle = 2
         
@@ -648,8 +634,6 @@ class displayer(analysisStep) :
             args = (fourVector.eta()-value, fourVector.phi()-value, fourVector.eta()+value, fourVector.phi()+value)
             if maxStatus==14 :
                 self.deadBox.DrawBox(*args)
-            elif fourVector.Et()>=self.hotTpThreshold :
-                self.hotBox.DrawBox(*args)
             else :
                 self.coldBox.DrawBox(*args)
                 
@@ -706,15 +690,14 @@ class displayer(analysisStep) :
             if self.ra1Mode : 
                 legend1.AddEntry(self.deadBox,"dead ECAL cells","f")
                 legend1.AddEntry(self.coldBox,"dead ECAL cells w/TP link","f")
-                legend1.AddEntry(self.hotBox, "dead ECAL cells w/TP ET>%4.1f GeV"%self.hotTpThreshold,"f")
+                legend1.AddEntry(self.hcalBox,"masked HCAL cells","f")
                 legend1.Draw()
 
-            legend2 = r.TLegend(0.58, 0.933, 0.98, 1.0)
+            legend2 = r.TLegend(0.48, 0.933, 0.98, 1.0)
             legend2.SetFillStyle(0)
             legend2.SetBorderSize(0)
 
             if self.ra1Mode : 
-                legend2.AddEntry(self.hcalBox,"masked HCAL cells","f")
                 self.ellipse.SetLineColor(suspiciousJetColor)
                 self.ellipse.SetLineStyle(suspiciousJetStyle)
                 if suspiciousJetLegendEntry :
