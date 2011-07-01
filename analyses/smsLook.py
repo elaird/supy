@@ -5,7 +5,7 @@ import ROOT as r
 
 class smsLook(analysis.analysis) :
     def parameters(self) :
-        objects = {}
+        objects = self.vary()
         fields =                                                [ "jet",            "met",            "muon",        "electron",        "photon",
                                                                   "compJet",    "compMet",
                                                                   "rechit", "muonsInJets", "jetPtMin", "jetId"]
@@ -15,8 +15,8 @@ class smsLook(analysis.analysis) :
                                                                  "Calo",     False,         50.0,      "JetIDloose"]))
         
         return { "objects": objects,
-                 "nJetsMinMax" :      dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] ),
-                 "mcSoup" :           dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ] [0:1] ),
+                 "nJetsMinMax" :      self.vary(dict([ ("ge2",(2,None)),  ("2",(2,2)),  ("ge3",(3,None)) ]       [0:1] )),
+                 "mcSoup" :           self.vary(dict([ ("pythia6","py6"), ("pythia8","py8"), ("madgraph","mg") ] [0:1] )),
                  "etRatherThanPt" : [True,False]        [0],
                  "lowPtThreshold" : 30.0,
                  "lowPtName" : "lowPt",
@@ -61,8 +61,7 @@ class smsLook(analysis.analysis) :
 
             calculables.Muon.Indices( obj["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
             calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
-            calculables.Photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
-            #calculables.Photon.photonIndicesPat(  ptMin = 25, flagName = "photonIDTightFromTwikiPat"),
+            calculables.Photon.Indices(obj["photon"], ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
             
             calculables.Vertex.ID(),
             calculables.Vertex.Indices(),
@@ -101,7 +100,7 @@ class smsLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         return specify( #nFilesMax = 4, nEventsMax = 2000,
-                        names = ["t1", "t2"])
+                        names = ["t1.ted"])
 
     def conclude(self) :
         for tag in self.sideBySideAnalysisTags() :
