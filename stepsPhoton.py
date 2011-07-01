@@ -1,5 +1,5 @@
 import ROOT as r
-import math
+import math,configuration
 from analysisStep import analysisStep
 #####################################
 class photonPtSelector(analysisStep) :
@@ -102,7 +102,7 @@ class singlePhotonHistogrammer(analysisStep) :
         self.jetP4Name = "%sCorrectedP4%s" % self.jetCs
         self.mhtName = "%sSumP4%s" % self.jetCs
         self.htName  = "%sSumEt%s"%self.jetCs
-        self.etaBE = 1.479 #from CMS PAS EGM-10-005
+        self.etaBE = configuration.detectorSpecs()["cms"]["etaBE"]
 
         self.minDeltaRToJet = "%s%sMinDeltaRToJet%s%s"% (self.cs[0], self.cs[1], self.jetCs[0], self.jetCs[1])
         

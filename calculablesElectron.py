@@ -1,9 +1,9 @@
-import calculables,utils
+import calculables,utils,configuration
 from wrappedChain import *
 from calculablesMuon import IndicesOther,IndicesNonIso,IndicesAnyIso,IndicesAnyIsoIsoOrder,LeadingPt
 ##############################
-barrelEtaMax = 1.4442
-endcapEtaMin = 1.560
+barrelEtaMax = configuration.detectorSpecs()["cms"]["barrelEtaMax"]
+endcapEtaMin = configuration.detectorSpecs()["cms"]["endcapEtaMin"]
 ##############################
 class Indices(wrappedChain.calculable) :
     def __init__(self, collection = None, ptMin = None, simpleEleID = None, useCombinedIso = True) :

@@ -45,6 +45,16 @@ def histogramsToDisableForMc() :
 def cppFiles() :
     return ["linkdef.cxx"]
 
+def detectorSpecs() :
+    return {
+        "cms": {"etaBE": 1.479, #from CMS PAS EGM-10-005
+                "barrelEtaMax": 1.4442,
+                "endcapEtaMin": 1.560,
+                "CaloSubdetectors": ["Eb", "Ee", "Hbhe", "Hf"],
+                "PFSubdetectors": ["Ecal", "Hcal", "Hfem", "Hfhad", "Ps"],
+                },
+        }
+
 def sitePrefix() :
     d = {"hep.ph.ic.ac.uk":"ic",
          "sesame1":"pu",
@@ -146,4 +156,8 @@ def dictionariesToGenerate() :
         ("vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> > >", "vector;Math/LorentzVector.h"),
         ]
 
-srm = 'utils.fileListFromSrmLs(dCachePrefix = "%s", dCacheTrim = "%s", location="%s'%(siteInfo(key = "dCachePrefix"), siteInfo(key = "dCacheTrim"), siteInfo(key = "srmPrefix"))
+def srmFunc() :
+    return 'utils.fileListFromSrmLs(dCachePrefix = "%s", dCacheTrim = "%s", location="%s'%(siteInfo(key = "dCachePrefix"),
+                                                                                           siteInfo(key = "dCacheTrim"),
+                                                                                           siteInfo(key = "srmPrefix"))
+srm = srmFunc()

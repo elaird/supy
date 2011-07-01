@@ -1,5 +1,5 @@
 from wrappedChain import *
-import calculables,math,utils
+import calculables,math,utils,configuration
 #####################################
 class localEntry(wrappedChain.calculable) :
     def update(self,localEntry) :
@@ -18,8 +18,9 @@ class crock(wrappedChain.calculable) :
     def update(self,localEntry) : self.value = {}
 #####################################
 class ecalDeadTowerIsBarrel(wrappedChain.calculable) :
+    etaBE = configuration.detectorSpecs()["cms"]["etaBE"]
     def update(self,ignored) : self.value = map( self.isBarrel, self.source["ecalDeadTowerTrigPrimP4"] )
-    def isBarrel(self, p4) : return abs(p4.eta()) < 1.48
+    def isBarrel(self, p4) : return abs(p4.eta()) < self.etaBE
 #####################################
 class lowestUnPrescaledTrigger(wrappedChain.calculable) :
     def __init__(self, sortedListOfPaths = []) :

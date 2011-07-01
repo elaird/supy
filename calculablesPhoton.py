@@ -1,5 +1,5 @@
 from wrappedChain import *
-import calculables,utils
+import calculables,utils,configuration
 ##############################
 class IndicesOther(calculables.indicesOther) :
     def __init__(self,collection = None) :
@@ -59,7 +59,7 @@ class photonID(wrappedChain.calculable) :
             shhBarrel[l] = None
             shhEndcap[l] = None
             ptVar[l]     = "pt"
-            etaBE[l]     = 1.479 #from CMS PAS EGM-10-005
+            etaBE[l]     = configuration.detectorSpecs()["cms"]["etaBE"]
             moreName[l]  = "PhotonID twiki, 2010-10-14, %s"%("is"+l.replace("FromTwiki",""))
 
         hcti     ["LooseFromTwiki"] = (3.5, 0.001)
