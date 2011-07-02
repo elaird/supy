@@ -5,6 +5,8 @@ import analysis,steps,calculables,samples,organizer,plotter,utils
 import ROOT as r
 
 class ra1Displays(analysis.analysis) :
+    def useCachedFileLists(self) : return False
+    
     def parameters(self) :
         objects = self.vary()
         fields =                                                  [ "jet",                        "jetId",     "muonsInJets",           "met",
@@ -72,6 +74,7 @@ class ra1Displays(analysis.analysis) :
             calculables.Photon.Indices(obj["photon"],  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
             #calculables.Photon.Indices(obj["photon"],  ptMin = 25, flagName = "photonIDTightFromTwikiPat"),
 
+            calculables.Other.RecHitSumPt(obj["rechit"]),
             calculables.Vertex.ID(),
             calculables.Vertex.Indices(),
             ]
@@ -114,7 +117,8 @@ class ra1Displays(analysis.analysis) :
         sampleDict = samples.SampleHolder()
         sampleDict.add("Data_275", '["/home/hep/db1110/public_html/DefaultAnalysisSkims/275-325/Dataskims/275data.root"]', lumi = 602.) #/pb
         sampleDict.add("MG_QCD", '["/home/hep/db1110/public_html/DefaultAnalysisSkims/275-325/MCskims/275madgraph.root"]', xs = 1.0) #dummy xs
+        sampleDict.add("PY_QCD", '["/home/hep/db1110/public_html/DefaultAnalysisSkims/275-325/AlphaT54MCSkims/275Pythia.root"]', xs = 1.0) #dummy xs
         return [sampleDict]
     
     def listOfSamples(self,params) :
-        return samples.specify(names = "MG_QCD")
+        return samples.specify(names = "MG_QCD")+samples.specify(names = "PY_QCD")
