@@ -3,17 +3,6 @@ from configuration import srm
 jetmet = samples.SampleHolder()
 
 #2011
-#take 1
-jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Arlo",'%s/arlogb//ICF/automated/2011_04_19_23_17_45/")'%srm, lumi = 11.8) #lumi is just a guess
-jetmet.add("HT.Run2011A-PromptReco-v1.AOD.Zoe",'%s/zph04//ICF/automated/2011_05_11_22_38_04/")'%srm, lumi = 4.321) #lumi is just a guess
-jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Arlo", '%s/arlogb//ICF/automated/2011_04_24_19_07_39/")'%srm, lumi = 15.28) #174/188 complete
-jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Arlo2",'%s/arlogb//ICF/automated/2011_05_01_22_10_08/", alwaysUseLastAttempt = True)'%srm, lumi = 78.61) #406/430 complete
-jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Robin1",'%s/rnandi//ICF/automated/2011_05_07_16_49_05/", alwaysUseLastAttempt = True)'%srm, lumi = 50.0) #343/348 complete; lumi approx.
-jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Zoe1", '%s/zph04//ICF/automated/2011_05_11_22_25_40/")'%srm, lumi = 1.0)
-jetmet.add("HT.Run2011A-PromptReco-v2.AOD.Zoe2", '%s/zph04//ICF/automated/2011_05_11_22_32_01/")'%srm, lumi = 1.0) #50/58 complete; lumi is just a guess
-jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Bryn0", '%s/bm409//ICF/automated/2011_05_28_08_32_26/")'%srm, lumi = 1.0) #225/226 complete; lumi ~60/pb
-
-#take 2
 jetmet.add("HT.Run2011A-May10ReReco-v1.AOD.Bryn",   '%s/bm409//ICF/automated/2011_06_08_19_31_55/")'                               %srm, lumi = 1.0)
 jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Bryn1",   '%s/bm409//ICF/automated/2011_06_08_10_14_46/",   alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
 jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Bryn2",   '%s/bm409//ICF/automated/2011_06_04_19_40_33/",   alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
@@ -21,6 +10,8 @@ jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Bryn3",   '%s/bm409//ICF/automated/201
 jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Darren1", '%s/dburton//ICF/automated/2011_06_16_10_30_36/", alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
 jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Darren2", '%s/dburton//ICF/automated/2011_06_22_13_44_34/", alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
 jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Darren3", '%s/dburton//ICF/automated/2011_06_23_09_27_46/", alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
+jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Darren4", '%s/dburton//ICF/automated/2011_06_29_08_50_53/", alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
+jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Darren5", '%s/dburton//ICF/automated/2011_07_01_12_27_35/", alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
 
 jetmet.add("calo_275_scaled", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v6/275_scaled.root", isDirectory = False)', lumi = 189)
 jetmet.add("calo_325_scaled", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v6/325_scaled.root", isDirectory = False)', lumi = 189)
