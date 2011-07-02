@@ -52,6 +52,8 @@ def detectorSpecs() :
                 "endcapEtaMin": 1.560,
                 "CaloSubdetectors": ["Eb", "Ee", "Hbhe", "Hf"],
                 "PFSubdetectors": ["Ecal", "Hcal", "Hfem", "Hfhad", "Ps"],
+                "CaloRecHitCollections": [""],
+                "PFRecHitCollections": ["","cluster"],
                 },
         }
 
