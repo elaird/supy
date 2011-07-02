@@ -289,28 +289,17 @@ class hadronicLook(analysis.analysis) :
         from samples import specify
 
         def data() :
-            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-167151_7TeV_PromptReco_Collisions11_JSON.txt") #869/pb
+            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-167784_7TeV_PromptReco_Collisions11_JSON.txt") #963/pb
             out = []
-            out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.Bryn",   weights = jw, overrideLumi = 183.0)
+            out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.Bryn",   weights = jw, overrideLumi = 182.6)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn1",   weights = jw, overrideLumi =  70.2)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn2",   weights = jw, overrideLumi = 101.3)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn3",   weights = jw, overrideLumi =  74.8)
-            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren1", weights = jw, overrideLumi = 181.2)
-            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren2", weights = jw, overrideLumi = 117.1)
+            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren1", weights = jw, overrideLumi = 180.8)
+            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren2", weights = jw, overrideLumi = 122.8)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren3", weights = jw, overrideLumi =  36.4)
-            
-            #out += specify(names = "darrens_events")
-            #out += specify(names = "calo_325_scaled")
-            #w = calculables.Jet.nJetsWeight(jets = params["objects"]["jet"], nJets = [3])
-            #out += specify(names = "calo_325_scaled", weights = w, color = r.kRed)
-
-            #out += specify(names = "qcd_py6_275")
-            #out += specify(names = "qcd_py6_325")
-            #out += specify(names = "qcd_py6_375")
-            
-            #out += specify(names = "HT350_skim_calo")
-            #out += specify(names = "hbhe_noise_skim_calo")
-            
+            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren4", weights = jw, overrideLumi =  50.5)
+            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren5", weights = jw, overrideLumi = 129.1)
             return out
 
         def qcd_py6(eL) :
