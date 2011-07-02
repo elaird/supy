@@ -11,10 +11,9 @@ class jsonMaker(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify
-        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-167151_7TeV_PromptReco_Collisions11_JSON.txt") #869/pb        
+        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-167784_7TeV_PromptReco_Collisions11_JSON.txt") #963/pb
         
         out = []
-
         out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.Bryn",   weights = jw)
         out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn1",   weights = jw)
         out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn2",   weights = jw)
@@ -22,6 +21,8 @@ class jsonMaker(analysis.analysis) :
         out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren1", weights = jw)
         out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren2", weights = jw)
         out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren3", weights = jw)
+        out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren4", weights = jw)
+        out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren5", weights = jw)
 
         #out += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Zoe_skim", weights = jw)
         #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe1_skim", weights = jw)
