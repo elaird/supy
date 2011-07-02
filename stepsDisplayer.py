@@ -13,7 +13,7 @@ except ImportError:
 class displayer(analysisStep) :
     
     def __init__(self, jets = None, met = None, muons = None, electrons = None, photons = None, taus = None,
-                 recHits = None, recHitPtThreshold = -1.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False, doGenJets = False,
+                 recHits = None, recHitPtThreshold = -100.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False, doGenJets = False,
                  doEtaPhiPlot = True, deltaPhiStarExtraName = "", deltaPhiStarCut = None, deltaPhiStarDR = None, mhtOverMetName = "",
                  showAlphaTMet = True, jetsOtherAlgo = None, metOtherAlgo = None, printExtraText = True, j2Factor = None,
                  ra1Mode = True, ra1CutBits = True, markusMode = False, tipToTail = False, triggersToPrint = [],
@@ -34,6 +34,7 @@ class displayer(analysisStep) :
         if len(self.flagsToPrint)>3 : print "WARNING: More than three flags specified in the displayer.  The list will run off the page."
         self.etaBE = configuration.detectorSpecs()["cms"]["etaBE"]
         self.subdetectors = configuration.detectorSpecs()["cms"]["%sSubdetectors"%self.recHits] if self.recHits else []
+        self.recHitCollections = configuration.detectorSpecs()["cms"]["%sRecHitCollections"%self.recHits] if self.recHits else []
         
         self.jetRadius = 0.7 if "ak7Jet" in self.jets[0] else 0.5
         self.genJets = "gen%sGenJetsP4"%(self.jets[0].replace("xc","")[:3])
@@ -226,13 +227,13 @@ class displayer(analysisStep) :
         self.printText(self.renamedDesc("cleaned%sRecHits"%recHits))
         self.printText("  det   pT  eta  phi%s"%(" sl" if recHits=="Calo" else ""))
         self.printText("--------------------%s"%("---" if recHits=="Calo" else ""))
+        self.printText("SumPt%5.0f"%eventVars["%sRecHitSumPt"%self.recHits])
 
         hits = []
         for detector in self.subdetectors :
-            for collectionName in ["","cluster"] :
-                p4Var = "rechit"+collectionName+recHits+"P4"+detector
-                slVar = "rechit"+collectionName+recHits+"SeverityLevel"+detector
-                if p4Var not in eventVars : continue
+            for collectionName in self.recHitCollections :
+                p4Var = "rechit%s%s%s%s"%(collectionName, self.recHits, "P4",            detector)
+                slVar = "rechit%s%s%s%s"%(collectionName, self.recHits, "SeverityLevel", detector)
                 for iHit in range(len(eventVars[p4Var])) :
                     hit = eventVars[p4Var].at(iHit)
                     l = [hit.pt(), hit.eta(), hit.phi(), detector]
@@ -247,7 +248,7 @@ class displayer(analysisStep) :
             outString+="%5.0f %4.1f %4.1f"%(hit[0], hit[1], hit[2])
             if recHits=="Calo" : outString +=" %2d"%hit[4]
             self.printText(outString)
-
+        
     def printJets(self, eventVars, params, coords, jets, nMax) :
         self.prepareText(params, coords)
         jets2 = (jets[0].replace("xc",""),jets[1])
@@ -596,9 +597,8 @@ class displayer(analysisStep) :
         self.legendFunc(color, name = "cleanedRecHits%s"%self.recHits, desc = "cleaned RecHits (%s)"%self.recHits)
 
         for detector in self.subdetectors :
-            for collectionName in ["","cluster"] :
-                varName = "rechit"+collectionName+self.recHits+"P4"+detector
-                if varName not in eventVars : continue
+            for collectionName in self.recHitCollections :
+                varName = "rechit%s%sP4%s"%(collectionName, self.recHits, detector)
                 for iHit in range(len(eventVars[varName])) :
                     hit = eventVars[varName].at(iHit)
                     if hit.pt()<self.recHitPtThreshold : continue
