@@ -105,11 +105,11 @@ class analysisLooper :
             print utils.hyphens
 
     def deleteChains(self) : #free up memory (http://wlav.web.cern.ch/wlav/pyroot/memory.html)
-        for chain in self.chains.values() : chain.IsA().Destructor( chain )        
+        for chain in self.chains.values() : utils.delete(chain)
         for step in self.steps :
             for name,hist in list(step.book.iteritems()) :
-                del hist
-                del step.book[name]
+                utils.delete(hist)
+                #del step.book[name]
         
     def setupSteps(self, minimal = False) :
         r.gROOT.cd()
