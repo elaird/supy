@@ -24,6 +24,10 @@ def LorentzV(*args) :
     if lvClass is None : lvClass = r.Math.LorentzVector(r.Math.PtEtaPhiM4D('float'))
     return lvClass(*args)
 #####################################
+def delete(thing) :
+    #free up memory (http://wlav.web.cern.ch/wlav/pyroot/memory.html)
+    thing.IsA().Destructor(thing)
+#####################################
 def generateDictionaries(inList) :
     for item in inList :
         r.gInterpreter.GenerateDictionary(*item)
