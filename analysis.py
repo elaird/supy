@@ -124,19 +124,29 @@ class analysis(object) :
         utils.operateOnListUsingQueue(self.__loop, utils.qWorker(makeFileList), [(name,) for name in sampleNames] )
 
 ############
+    def workList(self) :
+        out = []
+        for looper in sum(self.listsOfLoopers.values(), []) :
+            for iSlice in (range(self.__nSlices) if self.__jobId==None else [int(self.__jobId)]) :
+                out.append( (looper, iSlice) )
+        return out
+############
+    def func(self, looper, iSlice) :
+        looper.slice(self.__nSlices, iSlice)()
+############
     def loop(self) :
-        listOfLoopers = [looper.slice(self.__nSlices,iSlice) for looper in sum(self.listsOfLoopers.values(),[])
-                         for iSlice in (range(self.__nSlices) if self.__jobId==None else [int(self.__jobId)])]
+        wl = self.workList()
         
-        if self.__jobId!=None : listOfLoopers[0]()
-        elif not self.__profile : utils.operateOnListUsingQueue(self.__loop, utils.qWorker(), listOfLoopers)
+        if self.__jobId!=None : wl[0]()
+        elif not self.__profile : utils.operateOnListUsingQueue(self.__loop, utils.qWorker(self.func), wl)
         else :
             import cProfile
-            self.listOfLoopersForProf = listOfLoopers
+            self.listOfLoopersForProf = wl
             cProfile.run("someInstance.profileLoop()","resultProfile.out")
 
-    def profileLoop(self) : [ looper() for looper in self.listOfLoopersForProf ]
-        
+    def profileLoop(self) :
+        for looper,iSlice in self.listOfLoopersForProf :
+            self.func(looper, iSlice)
 ############
     def sampleLoopers(self, conf) :
 
