@@ -48,6 +48,7 @@ class hadronicLook(analysis.analysis) :
                                       ["HLT_HT250_MHT70_v%d"%i for i in [1,3,4]       ]+
                                       ["HLT_HT250_MHT80_v%d"%i for i in [3,4]         ]+
                                       ["HLT_HT250_MHT90_v%d"%i for i in [1]           ]+
+                                      ["HLT_HT250_MHT100_v%d"%i for i in [1]          ]+
                                       ["HLT_HT260_MHT60_v%d"%i for i in [2]           ]
 
                                       #["HLT_HT300_MHT75_v%d"%i for i in [2,3,4,5,7,8] ]+
@@ -234,7 +235,7 @@ class hadronicLook(analysis.analysis) :
             steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
             
             steps.Jet.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
-            steps.Jet.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt, metName = _met),
+            #steps.Jet.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt, metName = _met),
 
             #signal selection
             #steps.Other.variablePtGreaterFilter(140.0,"%sSumP4%s"%_jet,"GeV"),
@@ -291,11 +292,11 @@ class hadronicLook(analysis.analysis) :
         def data() :
             jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-167784_7TeV_PromptReco_Collisions11_JSON.txt") #963/pb
             out = []
-            out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.Bryn",   weights = jw, overrideLumi = 182.6)
+            out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.Bryn",   weights = jw, overrideLumi = 183.0)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn1",   weights = jw, overrideLumi =  70.2)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn2",   weights = jw, overrideLumi = 101.3)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn3",   weights = jw, overrideLumi =  74.8)
-            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren1", weights = jw, overrideLumi = 180.8)
+            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren1", weights = jw, overrideLumi = 181.2)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren2", weights = jw, overrideLumi = 122.8)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren3", weights = jw, overrideLumi =  36.4)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren4", weights = jw, overrideLumi =  50.5)
