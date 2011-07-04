@@ -282,6 +282,7 @@ def roundString(val, err, width=None, noSci = False, noErr = False) :
 #####################################
 def printSkimResults(org) :
     for iSkimmer,skimmer in filter(lambda tup: tup[1].name=="skimmer", enumerate(org.steps) ) :
+        print org.tag
         print "efficiencies for skimmer with index",iSkimmer
         print "-"*40
         names = tuple([sample["name"] for sample in org.samples])
@@ -295,7 +296,7 @@ def printSkimResults(org) :
 
         nameStrings = ['foo.add("%s_skim", '%name for name in names]
         dirStrings = ['\'utils.fileListFromDisk(location = "%s/'+name+'_*_skim.root", isDirectory = False)\'%dir,' for name in names]
-        effStrings = [('lumi = %e)'%lumi if lumi else 'xs = %e * %e'%(eff,xs)) for eff,lumi,xs in zip(effic,lumis,xss)]
+        effStrings = [(' lumi = %e)'%lumi if lumi else ' xs = %e * %e)'%(eff,xs)) for eff,lumi,xs in zip(effic,lumis,xss)]
         
         def maxLength(l) : return max([len(s) for s in l])
         nameLength = maxLength(nameStrings)
