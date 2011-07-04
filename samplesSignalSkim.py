@@ -2,68 +2,61 @@ import samples
 
 signalSkim = samples.SampleHolder()
 
-#Calo HT>300, alphaT>0.54
-dir = "/vols/cms02/elaird1/11_skims/23_loosened_signal/caloAK5/"
-signalSkim.add("Run2010A_JMT_skim_caloSkim",    'utils.fileListFromDisk(location = "%s/Run2010A_JMT_skim_*_skim.root", isDirectory = False)'%dir,   lumi = 1.720000e-01)
-signalSkim.add("Run2010A_JM_skim_caloSkim",     'utils.fileListFromDisk(location = "%s/Run2010A_JM_skim_*_skim.root", isDirectory = False)'%dir,    lumi = 2.889000e+00)
-signalSkim.add("Run2010B_J_skim_caloSkim",      'utils.fileListFromDisk(location = "%s/Run2010B_J_skim_*_skim.root", isDirectory = False)'%dir,     lumi = 3.897000e+00)
-signalSkim.add("Run2010B_J_skim2_caloSkim",     'utils.fileListFromDisk(location = "%s/Run2010B_J_skim2_*_skim.root", isDirectory = False)'%dir,    lumi = 5.107000e-01)
-signalSkim.add("Run2010B_MJ_skim_caloSkim",     'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim_*_skim.root", isDirectory = False)'%dir,    lumi = 3.467000e+00)
-signalSkim.add("Run2010B_MJ_skim2_caloSkim",    'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim2_*_skim.root", isDirectory = False)'%dir,   lumi = 4.150800e+00)
-signalSkim.add("Run2010B_MJ_skim3_caloSkim",    'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim3_*_skim.root", isDirectory = False)'%dir,   lumi = 6.807000e+00)
-signalSkim.add("Run2010B_MJ_skim4_caloSkim",    'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim4_*_skim.root", isDirectory = False)'%dir,   lumi = 1.283200e+01)
-signalSkim.add("tt_tauola_mg_v12_caloSkim",     'utils.fileListFromDisk(location = "%s/tt_tauola_mg_v12_*_skim.root", isDirectory = False)'%dir,    xs = 5.666667e-04 * 1.575000e+02)
-signalSkim.add("v12_g_jets_py6_pt170_caloSkim", 'utils.fileListFromDisk(location = "%s/v12_g_jets_py6_pt170_*_skim.root", isDirectory = False)'%dir,xs = 1.100000e-04 * 2.437000e+01)
-#signalSkim.add("v12_g_jets_py6_pt30_caloSkim",  'utils.fileListFromDisk(location = "%s/v12_g_jets_py6_pt30_*_skim.root", isDirectory = False)'%dir, xs = 0.000000e+00 * 1.951350e+04)
-#signalSkim.add("v12_g_jets_py6_pt80_caloSkim",  'utils.fileListFromDisk(location = "%s/v12_g_jets_py6_pt80_*_skim.root", isDirectory = False)'%dir, xs = 0.000000e+00 * 5.321300e+02)
-#signalSkim.add("v12_qcd_py6_pt170_caloSkim",    'utils.fileListFromDisk(location = "%s/v12_qcd_py6_pt170_*_skim.root", isDirectory = False)'%dir,   xs = 0.000000e+00 * 2.421400e+04)
-signalSkim.add("v12_qcd_py6_pt300_caloSkim",    'utils.fileListFromDisk(location = "%s/v12_qcd_py6_pt300_*_skim.root", isDirectory = False)'%dir,   xs = 5.111228e-06 * 1.256000e+03)
-#signalSkim.add("v12_qcd_py6_pt80_caloSkim",     'utils.fileListFromDisk(location = "%s/v12_qcd_py6_pt80_*_skim.root", isDirectory = False)'%dir,    xs = 0.000000e+00 * 8.983300e+05)
-signalSkim.add("w_jets_mg_v12_skim_caloSkim",   'utils.fileListFromDisk(location = "%s/w_jets_mg_v12_skim_*_skim.root", isDirectory = False)'%dir,  xs = 1.272975e-03 * 1.397281e+02)
-signalSkim.add("z_inv_mg_v12_skim_caloSkim",    'utils.fileListFromDisk(location = "%s/z_inv_mg_v12_skim_*_skim.root", isDirectory = False)'%dir,   xs = 1.539942e-02 * 1.181379e+01)
-#signalSkim.add("z_jets_mg_v12_skim_caloSkim",   'utils.fileListFromDisk(location = "%s/z_jets_mg_v12_skim_*_skim.root", isDirectory = False)'%dir,  xs = 0.000000e+00 * 3.614038e+01)
+#<             steps.Trigger.lowestUnPrescaledTriggerFilter(),
+#<             steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
+#<
+#<             steps.Trigger.physicsDeclaredFilter(),
+#<             steps.Other.monsterEventFilter(),
+#<             steps.Other.hbheNoiseFilter(),
+#---
+#>             #steps.Trigger.lowestUnPrescaledTriggerFilter(),
+#>             #steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
+#>             #
+#>             #steps.Trigger.physicsDeclaredFilter(),
+#>             #steps.Other.monsterEventFilter(),
+#>             #steps.Other.hbheNoiseFilter(),
+#181c182
+#<             steps.Other.variableLessFilter(1.25,"%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met)),
+#---
+#>             #steps.Other.variableLessFilter(1.25,"%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met)),
+#234c235
+#<             steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
+#---
+#>             #steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
+#237c238
+#<             steps.Jet.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt, metName = _met),
+#---
+#>             #steps.Jet.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt, metName = _met),
+#241c242
+#<             steps.Other.variableGreaterFilter(0.55,"%sAlphaT%s%s"%(_jet[0],"Et" if _etRatherThanPt else "Pt",_jet[1])),
+#---
+#>             steps.Other.variableGreaterFilter(0.53,"%sAlphaT%s%s"%(_jet[0],"Et" if _etRatherThanPt else "Pt",_jet[1])),
+#251c252
+#<             #steps.Other.skimmer(),
+#---
+#>             steps.Other.skimmer(),
 
-#PF HT>300, alphaT>0.54
-dir = "/vols/cms02/elaird1/11_skims/23_loosened_signal/pfAK5/"
-signalSkim.add("Run2010A_JMT_skim_pfSkim",    'utils.fileListFromDisk(location = "%s/Run2010A_JMT_skim_*_skim.root", isDirectory = False)'%dir,   lumi = 1.720000e-01)
-signalSkim.add("Run2010A_JM_skim_pfSkim",     'utils.fileListFromDisk(location = "%s/Run2010A_JM_skim_*_skim.root", isDirectory = False)'%dir,    lumi = 2.889000e+00)
-signalSkim.add("Run2010B_J_skim_pfSkim",      'utils.fileListFromDisk(location = "%s/Run2010B_J_skim_*_skim.root", isDirectory = False)'%dir,     lumi = 3.897000e+00)
-signalSkim.add("Run2010B_J_skim2_pfSkim",     'utils.fileListFromDisk(location = "%s/Run2010B_J_skim2_*_skim.root", isDirectory = False)'%dir,    lumi = 5.107000e-01)
-signalSkim.add("Run2010B_MJ_skim_pfSkim",     'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim_*_skim.root", isDirectory = False)'%dir,    lumi = 3.467000e+00)
-signalSkim.add("Run2010B_MJ_skim2_pfSkim",    'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim2_*_skim.root", isDirectory = False)'%dir,   lumi = 4.150800e+00)
-signalSkim.add("Run2010B_MJ_skim3_pfSkim",    'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim3_*_skim.root", isDirectory = False)'%dir,   lumi = 6.807000e+00)
-signalSkim.add("Run2010B_MJ_skim4_pfSkim",    'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim4_*_skim.root", isDirectory = False)'%dir,   lumi = 1.283200e+01)
-signalSkim.add("tt_tauola_mg_v12_pfSkim",     'utils.fileListFromDisk(location = "%s/tt_tauola_mg_v12_*_skim.root", isDirectory = False)'%dir,    xs = 5.366667e-04 * 1.575000e+02)
-signalSkim.add("v12_g_jets_py6_pt170_pfSkim", 'utils.fileListFromDisk(location = "%s/v12_g_jets_py6_pt170_*_skim.root", isDirectory = False)'%dir,xs = 1.300000e-04 * 2.437000e+01)
-#signalSkim.add("v12_g_jets_py6_pt30_pfSkim",  'utils.fileListFromDisk(location = "%s/v12_g_jets_py6_pt30_*_skim.root", isDirectory = False)'%dir, xs = 0.000000e+00 * 1.951350e+04)
-#signalSkim.add("v12_g_jets_py6_pt80_pfSkim",  'utils.fileListFromDisk(location = "%s/v12_g_jets_py6_pt80_*_skim.root", isDirectory = False)'%dir, xs = 0.000000e+00 * 5.321300e+02)
-#signalSkim.add("v12_qcd_py6_pt170_pfSkim",    'utils.fileListFromDisk(location = "%s/v12_qcd_py6_pt170_*_skim.root", isDirectory = False)'%dir,   xs = 0.000000e+00 * 2.421400e+04)
-signalSkim.add("v12_qcd_py6_pt300_pfSkim",    'utils.fileListFromDisk(location = "%s/v12_qcd_py6_pt300_*_skim.root", isDirectory = False)'%dir,   xs = 8.305746e-06 * 1.256000e+03)
-#signalSkim.add("v12_qcd_py6_pt80_pfSkim",     'utils.fileListFromDisk(location = "%s/v12_qcd_py6_pt80_*_skim.root", isDirectory = False)'%dir,    xs = 0.000000e+00 * 8.983300e+05)
-signalSkim.add("w_jets_mg_v12_skim_pfSkim",   'utils.fileListFromDisk(location = "%s/w_jets_mg_v12_skim_*_skim.root", isDirectory = False)'%dir,  xs = 1.183643e-03 * 1.397281e+02)
-signalSkim.add("z_inv_mg_v12_skim_pfSkim",    'utils.fileListFromDisk(location = "%s/z_inv_mg_v12_skim_*_skim.root", isDirectory = False)'%dir,   xs = 1.395573e-02 * 1.181379e+01)
-#signalSkim.add("z_jets_mg_v12_skim_pfSkim",   'utils.fileListFromDisk(location = "%s/z_jets_mg_v12_skim_*_skim.root", isDirectory = False)'%dir,  xs = 0.000000e+00 * 3.614038e+01)
+##HT275-325
+#dir = "/vols/cms02/elaird1/29_skims/06_had/275/"
+#signalSkim.add("HT_skim", 'utils.fileListFromDisk(location = "%s/HT*_skim.root", isDirectory = False)'%dir, lumi = 183.0)
+#
+#signalSkim.add("tt_tauola_mg_skim", 'utils.fileListFromDisk(location = "%s/tt_tauola_mg_*_skim.root", isDirectory = False)'%dir,xs = 2.033755e-03 * 1.575000e+02)
+#signalSkim.add("zinv_jets_mg_skim", 'utils.fileListFromDisk(location = "%s/zinv_jets_mg_*_skim.root", isDirectory = False)'%dir,xs = 5.542720e-05 * 5.715000e+03)
+#signalSkim.add("w_jets_mg_skim", 'utils.fileListFromDisk(location = "%s/w_jets_mg_*_skim.root", isDirectory = False)'%dir,xs = 1.442660e-05 * 3.192400e+04)
+#
+##HT325-375
+#dir = "/vols/cms02/elaird1/29_skims/06_had/325/"
+#signalSkim.add("HT_skim", 'utils.fileListFromDisk(location = "%s/HT*_skim.root", isDirectory = False)'%dir, lumi = 183.0)
+#
+#signalSkim.add("tt_tauola_mg_skim", 'utils.fileListFromDisk(location = "%s/tt_tauola_mg_*_skim.root", isDirectory = False)'%dir,xs = 1.056029e-03 * 1.575000e+02)
+#signalSkim.add("zinv_jets_mg_skim", 'utils.fileListFromDisk(location = "%s/zinv_jets_mg_*_skim.root", isDirectory = False)'%dir,xs = 2.124709e-05 * 5.715000e+03)
+#signalSkim.add("w_jets_mg_skim", 'utils.fileListFromDisk(location = "%s/w_jets_mg_*_skim.root", isDirectory = False)'%dir,xs = 5.955936e-06 * 3.192400e+04)
 
-#PF HT>300, alphaT>0.54, reco leptons
-dir = "/vols/cms02/elaird1/11_skims/23_loosened_signal/pfAK5JetMet_recoLepPhot/"
-signalSkim.add("Run2010A_JMT_skim_pfCaloSkim",    'utils.fileListFromDisk(location = "%s/Run2010A_JMT_skim_*_skim.root", isDirectory = False)'%dir,   lumi = 1.720000e-01)
-signalSkim.add("Run2010A_JM_skim_pfCaloSkim",     'utils.fileListFromDisk(location = "%s/Run2010A_JM_skim_*_skim.root", isDirectory = False)'%dir,    lumi = 2.889000e+00)
-signalSkim.add("Run2010B_J_skim_pfCaloSkim",      'utils.fileListFromDisk(location = "%s/Run2010B_J_skim_*_skim.root", isDirectory = False)'%dir,     lumi = 3.897000e+00)
-signalSkim.add("Run2010B_J_skim2_pfCaloSkim",     'utils.fileListFromDisk(location = "%s/Run2010B_J_skim2_*_skim.root", isDirectory = False)'%dir,    lumi = 5.107000e-01)
-signalSkim.add("Run2010B_MJ_skim_pfCaloSkim",     'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim_*_skim.root", isDirectory = False)'%dir,    lumi = 3.467000e+00)
-signalSkim.add("Run2010B_MJ_skim2_pfCaloSkim",    'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim2_*_skim.root", isDirectory = False)'%dir,   lumi = 4.150800e+00)
-signalSkim.add("Run2010B_MJ_skim3_pfCaloSkim",    'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim3_*_skim.root", isDirectory = False)'%dir,   lumi = 6.807000e+00)
-signalSkim.add("Run2010B_MJ_skim4_pfCaloSkim",    'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim4_*_skim.root", isDirectory = False)'%dir,   lumi = 1.283200e+01)
-signalSkim.add("Run2010B_MJ_skim5_pfCaloSkim",    'utils.fileListFromDisk(location = "%s/Run2010B_MJ_skim5_*_skim.root", isDirectory = False)'%dir,   lumi = 6.510000e-01)
-#signalSkim.add("lm0_v12_pfCaloSkim",              'utils.fileListFromDisk(location = "%s/lm0_v12_*_skim.root", isDirectory = False)'%dir,             xs = 3.874565e-02 * 3.893000e+01)
-#signalSkim.add("lm1_v12_pfCaloSkim",              'utils.fileListFromDisk(location = "%s/lm1_v12_*_skim.root", isDirectory = False)'%dir,             xs = 1.168797e-01 * 4.888000e+00)
-signalSkim.add("tt_tauola_mg_v12_pfCaloSkim",     'utils.fileListFromDisk(location = "%s/tt_tauola_mg_v12_*_skim.root", isDirectory = False)'%dir,    xs = 3.633333e-04 * 1.575000e+02)
-signalSkim.add("v12_g_jets_py6_pt170_pfCaloSkim", 'utils.fileListFromDisk(location = "%s/v12_g_jets_py6_pt170_*_skim.root", isDirectory = False)'%dir,xs = 1.100000e-04 * 2.437000e+01)
-#signalSkim.add("v12_g_jets_py6_pt30_pfCaloSkim",  'utils.fileListFromDisk(location = "%s/v12_g_jets_py6_pt30_*_skim.root", isDirectory = False)'%dir, xs = 0.000000e+00 * 1.951350e+04)
-#signalSkim.add("v12_g_jets_py6_pt80_pfCaloSkim",  'utils.fileListFromDisk(location = "%s/v12_g_jets_py6_pt80_*_skim.root", isDirectory = False)'%dir, xs = 0.000000e+00 * 5.321300e+02)
-#signalSkim.add("v12_qcd_py6_pt170_pfCaloSkim",    'utils.fileListFromDisk(location = "%s/v12_qcd_py6_pt170_*_skim.root", isDirectory = False)'%dir,   xs = 0.000000e+00 * 2.421400e+04)
-signalSkim.add("v12_qcd_py6_pt300_pfCaloSkim",    'utils.fileListFromDisk(location = "%s/v12_qcd_py6_pt300_*_skim.root", isDirectory = False)'%dir,   xs = 6.069584e-06 * 1.256000e+03)
-#signalSkim.add("v12_qcd_py6_pt80_pfCaloSkim",     'utils.fileListFromDisk(location = "%s/v12_qcd_py6_pt80_*_skim.root", isDirectory = False)'%dir,    xs = 0.000000e+00 * 8.983300e+05)
-signalSkim.add("w_jets_mg_v12_skim_pfCaloSkim",   'utils.fileListFromDisk(location = "%s/w_jets_mg_v12_skim_*_skim.root", isDirectory = False)'%dir,  xs = 9.603144e-04 * 1.397281e+02)
-signalSkim.add("z_inv_mg_v12_skim_pfCaloSkim",    'utils.fileListFromDisk(location = "%s/z_inv_mg_v12_skim_*_skim.root", isDirectory = False)'%dir,   xs = 1.130895e-02 * 1.181379e+01)
-#signalSkim.add("z_jets_mg_v12_skim_pfCaloSkim",   'utils.fileListFromDisk(location = "%s/z_jets_mg_v12_skim_*_skim.root", isDirectory = False)'%dir,  xs = 0.000000e+00 * 3.614038e+01)
+#HT375
+dir = "/vols/cms02/elaird1/29_skims/06_had/375/"
+signalSkim.add("HT_skim", 'utils.fileListFromDisk(location = "%s/HT*_skim.root", isDirectory = False)'%dir, lumi = 940.8)
+
+signalSkim.add("tt_tauola_mg_skim", 'utils.fileListFromDisk(location = "%s/tt_tauola_mg_*_skim.root", isDirectory = False)'%dir,xs = 1.223216e-03 * 1.575000e+02)
+signalSkim.add("zinv_jets_mg_skim", 'utils.fileListFromDisk(location = "%s/zinv_jets_mg_*_skim.root", isDirectory = False)'%dir,xs = 3.279443e-05 * 5.715000e+03)
+signalSkim.add("w_jets_mg_skim", 'utils.fileListFromDisk(location = "%s/w_jets_mg_*_skim.root", isDirectory = False)'%dir,xs = 7.014770e-06 * 3.192400e+04)
+
