@@ -71,8 +71,8 @@ def sitePrefix() :
 def siteSpecs() :
     user = os.environ["USER"]
     return {
-        "ic"  :{"localOutputDir" : "/vols/cms02/%s/tmp/"%user,
-                "globalOutputDir": "/vols/cms02/%s/tmp/"%user,
+        "ic"  :{"localOutputDir" : "/vols/cms03/%s/tmp/"%user,
+                "globalOutputDir": "/vols/cms03/%s/tmp/"%user,
                 #"dCachePrefix"   : "dcap://gfe02.grid.hep.ph.ic.ac.uk",
                 #"dCacheTrim"     : "",
                 "dCachePrefix"   : "root://gfe02.grid.hep.ph.ic.ac.uk",
