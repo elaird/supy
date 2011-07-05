@@ -101,7 +101,8 @@ class skimmer(analysisStep) :
     def writeOtherChains(self, chains) :
         for (dirName,treeName),chain in chains.iteritems() :
             if dirName==self.fileDir and self.outputTree and treeName==self.outputTree.GetName() : continue
-            self.outputFile.mkdir(dirName).cd()
+            self.outputFile.mkdir(dirName)
+            self.outputFile.cd(dirName)
             if chain and chain.GetEntry(0)>0 :
                 outChain = chain.CloneTree()
                 if outChain :
