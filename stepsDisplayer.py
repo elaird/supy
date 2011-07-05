@@ -225,11 +225,11 @@ class displayer(analysisStep) :
         self.prepareText(params, coords)
         
         self.printText(self.renamedDesc("severe %sRecHits"%recHits))
-        self.printText("  det   pT  eta  phi%s"%(" sl" if recHits=="Calo" else ""))
-        self.printText("--------------------%s"%("---" if recHits=="Calo" else ""))
-        self.printText("SumPt%5.0f"%eventVars["%sRecHitSumPt"%self.recHits])
+        self.printText("  det    pT  eta  phi%s"%(" sl" if recHits=="Calo" else ""))
+        self.printText("---------------------%s"%("---" if recHits=="Calo" else ""))
+        self.printText("SumPt%6.1f"%eventVars["%sRecHitSumPt"%self.recHits])
         p4 = eventVars["%sRecHitSumP4"%self.recHits]
-        self.printText("SumP4%5.0f %4.1f %4.1f"%(p4.pt(), p4.eta(), p4.phi()))
+        self.printText("SumP4%6.1f %4.1f %4.1f"%(p4.pt(), p4.eta(), p4.phi()))
 
         hits = []
         for detector in self.subdetectors :
@@ -247,7 +247,7 @@ class displayer(analysisStep) :
                 self.printText("[%d more not listed]"%(len(hits)-nMax))
                 break
             outString = "%5s"%hit[3]
-            outString+="%5.0f %4.1f %4.1f"%(hit[0], hit[1], hit[2])
+            outString+="%6.1f %4.1f %4.1f"%(hit[0], hit[1], hit[2])
             if recHits=="Calo" : outString +=" %2d"%hit[4]
             self.printText(outString)
         
@@ -930,9 +930,9 @@ class displayer(analysisStep) :
             if self.electrons :
                 self.printElectrons(eventVars, params = defaults, coords = {"x":x0+0.50, "y":yy-40*s}, electrons = self.electrons, nMax = 3)
             if self.muons :
-                self.printMuons(    eventVars, params = defaults, coords = {"x":x0,      "y":yy-47*s}, muons = self.muons, nMax = 3)
+                self.printMuons(    eventVars, params = smaller,  coords = {"x":x0,      "y":yy-47*s}, muons = self.muons, nMax = 3)
             if self.recHits :
-                self.printRecHits(  eventVars, params = smaller,  coords = {"x":x0+0.575, "y":yy-47*s}, recHits = self.recHits, nMax = 3)
+                self.printRecHits(  eventVars, params = smaller,  coords = {"x":x0+0.52, "y":yy-47*s}, recHits = self.recHits, nMax = 3)
             if self.flagsToPrint :
                 self.printFlags(    eventVars, params = defaults, coords = {"x":x0,      "y":yy-55*s}, flags = self.flagsToPrint)
             if self.ra1Mode :
