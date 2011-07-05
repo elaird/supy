@@ -27,7 +27,7 @@ class ra1Displays(analysis.analysis) :
                  "thresholds": self.vary(dict( [("375",        (375.0, None,  100.0, 50.0)),#0
                                                 ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#1
                                                 ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#2
-                                                ][2:3] )),
+                                                ][0:1] )),
                  }
 
     def calcListJet(self, obj, etRatherThanPt, ptMin, lowPtThreshold, lowPtName, highPtThreshold, highPtName, htThreshold) :
