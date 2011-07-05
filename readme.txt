@@ -12,7 +12,7 @@ GPLv3 (http://www.gnu.org/licenses/gpl.html)
 
 2) Check out the code:
 - [if needed: export CVSROOT=username@cmscvs.cern.ch:/cvs_server/repositories/CMSSW;export CVS_RSH=ssh]
-- cvs co -d supy -r V11-4 UserCode/elaird/supy
+- cvs co -d supy -r V11-5 UserCode/elaird/supy
 - cd supy
 
 3) Run it!
