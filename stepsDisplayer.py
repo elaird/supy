@@ -224,10 +224,12 @@ class displayer(analysisStep) :
     def printRecHits(self, eventVars, params, coords, recHits, nMax) :
         self.prepareText(params, coords)
         
-        self.printText(self.renamedDesc("cleaned%sRecHits"%recHits))
+        self.printText(self.renamedDesc("severe %sRecHits"%recHits))
         self.printText("  det   pT  eta  phi%s"%(" sl" if recHits=="Calo" else ""))
         self.printText("--------------------%s"%("---" if recHits=="Calo" else ""))
         self.printText("SumPt%5.0f"%eventVars["%sRecHitSumPt"%self.recHits])
+        p4 = eventVars["%sRecHitSumP4"%self.recHits]
+        self.printText("SumP4%5.0f %4.1f %4.1f"%(p4.pt(), p4.eta(), p4.phi()))
 
         hits = []
         for detector in self.subdetectors :
@@ -603,6 +605,11 @@ class displayer(analysisStep) :
                     hit = eventVars[varName].at(iHit)
                     if hit.pt()<self.recHitPtThreshold : continue
                     self.drawP4(coords, hit, color, lineWidth, arrowSize)
+
+    def drawCleanedRecHitSumP4(self, eventVars, coords, color, lineWidth, arrowSize) :
+        self.legendFunc(color, name = "%sRecHitSumP4"%self.recHits, desc = "severe %sRechits SumP4"%self.recHits)
+        sump4 = eventVars["%sRecHitSumP4"%self.recHits]
+        if sump4 : self.drawP4(coords, sump4, color, lineWidth, arrowSize)
             
     def makeAlphaTFunc(self,alphaTValue,color) :
         alphaTFunc=r.TF1("#alpha_{T} = %#4.2g"%alphaTValue,
@@ -869,7 +876,8 @@ class displayer(analysisStep) :
                 if self.taus :      self.drawTaus     (eventVars, coords,r.kYellow  , defWidth, defArrowSize*2/6.0)
             
             if self.recHits :
-                self.drawCleanedRecHits (eventVars, coords,r.kOrange-6, defWidth, defArrowSize*2/6.0)
+                #self.drawCleanedRecHits (eventVars, coords,r.kOrange-6, defWidth, defArrowSize*2/6.0)
+                self.drawCleanedRecHitSumP4(eventVars, coords,r.kOrange-6, defWidth, defArrowSize*2/6.0)
 
         self.canvas.cd()
         pad.Draw()

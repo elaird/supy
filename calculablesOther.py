@@ -106,6 +106,22 @@ class RecHitSumPt(wrappedChain.calculable) :
                 for iHit in range(len(self.source[p4Var])) :
                     self.value += self.source[p4Var].at(iHit).pt()
 ##############################
+class RecHitSumP4(wrappedChain.calculable) :
+    @property
+    def name(self) :
+        return "%sRecHitSumP4"%self.collection
+    def __init__(self, collection = None) :
+        self.collection = collection
+        self.subdetectors = configuration.detectorSpecs()["cms"]["%sSubdetectors"%self.collection]
+        self.recHitCollections = configuration.detectorSpecs()["cms"]["%sRecHitCollections"%self.collection]
+    def update(self, ignored) :
+        self.value = utils.LorentzV()
+        for detector in self.subdetectors :
+            for collectionName in self.recHitCollections :
+                p4Var = "rechit%s%s%s%s"%(collectionName, self.collection, "P4", detector)
+                for iHit in range(len(self.source[p4Var])) :
+                    self.value += self.source[p4Var].at(iHit)
+##############################
 class metPlusParticles(wrappedChain.calculable) :
     @property
     def name(self) :

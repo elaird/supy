@@ -75,6 +75,7 @@ class ra1Displays(analysis.analysis) :
             #calculables.Photon.Indices(obj["photon"],  ptMin = 25, flagName = "photonIDTightFromTwikiPat"),
 
             calculables.Other.RecHitSumPt(obj["rechit"]),
+            calculables.Other.RecHitSumP4(obj["rechit"]),
             calculables.Vertex.ID(),
             calculables.Vertex.Indices(),
             ]
@@ -115,9 +116,9 @@ class ra1Displays(analysis.analysis) :
     
     def listOfSampleDictionaries(self) :
         sampleDict = samples.SampleHolder()
-        sampleDict.add("Data_275", '["/home/hep/db1110/public_html/DefaultAnalysisSkims/275-325/Dataskims/275data.root"]', lumi = 602.) #/pb
-        sampleDict.add("MG_QCD", '["/home/hep/db1110/public_html/DefaultAnalysisSkims/275-325/MCskims/275madgraph.root"]', xs = 1.0) #dummy xs
-        sampleDict.add("PY_QCD", '["/home/hep/db1110/public_html/DefaultAnalysisSkims/275-325/AlphaT54MCSkims/275Pythia.root"]', xs = 1.0) #dummy xs
+        sampleDict.add("Data_275", '["/home/hep/db1110/public_html/AnalysisSkims/DefaultAnalysisSkims/275-325/Dataskims/275data.root"]', lumi = 602.) #/pb
+        sampleDict.add("MG_QCD", '["/home/hep/db1110/public_html/AnalysisSkims/DefaultAnalysisSkims/275-325/MCskims/275madgraph.root"]', xs = 1.0) #dummy xs
+        sampleDict.add("PY_QCD", '["/home/hep/db1110/public_html/AnalysisSkims/DefaultAnalysisSkims/275-325/AlphaT54MCSkims/275Pythia.root"]', xs = 1.0) #dummy xs
         return [sampleDict]
     
     def listOfSamples(self,params) :
