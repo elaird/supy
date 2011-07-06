@@ -183,11 +183,11 @@ class plotter(object) :
 
     def individualPlots(self, plotSpecs, newSampleNames, preliminary = True) :
         def goods(spec) :
-            for item in ["selName", "selDesc", "plotName"] :
+            for item in ["stepName", "stepDesc", "plotName"] :
                 if item not in spec : return
             
             for step in self.someOrganizer.steps :
-                if (step.name, step.title) != (spec["selName"], spec["selDesc"]) : continue
+                if (step.name, step.title) != (spec["stepName"], spec["stepDesc"]) : continue
                 if spec["plotName"] not in step : continue
                 histos = step[spec["plotName"]]
                 break
@@ -236,7 +236,7 @@ class plotter(object) :
             
             stuff = self.onePlotFunction(histos, ignoreHistos, newSampleNames, individual = True)
             utils.cmsStamp(lumi = self.someOrganizer.lumi, preliminary = preliminary)
-            self.printOnePage(spec["plotName"], tight = self.anMode)
+            self.printOnePage(spec["plotName"], tight = False)#self.anMode)
         print utils.hyphens
 
     def printCalculablesDetailed(self, blocks) :
