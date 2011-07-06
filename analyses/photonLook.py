@@ -482,15 +482,15 @@ class photonLook(analysis.analysis) :
         #utils.printSkimResults(org)
             
         if "zMode" in org.tag :
-            lumi = 468.8
+            lumi = 771.2
             org.scale(lumi)
             print "WARNING: HARD-CODED LUMI FOR Z MODE! (%g)"%lumi
         else :
             self.mergeSamples(org)
             org.scale()
             
-        self.makeStandardPlots(org)
-        #self.makeIndividualPlots(org, tag)
+        #self.makeStandardPlots(org)
+        self.makeIndividualPlots(org)
         #self.makePurityPlots(org, tag)
         #self.makeEfficiencyPlots(org, tag)
         #self.makeNVertexWeights(org, tag)
@@ -530,49 +530,49 @@ class photonLook(analysis.analysis) :
                              )
         pl.plotAll()
             
-    def makeIndividualPlots(self, org, tag) :
+    def makeIndividualPlots(self, org) :
         #plot all
         pl = plotter.plotter(org,
-                             psFileName = self.psFileName(tag),
+                             psFileName = self.psFileName(org.tag),
                              showStatBox = False,
                              doLog = False,
                              anMode = True,
                              )
         pl.individualPlots(plotSpecs = [{"plotName":"xcak5JetAlphaTFewBinsPat",
-                                         "selName" :"value",
-                                         "selDesc" :"0.40<=xcak5JetMhtOverHtPat",
-                                         "newTitle":";#alpha_{T};events / bin / 469 pb^{-1}"},
-                                        
+                                         "stepName" :"alphaHistogrammer",
+                                         "stepDesc" :"xcak5JetPat",
+                                         "newTitle":";#alpha_{T};events / bin"},
+
                                         #{"plotName":"xcak5JetAlphaTRoughPat",
-                                        # "selName" :"variablePtGreaterFilter",
-                                        # "selDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
+                                        # "stepName" :"variablePtGreaterFilter",
+                                        # "stepDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
                                         # "newTitle":";#alpha_{T};events / bin / 35 pb^{-1}"},
-                                        
+
                                         {"plotName":"xcak5JetIndicesPat",
-                                         "selName" :"value",
-                                         "selDesc" :"0.40<=xcak5JetMhtOverHtPat",
-                                         "newTitle":";N_{jets};events / bin / 469 pb^{-1}"},
+                                         "stepName" :"histogrammer",
+                                         "stepDesc" :"(lambda x:len(x))(xcak5JetIndicesPat)",
+                                         "newTitle":";N_{jets};events / bin"},
                                         
                                         #{"plotName":"photonPat1MinDRToJet",
-                                        # "selName" :"passFilter",
-                                        # "selDesc" :"singlePhotonPlots2",
+                                        # "stepName" :"passFilter",
+                                        # "stepDesc" :"singlePhotonPlots2",
                                         # "newTitle":";#DeltaR(photon, nearest jet);events / bin / 35 pb^{-1}",
                                         # "reBinFactor":3},
                                         #
                                         #{"plotName":"photonPat1SeedTime",
-                                        # "selName" :"passFilter",
-                                        # "selDesc" :"singlePhotonPlots2",
+                                        # "stepName" :"passFilter",
+                                        # "stepDesc" :"singlePhotonPlots2",
                                         # "newTitle":";time of photon seed crystal hit (ns);events / bin / 35 pb^{-1}",
                                         # "sampleWhiteList": ["2010 Data"]},
                                         #
                                         #{"plotName":"photonPat1sigmaIetaIetaBarrel",
-                                        # "selName" :"passFilter",
-                                        # "selDesc" :"singlePhotonPlots2",
+                                        # "stepName" :"passFilter",
+                                        # "stepDesc" :"singlePhotonPlots2",
                                         # "newTitle":";#sigma_{i#eta i#eta};events / bin / 35 pb^{-1}"},
                                         
                                         #{"plotName":"photonPat1combinedIsolation",
-                                        # "selName" :"passFilter",
-                                        # "selDesc" :"singlePhotonPlots2",
+                                        # "stepName" :"passFilter",
+                                        # "stepDesc" :"singlePhotonPlots2",
                                         # "onlyDumpToFile":True},
 
                                         ],
