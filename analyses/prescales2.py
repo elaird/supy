@@ -53,7 +53,8 @@ class prescales2(analysis.analysis) :
     def listOfSampleDictionaries(self) : return [samples.muon]
 
     def listOfSamples(self,params) :
-        return ( samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt3", color = r.kBlack) +
+        return ( samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt4", color = r.kOrange) +
+                 samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt3", color = r.kBlack) +
                  samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt2", color = r.kGreen) +
                  samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt1", color = r.kRed) +
                  samples.specify( names = "SingleMu.Run2011A-May10-v1.FJ.Burt", color = r.kBlue) )
