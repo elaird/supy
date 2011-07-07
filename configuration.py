@@ -1,49 +1,21 @@
 import os,socket
 
-def trace() :
-    return False
-
-def nCoresDefault() :
-    return 4
-
-def useCachedFileLists() :
-    return True
-
-def maxArrayLength() :
-    return 256
-
-def computeEntriesForReport() :
-    return False
-
-def printNodesUsed() :
-    return False
-
-def fakeString() :
-    return ";FAKE"
-
-def calculablesFiles() :
-    return ["Gen", "Jet", "Muon", "Electron", "Photon", "Other", "Vertex", "XClean", "Top", "Compatibility"]
-
-def samplesFiles() :
-    return ["MC", "JetMET", "Muon", "Electron", "Photon", "SignalSkim", "WPol"]
-
-def stepsFiles() :
-    return ["Other", "Filter", "Histos", "Jet", "Trigger", "Photon", "Top", "Print", "Gen", "Xclean", "Displayer", "Master", "Muon"]
-
-def stepsToDisableForData() :
-    return ["genMotherHistogrammer", "photonPurityPlots", "photonEfficiencyPlots"]
-
-def stepsToDisableForMc() :
-    return ["l1Filter", "hltFilter", "hltFilterList", "lowestUnPrescaledTriggerFilter", "lowestUnPrescaledTriggerHistogrammer", "hbheNoiseFilter", "bxFilter", "physicsDeclaredFilter", "techBitFilter", "hbheNoise"]
-
-def histogramsToDisableForData() :
-    return ["^gen"]
-
-def histogramsToDisableForMc() :
-    return []
-
-def cppFiles() :
-    return ["linkdef.cxx"]
+def ttreecacheMB() : return 20
+def trace() : return True
+def nCoresDefault() : return 4
+def useCachedFileLists() : return True
+def maxArrayLength() : return 256
+def computeEntriesForReport() : return False
+def printNodesUsed() : return False
+def fakeString() : return ";FAKE"
+def calculablesFiles() : return ["Gen", "Jet", "Muon", "Electron", "Photon", "Other", "Vertex", "XClean", "Top", "Compatibility"]
+def samplesFiles() : return ["MC", "JetMET", "Muon", "Electron", "Photon", "SignalSkim", "WPol"]
+def stepsFiles() : return ["Other", "Filter", "Histos", "Jet", "Trigger", "Photon", "Top", "Print", "Gen", "Xclean", "Displayer", "Master", "Muon"]
+def stepsToDisableForData() : return ["genMotherHistogrammer", "photonPurityPlots", "photonEfficiencyPlots"]
+def stepsToDisableForMc() : return ["l1Filter", "hltFilter", "hltFilterList", "lowestUnPrescaledTriggerFilter", "lowestUnPrescaledTriggerHistogrammer", "hbheNoiseFilter", "bxFilter", "physicsDeclaredFilter", "techBitFilter", "hbheNoise"]
+def histogramsToDisableForData() : return ["^gen"]
+def histogramsToDisableForMc() : return []
+def cppFiles() : return ["linkdef.cxx"]
 
 def detectorSpecs() :
     return {

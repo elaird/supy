@@ -16,13 +16,15 @@ class keyTracer(object) :
 
 class wrappedChain(dict) : 
 
-    def __init__(self, chain, calculables = [], useSetBranchAddress = True, leavesToBlackList = [], preferredCalcs = [], maxArrayLength = 256, trace = False) :
+    def __init__(self, chain, calculables = [], useSetBranchAddress = True, leavesToBlackList = [], preferredCalcs = [], maxArrayLength = 256, trace = False, cacheSizeMB = 0) :
         """Set up the nodes"""
         self.__activeNodes = defaultdict(int)
         self.__activeNodeList = []
         self.__chain = chain
 
         if (not chain) or chain.GetEntry(0)==0 : return
+        chain.SetCacheSize( cacheSizeMB * 1024**2 )
+
         for branch in chain.GetListOfBranches() :
             nameB = branch.GetName()
             nameL = (lambda nL: nameB if (nL=="_" or nL==nameB+"_") else nL )(branch.GetListOfLeaves().At(0).GetName())
@@ -59,13 +61,15 @@ class wrappedChain(dict) :
             nTreeEntries = tree.GetEntries()
 
             for iTreeEntry in range( nTreeEntries )  :
+                if (not nTree) and iTreeEntry==100 : tree.StopCacheLearningPhase()
                 self.entry = iTreeFirstEntry + iTreeEntry
                 if nEntries <= self.entry : self.entry-=1; return
                 self.__localEntry = iTreeEntry
                 for node in self.__activeNodeList : node.updated = False
                 yield self
+            #tree.PrintCacheStats()
             iTreeFirstEntry += nTreeEntries
-
+            
     def node(self,key) : return dict.__getitem__(self,key)
     def __getitem__(self,key) :
         """Access the value of the branch or calculable specified by 'key' for the current entry"""

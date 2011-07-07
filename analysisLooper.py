@@ -64,6 +64,7 @@ class analysisLooper :
                                                       leavesToBlackList = self.leavesToBlackList,
                                                       maxArrayLength = configuration.maxArrayLength(),
                                                       trace = configuration.trace(),
+                                                      cacheSizeMB = configuration.ttreecacheMB(),
                                                       )
             [ all(step(eventVars) for step in self.steps) for eventVars in chainWrapper.entries(self.nEventsMax) ]
             self.recordLeavesAndCalcsUsed( chainWrapper.activeKeys(), chainWrapper.calcDependencies() )
