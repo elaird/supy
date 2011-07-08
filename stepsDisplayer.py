@@ -344,11 +344,12 @@ class displayer(analysisStep) :
         self.prepareText(params, coords)
         
         def go(j) :
+            dps = eventVars["%s%s%s%s"%(j[0], "DeltaPhiStar", j[1], self.deltaPhiStarExtraName)]
             l = [eventVars["%sHtBin%s"%j],
                  eventVars["%s%s%s"  %(j[0], "SumEt",        j[1])],
                  eventVars["%s%s%s"  %(j[0], "SumP4",        j[1])].pt() if eventVars["%s%s%s"%(j[0], "SumP4",  j[1])] else 0,
                  eventVars["%s%s%s"  %(j[0], "AlphaTEt",     j[1])],
-                 eventVars["%s%s%s%s"%(j[0], "DeltaPhiStar", j[1], self.deltaPhiStarExtraName)]["DeltaPhiStar"],
+                 dps[0][0] if dps else -1.0,
                  ]
             for i in range(len(l)) :
                 if l[i]==None : l[i] = -1.0
@@ -372,8 +373,8 @@ class displayer(analysisStep) :
             HT = eventVars["%sSumEt%s"%j]
             aT = eventVars["%sAlphaTEt%s"%j]
             MM = eventVars[self.mhtOverMetName]
-            DE = eventVars["%sDeltaPhiStar%s%s"%(j[0], j[1], self.deltaPhiStarExtraName)]["DeltaPhiStar"] > self.deltaPhiStarCut or \
-                 eventVars["%sDeadEcalDR%s%s"  %(j[0], j[1], self.deltaPhiStarExtraName)] > self.deltaPhiStarDR
+            dedr = eventVars["%sDeadEcalDR%s%s"%(j[0], j[1], self.deltaPhiStarExtraName)]
+            DE = (not dedr) or dedr>self.deltaPhiStarDR
 
             htBin = None
             if eventVars["%sHtBin%s"%j] : htBin = eventVars["%sHtBin%s"%j]
@@ -671,9 +672,9 @@ class displayer(analysisStep) :
         else :
             etaPhiPlot.SetTitle("")
             if self.ra1Mode :
-                d = eventVars["%sDeltaPhiStar%s%s"%(self.jets[0],self.jets[1],self.deltaPhiStarExtraName)]
-                suspiciousJetIndex = d["DeltaPhiStarJetIndex"]
-                deltaPhiStar = d["DeltaPhiStar"]
+                suspiciousJetIndices = []
+                for dPhiStar,iJet in eventVars["%sDeltaPhiStar%s%s"%(self.jets[0],self.jets[1],self.deltaPhiStarExtraName)] :
+                    if dPhiStar < self.deltaPhiStarCut : suspiciousJetIndices.append(iJet)
 
             suspiciousJetLegendEntry = False
             if not eventVars["isRealData"] :
@@ -687,7 +688,7 @@ class displayer(analysisStep) :
                     self.drawCircle(jet, r.kBlue, lineWidth = 1, circleRadius = self.jetRadius)
                 else :
                     self.drawCircle(jet, r.kCyan, lineWidth = 1, circleRadius = self.jetRadius)
-                if self.ra1Mode and index==suspiciousJetIndex and deltaPhiStar<self.deltaPhiStarCut :
+                if self.ra1Mode and (index in suspiciousJetIndices) :
                     self.drawCircle(jet, suspiciousJetColor, lineWidth = 1, circleRadius = self.deltaPhiStarDR, lineStyle = suspiciousJetStyle)
                     suspiciousJetLegendEntry = True
 

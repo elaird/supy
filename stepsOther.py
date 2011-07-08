@@ -428,60 +428,11 @@ class deadEcalFilter(analysisStep) :
         self.moreName = "%s%s; dR>%5.3f when deltaPhiStar<%5.3f"%(self.jets[0], self.jets[1], self.dR, self.dPhiStarCut)
         
     def select(self, eventVars) :
-        passFilter = eventVars[self.dps]["DeltaPhiStar"]>self.dPhiStarCut or eventVars[self.deadEcalDR]>self.dR
-        if not passFilter :
-            jet = eventVars["%sCorrectedP4%s"%self.jets].at(eventVars[self.dps]["DeltaPhiStarJetIndex"])
-            self.book.fill(jet.pt(), "ptOfJetCausingDPhiVeto", 10, 0.0, 100.0, title = ";p_{T} of jet causing #Delta#phi* veto (GeV);events / bin")
+        passFilter = eventVars[self.dps][0][0]>self.dPhiStarCut or eventVars[self.deadEcalDR][0]>self.dR
+        #if not passFilter :
+        #    jet = eventVars["%sCorrectedP4%s"%self.jets].at(eventVars[self.dps]["DeltaPhiStarJetIndex"])
+        #    self.book.fill(jet.pt(), "ptOfJetCausingDPhiVeto", 10, 0.0, 100.0, title = ";p_{T} of jet causing #Delta#phi* veto (GeV);events / bin")
         return passFilter
-#####################################
-class deadHcalFilter(analysisStep) :
-    def __init__(self, jets = None, extraName = "", dR = None, dPhiStarCut = None, nXtalThreshold = None) :
-        for item in ["jets","dR","dPhiStarCut"] :
-            setattr(self,item,eval(item))
-        self.dps = "%sDeltaPhiStar%s%s"%(self.jets[0],self.jets[1],extraName)
-        self.badJet = utils.LorentzV()
-        self.moreName = "%s%s; dR>%5.3f when deltaPhiStar<%5.3f"%(self.jets[0], self.jets[1], self.dR, self.dPhiStarCut)
-        
-    def select(self, eventVars) :
-        d = eventVars[self.dps]
-        index = d["DeltaPhiStarJetIndex"]
-        if d["DeltaPhiStar"]>self.dPhiStarCut :
-            return True
-        jet = eventVars["%sCorrectedP4%s"%self.jets].at(index)
-        self.badJet.SetCoordinates(jet.pt(),jet.eta(),jet.phi(),jet.mass())
-        for channel in eventVars["hcalDeadChannelP4"] :
-            if r.Math.VectorUtil.DeltaR(self.badJet,channel) < self.dR :
-                return False
-        return True
-#####################################
-class deadEcalFilterIncludingPhotons(analysisStep) :
-    def __init__(self, jets = None, extraName = "", photons = None, dR = None, dPhiStarCut = None, nXtalThreshold = None) :
-        for item in ["jets","photons","dR","dPhiStarCut","nXtalThreshold"] :
-            setattr(self,item,eval(item))
-        self.dps = "%sDeltaPhiStarIncludingPhotons%s%s"%(self.jets[0],self.jets[1],extraName)
-        self.badThing = utils.LorentzV()
-        self.moreName = "%s%s; %s%s; dR>%5.3f when deltaPhiStar<%5.3f and nXtal>%d"%(self.jets[0], self.jets[1],
-                                                                                     self.photons[0], self.photons[1],
-                                                                                     self.dR, self.dPhiStarCut, self.nXtalThreshold)
-        
-    def select(self, eventVars) :
-        d = eventVars[self.dps]
-        if d["DeltaPhiStar"]>self.dPhiStarCut :
-            return True
-
-        jetIndex = d["DeltaPhiStarJetIndex"]
-        photonIndex = d["DeltaPhiStarPhotonIndex"]
-        if jetIndex!=None :
-            thing = eventVars["%sCorrectedP4%s"%self.jets].at(jetIndex)
-        elif photonIndex!=None :
-            thing = eventVars["%sP4%s"%self.photons].at(photonIndex)
-
-        self.badThing.SetCoordinates(thing.pt(),thing.eta(),thing.phi(),thing.mass())
-        for iRegion,region in enumerate(eventVars["ecalDeadTowerTrigPrimP4"]) :
-            if eventVars["ecalDeadTowerNBadXtals"].at(iRegion)<self.nXtalThreshold : continue
-            if r.Math.VectorUtil.DeltaR(self.badThing,region) < self.dR :
-                return False
-        return True
 #####################################
 class vertexHistogrammer(analysisStep) :
     def uponAcceptance(self,eV) :

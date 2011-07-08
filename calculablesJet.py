@@ -395,13 +395,6 @@ class CosLongMht(wrappedChain.calculable) :
     def update(self,ignored) :
         self.value = abs(math.cos(r.Math.VectorUtil.DeltaPhi(self.source[self.SumP4],self.source[self.LongP4])))
 ##############################
-class CosDeltaPhiStar(wrappedChain.calculable) :
-    def __init__(self,collection=None) :
-        self.fixes = collection
-        self.stash(["DeltaPhiStar"])
-    def update(self,ignored) :
-        self.value = math.cos(self.source[self.DeltaPhiStar])
-##############################
 class PartialSumP4(wrappedChain.calculable) :
     def __init__(self,collection) :
         self.fixes = collection
@@ -578,40 +571,11 @@ class DeltaPhiStar(wrappedChain.calculable) :
         self.stash(["Indices","SumP4"])
 
     def update(self,ignored) :
-        self.value = {}
-        self.value["DeltaPhiStar"] = None
-        self.value["DeltaPhiStarJetIndex"] = None
-
+        self.value = []
         sumP4 = self.source[self.SumP4]
         if not sumP4 : return
         jets = self.source[self.CorrectedP4]
-
-        dPhi = [ (abs(r.Math.VectorUtil.DeltaPhi(jets.at(i),jets.at(i)-sumP4)),i) for i in self.source[self.Indices] ]
-        self.value["DeltaPhiStar"],self.value["DeltaPhiStarJetIndex"] = min(dPhi)
-##############################
-class DeltaPhiStarIncludingPhotons(wrappedChain.calculable) :
-    def __init__(self, collection = None, photons = None, extraName = "") :
-        self.fixes = (collection[0],collection[1]+extraName)
-        self.stash(["CorrectedP4"],collection)
-        self.stash(["Indices","SumP4PlusPhotons"])
-        self.photonP4 = '%sP4%s' % photons
-        self.photonIndices = '%sIndices%s' % photons
-        
-    def update(self,ignored) :
-        self.value = {}
-        self.value["DeltaPhiStar"] = None
-        self.value["DeltaPhiStarJetIndex"] = None
-        self.value["DeltaPhiStarPhotonIndex"] = None
-
-        sumP4 = self.source[self.SumP4PlusPhotons]
-        if not sumP4 : return        
-        jets = self.source[self.CorrectedP4]
-        photons = self.source[self.photonP4]
-
-        dPhi = [ (abs(r.Math.VectorUtil.DeltaPhi(    jets.at(i),    jets.at(i)-sumP4)),    i, None) for i in self.source[self.Indices]] +\
-               [ (abs(r.Math.VectorUtil.DeltaPhi( photons.at(i), photons.at(i)-sumP4)), None,    i) for i in self.source[self.photonIndices]]
-
-        self.value["DeltaPhiStar"],self.value["DeltaPhiStarJetIndex"],self.value["DeltaPhiStarPhotonIndex"] = min(dPhi)
+        self.value = sorted([ (abs(r.Math.VectorUtil.DeltaPhi(jets.at(i),jets.at(i)-sumP4)), i) for i in self.source[self.Indices] ])
 ##############################
 class DeltaPhiMht(wrappedChain.calculable) :
     def __init__(self,collection = None) :
@@ -746,36 +710,41 @@ class deadEcalDR(wrappedChain.calculable) :
     @property
     def name(self) : return "%sDeadEcalDR%s%s"%(self.jets[0], self.jets[1], self.extraName)
     
-    def __init__(self, jets = None, extraName = "", minNXtals = None, checkCracks = True) :
-        for item in ["jets","extraName","minNXtals","checkCracks"] :
+    def __init__(self, jets = None, extraName = "", minNXtals = None, checkCracks = True, maxDPhiStar = 0.5) :
+        for item in ["jets","extraName","minNXtals","checkCracks","maxDPhiStar"] :
             setattr(self,item,eval(item))
         self.dps = "%sDeltaPhiStar%s%s"%(self.jets[0], self.jets[1], self.extraName)
         self.moreName = "%s%s; nXtal>=%d; cracks %schecked"%(self.jets[0], self.jets[1], self.minNXtals, "" if self.checkCracks else "NOT ")
-        
-    def update(self, ignored) :
-        self.value = None
 
-        index = self.source[self.dps]["DeltaPhiStarJetIndex"]
-        if index is None : return
-        
-        questionableJet = self.source["%sCorrectedP4%s"%self.jets].at(index)
-        dRs = []
+    def oneJetDRs(self, jet) :
+        out = []
         for iRegion in range(self.source["ecalDeadTowerTrigPrimP4"].size()) :
             region = self.source["ecalDeadTowerTrigPrimP4"].at(iRegion)
             nDeadXtals = self.source["ecalDeadTowerNBadXtals"].at(iRegion)
-            dRs.append( (r.Math.VectorUtil.DeltaR(questionableJet, region), nDeadXtals) )
-            
+            out.append( (r.Math.VectorUtil.DeltaR(jet, region), nDeadXtals) )
         if self.checkCracks :
-            eta = questionableJet.eta()
-            dRs.append( (abs(eta-1.5), self.minNXtals) )
-            dRs.append( (abs(eta+1.5), self.minNXtals) )
-        
+            eta = jet.eta()
+            out.append( (abs(eta-1.5), self.minNXtals) )
+            out.append( (abs(eta+1.5), self.minNXtals) )
+        return out
+
+    def DR(self, dRs) :
         nDeadXtals = 0
         for dr,nDead in sorted(dRs) :
             nDeadXtals += nDead
-            if nDeadXtals>=self.minNXtals :
-                self.value = dr
-                return
+            if nDeadXtals>=self.minNXtals : return dr
+        return None
+    
+    def update(self, ignored) :
+        self.value = []
+        dps = self.source[self.dps]
+        if not dps : return
+
+        for dPhiStar,iJet in dps :
+            if dPhiStar > self.maxDPhiStar : break
+            dr = self.DR(self.oneJetDRs(self.source["%sCorrectedP4%s"%self.jets].at(iJet)))
+            if dr!=None : self.value.append(dr)
+        self.value.sort()
 ##############################
 class ResidualCorrectionsFromFile(wrappedChain.calculable) :
     def __init__(self, collection = None) :

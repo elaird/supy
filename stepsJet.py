@@ -298,7 +298,7 @@ class alphaHistogrammer(analysisStep) :
         ht  = eventVars[self.Sum]
         deltaHt = eventVars[self.DeltaPseudoJet]
         alphaT = eventVars[self.AlphaT]
-        deltaPhiStar = eventVars[self.DeltaPhiStar]["DeltaPhiStar"]
+        deltaPhiStar = eventVars[self.DeltaPhiStar][0][0]
 
         #if diJetAlpha :
         #    self.book.fill( eventVars["%sDiJetAlpha%s"%self.cs], "%sdijet_alpha%s"%self.cs, 80,0.0,2.0,
@@ -354,7 +354,7 @@ class alphaMetHistogrammer(analysisStep) :
         deltaHt = eventVars[self.DeltaPseudoJet]
         alphaT = eventVars[self.AlphaT]
         alphaTMet = eventVars[self.AlphaTMet]
-        deltaPhiStar = eventVars[self.deltaPhiStar]["DeltaPhiStar"]
+        deltaPhiStar = eventVars[self.deltaPhiStar][0][0]
         
         if not alphaT : return
 
