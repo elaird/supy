@@ -20,7 +20,9 @@ class analysis(object) :
     def leavesToBlackList(self) : return []
     def parameters(self) : return {}
     def conclude(self, config) : return
-    def concludeAll(self) : utils.operateOnListUsingQueue( configuration.nCoresDefault(), utils.qWorker(self.conclude), [(conf,) for conf in self.configurations if not any(os.path.exists(self.jobsFile(conf['tag'],looper.name)) for looper in self.listsOfLoopers[conf['tag']])] )
+    def concludeAll(self) :
+        def ready(conf) : return not any(os.path.exists(self.jobsFile(conf['tag'],looper.name)) for looper in self.listsOfLoopers[conf['tag']])
+        utils.operateOnListUsingQueue( configuration.nCoresDefault(), utils.qWorker(self.conclude), zip(filter(ready,self.configurations)) )
     def organizer(self, config) : return organizer.organizer(config['tag'], self.sampleSpecs(config['tag']))
 
 ############
