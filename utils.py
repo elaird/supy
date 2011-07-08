@@ -356,7 +356,7 @@ def dependence(TH2, name="", minimum=-1.5, maximum=1.5) :
     
     return dep
 #####################################
-def cmsStamp(lumi = None, preliminary = True) :
+def cmsStamp(lumi = None, preliminary = True, coords = (0.75, 0.5)) :
     latex = r.TLatex()
     latex.SetNDC()
     size = 0.04
@@ -364,9 +364,8 @@ def cmsStamp(lumi = None, preliminary = True) :
     
     #latex.SetTextAlign(11) #align left, bottom
     #latex.DrawLatex(0.1, 0.91, "CMS Preliminary")
-    
-    y = 0.5
-    x = 0.75
+
+    x,y = coords
     slope = 1.1*size
     latex.SetTextAlign(21) #align center, bottom
 
