@@ -120,7 +120,9 @@ class ra1Displays(analysis.analysis) :
         sampleDict.add("Data_275", '["/home/hep/db1110/public_html/AnalysisSkims/DefaultAnalysisSkims/275-325/Dataskims/275data.root"]', lumi = 602.) #/pb
         sampleDict.add("MG_QCD", '["/home/hep/db1110/public_html/AnalysisSkims/DefaultAnalysisSkims/275-325/MCskims/275madgraph.root"]', xs = 1.0) #dummy xs
         sampleDict.add("PY_QCD", '["/home/hep/db1110/public_html/AnalysisSkims/DefaultAnalysisSkims/275-325/AlphaT54MCSkims/275Pythia.root"]', xs = 1.0) #dummy xs
+        sampleDict.add("py_qcd_375", '["/home/hep/elaird1/87_qcd_hunt/02_ht375/py6/skims_alphaT.gt.0.55/all.root"]', xs = 1.0) #dummy xs
         return [sampleDict]
     
     def listOfSamples(self,params) :
-        return samples.specify(names = "MT2_events")#+samples.specify(names = "PY_QCD")
+        return samples.specify(names = "MT2_events")
+        #return samples.specify(names = "py_qcd_375")
