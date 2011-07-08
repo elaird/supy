@@ -181,7 +181,7 @@ class plotter(object) :
 
         print "The output file \"%s\" has been written."%fileName.replace(".eps",".pdf")
 
-    def individualPlots(self, plotSpecs, newSampleNames, preliminary = True) :
+    def individualPlots(self, plotSpecs, newSampleNames = {}, preliminary = True) :
         def goods(spec) :
             for item in ["stepName", "stepDesc", "plotName"] :
                 if item not in spec : return
@@ -233,9 +233,11 @@ class plotter(object) :
             rebin(histos, spec)
             setTitles(histos, spec)
             stylize(histos)
-            
-            stuff = self.onePlotFunction(histos, ignoreHistos, newSampleNames, individual = True)
-            utils.cmsStamp(lumi = self.someOrganizer.lumi, preliminary = preliminary)
+
+            legendCoords = spec["legendCoords"] if "legendCoords" in spec else (0.55, 0.55, 0.85, 0.85)
+            stampCoords = spec["stampCoords"] if "stampCoords" in spec else (0.75, 0.5)
+            stuff = self.onePlotFunction(histos, ignoreHistos, newSampleNames, legendCoords, individual = True)
+            utils.cmsStamp(lumi = self.someOrganizer.lumi, preliminary = preliminary, coords = stampCoords)
             self.printOnePage(spec["plotName"], tight = False)#self.anMode)
         print utils.hyphens
 
@@ -483,9 +485,9 @@ class plotter(object) :
                 else :      my+=1
             self.canvas.Divide(mx,my)
 
-    def plotEachHisto(self, dimension, histos, ignoreHistos, newSampleNames = None) :
+    def plotEachHisto(self, dimension, histos, ignoreHistos, newSampleNames = None, legendCoords = (0.55, 0.55, 0.85, 0.85)) :
         stuffToKeep = []
-        legend = r.TLegend(0.86, 0.60, 1.00, 0.10) if not self.anMode else r.TLegend(0.55, 0.55, 0.85, 0.85)
+        legend = r.TLegend(0.86, 0.60, 1.00, 0.10) if not self.anMode else r.TLegend(*legendCoords)
         stuffToKeep.append(legend)
         if self.anMode :
             legend.SetFillStyle(0)
@@ -559,7 +561,7 @@ class plotter(object) :
             ratios.append(ratio)
         return ratios
 
-    def onePlotFunction(self, histos, ignoreHistos = None, newSampleNames = None, individual = False) :
+    def onePlotFunction(self, histos, ignoreHistos = None, newSampleNames = None, legendCoords = None, individual = False) :
         dimension = dimensionOfHisto(histos)
         self.prepareCanvas(histos, dimension)
 
@@ -568,7 +570,7 @@ class plotter(object) :
         self.setRanges(histos, *self.getExtremes(dimension, histos, ignoreHistos))
 
         if individual : 
-            count,stuffToKeep = self.plotEachHisto(dimension, histos, ignoreHistos, newSampleNames = newSampleNames)
+            count,stuffToKeep = self.plotEachHisto(dimension, histos, ignoreHistos, legendCoords = legendCoords, newSampleNames = newSampleNames)
         else :
             count,stuffToKeep = self.plotEachHisto(dimension, histos, ignoreHistos)
             
