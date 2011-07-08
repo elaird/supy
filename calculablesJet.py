@@ -1,5 +1,5 @@
 from wrappedChain import *
-import math,collections,bisect
+import math,collections,bisect,itertools
 import calculables,utils
 
 def xcStrip(collection) :
@@ -874,3 +874,22 @@ class nJetsWeight(wrappedChain.calculable) :
         self.nJets = nJets
     def update(self, ignored) :
         self.value = 1.0 if len(self.source[self.Indices]) in self.nJets else None
+#####################################
+class IndicesMinDeltaR(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","CorrectedP4"])
+    def update(self,ignored) :
+        p4 = self.source[self.CorrectedP4]
+        indices = self.source[self.Indices]
+        self.value = min(itertools.combinations(indices,2), key = lambda i: r.Math.VectorUtil.DeltaR(p4[i[0]],p4[i[1]])) if len(indices)>1 else (None,None)
+#####################################
+class Kt(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["IndicesMinDeltaR","CorrectedP4"])
+        self.moreName = "min(pt_i,pt_j) * dR(i,j); ij with minDR; %s%s"%collection
+    def update(self,ignored) :
+        p4 = self.source[self.CorrectedP4]
+        i,j = self.source[self.IndicesMinDeltaR]
+        self.value = min(p4[i].pt(),p4[j].pt()) * r.Math.VectorUtil.DeltaR(p4[i],p4[j]) if j else -1
