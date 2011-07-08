@@ -230,6 +230,7 @@ class hadronicLook(analysis.analysis) :
             steps.Other.passFilter("jetSumPlots1"), 
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x[0][0]'),
+            #steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x[0][0]'),
             steps.Other.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
             steps.Other.passFilter("kinematicPlots1"),
             
@@ -258,6 +259,7 @@ class hadronicLook(analysis.analysis) :
             steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x[0][0]'),
+            #steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x[0][0]'),
             steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met), 100, 0.0, 3.0,
                                      title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1]+params["highPtName"],_met)),
 
@@ -400,7 +402,7 @@ class hadronicLook(analysis.analysis) :
                 org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
                 smSources.append("qcd_py6")
             else :
-                org.mergeSamples(targetSpec = {"name":"QCD Multijet", "color":r.kGreen+3, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="qcd_py6")
+                org.mergeSamples(targetSpec = {"name":"QCD Multijet", "color":r.kGreen+3, "markerStyle":1, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="qcd_py6")
 
         #org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="Nov4")
         org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="HT.Run2011A")
@@ -408,19 +410,23 @@ class hadronicLook(analysis.analysis) :
         if not self.ra1Cosmetics() : 
             org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)        
         else : #Henning's requests
-            org.mergeSamples(targetSpec = {"name":"t#bar{t}, W, Z + Jets", "color":r.kBlue, "lineWidth":lineWidth, "goptions":goptions}, sources = ewkSources)
-            org.mergeSamples(targetSpec = {"name":"Standard Model ", "color":r.kCyan, "lineWidth":lineWidth, "goptions":goptions}, sources = ["QCD Multijet", "t#bar{t}, W, Z + Jets"], keepSources = True)
-            org.mergeSamples(targetSpec = {"name":"LM1", "color":r.kMagenta, "lineStyle":2, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="lm1")
-            org.mergeSamples(targetSpec = {"name":"LM6", "color":r.kRed, "lineStyle":10, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="lm6")
+            org.mergeSamples(targetSpec = {"name":"t#bar{t}, W, Z + Jets", "color":r.kBlue, "markerStyle":1, "lineWidth":lineWidth, "goptions":goptions}, sources = ewkSources)
+            org.mergeSamples(targetSpec = {"name":"Standard Model ", "color":r.kAzure+6, "markerStyle":1, "lineWidth":lineWidth, "goptions":goptions}, sources = ["QCD Multijet", "t#bar{t}, W, Z + Jets"], keepSources = True)
+            org.mergeSamples(targetSpec = {"name":"LM1", "color":r.kRed,     "lineStyle":9, "markerStyle":1, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="lm1")
+            org.mergeSamples(targetSpec = {"name":"LM6", "color":r.kMagenta, "lineStyle":2, "markerStyle":1, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="lm6")
 
     def conclude(self, conf) :
         org = self.organizer(conf)
         ##for skimming only
         #utils.printSkimResults(org)            
-        
+
         self.mergeSamples(org)
         org.scale() if not self.parameters()["tanBeta"] else org.scale(100.0)
         
+        #self.makeStandardPlots(org)
+        self.makeIndividualPlots(org)
+
+    def makeStandardPlots(self, org) :
         #plot
         pl = plotter.plotter(org,
                              psFileName = self.psFileName(org.tag),
@@ -439,6 +445,47 @@ class hadronicLook(analysis.analysis) :
                              )
         pl.plotAll()
         #self.makeEfficiencyPlots(org, tag, sampleName = "LM1")
+
+    def makeIndividualPlots(self, org) :
+        #plot all
+        pl = plotter.plotter(org,
+                             psFileName = self.psFileName(org.tag),
+                             showStatBox = False,
+                             doLog = True,
+                             pegMinimum = 0.1,                             
+                             anMode = True,
+                             )
+        pl.individualPlots(plotSpecs = [{"plotName":"xcak5JetAlphaTRoughPat",
+                                         "stepName" :"alphaHistogrammer",
+                                         "stepDesc" :"xcak5JetPat",
+                                         "newTitle":";#alpha_{T};events / bin",
+                                         "legendCoords": (0.55, 0.60, 0.85, 0.90),
+                                         "stampCoords": (0.75, 0.55)
+                                         },
+                                        {"plotName":"jetMultiplicity",
+                                         "stepName":"singleJetHistogrammer",
+                                         "stepDesc":"xcak5JetPat through index 2",
+                                         "newTitle":";N_{jets};events / bin",
+                                         "legendCoords": (0.7, 0.7, 0.92, 0.92),
+                                         "stampCoords": (0.5, 0.28),
+                                         },
+                                        {"plotName":"xcak5JetHtPat",
+                                         "stepName":"cleanJetHtMhtHistogrammer",
+                                         "stepDesc":"xcak5JetPat",
+                                         "newTitle":";H_{T} (GeV);events / bin",
+                                         "legendCoords": (0.6, 0.60, 0.92, 0.92),
+                                         "stampCoords": (0.45, 0.88)
+                                        },
+                                        ],
+                           newSampleNames = None,
+                           #newSampleNames = {"qcd_mg_nVtx": "Madgraph QCD",
+                           #                  "g_jets_mg_nVtx": "Madgraph #gamma + jets",
+                           #                  "2011 Data": "Data",
+                           #                  "standard_model_nVtx": "Standard Model",
+                           #                  },
+                           preliminary = True,
+                           )
+
 
     def makeEfficiencyPlots(self, org, tag, sampleName) :
         def sampleIndex(org, name) :
