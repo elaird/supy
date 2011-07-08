@@ -374,7 +374,7 @@ class displayer(analysisStep) :
             aT = eventVars["%sAlphaTEt%s"%j]
             MM = eventVars[self.mhtOverMetName]
             dedr = eventVars["%sDeadEcalDR%s%s"%(j[0], j[1], self.deltaPhiStarExtraName)]
-            DE = (not dedr) or dedr>self.deltaPhiStarDR
+            DE = (not dedr) or dedr[0]>self.deltaPhiStarDR
 
             htBin = None
             if eventVars["%sHtBin%s"%j] : htBin = eventVars["%sHtBin%s"%j]
