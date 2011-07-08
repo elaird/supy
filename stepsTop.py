@@ -18,9 +18,9 @@ class Asymmetry(analysisStep) :
             self.book.fill(ev[self.RelativeLeptonRapidity], "leptonRelativeY"+charge, self.bins,-5,5, title = "%s;#Delta y;events / bin"%charge)
 
         
-        self.book.fill( ev[self.DeltaAbsY],      'ttbarDeltaAbsY',    31, -4, 4, title = ';#Delta|Y|_{ttbar};events / bin' )
-        self.book.fill( ev[self.DirectedDeltaY], 'ttbarSignedDeltaY', 31, -4, 4, title = ';sumP4dir * #Delta Y_{ttbar};events / bin' )
-        self.book.fill( ev[self.Beta],           'ttbarBeta',  21, -math.sqrt(2), math.sqrt(2), title = ';#beta_{ttbar};events / bin')
+        self.book.fill( ev[self.DeltaAbsY],      'ttbarDeltaAbsY',    26, -4, 4, title = ';#Delta|Y|_{ttbar};events / bin' )
+        self.book.fill( ev[self.DirectedDeltaY], 'ttbarSignedDeltaY', 26, -4, 4, title = ';sumP4dir * #Delta Y_{ttbar};events / bin' )
+        self.book.fill( ev[self.Beta],           'ttbarBeta',  18, -math.sqrt(2), math.sqrt(2), title = ';#beta_{ttbar};events / bin')
 #####################################
 class kinFitLook(analysisStep) :
     def __init__(self,indexName) : self.moreName = indexName
@@ -32,6 +32,7 @@ class kinFitLook(analysisStep) :
         hadTopM = topReco['hadTopP4'].M()
         lepWM = topReco['lepW'].M()
         hadWM = topReco['hadW'].M()
+        rawHadWM = topReco['hadWraw'].M()
 
         for name,val in residuals.iteritems() :
             self.book.fill(val, "topKinFit_residual_%s"%name+self.moreName, 100,-5,5, title = ";residual %s;events / bin"%name)
@@ -44,19 +45,21 @@ class kinFitLook(analysisStep) :
 
         self.book.fill( lepWM, "wMassLepFit"+self.moreName, 75, 0, 150, title = ';fit mass_{W} (leptonic);events / bin')
         self.book.fill( hadWM, "wMassHadFit"+self.moreName, 75, 0, 150, title = ';fit mass_{W} (hadronic);events / bin')
+        self.book.fill( rawHadWM, "wMassHadRaw"+self.moreName, 75, 0, 150, title = ';raw mass_{W} (hadronic);events / bin')
         self.book.fill( lepTopM, "topMassLepFit"+self.moreName, 100,0,300, title = ";fit mass_{top} (leptonic);events / bin" )
         self.book.fill( hadTopM, "topMassHadFit"+self.moreName, 100,0,300, title = ";fit mass_{top} (hadronic);events / bin" )
         self.book.fill( (lepTopM, hadTopM), "lepM_vs_hadM"+self.moreName, (100,100),(0,0),(300,300),
                         title = ";fit mass_{top} (leptonic); fit mass_{top} (hadronic);events / bin",)
-
-        hadX2 = math.log(1+topReco['hadChi2'])
-        lepX2 = math.log(1+topReco['lepChi2'])
-        bound = ("_bound" if topReco['lepBound'] else "_unbound")
+        
+        #hadX2 = math.log(1+topReco['hadChi2'])
+        #lepX2 = math.log(1+topReco['lepChi2'])
+        #bound = ("_bound" if topReco['lepBound'] else "_unbound")
+        self.book.fill( topReco['chi2'], "topRecoChi2"+self.moreName, 50, 0 , 1000, title = ';ttbar kin. fit #chi^{2};events / bin')
         self.book.fill( math.log(1+topReco['chi2']), "topRecoLogChi2"+self.moreName, 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2});events / bin')
-        self.book.fill( hadX2, "topRecoLogHadChi2"+self.moreName, 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2}_{had});events / bin')
-        self.book.fill( lepX2, "topRecoLogLepChi2"+self.moreName, 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2}_{lep});events / bin')
-        self.book.fill( lepX2, "topRecoLogLepChi2"+bound+self.moreName, 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2}_{lep});events / bin')
-        self.book.fill( (lepX2,hadX2), "topRecoVsLogX2"+self.moreName, (50,50),(0,0),(10,10), title = ";log(1+#chi^{2}_{lep});log(1+#chi^{2}_{had});events / bin" )
+        #self.book.fill( hadX2, "topRecoLHadX2"+self.moreName, 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2}_{had});events / bin')
+        #self.book.fill( lepX2, "topRecoLLepX2"+self.moreName, 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2}_{lep});events / bin')
+        #self.book.fill( lepX2, "topRecoLLepX2"+bound+self.moreName, 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2}_{lep});events / bin')
+        #self.book.fill( (lepX2,hadX2), "topRecoVsLX2"+self.moreName, (50,50),(0,0),(10,10), title = ";log(1+#chi^{2}_{lep});log(1+#chi^{2}_{had});events / bin" )
 #####################################
 class topProbLook(analysisStep) :
     def __init__(self, jets) :
@@ -139,6 +142,7 @@ class discriminateNonTop(analysisStep) :
         self.bJet = "%sIndicesBtagged%s"%obj["jet"]        
         self.lepP4 = "%sP4%s"%lepCollection
         self.iLep = "%sSemileptonicTopIndex%s"%lepCollection
+        self.kT = "%sKt%s"%obj["jet"]
 
     @staticmethod
     def phiMod(phi) : return phi + 2*math.pi*int(phi<0)
@@ -156,14 +160,15 @@ class discriminateNonTop(analysisStep) :
         self.book.fill(ev[self.mixed],self.mixed,30,0,180, title = ";M_{T};events / bin")
         self.book.fill(jetP4[iJet[0]].pt(), "jetPtI0", 40,0,600, title = ';pT jets[0] pt;events / bin')
         self.book.fill(jetP4[bJet[0]].pt(), "jetPtB0", 40,0,600, title = ';b- jets[0] pt;events / bin')
-        self.book.fill( self.phiMod(r.Math.VectorUtil.DeltaPhi(jetP4[bJet[0]],jetP4[bJet[1]])), "dphiBjets", 30,0,2*math.pi,
+        self.book.fill( abs(r.Math.VectorUtil.DeltaPhi(jetP4[bJet[0]],jetP4[bJet[1]])), "dphiBjets", 20,0,math.pi,
                         title = ";#Delta#phi leading b-tagged jets;events / bin" )
         for i in range(3) :
             self.book.fill(jetP4[iJet[i]].eta(), "jetEtaI%d"%i, 50,-4,4, title = ';pT jets[%d] eta;events / bin'%i)
 
-        dphiLnu = self.phiMod(r.Math.VectorUtil.DeltaPhi(lepP4,ev["mixedSumP4"]))
-        self.book.fill( dphiLnu, "dphiLnu", 30,0,2*math.pi, title = ";#Delta#phi l#nu;events / bin" )
-        self.book.fill( (dphiLnu,ev[self.mixed]), "dphiLnu_v_mt", (30,30),(0,0),(2*math.pi,180), title = ";#Delta#phi l#nu;M_{T};events / bin" )
+        dphiLnu = abs(r.Math.VectorUtil.DeltaPhi(lepP4,ev["mixedSumP4"]))
+        self.book.fill( dphiLnu, "dphiLnu", 20,0,math.pi, title = ";#Delta#phi l#nu;events / bin" )
+        self.book.fill( (dphiLnu,ev[self.mixed]), "dphiLnu_v_mt", (20,30),(0,0),(math.pi,180), title = ";#Delta#phi l#nu;M_{T};events / bin" )
+        self.book.fill( ev[self.kT], "kT", 30, 0, 150, title = ";#k_T;events / bin")
 #####################################
 class discriminateQQbar(analysisStep) :
     def __init__(self, collection) :

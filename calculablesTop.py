@@ -302,6 +302,7 @@ class TopReconstruction(wrappedChain.calculable) :
                 "hadP" : hadronicFit.J.fitted[1],
                 "hadQ" : hadronicFit.J.fitted[2],
                 "hadW" : hadronicFit.J.fitted[1] + hadronicFit.J.fitted[2],
+                "hadWraw" : hadronicFit.J.raw[1] + hadronicFit.J.raw[2],
                 "lepTopP4" : lepTopP4,
                 "hadTopP4" : hadTopP4,
                 "hadChi2" : hadronicFit.chi2(),
@@ -395,6 +396,7 @@ class genTopRecoIndex(wrappedChain.calculable) :
         self.moreName = "deltaR[lep,b,b,q,q] <%0.1f; deltaRnum<%0.1f"%(rMax,rMaxNu)
     def update(self,ignored) :
         self.value = None
+        if self.source['isRealData'] : return
         if not self.source['genTopSemiLeptonicWithinAcceptance'] : return        
         indices = range(len(self.source['TopReconstruction']))
         iPass = list(reduce(lambda A,B: A.intersection(B),
