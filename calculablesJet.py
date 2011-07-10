@@ -835,12 +835,14 @@ class CovariantResolution2(wrappedChain.calculable) :
 #####################################
 class TagProbability(wrappedChain.calculable) :
     def __init__(self, collection = None, tag = None, jetType = None) :
+        import random,string
         assert jetType in ['b','q','n']
         self.fixes = (collection[0], str.upper(jetType)+"_"+tag + collection[1])
         fileName = ("jetProbability_%s"+tag+"%s.txt") % xcStrip(collection)
         with open(fileName,"r") as file : lines = file.readlines(4)
         bins,low,up = tuple(lines[0].split())
-        self.hist = r.TH1D(fileName+jetType,fileName+jetType,int(bins),float(low),float(up))
+        pad = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in range(6))
+        self.hist = r.TH1D(pad+fileName+jetType,fileName+jetType,int(bins),float(low),float(up))
         for line in lines[1:] :
             if line.split()[0] != jetType : continue
             for i,val in enumerate(line.split()[1:]) :
