@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-
-import os,topAsymmShell,steps,calculables,samples,plotter,utils
+import os,topAsymmShell,steps,calculables,samples,plotter,utils,organizer
 import ROOT as r
 
 class topAsymm(topAsymmShell.topAsymmShell) :
@@ -15,9 +13,9 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         return ([
             steps.Print.progressPrinter(),
             steps.Other.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
-            steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = "%sIndicesAnyIso%s"%lepton, index = 0),
-            steps.Filter.absEta("%sP4%s"%lepton, max = lEtaMax, indices = "%sIndicesAnyIso%s"%lepton, index = 0),
             ]+topAsymmShell.topAsymmShell.cleanupSteps(pars)+[ 
+            steps.Histos.value("%sTriggeringPt%s"%lepton, 200,0,200),
+            steps.Filter.value("%sTriggeringPt%s"%lepton, min = lPtMin),
             
             steps.Histos.value(obj["sumPt"],50,0,1500),
             #steps.Other.compareMissing([obj["sumP4"],obj["met"]]),
@@ -27,13 +25,14 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             steps.Top.discriminateNonTop(pars),     steps.Other.assertNotYetCalculated("TopReconstruction"),
             #steps.Filter.label('dNonQQ'),  steps.Top.discriminateQQbar(('fitTop','')),
-            #steps.Top.Asymmetry(('fitTop','')),
+            steps.Top.Asymmetry(('fitTop','')),
+            steps.Top.kinFitLook("fitTopRecoIndex"),
             
             #steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             #]+([steps.Filter.multiplicity("%sIndices%s"%obj["jet"], **pars["nJets2"])] \
             #   if tuple(sorted(pars["nJets2"].values()))!=tuple(sorted(pars["nJets"].values())) else [])+[
-            #steps.Filter.label('kinfit'),  steps.Top.kinFitLook("fitTopRecoIndex"),
             #steps.Top.discriminateNonTop(pars),
+            #steps.Top.kinFitLook("fitTopRecoIndex"),
             #steps.Top.Asymmetry(('fitTop','')),
             #steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
             #steps.Filter.value(bVar, max=2.0, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
@@ -47,14 +46,13 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         from samples import specify
         def data() :
             names = { "electron": ["SingleElectron.Run2011A-PromptReco-v1.Burt"],
-                      "muon": (specify(names = ["SingleMu.Run2011A-PR-v4.FJ.Burt_skim",
-                                                "SingleMu.Run2011A-May10-v1.FJ.Burt_skim"
+                      "muon": (specify(names = ["SingleMu.Run2011A-PR-v4.FJ.Burt5",
+                                                "SingleMu.Run2011A-PR-v4.FJ.Burt4",
+                                                "SingleMu.Run2011A-PR-v4.FJ.Burt3",
+                                                "SingleMu.Run2011A-PR-v4.FJ.Burt2",
+                                                "SingleMu.Run2011A-PR-v4.FJ.Burt1",
+                                                "SingleMu.Run2011A-May10-v1.FJ.Burt",
                                                 ])+#, nFilesMax = 1, nEventsMax = 1000)+
-                               #specify(names="SingleMu.Run2011A-PR-v2.Alex_1muskim", nEventsMax = 2000, weights = jw, overrideLumi = 12.27) +
-                               #specify(names="SingleMu.Run2011A-PR-v2.Robin1", weights = jw, overrideLumi = 87.31) +
-                               #specify(names="SingleMu.Run2011A-PR-v2.Robin2", weights = jw, overrideLumi = 79.34) +
-                               #specify(names="SingleMu.Run2011A-PR-v2.Alex", weights = jw,   overrideLumi = 12.27) +
-                               #specify(names="SingleMu.Run2011A-PR-v2.Burt", weights = jw, overrideLumi = 0.68) +
                                []) }
             return names[pars["lepton"]["name"]]
 
@@ -77,19 +75,24 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                     [])
 
         def ttbar_py(eL) :
-            return (specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kBlue, weights = "wNonQQbar") +
-                    specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kGreen, weights = calculables.Top.wTopAsym(-0.3) )+
-                    specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kOrange, weights = calculables.Top.wTopAsym(0) )+
-                    specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kRed, weights = calculables.Top.wTopAsym(0.3) )+
+            return (specify(names = "tt_tauola_fj", effectiveLumi = None, color = r.kBlue, weights = "wNonQQbar") +
+                    specify(names = "tt_tauola_fj", effectiveLumi = None, color = r.kGreen, weights = calculables.Top.wTopAsym(-0.4) )+
+                    specify(names = "tt_tauola_fj", effectiveLumi = None, color = r.kGreen, weights = calculables.Top.wTopAsym(-0.3) )+
+                    specify(names = "tt_tauola_fj", effectiveLumi = None, color = r.kGreen, weights = calculables.Top.wTopAsym(-0.2) )+
+                    specify(names = "tt_tauola_fj", effectiveLumi = None, color = r.kGreen, weights = calculables.Top.wTopAsym(-0.1) )+
+                    specify(names = "tt_tauola_fj", effectiveLumi = None, color = r.kOrange, weights = calculables.Top.wTopAsym(0) )+
+                    specify(names = "tt_tauola_fj", effectiveLumi = None, color = r.kRed, weights = calculables.Top.wTopAsym(0.1) )+
+                    specify(names = "tt_tauola_fj", effectiveLumi = None, color = r.kRed, weights = calculables.Top.wTopAsym(0.2) )+
+                    specify(names = "tt_tauola_fj", effectiveLumi = None, color = r.kRed, weights = calculables.Top.wTopAsym(0.3) )+
+                    specify(names = "tt_tauola_fj", effectiveLumi = None, color = r.kRed, weights = calculables.Top.wTopAsym(0.4) )+
                     [])
 
         def ewk(eL, skimp=True) :
-            #return specify( names = "w_jets_mg", effectiveLumi = eL, color = 28 )
             EWK = {}
             EWK["electron"] = specify( names = "w_enu_fj", effectiveLumi = eL, color = 28)
             EWK["muon"] = specify( names = "w_munu_fj", effectiveLumi = eL, color = 28)
             EWK["other"] = specify( names = "w_taunu_fj", effectiveLumi = eL, color = r.kYellow-3)
-            if skimp : return EWK[pars["lepton"]["name"]]
+            if skimp : return EWK[pars["lepton"]["name"]]+specify( names = "w_jets_fj_mg", effectiveLumi = None, color = 28 )
             return sum(EWK.values(),[])
 
         eL = 2000 # 1/pb
@@ -99,32 +102,81 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                   ttbar_py(eL) +
                   [])
 
+    def concludeAll(self) :
+        super(topAsymm,self).concludeAll()
+        self.meldNorm()
+        self.meldWpartitions()
+
+    def meldNorm(self) :
+        meldSamples = {"top_muon_pf" : ["SingleMu","P00","NonQQbar"],
+                       "Wlv_muon_pf" : ["SingleMu"],
+                       "QCD_muon_pf" : ["SingleMu"]}
+
+        organizers = [organizer.organizer(tag, [s for s in self.sampleSpecs(tag) if any(item in s['name'] for item in meldSamples[tag])])
+                      for tag in [p['tag'] for p in self.readyConfs]]
+        for org,color in zip(organizers,[r.kBlack,r.kRed,r.kBlue]) :
+            org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kViolet}, sources=["tt_tauola_fj.wNonQQbar","tt_tauola_fj.wTopAsymP00"])
+            org.mergeSamples(targetSpec = {"name":"Data 2011", "color":color, "markerStyle":(20 if "top" in org.tag else 1)}, allWithPrefix="SingleMu")
+            org.scale(toPdf=True)
+            
+        melded = organizer.organizer.meld("melded",organizers)
+        pl = plotter.plotter(melded,
+                             psFileName = self.psFileName(melded.tag),
+                             doLog = False,
+                             blackList = ["lumiHisto","xsHisto","nJobsHisto"],
+                             ).plotAll()
+
+    def meldWpartitions(self) :
+        samples = {"top_muon_pf" : ["w_"],
+                   "Wlv_muon_pf" : ["w_","SingleMu"],
+                   "QCD_muon_pf" : []}
+        organizers = [organizer.organizer(tag, [s for s in self.sampleSpecs(tag) if any(item in s['name'] for item in samples[tag])])
+                      for tag in [p['tag'] for p in self.readyConfs]]
+        for org in organizers :
+            org.mergeSamples(targetSpec = {"name":"Data 2011", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu")
+            org.mergeSamples(targetSpec = {"name":"w_mg", "color":r.kRed if "Wlv" in org.tag else r.kBlue, "markerStyle": 22}, sources = ["w_jets_fj_mg"])
+            org.mergeSamples(targetSpec = {"name":"w_py", "color":r.kRed if "Wlv" in org.tag else r.kBlue}, sources = ["w_munu_fj"])
+            org.drop("w_py")
+            org.scale(toPdf=True)
+
+        melded = organizer.organizer.meld("wpartitions",filter(lambda o: o.samples, organizers))
+        pl = plotter.plotter(melded,
+                             psFileName = self.psFileName(melded.tag),
+                             doLog = False,
+                             blackList = ["lumiHisto","xsHisto","nJobsHisto"],
+                             ).plotAll()
+
+
     def conclude(self,pars) :
         org = self.organizer(pars)
+        for suf in ["N40","N20","N10","P10","P20","P40"] : org.drop('tt_tauola_fj.wTopAsym%s'%suf)
+        org.drop("w_munu_fj")
         org.mergeSamples(targetSpec = {"name":"Data 2011", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu")
-        org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kBlue+1}, sources=["tt_tauola_fj.wNonQQbar","tt_tauola_fj.wTopAsymP00"])
+        org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kViolet}, sources=["tt_tauola_fj.wNonQQbar","tt_tauola_fj.wTopAsymP00"])
         org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
         org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.N30", "color":r.kRed}, sources = ["tt_tauola_fj.wTopAsymN30","tt_tauola_fj.wNonQQbar"][:1])
         org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.P30", "color":r.kGreen}, sources = ["tt_tauola_fj.wTopAsymP30","tt_tauola_fj.wNonQQbar"][:1])
-        org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+2}, sources = ["qcd_py6","w_munu_fj","t#bar{t}"], keepSources = True)
-        org.scale()#toPdf=True)
+        org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+2}, sources = ["qcd_py6","w_munu_fj","t#bar{t}","w_jets_fj_mg"], keepSources = True)
+        org.scale()
         
         #plot
-        pl = plotter.plotter(org,
-                             psFileName = self.psFileName(org.tag),
+        pl = plotter.plotter(org, psFileName = self.psFileName(org.tag+"_log"),
+                             pegMinimum = 0.01,
                              samplesForRatios = ("Data 2011","standard_model"),
                              sampleLabelsForRatios = ("data","s.m."),
-                             #whiteList = ["lowestUnPrescaledTrigger"],
-                             #doLog = False,
-                             #compactOutput = True,
-                             #noSci = True,
-                             pegMinimum = 0.01,
-                             detailedCalculables = True,
                              blackList = ["lumiHisto","xsHisto","nJobsHisto"],
-                             )
-        pl.plotAll()
+                             detailedCalculables = True,
+                             ).plotAll()
 
-        self.optimizeCut(org,signal = "t#bar{t}", background = "standard_model", var = "TopRatherThanWProbability")
+        pl = plotter.plotter(org, psFileName = self.psFileName(org.tag+"_nolog"),
+                             doLog = False,
+                             samplesForRatios = ("Data 2011","standard_model"),
+                             sampleLabelsForRatios = ("data","s.m."),
+                             blackList = ["lumiHisto","xsHisto","nJobsHisto"],
+                             detailedCalculables = True,
+                             ).plotAll()
+
+        #self.optimizeCut(org,signal = "t#bar{t}", background = "standard_model", var = "TopRatherThanWProbability")
         #org.printFormattedCalculablesGraph()
         #with open("topAsymm.gv","write") as file : print>>file, org.calculablesDotFile
 
