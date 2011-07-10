@@ -52,7 +52,7 @@ def dimensionOfHisto(histos) :
         dimensions.append(className[2])
         
     dimensions=set(dimensions)
-    assert len(dimensions)==1,"histograms have different dimensions"
+    assert len(dimensions)==1,"histograms have different dimensions\n%s"%str([hist.GetName() if hist else hist for hist in histos])
     return int(list(dimensions)[0])
 ##############################        
 def metFit(histo) :
