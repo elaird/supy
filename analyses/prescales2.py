@@ -25,7 +25,7 @@ class prescales2(analysis.analysis) :
         return (calculables.zeroArgs() +
                 calculables.fromCollections(calculables.Muon,[pars["muon"]]) +
                 [calculables.Muon.Indices( pars["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
-                 calculables.Muon.TriggeringIndex(pars['muon'], ptMin = 31),
+                 calculables.Muon.TriggeringIndex(pars['muon'], ptMin = 10),
                  calculables.Other.lowestUnPrescaledTrigger(zip(*pars["triggers"])[0]),
                  calculables.Vertex.ID(),
                  calculables.Vertex.Indices(),
@@ -48,12 +48,13 @@ class prescales2(analysis.analysis) :
             steps.Trigger.lowestUnPrescaledTriggerFilter(),
             steps.Histos.value("%sTriggeringPt%s"%pars["muon"],100,0,200),
             ]+[ steps.Trigger.prescaleScan(trig,ptMin,"%sTriggeringPt%s"%pars['muon']) for trig,ptMin in pars['triggers']]+[
-            steps.Filter.value( "%sTriggeringIndex%s"%pars['muon'],min = 0)]
+            steps.Filter.value( "%sTriggeringPt%s"%pars['muon'],min = 31)]
 
     def listOfSampleDictionaries(self) : return [samples.muon]
 
     def listOfSamples(self,params) :
-        return ( samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt4", color = r.kOrange) +
+        return ( samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt5", color = r.kViolet) +
+                 samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt4", color = r.kOrange) +
                  samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt3", color = r.kBlack) +
                  samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt2", color = r.kGreen) +
                  samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt1", color = r.kRed) +

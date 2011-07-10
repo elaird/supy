@@ -36,6 +36,7 @@ class jsonMaker(analysis.analysis) :
                                  "SingleMu.Run2011A-PR-v4.FJ.Burt2",
                                  "SingleMu.Run2011A-PR-v4.FJ.Burt3",
                                  "SingleMu.Run2011A-PR-v4.FJ.Burt4",
+                                 "SingleMu.Run2011A-PR-v4.FJ.Burt5",
                                  ]) # no json filtering necessary, golden json used
         return out
 

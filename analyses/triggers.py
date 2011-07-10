@@ -41,7 +41,8 @@ class triggers(analysis.analysis) :
         return [samples.muon,samples.jetmet,samples.electron]
 
     def listOfSamples(self,pars) :
-        return ( samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt4", color = r.kBlue) +
+        return ( samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt5", color = r.kOrange) +
+                 samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt4", color = r.kViolet) +
                  samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt3", color = r.kBlue) +
                  samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt2", color = r.kGreen) +
                  samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt1", color = r.kBlack) +
