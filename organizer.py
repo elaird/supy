@@ -178,8 +178,11 @@ class organizer(object) :
         if index is None : print "%s is not present: cannot drop"%sampleName; return
         self.samples = self.samples[:index] + self.samples[index+1:]
         for step in self.steps:
-            for key,val in step.iteritems():
+            for key,val in list(step.iteritems()):
                 step[key] = val[:index] + val[index+1:]
+                if not any(step[key]) :
+                    print "%s is gone."%key
+                    del step[key]
 
     def indexOfSampleWithName(self,name) :
         someList = [sample["name"] for sample in self.samples]
