@@ -46,12 +46,12 @@ class photonLook(analysis.analysis) :
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  "triggerList": tuple(#["HLT_Photon50_CaloIdVL_v%d"%i for i in range(1,3)] +
                                       #["HLT_Photon50_CaloIdVL_IsoL_v%d"%i for i in range(1,5)]+
-                                      ["HLT_Photon75_CaloIdVL_v%d"%i for i in range(1,6)]+
-                                      ["HLT_Photon75_CaloIdVL_IsoL_v%d"%i for i in range(1,6)]+
-                                      ["HLT_Photon90_CaloIdVL_v%d"%i for i in range(1,3)]+
-                                      ["HLT_Photon90_CaloIdVL_IsoL_v%d"%i for i in range(1,3)]
-                                      #["HLT_Photon125_v1","HLT_Photon125_v2"]+
-                                      #["HLT_Photon125_NoSpikeFilter_v1","HLT_Photon125_NoSpikeFilter_v2","HLT_Photon125_NoSpikeFilter_v3"]
+                                      ["HLT_Photon75_CaloIdVL_v%d"%i for i in range(1,7)]+
+                                      ["HLT_Photon75_CaloIdVL_IsoL_v%d"%i for i in range(1,7)]+
+                                      ["HLT_Photon90_CaloIdVL_v%d"%i for i in range(1,4)]+
+                                      ["HLT_Photon90_CaloIdVL_IsoL_v%d"%i for i in range(1,4)]
+                                      #["HLT_Photon125_v%d"%i for i in range(1,3)] +
+                                      #["HLT_Photon135_v%d"%i for i in range(1,2)]+
                                       ),#2011 epoch 1
                  }
 
@@ -371,16 +371,18 @@ class photonLook(analysis.analysis) :
         zinv_mg_2010   = specify(names = ["z_inv_mg_v12_skim"], color = r.kMagenta+3)
 
         #2011
-        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-167151_7TeV_PromptReco_Collisions11_JSON.txt") #869/pb
-        
+        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-167913_7TeV_PromptReco_Collisions11_JSON.txt") #1078/pb
         data = []
 
-        data += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Zoe_skim", weights = jw, overrideLumi = 188.9)
-        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe1_skim", weights = jw, overrideLumi =  70.0)
-        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe2_skim", weights = jw, overrideLumi = 151.1)
-        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe3_skim", weights = jw, overrideLumi =  74.4)
-        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob1_skim", weights = jw, overrideLumi = 167.1)
-        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob2_skim", weights = jw, overrideLumi = 119.7)
+        data += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Zoe_skim",    weights = jw, overrideLumi = 188.9)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe1_skim",    weights = jw, overrideLumi =  70.0)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe2_skim",    weights = jw, overrideLumi = 151.1)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe3_skim",    weights = jw, overrideLumi =  74.4)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob1_skim",    weights = jw, overrideLumi = 167.1)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob2_skim",    weights = jw, overrideLumi = 119.7)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob3_skim",    weights = jw, overrideLumi = 180.2)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob4_skim",    weights = jw, overrideLumi =  69.3)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Darren1_skim", weights = jw, overrideLumi =  36.3)
 
         #freaks = specify(names = "photon200_3jet")
         #cands1 = specify(names = "375_photons")
