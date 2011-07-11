@@ -54,7 +54,13 @@ class organizer(object) :
         self.calculablesGraphs
 
     @classmethod
-    def meld(cls, tag, organizers = []) :
+    def meld(cls, tag = None, organizers = []) :
+        if tag is None :
+            subTags = filter(lambda st: all(org.tag.split('_').count(st)==1 for org in organizers),
+                             set(sum([org.tag.split("_") for org in organizers], [])))
+            for org in organizers :
+                org.tag = '_'.join(filter(lambda st: st not in subTags, org.tag.split('_')))
+            tag = '_'.join(['melded']+list(subTags))
         if len(set(org.lumi for org in organizers if org.lumi))!=1 :
             print "Warning: melding organizers with distinct lumi values, using max."
             print [org.lumi for org in organizers if org.lumi]
