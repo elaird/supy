@@ -18,11 +18,16 @@ class triggerLook(analysis.analysis) :
     def listOfSamples(self,params) :
         from samples import specify
         out = []
-        out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren1")
-        out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren2")
-        out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren3")
-        out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren4")
-        out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren5")
+
+        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob3_skim")
+        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob4_skim")
+        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Darren1_skim")
+        
+        #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren1")
+        #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren2")
+        #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren3")
+        #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren4")
+        #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren5")
         return out
 
     def conclude(self, conf) :
