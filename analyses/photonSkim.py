@@ -42,15 +42,19 @@ class photonSkim(analysis.analysis) :
         #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Ted1.L1"    )
         #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Ted2.L1"    )
 
-        out += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Zoe")
-        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe1")
-        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe2")
-        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe3")
-        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob1")
-        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob2")
+        #out += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Zoe")
+        #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe1")
+        #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe2")
+        #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe3")
+        #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob1")
+        #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob2")
 
-        out += specify(names = self.qcdMgNames())
-        out += specify(names = self.gJetsMgNames())
+        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob3")
+        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob4")
+        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Darren1")
+
+        #out += specify(names = self.qcdMgNames())
+        #out += specify(names = self.gJetsMgNames())
 
         return out
     
