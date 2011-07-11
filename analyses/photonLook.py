@@ -27,7 +27,7 @@ class photonLook(analysis.analysis) :
                                                        ("photonIsoSideband","photonIDIsoSideBandPat"),          #7
                                                        ("photonNoIsoReq","photonIDNoIsoReqPat"),                #8
                                                        ("photonAN-10-268",   "photonIDAnalysisNote_10_268Pat")]  [2:3] )),
-                 "zMode" :            self.vary(dict([ ("zMode",True), ("",False) ]                              [1:2] )),
+                 "zMode" :            self.vary(dict([ ("Z",True), ("g",False) ]                                  [:]  )),
                  "vertexMode" :       self.vary(dict([ ("vertexMode",True), ("",False) ]                         [1:2] )),
                  "subdet" :           self.vary(dict([ ("barrel", (0.0, 1.444)), ("endcap", (1.566, 2.5)) ]      [:1 ] )),
                  "jetId" :  ["JetIDloose","JetIDtight"]            [0],
@@ -477,39 +477,59 @@ class photonLook(analysis.analysis) :
         ##org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Nov4")
         #org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Run2010")
 
+
+    def concludeAll(self) :
+        #super(photonLook,self).concludeAll()
+
+        for item in ["275","325","375"] :
+            organizers = [self.organizer(conf) for conf in self.readyConfs if (item in conf["tag"])]
+            for org in organizers :
+                if "Z" in org.tag :
+                    lumi = 1057.
+                    org.scale(lumi)
+                    print "WARNING: HARD-CODED LUMI FOR Z MODE! (%g)"%lumi
+                else :
+                    self.mergeSamples(org)
+                    org.scale()
+            melded = organizer.organizer.meld(organizers = organizers)
+            self.makeStandardPlots(melded)
+            #self.makeIndividualPlots(melded)
+                                 
     def conclude(self, conf) :
         org = self.organizer(conf)
         
         ##for skimming only
         #utils.printSkimResults(org)
             
-        if "zMode" in org.tag :
-            lumi = 771.2
+        if "Z" in org.tag :
+            lumi = 1057.
             org.scale(lumi)
             print "WARNING: HARD-CODED LUMI FOR Z MODE! (%g)"%lumi
         else :
             self.mergeSamples(org)
             org.scale()
             
-        #self.makeStandardPlots(org)
-        self.makeIndividualPlots(org)
+        self.makeStandardPlots(org)
+        #self.makeIndividualPlots(org)
         #self.makePurityPlots(org, tag)
         #self.makeEfficiencyPlots(org, tag)
         #self.makeNVertexWeights(org, tag)
         #self.makeMultiModePlots(34.7255)
 
     def makeStandardPlots(self, org) :
+        names = [ss["name"] for ss in org.samples]
+        samplesForRatios = filter(lambda x: x[0] in names and x[1] in names,
+                                  [("2011 Data","standard_model_nVtx"),
+                                   ("g.2011 Data","g.standard_model_nVtx"),
+                                   ("2011 Data","standard_model"),
+                                   ("2011 Data","standard_model_py6"),
+                                   ("2010 Data","sm_2010")])
+
         #plot all
         pl = plotter.plotter(org,
                              psFileName = self.psFileName(org.tag),
                              sampleLabelsForRatios = ("data","s.m."),
-                             
-                             #samplesForRatios = ("2011 Data","standard_model"),
-                             samplesForRatios = ("2011 Data","standard_model_nVtx"),
-                             #samplesForRatios = ("2011 Data","standard_model_py6"),
-                             
-                             #samplesForRatios = ("2010 Data","sm_2010"),
-                             #samplesForRatios = ("2011 Data","sm_2010"),
+                             samplesForRatios = next(iter(samplesForRatios), ("","")),
                              blackList = ["lumiHisto","xsHisto","nJobsHisto",
                                           "deltaRGenReco",
                                           "photonMothergenPt", "photonMotherrecoPt", "photonMothermht",
@@ -756,7 +776,7 @@ class photonLook(analysis.analysis) :
         def org(tag) :
             org = organizer.organizer( self.sampleSpecs(tag) )
             self.mergeSamples(org, tag)
-            if "zMode" in tag : org.scale(1.0)
+            if "Z" in tag : org.scale(1.0)
             else :              org.scale()
             return org
 
