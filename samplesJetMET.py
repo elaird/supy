@@ -12,6 +12,7 @@ jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Darren2", '%s/dburton//ICF/automated/2
 jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Darren3", '%s/dburton//ICF/automated/2011_06_23_09_27_46/", alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
 jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Darren4", '%s/dburton//ICF/automated/2011_06_29_08_50_53/", alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
 jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Darren5", '%s/dburton//ICF/automated/2011_07_01_12_27_35/", alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
+jetmet.add("HT.Run2011A-PromptReco-v4.AOD.Darren6", '%s/dburton//ICF/automated/2011_07_07_17_17_40/", alwaysUseLastAttempt = True)'%srm, lumi = 1.0)
 
 jetmet.add("MT2_events", '["/home/hep/bm409/public_html/MT2Skim.root"]', lumi = 600)
 jetmet.add("calo_275_scaled", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v6/275_scaled.root", isDirectory = False)', lumi = 189)
