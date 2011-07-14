@@ -84,6 +84,7 @@ class hadronicLook(analysis.analysis) :
                 calculables.Jet.SumP4(jet, extraName = lowPtName),
                 calculables.Jet.SumP4(jet, extraName = highPtName),
                 calculables.Jet.DeltaPhiStar(jet, extraName = lowPtName),
+                calculables.Jet.DeltaPhiStar(jet),
                 calculables.Jet.DeltaPseudoJet(jet, etRatherThanPt),
                 calculables.Jet.AlphaT(jet, etRatherThanPt),
                 calculables.Jet.AlphaTMet(jet, etRatherThanPt, met),
@@ -230,10 +231,11 @@ class hadronicLook(analysis.analysis) :
             steps.Other.passFilter("jetSumPlots1"), 
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x[0][0]'),
-            #steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x[0][0]'),
+            steps.Other.histogrammer("%sDeltaPhiStar%s"%(_jet[0], _jet[1]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x[0][0]'),
             steps.Other.histogrammer(_met,100,0.0,500.0,title=";"+_met+" (GeV);events / bin", funcString = "lambda x: x.pt()"),
             steps.Other.passFilter("kinematicPlots1"),
-            
+
+            steps.Jet.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
             steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
             
             steps.Jet.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
@@ -259,7 +261,7 @@ class hadronicLook(analysis.analysis) :
             steps.Other.histogrammer("%sIndices%s"%_jet, 20, -0.5, 19.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet, funcString="lambda x:len(x)"),
             steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1], params["lowPtName"]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x[0][0]'),
-            #steps.Other.histogrammer("%sDeltaPhiStar%s%s"%(_jet[0], _jet[1]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x[0][0]'),
+            steps.Other.histogrammer("%sDeltaPhiStar%s"%(_jet[0], _jet[1]), 20, 0.0, r.TMath.Pi(), title = ";#Delta#phi*;events / bin", funcString = 'lambda x:x[0][0]'),
             steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met), 100, 0.0, 3.0,
                                      title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1]+params["highPtName"],_met)),
 
@@ -305,8 +307,9 @@ class hadronicLook(analysis.analysis) :
 
         def data() :
             out = []
-            
-            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-167784_7TeV_PromptReco_Collisions11_JSON.txt") #963/pb
+
+            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-167913_7TeV_PromptReco_Collisions11_JSON.txt") #1078/pb            
+
             out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.Bryn",   weights = jw, overrideLumi = 183.0)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn1",   weights = jw, overrideLumi =  70.2)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn2",   weights = jw, overrideLumi = 101.3)
@@ -314,8 +317,9 @@ class hadronicLook(analysis.analysis) :
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren1", weights = jw, overrideLumi = 181.2)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren2", weights = jw, overrideLumi = 122.8)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren3", weights = jw, overrideLumi =  36.4)
-            #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren4", weights = jw, overrideLumi =  50.5)
-            #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren5", weights = jw, overrideLumi = 129.1)
+            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren4", weights = jw, overrideLumi =  50.5)
+            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren5", weights = jw, overrideLumi = 130.6)
+            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren6", weights = jw, overrideLumi = 116.0)
 
             #out += specify(names = "HT_skim")
             #out += specify(names = "MT2_events")
