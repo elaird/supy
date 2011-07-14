@@ -520,6 +520,7 @@ class photonLook(analysis.analysis) :
         names = [ss["name"] for ss in org.samples]
         samplesForRatios = filter(lambda x: x[0] in names and x[1] in names,
                                   [("2011 Data","standard_model_nVtx"),
+                                   (".2011 Data",".standard_model_nVtx"),
                                    ("g.2011 Data","g.standard_model_nVtx"),
                                    ("2011 Data","standard_model"),
                                    ("2011 Data","standard_model_py6"),
