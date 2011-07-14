@@ -21,18 +21,19 @@ class jsonMaker(analysis.analysis) :
         #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren1", weights = jw)
         #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren2", weights = jw)
         #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren3", weights = jw)
-        #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren4", weights = jw)
-        #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren5", weights = jw)
+        out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren4", weights = jw)
+        out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren5", weights = jw)
+        out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Darren6", weights = jw)        
 
         #out += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Zoe_skim", weights = jw)
         #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe1_skim", weights = jw)
         #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe2_skim", weights = jw)
         #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe3_skim", weights = jw)
-        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob1",      weights = jw)
-        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob2",      weights = jw)
-        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob3",      weights = jw)
-        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob4",      weights = jw)
-        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Darren1",   weights = jw)
+        #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob1",      weights = jw)
+        #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob2",      weights = jw)
+        #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob3",      weights = jw)
+        #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob4",      weights = jw)
+        #out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Darren1",   weights = jw)
         
         #out += specify(names = [ "SingleMu.Run2011A-May10-v1.FJ.Burt",
         #                         "SingleMu.Run2011A-PR-v4.FJ.Burt1",
