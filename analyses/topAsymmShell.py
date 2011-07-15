@@ -79,7 +79,8 @@ class topAsymmShell(analysis.analysis) :
             calculables.Top.TopReconstruction(lepton,obj["jet"],"mixedSumP4"),
             
             calculables.Other.Mt(lepton,"mixedSumP4", allowNonIso=True, isSumP4=True),
-            calculables.Muon.IndicesAnyIsoIsoOrder(obj[pars["lepton"]["name"]], pars["lepton"]["isoVar"])
+            calculables.Muon.IndicesAnyIsoIsoOrder(obj[pars["lepton"]["name"]], pars["lepton"]["isoVar"]),
+            calculables.Other.PtSorted(pars['lepton']['name'])
             ]
         outList += calculables.fromCollections(calculables.Top,[('genTop',""),('fitTop',"")])
         outList += [calculables.Jet.TagProbability(pars['objects']['jet'], pars['bVar'], letter) for letter in ['b','q','n']]
@@ -104,6 +105,7 @@ class topAsymmShell(analysis.analysis) :
             steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
             steps.Trigger.lowestUnPrescaledTriggerFilter(), #FIXME ele
             steps.Histos.multiplicity("vertexIndices", max=15),
+            steps.Histos.value("%sPtSorted%s"%pars['muon'], 2,0,1),
             steps.Filter.multiplicity("vertexIndices",min=1),
             ]+[
             steps.Filter.multiplicity(s, max = 0) for s in ["%sIndices%s"%obj["photon"],

@@ -15,13 +15,16 @@ class triggers(analysis.analysis) :
         outList +=[calculables.Muon.Indices( pars["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
                    calculables.Muon.IndicesAnyIsoIsoOrder(pars['muon'], "CombinedRelativeIso"),
                    calculables.Muon.LeadingIsoAny(pars['muon'], ptMin = 18, iso = "CombinedRelativeIso"),
-                   calculables.Electron.Indices( pars["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True)
+                   calculables.Electron.Indices( pars["electron"], ptMin = 10, simpleEleID = "95", useCombinedIso = True),
+                   calculables.Other.PtSorted(pars['muon'])
                    ]
+        
         return outList
     
     def listOfSteps(self, pars) :
         return (
             [steps.Print.progressPrinter(),
+             steps.Histos.value("%sPtSorted%s"%pars['muon'], 2,0,1),
              #steps.Filter.absEta("%sP4%s"%pars['muon'], max = 2.1, indices = "%sIndicesAnyIso%s"%pars['muon'], index = 0),
              steps.Trigger.triggerScan( pattern = r"HLT_Mu\d*_v\d", prescaleRequirement = "prescale==1", tag = "Mu"),
              steps.Trigger.triggerScan( pattern = r"HLT_Mu\d*_v\d", prescaleRequirement = "True", tag = "MuAll"),
