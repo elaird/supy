@@ -216,3 +216,10 @@ class TriggeringPt(wrappedChain.calculable) :
         index = self.source[self.TriggeringIndex]
         self.value = 0 if index==None else self.source[self.P4][index].pt()
 #####################################
+class Pt(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["P4"])
+    def update(self,_) :
+        p4 = self.source[self.P4]
+        self.value = [p4[i].pt() for i in range(len(p4))]

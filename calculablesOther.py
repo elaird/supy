@@ -209,3 +209,10 @@ class FixedValue(wrappedChain.calculable) :
     def update(self, ignored) :
         pass
 #####################################
+class PtSorted(wrappedChain.calculable) :
+    def __init__(self, collection) :
+        self.fixes = collection
+        self.stash(["Pt"])
+    def update(self,_) :
+        pt = self.source[self.Pt]
+        self.value = all(i>j for i,j in zip(pt[:-1],pt[1:]))
