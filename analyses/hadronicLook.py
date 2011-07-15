@@ -427,8 +427,8 @@ class hadronicLook(analysis.analysis) :
         self.mergeSamples(org)
         org.scale() if not self.parameters()["tanBeta"] else org.scale(100.0)
         
-        #self.makeStandardPlots(org)
-        self.makeIndividualPlots(org)
+        self.makeStandardPlots(org)
+        #self.makeIndividualPlots(org)
 
     def makeStandardPlots(self, org) :
         #plot
@@ -480,6 +480,31 @@ class hadronicLook(analysis.analysis) :
                                          "legendCoords": (0.6, 0.60, 0.92, 0.92),
                                          "stampCoords": (0.45, 0.88)
                                         },
+                                        ##after alphaT
+                                        {"plotName":"xcak5JetDeltaPhiStarPat",
+                                         "stepName":"histogrammer",
+                                         "stepDesc" :"(lambda x:x[0][0])(xcak5JetDeltaPhiStarPat)",
+                                         "index" : -1,
+                                         "newTitle":";#Delta#phi*;events / bin",
+                                         "legendCoords": (0.6, 0.6, 0.92, 0.92),
+                                         "stampCoords": (0.33, 0.88),
+                                         },
+                                        {"plotName":"xcak5JetHtPlusMhtRoughPat",
+                                         "stepName":"cleanJetHtMhtHistogrammer",
+                                         "stepDesc":"xcak5JetPat",
+                                         "index":-1,
+                                         "newTitle":";M_{eff} (GeV);events / bin",
+                                         "legendCoords": (0.7, 0.7, 0.92, 0.92),
+                                         "stampCoords": (0.75, 0.4),
+                                         },
+                                        {"plotName":"xcak5JetIndicesPat",
+                                         "stepName":"histogrammer",
+                                         "stepDesc" :"(lambda x:len(x))(xcak5JetIndicesPat)",
+                                         "index" : -1,
+                                         "newTitle":";N_{jets};events / bin",
+                                         "legendCoords": (0.6, 0.6, 0.92, 0.92),
+                                         "stampCoords": (0.6, 0.38),
+                                         }
                                         ],
                            newSampleNames = None,
                            #newSampleNames = {"qcd_mg_nVtx": "Madgraph QCD",
