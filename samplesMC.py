@@ -44,6 +44,10 @@ for low,high,xs in zip(bins[:-1],bins[1:],xss) :
            '%s/%s/%s")'%(srm,py6FJLoc,py6Summer11Dset%("%dto%d"%(low,high) if high else "%d"%low)),
            xs = xs)
 
+#### QCD mu enriched ####
+#not yet
+
+
 ######### TT / EWK ############
 pyFJLoc = '/bbetchar/ICF/automated/2011_06_12_04_28_39/'
 summer11pu = '.Summer11-PU_S3_START42_V11-v2.AODSIM/'
@@ -53,7 +57,7 @@ mc.add("w_munu_fj",    '%s/%s/WToMuNu_TuneZ2_7TeV-pythia6%s")'%(srm,pyFJLoc,summ
 mc.add("w_taunu_fj",   '%s/%s/WToTauNu_TuneZ2_7TeV-pythia6-tauola%s")'%(srm,pyFJLoc,summer11pu),xs = {"LO": 7899, "BurtGuessNNLO": 15639}["BurtGuessNNLO"])
 
 mc.add("tt_tauola_fj_mg", '%s/%s")'%(srm,'/bbetchar//ICF/automated/2011_06_21_16_32_59/'), xs = {"LO":121, "BurtGuessNLO":157.5}["BurtGuessNLO"])
-mc.add("w_jets_fj_mg", '%s/%s")'%(srm,'/gouskos//ICF/automated/2011_06_22_10_25_36/'), xs = {"LO":24640, "BurtGuessNNLO": 46917}["BurtGuessNNLO"])
+mc.add("w_jets_fj_mg", '%s/%s",alwaysUseLastAttempt = True)'%(srm,'/gouskos//ICF/automated/2011_06_22_10_25_36/'), xs = {"LO":24640, "BurtGuessNNLO": 46917}["BurtGuessNNLO"])
 
 burt_ttbar = '/bbetchar//ICF/automated/2011_04_07_19_30_01/'
 burt_ewk = '/bbetchar//ICF/automated/2011_04_07_19_40_51/'
@@ -132,6 +136,7 @@ mc.add("t1.ted", '%s/elaird//ICF/automated/2011_03_09_13_08_06/")'%srm, xs = 1.0
 mc.add("t2.ted", '%s/elaird/ICF/automated/2011_03_08_23_04_26/")'%srm, lumi = 1.0) #dummy xs
 
 #MSUGRA SCANS
+mc.add("scan_tanbeta10_burt1",'%s/bbetchar//ICF/automated/2011_07_10_04_13_24/",)'%srm, lumi = 1.0) #dummy lumi
 mc.add("scan_tanbeta3_tanja1",'%s/trommers//ICF/automated/2010_12_03_15_28_38/")'%srm, xs = 100000.0 ) #dummy xs
 mc.add("scan_tanbeta3_tanja2",'%s/trommers//ICF/automated/2010_12_17_20_09_06/")'%srm, xs = 100000.0 ) #dummy xs
 mc.add("scan_tanbeta10",('%s/trommers//ICF/automated/2011_02_24_16_41_52/")'%srm).replace("user","user_old"), xs = 1.0) #fake xs
