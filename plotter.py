@@ -185,13 +185,15 @@ class plotter(object) :
         def goods(spec) :
             for item in ["stepName", "stepDesc", "plotName"] :
                 if item not in spec : return
-            
+
+            histoList = []
             for step in self.someOrganizer.steps :
                 if (step.name, step.title) != (spec["stepName"], spec["stepDesc"]) : continue
                 if spec["plotName"] not in step : continue
-                histos = step[spec["plotName"]]
-                break
+                histoList.append(step[spec["plotName"]])
 
+            assert histoList,str(spec)
+            histos = histoList[spec["index"] if "index" in spec else 0]
             if "sampleWhiteList" not in spec :
                 return histos,None
             else :
