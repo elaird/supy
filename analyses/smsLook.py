@@ -90,33 +90,32 @@ class smsLook(analysis.analysis) :
         return [
             steps.Print.progressPrinter(),
             #steps.Other.collector(["susyScanM0","susyScanM12"]),
-            steps.Other.orFilter([steps.Gen.ParticleCountFilter({"gluino":2}), steps.Gen.ParticleCountFilter({"squark":2})]),
-            steps.Other.smsMedianHistogrammer(_jet),
-            ]
+            #steps.Other.orFilter([steps.Gen.ParticleCountFilter({"gluino":2}), steps.Gen.ParticleCountFilter({"squark":2})]),
+            #steps.Other.smsMedianHistogrammer(_jet),
+            ]+[
+            steps.Histos.generic(("susyScanM0","susyScanM12"),(101,38),(i,i),(2020+i,760+i), title="%d;m_{0};m_{1/2};events/bin"%i) for i in range(20)]
     
     def listOfSampleDictionaries(self) :
         return [samples.mc]
 
     def listOfSamples(self,params) :
         from samples import specify
-        return specify( #nFilesMax = 4, nEventsMax = 2000,
-                        names = ["t1.ted"])
+        return specify( #nFilesMax = 4, nEventsMax = 10000,
+                        names = ["scan_tanbeta10_burt1"])
 
-    def conclude(self) :
-        for tag in self.sideBySideAnalysisTags() :
-            #organize
-            org=organizer.organizer( self.sampleSpecs(tag) )
-            
-            #plot
-            pl = plotter.plotter(org,
-                                 psFileName = self.psFileName(tag),
-                                 #samplesForRatios = ("2010 Data","standard_model"),
-                                 #sampleLabelsForRatios = ("data","s.m."),
-                                 #whiteList = ["lowestUnPrescaledTrigger"],
-                                 doLog = False,
-                                 #compactOutput = True,
-                                 #noSci = True,
-                                 #pegMinimum = 0.1,
-                                 blackList = ["lumiHisto","xsHisto","nJobsHisto"],
-                                 )
-            pl.plotAll()
+    def conclude(self,pars) :
+        org = self.organizer(pars)
+
+        #plot
+        pl = plotter.plotter(org,
+                             psFileName = self.psFileName(org.tag),
+                             #samplesForRatios = ("2010 Data","standard_model"),
+                             #sampleLabelsForRatios = ("data","s.m."),
+                             #whiteList = ["lowestUnPrescaledTrigger"],
+                             doLog = False,
+                             #compactOutput = True,
+                             #noSci = True,
+                             #pegMinimum = 0.1,
+                             blackList = ["lumiHisto","xsHisto","nJobsHisto"],
+                             )
+        pl.plotAll()
