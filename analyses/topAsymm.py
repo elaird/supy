@@ -119,7 +119,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             org.mergeSamples(targetSpec = {"name":"Data 2011", "color":color, "markerStyle":(20 if "top" in org.tag else 1)}, allWithPrefix="SingleMu")
             org.scale(toPdf=True)
             
-        melded = organizer.organizer.meld("melded",organizers)
+        melded = organizer.organizer.meld(organizers = organizers)
         pl = plotter.plotter(melded,
                              psFileName = self.psFileName(melded.tag),
                              doLog = False,
