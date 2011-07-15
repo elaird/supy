@@ -5,7 +5,7 @@ import ROOT as r
 
 class triggers(analysis.analysis) :
     def parameters(self) :
-        return { "muon" : ("muon","PF"),
+        return { "muon" : self.vary({"pf" : ("muon","PF"), "pat" : ("muon","Pat")}),
                  "electron":("electron","PF") }
     
     def listOfCalculables(self, pars) :
@@ -38,6 +38,8 @@ class triggers(analysis.analysis) :
              #steps.Trigger.hltTurnOnHistogrammer( "%sLeadingIsoAny%s"%pars["muon"],(100,0,1), "HLT_IsoMu17_v9" ,["HLT_Mu%d_v%d"%d for d in [(12,3),(12,4),(15,4),(15,5)]]),
              #steps.Trigger.hltTurnOnHistogrammer( "%sLeadingIsoAny%s"%pars["muon"],(100,0,1), "HLT_IsoMu17_v8" ,["HLT_Mu%d_v%d"%d for d in [(12,3),(12,4),(15,4),(15,5)]]),
              #steps.Trigger.hltTurnOnHistogrammer( "%sLeadingPt%s"%pars["muon"], (50,0,25), "HLT_Mu15_v1",["HLT_Mu%d"%d for d in [9,7,5,3]]),
+             steps.Filter.multiplicity("%sPt%s"%pars['muon'], min = 2),
+             steps.Histos.value("%sPtSorted%s"%pars['muon'], 2,0,1),
              ])
     
     def listOfSampleDictionaries(self) :
@@ -46,7 +48,7 @@ class triggers(analysis.analysis) :
     def listOfSamples(self,pars) :
         return ( samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt5", color = r.kOrange) +
                  samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt4", color = r.kViolet) +
-                 samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt3", color = r.kBlue) +
+                 samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt3", color = r.kBlue,) +
                  samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt2", color = r.kGreen) +
                  samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt1", color = r.kBlack) +
                  samples.specify(names = "SingleMu.Run2011A-May10-v1.FJ.Burt", color = r.kRed ) +
@@ -64,7 +66,7 @@ class triggers(analysis.analysis) :
                              #samplesForRatios = ("2010 Data","standard_model"),
                              #sampleLabelsForRatios = ("data","s.m."),
                              #whiteList = ["lowestUnPrescaledTrigger"],
-                             doLog = False,
+                             #doLog = False,
                              #compactOutput = True,
                              #noSci = True,
                              #pegMinimum = 0.1,
