@@ -105,6 +105,14 @@ def drawComponentSolver(cs, canvas = None) :
     canvas.Update()
     return [canvas,rObs,rTemplates,stats,pulls,nlls,nll]
 
+def printComponentSolver(cs, decimals=4) :
+    print "ML fractions   : ", np.round(cs.fractions,decimals)
+    print "uncertainties  : ", np.round(cs.errors, decimals)
+    print "p-value        : ", np.round(cs.p_value, decimals), "\t(%.4f)"%-cs.logL
+    print "bias           : ", cs.bias.round(decimals)
+    print "pull           : ", cs.pull.round(decimals)
+    print "correlation    :\n", cs.correlation.round(decimals)
+
 if __name__=="__main__" :
     r.gROOT.SetStyle("Plain")
     r.gStyle.SetOptStat(1101)
@@ -127,14 +135,8 @@ if __name__=="__main__" :
     obs,edges = np.histogram( sum([values(*pars,N=frac*throws/attenuation) for pars,frac in zip(gauss,fracs)],[]), **histpars)
     ff = componentSolver(obs, templates, ensembleSize)
 
-    decimals = 4
-    print "true fractions : ", np.round(fracs,decimals)
-    print "ML fractions   : ", np.round(ff.fractions,decimals)
-    print "uncertainties  : ", np.round(ff.errors, decimals)
-    print "p-value        : ", np.round(ff.p_value, decimals), "\t(%.4f)"%-ff.logL
-    print "bias           : ", ff.bias.round(decimals)
-    print "pull           : ", ff.pull.round(decimals)
-    print "correlation    :\n", ff.correlation.round(decimals)
+    print "true fractions : ", np.round(fracs,4)
+    printComponentSolver(cs, decimals = 4)
 
     if True : 
         stuff = drawComponentSolver(ff)
