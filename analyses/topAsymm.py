@@ -107,17 +107,38 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         self.meldNorm()
         self.meldWpartitions()
 
-    def meldNorm(self) :
+    def meldNorm(self, dist = "dphiLnu") :
         meldSamples = {"top_muon_pf" : ["SingleMu","P00","NonQQbar"],
                        "Wlv_muon_pf" : ["SingleMu"],
                        "QCD_muon_pf" : ["SingleMu"]}
-
+        signal = ()
+        templates = []
+        
         organizers = [organizer.organizer(tag, [s for s in self.sampleSpecs(tag) if any(item in s['name'] for item in meldSamples[tag])])
                       for tag in [p['tag'] for p in self.readyConfs]]
         for org,color in zip(organizers,[r.kBlack,r.kRed,r.kBlue]) :
             org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kViolet}, sources=["tt_tauola_fj.wNonQQbar","tt_tauola_fj.wTopAsymP00"])
             org.mergeSamples(targetSpec = {"name":"Data 2011", "color":color, "markerStyle":(20 if "top" in org.tag else 1)}, allWithPrefix="SingleMu")
+
+            iData = org.indexOfSampleWithName("Data 2011")
+            before = next(org.indicesOfStep("label","selection complete"))
+            distTup = org.steps[next(iter(filter(lambda i: before<i, org.indicesOfStepsWithKey(dist))))][dist]
+            data = [distTup[iData].GetBinContent(i) for i in range(distTup[iData].GetNbinsX()+2)]
+            if "top" in org.tag :
+                signal = data
+                iTT = org.indexOfSampleWithName("t#bar{t}")
+                templates.append([distTup[iTT].GetBinContent(i) for i in range(distTup[iTT].GetNbinsX()+2)])
+                print "t#bar{t}"
+            else :
+                templates.append(data)
+                print org.tag
             org.scale(toPdf=True)
+
+        import fractions
+        cs = fractions.componentSolver(signal, templates, 1e4)
+        fractions.printComponentSolver(cs,decimals=4)
+        stuff = fractions.drawComponentSolver(cs)
+        stuff[0].Print("fractions.eps")
             
         melded = organizer.organizer.meld(organizers = organizers)
         pl = plotter.plotter(melded,
