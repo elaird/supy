@@ -11,7 +11,7 @@ class topAsymmKinfit(topAsymmShell.topAsymmShell) :
 
     def listOfCalculables(self,pars) :
         calcs = super(topAsymmKinfit,self).listOfCalculables(pars)
-        calcs.append( calculables.Top.genTopSemiLeptonicWithinAcceptance( jetPtMin = 20, jetAbsEtaMax=3.5, lepPtMin=21, lepAbsEtaMax = 2.6))
+        calcs.append( calculables.Top.genTopSemiLeptonicWithinAcceptance( jetPtMin = 20, jetAbsEtaMax=3.5, lepPtMin=21, lepAbsEtaMax = 2.1))
         calcs.append( calculables.Top.genTopSemiLeptonicAccepted( pars['objects']['jet']))
         calcs.append( calculables.Top.genTopRecoIndex())
         return calcs
