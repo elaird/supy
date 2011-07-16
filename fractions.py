@@ -136,7 +136,7 @@ if __name__=="__main__" :
     ff = componentSolver(obs, templates, ensembleSize)
 
     print "true fractions : ", np.round(fracs,4)
-    printComponentSolver(cs, decimals = 4)
+    printComponentSolver(ff, decimals = 4)
 
     if True : 
         stuff = drawComponentSolver(ff)
