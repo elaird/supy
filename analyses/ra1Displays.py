@@ -94,6 +94,7 @@ class ra1Displays(analysis.analysis) :
     def listOfSteps(self, params) :
         return [
             steps.Print.progressPrinter(),
+            #steps.Other.variableGreaterFilter(675, "%sSumEt%s"%_jet, suffix = "GeV"),
             steps.Displayer.displayer(jets      = params["objects"]["jet"],
                                       muons     = params["objects"]["muon"],
                                       met       = params["objects"]["met"],
