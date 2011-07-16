@@ -64,7 +64,7 @@ class hadronicLook(analysis.analysis) :
 
     def ra1Cosmetics(self) : return True
     
-    def calcListJet(self, obj, etRatherThanPt, ptMin, lowPtThreshold, lowPtName, highPtThreshold, highPtName) :
+    def calcListJet(self, obj, etRatherThanPt, ptMin, lowPtThreshold, lowPtName, highPtThreshold, highPtName, htThreshold) :
         def calcList(jet, met, photon, muon, electron, muonsInJets, jetIdFlag) :
             outList = [
                 calculables.XClean.xcJet(jet,
@@ -90,6 +90,7 @@ class hadronicLook(analysis.analysis) :
                 calculables.Jet.AlphaTMet(jet, etRatherThanPt, met),
                 calculables.Jet.MhtOverMet((jet[0], jet[1]+highPtName), met),
                 calculables.Jet.deadEcalDR(jet, extraName = lowPtName, minNXtals = 10),
+                calculables.Other.FixedValue("%sFixedHtBin%s"%jet, htThreshold),
                 ]
             return outList+calculables.fromCollections(calculables.Jet, [jet])
 
@@ -108,7 +109,9 @@ class hadronicLook(analysis.analysis) :
             calculables.Photon.Indices(obj["photon"],  ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
             #calculables.Photon.Indices(obj["photon"],  ptMin = 25, flagName = "photonIDTightFromTwikiPat"),
 
-            calculables.Other.RecHitSumPt(obj["rechit"]),            
+            calculables.Other.RecHitSumPt(obj["rechit"]),
+            calculables.Other.RecHitSumP4(obj["rechit"]),
+            
             calculables.Vertex.ID(),
             calculables.Vertex.Indices(),
             calculables.Other.lowestUnPrescaledTrigger(triggers),
@@ -122,7 +125,7 @@ class hadronicLook(analysis.analysis) :
         outList += calculables.fromCollections(calculables.Photon, [obj["photon"]])
         outList += self.calcListOther(obj, params["triggerList"])
         outList += self.calcListJet(obj, params["etRatherThanPt"], params["thresholds"][3],
-                                    params["lowPtThreshold"], params["lowPtName"], params["highPtThreshold"], params["highPtName"])
+                                    params["lowPtThreshold"], params["lowPtName"], params["highPtThreshold"], params["highPtName"], params["thresholds"][0])
         return outList
     
     def listOfSteps(self, params) :
@@ -290,6 +293,7 @@ class hadronicLook(analysis.analysis) :
             #                          deltaPhiStarExtraName = params["lowPtName"],
             #                          deltaPhiStarCut = 0.5,
             #                          deltaPhiStarDR = 0.3,
+            #                          j2Factor = params["thresholds"][2]/params["thresholds"][0],
             #                          mhtOverMetName = "%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met),
             #                          metOtherAlgo  = params["objects"]["compMet"],
             #                          jetsOtherAlgo = params["objects"]["compJet"],
@@ -324,6 +328,7 @@ class hadronicLook(analysis.analysis) :
             #out += specify(names = "HT_skim")
             #out += specify(names = "MT2_events")
             #out += specify(names = "qcd_py6_375")
+            #out += specify(names = "calo_375")
             return out
 
         def qcd_py6(eL) :
