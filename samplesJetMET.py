@@ -18,7 +18,8 @@ jetmet.add("MT2_events", '["/home/hep/bm409/public_html/MT2Skim.root"]', lumi = 
 jetmet.add("calo_275_scaled", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v6/275_scaled.root", isDirectory = False)', lumi = 189)
 jetmet.add("calo_325_scaled", 'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v6/325_scaled.root", isDirectory = False)', lumi = 189)
 #jetmet.add("calo_375",        'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v6/375.root", isDirectory = False)', lumi = 189)
-jetmet.add("calo_375",        'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v7/375_*Format.root", isDirectory = False)', lumi = 248)
+#jetmet.add("calo_375",        'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v7/375_*Format.root", isDirectory = False)', lumi = 248)
+jetmet.add("calo_375",        'utils.fileListFromDisk(location = "/home/hep/elaird1/73_candidates/v8/375.root", isDirectory = False)', lumi = 1080.)
 
 jetmet.add("bryns_events", 'utils.fileListFromDisk(location = "/vols/cms03/bm409/SUSYv2Test/SUSYv2/bryn/results/Data_tedSync/*.root", isDirectory = False)', lumi = 248)
 jetmet.add("zoe_skim_calo", 'utils.fileListFromDisk(location = "/home/hep/elaird1/76_zoe_sync/zoes_events.root", isDirectory = False)', lumi = 17.0)
