@@ -106,7 +106,7 @@ class Indices(wrappedChain.calculable) :
         relIso = self.source[self.CombinedRelativeIso]
         isGlobal = self.source[self.IsGlobalMuon]
         for i in range(p4s.size()) :
-            if p4s.at(i).pt() < self.ptMin : break
+            if p4s.at(i).pt() < self.ptMin : continue
             if self.requireIsGlobal and not isGlobal.at(i) : continue
             if tight[i] :
                 if relIso[i] < self.relIsoMax :
