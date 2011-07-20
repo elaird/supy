@@ -26,6 +26,16 @@ class componentSolver(object) :
         self.errors = np.sqrt(np.diagonal(self.covariance))
         self.__ensembleSize = ensembleSize
 
+    def __repr__(self) : return "componentSolver( %s, %s, %d)"%(repr(tuple(self.observed)),repr([tuple(c) for c in self.__comps]),self.__ensembleSize)
+    def __str__(self) : return '''\
+    ML fractions   :  %s
+    uncertainties  :  %s
+    p-value        :  %s
+    bias           :  %s
+    pull           :  %s
+    correlation    :\n%s
+    '''%tuple([str(np.round(item, 4)) for item in [self.fractions, self.errors, self.p_value, self.bias, self.pull, self.correlation]])
+   
     @property
     def logL(self) : return sum( self.observed * np.log(self.expected) - self.expected ) # - np.log(np.factorial(self.observed))
     @property
@@ -105,14 +115,6 @@ def drawComponentSolver(cs, canvas = None) :
     canvas.Update()
     return [canvas,rObs,rTemplates,stats,pulls,nlls,nll]
 
-def printComponentSolver(cs, decimals=4) :
-    print "ML fractions   : ", np.round(cs.fractions,decimals)
-    print "uncertainties  : ", np.round(cs.errors, decimals)
-    print "p-value        : ", np.round(cs.p_value, decimals), "\t(%.4f)"%-cs.logL
-    print "bias           : ", cs.bias.round(decimals)
-    print "pull           : ", cs.pull.round(decimals)
-    print "correlation    :\n", cs.correlation.round(decimals)
-
 if __name__=="__main__" :
     r.gROOT.SetStyle("Plain")
     r.gStyle.SetOptStat(1101)
@@ -136,7 +138,9 @@ if __name__=="__main__" :
     ff = componentSolver(obs, templates, ensembleSize)
 
     print "true fractions : ", np.round(fracs,4)
-    printComponentSolver(ff, decimals = 4)
+    print ff
+    print
+    print eval(repr(ff))
 
     if True : 
         stuff = drawComponentSolver(ff)
