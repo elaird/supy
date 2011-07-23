@@ -1,6 +1,8 @@
-import pstats
+#!/usr/bin/env python
 
-inputFile='resultProfile.out'
+import pstats,sys
+
+inputFile= sys.argv[1] if len(sys.argv)>1 else 'resultProfile.out'
 p = pstats.Stats(inputFile)
 
 #p.sort_stats('cumulative').print_stats(20)
