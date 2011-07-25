@@ -4,8 +4,8 @@ import numpy as np
 import ROOT as r
 
 widthTop = 13.1/2
-def minimize(func, **initialValues) :
-    if not "minuit":
+def minimize(func, useMinuit = True, **initialValues) :
+    if useMinuit:
         m = minuit.minuit(func, db=0, dS=0, dL=0)
         m.mnexcm("MIGRAD", 500, 1)
         result = m.values()
@@ -25,7 +25,7 @@ class minuitLeptonicTop(object) :
     def __init__(self, bP4, bResolution, muP4, nuX, nuY, nuErr, 
                  massT = 172.0, widthT = widthTop, massW = 80.4, zPlus = True ) :
 
-        T,B,mu,nu = tuple( utils.vessel() for i in range(4) )
+        T,B,mu,nu,residuals = tuple( utils.vessel() for i in range(5) )
 
         T.mass = massT ;
         T.invWidth2 = widthT**(-2);  
@@ -40,16 +40,15 @@ class minuitLeptonicTop(object) :
         nu.rawX = nuX ; nu.rawY = nuY
         nu.fitted = utils.LorentzV()
         
-        for item in ["T","B","mu","nu","massW"] : setattr(self,item,eval(item))
+        for item in ["T","B","mu","nu","residuals","massW"] : setattr(self,item,eval(item))
         self.sign = 1 if zPlus else -1
         self.cache()
         self.fitted = self.fit()
-        self.residuals = utils.vessel()
-        self.residuals.B = self.fitted['db'] / bResolution
-        self.residuals.S = self.fitted['dS'] * math.sqrt(nu.invSigmaS2)
-        self.residuals.L = self.fitted['dL'] * math.sqrt(nu.invSigmaL2)
-        self.residuals.T = (self.T.mass - (mu.P4+self.B.fitted+self.nu.fitted).M()) / widthT
-
+        residuals.B = self.fitted['db'] / bResolution
+        residuals.S = self.fitted['dS'] * math.sqrt(nu.invSigmaS2)
+        residuals.L = self.fitted['dL'] * math.sqrt(nu.invSigmaL2)
+        residuals.T = (self.T.mass - (mu.P4+self.B.fitted+self.nu.fitted).M()) / widthT
+        
     def cache(self) :
         self.B.rawX = self.B.raw.X()
         self.B.rawY = self.B.raw.Y()
@@ -68,7 +67,7 @@ class minuitLeptonicTop(object) :
             self.setFittedNu(nuX,nuY)
             self.B.fitted = self.B.raw * (1+db)
 
-            T = self.mu.P4 + self.nu.fitted + self.B.fitted
+            T = self.B.fitted + self.mu.P4 + self.nu.fitted 
             return ( self.T.invWidth2 * (self.T.mass - T.M())**2 +
                      self.B.invRes2 * db**2 +
                      self.nu.invSigmaS2 * dS**2 +
@@ -104,8 +103,9 @@ class minuitLeptonicTop(object) :
     def setFittedNu(self,nuX,nuY) :
         P = self.massW**2 + 2* ( self.mu.X*nuX + self.mu.Y*nuY )
         self.discriminant = 1 - 4 * self.mu.T2 * (nuX**2+nuY**2) / P**2
-        nuZ = 0.5 * P / self.mu.T2 * (self.mu.Z + (0 if self.discriminant<0 else self.sign * self.mu.E * math.sqrt(self.discriminant)))
-        self.nu.fitted.SetPxPyPzE(nuX,nuY,nuZ,math.sqrt(nuX**2+nuY**2+nuZ**2))
+        nuZ = 0.5 * P / self.mu.T2 * (self.mu.Z + self.sign*self.mu.E*math.sqrt(max(0,self.discriminant)))
+        self.nu.fitted.SetPxPyPzE(nuX,nuY,nuZ,0)
+        self.nu.fitted.SetM(0)
 
     def setBoundaryFittedNu(self,phi) :
         nuT = 0.5 * self.massW**2 / (self.mu.T * (1 - math.cos(self.mu.phi-phi)))
