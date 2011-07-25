@@ -1,5 +1,5 @@
 from wrappedChain import *
-import calculables,math,utils,fitKinematic,operator
+import calculables,math,utils,fitKinematic,operator,numpy as np
 ######################################
 class TopP4Calculable(wrappedChain.calculable) :
     def __init__(self, collection = None) :
@@ -281,8 +281,9 @@ class TopReconstruction(wrappedChain.calculable) :
         sumP4 = self.source[self.SumP4] - sum(hadronicFit.J.raw,utils.LorentzV()) + hadTopP4
         lepP4 = self.source[self.P4][iLep]
 
-        iUnusedJets = list(set(range(len(self.source[self.CorrectedP4])))-set(list(iHad)+[iBlep]))
-        nuErr = sum([self.source[self.CovariantResolution2][i] for i in iUnusedJets], calculables.Jet.CovariantResolution2.matrix())
+        #iUnusedJets = list(set(range(len(self.source[self.CorrectedP4])))-set(list(iHad)+[iBlep]))
+        #nuErr = sum([self.source[self.CovariantResolution2][i] for i in iUnusedJets],[[1,0],[0,1]])
+        nuErr = self.source["metCovariancePF"] - np.sum(self.source[self.CovariantResolution2][i] for i in set(list(iHad)+[iBlep]))
 
         leptonicFit = fitKinematic.minuitLeptonicTop(self.source[self.CorrectedP4][iBlep],
                                                      self.source[self.Resolution][iBlep],
