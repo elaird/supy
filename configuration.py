@@ -1,4 +1,5 @@
 import os,socket
+import scipy.optimize as opt
 
 def ttreecacheMB() : return 20
 def trace() : return False
