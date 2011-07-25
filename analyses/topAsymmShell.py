@@ -80,7 +80,8 @@ class topAsymmShell(analysis.analysis) :
             
             calculables.Other.Mt(lepton,"mixedSumP4", allowNonIso=True, isSumP4=True),
             calculables.Muon.IndicesAnyIsoIsoOrder(obj[pars["lepton"]["name"]], pars["lepton"]["isoVar"]),
-            calculables.Other.PtSorted(obj['muon'])
+            calculables.Other.PtSorted(obj['muon']),
+            calculables.Other.Covariance(('met','PF'))
             ]
         outList += calculables.fromCollections(calculables.Top,[('genTop',""),('fitTop',"")])
         outList += [calculables.Jet.TagProbability(pars['objects']['jet'], pars['bVar'], letter) for letter in ['b','q','n']]
