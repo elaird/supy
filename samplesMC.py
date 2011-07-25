@@ -13,22 +13,21 @@ mc.add("qcd_mg_ht_250_500",  '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"250To500"), x
 mc.add("qcd_mg_ht_500_1000", '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"500To1000"),xs = {"LO":5200, "fakeNLO":5200*mgKFactor}["fakeNLO"])
 mc.add("qcd_mg_ht_1000_inf", '%s/%s/%s")'%(srm,mgQcdLoc,mgQcdDset%"1000"),     xs = {"LO":83, "fakeNLO":83*mgKFactor}["fakeNLO"])
 
-binsXs = [(  15, 8.159e+08),
-         (  30, 5.312e+07),
-         (  50, 6.359e+06),
-         (  80, 7.843e+05),
-         ( 120, 1.151e+05),
-         ( 170, 2.426e+04),
-         ( 300, 1.168e+03),
-         ( 470, 7.022e+01),
-         ( 600, 1.555e+01),
-         ( 800, 1.844e+00),
-         (1000, 3.321e-01),
-         (1400, 1.087e-02),
-         (1800, 3.575e-04),
-          (None,None)]
-xss  = [bxs[1] for bxs in binsXs]
-bins = [bxs[0] for bxs in binsXs]
+bins,xss = zip(*tuple(
+    [(  15, 8.159e+08),
+     (  30, 5.312e+07),
+     (  50, 6.359e+06),
+     (  80, 7.843e+05),
+     ( 120, 1.151e+05),
+     ( 170, 2.426e+04),
+     ( 300, 1.168e+03),
+     ( 470, 7.022e+01),
+     ( 600, 1.555e+01),
+     ( 800, 1.844e+00),
+     (1000, 3.321e-01),
+     (1400, 1.087e-02),
+     (1800, 3.575e-04),
+     (None,None)]))
 
 py6Loc = '/bbetchar//ICF/automated/2011_04_07_19_50_45/'
 py6Dset = "/QCD_Pt_%s_TuneZ2_7TeV_pythia6.Spring11-PU_S1_START311_V1G1-v1.AODSIM"
@@ -39,16 +38,32 @@ for low,high,xs in zip(bins[:-1],bins[1:],xss) :
 
 py6FJLoc = '/bbetchar//ICF/automated/2011_06_12_05_20_30/'
 py6Summer11Dset = "/QCD_Pt-%s_TuneZ2_7TeV_pythia6.Summer11-PU_S3_START42_V11-v2.AODSIM"
-for low,high,xs in zip(bins[:-1],bins[1:],xss) :
-    mc.add("qcd_py6fj_pt_%s"%("%d_%d"%(low,high) if high else "%d"%low),
+for low,high,xs in zip(bins[:-1],bins[1:],xss[:-1]) :
+    mc.add("qcd_py6fj_pt_%s"%("%d_%d"%(low,high) if high else str(low)),
            '%s/%s/%s")'%(srm,py6FJLoc,py6Summer11Dset%("%dto%d"%(low,high) if high else "%d"%low)),
            xs = xs)
 
 #### QCD mu enriched ####
-#not yet
+bins,xss,forms = zip(*tuple(
+    [(15,  5.792e+08 * 0.00254, 0), # xs * filter efficiency
+     (20,  2.363e+08 * 0.00518, 0),
+     (30,  5.307e+07 * 0.01090, 0),
+     (50,  6.351e+06 * 0.02274, 1),
+     (80,  7.851e+05 * 0.03700, 1),
+     (120, 9.295e+04 * 0.04777, 1),
+     (150, 4.758e+04 * 0.05964, 1),
+     (None,None,None)]))
+py6FJmuLoc = '/bbetchar//ICF/automated/2011_07_15_16_44_18/'
 
+formats = ["QCD_Pt-%s_MuPt5Enriched_TuneZ2_7TeV-pythia6.Summer11-PU_S3_START42_V11-v2.AODSIM/",
+           "QCD_Pt-%s_MuPt5Enriched_TuneZ2_7TeV-pythia6.Summer11-PU_S4_START42_V11-v1.AODSIM/"]
+for low,high,xs,form in zip(bins[:-1],bins[1:],xss[:-1],forms[:-1]) :
+    mc.add("qcd_py6fjmu_pt_%s"%("%d_%d"%(low,high) if high else str(low)),
+           '%s/%s/%s")'%(srm,py6FJmuLoc,formats[form]%("%dto%d"%(low,high) if high else str(low))),
+           xs = xs)
 
 ######### TT / EWK ############
+
 pyFJLoc = '/bbetchar/ICF/automated/2011_06_12_04_28_39/'
 summer11pu = '.Summer11-PU_S3_START42_V11-v2.AODSIM/'
 mc.add("tt_tauola_fj", '%s/%s/TT_TuneZ2_7TeV-pythia6-tauola%s")'%(srm,pyFJLoc,summer11pu),    xs = {"LO":94,    "BurtGuessNLO":157.5}["BurtGuessNLO"])   
@@ -56,8 +71,11 @@ mc.add("w_enu_fj",     '%s/%s/WToENu_TuneZ2_7TeV-pythia6%s")'%(srm,pyFJLoc,summe
 mc.add("w_munu_fj",    '%s/%s/WToMuNu_TuneZ2_7TeV-pythia6%s")'%(srm,pyFJLoc,summer11pu),       xs = {"LO": 7899, "BurtGuessNNLO": 15639}["BurtGuessNNLO"])
 mc.add("w_taunu_fj",   '%s/%s/WToTauNu_TuneZ2_7TeV-pythia6-tauola%s")'%(srm,pyFJLoc,summer11pu),xs = {"LO": 7899, "BurtGuessNNLO": 15639}["BurtGuessNNLO"])
 
-mc.add("tt_tauola_fj_mg", '%s/%s")'%(srm,'/bbetchar//ICF/automated/2011_06_21_16_32_59/'), xs = {"LO":121, "BurtGuessNLO":157.5}["BurtGuessNLO"])
-mc.add("w_jets_fj_mg", '%s/%s",alwaysUseLastAttempt = True)'%(srm,'/gouskos//ICF/automated/2011_06_22_10_25_36/'), xs = {"LO":24640, "BurtGuessNNLO": 46917}["BurtGuessNNLO"])
+# https://twiki.cern.ch/twiki/bin/view/CMS/MadGraphSummer11Production
+mc.add("tt_tauola_fj_mg",'%s/bbetchar//ICF/automated/2011_07_20_22_27_52/")'%srm, xs = 319.18)
+mc.add("w_jets_fj_mg", '%s/gouskos//ICF/automated/2011_07_18_17_43_04/")'%srm, xs = 55854)
+#mc.add("tt_tauola_fj_mg", '%s/%s")'%(srm,'/bbetchar//ICF/automated/2011_06_21_16_32_59/'), xs = {"LO":121, "BurtGuessNLO":157.5}["BurtGuessNLO"])
+#mc.add("w_jets_fj_mg", '%s/%s", alwaysUseLastAttempt = True)'%(srm,'/gouskos//ICF/automated/2011_06_22_10_25_36/'), xs = {"LO":24640, "BurtGuessNNLO": 46917}["BurtGuessNNLO"])
 
 burt_ttbar = '/bbetchar//ICF/automated/2011_04_07_19_30_01/'
 burt_ewk = '/bbetchar//ICF/automated/2011_04_07_19_40_51/'
