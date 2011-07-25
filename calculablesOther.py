@@ -1,5 +1,5 @@
 from wrappedChain import *
-import calculables,math,utils,configuration
+import calculables,math,utils,configuration,numpy as np
 #####################################
 class localEntry(wrappedChain.calculable) :
     def update(self,localEntry) :
@@ -216,3 +216,11 @@ class PtSorted(wrappedChain.calculable) :
     def update(self,_) :
         pt = self.source[self.Pt]
         self.value = all(i>j for i,j in zip(pt[:-1],pt[1:]))
+#####################################
+class Covariance(wrappedChain.calculable) :
+    def __init__(self, collection) :
+        self.fixes = collection
+        self.stash(['SigmaXX','SigmaXY','SigmaYY'])
+    def update(self,_) :
+        self.value = np.array([[self.source[self.SigmaXX],self.source[self.SigmaXY]],
+                               [self.source[self.SigmaXY],self.source[self.SigmaYY]]])
