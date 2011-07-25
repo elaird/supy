@@ -8,67 +8,67 @@ class TopP4Calculable(wrappedChain.calculable) :
 ######################################
 ######################################
 class SumP4(TopP4Calculable) :
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = self.source[self.P4]['t'] + self.source[self.P4]['tbar']
 ######################################
 class SumPt(TopP4Calculable) :
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = self.source[self.P4]['t'].pt() + self.source[self.P4]['tbar'].pt()
 ######################################
 class Pt(wrappedChain.calculable) :
     def __init__(self,collection = None) :
         self.fixes = collection
         self.stash(['SumP4'])
-    def update(self,ignored) : self.value = self.source[self.SumP4].pt()
+    def update(self,_) : self.value = self.source[self.SumP4].pt()
 ######################################
 class PtOverSumPt(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
         self.stash(['Pt','SumPt'])
-    def update(self,ignored) : self.value = self.source[self.Pt] / self.source[self.SumPt]
+    def update(self,_) : self.value = self.source[self.Pt] / self.source[self.SumPt]
 ######################################
 class BoostZ(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
         self.stash(['SumP4'])
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = r.Math.BoostZ( self.source[self.SumP4].BoostToCM().z())
 ######################################
 class BoostZAlt(TopP4Calculable) :
-    def update(self,ignored) :
+    def update(self,_) :
         t,tbar = tuple(self.source[self.P4][i] for i in ['t','tbar'])
         pt = t.pt()
         ptbar = tbar.pt()
         self.value = r.Math.BoostZ( - (t.z()/pt + tbar.z()/ptbar) / (t.E()/pt + tbar.E()/ptbar) )
 ######################################
 class DeltaPhi(TopP4Calculable) :
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = r.Math.VectorUtil.DeltaPhi(self.source[self.P4]['t'], self.source[self.P4]['tbar'])
 ######################################
 class WqqDeltaR(TopP4Calculable) :
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = r.Math.VectorUtil.DeltaR(self.source[self.P4]['p'],self.source[self.P4]['q'])
 ######################################
 class DeltaAbsY(TopP4Calculable) :
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = abs(self.source[self.P4]['t'].Rapidity()) - abs(self.source[self.P4]['tbar'].Rapidity())
 ######################################
 class DeltaY(TopP4Calculable) :
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = self.source[self.P4]['t'].Rapidity() - self.source[self.P4]['tbar'].Rapidity()
 ######################################
 class DirectedDeltaY(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
         self.stash(['DeltaY','SignQuarkZ'])
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = self.source[self.SignQuarkZ] * self.source[self.DeltaY]
 ######################################
 class SignedLeptonRapidity(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
         self.stash(['P4',"LeptonCharge","SignQuarkZ"])
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = (self.source[self.SignQuarkZ] *
                       self.source[self.LeptonCharge] *
                       self.source[self.P4]['lepton'].Rapidity() )
@@ -79,7 +79,7 @@ class RelativeLeptonRapidity(wrappedChain.calculable) :
         self.stash(["SumP4","P4","LeptonCharge"])
         self.moreName = "sign(y_sum) * q_lep * (y_lep-y_sum); %s%s; %s"%(collection+(SumP4,))
 
-    def update(self,ignored) :
+    def update(self,_) :
         q_lep = self.source[self.LeptonCharge]
         y_lep = self.source[self.P4]['lepton'].Rapidity()
         y_sum = self.source[self.SumP4].Rapidity()
@@ -90,7 +90,7 @@ class SignQuarkZ(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
         self.stash(['P4'])
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = 1 if self.source[self.P4]['quark'].z() > 0 else -1
 #####################################
 class Alpha(wrappedChain.calculable) :
@@ -98,7 +98,7 @@ class Alpha(wrappedChain.calculable) :
         self.fixes = collection
         self.stash(['SumP4'])
         self.FourMtop2 = 4 * 172**2
-    def update(self,ignored) :
+    def update(self,_) :
         x = self.FourMtop2 / self.source[self.SumP4].M2()
         self.value = 2 * max(0,(1-x)/(1+x))
 ######################################
@@ -106,7 +106,7 @@ class Beta(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
         self.stash(['Alpha','CosThetaStarAvg'])
-    def update(self, ignored) :
+    def update(self, _) :
         self.value = self.source[self.CosThetaStarAvg] * math.sqrt(self.source[self.Alpha])
 ######################################
 class __CosThetaStar__(wrappedChain.calculable) :
@@ -115,7 +115,7 @@ class __CosThetaStar__(wrappedChain.calculable) :
         self.stash(['P4'])
         self.boostz = ("%s"+boostz+"%s")%collection
         self.TopKey = topKey
-    def update(self,ignored) :
+    def update(self,_) :
         p4 = self.source[self.P4] 
         sign = ( 1 if self.TopKey=='t' else -1)
         self.value = sign * r.Math.VectorUtil.CosTheta( self.source[self.boostz](p4[self.TopKey]),  p4['quark'] ) 
@@ -130,7 +130,7 @@ class CosThetaStarAvg(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
         self.stash(['CosThetaStar','CosThetaStarBar'])
-    def update(self,ignored) :
+    def update(self,_) :
         star = self.source[self.CosThetaStar]
         bar =  self.source[self.CosThetaStarBar]
         sign = 1 if star>0 else -1
@@ -139,14 +139,14 @@ class CosThetaStarAngle(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
         self.stash(['CosThetaStar','CosThetaStarBar'])
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = math.atan2(abs(self.source[self.CosThetaStar]),abs(self.source[self.CosThetaStarBar])) # on [0:pi/2]
 ######################################
 ######################################
 ######################################
 
 class genTopP4(wrappedChain.calculable) :
-    def update(self,ignored) :
+    def update(self,_) :
         indices = self.source['genTTbarIndices']
         p4 = self.source['genP4']
         qqbar = self.source['genQQbar']
@@ -158,11 +158,11 @@ class genTopP4(wrappedChain.calculable) :
                        'q' : p4[indices['q'][1]] if len(indices['q'])>1 else None
                        }
 class genTopLeptonCharge(wrappedChain.calculable) :
-    def update(self,ignored) : self.value = (1 if self.source['genTTbarIndices']['lplus'] else \
+    def update(self,_) : self.value = (1 if self.source['genTTbarIndices']['lplus'] else \
                                              -1 if self.source['genTTbarIndices']['lminus'] else 0)
         
 class fitTopP4(wrappedChain.calculable) :
-    def update(self,ignored) :
+    def update(self,_) :
         reco = self.source["TopReconstruction"][0]
         t = reco['top']
         tbar = reco['tbar']
@@ -176,7 +176,7 @@ class fitTopP4(wrappedChain.calculable) :
 class fitTopLeptonCharge(wrappedChain.calculable) :
     def __init__(self, lepton) :
         self.lepton = lepton
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = self.source["%sCharge%s"%self.lepton][self.source["%sSemileptonicTopIndex%s"%self.lepton]]
 
 
@@ -187,13 +187,13 @@ class fitTopLeptonCharge(wrappedChain.calculable) :
 
 
 class genTopTTbar(wrappedChain.calculable) :
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = tuple(list(self.source['genPdgId']).index(i) for i in [6,-6]) if \
                      (not self.source['isRealData']) and \
                      all([id in self.source['genPdgId'] for id in [-6,6]]) else ()
 ######################################
 class genTTbarIndices(wrappedChain.calculable) :
-    def update(self,ignored) :
+    def update(self,_) :
         ids = [i for i in self.source['genPdgId']]
         mom = self.source['genMotherIndex']
         self.value = dict([(name, ids.index(i)) for name,i in [('t',6),
@@ -202,20 +202,19 @@ class genTTbarIndices(wrappedChain.calculable) :
                                                                ('wminus',-24)
                                                                ]])
         self.value.update(dict([ (w+"Child",filter(lambda i: mom[i]==self.value[w],range(len(ids)))) for w in ['wplus','wminus','t','tbar']]))
-        self.value['b'] = list(set(self.value['tChild']) - set(['24']))[0]
-        self.value['bbar'] = list(set(self.value['tbarChild']) - set(['-24']))[0]
-        self.value['lplus'] = max([None]+filter(lambda i: ids[i] in [-11,-13],self.value['wplusChild']))
-        self.value['lminus'] = max([None]+filter(lambda i: ids[i] in [11,13],self.value['wminusChild']))
+        self.value['b'] = next(i for i in self.value['tChild'] if abs(ids[i])!=24)
+        self.value['bbar'] = next(i for i in self.value['tbarChild'] if abs(ids[i])!=24)
+        self.value['lplus'] = next((i for i in self.value['wplusChild'] if ids[i] in [-11,-13]),None)
+        self.value['lminus'] = next((i for i in self.value['wminusChild'] if ids[i] in [11,13]),None)
         self.value['q'] = ((self.value['wplusChild'] if not self.value['lplus'] else []) +
                             (self.value['wminusChild'] if not self.value['lminus'] else []))
-        nus = filter(lambda i: abs(ids[i]) in [12,14], self.value['wplusChild']+self.value['wminusChild'])
-        self.value['nu'] = nus[0] if nus else None
+        self.value['nu'] = next((i for i in (self.value['wplusChild']+self.value['wminusChild']) if abs(ids[i]) in [12,14]),None)
 ######################################
 class genTopSemiLeptonicWithinAcceptance(wrappedChain.calculable) :
     def __init__(self, jetPtMin = None, jetAbsEtaMax = None, lepPtMin = None, lepAbsEtaMax = None) :
         for item in ['jetPtMin','jetAbsEtaMax','lepPtMin','lepAbsEtaMax'] : setattr(self,item,eval(item))
         self.moreName = 'jetPt>%0.1f; jet|eta|<%0.1f; lepPt>%0.1f; lep|eta|<%0.1f'%(jetPtMin,jetAbsEtaMax,lepPtMin,lepAbsEtaMax)
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = False
         if not self.source["genTopTTbar"] : return
         indices = self.source['genTTbarIndices']
@@ -233,7 +232,7 @@ class genTopSemiLeptonicAccepted(wrappedChain.calculable) :
     def __init__(self,jets) :
         self.indicesGenB = "%sIndicesGenB%s"%jets
         self.indicesGenWqq = "%sIndicesGenWqq%s"%jets
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = len(self.source[self.indicesGenB]) is 2 is len(self.source[self.indicesGenWqq])
 ######################################
 class mixedSumP4(wrappedChain.calculable) :
@@ -242,7 +241,7 @@ class mixedSumP4(wrappedChain.calculable) :
         self.longi = longitudinal
         self.moreName = "transvers: %s ; longitudinal: %s" % (transverse,longitudinal)
         self.value = utils.LorentzV()
-    def update(self,ignored) :
+    def update(self,_) :
         trans = self.source[self.trans]
         longi = self.source[self.longi]
         f = trans.pt() / longi.pt()
@@ -254,7 +253,7 @@ class SemileptonicTopIndex(wrappedChain.calculable) :
         self.stash(["Indices","IndicesNonIso"])
         self.moreName = "Just indices[0] or indicesNonIso[0] for now."
 
-    def update(self,ignored) :
+    def update(self,_) :
         indices = self.source[self.Indices]
         nonIso = self.source[self.IndicesNonIso]
         self.value = indices[0] if indices else nonIso[0] if nonIso else None
@@ -299,6 +298,7 @@ class TopReconstruction(wrappedChain.calculable) :
                 "lepB" : leptonicFit.B.fitted,
                 "lepW" : leptonicFit.mu.P4 + leptonicFit.nu.fitted,
                 "lepBound" : "phi" in leptonicFit.fitted,
+                "lepCharge": charge,
                 "hadB" : hadronicFit.J.fitted[0],
                 "hadP" : hadronicFit.J.fitted[1],
                 "hadQ" : hadronicFit.J.fitted[2],
@@ -316,8 +316,8 @@ class TopReconstruction(wrappedChain.calculable) :
                 "iBlep": iBlep,
                 "iQQ": iQQ,
                 "probability" : self.source["TopComboProbability"][tuple(sorted([iBhad,iBlep])+sorted(iQQ))] if self.source["TopComboProbability"] else 0,
-                "sigmaL" : 1.0 / math.sqrt(leptonicFit.nu.invSigmaL2),
-                "sigmaS" : 1.0 / math.sqrt(leptonicFit.nu.invSigmaS2),
+                #"sigmaL" : 1.0 / math.sqrt(leptonicFit.nu.invSigmaL2),
+                #"sigmaS" : 1.0 / math.sqrt(leptonicFit.nu.invSigmaS2),
                 "residuals" : {"lepB":leptonicFit.residuals.B,
                                "lepS":leptonicFit.residuals.S,
                                "lepL":leptonicFit.residuals.L,
@@ -330,7 +330,7 @@ class TopReconstruction(wrappedChain.calculable) :
                                }
                 }
 
-    def update(self,ignored) :
+    def update(self,_) :
         topProbability = self.source["TopComboProbability"]
         #maxTopProbability = self.source["TopComboMaxProbability"]
         self.hadronicFitCache = {}
@@ -348,54 +348,54 @@ class TopReconstruction(wrappedChain.calculable) :
                         pts = [self.source[self.CorrectedP4][i].pt() for i in [iBLep,iBHad,iP,iQ]]
                         #if max(pts[:2])<min(pts[2:]) : continue # probability that neither of the two leading in pT is a b-jet is only 7%
                         #if sum(pts[1:])<100 : continue # probability that the sumPt of hadronic side jets is less that 100 is only 4%
-                        for zPlus in [0,1] :
-                            hadKey = tuple(sorted([iBHad,iBLep]) + sorted([iP,iQ]))
-                            if hadKey not in topProbability or topProbability[hadKey] < 0.01 : continue
-                            recos.append( self.reconstruct(iBHad,[iP,iQ],iBLep, zPlus))
+                        hadKey = tuple(sorted([iBHad,iBLep]) + sorted([iP,iQ]))
+                        if hadKey not in topProbability or topProbability[hadKey] < 0.01 : continue
+                        for zPlus in [0,1] : recos.append( self.reconstruct(iBHad,[iP,iQ],iBLep, zPlus))
         if not recos:
             bIndices = self.source[self.IndicesBtagged][:2]
             indices = filter(lambda i: i not in bIndices, self.source[self.Indices])[:2]
             recos = [ self.reconstruct( bIndices[not bLep], indices, bIndices[bLep], zPlus) for bLep in [0,1] for zPlus in [0,1] ]
+
         self.value = sorted( recos,  key = lambda x: x["chi2"]*(1-x["probability"])**2 )
 
 
 ######################################
 class lepDeltaRTopRecoGen(wrappedChain.calculable) :
-    def update(self,ignored):
+    def update(self,_):
         indices = self.source['genTTbarIndices']
         genLep = self.source['genP4'][max(indices['lplus'],indices['lminus'])]
         self.value = [r.Math.VectorUtil.DeltaR(genLep,reco['lep']) for reco in self.source['TopReconstruction']]
 class nuDeltaRTopRecoGen(wrappedChain.calculable) :
-    def update(self,ignored):
+    def update(self,_):
         genNu = self.source['genP4'][self.source['genTTbarIndices']['nu']]
         self.value = [r.Math.VectorUtil.DeltaR(genNu,reco['nu']) for reco in self.source['TopReconstruction']]
 class bLepDeltaRTopRecoGen(wrappedChain.calculable) :
-    def update(self,ignored):
+    def update(self,_):
         indices = self.source['genTTbarIndices']
         genLepB = self.source['genP4'][indices['b'] if indices['lplus'] else indices['bbar']]
         self.value = [r.Math.VectorUtil.DeltaR(genLepB,reco['lepB']) for reco in self.source['TopReconstruction']]
 class bHadDeltaRTopRecoGen(wrappedChain.calculable) :
-    def update(self,ignored):
+    def update(self,_):
         indices = self.source['genTTbarIndices']
         genHadB = self.source['genP4'][indices['bbar'] if indices['lplus'] else indices['b']]
         self.value = [r.Math.VectorUtil.DeltaR(genHadB,reco['hadB']) for reco in self.source['TopReconstruction']]
 class pqDeltaRTopRecoGen(wrappedChain.calculable) :
-    def update(self,ignored):
+    def update(self,_):
         PQ = tuple([self.source['genP4'][self.source['genTTbarIndices']['q'][i]] for i in range(2)])
         self.value= [min([ tuple(sorted([r.Math.VectorUtil.DeltaR(*t) for t in [(reco['hadP'],PQ[i]),(reco['hadQ'],PQ[j])]])) for i,j in [(0,1),(1,0)]])\
                      for reco in self.source['TopReconstruction']]
 class qDeltaRTopRecoGen(wrappedChain.calculable) :
-    def update(self,ignored): self.value = [pq[1] for pq in self.source['pqDeltaRTopRecoGen']]
+    def update(self,_): self.value = [pq[1] for pq in self.source['pqDeltaRTopRecoGen']]
 ######################################
 class fitTopRecoIndex(wrappedChain.calculable) :
     value = 0
-    def update(self,ignored) : pass
+    def update(self,_) : pass
 class genTopRecoIndex(wrappedChain.calculable) :
-    def __init__(self,rMax = 0.6, rMaxNu = 1.0) :
+    def __init__(self,rMax = 0.6, rMaxNu = 10.0) :
         for item in ['lep','bLep','bHad','q'] : setattr(self,"rMax"+item, rMax )
         self.rMaxnu = rMaxNu
         self.moreName = "deltaR[lep,b,b,q,q] <%0.1f; deltaRnum<%0.1f"%(rMax,rMaxNu)
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = None
         if self.source['isRealData'] : return
         if not self.source['genTopSemiLeptonicWithinAcceptance'] : return        
@@ -422,7 +422,7 @@ class wTopAsym(wrappedChain.calculable) :
         base = 3 * (1+beta*beta) / (6+2.*alpha)
         return (base+beta*self.rPrime) / (base+beta*self.R)
     
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = None if not self.source['genQQbar'] else self.weight(self.source['genTopBeta'],
                                                                           self.source['genTopAlpha'])
 ######################################
@@ -433,7 +433,7 @@ class TopComboLikelihood(wrappedChain.calculable) :
         self.Q = ("%sTagProbabilityQ_"+tag+"%s") % jets
         self.N = ("%sTagProbabilityN_"+tag+"%s") % jets
 
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = {}
         indices = self.source[self.Indices]
         B = self.source[self.B]
@@ -450,7 +450,7 @@ class TopComboLikelihood(wrappedChain.calculable) :
                         self.value[tuple([indices[k] for k in [i,j,m,n]])] = reduce(operator.mul, [B[i],B[j],Q[m],Q[n]]+[N[k] for k in other] )
 ######################################
 class TopComboProbability(wrappedChain.calculable) :
-    def update(self,ignored) :
+    def update(self,_) :
         likelihoods = self.source['TopComboLikelihood']
         sumL = sum(likelihoods.values())
         self.value = {}
@@ -458,14 +458,14 @@ class TopComboProbability(wrappedChain.calculable) :
         return
 ######################################
 class TopComboMaxProbability(wrappedChain.calculable) :
-    def update(self,ignored) : self.value = max(self.source["TopComboProbability"].values())
+    def update(self,_) : self.value = max(self.source["TopComboProbability"].values())
 ######################################
 class OtherJetsLikelihood(wrappedChain.calculable) :
     def __init__(self, jets = None, tag = None) :
         self.stash(["Indices"],jets)
         self.N = ("%sTagProbabilityN_"+tag+"%s") % jets
 
-    def update(self,ignored) :
+    def update(self,_) :
         indices = self.source[self.Indices]
         N = self.source[self.N]
         self.value = reduce(operator.mul, [N[k] for k in indices])
@@ -475,7 +475,7 @@ class TopRatherThanWProbability(wrappedChain.calculable) :
         self.invPriorTopMinusOne =  ( 1.0 / priorTop  - 1)
         self.moreName = "priorTop = %0.3f"%priorTop
         
-    def update(self,ignored) :
+    def update(self,_) :
         topLikes = self.source["TopComboLikelihood"]
         if not topLikes :
             self.value = 1.0/ (self.invPriorTopMinusOne + 1); return
