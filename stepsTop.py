@@ -87,12 +87,21 @@ class combinatoricsLook(analysisStep) :
         topReco = ev["TopReconstruction"]
         index = ev[self.moreName]
         for s in ['lep','nu','bLep','bHad','q'] :
-            self.book.fill(ev['%sDeltaRTopRecoGen'%s][index], s+'DeltaRTopRecoGen'+self.moreName, 50,0,3, title = ';%s DeltaR reco gen;events / bin'%s)
+            self.book.fill(ev['%sDeltaRTopRecoGen'%s][index], s+'DeltaRTopRecoGen', 50,0,3, title = ';%s DeltaR reco gen;events / bin'%s)
         self.book.fill(index, self.moreName, 20, -0.5, 19.5, title = ';%s;events / bin'%self.moreName)
-        self.book.fill(topReco[index]['probability'], self.moreName+"probability", 100,0,1, title = ';%s probability;events / bin'%self.moreName)
+        self.book.fill(topReco[index]['probability'], "probability", 100,0,1, title = ';%s probability;events / bin'%self.moreName)
 
-        if not self.jets : return
-        self.book.fill((index,len(ev["%sIndices%s"%self.jets])), self.moreName+"%sMultiplicity%s"%self.jets, (20,10), (-0.5,-0.5), (19.5,9.5), title = ';%s;jet multiplicity;events / bin'%self.moreName)
+        if self.jets :
+            self.book.fill((index,len(ev["%sIndices%s"%self.jets])), self.moreName+"%sMultiplicity%s"%self.jets, (20,10), (-0.5,-0.5), (19.5,9.5), title = ';%s;jet multiplicity;events / bin'%self.moreName)
+
+        genTTbar = ev["genTopTTbar"]
+        if not genTTbar : return
+        genY = (ev["genP4"][genTTbar[0]].Rapidity(), ev["genP4"][genTTbar[1]].Rapidity())
+        recoY = (topReco[index]['top'].Rapidity(),topReco[index]['tbar'].Rapidity())
+        iLep = min(0,topReco[index]["lepCharge"])
+        self.book.fill( recoY[iLep] - genY[iLep], "dRapidityLepTop", 100,-1,1, title=";lep top #Delta y_{reco gen};events / bin")
+        self.book.fill( recoY[not iLep] - genY[not iLep], "dRapidityHadTop", 100,-1,1, title=";had top #Delta y_{reco gen};events / bin")
+        self.book.fill( recoY[0]-recoY[1] - (genY[0]-genY[1]), "ddRapidityTTbar", 100,-1,1, title = ";#Delta y_{t#bar{t} reco}-#Delta y_{t#bar{t} gen};events / bin")
 #####################################
 class jetProbability(analysisStep) :
     def __init__(self, jets = None, bvar = None, bins = 30, min = 0 , max = 1, extraName = "") :
