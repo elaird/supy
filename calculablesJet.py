@@ -1,5 +1,5 @@
 from wrappedChain import *
-import math,collections,bisect,itertools
+import math,collections,bisect,itertools,numpy as np
 import calculables,utils
 
 def xcStrip(collection) :
@@ -807,29 +807,17 @@ class Resolution(wrappedChain.calculable) :
         self.value = utils.hackMap(self.res, self.source[self.CorrectedP4])
 #####################################
 class CovariantResolution2(wrappedChain.calculable) :
-    '''(xx,xy,yy) in the transverse plane.'''
+    '''[[xx,xy],[xy,yy]] in the transverse plane.'''
 
     def __init__(self, collection = None) :
         self.fixes = collection
-        self.stash(["Indices","CorrectedP4","Resolution"])
+        self.stash(["CorrectedP4","Resolution"])
 
-    class matrix(object) :
-        def __init__(self,p4=None,res=None,default = (1.0,0.0,1.0)) :
-            if not p4 :
-                self.xx,self.xy,self.yy = default
-            else:
-                phi = p4.phi()
-                c1 = math.cos(phi)
-                s1 = math.sin(phi)
-                r2 = p4.Perp2() * res**2
-                self.xx =  r2*c1*c1
-                self.xy = -r2*c1*s1
-                self.yy =  r2*s1*s1
-            return
-        def __add__(self,other) :
-            return self.__class__(default=(self.xx+other.xx,
-                                           self.xy+other.xy,
-                                           self.yy+other.yy))
+    @staticmethod
+    def matrix(p4,res) :
+        phi = p4.phi()
+        return p4.Perp2() * res**2 * np.outer(*(2*[[math.cos(phi),math.sin(phi)]]))
+
     def update(self,ignored) : 
         self.value = utils.hackMap(self.matrix , self.source[self.CorrectedP4] , self.source[self.Resolution] )
 #####################################
