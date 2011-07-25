@@ -1,12 +1,29 @@
 import numpy,math,utils,minuit
+import scipy.optimize as opt
+import numpy as np
 import ROOT as r
+
+widthTop = 13.1/2
+def minimize(func, **initialValues) :
+    if not "minuit":
+        m = minuit.minuit(func, db=0, dS=0, dL=0)
+        m.mnexcm("MIGRAD", 500, 1)
+        result = m.values()
+        del m
+        return result
+
+    else:
+        def fnc(x) : return func(*x)
+        argNames = func.__code__.co_varnames[:func.__code__.co_argcount]
+        ini = [initialValues[item] if item in initialValues else 0. for item in argNames]
+        return dict(zip(argNames,opt.fmin_bfgs(fnc,ini,disp=0)))
 
 ###########################
 class minuitLeptonicTop(object) :
     '''Fit jet, lepton, and missing energy to the hypothesis t-->blv.'''
 
     def __init__(self, bP4, bResolution, muP4, nuX, nuY, nuErr, 
-                 massT = 172.0, widthT = 2, massW = 80.4, zPlus = True ) :
+                 massT = 172.0, widthT = widthTop, massW = 80.4, zPlus = True ) :
 
         T,B,mu,nu = tuple( utils.vessel() for i in range(4) )
 
@@ -16,10 +33,10 @@ class minuitLeptonicTop(object) :
         B.invRes2 = bResolution**(-2); 
         mu.P4 = muP4
 
-        phi = math.atan2(2*nuErr.xy, nuErr.xx - nuErr.yy)
+        phi = math.atan2(2*nuErr[0][1], nuErr[0][0] - nuErr[1][1])
         nu.cos = math.cos(phi) ; nu.sin = math.sin(phi)
-        nu.invSigmaS2 = 1.0 / ( nuErr.xx*nu.cos**2 - 2*nuErr.xy*nu.cos*nu.sin + nuErr.yy*nu.sin**2 )
-        nu.invSigmaL2 = 1.0 / ( nuErr.xx*nu.sin**2 + 2*nuErr.xy*nu.cos*nu.sin + nuErr.yy*nu.cos**2 )
+        nu.invSigmaS2 = 1.0 / max(1, nuErr[0][0]*nu.cos**2 - 2*nuErr[0][1]*nu.cos*nu.sin + nuErr[1][1]*nu.sin**2 )
+        nu.invSigmaL2 = 1.0 / max(1, nuErr[0][0]*nu.sin**2 + 2*nuErr[0][1]*nu.cos*nu.sin + nuErr[1][1]*nu.cos**2 )
         nu.rawX = nuX ; nu.rawY = nuY
         nu.fitted = utils.LorentzV()
         
@@ -57,10 +74,7 @@ class minuitLeptonicTop(object) :
                      self.nu.invSigmaS2 * dS**2 +
                      self.nu.invSigmaL2 * dL**2 )
 
-        m = minuit.minuit(fnc, db=0, dS=0, dL=0)
-        m.mnexcm("MIGRAD", 500, 1)
-        result = m.values()
-        del m
+        result = minimize(fnc)
         self.chi2_ = fnc(**result)
         if 0 <= self.discriminant : return result
 
@@ -80,9 +94,7 @@ class minuitLeptonicTop(object) :
                      self.nu.invSigmaS2 * dS**2 +
                      self.nu.invSigmaL2 * dL**2 )
 
-        m = minuit.minuit(fnc, db=0, phi = math.atan2(self.nu.rawY, self.nu.rawX))
-        m.mnexcm("MIGRAD", 500, 1)
-        result = m.values()
+        result = minimize(fnc, db=0, phi = math.atan2(self.nu.rawY,self.nu.rawX))
         self.chi2_ = fnc(**result)
         dS,dL = nuRotate( self.nu.fitted.X() - self.nu.rawX + result['db'] * self.B.rawX,
                           self.nu.fitted.Y() - self.nu.rawY + result['db'] * self.B.rawY )
@@ -108,7 +120,7 @@ class minuitHadronicTop(object) :
     Index 0 is the b-jet.
     Resolutions are expected in units of sigma(pT)/pT.'''
 
-    def __init__(self, jetP4s, jetResolutions, massT = 172.0, widthT = 2, massW = 80.4, widthW = 2.085/2 ) :
+    def __init__(self, jetP4s, jetResolutions, massT = 172.0, widthT = widthTop, massW = 80.4, widthW = 2.085/2 ) :
         assert len(jetP4s) == 3 == len(jetResolutions), "Please specify 3 and only 3 jets."
         J,W,T = tuple( utils.vessel() for i in range(3) )
 
@@ -131,10 +143,7 @@ class minuitHadronicTop(object) :
                      self.W.invWidth2 * (self.W.mass - W.M())**2 +
                      sum([r*delta**2 for delta,r in zip(d,self.J.invRes2)]) )
 
-        m = minuit.minuit(fnc)        
-        m.mnexcm("MIGRAD", 500, 1)
-        fitted = m.values()
-        del m
+        fitted = minimize(fnc)
         self.chi2_ = fnc(**fitted)
         self.J.delta = [fitted[s] for s in ['db','dp','dq']]
         self.J.fitted = [jet*(1+delta) for delta,jet in zip(self.J.delta,self.J.raw)]
@@ -159,7 +168,7 @@ class linearHadronicTop(object) :
         elif key=="W": return self.W.invWidth2 * ( self.W.mass - (self.J.fitted[1] + self.J.fitted[2]).M() )**2
         elif key=="T": return self.T.invWidth2 * ( self.T.mass - sum( self.J.fitted, utils.LorentzV()).M() )**2
 
-    def __init__(self, jetP4s, jetResolutions, massT = 172.0, widthT = 13.1/2, massW = 80.4, widthW = 2.085/2 ) :
+    def __init__(self, jetP4s, jetResolutions, massT = 172.0, widthT = widthTop, massW = 80.4, widthW = 2.085/2 ) :
         assert len(jetP4s) == 3 == len(jetResolutions), "Please specify 3 and only 3 jets."
         J,W,T = tuple( utils.vessel() for i in range(3) )
 
@@ -210,10 +219,10 @@ class linearWbTop(object) :
                  self.topInvWidth2 * (self.massTop - (self.b.fitted+self.W).M())**2 )
 
     def __init__(self,bjet,bresolution,W,
-                 massTop=172.0,widthTop=13.1/2) :
+                 massTop=172.0,widthT=widthTop) :
 
         rawTop2 = (bjet+W).M2()
-        topInvWidth2 = widthTop**(-2)
+        topInvWidth2 = widthT**(-2)
 
         R = massTop / math.sqrt(rawTop2)
         A = (rawTop2 - W.M2()) * topInvWidth2
@@ -282,10 +291,8 @@ class minuitMuNuW(object) :
             val = ( (x - rnuX)**2/sigma2x +
                     (y - rnuY)**2/sigma2y )
             return val
-        
-        m = minuit.minuit(fnc, phi = rNuP4.Phi() )
-        if m.mnexcm("MIGRAD", 500, 1) : m.printStatus()
-        fitted = m.values()
+
+        fitted = minimize(fnc, phi = rNuP4.Phi() )
         self.chi2 = fnc(**fitted)
 
         nuT = NUT(rMuPhi-fitted['phi'])
