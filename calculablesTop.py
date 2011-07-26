@@ -265,69 +265,52 @@ class TopReconstruction(wrappedChain.calculable) :
         self.SumP4 = SumP4
 
     def reconstruct(self, iBhad, iQQ, iBlep, zPlus) :
-        iLep = self.source[self.SemileptonicTopIndex]
-        charge = self.source[self.Charge][iLep]
         iHad = tuple([iBhad] + iQQ)
         if iHad not in self.hadronicFitCache :
-            hadP4 = [self.source[self.CorrectedP4][i] for i in iHad]
-            hadRes = [self.source[self.Resolution][i] for i in iHad]
-            if len(iQQ) == 1 : hadP4.append(utils.LorentzV()); hadRes.append(1.0)
-            self.hadronicFitCache[iHad] = fitKinematic.minuitHadronicTop(hadP4, hadRes)
+            hadP4,hadRes = zip(*((self.source[self.CorrectedP4][i], self.source[self.Resolution][i]) for i in iHad))
+            self.hadronicFitCache[iHad] = fitKinematic.leastsqHadronicTop(hadP4, hadRes)
 
-        hadronicFit = self.hadronicFitCache[iHad]
-        hadTopP4 = sum(hadronicFit.J.fitted, utils.LorentzV())
+        hadFit = self.hadronicFitCache[iHad]
+        hadTopP4 = np.sum(hadFit.fitJ)
+        hadTopRawP4 = np.sum(hadFit.rawJ)
         
-        sumP4 = self.source[self.SumP4] - sum(hadronicFit.J.raw,utils.LorentzV()) + hadTopP4
+        iLep = self.source[self.SemileptonicTopIndex]
+        charge = self.source[self.Charge][iLep]
         lepP4 = self.source[self.P4][iLep]
-
-        #iUnusedJets = list(set(range(len(self.source[self.CorrectedP4])))-set(list(iHad)+[iBlep]))
-        #nuErr = sum([self.source[self.CovariantResolution2][i] for i in iUnusedJets],[[1,0],[0,1]])
+        sumP4 = self.source[self.SumP4] - hadTopRawP4 + hadTopP4
         nuErr = self.source["metCovariancePF"] - np.sum(self.source[self.CovariantResolution2][i] for i in set(list(iHad)+[iBlep]))
 
-        leptonicFit = fitKinematic.minuitLeptonicTop(self.source[self.CorrectedP4][iBlep],
-                                                     self.source[self.Resolution][iBlep],
-                                                     lepP4, -sumP4.x(), -sumP4.y(),
-                                                     nuErr, zPlus = zPlus )
+        lepFit = fitKinematic.leastsqLeptonicTop( self.source[self.CorrectedP4][iBlep], self.source[self.Resolution][iBlep],
+                                                       lepP4, -np.array([sumP4.x(), sumP4.y()]), nuErr, zPlus = zPlus )
 
-        lepTopP4 = leptonicFit.mu.P4 + leptonicFit.nu.fitted + leptonicFit.B.fitted
-        topP4 = lepTopP4 if charge > 0 else hadTopP4
-        tbarP4= hadTopP4 if charge > 0 else lepTopP4
+        lepTopP4 = lepP4 + lepFit.fitNu + lepFit.fitB
 
-        return {"nu"   : leptonicFit.nu.fitted,
-                "lep"  : leptonicFit.mu.P4,
-                "lepB" : leptonicFit.B.fitted,
-                "lepW" : leptonicFit.mu.P4 + leptonicFit.nu.fitted,
-                "lepBound" : "phi" in leptonicFit.fitted,
-                "lepCharge": charge,
-                "hadB" : hadronicFit.J.fitted[0],
-                "hadP" : hadronicFit.J.fitted[1],
-                "hadQ" : hadronicFit.J.fitted[2],
-                "hadW" : hadronicFit.J.fitted[1] + hadronicFit.J.fitted[2],
-                "hadWraw" : hadronicFit.J.raw[1] + hadronicFit.J.raw[2],
+        return {"nu"   : lepFit.fitNu,
+                "lep"  : lepP4,
+                "lepB" : lepFit.fitB,
+                "lepW" : lepP4 + lepFit.fitNu,
                 "lepTopP4" : lepTopP4,
+                "lepCharge": charge,
+                "lepBound" : lepFit.bound,
+                "hadB" : hadFit.fitJ[0],
+                "hadP" : hadFit.fitJ[1],
+                "hadQ" : hadFit.fitJ[2],
+                "hadW" : np.sum(hadFit.fitJ[1:]),
+                "hadWraw" : np.sum(hadFit.rawJ[1:]),
+                "hadTraw" : hadTopRawP4,
                 "hadTopP4" : hadTopP4,
-                "hadChi2" : hadronicFit.chi2(),
-                "lepChi2" : leptonicFit.chi2(),
-                "chi2" : hadronicFit.chi2() + leptonicFit.chi2(),
-                "top"  : topP4,
-                "tbar" : tbarP4,
+                "hadChi2" : hadFit.chi2,
+                "lepChi2" : lepFit.chi2,
+                "chi2" : hadFit.chi2 + lepFit.chi2,
+                "top"  : lepTopP4 if charge > 0 else hadTopP4,
+                "tbar" : hadTopP4 if charge > 0 else lepTopP4,
                 "sumP4": sumP4,
                 "iBhad": iBhad,
                 "iBlep": iBlep,
                 "iQQ": iQQ,
-                "probability" : self.source["TopComboProbability"][tuple(sorted([iBhad,iBlep])+sorted(iQQ))] if self.source["TopComboProbability"] else 0,
-                #"sigmaL" : 1.0 / math.sqrt(leptonicFit.nu.invSigmaL2),
-                #"sigmaS" : 1.0 / math.sqrt(leptonicFit.nu.invSigmaS2),
-                "residuals" : {"lepB":leptonicFit.residuals.B,
-                               "lepS":leptonicFit.residuals.S,
-                               "lepL":leptonicFit.residuals.L,
-                               "lepT":leptonicFit.residuals.T,
-                               "hadB":hadronicFit.J.residuals[0],
-                               "hadP":hadronicFit.J.residuals[1],
-                               "hadQ":hadronicFit.J.residuals[2],
-                               "hadW":hadronicFit.W.residual,
-                               "hadT":hadronicFit.T.residual
-                               }
+                "probability" : self.source["TopComboProbability"][tuple(sorted([iBhad,iBlep])+sorted(iQQ))],
+                "residuals" : dict( zip(["lep"+i for i in "BSLT"],  lepFit.residualsBSLT ) +
+                                    zip(["had"+i for i in "BPQWT"], hadFit.residualsBPQWT ) )
                 }
 
     def update(self,_) :
@@ -335,8 +318,8 @@ class TopReconstruction(wrappedChain.calculable) :
         #maxTopProbability = self.source["TopComboMaxProbability"]
         self.hadronicFitCache = {}
 
-        #bIndices = set(self.source[self.IndicesBtagged][:3]) #consider the top 3 tags as possible b candidates
-        bIndices = set(self.source[self.IndicesBtagged][:4]) #consider the top 3 tags as possible b candidates
+        #bIndices = set(self.source[self.IndicesBtagged])
+        bIndices = set(self.source[self.IndicesBtagged][:4]) #consider the first few b-tagged jets as possible b-candidates
         allIndices = set(self.source[self.Indices])
         recos = []
         
@@ -345,17 +328,22 @@ class TopReconstruction(wrappedChain.calculable) :
                 iOther = list(allIndices - set([iBLep,iBHad]))
                 for iP in iOther :
                     for iQ in iOther[iOther.index(iP)+1:] :
-                        pts = [self.source[self.CorrectedP4][i].pt() for i in [iBLep,iBHad,iP,iQ]]
+                        #pts = [self.source[self.CorrectedP4][i].pt() for i in [iBLep,iBHad,iP,iQ]]
                         #if max(pts[:2])<min(pts[2:]) : continue # probability that neither of the two leading in pT is a b-jet is only 7%
                         #if sum(pts[1:])<100 : continue # probability that the sumPt of hadronic side jets is less that 100 is only 4%
                         hadKey = tuple(sorted([iBHad,iBLep]) + sorted([iP,iQ]))
-                        if hadKey not in topProbability or topProbability[hadKey] < 0.01 : continue
-                        for zPlus in [0,1] : recos.append( self.reconstruct(iBHad,[iP,iQ],iBLep, zPlus))
+                        if topProbability[hadKey] < 0.01 : continue # don't consider low probability combinations
+                        recos.append( self.reconstruct(iBHad,[iP,iQ],iBLep, True))
+                        recos.append( self.reconstruct(iBHad,[iP,iQ],iBLep, False))
+                        if 0.01 > r.Math.VectorUtil.DeltaR(recos[-2]['nu'],recos[-1]['nu']) :
+                            recos.pop(max(-1,-2, key = lambda i: recos[i]['lepChi2']))
+                        
+
         if not recos:
             bIndices = self.source[self.IndicesBtagged][:2]
             indices = filter(lambda i: i not in bIndices, self.source[self.Indices])[:2]
             recos = [ self.reconstruct( bIndices[not bLep], indices, bIndices[bLep], zPlus) for bLep in [0,1] for zPlus in [0,1] ]
-
+                
         self.value = sorted( recos,  key = lambda x: x["chi2"]*(1-x["probability"])**2 )
 
 
