@@ -1,308 +1,87 @@
-import numpy,math,utils,minuit
+import numpy,math,utils
 import scipy.optimize as opt
 import numpy as np
-import ROOT as r
 
 widthTop = 13.1/2
-def minimize(func, useMinuit = True, **initialValues) :
-    if useMinuit:
-        m = minuit.minuit(func, db=0, dS=0, dL=0)
-        m.mnexcm("MIGRAD", 500, 1)
-        result = m.values()
-        del m
-        return result
-
-    else:
-        def fnc(x) : return func(*x)
-        argNames = func.__code__.co_varnames[:func.__code__.co_argcount]
-        ini = [initialValues[item] if item in initialValues else 0. for item in argNames]
-        return dict(zip(argNames,opt.fmin_bfgs(fnc,ini,disp=0)))
-
 ###########################
-class minuitLeptonicTop(object) :
+class leastsqLeptonicTop(object) :
     '''Fit jet, lepton, and missing energy to the hypothesis t-->blv.'''
 
-    def __init__(self, bP4, bResolution, muP4, nuX, nuY, nuErr, 
+    def __init__(self, b, bResolution, mu, nuXY, nuErr, 
                  massT = 172.0, widthT = widthTop, massW = 80.4, zPlus = True ) :
 
-        T,B,mu,nu,residuals = tuple( utils.vessel() for i in range(5) )
+        for key,val in zip(['',                     'XY',   'Z',   'E',      'T2',    'T',   'Phi'],
+                           [mu,np.array([mu.x(),mu.y()]),mu.z(),mu.e(),mu.Perp2(),mu.Pt(),mu.Phi()]) : setattr(self,"mu"+key,val)
 
-        T.mass = massT ;
-        T.invWidth2 = widthT**(-2);  
-        B.raw = bP4;
-        B.invRes2 = bResolution**(-2); 
-        mu.P4 = muP4
+        for key,val in zip(['massW2','massT','invT','bound','sign','rawB','nuXY','fitNu'],
+                           [massW**2,massT,1./widthT,False,[-1,1][zPlus],b,nuXY,utils.LorentzV()]) : setattr(self,key,val)
 
-        phi = math.atan2(2*nuErr[0][1], nuErr[0][0] - nuErr[1][1])
-        nu.cos = math.cos(phi) ; nu.sin = math.sin(phi)
-        nu.invSigmaS2 = 1.0 / max(1, nuErr[0][0]*nu.cos**2 - 2*nuErr[0][1]*nu.cos*nu.sin + nuErr[1][1]*nu.sin**2 )
-        nu.invSigmaL2 = 1.0 / max(1, nuErr[0][0]*nu.sin**2 + 2*nuErr[0][1]*nu.cos*nu.sin + nuErr[1][1]*nu.cos**2 )
-        nu.rawX = nuX ; nu.rawY = nuY
-        nu.fitted = utils.LorentzV()
+        self.bXY = np.array([b.x(),b.y()])
+
+        eig,self.Rinv = np.linalg.eig(nuErr)
+        self.R = self.Rinv.transpose()
+        self.inv = 1./np.append([bResolution],np.sqrt(np.maximum(1,eig)))
         
-        for item in ["T","B","mu","nu","residuals","massW"] : setattr(self,item,eval(item))
-        self.sign = 1 if zPlus else -1
-        self.cache()
-        self.fitted = self.fit()
-        residuals.B = self.fitted['db'] / bResolution
-        residuals.S = self.fitted['dS'] * math.sqrt(nu.invSigmaS2)
-        residuals.L = self.fitted['dL'] * math.sqrt(nu.invSigmaL2)
-        residuals.T = (self.T.mass - (mu.P4+self.B.fitted+self.nu.fitted).M()) / widthT
+        self.residualsBSLT = self.fit()
+        self.chi2 = self.residualsBSLT.dot(self.residualsBSLT)
         
-    def cache(self) :
-        self.B.rawX = self.B.raw.X()
-        self.B.rawY = self.B.raw.Y()
-        self.mu.X = self.mu.P4.X()
-        self.mu.Y = self.mu.P4.Y()
-        self.mu.Z = self.mu.P4.Z()
-        self.mu.E = self.mu.P4.E()
-        self.mu.T2 = self.mu.P4.Perp2()
-        self.mu.T = math.sqrt(self.mu.T2)
-        self.mu.phi = self.mu.P4.Phi()
-
-    def fit(self) :
-        def fnc(db,dS,dL) :
-            nuX = self.nu.rawX  -  db * self.B.rawX  +  dS * self.nu.cos + dL * self.nu.sin
-            nuY = self.nu.rawY  -  db * self.B.rawY  -  dS * self.nu.sin + dL * self.nu.cos
-            self.setFittedNu(nuX,nuY)
-            self.B.fitted = self.B.raw * (1+db)
-
-            T = self.B.fitted + self.mu.P4 + self.nu.fitted 
-            return ( self.T.invWidth2 * (self.T.mass - T.M())**2 +
-                     self.B.invRes2 * db**2 +
-                     self.nu.invSigmaS2 * dS**2 +
-                     self.nu.invSigmaL2 * dL**2 )
-
-        result = minimize(fnc)
-        self.chi2_ = fnc(**result)
-        if 0 <= self.discriminant : return result
-
-        def nuRotate(dX,dY) :
-            return (dX * self.nu.cos - dY * self.nu.sin,
-                    dX * self.nu.sin + dY * self.nu.cos)
-        
-        def fnc(db,phi) :
-            self.B.fitted = self.B.raw * (1+db)
-            self.setBoundaryFittedNu(phi)
-            dS,dL = nuRotate( self.nu.fitted.X() - self.nu.rawX + db * self.B.rawX,
-                              self.nu.fitted.Y() - self.nu.rawY + db * self.B.rawY )
-
-            T = self.mu.P4 + self.nu.fitted + self.B.fitted
-            return ( self.T.invWidth2 * (self.T.mass - T.M())**2 +
-                     self.B.invRes2 * db**2 +
-                     self.nu.invSigmaS2 * dS**2 +
-                     self.nu.invSigmaL2 * dL**2 )
-
-        result = minimize(fnc, db=0, phi = math.atan2(self.nu.rawY,self.nu.rawX))
-        self.chi2_ = fnc(**result)
-        dS,dL = nuRotate( self.nu.fitted.X() - self.nu.rawX + result['db'] * self.B.rawX,
-                          self.nu.fitted.Y() - self.nu.rawY + result['db'] * self.B.rawY )
-        result.update({"dS":dS,"dL":dL})
-        return result
-        
-    def setFittedNu(self,nuX,nuY) :
-        P = self.massW**2 + 2* ( self.mu.X*nuX + self.mu.Y*nuY )
-        self.discriminant = 1 - 4 * self.mu.T2 * (nuX**2+nuY**2) / P**2
-        nuZ = 0.5 * P / self.mu.T2 * (self.mu.Z + self.sign*self.mu.E*math.sqrt(max(0,self.discriminant)))
-        self.nu.fitted.SetPxPyPzE(nuX,nuY,nuZ,0)
-        self.nu.fitted.SetM(0)
+    def setFittedNu(self,nuXY) :
+        P = self.massW2 + 2* nuXY.dot(self.muXY)
+        self.discriminant = 1 - 4 * self.muT2 * nuXY.dot(nuXY) / P**2
+        nuZ = 0.5 * P / self.muT2 * (self.muZ + self.sign*self.muE*math.sqrt(max(0,self.discriminant)))
+        self.fitNu.SetPxPyPzE(nuXY[0],nuXY[1],nuZ,0)
+        self.fitNu.SetM(0)
 
     def setBoundaryFittedNu(self,phi) :
-        nuT = 0.5 * self.massW**2 / (self.mu.T * (1 - math.cos(self.mu.phi-phi)))
-        self.setFittedNu(nuT*math.cos(phi), nuT*math.sin(phi))
+        nuT = 0.5 * self.massW2 / (self.muT * (1 - math.cos(self.muPhi-phi)))
+        self.setFittedNu( nuT * np.array([math.cos(phi), math.sin(phi)]) )
         
-    def chi2(self) : return self.chi2_
-    
+    def fit(self) :
+        def lepResiduals(d) : # deltaB, dS, dL
+            self.fitB = self.rawB * (1+d[0])
+            self.setFittedNu(self.nuXY - d[0]*self.bXY + self.Rinv.dot(d[1:]))
+            return np.append( self.inv * d,
+                              self.invT * (self.massT - (self.mu + self.fitNu + self.fitB ).M()) )
+        
+        def lepBoundResiduals(x) : # deltaB, phi
+            self.fitB = self.rawB * (1+x[0])
+            self.setBoundaryFittedNu(x[1])
+            nuXY = [self.fitNu.x(),self.fitNu.y()]
+            dS,dL = self.R.dot(nuXY - self.nuXY + x[0]*self.bXY)
+            return np.append( self.inv * [x[0],dS,dL],
+                              self.invT * (self.massT - (self.mu + self.fitNu + self.fitB).M()) )
+
+        deltas,code = opt.leastsq(lepResiduals, 3*[0], epsfcn=0.01)
+        if 0 <= self.discriminant : return lepResiduals(deltas)
+        self.bound = True
+        best,code = opt.leastsq(lepBoundResiduals, [0, math.atan2(self.nuXY[1],self.nuXY[0])], epsfcn=0.01)
+        return lepBoundResiduals(best)
+        
 ###########################
-class minuitHadronicTop(object) :
+class leastsqHadronicTop(object) :
     '''Fit three jets to the hypothesis t-->bqq.
 
     Index 0 is the b-jet.
     Resolutions are expected in units of sigma(pT)/pT.'''
 
     def __init__(self, jetP4s, jetResolutions, massT = 172.0, widthT = widthTop, massW = 80.4, widthW = 2.085/2 ) :
-        assert len(jetP4s) == 3 == len(jetResolutions), "Please specify 3 and only 3 jets."
-        J,W,T = tuple( utils.vessel() for i in range(3) )
-
-        J.raw = jetP4s
-        J.invRes2 = [ jr**(-2) for jr in jetResolutions ]
-
-        T.mass = massT ;   T.invWidth2 = widthT**(-2)
-        W.mass = massW ;   W.invWidth2 = widthW**(-2)
-
-        for item in ["J","T","W"] : setattr(self,item,eval(item))
+        for key,val in zip(['massT','massW','invT','invW'],
+                           [massT,massW,1./widthT,1./widthW]) : setattr(self,key,val)
+        
+        self.rawJ = jetP4s;
+        self.invJ = 1./np.array(jetResolutions)
         self.fit()
 
     def fit(self) :
-        def fnc(db,dp,dq) :
-            d = [db,dp,dq]
-            fitted = [jet*(1+delta) for delta,jet in zip(d,self.J.raw)]
+        def hadResiduals(d) :
+            fitted = self.rawJ * (1+d)
             W = fitted[1]+fitted[2]
-            T = fitted[0]+W
-            return ( self.T.invWidth2 * (self.T.mass - T.M())**2 +
-                     self.W.invWidth2 * (self.W.mass - W.M())**2 +
-                     sum([r*delta**2 for delta,r in zip(d,self.J.invRes2)]) )
+            return np.append((d*self.invJ), [ (self.massW-W.M())*self.invW,
+                                              (self.massT-(fitted[0]+W).M())*self.invT])
 
-        fitted = minimize(fnc)
-        self.chi2_ = fnc(**fitted)
-        self.J.delta = [fitted[s] for s in ['db','dp','dq']]
-        self.J.fitted = [jet*(1+delta) for delta,jet in zip(self.J.delta,self.J.raw)]
-        self.J.residuals = [d * math.sqrt(iR) for d,iR in zip(self.J.delta,self.J.invRes2)]
+        self.deltaJ,code = opt.leastsq(hadResiduals,3*[0],epsfcn=0.01)
+        self.fitJ = self.rawJ * (1+np.array(self.deltaJ)) #is self.deltaJ not already np.array?
 
-        W = self.J.fitted[1] + self.J.fitted[2]
-        self.W.residual = (self.W.mass - W.M()) * math.sqrt(self.W.invWidth2)
-        self.T.residual = (self.T.mass - (W+self.J.fitted[0]).M()) * math.sqrt(self.T.invWidth2)
-
-    def chi2(self) : return self.chi2_
-    
+        self.residualsBPQWT = hadResiduals(self.deltaJ)
+        self.chi2 = self.residualsBPQWT.dot(self.residualsBPQWT)
 ###########################
-class linearHadronicTop(object) :
-    '''Fit three jets to the hypothesis t-->bqq.
-
-    Index 0 is the b-jet.
-    Resolutions are expected in units of sigma(pT)/pT.'''
-
-    def chi2(self, key = None) :
-        if key==None : return sum( [self.chi2(key) for key in ["J","W","T"]])
-        elif key=="J": return sum([ d*d*r for d,r in zip( self.J.delta, self.J.invRes2 ) ])
-        elif key=="W": return self.W.invWidth2 * ( self.W.mass - (self.J.fitted[1] + self.J.fitted[2]).M() )**2
-        elif key=="T": return self.T.invWidth2 * ( self.T.mass - sum( self.J.fitted, utils.LorentzV()).M() )**2
-
-    def __init__(self, jetP4s, jetResolutions, massT = 172.0, widthT = widthTop, massW = 80.4, widthW = 2.085/2 ) :
-        assert len(jetP4s) == 3 == len(jetResolutions), "Please specify 3 and only 3 jets."
-        J,W,T = tuple( utils.vessel() for i in range(3) )
-
-        J.raw = jetP4s
-        J.invRes2 = [ jr**(-2) for jr in jetResolutions ]
-        m2 = [(J.raw[i]+J.raw[j]).M2() for i,j in [tuple(set([0,1,2])-set([k])) for k in [0,1,2]]]
-
-        T.rawMass2 = sum( jetP4s, utils.LorentzV()).M2()
-        T.mass = massT ;   T.invWidth2 = widthT**(-2) ;   T.R = massT / math.sqrt(T.rawMass2) ; T.L = 0.5 * T.invWidth2 / T.rawMass2
-        W.mass = massW ;   W.invWidth2 = widthW**(-2) ;   W.R = massW / math.sqrt(m2[0])      ; W.Lambda =  W.invWidth2 * m2[0]     
-
-        for item in ["J","T","W","m2"] : setattr(self,item,eval(item))
-        J.delta = numpy.linalg.solve( self.matrix(), -self.constants() )
-        J.fitted = [ j * (1+d) for j,d in zip(J.raw,J.delta) ]
-
-    def matrix(self) :
-        m = []
-        m.append([     self.element(0,i) for i in range(3)       ])
-        m.append([ m[0][1], self.element(1,1), self.element(1,2) ])
-        m.append([ m[0][2],           m[1][2], self.element(2,2) ])
-        return numpy.array(m)
-
-    def constants(self) : return numpy.array([self.constant(i) for i in range(3)])
-    def constant(self, i, key = None):
-        if key==None : return sum( [self.constant(i,key) for key in ["W","T"]] )
-        elif key=="W": return ( 1 - self.W.R ) * self.W.Lambda
-        elif key=="T": return ( 1 - self.T.R ) * self.T.invWidth2 * (sum(self.m2)-self.m2[i])
-
-    def element(self,i,j, key = None) :
-        if key==None : return sum( [self.element(i,j,key) for key in ["J","W","T"]] )
-        elif key=="J": return [ 0, 2*self.J.invRes2[i] ][i==j]
-        elif key=="W": return self.W.Lambda * [ 1-0.5*self.W.R,  0.5*self.W.R ][i==j] if i and j else 0
-        elif key=="T":
-            T = self.T
-            sumM2 = sum(self.m2)
-            m2_i = sumM2 - self.m2[i]
-            m2_j = sumM2 - self.m2[j]
-            term2 = [(1-T.R) * T.invWidth2 * (sumM2 - self.m2[i] - self.m2[j] ) , 0 ][i==j]
-            return term2  +  m2_i * m2_j * T.L * T.R
-
-
-###########################
-class linearWbTop(object) :
-    '''Fit the b jet in the hypothesis t-->bW'''
-
-    def chi2(self) :
-        return ( self.b.invRes2 * self.b.delta**2 +
-                 self.topInvWidth2 * (self.massTop - (self.b.fitted+self.W).M())**2 )
-
-    def __init__(self,bjet,bresolution,W,
-                 massTop=172.0,widthT=widthTop) :
-
-        rawTop2 = (bjet+W).M2()
-        topInvWidth2 = widthT**(-2)
-
-        R = massTop / math.sqrt(rawTop2)
-        A = (rawTop2 - W.M2()) * topInvWidth2
-        B = rawTop2 * topInvWidth2
-
-        b = utils.vessel()
-        b.raw = bjet
-        b.invRes2 = bresolution**(-2)
-        b.delta = A*(R-1) / (2*b.invRes2 + 0.5*R*A*A/B)
-        b.fitted = b.raw * (1+b.delta)
-
-        for item in ['b','W','massTop','topInvWidth2'] : setattr(self,item,eval(item))
-
-###########################
-class minuitMuNuW(object) :
-
-    def __init__(self, muP4, nuX, nuY, covErr, massW=80.4) :
-        self.nuP4 = utils.LorentzV().SetPxPyPzE(nuX,nuY,0.0,math.sqrt(nuX**2+nuY**2))
-        for item in ['muP4','covErr','massW'] : setattr(self,item,eval(item))
-        self.fittedNu = (utils.LorentzV(),utils.LorentzV())
-
-        if 0 <= self.discriminant() : self.solve()
-        else : self.fit()
-
-    def discriminant(self) :
-        self.muT2 = self.muP4.Perp2()
-        self.nuT2 = self.nuP4.Perp2()
-        self.P = self.massW**2 + 2 * (self.nuP4.X()*self.muP4.X() + self.nuP4.Y()*self.muP4.Y())
-
-        self.discriminant =  1  -  4 * self.muT2 * self.nuT2 / self.P**2
-        return self.discriminant
-
-    def solve(self) :
-        nuX,nuY = self.nuP4.X(), self.nuP4.Y()
-        muZ,muE = self.muP4.z(), self.muP4.E()
-        sqrtDisc = math.sqrt(self.discriminant)
-        base = 0.5 * self.P / self.muT2
-        zplus = base*(muZ+muE*sqrtDisc)
-        zminus = base*(muZ-muE*sqrtDisc)
-        self.fittedNu[0].SetPxPyPzE(nuX, nuY, zplus,  math.sqrt(self.nuT2 + zplus**2))
-        self.fittedNu[1].SetPxPyPzE(nuX, nuY, zminus, math.sqrt(self.nuT2 + zminus**2))
-        self.chi2 = 0.0
-
-    def fit(self) :
-        phi = 0.5 * math.atan2(self.covErr.xy, self.covErr.xx-self.covErr.yy) 
-        R = r.Math.RotationZ(phi)
-        rNuP4 = R(self.nuP4)
-        rMuP4 = R(self.muP4)
-        cos = R.CosAngle()
-        sin = R.SinAngle()
-        sigma2x = self.covErr.xx*cos**2 - 2*self.covErr.xy*cos*sin + self.covErr.yy*sin**2
-        sigma2y = self.covErr.xx*sin**2 + 2*self.covErr.xy*cos*sin + self.covErr.yy*cos**2
-        assert sigma2x > 0, sigma2x
-        assert sigma2y > 0, sigma2y
-        rnuX,rnuY = rNuP4.x(),rNuP4.y()
-        rmuX,rmuY = rMuP4.x(),rMuP4.y()
-        rMuPhi = rMuP4.Phi()
-
-        muT = math.sqrt(self.muT2)
-        def NUT(dphi) : return 0.5 * self.massW**2 / (muT*(1-math.cos(dphi)))
-
-        def fnc(phi) :
-            nuT = NUT(rMuPhi-phi)
-            x = nuT*math.cos(phi)
-            y = nuT*math.sin(phi)
-            val = ( (x - rnuX)**2/sigma2x +
-                    (y - rnuY)**2/sigma2y )
-            return val
-
-        fitted = minimize(fnc, phi = rNuP4.Phi() )
-        self.chi2 = fnc(**fitted)
-
-        nuT = NUT(rMuPhi-fitted['phi'])
-        fitNuX = nuT * math.cos(fitted['phi'])
-        fitNuY = nuT * math.sin(fitted['phi'])
-
-        P = self.massW**2 + 2 * (rmuX*fitNuX + rmuY*fitNuY)
-        fitNuZ = 0.5 * self.muP4.Z() * P / self.muT2
-        self.fittedNu[0].SetPxPyPzE(fitNuX,fitNuY,fitNuZ,math.sqrt(fitNuX**2+fitNuY**2+fitNuZ**2))
-
-        R.Invert()
-        self.fittedNu = ( R(self.fittedNu[0]) , None )
-        
