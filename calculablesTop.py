@@ -268,42 +268,37 @@ class TopReconstruction(wrappedChain.calculable) :
         iHad = tuple([iBhad] + iQQ)
         if iHad not in self.hadronicFitCache :
             hadP4,hadRes = zip(*((self.source[self.CorrectedP4][i], self.source[self.Resolution][i]) for i in iHad))
-            self.hadronicFitCache[iHad] = fitKinematic.leastsqHadronicTop(hadP4, hadRes)
+            fit = fitKinematic.leastsqHadronicTop(hadP4, hadRes)
+            sumP4 = self.source[self.SumP4] - fit.rawT + fit.fitT
+            self.hadronicFitCache[iHad] = fit,sumP4
 
-        hadFit = self.hadronicFitCache[iHad]
-        hadTopP4 = np.sum(hadFit.fitJ)
-        hadTopRawP4 = np.sum(hadFit.rawJ)
-        
         iLep = self.source[self.SemileptonicTopIndex]
         charge = self.source[self.Charge][iLep]
         lepP4 = self.source[self.P4][iLep]
-        sumP4 = self.source[self.SumP4] - hadTopRawP4 + hadTopP4
         nuErr = self.source["metCovariancePF"] - np.sum(self.source[self.CovariantResolution2][i] for i in set(list(iHad)+[iBlep]))
 
+        hadFit,sumP4 = self.hadronicFitCache[iHad]
         lepFit = fitKinematic.leastsqLeptonicTop( self.source[self.CorrectedP4][iBlep], self.source[self.Resolution][iBlep],
                                                        lepP4, -np.array([sumP4.x(), sumP4.y()]), nuErr, zPlus = zPlus )
-
-        lepTopP4 = lepP4 + lepFit.fitNu + lepFit.fitB
-
         return {"nu"   : lepFit.fitNu,
                 "lep"  : lepP4,
                 "lepB" : lepFit.fitB,
-                "lepW" : lepP4 + lepFit.fitNu,
-                "lepTopP4" : lepTopP4,
+                "lepW" : lepFit.fitW,
+                "lepTopP4" : lepFit.fitT,
                 "lepCharge": charge,
                 "lepBound" : lepFit.bound,
                 "hadB" : hadFit.fitJ[0],
                 "hadP" : hadFit.fitJ[1],
                 "hadQ" : hadFit.fitJ[2],
-                "hadW" : np.sum(hadFit.fitJ[1:]),
-                "hadWraw" : np.sum(hadFit.rawJ[1:]),
-                "hadTraw" : hadTopRawP4,
-                "hadTopP4" : hadTopP4,
+                "hadW" : hadFit.fitW,
+                "hadWraw" : hadFit.rawW,
+                "hadTraw" : hadFit.rawT,
+                "hadTopP4": hadFit.fitT,
                 "hadChi2" : hadFit.chi2,
                 "lepChi2" : lepFit.chi2,
                 "chi2" : hadFit.chi2 + lepFit.chi2,
-                "top"  : lepTopP4 if charge > 0 else hadTopP4,
-                "tbar" : hadTopP4 if charge > 0 else lepTopP4,
+                "top"  : lepFit.fitT if charge > 0 else hadFit.fitT,
+                "tbar" : hadFit.fitT if charge > 0 else lepFit.fitT,
                 "sumP4": sumP4,
                 "iBhad": iBhad,
                 "iBlep": iBlep,
@@ -321,8 +316,7 @@ class TopReconstruction(wrappedChain.calculable) :
         #bIndices = set(self.source[self.IndicesBtagged])
         bIndices = set(self.source[self.IndicesBtagged][:4]) #consider the first few b-tagged jets as possible b-candidates
         allIndices = set(self.source[self.Indices])
-        recos = []
-        
+        recos = []        
         for iBLep in bIndices :
             for iBHad in (bIndices-set([iBLep])) :
                 iOther = list(allIndices - set([iBLep,iBHad]))
@@ -336,16 +330,13 @@ class TopReconstruction(wrappedChain.calculable) :
                         recos.append( self.reconstruct(iBHad,[iP,iQ],iBLep, True))
                         recos.append( self.reconstruct(iBHad,[iP,iQ],iBLep, False))
                         if 0.01 > r.Math.VectorUtil.DeltaR(recos[-2]['nu'],recos[-1]['nu']) :
-                            recos.pop(max(-1,-2, key = lambda i: recos[i]['lepChi2']))
-                        
-
+                            recos.pop(max(-1,-2, key = lambda i: recos[i]['lepChi2']))                        
         if not recos:
             bIndices = self.source[self.IndicesBtagged][:2]
             indices = filter(lambda i: i not in bIndices, self.source[self.Indices])[:2]
             recos = [ self.reconstruct( bIndices[not bLep], indices, bIndices[bLep], zPlus) for bLep in [0,1] for zPlus in [0,1] ]
                 
         self.value = sorted( recos,  key = lambda x: x["chi2"]*(1-x["probability"])**2 )
-
 
 ######################################
 class lepDeltaRTopRecoGen(wrappedChain.calculable) :
