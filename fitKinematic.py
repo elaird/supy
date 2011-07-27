@@ -72,19 +72,17 @@ class leastsqHadronicTop(object) :
         self.rawJ = jetP4s;
         self.invJ = 1./np.array(jetResolutions)
         self.fit()
-        _,self.fitW,self.fitT = np.cumsum(self.fitJ)
-        _,self.rawW,self.rawT = np.cumsum(self.rawJ)
+        self.fitT,self.fitW,_ = np.cumsum(self.fitJ[::-1])
+        self.rawT,self.rawW,_ = np.cumsum(self.rawJ[::-1])
 
     def fit(self) :
         def hadResiduals(d) :
-            fitted = self.rawJ * (1+d)
-            W = fitted[1]+fitted[2]
+            T,W,_ = np.cumsum((self.rawJ * (1+d))[::-1])
             return np.append((d*self.invJ), [ (self.massW-W.M())*self.invW,
-                                              (self.massT-(fitted[0]+W).M())*self.invT])
+                                              (self.massT-T.M())*self.invT])
 
         self.deltaJ,_ = opt.leastsq(hadResiduals,3*[0],epsfcn=0.01)
-        self.fitJ = self.rawJ * (1+np.array(self.deltaJ)) #is self.deltaJ not already np.array?
-
+        self.fitJ = self.rawJ * (1+self.deltaJ)
         self.residualsBPQWT = hadResiduals(self.deltaJ)
         self.chi2 = self.residualsBPQWT.dot(self.residualsBPQWT)
 ###########################
