@@ -24,6 +24,7 @@ class leastsqLeptonicTop(object) :
         
         self.residualsBSLT = self.fit()
         self.chi2 = self.residualsBSLT.dot(self.residualsBSLT)
+        _,self.fitW,self.fitT = np.cumsum([mu,self.fitNu,self.fitB])
         
     def setFittedNu(self,nuXY) :
         P = self.massW2 + 2* nuXY.dot(self.muXY)
@@ -51,10 +52,10 @@ class leastsqLeptonicTop(object) :
             return np.append( self.inv * [x[0],dS,dL],
                               self.invT * (self.massT - (self.mu + self.fitNu + self.fitB).M()) )
 
-        deltas,code = opt.leastsq(lepResiduals, 3*[0], epsfcn=0.01)
+        deltas,_ = opt.leastsq(lepResiduals, 3*[0], epsfcn=0.01)
         if 0 <= self.discriminant : return lepResiduals(deltas)
         self.bound = True
-        best,code = opt.leastsq(lepBoundResiduals, [0, math.atan2(self.nuXY[1],self.nuXY[0])], epsfcn=0.01)
+        best,_ = opt.leastsq(lepBoundResiduals, [0, math.atan2(self.nuXY[1],self.nuXY[0])], epsfcn=0.01)
         return lepBoundResiduals(best)
         
 ###########################
@@ -71,6 +72,8 @@ class leastsqHadronicTop(object) :
         self.rawJ = jetP4s;
         self.invJ = 1./np.array(jetResolutions)
         self.fit()
+        _,self.fitW,self.fitT = np.cumsum(self.fitJ)
+        _,self.rawW,self.rawT = np.cumsum(self.rawJ)
 
     def fit(self) :
         def hadResiduals(d) :
@@ -79,7 +82,7 @@ class leastsqHadronicTop(object) :
             return np.append((d*self.invJ), [ (self.massW-W.M())*self.invW,
                                               (self.massT-(fitted[0]+W).M())*self.invT])
 
-        self.deltaJ,code = opt.leastsq(hadResiduals,3*[0],epsfcn=0.01)
+        self.deltaJ,_ = opt.leastsq(hadResiduals,3*[0],epsfcn=0.01)
         self.fitJ = self.rawJ * (1+np.array(self.deltaJ)) #is self.deltaJ not already np.array?
 
         self.residualsBPQWT = hadResiduals(self.deltaJ)
