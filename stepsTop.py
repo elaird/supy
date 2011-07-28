@@ -61,6 +61,44 @@ class kinFitLook(analysisStep) :
         #self.book.fill( lepX2, "topRecoLLepX2"+bound+self.moreName, 50, 0 , 10, title = ';ttbar kin. fit log(1+#chi^{2}_{lep});events / bin')
         #self.book.fill( (lepX2,hadX2), "topRecoVsLX2"+self.moreName, (50,50),(0,0),(10,10), title = ";log(1+#chi^{2}_{lep});log(1+#chi^{2}_{had});events / bin" )
 #####################################
+class combinatorialBG(analysisStep) :
+    def __init__(self,jets=None) : self.jets = jets        
+    def uponAcceptance(self,ev) :
+        maxP = ev["TopComboMaxProbability"]
+        iTrue = ev['genTopRecoIndex']
+        recos = ev['TopReconstruction']
+        jetIndices = set()
+        hadIndices = set()
+        bIndices = set()
+        for iReco in [iTrue]+list(set(range(len(recos)))-set([iTrue])) :
+            reco = recos[iReco]
+            tag = "correct" if iReco==iTrue else "incorrect"
+            self.book.fill(math.log(1+reco['chi2']), "logOnePlusChi2_"+tag, 50,0,7, title = ';%s ttbar kin. fit log(1+#chi^{2});events / bin'%tag )
+
+            iB = tuple(sorted([reco['iBlep'],reco['iBhad']]))
+            iHad = tuple([reco['iBhad']] + sorted(reco['iQQ']))
+            iJets = tuple( list(iB) + sorted(reco['iQQ']))
+
+            if iJets not in jetIndices :
+                jetIndices.add(iJets)
+                p = ev['TopComboProbability'][iJets]
+                self.book.fill(math.sqrt(p), "sqrtTopProb_"+tag, 50,0,1, title = ';%s sqrt(p);events / bin'%tag)
+                self.book.fill(math.sqrt(p/maxP), "sqrtTopRelProb_"+tag, 50,0,1, title = ';%s sqrt(p/maxP);events / bin'%tag)
+
+            if iHad not in hadIndices :
+                hadIndices.add(iHad)
+                self.book.fill(reco['hadWraw'].M(), "rawMassHadW_"+tag,60,0,180, title = ";raw mass_{W} had (%s);events / bin"%tag)
+                self.book.fill(reco['hadTraw'].M(), "rawMassHadT_"+tag,100,0,300, title = ";raw mass_{t} had (%s);events / bin"%tag)
+
+            if self.jets and iB not in bIndices :
+                bIndices.add(iB)
+                indicesB = ev['%sIndicesBtagged%s'%self.jets]
+                indicesPt = ev['%sIndices%s'%self.jets]
+                iB2 = max(iB, key = lambda i: indicesB.index(i))
+                self.book.fill(indicesB.index(iB2), "iB_b2_"+tag, 10,-0.5,9.5, title = ';b-ordered index of second b (%s);events / bin'%tag)
+                self.book.fill(indicesPt.index(iB2), "iPt_b2_"+tag, 10,-0.5,9.5, title = ';pt-ordered index of second b (%s);events / bin'%tag)
+
+#####################################
 class topProbLook(analysisStep) :
     def __init__(self, jets) :
         self.indicesGenB = "%sIndicesGenB%s"%jets
