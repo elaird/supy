@@ -1,5 +1,5 @@
 from wrappedChain import *
-import calculables,math,utils,fitKinematic,operator,numpy as np
+import calculables,math,utils,fitKinematic,operator,itertools,numpy as np
 ######################################
 class TopP4Calculable(wrappedChain.calculable) :
     def __init__(self, collection = None) :
@@ -261,83 +261,65 @@ class SemileptonicTopIndex(wrappedChain.calculable) :
 class TopReconstruction(wrappedChain.calculable) :
     def __init__(self, lepton, jets, SumP4) :
         self.stash(["SemileptonicTopIndex","P4","Charge"],lepton)
-        self.stash(["CorrectedP4","IndicesBtagged","Indices","Resolution","CovariantResolution2"],jets)
+        self.stash(["CorrectedP4","IndicesBtagged","Indices","Resolution","CovariantResolution2","ComboPQBDeltaRawMassWTop"],jets)
         self.SumP4 = SumP4
-
-    def reconstruct(self, iBhad, iQQ, iBlep, zPlus) :
-        iHad = tuple([iBhad] + iQQ)
-        if iHad not in self.hadronicFitCache :
-            hadP4,hadRes = zip(*((self.source[self.CorrectedP4][i], self.source[self.Resolution][i]) for i in iHad))
-            fit = fitKinematic.leastsqHadronicTop(hadP4, hadRes)
-            sumP4 = self.source[self.SumP4] - fit.rawT + fit.fitT
-            self.hadronicFitCache[iHad] = fit,sumP4
-
-        iLep = self.source[self.SemileptonicTopIndex]
-        charge = self.source[self.Charge][iLep]
-        lepP4 = self.source[self.P4][iLep]
-        nuErr = self.source["metCovariancePF"] - np.sum(self.source[self.CovariantResolution2][i] for i in set(list(iHad)+[iBlep]))
-
-        hadFit,sumP4 = self.hadronicFitCache[iHad]
-        lepFit = fitKinematic.leastsqLeptonicTop( self.source[self.CorrectedP4][iBlep], self.source[self.Resolution][iBlep],
-                                                       lepP4, -np.array([sumP4.x(), sumP4.y()]), nuErr, zPlus = zPlus )
-        return {"nu"   : lepFit.fitNu,
-                "lep"  : lepP4,
-                "lepB" : lepFit.fitB,
-                "lepW" : lepFit.fitW,
-                "lepTopP4" : lepFit.fitT,
-                "lepCharge": charge,
-                "lepBound" : lepFit.bound,
-                "hadB" : hadFit.fitJ[0],
-                "hadP" : hadFit.fitJ[1],
-                "hadQ" : hadFit.fitJ[2],
-                "hadW" : hadFit.fitW,
-                "hadWraw" : hadFit.rawW,
-                "hadTraw" : hadFit.rawT,
-                "hadTopP4": hadFit.fitT,
-                "hadChi2" : hadFit.chi2,
-                "lepChi2" : lepFit.chi2,
-                "chi2" : hadFit.chi2 + lepFit.chi2,
-                "top"  : lepFit.fitT if charge > 0 else hadFit.fitT,
-                "tbar" : hadFit.fitT if charge > 0 else lepFit.fitT,
-                "sumP4": sumP4,
-                "iBhad": iBhad,
-                "iBlep": iBlep,
-                "iQQ": iQQ,
-                "probability" : self.source["TopComboProbability"][tuple(sorted([iBhad,iBlep])+sorted(iQQ))],
-                "residuals" : dict( zip(["lep"+i for i in "BSLT"],  lepFit.residualsBSLT ) +
-                                    zip(["had"+i for i in "BPQWT"], hadFit.residualsBPQWT ) )
-                }
+        theta = math.pi/6
+        self.ellipseR = np.array([[math.cos(theta),-math.sin(theta)],[math.sin(theta), math.cos(theta)]])
 
     def update(self,_) :
-        topProbability = self.source["TopComboProbability"]
-        #maxTopProbability = self.source["TopComboMaxProbability"]
-        self.hadronicFitCache = {}
-
-        #bIndices = set(self.source[self.IndicesBtagged])
-        bIndices = set(self.source[self.IndicesBtagged][:4]) #consider the first few b-tagged jets as possible b-candidates
-        allIndices = set(self.source[self.Indices])
+        p4 = self.source[self.CorrectedP4]
+        resolution = self.source[self.Resolution]
+        covRes2 = self.source[self.CovariantResolution2]
+        comboDRawMass = self.source[self.ComboPQBDeltaRawMassWTop]
+        topP = self.source["TopComboQQBBProbability"]
+        maxP = self.source["TopComboQQBBMaxProbability"]
+        lepQ = self.source[self.Charge][self.source[self.SemileptonicTopIndex]]
+        lepP4 = self.source[self.P4][self.source[self.SemileptonicTopIndex]]
+        
+        indices = self.source[self.Indices]
+        bIndices = self.source[self.IndicesBtagged][:5] #consider only the first few b-tagged jets as possible b-candidates
         recos = []        
-        for iBLep in bIndices :
-            for iBHad in (bIndices-set([iBLep])) :
-                iOther = list(allIndices - set([iBLep,iBHad]))
-                for iP in iOther :
-                    for iQ in iOther[iOther.index(iP)+1:] :
-                        #pts = [self.source[self.CorrectedP4][i].pt() for i in [iBLep,iBHad,iP,iQ]]
-                        #if max(pts[:2])<min(pts[2:]) : continue # probability that neither of the two leading in pT is a b-jet is only 7%
-                        #if sum(pts[1:])<100 : continue # probability that the sumPt of hadronic side jets is less that 100 is only 4%
-                        hadKey = tuple(sorted([iBHad,iBLep]) + sorted([iP,iQ]))
-                        if topProbability[hadKey] < 0.01 : continue # don't consider low probability combinations
-                        recos.append( self.reconstruct(iBHad,[iP,iQ],iBLep, True))
-                        recos.append( self.reconstruct(iBHad,[iP,iQ],iBLep, False))
-                        if 0.01 > r.Math.VectorUtil.DeltaR(recos[-2]['nu'],recos[-1]['nu']) :
-                            recos.pop(max(-1,-2, key = lambda i: recos[i]['lepChi2']))                        
-        if not recos:
-            bIndices = self.source[self.IndicesBtagged][:2]
-            indices = filter(lambda i: i not in bIndices, self.source[self.Indices])[:2]
-            recos = [ self.reconstruct( bIndices[not bLep], indices, bIndices[bLep], zPlus) for bLep in [0,1] for zPlus in [0,1] ]
-                
-        self.value = sorted( recos,  key = lambda x: x["chi2"]*(1-x["probability"])**2 )
+        for iPQH in itertools.permutations(indices,3) :
+            if iPQH[0]>iPQH[1] : continue
+            if iPQH[2] not in bIndices : continue
+            if np.dot(*(2*[self.ellipseR.dot(comboDRawMass[iPQH]) / [35,70]])) > 1 : continue # elliptical window on raw masses
 
+            hadFit = fitKinematic.leastsqHadronicTop(*zip(*((p4[i], resolution[i]) for i in iPQH)))
+            sumP4 = self.source[self.SumP4] - hadFit.rawT + hadFit.fitT
+            nuErr = self.source["metCovariancePF"] - sum( covRes2[i] for i in iPQH )
+            nuXY = -np.array([sumP4.x(), sumP4.y()])
+
+            for iL in bIndices :
+                if iL in iPQH : continue
+                iPQHL = iPQH+(iL,)
+                iQQBB = iPQHL[:2]+tuple(sorted(iPQHL[2:]))
+                for zPlus in [0,1] :
+                    lepFit = fitKinematic.leastsqLeptonicTop( p4[iL], resolution[iL], lepP4, nuXY, nuErr-covRes2[iL], zPlus = zPlus )
+                    recos.append( {"nu"   : lepFit.fitNu,       "hadP" : hadFit.fitJ[0],
+                                   "lep"  : lepFit.mu,          "hadQ" : hadFit.fitJ[1],
+                                   "lepB" : lepFit.fitB,        "hadB" : hadFit.fitJ[2],
+                                   "lepW" : lepFit.fitW,        "hadW" : hadFit.fitW,   
+                                   "lepTopP4" : lepFit.fitT,    "hadTopP4": hadFit.fitT,
+                                   "lepChi2" : lepFit.chi2,     "hadChi2" : hadFit.chi2,
+                                   "chi2" : hadFit.chi2 + lepFit.chi2,
+                                   "probability" : topP[iQQBB],
+                                   "key" : hadFit.chi2 + lepFit.chi2 - 2*math.log(topP[iQQBB]),
+
+                                   "top"  : lepFit.fitT if lepQ > 0 else hadFit.fitT,
+                                   "tbar" : hadFit.fitT if lepQ > 0 else lepFit.fitT,
+
+                                   "iPQHL": iPQHL,
+                                   "lepCharge": lepQ,           "hadTraw" : hadFit.rawT,
+                                   "lepBound" : lepFit.bound,   "hadWraw" : hadFit.rawW,
+                                   "sumP4": sumP4,
+                                   "residuals" : dict( zip(["lep"+i for i in "BSLT"],  lepFit.residualsBSLT ) +
+                                                       zip(["had"+i for i in "PQBWT"], hadFit.residualsPQBWT ) )
+                                   })
+                if 0.01 > r.Math.VectorUtil.DeltaR(recos[-2]['nu'],recos[-1]['nu']) :
+                    recos.pop(max(-1,-2, key = lambda i: recos[i]['lepChi2']))
+                    
+        self.value = sorted( recos,  key = lambda x: x["key"] )
+        
 ######################################
 class lepDeltaRTopRecoGen(wrappedChain.calculable) :
     def update(self,_):
@@ -405,39 +387,30 @@ class wTopAsym(wrappedChain.calculable) :
         self.value = None if not self.source['genQQbar'] else self.weight(self.source['genTopBeta'],
                                                                           self.source['genTopAlpha'])
 ######################################
-class TopComboLikelihood(wrappedChain.calculable) :
+class TopComboQQBBLikelihood(wrappedChain.calculable) :
     def __init__(self, jets = None, tag = None) :
         self.stash(["Indices"],jets)
-        self.B = ("%sTagProbabilityB_"+tag+"%s") % jets
-        self.Q = ("%sTagProbabilityQ_"+tag+"%s") % jets
-        self.N = ("%sTagProbabilityN_"+tag+"%s") % jets
+        for x in ['B','Q','N'] : setattr(self,x, jets[0]+"TagProbability%s_%s"%(x,tag)+jets[1])
 
     def update(self,_) :
-        self.value = {}
         indices = self.source[self.Indices]
-        B = self.source[self.B]
-        Q = self.source[self.Q]
-        N = self.source[self.N]
-
-        for i in range(len(indices)) :
-            for j in range(len(indices))[i+1:] :
-                for m in range(len(indices)) :
-                    if m in [i,j] : continue
-                    for n in range(len(indices))[m+1:] :
-                        if n in [i,j] : continue
-                        other = filter(lambda k: k not in [i,j,m,n], indices)
-                        self.value[tuple([indices[k] for k in [i,j,m,n]])] = reduce(operator.mul, [B[i],B[j],Q[m],Q[n]]+[N[k] for k in other] )
-######################################
-class TopComboProbability(wrappedChain.calculable) :
-    def update(self,_) :
-        likelihoods = self.source['TopComboLikelihood']
-        sumL = sum(likelihoods.values())
+        B,Q,N = tuple(self.source[getattr(self,x)] for x in ['B','Q','N'])
         self.value = {}
-        for key,val in likelihoods.iteritems() : self.value[key] = val / sumL
-        return
+        for iPQHL in itertools.permutations(indices,4) :
+            if iPQHL[0]>iPQHL[1] : continue
+            if iPQHL[2]>iPQHL[3] : continue
+            self.value[iPQHL] = reduce(operator.mul, ([Q[i] for i in iPQHL[:2]] +
+                                                      [B[i] for i in iPQHL[2:]]  +
+                                                      [N[k] for k in indices if k not in iPQHL]) )
 ######################################
-class TopComboMaxProbability(wrappedChain.calculable) :
-    def update(self,_) : self.value = max(self.source["TopComboProbability"].values())
+class TopComboQQBBProbability(wrappedChain.calculable) :
+    def update(self,_) :
+        likelihoods = self.source['TopComboQQBBLikelihood']
+        sumL = sum(likelihoods.values())
+        self.value = dict([(key,val/sumL) for key,val in likelihoods.iteritems()])
+######################################
+class TopComboQQBBMaxProbability(wrappedChain.calculable) :
+    def update(self,_) : self.value = max(self.source["TopComboQQBBProbability"].values())
 ######################################
 class OtherJetsLikelihood(wrappedChain.calculable) :
     def __init__(self, jets = None, tag = None) :
@@ -455,7 +428,7 @@ class TopRatherThanWProbability(wrappedChain.calculable) :
         self.moreName = "priorTop = %0.3f"%priorTop
         
     def update(self,_) :
-        topLikes = self.source["TopComboLikelihood"]
+        topLikes = self.source["TopComboQQBBLikelihood"]
         if not topLikes :
             self.value = 1.0/ (self.invPriorTopMinusOne + 1); return
         topL = sum(topLikes.values()) / float(len(topLikes))
