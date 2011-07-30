@@ -85,7 +85,7 @@ class topAsymmShell(analysis.analysis) :
             ]
         outList += calculables.fromCollections(calculables.Top,[('genTop',""),('fitTop',"")])
         outList += [calculables.Jet.TagProbability(pars['objects']['jet'], pars['bVar'], letter) for letter in ['b','q','n']]
-        outList.append( calculables.Top.TopComboLikelihood(pars['objects']['jet'], pars['bVar']))
+        outList.append( calculables.Top.TopComboQQBBLikelihood(pars['objects']['jet'], pars['bVar']))
         outList.append( calculables.Top.OtherJetsLikelihood(pars['objects']['jet'], pars['bVar']))
         outList.append( calculables.Top.TopRatherThanWProbability(priorTop=0.5) )
         return outList
@@ -106,7 +106,7 @@ class topAsymmShell(analysis.analysis) :
             steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
             steps.Trigger.lowestUnPrescaledTriggerFilter(), #FIXME ele
             steps.Histos.multiplicity("vertexIndices", max=15),
-            steps.Histos.value("%sPtSorted%s"%obj['muon'], 2,0,1),
+            steps.Histos.value("%sPtSorted%s"%obj['muon'], 2,-0.5,1.5),
             steps.Filter.multiplicity("vertexIndices",min=1),
             ]+[
             steps.Filter.multiplicity(s, max = 0) for s in ["%sIndices%s"%obj["photon"],
