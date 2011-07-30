@@ -883,3 +883,21 @@ class Kt(wrappedChain.calculable) :
         p4 = self.source[self.CorrectedP4]
         i,j = self.source[self.IndicesMinDeltaR]
         self.value = min(p4[i].pt(),p4[j].pt()) * r.Math.VectorUtil.DeltaR(p4[i],p4[j]) if j else -1
+######################################
+class ComboPQBRawMassWTop(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(['Indices','CorrectedP4'])
+    def update(self,_) :
+        p4 = self.source[self.CorrectedP4]
+        self.value = {}
+        for iPQB in itertools.permutations(self.source[self.Indices],3) :
+            if iPQB[0]>iPQB[1] : continue
+            _,W,t = np.cumsum([p4[i] for i in iPQB])
+            self.value[iPQB] = (W.M(),t.M())
+######################################
+class ComboPQBDeltaRawMassWTop(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(['ComboPQBRawMassWTop'])
+    def update(self,_) : self.value = dict([(key,(val[0]-80.4,val[1]-172)) for key,val in self.source[self.ComboPQBRawMassWTop].iteritems()])
