@@ -64,7 +64,7 @@ class kinFitLook(analysisStep) :
 class combinatorialBG(analysisStep) :
     def __init__(self,jets=None) : self.jets = jets        
     def uponAcceptance(self,ev) :
-        maxP = ev["TopComboMaxProbability"]
+        maxP = ev["TopComboQQBBMaxProbability"]
         iTrue = ev['genTopRecoIndex']
         recos = ev['TopReconstruction']
         jetIndices = set()
@@ -73,28 +73,36 @@ class combinatorialBG(analysisStep) :
         for iReco in [iTrue]+list(set(range(len(recos)))-set([iTrue])) :
             reco = recos[iReco]
             tag = "correct" if iReco==iTrue else "incorrect"
+            indicesB = ev['%sIndicesBtagged%s'%self.jets]
+
+            iPQHL = reco['iPQHL']
+            iPQH = iPQHL[:-1]
+            iHL = iPQHL[2:]
+
+            iB2 = max(iHL, key = lambda i: indicesB.index(i))
+            iiB2 = indicesB.index(iB2)
             self.book.fill(math.log(1+reco['chi2']), "logOnePlusChi2_"+tag, 50,0,7, title = ';%s ttbar kin. fit log(1+#chi^{2});events / bin'%tag )
+            self.book.fill(math.log(1+reco['key']), 'logOnePlusKey_'+tag, 50,0,7, title = ';%s log(1+key);events / bin'%tag)
+            self.book.fill( (math.log(1+reco['chi2']),math.log(1-2*math.log(reco['probability']))), "logOnePlus_chi2p_"+tag, (50,50),(0,0),(7,4), title = ";%s log(1+#chi^{2});log(1-2log(P));events / bin"%tag)
+            
+            if iPQHL not in jetIndices :
+                jetIndices.add(iPQHL)
+                p = ev['TopComboQQBBProbability'][iPQH[:2]+tuple(sorted(iHL))]
+                self.book.fill( math.log(1-2*math.log(reco['probability'])), "logOnePlus_m2p_"+tag, 50,0,4, title = ";%s log(1-2log(P));events / bin"%tag)
+                for i in range(4) : self.book.fill( ev["%sIndices%s"%self.jets].index(sorted(iPQHL)[i]), "iJ_j%d_"%i+tag, 10,-0.5,9.5, title = ';%s index of topjet%d;events / bin'%(tag,i) )
 
-            iB = tuple(sorted([reco['iBlep'],reco['iBhad']]))
-            iHad = tuple([reco['iBhad']] + sorted(reco['iQQ']))
-            iJets = tuple( list(iB) + sorted(reco['iQQ']))
+            if iPQH not in hadIndices :
+                hadIndices.add(iPQH)
+                mW,mT = ev["%sComboPQBRawMassWTop%s"%self.jets][iPQH]
+                dmW,dmT = ev["%sComboPQBDeltaRawMassWTop%s"%self.jets][iPQH]
+                self.book.fill(mW, "rawMassHadW_"+tag,60,0,180, title = ";raw mass_{W} had (%s);events / bin"%tag)
+                self.book.fill(mT, "rawMassHadT_"+tag,100,0,300, title = ";raw mass_{t} had (%s);events / bin"%tag)
+                topMass = 172; wMass = 80.4
+                self.book.fill((dmT,dmW), "rawDeltaMassHadTW_"+tag,(100,60),(-topMass,-wMass),(300-topMass,180-wMass), title= ";(%s) raw had #Delta mass_{T};raw had #Delta mass_{W};events / bin"%tag)
 
-            if iJets not in jetIndices :
-                jetIndices.add(iJets)
-                p = ev['TopComboProbability'][iJets]
-                self.book.fill(math.sqrt(p), "sqrtTopProb_"+tag, 50,0,1, title = ';%s sqrt(p);events / bin'%tag)
-                self.book.fill(math.sqrt(p/maxP), "sqrtTopRelProb_"+tag, 50,0,1, title = ';%s sqrt(p/maxP);events / bin'%tag)
-
-            if iHad not in hadIndices :
-                hadIndices.add(iHad)
-                self.book.fill(reco['hadWraw'].M(), "rawMassHadW_"+tag,60,0,180, title = ";raw mass_{W} had (%s);events / bin"%tag)
-                self.book.fill(reco['hadTraw'].M(), "rawMassHadT_"+tag,100,0,300, title = ";raw mass_{t} had (%s);events / bin"%tag)
-
-            if self.jets and iB not in bIndices :
-                bIndices.add(iB)
-                indicesB = ev['%sIndicesBtagged%s'%self.jets]
+            if self.jets and iHL not in bIndices :
+                bIndices.add(iHL)
                 indicesPt = ev['%sIndices%s'%self.jets]
-                iB2 = max(iB, key = lambda i: indicesB.index(i))
                 self.book.fill(indicesB.index(iB2), "iB_b2_"+tag, 10,-0.5,9.5, title = ';b-ordered index of second b (%s);events / bin'%tag)
                 self.book.fill(indicesPt.index(iB2), "iPt_b2_"+tag, 10,-0.5,9.5, title = ';pt-ordered index of second b (%s);events / bin'%tag)
 
@@ -140,6 +148,10 @@ class combinatoricsLook(analysisStep) :
         self.book.fill( recoY[iLep] - genY[iLep], "dRapidityLepTop", 100,-1,1, title=";lep top #Delta y_{reco gen};events / bin")
         self.book.fill( recoY[not iLep] - genY[not iLep], "dRapidityHadTop", 100,-1,1, title=";had top #Delta y_{reco gen};events / bin")
         self.book.fill( recoY[0]-recoY[1] - (genY[0]-genY[1]), "ddRapidityTTbar", 100,-1,1, title = ";#Delta y_{t#bar{t} reco}-#Delta y_{t#bar{t} gen};events / bin")
+
+        iHad = max(0,topReco[index]["lepCharge"])
+        genLepY = ev['genP4'][max(ev['genTTbarIndices'][item] for item in ['lplus','lminus'])].Rapidity()
+        self.book.fill( recoY[iHad] - topReco[index]['lep'].Rapidity() - (genY[iHad]-genLepY), "ddRapidityLHadTop", 100,-1,1, title = ";#Delta y_{l-htop reco}-#Delta y_{l-htop gen};events / bin")
 #####################################
 class jetProbability(analysisStep) :
     def __init__(self, jets = None, bvar = None, bins = 30, min = 0 , max = 1, extraName = "") :
