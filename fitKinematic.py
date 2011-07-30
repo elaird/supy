@@ -62,7 +62,7 @@ class leastsqLeptonicTop(object) :
 class leastsqHadronicTop(object) :
     '''Fit three jets to the hypothesis t-->bqq.
 
-    Index 0 is the b-jet.
+    Index 2 is the b-jet.
     Resolutions are expected in units of sigma(pT)/pT.'''
 
     def __init__(self, jetP4s, jetResolutions, massT = 172.0, widthT = widthTop, massW = 80.4, widthW = 2.085/2 ) :
@@ -72,17 +72,17 @@ class leastsqHadronicTop(object) :
         self.rawJ = jetP4s;
         self.invJ = 1./np.array(jetResolutions)
         self.fit()
-        _,self.fitW,self.fitT = np.cumsum(self.fitJ[::-1])
-        _,self.rawW,self.rawT = np.cumsum(self.rawJ[::-1])
+        _,self.fitW,self.fitT = np.cumsum(self.fitJ)
+        _,self.rawW,self.rawT = np.cumsum(self.rawJ)
 
     def fit(self) :
         def hadResiduals(d) :
-            _,W,T = np.cumsum((self.rawJ * (1+d))[::-1])
+            _,W,T = np.cumsum(self.rawJ * (1+d))
             return np.append((d*self.invJ), [ (self.massW-W.M())*self.invW,
                                               (self.massT-T.M())*self.invT])
 
         self.deltaJ,_ = opt.leastsq(hadResiduals,3*[0],epsfcn=0.01)
         self.fitJ = self.rawJ * (1+self.deltaJ)
-        self.residualsBPQWT = hadResiduals(self.deltaJ)
-        self.chi2 = self.residualsBPQWT.dot(self.residualsBPQWT)
+        self.residualsPQBWT = hadResiduals(self.deltaJ)
+        self.chi2 = self.residualsPQBWT.dot(self.residualsPQBWT)
 ###########################
