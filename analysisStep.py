@@ -31,6 +31,8 @@ class analysisStep(object) :
     @property
     def name(self) : return self.__class__.__name__
     @property
+    def moreNames(self) : return next(iter(filter(None,[self.moreName+self.moreName2,self.name])))
+    @property
     def outputFileName(self) : return "%s%s"%(self.__outputFileStem, self.outputSuffix())
     @property
     def isSelector(self) : return hasattr(self,"select")

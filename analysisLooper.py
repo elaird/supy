@@ -29,8 +29,8 @@ class analysisLooper :
             if iStep : continue
             assert step.name=="Master", "The master step must occur first."
             assert step.isSelector, "The master step must be a selector."
-        selectors = [ (s.name,s.moreName,s.moreName2) for s in self.steps if s.isSelector ]
-        for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s,%s) is not allowed."%sel
+        selectors = [ (s.name,s.moreNames) for s in self.steps if s.isSelector ]
+        for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s) is not allowed."%sel
         inter = set(s.name for s in self.steps if not issubclass(type(s),wrappedChain.wrappedChain.calculable)).intersection(set(c.name for c in self.calculables))
         if inter: print "Steps and calculables cannot share names { %s }"%', '.join(n for n in inter)
         
@@ -126,7 +126,7 @@ class analysisLooper :
             step.priorFilters = set(priorFilters)
 
             self.steps[0].books.append(step.book)
-            if step.isSelector : priorFilters.append((step.name,step.moreName+step.moreName2))
+            if step.isSelector : priorFilters.append((step.name,step.moreNames))
 
             if minimal : continue
             if self.quietMode : step.makeQuiet()
@@ -139,7 +139,7 @@ class analysisLooper :
         def writeFromSteps() :
             while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
             for step in self.steps :
-                r.gDirectory.mkdir(step.name, step.moreName+step.moreName2).cd()
+                r.gDirectory.mkdir(step.name, step.moreNames).cd()
                 for hist in [step.book[name] for name in step.book.fillOrder] : hist.Write()
                 if configuration.trace() and step.isSelector :
                     r.gDirectory.mkdir("Calculables").cd()
