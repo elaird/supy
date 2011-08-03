@@ -105,28 +105,18 @@ def doBatch(someInstance) :
                                listOfIndices, subScript, jobScript, condorTemplate) )
     utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(submitBatchJob), args)
 ############################################
-def finish(someInstance) :
-    try:
-        someInstance.mergeAllOutput()
-        #someInstance.manageSecondaries()
-        someInstance.concludeAll()
-    except AssertionError as foo:
-        print
-        print foo
-        #print "Have you looped?"
-############################################
         
-#get options
+# get options
 options,arg = opts()
 
-#set up ROOT
+# set up ROOT
 setupROOT()
 
-#compile cpp source files
+# compile cpp source files
 utils.compileSources(inList = configuration.cppFiles())
 utils.generateDictionaries(inList = configuration.dictionariesToGenerate())
 
-#construct the analysis
+# construct the analysis
 someClass = importedClass(moduleName(arg))
 someInstance = someClass(options)
 
@@ -135,6 +125,15 @@ if options.batch : #make one script per job and submit them to the queue
 elif options.loop!=None : #loop over the events
     someInstance.loop()
 
-#merge output and conclude
+# merge output and conclude
 if options.jobId==None and not options.batch :
-    finish(someInstance)
+    try:
+        someInstance.mergeAllOutput()
+        someInstance.manageSecondaries(options.update)
+        if options.update==None :
+            someInstance.concludeAll()
+    except AssertionError as foo:
+        print
+        print foo
+        #print "Have you looped?"
+############################################

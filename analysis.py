@@ -169,7 +169,7 @@ class analysis(object) :
             return invalid
 
         def allCalculables(calcs,weights,adjustedSteps) :
-            secondaries = [ s for s in adjustedSteps if issubclass(type(s),wrappedChain.wrappedChain.calculable) ]
+            secondaries = [ s for s in adjustedSteps if self.isSecondary(s) ]
             weightsAlready = [next(c for c in secondaries+calcs if c.name==w) for w in weights if type(w)==str ]
             weightsAdditional = [ w for w in weights if type(w)!=str ]
             def check(As,Bs) :
@@ -214,22 +214,18 @@ class analysis(object) :
         if looper.readyMerge(nSlices) : looper.mergeFunc(nSlices)
 
 ############
-    def manageSecondaries(self) :
+    def manageSecondaries(self,update) :
         for conf in self.configurations :
             loopers = self.listsOfLoopers[conf['tag']]
             org = self.organizer(conf)
-            calcDeps = org.self.calculablesGraphs
-            secondaries = filter(lambda s: issubclass(s,calculables.secondary), looper.steps)
-            for secondary in secondaries :
-                for iSample in enumerate(len(org.samples)) :
-                    orgStep = next(s for s in org.steps if s.nameTitle == (secondary.name,secondary.moreName+secondary.moreName2)  )
+            for iSample,sample in enumerate(org.samples) :
+                deps = org.calculablesGraphs[iSample]
+                for secondary in filter(self.isSecondary, loopers[iSample].steps) :
+                    orgStep = next(s for s in org.steps if s.nameTitle == (secondary.name,secondary.moreNames))
                     hists = dict([(name,orgStep[name][iSample]) for name in orgStep])
-                    deps = calcDeps[iSample]
-                    sample = org.samples[iSample]
-                    secondary.checkForUpdates(conf['tag'],sample['name'],deps,hists)
-                    secondary.update(conf['tag'],sample['name'],deps,hists)
+                    
+                    if update==True or (type(update)==str and sample['name'] in update.split(',')) :
+                        secondary.recache(conf['tag'],sample['name'],deps,hists)
+                    else : secondary.checkCache(conf['tag'],sample['name'],deps,hists)
 
-# Secondaries :
-#  * name1 : better stats available
-#  * name2 : was updated : rerun
-#  * name3 : deps changed {} : update and rerun
+    def isSecondary(self,step) : return issubclass(type(step),wrappedChain.wrappedChain.calculable)
