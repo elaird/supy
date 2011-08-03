@@ -49,20 +49,29 @@ class WqqDeltaR(TopP4Calculable) :
     def update(self,_) :
         self.value = r.Math.VectorUtil.DeltaR(self.source[self.P4]['p'],self.source[self.P4]['q'])
 ######################################
-class DeltaAbsY(TopP4Calculable) :
+class DeltaAbsYttbar(TopP4Calculable) :
     def update(self,_) :
         self.value = abs(self.source[self.P4]['t'].Rapidity()) - abs(self.source[self.P4]['tbar'].Rapidity())
 ######################################
-class DeltaY(TopP4Calculable) :
+class DeltaYttbar(TopP4Calculable) :
     def update(self,_) :
         self.value = self.source[self.P4]['t'].Rapidity() - self.source[self.P4]['tbar'].Rapidity()
 ######################################
-class DirectedDeltaY(wrappedChain.calculable) :
+class DirectedDeltaYttbar(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
-        self.stash(['DeltaY','SignQuarkZ'])
+        self.stash(['DeltaYttbar','SignQuarkZ'])
     def update(self,_) :
-        self.value = self.source[self.SignQuarkZ] * self.source[self.DeltaY]
+        self.value = self.source[self.SignQuarkZ] * self.source[self.DeltaYttbar]
+######################################
+class DirectedDeltaYLHadt(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(['SignQuarkZ','P4','LeptonCharge'])
+    def update(self,_) :
+        p4 = self.source[self.P4]
+        qLep = self.source[self.LeptonCharge]
+        self.value = self.source[self.SignQuarkZ] * qLep * (p4['lepton'].Rapidity() - p4['t' if qLep<0 else 'tbar'].Rapidity())
 ######################################
 class SignedLeptonRapidity(wrappedChain.calculable) :
     def __init__(self, collection = None) :

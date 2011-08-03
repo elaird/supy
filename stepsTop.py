@@ -8,7 +8,7 @@ class Asymmetry(analysisStep) :
     def __init__(self, collection) :
         self.collection = collection
         for item in ["LeptonCharge","SignedLeptonRapidity","RelativeLeptonRapidity",
-                     "DeltaAbsY","DeltaY","DirectedDeltaY","PtOverSumPt","Beta"] :
+                     "DeltaAbsYttbar","DirectedDeltaYttbar","Beta","DirectedDeltaYLHadt"] :
             setattr(self,item,("%s"+item+"%s")%collection)
         self.bins = 18
 
@@ -17,9 +17,10 @@ class Asymmetry(analysisStep) :
             self.book.fill(ev[self.SignedLeptonRapidity], "leptonSignedY"+charge, self.bins,-3,3, title = "%s;leptonSignedY;events / bin"%charge)
             self.book.fill(ev[self.RelativeLeptonRapidity], "leptonRelativeY"+charge, self.bins,-3,3, title = "%s;#Delta y;events / bin"%charge)
 
-        self.book.fill( ev[self.DeltaAbsY],      'ttbarDeltaAbsY',    self.bins, -3, 3, title = ';#Delta|Y|_{ttbar};events / bin' )
-        self.book.fill( ev[self.DirectedDeltaY], 'ttbarSignedDeltaY', self.bins, -4, 4, title = ';sumP4dir * #Delta Y_{ttbar};events / bin' )
-        self.book.fill( ev[self.Beta],           'ttbarBeta',  self.bins, -math.sqrt(2), math.sqrt(2), title = ';#beta_{ttbar};events / bin')
+        self.book.fill( ev[self.DeltaAbsYttbar],      'ttbarDeltaAbsY',    self.bins, -3, 3, title = ';#Delta|Y|_{ttbar};events / bin' )
+        self.book.fill( ev[self.DirectedDeltaYttbar], 'ttbarSignedDeltaY', self.bins, -4, 4, title = ';sumP4dir * #Delta Y_{ttbar};events / bin' )
+        self.book.fill( ev[self.DirectedDeltaYLHadt], 'lHadtDeltaY',       self.bins, -4, 4, title = ';#Delta Y_{lhadt};events / bin')
+        self.book.fill( ev[self.Beta],                'ttbarBeta',         self.bins, -math.sqrt(2), math.sqrt(2), title = ';#beta_{ttbar};events / bin')
 #####################################
 class kinFitLook(analysisStep) :
     def __init__(self,indexName) : self.moreName = indexName
@@ -50,7 +51,8 @@ class kinFitLook(analysisStep) :
                         title = ";fit mass_{top} (leptonic); fit mass_{top} (hadronic);events / bin",)
         
         self.book.fill( topReco['chi2'], "topRecoChi2"+self.moreName, 50, 0 , 600, title = ';ttbar kin. fit #chi^{2};events / bin')
-        self.book.fill( math.log(1+topReco['chi2']), "topRecoLogChi2"+self.moreName, 50, 0 , 7, title = ';ttbar kin. fit log(1+#chi^{2});events / bin')
+        self.book.fill( math.log(1+topReco['chi2']), "topRecoLogOnePlusChi2"+self.moreName, 50, 0 , 7, title = ';ttbar kin. fit log(1+#chi^{2});events / bin')
+        self.book.fill( math.log(1+topReco['key']), "topRecoLogOnePlusKey"+self.moreName, 50, 0 , 7, title = ';ttbar kin. fit log(1+#chi^{2}-2logP);events / bin')
 
         #hadX2 = math.log(1+topReco['hadChi2'])
         #lepX2 = math.log(1+topReco['lepChi2'])
@@ -331,9 +333,9 @@ class mcTruthTemplates(analysisStep) :
         qdir = 1 if qqbar and genP4[qqbar[0]].pz()>0 else -1
         genP4dir = 1 if ev['genSumP4'].pz() > 0 else -1
         
-        self.book.fill(    qdir * ev['genTopDeltaY'], 'genTopTrueDeltaYttbar', 31,-5,5, title = ';True Signed #Delta y_{ttbar};events / bin')
-        self.book.fill(genP4dir * ev['genTopDeltaY'], 'genTopMezDeltaYttbar', 31,-5,5, title = ';MEZ Signed #Delta y_{ttbar};events / bin')
-        self.book.fill(        ev['genTopDeltaAbsY'], 'genTopDeltaAbsYttbar', 31,-5,5, title = ';#Delta |y|_{ttbar};events / bin')
+        self.book.fill(    qdir * ev['genTopDeltaYttbar'], 'genTopTrueDeltaYttbar', 31,-5,5, title = ';True Signed #Delta y_{ttbar};events / bin')
+        self.book.fill(genP4dir * ev['genTopDeltaYttbar'], 'genTopMezDeltaYttbar', 31,-5,5, title = ';MEZ Signed #Delta y_{ttbar};events / bin')
+        self.book.fill(        ev['genTopDeltaAbsYttbar'], 'genTopDeltaAbsYttbar', 31,-5,5, title = ';#Delta |y|_{ttbar};events / bin')
 
         indices = ev['genTTbarIndices']
         if indices['lplus'] and indices['lminus'] :
