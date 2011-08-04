@@ -217,15 +217,11 @@ class analysis(object) :
     def manageSecondaries(self,update) :
         for conf in self.configurations :
             loopers = self.listsOfLoopers[conf['tag']]
-            org = self.organizer(conf)
-            for iSample,sample in enumerate(org.samples) :
-                deps = org.calculablesGraphs[iSample]
-                for secondary in filter(self.isSecondary, loopers[iSample].steps) :
-                    orgStep = next(s for s in org.steps if s.nameTitle == (secondary.name,secondary.moreNames))
-                    hists = dict([(name,orgStep[name][iSample]) for name in orgStep])
-                    
-                    if update==True or (type(update)==str and sample['name'] in update.split(',')) :
-                        secondary.recache(conf['tag'],sample['name'],deps,hists)
-                    else : secondary.checkCache(conf['tag'],sample['name'],deps,hists)
+            for secondary in filter(self.isSecondary, loopers[0].steps) :
+                org = self.organizer(conf)
+                org.dropSteps( allButIndices = list(org.indicesOfStep(secondary.name,secondary.moreNames)))
+                if update==True or (type(update)==str and secondary.name in update.split(',')) :
+                    secondary.doCache(org)
+                else : secondary.checkCache(org)
 
     def isSecondary(self,step) : return issubclass(type(step),wrappedChain.wrappedChain.calculable)
