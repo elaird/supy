@@ -9,6 +9,7 @@ class analysisStep(object) :
     integerWidth,docWidth,moreWidth = 10,40,50
     moreName = moreName2 = ""
     disabled = quietMode = False
+    __invert = False
     
     def setup(self, inputChain, fileDirectory) : return
     def mergeFunc(self, products) : return
@@ -21,7 +22,7 @@ class analysisStep(object) :
             if self.disabled : return True
             tev = self.tracer(eventVars) if self.tracer else eventVars
             if not self.isSelector : return self.uponAcceptance(tev) or True
-            passed = bool(self.select(tev))
+            passed = bool(self.select(tev)) ^ self.__invert
             self.increment(passed)
             return passed
         except Exception as e:
@@ -43,6 +44,11 @@ class analysisStep(object) :
     def nFail(self) : return self.book["counts"].GetBinContent(1) if "counts" in self.book else 0.0
     @property
     def nPass(self) : return self.book["counts"].GetBinContent(2) if "counts" in self.book else 0.0
+    @property
+    def invert(self) :
+        self.__invert = True
+        self.moreName += " [INVERTED]"
+        return self
 
     def increment(self, passed, w = None) : self.book.fill(passed, "counts", 2, 0, 2, w = w)
     def setOutputFileStem(self, stem) : self.__outputFileStem = stem
