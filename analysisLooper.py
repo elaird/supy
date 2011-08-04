@@ -15,12 +15,15 @@ class analysisLooper :
             setattr(self, arg, eval(arg))
 
         self.outputDir = self.globalDir #the value will be modified in self.prepareOutputDirectory()
+        self.inputDir = self.globalDir 
         self.checkSteps()
 
     @property
     def globalDir(self) : return "%s/%s/"%(self.globalStem, self.subDir)
     @property
     def outputFileStem(self) :  return "%s/%s"%(self.outputDir, self.name)
+    @property
+    def inputFileStem(self) :  return "%s/%s"%(self.inputDir, self.name)
     @property
     def pickleFileName(self) : return "%s%s"%(self.outputFileStem, ".pickledData")
 
@@ -66,7 +69,13 @@ class analysisLooper :
                                                       trace = configuration.trace(),
                                                       cacheSizeMB = configuration.ttreecacheMB(),
                                                       )
+            for step in filter(lambda s: issubclass(type(s),wrappedChain.wrappedChain.calculable) and hasattr(s.source,"tracedKeys"), self.steps) :
+                step.tracer = step.source
+                step.source.tracedKeys |= step.priorFilters
+
             [ all(step(eventVars) for step in self.steps) for eventVars in chainWrapper.entries(self.nEventsMax) ]
+
+            for step in filter(lambda s: s.tracer and s.name in s.tracer.tracedKeys, self.steps) : step.tracer.tracedKeys.remove(step.name)
             self.recordLeavesAndCalcsUsed( chainWrapper.activeKeys(), chainWrapper.calcDependencies() )
         else : self.recordLeavesAndCalcsUsed([], {})
 
@@ -120,13 +129,14 @@ class analysisLooper :
 
         for step in self.steps :
             step.setOutputFileStem(self.outputFileStem)
+            step.setInputFileStem(self.inputFileStem)
             current = current.mkdir(step.name)
             step.book = autoBook(current)
-            step.tracer = wrappedChain.keyTracer(None) if configuration.trace() else None
+            step.tracer = wrappedChain.keyTracer(None) if configuration.trace() and (step.isSelector or issubclass(type(step),wrappedChain.wrappedChain.calculable)) else None
             step.priorFilters = set(priorFilters)
 
             self.steps[0].books.append(step.book)
-            if step.isSelector : priorFilters.append((step.name,step.moreNames))
+            if step.isSelector and step!=self.steps[0] : priorFilters.append((step.name,step.moreNames))
 
             if minimal : continue
             if self.quietMode : step.makeQuiet()
