@@ -19,8 +19,9 @@ class analysisStep(object) :
     def __call__(self,eventVars) :
         try:
             if self.disabled : return True
-            if not self.isSelector : return self.uponAcceptance(eventVars) or True
-            passed = bool(self.select(self.tracer(eventVars) if self.tracer else eventVars))
+            tev = self.tracer(eventVars) if self.tracer else eventVars
+            if not self.isSelector : return self.uponAcceptance(tev) or True
+            passed = bool(self.select(tev))
             self.increment(passed)
             return passed
         except Exception as e:
@@ -35,6 +36,8 @@ class analysisStep(object) :
     @property
     def outputFileName(self) : return "%s%s"%(self.__outputFileStem, self.outputSuffix())
     @property
+    def inputFileName(self) : return "%s%s"%(self.__inputFileStem, self.outputSuffix())
+    @property
     def isSelector(self) : return hasattr(self,"select")
     @property
     def nFail(self) : return self.book["counts"].GetBinContent(1) if "counts" in self.book else 0.0
@@ -43,6 +46,7 @@ class analysisStep(object) :
 
     def increment(self, passed, w = None) : self.book.fill(passed, "counts", 2, 0, 2, w = w)
     def setOutputFileStem(self, stem) : self.__outputFileStem = stem
+    def setInputFileStem(self, stem) : self.__inputFileStem = stem
     def requiresNoSetBranchAddress(self) : return False
     def disable(self) : self.disabled = True
     def makeQuiet(self) : self.quietMode = True
