@@ -189,6 +189,10 @@ class organizer(object) :
                     print "%s is gone."%key
                     del step[key]
 
+    def dropSteps(self, indices = [], allButIndices = []) :
+        if not indices : indices = [i for i in range(len(self.steps)) if i not in allButIndices]
+        self.__steps = tuple(s for i,s in enumerate(self.__steps) if i not in indices)
+
     def indexOfSampleWithName(self,name) :
         someList = [sample["name"] for sample in self.samples]
         return someList.index(name) if name in someList else None
