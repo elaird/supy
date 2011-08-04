@@ -11,7 +11,7 @@ class Ratio(secondaryCalculable.secondaryCalculable) :
 
     def setup(self,*_) :
         name = 'unweighted'+self.var
-        cache,hists = self.fromCache( [self.groups[0], self.thisGroup], [name])
+        hists = self.fromCache( [self.groups[0], self.thisGroup], [name])
         source = hists[self.thisGroup][name]
         if source :
             self.weights = hists[self.groups[0]][name]
@@ -19,7 +19,6 @@ class Ratio(secondaryCalculable.secondaryCalculable) :
             source.Scale(1./source.Integral(0,source.GetNbinsX()))
             self.weights.Divide(source)
         else : self.weights = None
-        if cache : cache.Close()
         
     def uponAcceptance(self,eventVars) :
         myWeight = eventVars[self.name]

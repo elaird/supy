@@ -1,4 +1,4 @@
-import random,string
+import random,string,os
 from wrappedChain import *
 from analysisStep import analysisStep
 
@@ -89,9 +89,11 @@ class secondaryCalculable(wrappedChain.calculable,analysisStep) :
 
 
     def fromCache(self,samples,keys, tag = None) :
-        cache = r.TFile.Open(self.cacheFileName(tag),"READ")
-        if not cache : return cache,dict()
         sampleHists = dict([(sample,dict((k,None) for k in keys)) for sample in samples])
+
+        if not os.path.exists(self.cacheFileName(tag)) : return sampleHists
+        cache = r.TFile.Open(self.cacheFileName(tag),"READ")
+        if not cache : return sampleHists
 
         pad = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in range(6))
         for sample,hists in sampleHists.iteritems() :
@@ -102,5 +104,6 @@ class secondaryCalculable(wrappedChain.calculable,analysisStep) :
                     if issubclass(type(obj),r.TH1) :
                         hists[key] = obj.Clone(obj.GetName()+sample+pad)
                         hists[key].SetDirectory(0)
-        return cache,sampleHists
+        cache.Close()
+        return sampleHists
                      
