@@ -1,5 +1,7 @@
 import numpy,math,utils
-import scipy.optimize as opt
+try:
+    import scipy.optimize as opt
+except: pass
 import numpy as np
 
 widthTop = 13.1/2
