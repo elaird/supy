@@ -32,7 +32,6 @@ def setupSCIPY() :
         pass
 ############################################
 def setupROOT() :
-    import sys
     sys.argv.append("-b")
     
     import ROOT as r
