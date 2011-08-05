@@ -1,7 +1,7 @@
 import os,math,ROOT as r
-import analysis,samples,secondaryCalculable
+import analysis,samples,calculables
 
-class Ratio(secondaryCalculable.secondaryCalculable) :
+class Ratio(calculables.secondary) :
     def __init__(self, var=None, binning=(0,0,0), thisSample = None, targetPrefix = None, groupPrefixes = []) :
         self.fixes = (var,"")
         self.defaultValue = 1.0
@@ -50,7 +50,6 @@ class exampleReweight(analysis.analysis) :
                  ]
     
     def listOfCalculables(self,pars) :
-        import calculables
         muon = ("muon","PF")
         return ( calculables.zeroArgs() +
                  calculables.fromCollections(calculables.Muon, [muon]) +
