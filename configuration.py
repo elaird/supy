@@ -1,8 +1,7 @@
 import os,socket
-import scipy.optimize as opt
 
 def ttreecacheMB() : return 20
-def trace() : return False
+def trace() : return True
 def nCoresDefault() : return 4
 def useCachedFileLists() : return True
 def maxArrayLength() : return 256
