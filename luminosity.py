@@ -4,7 +4,9 @@ import sys,os,tempfile
 import configuration
 sys.path.extend([configuration.siteInfo(key="CMSSW_lumi")])
 
-from RecoLuminosity.LumiDB import lumiQueryAPI,inputFilesetParser
+try:
+    from RecoLuminosity.LumiDB import lumiQueryAPI,inputFilesetParser
+except: pass
 
 def jsonToIFP(json) :
     with tempfile.NamedTemporaryFile() as file :
