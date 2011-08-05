@@ -13,10 +13,10 @@ class Ratio(secondaryCalculable.secondaryCalculable) :
         name = 'unweighted'+self.var
         hists = self.fromCache( [self.groups[0], self.thisGroup], [name])
         source = hists[self.thisGroup][name]
-        if source :
-            self.weights = hists[self.groups[0]][name]
-            self.weights.Scale(1./self.weights.Integral(0,self.weights.GetNbinsX()))
-            source.Scale(1./source.Integral(0,source.GetNbinsX()))
+        self.weights = hists[self.groups[0]][name]
+        if source and self.weights :
+            self.weights.Scale(1./self.weights.Integral(0,self.weights.GetNbinsX()+1))
+            source.Scale(1./source.Integral(0,source.GetNbinsX()+1))
             self.weights.Divide(source)
         else : self.weights = None
         
@@ -25,13 +25,11 @@ class Ratio(secondaryCalculable.secondaryCalculable) :
         value = eventVars[self.var]
         self.book.fill( value, "unweighted"+self.var, *self.binning, w = 1, title = ";%s;events / bin"%self.var )
         self.book.fill( value, "myweighted"+self.var, *self.binning, w = myWeight, title = ";%s;events / bin"%self.var)
-        self.book.fill( value, "allweighted"+self.var, *self.binning, title = ";%s;events / bin"%self.var )
+        self.book.fill( value, self.var, *self.binning, title = ";%s;events / bin"%self.var )
         self.book.fill(math.log(myWeight), "logMyWeight", 40, -5, 5, w = 1, title = ";log(%s);events / bin"%self.name)
 
     def update(self, ignored) :
         self.value = self.defaultValue if not self.weights else self.weights.GetBinContent(self.weights.FindFixBin(self.source[self.var]))
-
-    def calculateWeights(self, target, source) : return None
 
     def organize(self,org) :
         [org.mergeSamples( targetSpec = {"name":pre}, allWithPrefix=pre) for pre in self.groups]
@@ -43,9 +41,12 @@ class exampleReweight(analysis.analysis) :
         import steps
         return [ steps.Print.progressPrinter(),
                  steps.Other.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
+                 steps.Histos.multiplicity("vertexIndices",max=15),
                  steps.Filter.multiplicity("vertexIndices",min=1),
                  steps.Filter.pt("muonP4PF", min = 25, indices = "muonIndicesPF", index=0),
+                 steps.Histos.multiplicity("vertexIndices",max=15),
                  Ratio("nVertex", binning = (15,-0.5,14.5), targetPrefix = "SingleMu", groupPrefixes = ['qcd_mg','qcd_py6'], thisSample = pars['baseSample']),
+                 steps.Histos.multiplicity("vertexIndices",max=15),
                  ]
     
     def listOfCalculables(self,pars) :
