@@ -52,9 +52,6 @@ def fromCollections(module,collections) :
             for col in collections : calcs.append(calc(col))
     return calcs
 ##############################
-for module in configuration.calculablesFiles() :
-    exec("import calculables%s as %s"%(module, module))
-##############################
 
 import random,string,os
 from analysisStep import analysisStep
@@ -164,4 +161,7 @@ class secondary(wrappedChain.calculable,analysisStep) :
         cache.Close()
         return sampleHists
                      
+##############################
+for module in configuration.calculablesFiles() :
+    exec("import calculables%s as %s"%(module, module))
 ##############################
