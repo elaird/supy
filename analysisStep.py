@@ -44,11 +44,6 @@ class analysisStep(object) :
     def nFail(self) : return self.book["counts"].GetBinContent(1) if "counts" in self.book else 0.0
     @property
     def nPass(self) : return self.book["counts"].GetBinContent(2) if "counts" in self.book else 0.0
-    @property
-    def invert(self) :
-        self.__invert = True
-        self.moreName += " [INVERTED]"
-        return self
 
     def increment(self, passed, w = None) : self.book.fill(passed, "counts", 2, 0, 2, w = w)
     def setOutputFileStem(self, stem) : self.__outputFileStem = stem
@@ -56,6 +51,10 @@ class analysisStep(object) :
     def requiresNoSetBranchAddress(self) : return False
     def disable(self) : self.disabled = True
     def makeQuiet(self) : self.quietMode = True
+    def invert(self, val = True) :
+        self.__invert = val
+        if val : self.moreName += " [INVERTED]"
+        return self
         
     def name1(self) : return self.name.ljust(self.docWidth)+self.moreName.ljust(self.moreWidth)
     def name2(self) : return "" if self.moreName2=="" else "\n"+"".ljust(self.docWidth)+self.moreName2.ljust(self.moreWidth)
