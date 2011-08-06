@@ -276,6 +276,7 @@ class TopReconstruction(wrappedChain.calculable) :
         self.ellipseR = np.array([[math.cos(theta),-math.sin(theta)],[math.sin(theta), math.cos(theta)]])
 
     def update(self,_) :
+        epsilon = 1e-7
         p4 = self.source[self.CorrectedP4]
         resolution = self.source[self.Resolution]
         covRes2 = self.source[self.CovariantResolution2]
@@ -311,8 +312,8 @@ class TopReconstruction(wrappedChain.calculable) :
                                    "lepTopP4" : lepFit.fitT,    "hadTopP4": hadFit.fitT,
                                    "lepChi2" : lepFit.chi2,     "hadChi2" : hadFit.chi2,
                                    "chi2" : hadFit.chi2 + lepFit.chi2,
-                                   "probability" : topP[iQQBB],
-                                   "key" : hadFit.chi2 + lepFit.chi2 - 2*math.log(topP[iQQBB]),
+                                   "probability" : max(epsilon,topP[iQQBB]),
+                                   "key" : hadFit.chi2 + lepFit.chi2 - 2*math.log(max(epsilon,topP[iQQBB])),
 
                                    "top"  : lepFit.fitT if lepQ > 0 else hadFit.fitT,
                                    "tbar" : hadFit.fitT if lepQ > 0 else lepFit.fitT,
@@ -398,12 +399,12 @@ class wTopAsym(wrappedChain.calculable) :
 ######################################
 class TopComboQQBBLikelihood(wrappedChain.calculable) :
     def __init__(self, jets = None, tag = None) :
+        self.tagProbabilityGivenBQN = ('%s'+tag+'ProbabilityGivenBQN%s')%jets
         self.stash(["Indices"],jets)
-        for x in ['B','Q','N'] : setattr(self,x, jets[0]+"TagProbability%s_%s"%(x,tag)+jets[1])
 
     def update(self,_) :
         indices = self.source[self.Indices]
-        B,Q,N = tuple(self.source[getattr(self,x)] for x in ['B','Q','N'])
+        B,Q,N = zip(*self.source[self.tagProbabilityGivenBQN])
         self.value = {}
         for iPQHL in itertools.permutations(indices,4) :
             if iPQHL[0]>iPQHL[1] : continue
@@ -415,7 +416,7 @@ class TopComboQQBBLikelihood(wrappedChain.calculable) :
 class TopComboQQBBProbability(wrappedChain.calculable) :
     def update(self,_) :
         likelihoods = self.source['TopComboQQBBLikelihood']
-        sumL = sum(likelihoods.values())
+        sumL = max(1e-20,sum(likelihoods.values()))
         self.value = dict([(key,val/sumL) for key,val in likelihoods.iteritems()])
 ######################################
 class TopComboQQBBMaxProbability(wrappedChain.calculable) :
@@ -423,12 +424,12 @@ class TopComboQQBBMaxProbability(wrappedChain.calculable) :
 ######################################
 class OtherJetsLikelihood(wrappedChain.calculable) :
     def __init__(self, jets = None, tag = None) :
+        self.tagProbabilityGivenBQN = ('%s'+tag+'ProbabilityGivenBQN%s')%jets
         self.stash(["Indices"],jets)
-        self.N = ("%sTagProbabilityN_"+tag+"%s") % jets
 
     def update(self,_) :
         indices = self.source[self.Indices]
-        N = self.source[self.N]
+        B,Q,N = zip(*self.source[self.tagProbabilityGivenBQN])
         self.value = reduce(operator.mul, [N[k] for k in indices])
 ######################################
 class TopRatherThanWProbability(wrappedChain.calculable) :
