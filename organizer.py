@@ -171,7 +171,9 @@ class organizer(object) :
                 if key in ["lumiHisto","xsHisto","xsPostWeightsHisto","nJobsHisto","nEventsHisto"] : continue
                 for i,h in enumerate(hists):
                     if not h: continue
-                    if toPdf : h.Scale(1/h.Integral("width") if h.Integral() else 1.0)
+                    if toPdf :
+                        integral = h.Integral(0,h.GetNbinsX()) if not issubclass(type(h),r.TH2) else h.Integral()
+                        h.Scale(1./integral if integral else 1, "width")
                     elif i!=iData : h.Scale(self.lumi)
                     dim = int(h.ClassName()[2])
                     axis = h.GetYaxis() if dim==1 else h.GetZaxis() if dim==2 else None
@@ -212,22 +214,28 @@ class organizer(object) :
     def calculables(self) :
         def nodes(file, dirName) :
             def category(title) :
-                return ("fltr" if dirName=="Master" else
+                return ("sltr" if dirName=="Master" else
                         "leaf" if dirName=="Leaves" else 
                         "fake" if title.count(configuration.fakeString()) else 
                         "calc" )
+            def justNameTitle(name,title) :
+                L = len(title)
+                return ( (name,"") if name == title else
+                         (name[:-L],title) if name[-L:] == title else
+                         (name,title) )
+            def parseCalc(cd) :
+                deps = frozenset([ justNameTitle(tkey.GetName(),tkey.GetTitle())[0]
+                                   for tkey in (cd.GetListOfKeys() if dirName!="Master" else
+                                                cd.Get("Calculables").GetListOfKeys() if cd.Get("Calculables") else [])])
+                name,title = justNameTitle(cd.GetName(),cd.GetTitle())
+                return tuple([name, title, category(title), deps])
+
             def keyNames(path,descend=False) :
                 dirs = [ k.GetName() for k in file.Get(path[:-1]).GetListOfKeys()
                          if type(file.Get(path+k.GetName())) is r.TDirectoryFile and k.GetName()!="Calculables" ]
                 return [path+dir for dir in dirs] + sum([keyNames(path+dir+"/",descend) for dir in dirs if descend],[])
 
-            calcDirs = [file.Get(name) for name in keyNames(dirName+'/',descend=(dirName=="Master"))]
-            return [(calcDir.GetName(),
-                     calcDir.GetTitle().replace(calcDir.GetName(),""),
-                     category(calcDir.GetTitle()),
-                     frozenset([tkey.GetName() for tkey in (
-                (calcDir.GetListOfKeys() if dirName!="Master" else calcDir.Get("Calculables").GetListOfKeys() if calcDir.Get("Calculables") else []))])
-                     )  for calcDir in calcDirs]
+            return [parseCalc(file.Get(name)) for name in keyNames(dirName+'/',descend=(dirName=="Master"))]
         
         def calcs(sample) :
             return ( nodes(sample['file'], "Calculables") +
@@ -254,7 +262,7 @@ class organizer(object) :
             def addNode(calc) :
                 if calc in nodes : return
                 nodes[calc] = utils.vessel()
-                nodes[calc].deps = set([calcByName[depName] for depName in scalcs[calc]])
+                nodes[calc].deps = set([calcByName[depName] for depName in scalcs[calc] if depName in calcByName])
                 nodes[calc].feeds = set()
                 nodes[calc].depLevel = 0
                 for dep in nodes[calc].deps :

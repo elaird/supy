@@ -164,7 +164,7 @@ class analysisLooper :
             r.gDirectory.mkdir("Calculables",".").cd()
             for calc in self.calculablesUsed :
                 r.gDirectory.mkdir(*calc).cd()
-                for dep in self.calculableDependencies[calc[0]] : r.gDirectory.mkdir(*dep)
+                for dep in self.calculableDependencies[calc[0]] : r.gDirectory.mkdir(dep[0]+dep[1],dep[1])
                 r.gDirectory.GetMother().cd()
             r.gDirectory.GetMother().cd()
 
