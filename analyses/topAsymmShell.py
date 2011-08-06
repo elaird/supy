@@ -27,7 +27,7 @@ class topAsymmShell(analysis.analysis) :
         leptons["muon"]     = dict(zip(fieldsLepton, ["muon",     31,     2.1, "CombinedRelativeIso", tuple(zip(*mutriggers())[0])]))
         #leptons["electron"] = dict(zip(fieldsLepton, ["electron", 30,       9,         "IsoCombined", ("FIX","ME")]))
         
-        bVar = "TrkCountingHighEffBJetTags"
+        bVar = "NTrkHiEff" # "TrkCountingHighEffBJetTags"
         bCut = {"normal"   : {"index":1, "min":2.0},
                 "inverted" : {"index":1, "max":2.0}}
         lIso = {"normal":  {"N":1, "indices":"Indices"},
@@ -81,10 +81,10 @@ class topAsymmShell(analysis.analysis) :
             calculables.Other.Mt(lepton,"mixedSumP4", allowNonIso=True, isSumP4=True),
             calculables.Muon.IndicesAnyIsoIsoOrder(obj[pars["lepton"]["name"]], pars["lepton"]["isoVar"]),
             calculables.Other.PtSorted(obj['muon']),
-            calculables.Other.Covariance(('met','PF'))
+            calculables.Other.Covariance(('met','PF')),
+            calculables.Other.abbreviation( "TrkCountingHighEffBJetTags", "NTrkHiEff", fixes = calculables.Jet.xcStrip(obj['jet']) ),
             ]
         outList += calculables.fromCollections(calculables.Top,[('genTop',""),('fitTop',"")])
-        outList += [calculables.Jet.TagProbability(pars['objects']['jet'], pars['bVar'], letter) for letter in ['b','q','n']]
         outList.append( calculables.Top.TopComboQQBBLikelihood(pars['objects']['jet'], pars['bVar']))
         outList.append( calculables.Top.OtherJetsLikelihood(pars['objects']['jet'], pars['bVar']))
         outList.append( calculables.Top.TopRatherThanWProbability(priorTop=0.5) )
@@ -128,6 +128,7 @@ class topAsymmShell(analysis.analysis) :
         lEtaMax = pars["lepton"]["etaMax"]
         lIsoIndices = ("%s"+pars["selection"]["lIso"]["indices"]+"%s")%lepton
 
+        topTag = pars['tag'].replace("Wlv","top").replace("QCD","top")
         selections = (
             [steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
              steps.Filter.multiplicity("%sIndices%s"%obj["jet"], **pars["nJets"]),
@@ -145,12 +146,13 @@ class topAsymmShell(analysis.analysis) :
              steps.Filter.absEta("%sP4%s"%lepton, max = lEtaMax, indices = lIsoIndices, index = 0),
              
              ]+[steps.Histos.value(bVar, 60,0,15, indices = "%sIndicesBtagged%s"%obj["jet"], index = i) for i in range(3)]+[
+            calculables.Jet.ProbabilityGivenBQN(obj["jet"], pars['bVar'], binning=(64,-1,15), samples = pars['topBsamples'], tag = topTag),
             steps.Histos.value("TopRatherThanWProbability", 100,0,1),
             #steps.Filter.value("TopRatherThanWProbability", min = 0.2),
             steps.Filter.value(bVar, indices = "%sIndicesBtagged%s"%obj["jet"], index = 1, min = 0.0),
             steps.Filter.value(bVar, indices = "%sIndicesBtagged%s"%obj["jet"], **pars["selection"]["bCut"]),
             ])
-        return [s for s in selections if withPlots or s.isSelector]
+        return [s for s in selections if withPlots or s.isSelector or issubclass(type(s),calculables.secondary)]
 
     @staticmethod
     def lepIso(index,pars) :

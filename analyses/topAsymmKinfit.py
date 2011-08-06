@@ -1,12 +1,10 @@
-#!/usr/bin/env python
-
-import os,topAsymmShell,steps,calculables,samples,organizer,plotter,utils,math
-import ROOT as r
+import topAsymmShell,calculables,samples
 
 class topAsymmKinfit(topAsymmShell.topAsymmShell) :
     def parameters(self) :
         pars = super(topAsymmKinfit,self).parameters()
         pars["effectiveLumi"] = 8000
+        pars["topBsamples"] = ("tt_tauola_fj_mg",["tt_tauola_fj_mg"])
         return pars
 
     def listOfCalculables(self,pars) :
@@ -17,6 +15,7 @@ class topAsymmKinfit(topAsymmShell.topAsymmShell) :
         return calcs
 
     def listOfSteps(self, pars) :
+        import steps
         obj = pars["objects"]
         lepton = obj[pars["lepton"]["name"]]
         lPtMin = pars["lepton"]["ptMin"]
@@ -26,20 +25,12 @@ class topAsymmKinfit(topAsymmShell.topAsymmShell) :
             steps.Print.progressPrinter(),
             steps.Filter.pt("%sP4%s"%lepton, min = lPtMin, indices = "%sIndicesAnyIso%s"%lepton, index = 0),
             ]+topAsymmShell.topAsymmShell.cleanupSteps(pars)+[
-            steps.Top.jetProbability(obj['jet'], "TrkCountingHighEffBJetTags", 100, -1, 15),
             ]+topAsymmShell.topAsymmShell.selectionSteps(pars, withPlots = False) +[
             #steps.Top.kinFitLook("fitTopRecoIndex"),
             steps.Filter.value("genTopSemiLeptonicWithinAcceptance", min = True),
             #steps.Histos.value("genTopWqqDeltaR",50,0,4),
             steps.Filter.value("genTopSemiLeptonicAccepted", min = True),
             #steps.Histos.value("genTopWqqDeltaR",50,0,4),
-            ]+sum([[steps.Filter.label(tag),steps.Top.jetProbability(obj['jet'], tag,bins,min,max)] \
-                          for tag,bins,min,max in [#("JetProbabilityBJetTags",100,-0.2,3),
-                                                   #("JetBProbabilityBJetTags",100,-1,12),
-                                                   #("CombinedSecondaryVertexBJetTags",100,-0.1,1),
-                                                   #("CombinedSecondaryVertexMVABJetTags",100,-0.1,1),
-                                                   #("TrkCountingHighEffBJetTags",100,-1,15)
-                                                   ]],[]) + [
             #steps.Top.topProbLook(obj['jet']),
             steps.Other.assertNotYetCalculated("TopReconstruction"),
             steps.Filter.multiplicity("TopReconstruction",min=1),
@@ -56,6 +47,7 @@ class topAsymmKinfit(topAsymmShell.topAsymmShell) :
             ])
     
     def listOfSamples(self,pars) :
+        import ROOT as r
         from samples import specify
         return (specify(names = "tt_tauola_fj_mg", color = r.kRed,
                         #nFilesMax=1, nEventsMax=4100) +
@@ -66,8 +58,9 @@ class topAsymmKinfit(topAsymmShell.topAsymmShell) :
                 #        effectiveLumi = pars["effectiveLumi"]) +
                 #specify( names = "w_jets_mg", effectiveLumi = 100, color = 28 ) +
                 [])
-
+    
     def conclude(self,pars) :
+        import plotter
         org = self.organizer(pars)
         org.scale(toPdf=True)
         
