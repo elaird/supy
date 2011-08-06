@@ -215,7 +215,7 @@ class analysis(object) :
 
 ############
     def manageSecondaries(self,update) :
-        for conf in self.configurations :
+        for conf in self.readyConfs :
             loopers = self.listsOfLoopers[conf['tag']]
             for secondary in filter(self.isSecondary, loopers[0].steps) :
                 org = self.organizer(conf)
