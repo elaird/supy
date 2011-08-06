@@ -32,8 +32,8 @@ class xcJet(wrappedChain.calculable) :
         if applyBug : return p[0]
         return p[0]-abs(p[1])*math.atan( math.log10( min(1.0, pt/p[2]) ) )
     
-    def resFactor(self, isData, p4) :
-        if self.applyResidualCorrectionsToData and isData :
+    def resFactor(self, p4) :
+        if self.applyResidualCorrectionsToData and self.source['isRealData'] :
             etaLo = self.source[self.resCorr]["etaLo"]
             etaHi = self.source[self.resCorr]["etaHi"]
             index = max(0, bisect.bisect(etaLo, p4.eta())-1)
@@ -48,7 +48,7 @@ class xcJet(wrappedChain.calculable) :
         else :
             return 1.0
         
-    def jes(self, isData, p4) : return p4 * self.jesAbs*(1+self.jesRel*abs(p4.eta())) * self.resFactor(isData, p4)
+    def jes(self, p4) : return p4 * self.jesAbs*(1+self.jesRel*abs(p4.eta())) * self.resFactor(p4)
 
     def update(self,ignored) :
         jetP4s = self.source[self.jetP4Source]
@@ -56,10 +56,9 @@ class xcJet(wrappedChain.calculable) :
         nMuonsMatched = self.source["%sNMuonsMatched%s"%self.xcjets]
         matchedMuons = []
 
-        isData = self.source["isRealData"]
         self.value = utils.vector()
         for iJet in range(len(jetP4s)) :
-            self.value.push_back(self.jes(isData, jetP4s[iJet]))
+            self.value.push_back(self.jes(jetP4s[iJet]))
             
             if self.matchesIn("gamma",self.value[iJet]) \
             or self.matchesIn("electron",self.value[iJet]) :
