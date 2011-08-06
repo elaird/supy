@@ -154,44 +154,7 @@ class combinatoricsLook(analysisStep) :
         iHad = max(0,topReco[index]["lepCharge"])
         genLepY = ev['genP4'][max(ev['genTTbarIndices'][item] for item in ['lplus','lminus'])].Rapidity()
         self.book.fill( recoY[iHad] - topReco[index]['lep'].Rapidity() - (genY[iHad]-genLepY), "ddRapidityLHadTop", 100,-1,1, title = ";#Delta y_{l-htop reco}-#Delta y_{l-htop gen};events / bin")
-#####################################
-class jetProbability(analysisStep) :
-    def __init__(self, jets = None, bvar = None, bins = 30, min = 0 , max = 1, extraName = "") :
-        self.indicesGenB = "%sIndicesGenB%s"%jets
-        self.indicesGenWqq = "%sIndicesGenWqq%s"%jets
-        self.indices = "%sIndices%s"%jets
-        self.bvar = ("%s"+bvar+"%s")%xcStrip(jets)
-        for item in ['bins','min','max','extraName'] : setattr(self,item,eval(item))
-    def uponAcceptance(self,ev) :
-        indices = ev[self.indices]
-        iB = ev[self.indicesGenB]
-        iQ = ev[self.indicesGenWqq]
-
-        bvar = ev[self.bvar]
-        for i in indices :
-            jetType = "b" if i in iB else "q" if i in iQ else "n"
-            name = self.bvar+jetType
-            self.book.fill(bvar.at(i), name, 30,self.min,self.max, title = ";%s (%s);events / bin"%(self.bvar,jetType))
-
-    def outputSuffix(self) : return "_jetProbability%s_%s.txt"%(self.extraName,self.bvar)
-    def varsToPickle(self) : return ["bvar","extraName"]
-    def mergeFunc(self, products) :
-        file = open(self.outputFileName,"w")
-        rFile = r.TFile.Open( self._analysisStep__outputFileStem + stepsMaster.Master.outputSuffix(), "READ")
-        hists = [rFile.FindObjectAny(self.bvar+suf) for suf in ['b','q','n']]
-        nBins = hists[0].GetNbinsX()
-        for hist in filter(None,hists) : hist.Scale(1 / hist.Integral(0,nBins+1,"width"))
-
-        print >> file, "%d\t%f\t%f" % ( nBins,
-                                        hists[0].GetBinLowEdge(1),
-                                        hists[0].GetBinLowEdge(nBins+1))
-        for jType, hist in zip(['b','q','n'], hists) :
-            items = [jType] + (["%0.5f"%hist.GetBinContent(i) for i in range(nBins+2)] if hist else nBins*["0.0"])
-            print >> file, '\t'.join(items)
-        rFile.Close()
-        file.close()
-        print "Wrote %s"%self.outputFileName
-#####################################
+######################################
 class discriminateNonTop(analysisStep) :
     def __init__(self, pars) :
         obj = pars['objects']
