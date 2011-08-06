@@ -14,6 +14,14 @@ class chain_access(wrappedChain.calculable) :
     def name(self) : return "chain"
     def update(self,ignored) : self.value = self.source._wrappedChain__chain
 #####################################
+class abbreviation(wrappedChain.calculable) :
+    @property
+    def name(self) : return self.abr
+    def __init__(self, var = "", abr = "", fixes = ("","")) :
+        self.moreName = ('%s'+var+'%s')%fixes
+        self.abr = ('%s'+abr+'%s')%fixes
+    def update(self,_) : self.value = self.source[self.moreName]
+#####################################
 class crock(wrappedChain.calculable) :
     def update(self,localEntry) : self.value = {}
 #####################################
@@ -252,7 +260,7 @@ class Ratio(calculables.secondary) :
         me = ev[self.name]
         self.book.fill( ev[self.var], "unweighted", *self.binning, w = 1,  title = ";%s;events / bin"%self.var )
         self.book.fill( ev[self.var], "meweighted", *self.binning, w = me, title = ";%s;events / bin"%self.var )
-        self.book.fill( math.log(me), "logMyValue", 40, -5, 5,     w = 1,  title = ";log(%s);events / bin"%self.name )
+        self.book.fill( math.log(max(1e-20,me)), "logMyValue", 40, -5, 5,     w = 1,  title = ";log(%s);events / bin"%self.name )
 
     def update(self, ignored) :
         self.value = self.defaultValue if not self.weights else self.weights.GetBinContent(self.weights.FindFixBin(self.source[self.var]))
