@@ -71,12 +71,14 @@ class secondary(wrappedChain.calculable,analysisStep) :
     '''
 
     def cacheFileName(self,tag=None) :
-        pieces = self.inputFileName.split('/')
-        return '/'.join(pieces[:-2] + [tag if tag!=None else pieces[-2], "cache_%s.root"%self.name])
+        pieces = filter(None,self.inputFileName.split('/'))
+        return '/'.join(['']+pieces[:-2] + [tag if tag!=None else pieces[-2], "cache_%s.root"%self.name])
 
     @staticmethod
-    def allDeps(node,graph) :
-        return reduce(lambda s,t: s|t, [secondary.allDeps(n,graph) for n in graph[node].deps], graph[node].deps)
+    def allDeps(node,graph, depsSoFar = set()) :
+        if node is None : return []
+        depsSoFar|=graph[node].deps
+        return reduce(lambda s,t: s|t, [secondary.allDeps(n,graph,depsSoFar) for n in graph[node].deps if n not in depsSoFar], graph[node].deps)
     @staticmethod
     def equalAxes(p,q) :
         return all( getattr(getattr(p,ax)(),item)() == getattr(getattr(q,ax)(),item)()
@@ -101,7 +103,7 @@ class secondary(wrappedChain.calculable,analysisStep) :
         if "Calculables" not in keys : return "Missing deps"
         r.gDirectory.cd("Calculables")
         cachedDeps = [(key.GetName(),key.GetTitle() if key.GetTitle()!=key.GetName() else '') for key in r.gDirectory.GetListOfKeys()]
-        deps = set((n,t) for n,t,_ in self.allDeps( next(key for key in org.calculablesGraphs[iSample] if key[0]==self.name),  org.calculablesGraphs[iSample] ))
+        deps = set((n,t) for n,t,_ in self.allDeps( next((key for key in org.calculablesGraphs[iSample] if key[0]==self.name),None),  org.calculablesGraphs[iSample] ))
 
         new = deps - deps.intersection(cachedDeps)
         old = deps.union(cachedDeps) - deps
@@ -115,11 +117,16 @@ class secondary(wrappedChain.calculable,analysisStep) :
 
     def checkCache(self,org) :
         self.organize(org)
-        cache = r.TFile.Open(self.cacheFileName(),"UPDATE")
+        if not os.path.exists(self.cacheFileName()) :
+            print
+            print "!! No cache: %s"%self.cacheFileName()
+            return
+        cache = r.TFile.Open(self.cacheFileName(),"READ")
         msgs = filter(lambda x: x[1], [(sample['name'],self.checkOne(cache, org, iSample)) for iSample,sample in enumerate(org.samples)])
         cache.Close()
         if msgs :
-            print "Not up to date: %s"%self.cacheFileName()
+            print
+            print "!! Not up to date: %s"%self.cacheFileName()
             print '\n'.join("\t%s : %s"%(m,s) for s,m in msgs)
         
     def doCache(self,org) :
@@ -135,7 +142,7 @@ class secondary(wrappedChain.calculable,analysisStep) :
 
             if "Calculables" in [k.GetName() for k in r.gDirectory.GetListOfKeys()] : r.gDirectory.rmdir("Calculables")
             r.gDirectory.mkdir("Calculables").cd()
-            deps = self.allDeps(next(key for key in org.calculablesGraphs[iSample] if key[0]==self.name), org.calculablesGraphs[iSample])
+            deps = self.allDeps(next((key for key in org.calculablesGraphs[iSample] if key[0]==self.name), None), org.calculablesGraphs[iSample])
             for name,title,_ in deps : r.gDirectory.mkdir(name,title)
             cache.cd()
             print "\t%s"%sample['name']
@@ -143,11 +150,13 @@ class secondary(wrappedChain.calculable,analysisStep) :
 
 
     def fromCache(self,samples,keys, tag = None) :
+        assert type(samples) in [list,set], "fromeCache() takes a list or set of samples"
         sampleHists = dict([(sample,dict((k,None) for k in keys)) for sample in samples])
 
-        if not os.path.exists(self.cacheFileName(tag)) : return sampleHists
-        cache = r.TFile.Open(self.cacheFileName(tag),"READ")
-        if not cache : return sampleHists
+        cache = r.TFile.Open(self.cacheFileName(tag),"READ") if os.path.exists(self.cacheFileName(tag)) else None
+        if not cache :
+            print "!! No cache: " + self.cacheFileName(tag)
+            return sampleHists
 
         pad = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in range(6))
         for sample,hists in sampleHists.iteritems() :
