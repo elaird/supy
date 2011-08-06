@@ -841,7 +841,41 @@ class TagProbability(wrappedChain.calculable) :
 
     def update(self,ignored) :
         self.value = [self.hist.GetBinContent(self.hist.FindFixBin(tag)) for tag in self.source[self.tag]]
+#####################################
+class ProbabilityGivenBQN(calculables.secondary) :
+    def __init__(self, collection = None, bvar = None, binning = (0,0,0), samples = ('',[]), tag = None,) :
+        self.fixes = collection
+        self.__name = ('%s'+bvar+self.__class__.__name__+'%s')%self.fixes
+        self.bvar = ("%s"+bvar+"%s")%xcStrip(collection)
+        for item in ['binning','samples','tag'] : setattr(self,item,eval(item))
+        self.stash(['Indices','IndicesGenB','IndicesGenWqq'])
+        self.moreName = tag + '; ' + ','.join(samples[1] if samples[1] else [samples[0]])
+    @property
+    def name(self) : return self.__name
+
+    def setup(self,*_) :
+        hists = self.fromCache([self.samples[0]],['B','Q','N'], tag = self.tag)
+        self.histsBQN = [hists[self.samples[0]][jetType] for jetType in ['B','Q','N']] \
+                        if self.samples[0] in hists else None
+        for hist in self.histsBQN : hist.Scale(1./hist.Integral(0,hist.GetNbinsX()+1),"width")
         
+    def uponAcceptance(self,ev) :
+        if ev['isRealData'] : return
+        indices = ev[self.Indices]
+        iB = ev[self.IndicesGenB]
+        iQ = ev[self.IndicesGenWqq]
+        bvar = ev[self.bvar]
+        for i in indices :
+            jetType = "B" if i in iB else "Q" if i in iQ else "N"
+            self.book.fill(bvar.at(i), jetType, *self.binning, title = ";%s (%s);events / bin"%(self.bvar,jetType))
+    
+    def update(self,_) :
+        self.value = [tuple(hist.GetBinContent(hist.FindFixBin(bvar)) for hist in self.histsBQN)
+                      for bvar in self.source[self.bvar]] if self.histsBQN else [(0,0,0)]*len(self.source[self.bvar])
+        
+    def organize(self,org) :
+        if self.samples[1] : org.mergeSamples( targetSpec = {'name':self.samples[0]}, sources = self.samples[1] )
+        else: org.mergeSamples( targetSpec = {'name':self.samples[0]}, allWithPrefix = self.samples[0] )
 #####################################
 class CorrectedP4(wrappedChain.calculable) :
     def __init__(self, genJets = None) : #purposefully not called collection
