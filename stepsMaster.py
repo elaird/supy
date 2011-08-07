@@ -8,10 +8,11 @@ class Master(analysisStep) :
     def select (self, eventVars) :
         weight = eventVars["weight"]
         for book in self.books: book.weight = weight
-        if weight is None : self.books[0].weight = 1
+        if weight is None : self.book.weight = 1
+        else: self.increment(False, 1-weight)
         return weight is not None
     # 'None' weight counts toward the total cross section with weight = 1,
-    # but is not processed.  This is useful for sub-sampling and pthat-filtering
+    # but is not processed further.  This is useful for sub-sampling and pthat-filtering
 
     def endFunc(self, chains) :
         self.select({"weight":1.0})
