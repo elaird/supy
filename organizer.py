@@ -224,6 +224,7 @@ class organizer(object) :
                          (name[:-L],title) if name[-L:] == title else
                          (name,title) )
             def parseCalc(cd) :
+                if dirName=="Master" and not cd.Get("Calculables") : return None
                 deps = frozenset([ justNameTitle(tkey.GetName(),tkey.GetTitle())[0]
                                    for tkey in (cd.GetListOfKeys() if dirName!="Master" else
                                                 cd.Get("Calculables").GetListOfKeys() if cd.Get("Calculables") else [])])
@@ -235,12 +236,12 @@ class organizer(object) :
                          if type(file.Get(path+k.GetName())) is r.TDirectoryFile and k.GetName()!="Calculables" ]
                 return [path+dir for dir in dirs] + sum([keyNames(path+dir+"/",descend) for dir in dirs if descend],[])
 
-            return [parseCalc(file.Get(name)) for name in keyNames(dirName+'/',descend=(dirName=="Master"))]
+            return filter(None,[parseCalc(file.Get(name)) for name in keyNames(dirName+'/',descend=(dirName=="Master"))])
         
         def calcs(sample) :
             return ( nodes(sample['file'], "Calculables") +
                      nodes(sample['file'], "Leaves") +
-                     filter(lambda c: c[3], nodes(sample['file'], "Master"))
+                     nodes(sample['file'], "Master")
                      )
         
         if not hasattr(self,"_organizer__calculables") :
@@ -262,7 +263,7 @@ class organizer(object) :
             def addNode(calc) :
                 if calc in nodes : return
                 nodes[calc] = utils.vessel()
-                nodes[calc].deps = set([calcByName[depName] for depName in scalcs[calc] if depName in calcByName])
+                nodes[calc].deps = set([calcByName[depName] for depName in scalcs[calc]])
                 nodes[calc].feeds = set()
                 nodes[calc].depLevel = 0
                 for dep in nodes[calc].deps :
