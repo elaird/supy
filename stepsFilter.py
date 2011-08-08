@@ -3,6 +3,9 @@ import ROOT as r
 from analysisStep import analysisStep
 import utils
 #####################################
+class stop(analysisStep) :
+    def select(*_) : return False
+#####################################
 class label(analysisStep) :
     def __init__(self,title) : self.moreName = title
     def select(self,eventVars) : return True
