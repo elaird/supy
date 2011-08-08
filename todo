@@ -10,6 +10,7 @@
 * multi-site samples handles
 * other directories in organizer/plotter
 * make 1/10 configurable
+* step ID check
 
 * continue clean-up of hadronicLook
 * consider threshold for adding muons to jets
