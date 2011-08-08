@@ -1,5 +1,6 @@
 from wrappedChain import *
-import calculables,math,utils,configuration,numpy as np
+import calculables,math,utils,configuration
+import operator,numpy as np
 #####################################
 class localEntry(wrappedChain.calculable) :
     def update(self,localEntry) :
@@ -263,11 +264,52 @@ class Ratio(calculables.secondary) :
         self.book.fill( ev[self.var], "meweighted", *self.binning, w = me, title = ";%s;events / bin"%self.var )
         self.book.fill( math.log(max(1e-20,me)), "logMyValue", 40, -5, 5,     w = 1,  title = ";log(%s);events / bin"%self.name )
 
-    def update(self, ignored) :
+    def update(self,_) :
         self.value = self.defaultValue if not self.weights else self.weights.GetBinContent(self.weights.FindFixBin(self.source[self.var]))
 
     def organize(self,org) :
         [ org.mergeSamples( targetSpec = {"name":pre}, sources = samples ) if samples else
           org.mergeSamples( targetSpec = {"name":pre}, allWithPrefix = pre )
          for pre,samples in self.groups + [self.target] ]
+#####################################
+class Discriminant(calculables.secondary) :
+    def __init__(self, fixes = ("",""),
+                 left = {"pre":"","samples":[],"tag":""},
+                 right = {"pre":"","samples":[],"tag":""},
+                 dists = {} # key = calc or leaf name : val = (bins,min,max)
+                 ) :
+        for item in ['fixes','left','right','dists'] : setattr(self,item,eval(item))
+        self.moreName = "L:"+left['pre']+"; R:"+right['pre']+"; "+','.join(dists.keys())
+
+    def setup(self,*_) :
+        left = self.fromCache( [self.left['pre']], self.dists.keys(), tag = self.left['tag'])[self.left['pre']]
+        right = self.fromCache( [self.right['pre']], self.dists.keys(), tag = self.right['tag'])[self.right['pre']]
+        for h in filter(None,left.values()+right.values()) :
+            integral = h.Integral(0,h.GetNbinsX()+1)
+            if h : h.Scale(1./integral if integral else 1.)
+
+        for key in self.dists :
+            if left[key] and right[key] : left[key].Divide(right[key])
+            else: left[key] = None
+        self.likelihoodRatios = left
+
+    def uponAcceptance(self,ev) :
+        for key,val in self.dists.iteritems() : self.book.fill(ev[key], key, *val, title = ";%s;events / bin"%key)
+        self.book.fill(ev[self.name], self.name, 50, 0, 1, title = ";%s;events / bin"%self.name)
+
+    def likelihoodRatio(self,key) :
+        hist = self.likelihoodRatios[key]
+        return 1 if not hist else hist.GetBinContent(hist.FindFixBin(self.source[key]))
+
+    def update(self,_) :
+        likelihoodRatios = [self.likelihoodRatio(key) for key in self.dists]
+        self.value = 1. / ( 1 + reduce(operator.mul, likelihoodRatios, 1) )
+
+    def organize(self,org) :
+        [ org.mergeSamples( targetSpec = {'name':item['pre']}, sources = item['samples']) if item['samples'] else
+          org.mergeSamples( targetSpec = {'name':item['pre']}, allWithPrefix = item['pre'])
+          for item in [self.left,self.right]]
+        for sample in list(org.samples) :
+            if sample['name'] not in [self.left['pre'],self.right['pre']] :
+                org.drop(sample['name'])
 #####################################
