@@ -25,6 +25,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             calculables.Other.Ratio("nVertex", binning = (15,-0.5,14.5), thisSample = pars['baseSample'],
                                     target = ("SingleMu",[]), groups = [('qcd_mg',[]),
                                                                         ('qcd_py6',[]),
+                                                                        ('w_jets_fj_mg',[]),
                                                                         ('tt_tauola_fj',['tt_tauola_fj',
                                                                                          'tt_tauola_fj.wNonQQbar.nvr',
                                                                                          'tt_tauola_fj.wTopAsymP00.nvr'
