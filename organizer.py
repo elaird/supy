@@ -44,8 +44,9 @@ class organizer(object) :
                 instance[key] = sum([s[key] if s and key in s else blank for s,blank in zip(steps,blanks)],())
             return instance
         
-    def __init__(self, tag, sampleSpecs = [] ) :
+    def __init__(self, tag, sampleSpecs = [], verbose = False ) :
         r.gROOT.cd()
+        self.verbose = verbose
         self.scaled = False
         self.lumi = 1.0
         self.tag = tag
@@ -123,9 +124,11 @@ class organizer(object) :
         if not sources and allWithPrefix: sources = [s["name"] for s in self.samples if re.match(allWithPrefix,s["name"])]
         sourceIndices = [i for i in range(len(self.samples)) if self.samples[i]["name"] in sources]
         sources = [s for s in self.samples if s["name"] in sources]
-        if not len(sourceIndices) : print "None of the samples you want merged are specified, no action taken : %s"%str(allWithPrefix); return
-        else: print ''.join("You have requested to merge unspecified sample %s\n"%src["name"]
-                            for src in sources if src not in self.samples),
+        if not len(sourceIndices) :
+            if self.verbose : print "None of the samples you want merged are specified, no action taken : %s"%str(allWithPrefix)
+            return
+        elif self.verbose: print ''.join("You have requested to merge unspecified sample %s\n"%src["name"]
+                                         for src in sources if src not in self.samples),
 
         target = copy.deepcopy(targetSpec)
         target['sources'] = [s["name"] for s in sources]
@@ -172,7 +175,7 @@ class organizer(object) :
                 for i,h in enumerate(hists):
                     if not h: continue
                     if toPdf :
-                        integral = h.Integral(0,h.GetNbinsX()) if not issubclass(type(h),r.TH2) else h.Integral()
+                        integral = h.Integral(0,h.GetNbinsX()+1) if not issubclass(type(h),r.TH2) else h.Integral()
                         h.Scale(1./integral if integral else 1, "width")
                     elif i!=iData : h.Scale(self.lumi)
                     dim = int(h.ClassName()[2])
@@ -182,7 +185,9 @@ class organizer(object) :
 
     def drop(self,sampleName) :
         index = self.indexOfSampleWithName(sampleName)
-        if index is None : print "%s is not present: cannot drop"%sampleName; return
+        if index is None :
+            if self.verbose : print "%s is not present: cannot drop"%sampleName
+            return
         self.samples = self.samples[:index] + self.samples[index+1:]
         for step in self.steps:
             for key,val in list(step.iteritems()):
