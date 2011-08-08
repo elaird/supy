@@ -238,13 +238,15 @@ class Ratio(calculables.secondary) :
         self.fixes = (var,"")
         self.defaultValue = 1.0
 
-        if not (thisSample in target[1] or not(target[1]) and thisSample.find(target[0])==0) :
-            groups.append((thisSample,[thisSample]))
         self.thisGroup = next((pre for pre,samples in groups if thisSample in samples),
                               next((pre for pre,samples in groups if not samples and thisSample.find(pre)==0),
                                    None ))
+        if self.thisGroup==None and not (thisSample in target[1] or (not target[1]) and thisSample.find(target[0])==0) :
+            groups.append((thisSample,[thisSample]))
+            self.thisGroup = thisSample
+            
         for item in ["var","binning","target","groups"] : setattr(self,item,eval(item))
-
+        
     def setup(self,*_) :
         hists = self.fromCache( [self.target[0], self.thisGroup], ['unweighted'])
         source = hists[self.thisGroup]['unweighted']
