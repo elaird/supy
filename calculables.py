@@ -86,16 +86,19 @@ class secondary(wrappedChain.calculable,analysisStep) :
 
     def checkOne(self,cache,org,iSample) :
         sample = org.samples[iSample]['name']
-
+        
         if sample not in [key.GetName() for key in cache.GetListOfKeys()] : return "no cache"
         cache.cd(sample)
         keys = [key.GetName() for key in r.gDirectory.GetListOfKeys()]
 
-        hists = dict((key,val[iSample]) for key,val in org.steps[0].iteritems())
+        hists = dict((key,val[iSample]) for key,val in next(iter(org.steps),dict()).iteritems())
         cachedHists = dict(filter(lambda x: issubclass(type(x[1]),r.TH1), [(name,r.gDirectory.Get(name)) for name in keys]))
 
         missing = set(hists.keys()) - set(cachedHists.keys())
         if missing : return "missing {%s}"%','.join(missing)
+
+        lost = set(cachedHists.keys()) - set(hists.keys())
+        if lost: return "lost {%s}"%','.join(lost)
 
         mismatched = [k for k in hists.keys() if not self.equalAxes(hists[k],cachedHists[k])]
         if mismatched : return "new definitions {%s}"%','.join(mismatched)
@@ -122,6 +125,7 @@ class secondary(wrappedChain.calculable,analysisStep) :
             print "!! No cache: %s"%self.cacheFileName()
             return
         cache = r.TFile.Open(self.cacheFileName(),"READ")
+
         msgs = filter(lambda x: x[1], [(sample['name'],self.checkOne(cache, org, iSample)) for iSample,sample in enumerate(org.samples)])
         cache.Close()
         if msgs :

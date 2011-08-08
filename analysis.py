@@ -219,7 +219,11 @@ class analysis(object) :
             loopers = self.listsOfLoopers[conf['tag']]
             for secondary in filter(self.isSecondary, loopers[0].steps) :
                 org = self.organizer(conf)
-                org.dropSteps( allButIndices = list(org.indicesOfStep(secondary.name,secondary.moreNames)))
+                index = next(org.indicesOfStep(secondary.name,secondary.moreNames), next(org.indicesOfStep(secondary.name),None))
+                if index==None :
+                    print " !! Not found: %s    %s"%(secondary.name,secondary.moreNames)
+                    continue
+                org.dropSteps( allButIndices = [index])
                 if update==True or (type(update)==str and secondary.name in update.split(',')) :
                     secondary.doCache(org)
                 else : secondary.checkCache(org)
