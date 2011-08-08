@@ -1,5 +1,5 @@
-import os,topAsymmShell,steps,calculables,samples,plotter,utils,organizer
-import ROOT as r
+import topAsymmShell,steps,calculables,samples,plotter,utils,organizer
+import os,math,ROOT as r
 
 class topAsymm(topAsymmShell.topAsymmShell) :
     def parameters(self) :
@@ -26,39 +26,38 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                                     target = ("SingleMu",[]), groups = [('qcd_mg',[]),
                                                                         ('qcd_py6',[]),
                                                                         ('w_jets_fj_mg',[]),
-                                                                        ('tt_tauola_fj',['tt_tauola_fj',
-                                                                                         'tt_tauola_fj.wNonQQbar.nvr',
-                                                                                         'tt_tauola_fj.wTopAsymP00.nvr'
-                                                                                         ])
+                                                                        ('tt_tauola_fj',['tt_tauola_fj'+s
+                                                                                         for s in ['','.wNonQQbar.nvr','.wTopAsymP00.nvr']])
                                                                         ])
             ] + self.xcleanSteps(pars) + [
             steps.Histos.value("%sTriggeringPt%s"%lepton, 200,0,200),
             steps.Filter.value("%sTriggeringPt%s"%lepton, min = lPtMin),
             steps.Histos.value(obj["sumPt"],50,0,1500),
-            ] + self.selectionSteps(pars, withPlots = True) + [
+            ] + self.selectionSteps(pars, withPlots = False) + [
             #steps.Filter.stop(),#####################################
-
-            
             steps.Filter.multiplicity("TopReconstruction",min=1),
             steps.Filter.label("selection complete"),
+
+            calculables.Other.Discriminant( fixes = ("","TopW"),
+                                            left = {"pre":"w_jets_fj_mg", "tag":"top_muon_pf", "samples":[]},
+                                            right = {"pre":"tt_tauola_fj", "tag":"top_muon_pf", "samples": ['tt_tauola_fj'+s
+                                                                                                            for s in ['.wNonQQbar.nvr',
+                                                                                                                      '.wTopAsymP00.nvr']]},
+                                            dists = {"%sKt%s"%obj["jet"] : (25,0,150),
+                                                     "fitTopRawHadWmass" : (30,0,180),
+                                                     "fitTopKey"         : (20,0,200),
+                                                     "fitTopMET"         : (30,0,180),
+                                                     "fitTopLeptonPt"    : (30,0,180),
+                                                     "fitTopDeltaPhiLNu" : (20,0,math.pi),
+                                                     }
+                                            ),
+            steps.Filter.stop(),#####################################
+
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             steps.Top.discriminateNonTop(pars),
             #steps.Filter.label('dNonQQ'),  steps.Top.discriminateQQbar(('fitTop','')),
             steps.Top.Asymmetry(('fitTop','')),
             steps.Top.kinFitLook("fitTopRecoIndex"),
-            
-            #steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
-            #]+([steps.Filter.multiplicity("%sIndices%s"%obj["jet"], **pars["nJets2"])] \
-            #   if tuple(sorted(pars["nJets2"].values()))!=tuple(sorted(pars["nJets"].values())) else [])+[
-            #steps.Top.discriminateNonTop(pars),
-            #steps.Top.kinFitLook("fitTopRecoIndex"),
-            #steps.Top.Asymmetry(('fitTop','')),
-            #steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
-            #steps.Filter.value(bVar, max=2.0, indices = "%sIndicesBtagged%s"%obj["jet"], index = 2),
-            #steps.Filter.multiplicity("%sIndices%s"%obj["jet"], min=4, max=4),
-            #steps.Filter.value("fitTopPtOverSumPt", max=0.2),
-            #steps.Top.Asymmetry(('fitTop','')),
-            
             ])
     
     def listOfSamples(self,pars) :
@@ -92,13 +91,13 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         def ttbar_py(eL) :
             return (specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kBlue, weights = ["wNonQQbar","nvr"]) +
                     # specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kGreen, weights = [ calculables.Top.wTopAsym(-0.4), "nvr" ] )+
-                    specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kGreen, weights = [ calculables.Top.wTopAsym(-0.3), "nvr" ] )+
+                    # specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kGreen, weights = [ calculables.Top.wTopAsym(-0.3), "nvr" ] )+
                     # specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kGreen, weights = [ calculables.Top.wTopAsym(-0.2), "nvr" ] )+
                     # specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kGreen, weights = [ calculables.Top.wTopAsym(-0.1), "nvr" ] )+
                     specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kOrange, weights = [ calculables.Top.wTopAsym(0), "nvr" ] ) +
                     # specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kRed, weights = [ calculables.Top.wTopAsym(0.1), "nvr" ] )+
                     # specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kRed, weights = [ calculables.Top.wTopAsym(0.2), "nvr" ] )+
-                    specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kRed, weights = [ calculables.Top.wTopAsym(0.3), "nvr" ] )+
+                    # specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kRed, weights = [ calculables.Top.wTopAsym(0.3), "nvr" ] )+
                     # specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kRed, weights = [ calculables.Top.wTopAsym(0.4), "nvr" ] )+
                     [])
 
@@ -111,11 +110,28 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             if skimp : return EWK[pars["lepton"]["name"]]+specify( names = "w_jets_fj_mg", effectiveLumi = None, color = 28 )
             return sum(EWK.values(),[])
 
+
+
         return  ( data() +
                   qcd_py6_mu(None) +
                   ewk(None) +
                   ttbar_py(None) +
                   [])
+
+
+
+
+
+    ############################################3
+    ############################################3
+    ############################################3
+    ############################################3
+
+
+
+
+
+
 
     def concludeAll(self) :
         super(topAsymm,self).concludeAll()
@@ -196,16 +212,16 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         #plot
         pl = plotter.plotter(org, psFileName = self.psFileName(org.tag+"_log"),
                              pegMinimum = 0.01,
-                             samplesForRatios = ("Data 2011","standard_model"),
-                             sampleLabelsForRatios = ("data","s.m."),
+                             #samplesForRatios = ("Data 2011","standard_model"),
+                             #sampleLabelsForRatios = ("data","s.m."),
                              blackList = ["lumiHisto","xsHisto","nJobsHisto"],
                              #detailedCalculables = True,
                              ).plotAll()
 
         pl = plotter.plotter(org, psFileName = self.psFileName(org.tag+"_nolog"),
                              doLog = False,
-                             samplesForRatios = ("Data 2011","standard_model"),
-                             sampleLabelsForRatios = ("data","s.m."),
+                             #samplesForRatios = ("Data 2011","standard_model"),
+                             #sampleLabelsForRatios = ("data","s.m."),
                              blackList = ["lumiHisto","xsHisto","nJobsHisto"],
                              #detailedCalculables = True,
                              ).plotAll()
