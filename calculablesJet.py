@@ -834,9 +834,8 @@ class ProbabilityGivenBQN(calculables.secondary) :
 
     def setup(self,*_) :
         hists = self.fromCache([self.samples[0]],['B','Q','N'], tag = self.tag)
-        self.histsBQN = [hists[self.samples[0]][jetType] for jetType in ['B','Q','N']] \
-                        if self.samples[0] in hists else None
-        for hist in self.histsBQN : hist.Scale(1./hist.Integral(0,hist.GetNbinsX()+1),"width")
+        self.histsBQN = [hists[self.samples[0]][jetType] for jetType in ['B','Q','N']]
+        for hist in filter(None,self.histsBQN) : hist.Scale(1./hist.Integral(0,hist.GetNbinsX()+1),"width")
         
     def uponAcceptance(self,ev) :
         if ev['isRealData'] : return
@@ -849,12 +848,14 @@ class ProbabilityGivenBQN(calculables.secondary) :
             self.book.fill(bvar.at(i), jetType, *self.binning, title = ";%s (%s);events / bin"%(self.bvar,jetType))
     
     def update(self,_) :
-        self.value = [tuple(hist.GetBinContent(hist.FindFixBin(bvar)) for hist in self.histsBQN)
-                      for bvar in self.source[self.bvar]] if self.histsBQN else [(0,0,0)]*len(self.source[self.bvar])
+        self.value = [tuple(hist.GetBinContent(hist.FindFixBin(bvar)) if hist else 0 for hist in self.histsBQN)
+                      for bvar in self.source[self.bvar]]
         
     def organize(self,org) :
         if self.samples[1] : org.mergeSamples( targetSpec = {'name':self.samples[0]}, sources = self.samples[1] )
         else: org.mergeSamples( targetSpec = {'name':self.samples[0]}, allWithPrefix = self.samples[0] )
+        for sample in org.samples:
+            if sample['name']!=self.samples[0] : org.drop(sample['name'])
 #####################################
 class CorrectedP4(wrappedChain.calculable) :
     def __init__(self, genJets = None) : #purposefully not called collection
