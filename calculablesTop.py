@@ -7,13 +7,29 @@ class TopP4Calculable(wrappedChain.calculable) :
         self.stash(['P4'])
 ######################################
 ######################################
+class DeltaPhiLNu(TopP4Calculable) :
+    def update(self,_) : self.value = abs(r.Math.VectorUtil.DeltaPhi(self.source[self.P4]['lepton'],self.source[self.P4]['sumP4']))
+######################################
+class LeptonPt(TopP4Calculable) :
+    def update(self,_) : self.value = self.source[self.P4]['lepton'].pt()
+######################################
+class NuPt(TopP4Calculable) :
+    def update(self,_) : self.value = self.source[self.P4]['neutrino'].pt()
+######################################
+class MET(TopP4Calculable) :
+    def update(self,_) : self.value = self.source[self.P4]['sumP4'].pt()
+######################################
+class RawHadWmass(TopP4Calculable) :
+    def update(self,_) : self.value = self.source[self.P4]['rawW'].M()
+######################################
+class Key(TopP4Calculable) :
+    def update(self,_) : self.value = self.source[self.P4]['key']
+######################################
 class SumP4(TopP4Calculable) :
-    def update(self,_) :
-        self.value = self.source[self.P4]['t'] + self.source[self.P4]['tbar']
+    def update(self,_) : self.value = self.source[self.P4]['t'] + self.source[self.P4]['tbar']
 ######################################
 class SumPt(TopP4Calculable) :
-    def update(self,_) :
-        self.value = self.source[self.P4]['t'].pt() + self.source[self.P4]['tbar'].pt()
+    def update(self,_) : self.value = self.source[self.P4]['t'].pt() + self.source[self.P4]['tbar'].pt()
 ######################################
 class Pt(wrappedChain.calculable) :
     def __init__(self,collection = None) :
@@ -180,8 +196,12 @@ class fitTopP4(wrappedChain.calculable) :
                       'tbar':tbar,
                       'quark': utils.LorentzV().SetPxPyPzE(0,0,q_z,abs(q_z)),
                       'lepton': reco['lep'],
+                      'neutrino' : reco['nu'],
                       'p' : reco['hadP'],
-                      'q' : reco['hadQ']}
+                      'q' : reco['hadQ'],
+                      'rawW': reco['hadWraw'],
+                      'sumP4':reco['sumP4'],
+                      'key': reco['key']}
 class fitTopLeptonCharge(wrappedChain.calculable) :
     def __init__(self, lepton) :
         self.lepton = lepton
