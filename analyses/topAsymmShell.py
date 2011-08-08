@@ -83,6 +83,7 @@ class topAsymmShell(analysis.analysis) :
             calculables.Other.PtSorted(obj['muon']),
             calculables.Other.Covariance(('met','PF')),
             calculables.Other.abbreviation( "TrkCountingHighEffBJetTags", "NTrkHiEff", fixes = calculables.Jet.xcStrip(obj['jet']) ),
+            calculables.Other.abbreviation( "nVertexRatio", "nvr" ),
             ]
         outList += calculables.fromCollections(calculables.Top,[('genTop',""),('fitTop',"")])
         outList.append( calculables.Top.TopComboQQBBLikelihood(pars['objects']['jet'], pars['bVar']))
@@ -95,7 +96,7 @@ class topAsymmShell(analysis.analysis) :
     
 
     @staticmethod
-    def cleanupSteps(pars) :
+    def dataCleanupSteps(pars) :
         obj = pars['objects']
         return ([
             steps.Filter.hbheNoise(),
@@ -108,7 +109,12 @@ class topAsymmShell(analysis.analysis) :
             steps.Histos.multiplicity("vertexIndices", max=15),
             steps.Histos.value("%sPtSorted%s"%obj['muon'], 2,-0.5,1.5),
             steps.Filter.multiplicity("vertexIndices",min=1),
-            ]+[
+            ])
+
+    @staticmethod
+    def xcleanSteps(pars) :
+        obj = pars['objects']
+        return ([
             steps.Filter.multiplicity(s, max = 0) for s in ["%sIndices%s"%obj["photon"],
                                                             "%sIndicesUnmatched%s"%obj["photon"],
                                                             "%sIndices%s"%(obj["electron" if pars["lepton"]["name"]=="muon" else "muon"]),
