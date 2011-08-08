@@ -69,7 +69,9 @@ class analysisLooper :
                                                       trace = configuration.trace(),
                                                       cacheSizeMB = configuration.ttreecacheMB(),
                                                       )
-            for step in filter(lambda s: issubclass(type(s),wrappedChain.wrappedChain.calculable) and hasattr(s.source,"tracedKeys"), self.steps) :
+            for step in filter(lambda s: (issubclass(type(s),wrappedChain.wrappedChain.calculable) and
+                                          hasattr(s,"source") and
+                                          hasattr(s.source,"tracedKeys")), self.steps) :
                 step.tracer = step.source
                 step.source.tracedKeys |= step.priorFilters
 
