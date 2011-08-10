@@ -43,7 +43,7 @@ def shiftUnderAndOverflows(dimension, histos, dontShiftList = []) :
 def dimensionOfHisto(histos) :
     def D(h) : return 2 if issubclass(type(h),r.TH2) else 1 if issubclass(type(h),r.TH1) else 0
     dimensions = set([D(h) for h in histos if h])
-    assert len(dimensions)==1,"inconsistent histogram dimensions\n{%s}"%','.join(h.GetName() h in histos if h)
+    assert len(dimensions)==1,"inconsistent histogram dimensions\n{%s}"%','.join(h.GetName() for h in histos if h)
     return next(iter(dimensions))
 ##############################        
 def metFit(histo) :
@@ -106,38 +106,31 @@ class plotter(object) :
         self.psOptions = "Landscape"
         self.canvas = r.TCanvas("canvas", "canvas", 500, 500) if self.anMode else r.TCanvas()
         self.pageNumber = -1
+
+
+    def flushPage(self) :
+        self.printCanvas()
+        self.canvas.Clear()
         
     def plotAll(self) :
         print utils.hyphens
         setupStyle()
 
         self.printCanvas("[")
-
         text1 = self.printTimeStamp()
         text2 = self.printNEventsIn()
-        self.printCanvas()
-        self.canvas.Clear()
+        self.flushPage()
 
         if self.detailedCalculables :
-            lines = self.someOrganizer.formattedCalculablesGraph()
-            mark = ('','','')
-            indices = [0,0]
-            for iLine,line in enumerate(lines) :
-                if line!=mark : continue
-                elif iLine - indices[-2] < 50 : indices[-1] = iLine
-                else : indices.append(iLine)
-            for start,finish in zip(indices[:-1],indices[1:]):
-                self.printCalculablesDetailed(filter(None,utils.splitList(lines[start:finish],mark)))
-                self.printCanvas()
-                self.canvas.Clear()
+            blocks = filter(None, utils.splitList( self.someOrganizer.formattedCalculablesGraph(), ('','','')))
+            for page in utils.pages(blocks,50) :
+                text3 = self.printCalculablesDetailed(page)
+                self.flushPage()
         else :
             text3 = self.printCalculables(selectImperfect = False)
-            self.printCanvas()
-            self.canvas.Clear()
-            
+            self.flushPage()
             text4 = self.printCalculables(selectImperfect = True)
-            self.printCanvas()
-            self.canvas.Clear()
+            self.flushPage()
             
         nSelectionsPrinted = 0
         selectionsSoFar=[]
@@ -239,17 +232,14 @@ class plotter(object) :
         text.SetNDC()
         text.SetTextFont(102)
         text.SetTextSize(0.35*text.GetTextSize())
-        
-        iLine = 0
-        for block in blocks :
-            iLine += 1
-            maxLenName = max([len(line[1]) for line in block])
-            for line in block :
-                x=0.00
-                y=1.0 - 0.35*(iLine+0.5)/self.nLinesMax
-                text.DrawTextNDC(x,y, "%s%s  %s"%(line[0],line[1].ljust(maxLenName),line[2]))
-                iLine += 1
 
+        maxLensB = [max(len(b) for a,b,c in block) for block in blocks]
+        stringBlocks = [["%s%s  %s"%(a,b.ljust(maxLenB),c) for a,b,c in block] for block,maxLenB in zip(blocks,maxLensB)]
+        for iLine,line in enumerate(sum(stringBlocks,[])) :
+            y=1.0 - 0.35*(iLine+0.5)/self.nLinesMax
+            text.DrawTextNDC(0,y, line)
+        return text
+            
     def printCalculables(self, selectImperfect) :
         text = r.TText()
         text.SetNDC()
@@ -419,8 +409,7 @@ class plotter(object) :
         text.DrawTextNDC(x, 0.5, "   "+"".join([s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]))
         text.SetTextAlign(13)
         text.DrawTextNDC(0.05, 0.03, "events / %.3f pb^{-1}"% self.someOrganizer.lumi )
-        self.printCanvas()
-        self.canvas.Clear()
+        self.flushPage()
 
     def getExtremes(self, dimension, histos, ignoreHistos) :
         globalMax = -1.0
