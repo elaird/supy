@@ -427,7 +427,11 @@ def cmsswFuncData(fileName = None, par = None) :
 def splitList(List,item) :
     if item not in List: return [List]
     i = List.index(item)
-    return [List[:i]] + splitList(List[i+1:],item)
+    return [List[:i+1]] + splitList(List[i+1:],item)
+#####################################
+def pages(blocks,size) :
+    iBreak = next((i-1 for i in range(len(blocks)) if len(sum(blocks[:i],[]))>size), None)
+    return [blocks] if not iBreak else [blocks[:iBreak]] + pages(blocks[iBreak:],size)
 #####################################
 def readPickle(fileName) :
     pickleFile = open(fileName)
