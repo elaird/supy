@@ -25,6 +25,12 @@ class RawHadWmass(TopP4Calculable) :
 class Key(TopP4Calculable) :
     def update(self,_) : self.value = self.source[self.P4]['key']
 ######################################
+class Chi2(TopP4Calculable) :
+    def update(self,_) : self.value = self.source[self.P4]['chi2']
+######################################
+class HadChi2(TopP4Calculable) :
+    def update(self,_) : self.value = self.source[self.P4]['hadChi2']
+######################################
 class SumP4(TopP4Calculable) :
     def update(self,_) : self.value = self.source[self.P4]['t'] + self.source[self.P4]['tbar']
 ######################################
@@ -201,7 +207,10 @@ class fitTopP4(wrappedChain.calculable) :
                       'q' : reco['hadQ'],
                       'rawW': reco['hadWraw'],
                       'sumP4':reco['sumP4'],
-                      'key': reco['key']}
+                      'key': reco['key'],
+                      'chi2': reco['chi2'],
+                      'hadChi2': reco['hadChi2'],
+                      }
 class fitTopLeptonCharge(wrappedChain.calculable) :
     def __init__(self, lepton) :
         self.lepton = lepton
@@ -464,5 +473,4 @@ class TopRatherThanWProbability(wrappedChain.calculable) :
         topL = sum(topLikes.values()) / float(len(topLikes))
         wL = self.source["OtherJetsLikelihood"]
         self.value = topL / (topL + wL * self.invPriorTopMinusOne)
-        
-        
+######################################
