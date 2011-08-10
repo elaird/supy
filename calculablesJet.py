@@ -915,3 +915,23 @@ class ComboPQBDeltaRawMassWTop(wrappedChain.calculable) :
         self.fixes = collection
         self.stash(['ComboPQBRawMassWTop'])
     def update(self,_) : self.value = dict([(key,(val[0]-80.4,val[1]-172)) for key,val in self.source[self.ComboPQBRawMassWTop].iteritems()])
+######################################
+class __value__(wrappedChain.calculable) :
+    def __init__(self, jets = None, index = 0, Btagged = True ) :
+        self.fixes = ("%s%s%d"%(jets[0],'B' if Btagged else '', index), jets[1])
+        self.stash(["CorrectedP4","Indices","IndicesBtagged"],jets)
+        self.index = index
+        self.Btagged = Btagged
+    def update(self,_) :
+        p4 = self.source[self.CorrectedP4]
+        indices = self.source[self.IndicesBtagged if self.Btagged else self.Indices]
+        self.value = self.function(p4[indices[self.index]]) if len(indices)>self.index else 0
+######################################
+class pt(__value__) :
+    def function(self, x) : return x.pt()
+######################################
+class absEta(__value__) :
+    def function(self,x) : return abs(x.eta())
+######################################
+class eta(__value__) :
+    def function(self,x) : return x.eta()
