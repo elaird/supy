@@ -28,14 +28,16 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                                                                         ('w_jets_fj_mg',[]),
                                                                         ('tt_tauola_fj',['tt_tauola_fj'+s
                                                                                          for s in ['','.wNonQQbar.nvr','.wTopAsymP00.nvr']])
-                                                                        ])
+                                                                        ]),
             ] + self.xcleanSteps(pars) + [
             steps.Histos.value("%sTriggeringPt%s"%lepton, 200,0,200),
             steps.Filter.value("%sTriggeringPt%s"%lepton, min = lPtMin),
             steps.Histos.value(obj["sumPt"],50,0,1500),
-            ] + self.selectionSteps(pars, withPlots = False) + [
+            steps.Histos.value("rho",100,0,40),
+            ] + self.selectionSteps(pars, withPlots = True) + [
             #steps.Filter.stop(),#####################################
             steps.Filter.multiplicity("TopReconstruction",min=1),
+            steps.Histos.value("TopRatherThanWProbability",100,0,1),
             steps.Filter.label("selection complete"),
 
             calculables.Other.Discriminant( fixes = ("","TopW"),
@@ -44,12 +46,18 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                                                                                                             for s in ['.wNonQQbar.nvr',
                                                                                                                       '.wTopAsymP00.nvr']]},
                                             dists = {"%sKt%s"%obj["jet"] : (25,0,150),
-                                                     "fitTopRawHadWmass" : (30,0,180),
-                                                     "fitTopKey"         : (20,0,200),
-                                                     "fitTopMET"         : (30,0,180),
-                                                     "fitTopLeptonPt"    : (30,0,180),
+                                                     "%sB0pt%s"%obj["jet"] : (30,0,300),
+                                                     "%s3absEta%s"%obj["jet"] : (20,0,4),
+                                                     # |eta| of lepton
+                                                     "fitTopHadChi2"     : (20,0,100),
+                                                     #"fitTopRawHadWmass" : (30,0,180), 
+                                                     #"fitTopChi2"        : (20,0,200),
+                                                     "mixedSumP4.pt"     : (30,0,180),
+                                                     #"fitTopLeptonPt"    : (30,0,180),  # not so powerful?
                                                      "fitTopDeltaPhiLNu" : (20,0,math.pi),
-                                                     }
+                                                     "TopRatherThanWProbability" : (20,0,1),
+                                                     },
+                                            correlations = True
                                             ),
             steps.Filter.stop(),#####################################
 
@@ -112,8 +120,8 @@ class topAsymm(topAsymmShell.topAsymmShell) :
 
 
 
-        return  ( data() +
-                  qcd_py6_mu(None) +
+        return  ( #data() +
+                  #qcd_py6_mu(None) +
                   ewk(None) +
                   ttbar_py(None) +
                   [])
@@ -206,16 +214,15 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
         org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.N30", "color":r.kRed}, sources = ["tt_tauola_fj.wTopAsymN30.nvr","tt_tauola_fj.wNonQQbar.nvr"][:1])
         org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.P30", "color":r.kGreen}, sources = ["tt_tauola_fj.wTopAsymP30.nvr","tt_tauola_fj.wNonQQbar.nvr"][:1])
-        org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+2}, sources = ["qcd_py6","w_munu_fj.nvr","t#bar{t}","w_jets_fj_mg.nvr"], keepSources = True)
-        org.scale(1.1e3)
+        # org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+2}, sources = ["qcd_py6","w_munu_fj.nvr","t#bar{t}","w_jets_fj_mg.nvr"], keepSources = True)
+        org.scale(toPdf=True)
         
-        #plot
         pl = plotter.plotter(org, psFileName = self.psFileName(org.tag+"_log"),
                              pegMinimum = 0.01,
                              #samplesForRatios = ("Data 2011","standard_model"),
                              #sampleLabelsForRatios = ("data","s.m."),
                              blackList = ["lumiHisto","xsHisto","nJobsHisto"],
-                             #detailedCalculables = True,
+                             detailedCalculables = True,
                              ).plotAll()
 
         pl = plotter.plotter(org, psFileName = self.psFileName(org.tag+"_nolog"),
@@ -223,7 +230,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                              #samplesForRatios = ("Data 2011","standard_model"),
                              #sampleLabelsForRatios = ("data","s.m."),
                              blackList = ["lumiHisto","xsHisto","nJobsHisto"],
-                             #detailedCalculables = True,
+                             detailedCalculables = True,
                              ).plotAll()
 
         #self.optimizeCut(org,signal = "t#bar{t}", background = "standard_model", var = "TopRatherThanWProbability")

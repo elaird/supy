@@ -74,6 +74,7 @@ class topAsymmShell(analysis.analysis) :
             calculables.Other.lowestUnPrescaledTrigger(pars["lepton"]["triggers"]),
 
             calculables.Top.mixedSumP4(transverse = obj["met"], longitudinal = obj["sumP4"]),
+            calculables.Other.pt("mixedSumP4"),
             calculables.Top.SemileptonicTopIndex(lepton),            
             calculables.Top.fitTopLeptonCharge(lepton),
             calculables.Top.TopReconstruction(lepton,obj["jet"],"mixedSumP4"),
@@ -84,6 +85,8 @@ class topAsymmShell(analysis.analysis) :
             calculables.Other.Covariance(('met','PF')),
             calculables.Other.abbreviation( "TrkCountingHighEffBJetTags", "NTrkHiEff", fixes = calculables.Jet.xcStrip(obj['jet']) ),
             calculables.Other.abbreviation( "nVertexRatio", "nvr" ),
+            calculables.Jet.pt( obj['jet'], index = 0, Btagged = True ),
+            calculables.Jet.absEta( obj['jet'], index = 3, Btagged = False)
             ]
         outList += calculables.fromCollections(calculables.Top,[('genTop',""),('fitTop',"")])
         outList.append( calculables.Top.TopComboQQBBLikelihood(pars['objects']['jet'], pars['bVar']))
