@@ -1,6 +1,6 @@
 from wrappedChain import *
 import calculables,math,utils,configuration
-import operator,numpy as np
+import operator,itertools,numpy as np
 #####################################
 class localEntry(wrappedChain.calculable) :
     def update(self,localEntry) :
@@ -22,6 +22,12 @@ class abbreviation(wrappedChain.calculable) :
         self.moreName = ('%s'+var+'%s')%fixes
         self.abr = ('%s'+abr+'%s')%fixes
     def update(self,_) : self.value = self.source[self.moreName]
+#####################################
+class pt(wrappedChain.calculable) :
+    def __init__(self,var) :
+        self.fixes = ("%s."%var, "")
+        self.var = var
+    def update(self,_) : self.value = self.source[self.var].pt()
 #####################################
 class crock(wrappedChain.calculable) :
     def update(self,localEntry) : self.value = {}
@@ -276,9 +282,10 @@ class Discriminant(calculables.secondary) :
     def __init__(self, fixes = ("",""),
                  left = {"pre":"","samples":[],"tag":""},
                  right = {"pre":"","samples":[],"tag":""},
-                 dists = {} # key = calc or leaf name : val = (bins,min,max)
+                 dists = {}, # key = calc or leaf name : val = (bins,min,max)
+                 correlations = False
                  ) :
-        for item in ['fixes','left','right','dists'] : setattr(self,item,eval(item))
+        for item in ['fixes','left','right','dists','correlations'] : setattr(self,item,eval(item))
         self.moreName = "L:"+left['pre']+"; R:"+right['pre']+"; "+','.join(dists.keys())
 
     def setup(self,*_) :
@@ -296,6 +303,9 @@ class Discriminant(calculables.secondary) :
     def uponAcceptance(self,ev) :
         for key,val in self.dists.iteritems() : self.book.fill(ev[key], key, *val, title = ";%s;events / bin"%key)
         self.book.fill(ev[self.name], self.name, 50, 0, 1, title = ";%s;events / bin"%self.name)
+        if self.correlations :
+            for (key1,val1),(key2,val2) in itertools.combinations(self.dists.iteritems(),2) :
+                self.book.fill((ev[key1],ev[key2]),"_cov_%s_%s"%(key1,key2), *zip(val1,val2), title = ';%s;%s;events / bin'%(key1,key2))
 
     def likelihoodRatio(self,key) :
         hist = self.likelihoodRatios[key]
@@ -310,6 +320,18 @@ class Discriminant(calculables.secondary) :
           org.mergeSamples( targetSpec = {'name':item['pre']}, allWithPrefix = item['pre'])
           for item in [self.left,self.right]]
         for sample in list(org.samples) :
-            if sample['name'] not in [self.left['pre'],self.right['pre']] :
+            if (sample['name'],org.tag) not in [(self.left['pre'],self.left['tag']),(self.right['pre'],self.right['tag'])] :
                 org.drop(sample['name'])
+        for key,hists in list(org.steps[0].iteritems()) :
+            example = next(iter(hists),None)
+            if not example : continue
+            if issubclass(type(example),r.TH2) : del org.steps[0][key]
+
+    def mergeFunc(self,_) :
+        keys = [key.GetName() for key in r.gDirectory.GetListOfKeys()]
+        for key in keys :
+            base = r.gDirectory.Get(key)
+            if not issubclass(type(base),r.TH2) : continue
+            dep = utils.dependence(base)
+            dep.Write()
 #####################################
