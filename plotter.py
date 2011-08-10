@@ -1,5 +1,5 @@
 import ROOT as r
-import os,math,string,collections
+import os,math,string,collections,itertools
 import utils,configuration
 ##############################
 def setupStyle() :
@@ -108,10 +108,6 @@ class plotter(object) :
         self.pageNumber = -1
 
 
-    def flushPage(self) :
-        self.printCanvas()
-        self.canvas.Clear()
-        
     def plotAll(self) :
         print utils.hyphens
         setupStyle()
@@ -148,7 +144,6 @@ class plotter(object) :
         self.printCanvas("]")
         self.makePdf()
         print utils.hyphens
-
 
     def printOnePage(self, name, tight = False) :
         fileName = "%s_%s.eps"%(self.psFileName.replace(".ps",""),name)
@@ -247,36 +242,23 @@ class plotter(object) :
         text.SetTextSize(0.45*text.GetTextSize())
 
         allCalcs = sum([s.keys() for s in self.someOrganizer.calculables], [])
+        genuine = ((name,more,"") for name,more,cat in sorted(set(allCalcs)) if more and cat is "calc")
 
-        def genuineCalcs() :
-            '''the list of genuine calculables which have a moreName'''
-            return [(c[0],c[1],"") for c in filter(lambda c: c[1] and c[2]=="calc", set(allCalcs))]
+        def third(c) : return c[2]
+        groups = dict((cat,[name for name,more,_ in group]) for cat,group in itertools.groupby(sorted(allCalcs, key=third) , key=third))
+        cats = groups.keys()
+        fake = configuration.fakeString()
+        imperfect = ( ( name,  more.replace(fake,""), '  '.join("%4d"%groups[key].count(name) for key in cats))
+                      for name,more,cat in set(allCalcs)
+                      if cat is 'fake' or cat is "calc" and not (bool(groups["leaf"].count(name))^bool(groups["calc"].count(name))) )
 
-        def imperfectCalcs() :
-            def type1(c) : return c[2]=="fake"
-            def type2(c) : return c[2]=="calc" and not (bool(counts["leaf"][c[0]])^bool(counts["calc"][c[0]]))
-            def statString(counts, name) :
-                return (3*"%4d  ")%tuple([counts[item][name] for item in ["leaf","calc","fake"]])
-            def histogram(item) :
-                itemCalcs = [c[0] for c in filter(lambda c: c[2]==item, allCalcs)]
-                return collections.defaultdict(int, [(c,itemCalcs.count(c)) for c in set(itemCalcs)])
-            counts = dict([(item,histogram(item)) for item in ["leaf","calc","fake","absent"]])
+        calcs = (([("Calculables",'(imperfect)','  '.join(cats)), ('','','')] + max( list(imperfect), [('','NONE','')])) if selectImperfect else \
+                 ([("Calculables",'',''),                         ('','','')] + max( list(genuine), [('','NONE','')])) )
 
-            return [ ( c[0],
-                       c[1].replace(configuration.fakeString(),""),
-                       statString(counts,c[0])
-                       ) for c in filter(lambda c: type1(c) or type2(c), set(allCalcs))]
-                
-        calcs = sorted( imperfectCalcs() if selectImperfect else genuineCalcs() )
-        calcs.insert(0, ("","",""))
-        calcs.insert(0, ("Calculables",)+(("(imperfect)","leaf  calc  fake") if selectImperfect else ("", "") ))
-        length0 = max([len(calc[0]) for calc in calcs])
-        length1 = max([len(calc[1]) for calc in calcs])
-        if len(calcs)==2 : calcs.append( ("","NONE","") )
-        for i,calc in enumerate(calcs) :
-            x = 0.02
-            y = 0.98 - 0.4*(i+0.5)/self.nLinesMax
-            text.DrawTextNDC(x, y, "%s   %s   %s"%(calc[0].rjust(length0+2), calc[1].ljust(length1+2), calc[2]) )
+        maxName,maxMore = map(max, zip(*((len(name),len(more)) for name,more,cat in calcs)))
+        [text.DrawTextNDC(0.02, 0.98 - 0.4*(iLine+0.5)/self.nLinesMax, line)
+         for iLine,line in enumerate("%s   %s   %s"%(name.rjust(maxName+2), more.ljust(maxMore+2), cat)
+                                     for name,more,cat in calcs) ]
         return text
         
     def printTimeStamp(self) :
@@ -360,6 +342,10 @@ class plotter(object) :
         printOneType( 0.52, *loopOneType(True)  )
         return text
     
+    def flushPage(self) :
+        self.printCanvas()
+        self.canvas.Clear()
+
     def printCanvas(self, extra = "") :
         self.pageNumber += 1
         if self.pageNumbers and self.pageNumber>1 :
