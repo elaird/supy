@@ -41,19 +41,10 @@ def shiftUnderAndOverflows(dimension, histos, dontShiftList = []) :
         histo.SetEntries(entries)
 ##############################
 def dimensionOfHisto(histos) :
-    dimensions=[]
-    for histo in histos :
-        if not histo : continue
-        className=histo.ClassName()
-        if className == "TProfile" :
-            dimensions.append("1")
-            continue
-        if len(className)<3 or className[0:2]!="TH" : continue
-        dimensions.append(className[2])
-        
-    dimensions=set(dimensions)
-    assert len(dimensions)==1,"histograms have different dimensions\n%s"%str([hist.GetName() if hist else hist for hist in histos])
-    return int(list(dimensions)[0])
+    def D(h) : return 2 if issubclass(type(h),r.TH2) else 1 if issubclass(type(h),r.TH1) else 0
+    dimensions = set([D(h) for h in histos if h])
+    assert len(dimensions)==1,"inconsistent histogram dimensions\n{%s}"%','.join(h.GetName() h in histos if h)
+    return next(iter(dimensions))
 ##############################        
 def metFit(histo) :
     funcName="func"
