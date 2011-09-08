@@ -445,6 +445,9 @@ class DeltaPseudoJet(wrappedChain.calculable) :
     def update(self,ignored) :
         indices = self.source[self.Indices]
         p4s = self.source[self.CorrectedP4]
+        if not len(indices) :
+            self.value = 0.0
+            return
         
         diff = [0.] * (1<<(len(indices)-1))
         for iJet,j in enumerate(indices) :
