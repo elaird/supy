@@ -57,7 +57,20 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                                                      "fitTopDeltaPhiLNu" : (20,0,math.pi),
                                                      "TopRatherThanWProbability" : (20,0,1),
                                                      },
-                                            correlations = True
+                                            ),
+            calculables.Other.Discriminant( fixes = ("","TopQCD"),
+                                            left = {"pre":"SingleMu", "tag":"QCD_muon_pf", "samples":[]},
+                                            right = {"pre":"tt_tauola_fj", "tag":"top_muon_pf", "samples": ['tt_tauola_fj'+s
+                                                                                                            for s in ['.wNonQQbar.nvr',
+                                                                                                                      '.wTopAsymP00.nvr']]},
+                                            dists = {"%sKt%s"%obj["jet"] : (25,0,150),
+                                                     "%sB0pt%s"%obj["jet"] : (30,0,300),
+                                                     "%s3absEta%s"%obj["jet"] : (20,0,4),
+                                                     "%sMt%s"%obj['muon']+"mixedSumP4" : (30,0,180),
+                                                     #"mixedSumP4.pt"     : (30,0,180),
+                                                     #"fitTopLeptonPt"    : (30,0,180),
+                                                     #"fitTopDeltaPhiLNu" : (20,0,math.pi),
+                                                     },
                                             ),
             steps.Filter.stop(),#####################################
 
@@ -120,10 +133,10 @@ class topAsymm(topAsymmShell.topAsymmShell) :
 
 
 
-        return  ( #data() +
+        return  ( data() +
                   #qcd_py6_mu(None) +
-                  ewk(None) +
-                  ttbar_py(None) +
+                  #ewk(None) +
+                  #ttbar_py(None) +
                   [])
 
 
@@ -230,7 +243,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                              #samplesForRatios = ("Data 2011","standard_model"),
                              #sampleLabelsForRatios = ("data","s.m."),
                              blackList = ["lumiHisto","xsHisto","nJobsHisto"],
-                             detailedCalculables = True,
+                             #detailedCalculables = True,
                              ).plotAll()
 
         #self.optimizeCut(org,signal = "t#bar{t}", background = "standard_model", var = "TopRatherThanWProbability")
