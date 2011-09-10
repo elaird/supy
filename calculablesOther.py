@@ -326,12 +326,4 @@ class Discriminant(calculables.secondary) :
             example = next(iter(hists),None)
             if not example : continue
             if issubclass(type(example),r.TH2) : del org.steps[0][key]
-
-    def mergeFunc(self,_) :
-        keys = [key.GetName() for key in r.gDirectory.GetListOfKeys()]
-        for key in keys :
-            base = r.gDirectory.Get(key)
-            if not issubclass(type(base),r.TH2) : continue
-            dep = utils.dependence(base)
-            dep.Write()
 #####################################
