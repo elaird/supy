@@ -90,13 +90,14 @@ class plotter(object) :
                  nLinesMax = 17,
                  nColumnsMax = 67,
                  pageNumbers = True,
+                 latexYieldTable = False,
                  detailedCalculables = False,
                  shiftUnderOverFlows = True,
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
                  blackList = [],
                  whiteList = []
                  ) :
-        for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter",
+        for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox","detailedCalculables"] :
             setattr(self,item,eval(item))
@@ -107,6 +108,10 @@ class plotter(object) :
         self.canvas = r.TCanvas("canvas", "canvas", 500, 500) if self.anMode else r.TCanvas()
         self.pageNumber = -1
 
+        #used for making latex tables
+        self.cutDict = {}
+        self.yieldDict = {}
+        self.sampleList = []
 
     def plotAll(self) :
         print utils.hyphens
@@ -143,8 +148,82 @@ class plotter(object) :
 
         self.printCanvas("]")
         self.makePdf()
+        if self.latexYieldTable : self.printLatexYieldTable()
         print utils.hyphens
 
+    def oneTable(self, f, columnSpecs = "", header = "", rows = []) :
+        f.write(r'''
+\begin{table}
+\begin{tabular}{''')
+        f.write(columnSpecs)
+        f.write(r'''}
+\hline\hline
+''')
+        f.write(header)
+        f.write(r''' \\ \hline
+''')
+        for row in rows : f.write("%s%s"%(row,"\n"))
+        f.write(r'''\hline\hline
+\end{tabular}
+\end{table}
+''')
+
+    def printLatexYieldTable(self, blackList = ["passFilter"]) :
+        texFile = self.psFileName.replace(".ps",".tex")
+        f = open(texFile, "w")
+        f.write(r'''
+\documentclass[landscape]{article}
+\usepackage[landscape]{geometry}
+\begin{document}
+''')
+
+        #table of letter <--> cut name,desc
+        filtered = []
+        descDict = {}
+        rows = []
+        for key in string.ascii_letters[:len(self.cutDict.keys())] :
+            name,desc = self.cutDict[key]
+            if name in blackList :
+                filtered.append(key)
+                continue
+            for item in [name, desc] :
+                if item.count("@") : print "WARNING: @ replaced by ! in %s"%item
+            name2 = name.replace("@","!")
+            desc2 = desc.replace("@","!")
+            descDict[key] = r'\verb@%s@'%desc2
+            rows.append( r'%s & \verb@%s@ & %s \\'%(key, name2, descDict[key]) )
+
+        self.oneTable(f, columnSpecs = "llr", header = "letter & name & description", rows = rows)
+
+
+        #tables of cut letter <--> yields; cut desc <--> yields
+        for i in range(len(self.sampleList)) :
+            if self.sampleList[i].count("@") : print "WARNING: @ replaced by ! in %s"%self.sampleList[i]
+            self.sampleList[i] = self.sampleList[i].replace("@","!").lstrip().rstrip()
+        names = r"@ & \verb@".join(self.sampleList)
+        names = names.join([r"\verb@", "@"])
+
+        rowsLettered = []
+        rowsDescribed = []
+        for key in string.ascii_letters[:len(self.yieldDict.keys())] :
+            if key in filtered : continue
+            yields = self.yieldDict[key]
+            for i in range(len(yields)) :
+                if yields[i].count("@") : print "WARNING: @ replaced by ! in %s"%yields[i]
+                yields[i] = yields[i].replace("@","!").lstrip().rstrip()
+                
+            yields = r"@ & \verb@".join(yields)
+            yields = yields.join([r"\verb@", "@"])
+            rowsLettered.append( r'%s & %s \\'%(key, yields) )
+            rowsDescribed.append( r'%s & %s \\'%(descDict[key], yields) )
+
+        self.oneTable(f, columnSpecs = "l"+"c"*len(self.sampleList), header = "letter & "+names, rows = rowsLettered)
+        self.oneTable(f, columnSpecs = "l"+"c"*len(self.sampleList), header = "description & "+names, rows = rowsDescribed)
+
+        f.write('''\end{document}''')
+        f.close()
+        print "The output file \""+texFile+"\" has been written."
+        
     def printOnePage(self, name, tight = False) :
         fileName = "%s_%s.eps"%(self.psFileName.replace(".ps",""),name)
         self.canvas.Print(fileName)
@@ -363,7 +442,7 @@ class plotter(object) :
         os.system("gzip -f "+self.psFileName)
         print "The output file \""+pdfFile+"\" has been written."
 
-    def printSteps(self,steps, printAll=False) :
+    def printSteps(self, steps, printAll=False) :
         if printAll and len(steps)>self.nLinesMax : self.printSteps(steps[:1-self.nLinesMax],printAll)
         self.canvas.cd(0)
         self.canvas.Clear()
@@ -384,15 +463,19 @@ class plotter(object) :
             x = 0.01
             y = 0.98 - 0.33*(i+0.5+absI/5)/self.nLinesMax
             text.DrawTextNDC(x, y, nametitle.format(letter, step.name, step.title ))
-
+            self.cutDict[letter] = (step.name, step.title)
+            
             nums = []
             for k,sample in zip(step.yields,self.someOrganizer.samples) :
                 special = "lumi" in sample and not self.showErrorsOnDataYields
                 s = utils.roundString(*k, width=(colWidth-space), noSci = self.noSci or special, noErr = special) if k else "-    "
                 nums.append(s.rjust(colWidth))
-            text.DrawTextNDC(x, y-0.49, "%s: %s"%(letter, "".join(nums)))
 
-        text.DrawTextNDC(x, 0.5, "   "+"".join([s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]))
+            text.DrawTextNDC(x, y-0.49, "%s: %s"%(letter, "".join(nums)))
+            self.yieldDict[letter] = nums
+
+        self.sampleList = [s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]
+        text.DrawTextNDC(x, 0.5, "   "+"".join(self.sampleList))
         text.SetTextAlign(13)
         text.DrawTextNDC(0.05, 0.03, "events / %.3f pb^{-1}"% self.someOrganizer.lumi )
         self.flushPage()
