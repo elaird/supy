@@ -22,6 +22,22 @@ class Asymmetry(analysisStep) :
         self.book.fill( ev[self.DirectedDeltaYLHadt], 'lHadtDeltaY',       self.bins, -4, 4, title = ';#Delta Y_{lhadt};events / bin')
         self.book.fill( ev[self.Beta],                'ttbarBeta',         self.bins, -math.sqrt(2), math.sqrt(2), title = ';#beta_{ttbar};events / bin')
 #####################################
+class Spin(analysisStep) :
+    def __init__(self, collection) :
+        self.collection = collection
+        for item in ['CosHelicityThetaL', 'CosHelicityThetaQ'] :
+            setattr(self,item,('%s'+item+'%s')%collection)
+        self.bins = 18
+
+    def uponAcceptance(self,ev) :
+        cosTL = ev[self.CosHelicityThetaL]
+        cosTQ = ev[self.CosHelicityThetaQ]
+        self.book.fill( cosTL, 'CosHelicityThetaL', self.bins, -1, 1, title = ';CosHelicityThetaL;events / bin' )
+        self.book.fill( cosTQ, 'CosHelicityThetaQ', self.bins, -1, 1, title = ';CosHelicityThetaQ;events / bin' )
+        self.book.fill( cosTL*cosTQ, 'helicityCos2', self.bins, -1, 1, title = ';helicityCos2;events / bin' )
+        self.book.fill( (cosTL, cosTQ), 'CosHelicityThetaL_vs_CosHelicityThetaQ', (self.bins,self.bins), (-1,-1), (1,1),
+                        title = ';CosHelicityThetaL;CosHelicityThetaQ;events / bin')
+#####################################
 class kinFitLook(analysisStep) :
     def __init__(self,indexName) : self.moreName = indexName
     def uponAcceptance(self,ev) :
