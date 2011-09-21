@@ -67,6 +67,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                                                      "%sB0pt%s"%obj["jet"] : (30,0,300),
                                                      "%s3absEta%s"%obj["jet"] : (20,0,4),
                                                      "%sMt%s"%obj['muon']+"mixedSumP4" : (30,0,180),
+                                                     "%sDeltaPhiB01%s"%obj["jet"] : (20,0,math.pi),
                                                      #"mixedSumP4.pt"     : (30,0,180),
                                                      #"fitTopLeptonPt"    : (30,0,180),
                                                      #"fitTopDeltaPhiLNu" : (20,0,math.pi),
@@ -134,9 +135,9 @@ class topAsymm(topAsymmShell.topAsymmShell) :
 
 
         return  ( data() +
-                  #qcd_py6_mu(None) +
-                  #ewk(None) +
-                  #ttbar_py(None) +
+                  qcd_py6_mu(None) +
+                  ewk(None) +
+                  ttbar_py(None) +
                   [])
 
 
@@ -227,23 +228,23 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
         org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.N30", "color":r.kRed}, sources = ["tt_tauola_fj.wTopAsymN30.nvr","tt_tauola_fj.wNonQQbar.nvr"][:1])
         org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.P30", "color":r.kGreen}, sources = ["tt_tauola_fj.wTopAsymP30.nvr","tt_tauola_fj.wNonQQbar.nvr"][:1])
-        # org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+2}, sources = ["qcd_py6","w_munu_fj.nvr","t#bar{t}","w_jets_fj_mg.nvr"], keepSources = True)
-        org.scale(toPdf=True)
+        org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+2}, sources = ["qcd_py6","w_munu_fj.nvr","t#bar{t}","w_jets_fj_mg.nvr"], keepSources = True)
+        org.scale()#toPdf=True)
         
         pl = plotter.plotter(org, psFileName = self.psFileName(org.tag+"_log"),
                              pegMinimum = 0.01,
-                             #samplesForRatios = ("Data 2011","standard_model"),
-                             #sampleLabelsForRatios = ("data","s.m."),
+                             samplesForRatios = ("Data 2011","standard_model"),
+                             sampleLabelsForRatios = ("data","s.m."),
                              blackList = ["lumiHisto","xsHisto","nJobsHisto"],
                              detailedCalculables = True,
                              ).plotAll()
 
         pl = plotter.plotter(org, psFileName = self.psFileName(org.tag+"_nolog"),
                              doLog = False,
-                             #samplesForRatios = ("Data 2011","standard_model"),
-                             #sampleLabelsForRatios = ("data","s.m."),
+                             samplesForRatios = ("Data 2011","standard_model"),
+                             sampleLabelsForRatios = ("data","s.m."),
                              blackList = ["lumiHisto","xsHisto","nJobsHisto"],
-                             #detailedCalculables = True,
+                             detailedCalculables = True,
                              ).plotAll()
 
         #self.optimizeCut(org,signal = "t#bar{t}", background = "standard_model", var = "TopRatherThanWProbability")
