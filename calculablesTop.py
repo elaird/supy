@@ -174,6 +174,26 @@ class CosThetaStarAngle(wrappedChain.calculable) :
         self.value = math.atan2(abs(self.source[self.CosThetaStar]),abs(self.source[self.CosThetaStarBar])) # on [0:pi/2]
 ######################################
 ######################################
+class CosHelicityThetaL(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(['BoostZAlt','P4','LeptonCharge'])
+    def update(self,_) :
+        boost = self.source[self.BoostZAlt]
+        lepQ = self.source[self.LeptonCharge]
+        p4 = self.source[self.P4]
+        self.value = r.Math.VectorUtil.CosTheta( boost(p4['t' if lepQ>0 else 'tbar']), boost(p4['lepton']))
+######################################
+class CosHelicityThetaQ(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(['BoostZAlt','P4','LeptonCharge'])
+    def update(self,_) :
+        boost = self.source[self.BoostZAlt]
+        lepQ = self.source[self.LeptonCharge]
+        p4 = self.source[self.P4]
+        self.value = r.Math.VectorUtil.CosTheta( boost(p4['t' if lepQ<0 else 'tbar']), boost(p4['q']))
+######################################
 ######################################
 
 class genTopP4(wrappedChain.calculable) :
