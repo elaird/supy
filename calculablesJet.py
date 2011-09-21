@@ -919,6 +919,8 @@ class ComboPQBDeltaRawMassWTop(wrappedChain.calculable) :
         self.stash(['ComboPQBRawMassWTop'])
     def update(self,_) : self.value = dict([(key,(val[0]-80.4,val[1]-172)) for key,val in self.source[self.ComboPQBRawMassWTop].iteritems()])
 ######################################
+
+######################################
 class __value__(wrappedChain.calculable) :
     def __init__(self, jets = None, index = 0, Btagged = True ) :
         self.fixes = ("%s%s%d"%(jets[0],'B' if Btagged else '', index), jets[1])
@@ -938,3 +940,15 @@ class absEta(__value__) :
 ######################################
 class eta(__value__) :
     def function(self,x) : return x.eta()
+######################################
+
+######################################
+class DeltaPhiB01(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(['CorrectedP4','IndicesBtagged'])
+    def update(self,_) :
+        p4 = self.source[self.CorrectedP4]
+        b = self.source[self.IndicesBtagged]
+        self.value = abs(r.Math.VectorUtil.DeltaPhi(p4[b[0]],p4[b[1]]))
+######################################
