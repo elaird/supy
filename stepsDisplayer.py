@@ -16,7 +16,7 @@ class displayer(analysisStep) :
                  recHits = None, recHitPtThreshold = -100.0, scale = 200.0, etRatherThanPt = False, doGenParticles = False, doGenJets = False,
                  doEtaPhiPlot = True, deltaPhiStarExtraName = "", deltaPhiStarCut = None, deltaPhiStarDR = None, mhtOverMetName = "",
                  showAlphaTMet = True, jetsOtherAlgo = None, metOtherAlgo = None, printExtraText = True, j2Factor = None,
-                 ra1Mode = True, ra1CutBits = True, markusMode = False, tipToTail = False, triggersToPrint = [],
+                 ra1Mode = True, ra1CutBits = True, prettyMode = False, tipToTail = False, triggersToPrint = [],
                  flagsToPrint = ["logErrorTooManyClusters","logErrorTooManySeeds",
                                  #"beamHaloCSCLooseHaloId","beamHaloCSCTightHaloId","beamHaloEcalLooseHaloId","beamHaloEcalTightHaloId",
                                  #"beamHaloGlobalLooseHaloId","beamHaloGlobalTightHaloId","beamHaloHcalLooseHaloId","beamHaloHcalTightHaloId"
@@ -27,7 +27,7 @@ class displayer(analysisStep) :
 
         for item in ["scale","jets","met","muons","electrons","photons","taus","recHits","recHitPtThreshold","doGenParticles", "doGenJets",
                      "doEtaPhiPlot","deltaPhiStarExtraName", "deltaPhiStarCut", "deltaPhiStarDR", "mhtOverMetName", "showAlphaTMet",
-                     "jetsOtherAlgo", "metOtherAlgo", "printExtraText", "j2Factor", "ra1Mode", "ra1CutBits", "markusMode","tipToTail",
+                     "jetsOtherAlgo", "metOtherAlgo", "printExtraText", "j2Factor", "ra1Mode", "ra1CutBits", "prettyMode","tipToTail",
                      "triggersToPrint", "flagsToPrint"] :
             setattr(self,item,eval(item))
 
@@ -44,19 +44,24 @@ class displayer(analysisStep) :
         self.doReco = not self.doGenParticles
         #self.helper = r.displayHelper()
 
-        self.markusReName = {
-            "clean jets (xcak5JetPat)": "clean jets (AK5 Calo)",
-            "clean jets (xcak5JetPFPat)": "clean jets (AK5 PF)",
+        self.prettyReName = {
+            "clean jets (xcak5JetPat)": "jets (AK5 Calo)",
+            "clean jets (xcak5JetPFPat)": "jets (AK5 PF)",
             "ignored jets (xcak5JetPat)": "ignored jets (AK5 Calo)",
             "ignored jets (xcak5JetPFPat)": "ignored jets (AK5 PF)",
             "MHT (xcak5JetPat)": "MHT",
             "MHT (xcak5JetPFPat)": "MHT",
-            "MET (metP4AK5TypeII)": "CaloMET Type II",
+            "MET (metP4AK5TypeII)": "MET (Calo Type II)",
             "MET (metP4PF)": "PF MET",
+            "muons (muonPat)": "muons",
+            "electrons (electronPat)": "electrons",
+            "photons (photonPat)": "photons",
             "xcak5JetPat": "AK5 Calo Jets",
             "xcak5JetPFPat": "AK5 PF Jets",
+            "muonPat": "muons",
+            "electronPat": "electrons",
+            "photonPat": "photons",
             }
-         
 
         self.titleSizeFactor = 1.0
         
@@ -140,8 +145,8 @@ class displayer(analysisStep) :
     def printVertices(self, eventVars, params, coords, nMax) :
         self.prepareText(params, coords)
         self.printText("Vertices")
-        self.printText("ID   Z(cm) sumPt(GeV)")
-        self.printText("---------------------")
+        self.printText("ID   Z(cm)%s"%(" sumPt(GeV)" if not self.prettyMode else ""))
+        self.printText("----------%s"%("-----------" if not self.prettyMode else ""))
 
         nVertices = eventVars["vertexNdof"].size()
         for i in range(nVertices) :
@@ -149,7 +154,8 @@ class displayer(analysisStep) :
                 self.printText("[%d more not listed]"%(nVertices-nMax))
                 break
             
-            out = "%2s %6.2f  %5.0f"%("G " if i in eventVars["vertexIndices"] else "  ", eventVars["vertexPosition"].at(i).z(), eventVars["vertexSumPt"].at(i))
+            out = "%2s  %6.2f"%("G " if i in eventVars["vertexIndices"] else "  ", eventVars["vertexPosition"].at(i).z())
+            if not self.prettyMode : out += " %5.0f"%eventVars["vertexSumPt"].at(i)
             self.printText(out)
 
     def printPhotons(self, eventVars, params, coords, photons, nMax) :
@@ -216,9 +222,10 @@ class displayer(analysisStep) :
             muon=p4Vector[iMuon]
 
             outString = "%1s%1s"% (" ","T" if tight[iMuon] else " ")
-            outString+="%5.0f %4.1f %4.1f %5.2f %3s"%(muon.pt(), muon.eta(), muon.phi(), iso[iMuon],
-                                                      "%s%s%s"%("T" if tr[iMuon] else " ", "G" if gl[iMuon] else " ","P" if glpt[iMuon] else " "),
-                                                      )
+            outString+= "%5.0f %4.1f %4.1f"%(muon.pt(), muon.eta(), muon.phi())
+            outString+= " %5.2f"%(iso[iMuon]) if iso[iMuon]<100.0 else ">100".rjust(6)
+            outString+= " %s%s%s"%("T" if tr[iMuon] else " ", "G" if gl[iMuon] else " ","P" if glpt[iMuon] else " ")
+
             self.printText(outString)
 
     def printRecHits(self, eventVars, params, coords, recHits, nMax) :
@@ -395,11 +402,11 @@ class displayer(analysisStep) :
                                                        "candidate (%g)"%htBin if all([j2Bit, htBit, atBit, deBit, mmBit]) else "",
                                                        )
                            )
-            if self.markusMode and all and not i :
+            if self.prettyMode and all and not i :
                 self.text.SetTextSize(1.5*params["size"])
                 self.text.SetTextFont(params["font"])
                 self.text.SetTextColor(r.kBlue)
-                self.text.DrawText(0.1, 0.1, "passes final selection")
+                #self.text.DrawText(0.1, 0.1, "passes final selection")
                 self.text.SetTextSize(params["size"])
                 self.text.SetTextFont(params["font"])
                 self.text.SetTextColor(params["color"])
@@ -456,8 +463,8 @@ class displayer(analysisStep) :
         self.ellipse.DrawEllipse(p4.eta(), p4.phi(), circleRadius, circleRadius, 0.0, 360.0, 0.0, "")
 
     def renamedDesc(self, desc) :
-        if not self.markusMode : return desc
-        elif desc in self.markusReName : return self.markusReName[desc]
+        if not self.prettyMode : return desc
+        elif desc in self.prettyReName : return self.prettyReName[desc]
         else : return desc
         
     def legendFunc(self, color, name, desc) :
@@ -861,7 +868,7 @@ class displayer(analysisStep) :
             
             self.drawIgnoredJets    (eventVars, coords,r.kCyan    , defWidth, defArrowSize*1/6.0)
             #self.drawOtherJets      (eventVars, coords,r.kBlack  )
-            if self.ra1Mode and not self.markusMode :
+            if self.ra1Mode and not self.prettyMode :
                 self.drawHt         (eventVars, coords,r.kBlue+3  , defWidth, defArrowSize*1/6.0)
                 self.drawNJetDeltaHt(eventVars, coords,r.kBlue-9  , defWidth, defArrowSize*1/6.0)
             
@@ -870,15 +877,14 @@ class displayer(analysisStep) :
             if self.met :
                 self.drawMet        (eventVars, coords,r.kGreen   , defWidth, defArrowSize*2/6.0)
             
-            if not self.markusMode :
-                if self.muons :     self.drawMuons    (eventVars, coords,r.kYellow  , defWidth, defArrowSize*2/6.0)
-                if self.electrons : self.drawElectrons(eventVars, coords,r.kOrange+7, defWidth, defArrowSize*2.5/6.0)
-                if self.photons :   self.drawPhotons  (eventVars, coords,r.kOrange  , defWidth, defArrowSize*1.8/6.0)
+            if self.muons :     self.drawMuons    (eventVars, coords,r.kYellow  , defWidth, defArrowSize*2/6.0)
+            if self.electrons : self.drawElectrons(eventVars, coords,r.kOrange+7, defWidth, defArrowSize*2.5/6.0)
+            if self.photons :   self.drawPhotons  (eventVars, coords,r.kOrange  , defWidth, defArrowSize*1.8/6.0)
+            if not self.prettyMode :
                 if self.taus :      self.drawTaus     (eventVars, coords,r.kYellow  , defWidth, defArrowSize*2/6.0)
-            
-            if self.recHits :
-                #self.drawCleanedRecHits (eventVars, coords,r.kOrange-6, defWidth, defArrowSize*2/6.0)
-                self.drawCleanedRecHitSumP4(eventVars, coords,r.kOrange-6, defWidth, defArrowSize*2/6.0)
+                if self.recHits :
+                    #self.drawCleanedRecHits (eventVars, coords,r.kOrange-6, defWidth, defArrowSize*2/6.0)
+                    self.drawCleanedRecHitSumP4(eventVars, coords,r.kOrange-6, defWidth, defArrowSize*2/6.0)
 
         self.canvas.cd()
         pad.Draw()
@@ -931,8 +937,9 @@ class displayer(analysisStep) :
             if self.electrons :
                 self.printElectrons(eventVars, params = defaults, coords = {"x":x0+0.50, "y":yy-40*s}, electrons = self.electrons, nMax = 3)
             if self.muons :
-                self.printMuons(    eventVars, params = smaller,  coords = {"x":x0,      "y":yy-47*s}, muons = self.muons, nMax = 3)
-            if self.recHits :
+                muonPars = defaults if self.prettyMode else smaller
+                self.printMuons(    eventVars, params = muonPars, coords = {"x":x0,      "y":yy-47*s}, muons = self.muons, nMax = 3)
+            if self.recHits and not self.prettyMode :
                 self.printRecHits(  eventVars, params = smaller,  coords = {"x":x0+0.52, "y":yy-47*s}, recHits = self.recHits, nMax = 3)
             if self.flagsToPrint :
                 self.printFlags(    eventVars, params = defaults, coords = {"x":x0,      "y":yy-55*s}, flags = self.flagsToPrint)
@@ -965,8 +972,8 @@ class displayer(analysisStep) :
                                                            "y2":rhoPhiPadYSize + 0.22*self.canvas.GetAspectRatio()})
             
         if self.doReco :
-            if self.ra1Mode and not self.markusMode :
-                g3 = self.drawAlphaPlot(eventVars, r.kBlack, showAlphaTMet = self.showAlphaTMet,
+            if self.ra1Mode :
+                g3 = self.drawAlphaPlot(eventVars, r.kBlack, showAlphaTMet = (self.showAlphaTMet and not self.prettyMode),
                                         corners = {"x1":rhoPhiPadXSize - 0.08,
                                                    "y1":0.0,
                                                    "x2":rhoPhiPadXSize + 0.12,
