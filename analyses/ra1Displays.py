@@ -94,7 +94,7 @@ class ra1Displays(analysis.analysis) :
     def listOfSteps(self, params) :
         return [
             steps.Print.progressPrinter(),
-            #steps.Other.variableGreaterFilter(675, "%sSumEt%s"%_jet, suffix = "GeV"),
+            #steps.Other.variableGreaterFilter(675, "%sSumEt%s"%params["objects"]["jet"], suffix = "GeV"),
             steps.Displayer.displayer(jets      = params["objects"]["jet"],
                                       muons     = params["objects"]["muon"],
                                       met       = params["objects"]["met"],
@@ -111,13 +111,15 @@ class ra1Displays(analysis.analysis) :
                                       metOtherAlgo  = params["objects"]["compMet"],
                                       jetsOtherAlgo = params["objects"]["compJet"],
                                       #doGenJets = True,
-                                      markusMode = False,
+                                      #prettyMode = True,
                                       ),
             ]
     
     def listOfSampleDictionaries(self) :
         sampleDict = samples.SampleHolder()
         sampleDict.add("MT2_events", '["/home/hep/bm409/public_html/MT2Skim.root"]', lumi = 600)
+        sampleDict.add("Data_375", '["/home/hep/elaird1/73_candidates/v8/375.root"]', lumi = 1.1e3)
+        sampleDict.add("T2_skim", '["/home/hep/db1110/public_html/Simplified_Models/T2_testpoint_results/T2_skims/T2_testpoint_200_175.root"]', xs = 1.0)
         sampleDict.add("Data_275", '["/home/hep/db1110/public_html/AnalysisSkims/DefaultAnalysisSkims/275-325/Dataskims/275data.root"]', lumi = 602.) #/pb
         sampleDict.add("MG_QCD", '["/home/hep/db1110/public_html/AnalysisSkims/DefaultAnalysisSkims/275-325/MCskims/275madgraph.root"]', xs = 1.0) #dummy xs
         sampleDict.add("PY_QCD", '["/home/hep/db1110/public_html/AnalysisSkims/DefaultAnalysisSkims/275-325/AlphaT54MCSkims/275Pythia.root"]', xs = 1.0) #dummy xs
@@ -125,5 +127,4 @@ class ra1Displays(analysis.analysis) :
         return [sampleDict]
     
     def listOfSamples(self,params) :
-        return samples.specify(names = "MT2_events")
-        #return samples.specify(names = "py_qcd_375")
+        return samples.specify(names = "Data_375")
