@@ -4,6 +4,10 @@ import os,sys,inspect,utils,configuration
 def opts() :
     from optparse import OptionParser
     parser = OptionParser("usage: %prog analysis-file [options]")
+    def argOrTrue(option, opt, value, parser) :
+        peek = next(iter(parser.rargs),None)
+        if peek and peek[0]!='-' : del parser.rargs[0]
+        setattr(parser.values, option.dest, peek if peek and peek[0]!='-' else True)
     parser.add_option("--loop",    dest = "loop",    default = None,  metavar = "N",          help = "loop over events using N cores (N>0)")
     parser.add_option("--slices",  dest = "slices",  default = None,  metavar = "S",          help = "split each sample into S slices (S>0)")
     parser.add_option("--profile", dest = "profile", default = False, action  = "store_true", help = "profile the code")
@@ -14,6 +18,8 @@ def opts() :
     parser.add_option("--updates", dest = "update",  default = None,  metavar = "sc1,sc2,..", help = "update specified secondary calculables")
     parser.add_option("--jobid",   dest = "jobId",   default = None,  metavar = "id",         help = "[for internal use only]")
     parser.add_option("--site",    dest = "site",    default = None,  metavar = "prefix",     help = "[for internal use only]")
+    parser.add_option("--samples", dest = "samples", default = None,  action = "callback", callback = argOrTrue, help = "run specified samples only, or list samples")
+    parser.add_option("--tags",    dest = "tags",    default = None,  action = "callback", callback = argOrTrue, help = "run specified tags only, or list tags")
     options,args = parser.parse_args()
 
     if len(args)!=1 :

@@ -33,6 +33,8 @@ class analysis(object) :
         self.__tag     = options.tag
         self.__sample  = options.sample
         self.__site    = options.site if options.site!=None else configuration.sitePrefix()
+        self.__tags    = options.tags.split(',') if type(options.tags)==str else options.tags
+        self.__samples = options.samples.split(',') if type(options.samples)==str else options.samples
 
         self.localStem  = "%s/%s"%(configuration.siteInfo(site = self.__site, key = "localOutputDir" ), self.name)
         self.globalStem = "%s/%s"%(configuration.siteInfo(site = self.__site, key = "globalOutputDir"), self.name)
@@ -40,6 +42,13 @@ class analysis(object) :
         self.sampleDict = samples.SampleHolder()
         map(self.sampleDict.update,self.listOfSampleDictionaries())
 
+        if self.__tags is True or self.__samples is True :
+            for conf in self.configurations :
+                print conf['tag']
+                if self.__samples is True :
+                    print '\n'.join('  '+sample.weightedName for sample in self.filteredSamples(conf))
+            sys.exit(0)
+                
         if self.__loop!=None :
             os.system("mkdir -p %s"%self.localStem)
             if self.__jobId==None :
@@ -78,6 +87,10 @@ class analysis(object) :
                     self.__configs = sum([[ dict( list(conf.iteritems()) + [ (param,val), ("tag",conf["tag"]+[str(key)]) ] )
                                             for key,val in variations.iteritems()] for conf in self.__configs],[])
             for conf in self.__configs : conf['tag'] = '_'.join(conf['tag'])
+            if type(self.__tags) is list :
+                for tag in self.__tags :
+                    if not [c['tag'] for c in self.__configs].count(tag) : print "No such tag: %s"%tag; sys.exit(0)
+                self.__configs = [c for c in self.__configs if c['tag'] in self.__tags]
             if self.__tag!="" :
                 self.__configs = [c for c in self.__configs if c['tag']==self.__tag]
                 if not self.__configs : print "No such tag: %s"%self.__tag; sys.exit(0)
@@ -85,8 +98,8 @@ class analysis(object) :
     class vary(dict) : pass
 
     def filteredSamples(self, conf) :
-        samples = [s for s in self.listOfSamples(conf) if s.weightedName==self.__sample or self.__sample==None]
-        if self.__sample and not samples : print "No such sample: %s"%self.__sample; sys.exit(0)
+        samples = [s for s in self.listOfSamples(conf) if s.weightedName==self.__sample or self.__sample==None and (type(self.__samples)!=list or s.weightedName in self.__samples)]
+        if not samples : print "No such sample: %s"%self.__sample if self.__sample else "No samples!"; sys.exit(0)
         return samples
 ############
     def jobsFile(self,tag,sample) :
