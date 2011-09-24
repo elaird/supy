@@ -117,6 +117,24 @@ class RelativeLeptonRapidity(wrappedChain.calculable) :
         
         self.value = (1 if y_sum>0 else -1) * q_lep * (y_lep-y_sum)
 #####################################
+class DirectedLTopRapidity(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(['P4','SignQuarkZ','LeptonCharge'])
+    def update(self,_) :
+        lepQ = self.source[self.LeptonCharge]
+        top = self.source[self.P4]['t' if lepQ>0 else 'tbar']
+        self.value = self.source[self.SignQuarkZ] * top.Rapidity()
+######################################
+class DirectedHTopRapidity(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(['P4','SignQuarkZ','LeptonCharge'])
+    def update(self,_) :
+        lepQ = self.source[self.LeptonCharge]
+        top = self.source[self.P4]['t' if lepQ<0 else 'tbar']
+        self.value = self.source[self.SignQuarkZ] * top.Rapidity()
+######################################
 class SignQuarkZ(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
@@ -179,20 +197,26 @@ class CosHelicityThetaL(wrappedChain.calculable) :
         self.fixes = collection
         self.stash(['BoostZAlt','P4','LeptonCharge'])
     def update(self,_) :
-        boost = self.source[self.BoostZAlt]
         lepQ = self.source[self.LeptonCharge]
         p4 = self.source[self.P4]
-        self.value = r.Math.VectorUtil.CosTheta( boost(p4['t' if lepQ>0 else 'tbar']), boost(p4['lepton']))
+        boost1 = self.source[self.BoostZAlt]
+        top = boost1(p4['t' if lepQ>0 else 'tbar'])
+        beta = top.BoostToCM()
+        boost2 = r.Math.Boost(beta.x(), beta.y(), beta.z())
+        self.value = r.Math.VectorUtil.CosTheta( top, boost2(boost1(p4['lepton'])))
 ######################################
 class CosHelicityThetaQ(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
         self.stash(['BoostZAlt','P4','LeptonCharge'])
     def update(self,_) :
-        boost = self.source[self.BoostZAlt]
         lepQ = self.source[self.LeptonCharge]
         p4 = self.source[self.P4]
-        self.value = r.Math.VectorUtil.CosTheta( boost(p4['t' if lepQ<0 else 'tbar']), boost(p4['q']))
+        boost1 = self.source[self.BoostZAlt]
+        top = boost1(p4['t' if lepQ<0 else 'tbar'])
+        beta = top.BoostToCM()
+        boost2 = r.Math.Boost(beta.x(), beta.y(), beta.z())
+        self.value = r.Math.VectorUtil.CosTheta( top, boost2(boost1(p4['q'])))
 ######################################
 ######################################
 
