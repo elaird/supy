@@ -88,27 +88,15 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             return specify( effectiveLumi = eL, color = r.kBlue,
                             names = ["qcd_mg_ht_%s_%s"%t for t in zip(qM,qM[1:]+["inf"])]) if "Wlv" not in pars['tag'] else []
         def ttbar_mg(eL = None) :
-            intrinsicR = -0.05
-            return (specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kBlue,  weights = "wNonQQbar") +
-                    #specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kRed,  weights = "wQQbar") +
-                    #specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kOrange,   weights = calculables.Top.wTopAsym(-0.30, intrinsicR = intrinsicR)) +
-                    #specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kYellow-3, weights = calculables.Top.wTopAsym( 0.00, intrinsicR = intrinsicR)) +
-                    #specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kRed,      weights = calculables.Top.wTopAsym( 0.30, intrinsicR = intrinsicR)) +
-                    [])
-
+            return (specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kBlue, weights = ["wNonQQbar","nvr"]) +
+                    sum([specify( names = "tt_tauola_mg", effectiveLumi = eL, color = color, weights = [calculables.Top.wTopAsym( asym, intrinsicR = -0.05), "nvr" ])
+                         for asym,color in [(0.0,r.kOrange),(-0.3,r.kGreen),(0.3,r.kRed)]], [])
+                    )[: 0 if "QCD" in pars['tag'] else 2 if 'Wlv' in pars['tag'] else None]
         def ttbar_py(eL = None) :
             return (specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kBlue, weights = ["wNonQQbar","nvr"]) +
-                    # specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kGreen, weights = [ calculables.Top.wTopAsym(-0.4), "nvr" ] )+
-                    specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kGreen, weights = [ calculables.Top.wTopAsym(-0.3), "nvr" ] )+
-                    # specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kGreen, weights = [ calculables.Top.wTopAsym(-0.2), "nvr" ] )+
-                    # specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kGreen, weights = [ calculables.Top.wTopAsym(-0.1), "nvr" ] )+
-                    specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kOrange, weights = [ calculables.Top.wTopAsym(0), "nvr" ] ) +
-                    # specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kRed, weights = [ calculables.Top.wTopAsym(0.1), "nvr" ] )+
-                    # specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kRed, weights = [ calculables.Top.wTopAsym(0.2), "nvr" ] )+
-                    specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kRed, weights = [ calculables.Top.wTopAsym(0.3), "nvr" ] )+
-                    # specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kRed, weights = [ calculables.Top.wTopAsym(0.4), "nvr" ] )+
-                    []) if "QCD" not in pars['tag'] else []
-
+                    sum( [specify(names = "tt_tauola_fj", effectiveLumi = eL, color = color, weights = [ calculables.Top.wTopAsym(asym), "nvr" ] )
+                          for asym,color in [(0.0,r.kOrange), (-0.3,r.kGreen),(0.3,r.kRed)]], [])
+                    )[: 0 if "QCD" in pars['tag'] else 2 if 'Wlv' in pars['tag'] else None]
         def ewk(eL = None) :
             return specify( names = "w_jets_fj_mg", effectiveLumi = eL, color = 28, weights = "nvr" ) if "QCD" not in pars['tag'] else []
 
@@ -123,14 +111,12 @@ class topAsymm(topAsymmShell.topAsymmShell) :
 
     def conclude(self,pars) :
         org = self.organizer(pars)
-        for suf in ["N40","N20","N10","P10","P20","P40"] : org.drop('tt_tauola_fj.wTopAsym%s.nvr'%suf)
-        org.drop("w_munu_fj")
         org.mergeSamples(targetSpec = {"name":"Data 2011", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu")
-        org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kViolet}, sources=["tt_tauola_fj.wNonQQbar.nvr","tt_tauola_fj.wTopAsymP00.nvr"])
         org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
+        org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kViolet}, sources=["tt_tauola_fj.wNonQQbar.nvr","tt_tauola_fj.wTopAsymP00.nvr"])
         org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.N30", "color":r.kRed}, sources = ["tt_tauola_fj.wTopAsymN30.nvr","tt_tauola_fj.wNonQQbar.nvr"][:1])
         org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.P30", "color":r.kGreen}, sources = ["tt_tauola_fj.wTopAsymP30.nvr","tt_tauola_fj.wNonQQbar.nvr"][:1])
-        org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+2}, sources = ["qcd_py6","w_munu_fj.nvr","t#bar{t}","w_jets_fj_mg.nvr"], keepSources = True)
+        org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+2}, sources = ["qcd_py6","t#bar{t}","w_jets_fj_mg.nvr"], keepSources = True)
 
         print "\n\nPrepare for barf...\n"; orgpdf = copy.deepcopy(org); print "\n...yuck!\n\n"
         orgpdf.scale( toPdf = True )
@@ -149,8 +135,6 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         plotter.plotter(orgpdf, psFileName = self.psFileName(org.tag+"_pdf"), doLog = False, **kwargs ).plotAll()
 
         #self.optimizeCut(org,signal = "t#bar{t}", background = "standard_model", var = "TopRatherThanWProbability")
-        #org.printFormattedCalculablesGraph()
-        #with open("topAsymm.gv","write") as file : print>>file, org.calculablesDotFile
 
     def meldNorm(self) :
         meldSamples = {"top_muon_pf" : ["SingleMu","P00","NonQQbar"],
@@ -186,11 +170,8 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         #stuff[0].Print("fractions.eps")
             
         melded = organizer.organizer.meld(organizers = organizers)
-        pl = plotter.plotter(melded,
-                             psFileName = self.psFileName(melded.tag),
-                             doLog = False,
-                             blackList = ["lumiHisto","xsHisto","nJobsHisto"],
-                             ).plotAll()
+        pl = plotter.plotter(melded, psFileName = self.psFileName(melded.tag),
+                             doLog = False, blackList = ["lumiHisto","xsHisto","nJobsHisto"] ).plotAll()
 
     def meldWpartitions(self) :
         samples = {"top_muon_pf" : ["w_"],
