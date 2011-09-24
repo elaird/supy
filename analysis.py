@@ -35,6 +35,7 @@ class analysis(object) :
         self.__site    = options.site if options.site!=None else configuration.sitePrefix()
         self.__tags    = options.tags.split(',') if type(options.tags)==str else options.tags
         self.__samples = options.samples.split(',') if type(options.samples)==str else options.samples
+        self.__omit    = options.omit.split(',')
 
         self.localStem  = "%s/%s"%(configuration.siteInfo(site = self.__site, key = "localOutputDir" ), self.name)
         self.globalStem = "%s/%s"%(configuration.siteInfo(site = self.__site, key = "globalOutputDir"), self.name)
@@ -98,7 +99,12 @@ class analysis(object) :
     class vary(dict) : pass
 
     def filteredSamples(self, conf) :
-        samples = [s for s in self.listOfSamples(conf) if s.weightedName==self.__sample or self.__sample==None and (type(self.__samples)!=list or s.weightedName in self.__samples)]
+        def use(ss) :
+            name = ss.weightedName
+            return name not in self.__omit and ( name==self.__sample or 
+                                                 self.__sample==None and ( type(self.__samples)!=list or 
+                                                                           name in self.__samples ) )
+        samples = filter(use, self.listOfSamples(conf))
         if not samples : print "No such sample: %s"%self.__sample if self.__sample else "No samples!"; sys.exit(0)
         return samples
 ############

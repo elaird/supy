@@ -18,8 +18,9 @@ def opts() :
     parser.add_option("--updates", dest = "update",  default = None,  metavar = "sc1,sc2,..", help = "update specified secondary calculables")
     parser.add_option("--jobid",   dest = "jobId",   default = None,  metavar = "id",         help = "[for internal use only]")
     parser.add_option("--site",    dest = "site",    default = None,  metavar = "prefix",     help = "[for internal use only]")
-    parser.add_option("--samples", dest = "samples", default = None,  action = "callback", callback = argOrTrue, help = "run specified samples only, or list samples")
     parser.add_option("--tags",    dest = "tags",    default = None,  action = "callback", callback = argOrTrue, help = "run specified tags only, or list tags")
+    parser.add_option("--samples", dest = "samples", default = None,  action = "callback", callback = argOrTrue, help = "run specified samples only, or list samples")
+    parser.add_option("--omit",    dest = "omit",    default = "",    metavar = "sample1,...", help = "omit specified samples")
     options,args = parser.parse_args()
 
     if len(args)!=1 :
