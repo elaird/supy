@@ -507,14 +507,15 @@ class OtherJetsLikelihood(wrappedChain.calculable) :
 ######################################
 class TopRatherThanWProbability(wrappedChain.calculable) :
     def __init__(self, priorTop = 0.05) :
+        self.priorTop = priorTop
         self.invPriorTopMinusOne =  ( 1.0 / priorTop  - 1)
         self.moreName = "priorTop = %0.3f"%priorTop
         
     def update(self,_) :
         topLikes = self.source["TopComboQQBBLikelihood"]
-        if not topLikes :
-            self.value = 1.0/ (self.invPriorTopMinusOne + 1); return
+        if not topLikes : self.value = self.priorTop; return
         topL = sum(topLikes.values()) / float(len(topLikes))
         wL = self.source["OtherJetsLikelihood"]
-        self.value = topL / (topL + wL * self.invPriorTopMinusOne)
+        denom = (topL + wL * self.invPriorTopMinusOne)
+        self.value = (topL / denom) if denom else self.priorTop
 ######################################
