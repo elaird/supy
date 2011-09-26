@@ -62,6 +62,13 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                                                      #"fitTopLeptonPt"    : (30,0,180),
                                                      #"fitTopDeltaPhiLNu" : (20,0,math.pi),
                                                      }),
+            calculables.Other.Discriminant( fixes = ("","WQCD"),
+                                            left = {"pre":"w_jets_fj_mg", "tag":"top_muon_pf", "samples":[]},
+                                            right = {"pre":"SingleMu", "tag":"QCD_muon_pf", "samples":[]},
+                                            dists = {"%sB0pt%s"%obj["jet"] : (30,0,300),
+                                                     "%sMt%s"%obj['muon']+"mixedSumP4" : (30,0,180),
+                                                     "%sDeltaPhiB01%s"%obj["jet"] : (20,0,math.pi),
+                                                     }),
             #steps.Filter.stop(),#####################################
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             #steps.Top.discriminateNonTop(pars),
@@ -106,8 +113,9 @@ class topAsymm(topAsymmShell.topAsymmShell) :
     ########################################################################################
     def concludeAll(self) :
         super(topAsymm,self).concludeAll()
-        #self.meldNorm()
-        #self.meldWpartitions()
+        self.meldNorm()
+        self.meldWpartitions()
+        self.meldQCDpartitions()
 
     def conclude(self,pars) :
         org = self.organizer(pars)
@@ -136,20 +144,63 @@ class topAsymm(topAsymmShell.topAsymmShell) :
 
         #self.optimizeCut(org,signal = "t#bar{t}", background = "standard_model", var = "TopRatherThanWProbability")
 
-    def meldNorm(self) :
-        meldSamples = {"top_muon_pf" : ["SingleMu","P00","NonQQbar"],
-                       "Wlv_muon_pf" : ["SingleMu"],
-                       "QCD_muon_pf" : ["SingleMu"]}
-        fdists = [{key:{"observed":(),"components":[]}} for key in ["dphiLnu"]]
-        
-        organizers = [organizer.organizer(tag, [s for s in self.sampleSpecs(tag) if any(item in s['name'] for item in meldSamples[tag])])
+    def meldWpartitions(self) :
+        samples = {"top_muon_pf" : ["w_"],
+                   "Wlv_muon_pf" : ["w_","SingleMu"],
+                   "QCD_muon_pf" : []}
+        organizers = [organizer.organizer(tag, [s for s in self.sampleSpecs(tag) if any(item in s['name'] for item in samples[tag])])
                       for tag in [p['tag'] for p in self.readyConfs]]
-        for org,color in zip(organizers,[r.kBlack,r.kRed,r.kBlue]) :
-            org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kViolet}, sources=["tt_tauola_fj.wNonQQbar","tt_tauola_fj.wTopAsymP00"])
-            org.mergeSamples(targetSpec = {"name":"Data 2011", "color":color, "markerStyle":(20 if "top" in org.tag else 1)}, allWithPrefix="SingleMu")
+        if not organizers : return
+        for org in organizers :
+            org.mergeSamples(targetSpec = {"name":"Data 2011", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu")
+            org.mergeSamples(targetSpec = {"name":"w_mg", "color":r.kRed if "Wlv" in org.tag else r.kBlue, "markerStyle": 22}, sources = ["w_jets_fj_mg.nvr"])
+            org.scale(toPdf=True)
 
+        melded = organizer.organizer.meld("wpartitions",filter(lambda o: o.samples, organizers))
+        pl = plotter.plotter(melded,
+                             psFileName = self.psFileName(melded.tag),
+                             doLog = False,
+                             blackList = ["lumiHisto","xsHisto","nJobsHisto"],
+                             ).plotAll()
+
+    def meldQCDpartitions(self) :
+        samples = {"top_muon_pf" : ["qcd_py6fjmu"],
+                   "Wlv_muon_pf" : [],
+                   "QCD_muon_pf" : ["qcd_py6fjmu","SingleMu"]}
+        organizers = [organizer.organizer(tag, [s for s in self.sampleSpecs(tag) if any(item in s['name'] for item in samples[tag])])
+                      for tag in [p['tag'] for p in self.readyConfs]]
+        if not organizers : return
+        for org in organizers :
+            org.mergeSamples(targetSpec = {"name":"Data 2011", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu")
+            org.mergeSamples(targetSpec = {"name":"qcd_py6mu", "color":r.kRed if "QCD" in org.tag else r.kBlue, "markerStyle": 22}, allWithPrefix="qcd_py6fjmu")
+            org.scale(toPdf=True)
+
+        melded = organizer.organizer.meld("qcdPartitions",filter(lambda o: o.samples, organizers))
+        pl = plotter.plotter(melded,
+                             psFileName = self.psFileName(melded.tag),
+                             doLog = False,
+                             blackList = ["lumiHisto","xsHisto","nJobsHisto"],
+                             ).plotAll()
+
+
+    def meldNorm(self) :
+        meldSamples = {"top_muon_pf" : ["SingleMu","P00","NonQQbar","w_jets"],
+                       #"Wlv_muon_pf" : ["w_jets"],
+                       "QCD_muon_pf" : ["SingleMu"]}
+        #fdists = [{key:{"observed":(),"components":[]}} for key in ["dphiLnu"]]
+
+        organizers = [organizer.organizer(tag, [s for s in self.sampleSpecs(tag) if any(item in s['name'] for item in meldSamples[tag])])
+                      for tag in [p['tag'] for p in self.readyConfs if p["tag"] in meldSamples]]
+        if not organizers : return
+        for org in organizers :
+            org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kViolet}, sources=["tt_tauola_fj.wNonQQbar.nvr","tt_tauola_fj.wTopAsymP00.nvr"])
+            org.mergeSamples(targetSpec = {"name":"w_jets", "color":r.kRed}, allWithPrefix = "w_jets")
+            org.mergeSamples(targetSpec = {"name":"Data 2011",
+                                           "color":r.kBlue if "qcd_" in org.tag else r.kBlack,
+                                           "markerStyle":(20 if "top" in org.tag else 1)}, allWithPrefix="SingleMu")
+            
             iData = org.indexOfSampleWithName("Data 2011")
-            before = next(org.indicesOfStep("label","selection complete"))
+            #before = next(org.indicesOfStep("label","selection complete"))
             #distTup = org.steps[next(iter(filter(lambda i: before<i, org.indicesOfStepsWithKey(dist))))][dist]
             #data = [distTup[iData].GetBinContent(i) for i in range(distTup[iData].GetNbinsX()+2)]
             #if "top" in org.tag :
@@ -172,24 +223,6 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         melded = organizer.organizer.meld(organizers = organizers)
         pl = plotter.plotter(melded, psFileName = self.psFileName(melded.tag),
                              doLog = False, blackList = ["lumiHisto","xsHisto","nJobsHisto"] ).plotAll()
-
-    def meldWpartitions(self) :
-        samples = {"top_muon_pf" : ["w_"],
-                   "Wlv_muon_pf" : ["w_","SingleMu"],
-                   "QCD_muon_pf" : []}
-        organizers = [organizer.organizer(tag, [s for s in self.sampleSpecs(tag) if any(item in s['name'] for item in samples[tag])])
-                      for tag in [p['tag'] for p in self.readyConfs]]
-        for org in organizers :
-            org.mergeSamples(targetSpec = {"name":"Data 2011", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu")
-            org.mergeSamples(targetSpec = {"name":"w_mg", "color":r.kRed if "Wlv" in org.tag else r.kBlue, "markerStyle": 22}, sources = ["w_jets_fj_mg.nvr"])
-            org.scale(toPdf=True)
-
-        melded = organizer.organizer.meld("wpartitions",filter(lambda o: o.samples, organizers))
-        pl = plotter.plotter(melded,
-                             psFileName = self.psFileName(melded.tag),
-                             doLog = False,
-                             blackList = ["lumiHisto","xsHisto","nJobsHisto"],
-                             ).plotAll()
 
 
 
