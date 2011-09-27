@@ -327,3 +327,15 @@ class Discriminant(calculables.secondary) :
             if not example : continue
             if issubclass(type(example),r.TH2) : del org.steps[0][key]
 #####################################
+class TriDiscriminant(wrappedChain.calculable) :
+    def __init__(self, fixes = ("","") , LR = None, splitLR = 0.5, LC = None, RC = None) :
+        self.fixes = fixes
+        self.split = splitLR
+        self.LR = LR
+        self.LC = LC
+        self.RC = RC
+
+    def update(self,_) :
+        R  = int( self.split < self.source[self.LR] )
+        self.value = ( 1 - self.source[self.RC] ) if R else ( self.source[self.LC] - 1 )
+#####################################

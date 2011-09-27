@@ -14,6 +14,12 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         return pars
     ########################################################################################
 
+    def listOfCalculables(self, pars) :
+        calcs = super(topAsymm,self).listOfCalculables(pars)
+        calcs.append( calculables.Other.TriDiscriminant(LR = "DiscriminantWQCD", LC = "DiscriminantTopW", RC = "DiscriminantTopQCD") )
+        return calcs
+    ########################################################################################
+
     def listOfSteps(self, pars) :
         obj = pars["objects"]
         lepton = obj[pars["lepton"]["name"]]
@@ -71,6 +77,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                                                      }),
             #steps.Filter.stop(),#####################################
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
+            steps.Histos.value("TriDiscriminant",50,-1,1),
             #steps.Top.discriminateNonTop(pars),
             #steps.Filter.label('dNonQQ'),  steps.Top.discriminateQQbar(('fitTop','')),
             steps.Top.Asymmetry(('fitTop','')),
