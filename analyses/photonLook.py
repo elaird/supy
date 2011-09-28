@@ -371,7 +371,7 @@ class photonLook(analysis.analysis) :
         zinv_mg_2010   = specify(names = ["z_inv_mg_v12_skim"], color = r.kMagenta+3)
 
         #2011
-        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-167913_7TeV_PromptReco_Collisions11_JSON.txt") #1078/pb
+        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/cert/Cert_160404-167913_7TeV_PromptReco_Collisions11_JSON.txt") #1078/pb
         data = []
 
         data += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Zoe_skim",    weights = jw, overrideLumi = 188.9)
