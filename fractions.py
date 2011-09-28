@@ -61,7 +61,7 @@ class componentSolver(object) :
 
 
 
-import sys, utils, ROOT as r
+import sys, utils, itertools, ROOT as r
 def drawComponentSolver(cs, canvas = None) :
     if not canvas : canvas = r.TCanvas()
     canvas.cd(0)
@@ -82,6 +82,14 @@ def drawComponentSolver(cs, canvas = None) :
     nll = nlls.Clone('-logL') ; nll.Reset(); nll.SetBinContent(nll.FindFixBin(-cs.logL), nlls.GetMaximum()); 
     nll.SetFillColor(r.kBlue); nll.SetTitle("p-value: %0.4f"%cs.p_value)
     pulls = [ rHist("relative residuals %d"%i, *np.histogram(pull,100,(-5,5))) for i,pull in enumerate(cs.relResiduals.transpose())]
+
+    corr = cs.correlation
+    corrH = r.TH2D("correlations","correlations", len(corr), -0.5, len(corr)-0.5, len(corr), -0.5, len(corr)-0.5)
+    for i,j in itertools.product(range(len(corr)), repeat = 2) : corrH.SetBinContent(i+1,j+1,round(corr[i][j],3))
+    corrH.SetMaximum(1)
+    corrH.SetMinimum(-1)
+    canvas.cd(3)
+    corrH.Draw("colztext")
 
     stats = []
     for i,a,t in zip(range(len(cs.fractions)),pulls,rTemplates) : 
@@ -111,12 +119,13 @@ def drawComponentSolver(cs, canvas = None) :
     rTemplates = sorted(rTemplates,key=lambda t: -t.Integral())
     for t,h in reversed(zip(rTemplates[:-1],rTemplates[1:])) : t.Add(h)
     draw(1, logY = False)    
-    draw(3, logY = True)
+    #draw(3, logY = True)
     canvas.Update()
-    return [canvas,rObs,rTemplates,stats,pulls,nlls,nll]
+    return [canvas,rObs,rTemplates,stats,pulls,nlls,nll,corrH]
 
 if __name__=="__main__" :
     r.gROOT.SetStyle("Plain")
+    r.gStyle.SetPalette(1)
     r.gStyle.SetOptStat(1101)
     fracs = [eval(b) for b in sys.argv[1:]] ; fracs.append(1-sum(fracs))
     if not ( 2 <= len(fracs) <= 4 ) : print "Pass between 1 and 3 composition fractions."; sys.exit(0)
@@ -145,4 +154,5 @@ if __name__=="__main__" :
     if True : 
         stuff = drawComponentSolver(ff)
         canvas = stuff[0]
+        canvas.Print('test.eps')
         raw_input()
