@@ -245,7 +245,7 @@ class muonLook(analysis.analysis) :
         from samples import specify
 
         def data() :
-            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-167151_7TeV_PromptReco_Collisions11_JSON.txt") #869/pb            
+            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/cert/Cert_160404-167151_7TeV_PromptReco_Collisions11_JSON.txt") #869/pb            
             out = []
             out += specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt2_2mu_skim",   weights = jw, overrideLumi = 216.43)
             out += specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt_2mu_skim",    weights = jw, overrideLumi = 294.45)

@@ -11,7 +11,7 @@ class jsonMaker(analysis.analysis) :
 
     def listOfSamples(self,params) :
         from samples import specify
-        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/Cert_160404-167913_7TeV_PromptReco_Collisions11_JSON.txt") #1078/pb
+        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/cert/Cert_160404-167913_7TeV_PromptReco_Collisions11_JSON.txt") #1078/pb
 
         out = []
         #out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.Bryn",   weights = jw)
