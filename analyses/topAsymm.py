@@ -119,10 +119,10 @@ class topAsymm(topAsymmShell.topAsymmShell) :
 
     ########################################################################################
     def concludeAll(self) :
-        super(topAsymm,self).concludeAll()
+        #super(topAsymm,self).concludeAll()
         self.meldNorm()
-        self.meldWpartitions()
-        self.meldQCDpartitions()
+        #self.meldWpartitions()
+        #self.meldQCDpartitions()
 
     def conclude(self,pars) :
         org = self.organizer(pars)
@@ -194,7 +194,6 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         meldSamples = {"top_muon_pf" : ["SingleMu","P00","NonQQbar","w_jets"],
                        #"Wlv_muon_pf" : ["w_jets"],
                        "QCD_muon_pf" : ["SingleMu"]}
-        #fdists = [{key:{"observed":(),"components":[]}} for key in ["dphiLnu"]]
 
         organizers = [organizer.organizer(tag, [s for s in self.sampleSpecs(tag) if any(item in s['name'] for item in meldSamples[tag])])
                       for tag in [p['tag'] for p in self.readyConfs if p["tag"] in meldSamples]]
@@ -206,26 +205,24 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                                            "color":r.kBlue if "qcd_" in org.tag else r.kBlack,
                                            "markerStyle":(20 if "top" in org.tag else 1)}, allWithPrefix="SingleMu")
             
-            iData = org.indexOfSampleWithName("Data 2011")
-            #before = next(org.indicesOfStep("label","selection complete"))
-            #distTup = org.steps[next(iter(filter(lambda i: before<i, org.indicesOfStepsWithKey(dist))))][dist]
-            #data = [distTup[iData].GetBinContent(i) for i in range(distTup[iData].GetNbinsX()+2)]
-            #if "top" in org.tag :
-            #    fdists[dist]["observed"] = data
-            #    signal = data
-            #    iTT = org.indexOfSampleWithName("t#bar{t}")
-            #    templates.append([distTup[iTT].GetBinContent(i) for i in range(distTup[iTT].GetNbinsX()+2)])
-            #    print "t#bar{t}"
-            #else :
-            #    templates.append(data)
-            #    print org.tag
-            org.scale(toPdf=True)
-
-        #import fractions
-        #cs = fractions.componentSolver(signal, templates, 1e4)
-        #with open() as file : print >> file, cs
-        #stuff = fractions.drawComponentSolver(cs)
-        #stuff[0].Print("fractions.eps")
+        if True :
+            templates = []
+            dist = "TriDiscriminant"
+            for org in organizers :
+                before = next(org.indicesOfStep("label","selection complete"))
+                distTup = org.steps[next(iter(filter(lambda i: before<i, org.indicesOfStepsWithKey(dist))))][dist]
+                for ss,hist in zip(org.samples,distTup) :            
+                    contents = [hist.GetBinContent(i) for i in range(hist.GetNbinsX()+2)]
+                    if "top" in org.tag and ss["name"] is "Data 2011":  signal = contents
+                    else : templates.append(contents)
+                    print org.tag, ss["name"]
+            import fractions
+            cs = fractions.componentSolver(signal, templates, 1e4)
+            with open("measuredFractions.txt","w") as file : print >> file, cs
+            stuff = fractions.drawComponentSolver(cs)
+            stuff[0].Print("measuredFractions.eps")
+        
+        for org in organizers : org.scale(toPdf=True)
             
         melded = organizer.organizer.meld(organizers = organizers)
         pl = plotter.plotter(melded, psFileName = self.psFileName(melded.tag),
