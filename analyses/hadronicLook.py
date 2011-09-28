@@ -241,6 +241,7 @@ class hadronicLook(analysis.analysis) :
             steps.Jet.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
             steps.Other.deadEcalFilter(jets = _jet, extraName = params["lowPtName"], dR = 0.3, dPhiStarCut = 0.5),
             
+            steps.Jet.cleanJetHtMhtHistogrammer(_jet,_etRatherThanPt),
             steps.Jet.alphaHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt),
             #steps.Jet.alphaMetHistogrammer(cs = _jet, deltaPhiStarExtraName = params["lowPtName"], etRatherThanPt = _etRatherThanPt, metName = _met),
 
@@ -448,6 +449,7 @@ class hadronicLook(analysis.analysis) :
                              #doLog = False,
                              #compactOutput = True,
                              #noSci = True,
+                             #latexYieldTable = True,
                              linYAfter = ("variableGreaterFilter", "xcak5JetAlphaTEtPat>=0.550 "),
                              pegMinimum = 0.1,
                              blackList = ["lumiHisto","xsHisto","nJobsHisto"],
