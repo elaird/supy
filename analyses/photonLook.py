@@ -542,6 +542,7 @@ class photonLook(analysis.analysis) :
                                           "nJetsPlusnPhotonsStatus1Photon", "jetHtPlusPhotonHtStatus1Photon",
                                           ],
                              doLog = False,
+                             #latexYieldTable = True,
                              showErrorsOnDataYields = False,
                              #whiteList = ["xcak5JetIndicesPat",
                              #             #"photonPat1Pt",
