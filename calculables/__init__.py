@@ -1,6 +1,8 @@
-from wrappedChain import *
+import operator
 from inspect import isclass,ismodule,getargspec
-import configuration,operator
+from core.wrappedChain import *
+##############################
+__all__ = ["Compatibility", "Electron", "Gen", "Jet", "Muon", "Other", "Photon", "Top", "Vertex", "XClean"]
 ##############################
 class weight(wrappedChain.calculable) :
     def __init__(self, weights) :
@@ -174,7 +176,4 @@ class secondary(wrappedChain.calculable,analysisStep) :
         cache.Close()
         return sampleHists
                      
-##############################
-for module in configuration.calculablesFiles() :
-    exec("import calculables%s as %s"%(module, module))
 ##############################

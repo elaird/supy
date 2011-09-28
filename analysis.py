@@ -1,5 +1,5 @@
 import os,sys,copy,cPickle,collections,tempfile
-import utils,steps,samples,configuration,calculables,organizer,wrappedChain
+import utils,steps,steps.Master,samples,configuration,calculables,organizer,wrappedChain
 from analysisLooper import analysisLooper
 import ROOT as r
 #####################################

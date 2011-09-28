@@ -2,6 +2,8 @@
 
 import os
 import analysis,utils,calculables,steps,samples,organizer,plotter
+import steps.Print,steps.Trigger,steps.Jet,steps.Other
+from calculables import *
 import ROOT as r
 
 class example(analysis.analysis) :

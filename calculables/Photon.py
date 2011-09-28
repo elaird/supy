@@ -1,5 +1,6 @@
-from wrappedChain import *
-import calculables,utils,configuration
+from core.wrappedChain import *
+from core import utils,configuration
+import calculables
 ##############################
 class IndicesOther(calculables.indicesOther) :
     def __init__(self,collection = None) :

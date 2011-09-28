@@ -1,5 +1,6 @@
-from wrappedChain import *
-import calculables,math,utils
+from core.wrappedChain import *
+from core import utils
+import math,calculables
 
 #####################################
 class ID(wrappedChain.calculable) :

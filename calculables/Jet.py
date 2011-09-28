@@ -1,6 +1,6 @@
-from wrappedChain import *
-import math,collections,bisect,itertools,numpy as np
-import calculables,utils
+from core.wrappedChain import *
+import calculables,math,collections,bisect,itertools,numpy as np
+from core import utils
 
 def xcStrip(collection) :
     return (collection[0].lstrip("xc"),collection[1])

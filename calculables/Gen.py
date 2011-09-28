@@ -1,4 +1,4 @@
-from wrappedChain import wrappedChain
+from core.wrappedChain import wrappedChain
 import ROOT as r
 ##############################
 class genSumP4(wrappedChain.calculable) :

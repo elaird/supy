@@ -1,5 +1,5 @@
-from wrappedChain import *
-import calculables,utils
+from core.wrappedChain import *
+from core import utils
 ##############################
 class deadEcalRegionsFromFile(wrappedChain.calculable) :
     def __init__(self) :

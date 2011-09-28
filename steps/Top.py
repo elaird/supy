@@ -1,8 +1,8 @@
-import copy,array,os,collections,math,stepsMaster
-import ROOT as r
-from analysisStep import analysisStep
-import utils
-from calculablesJet import xcStrip
+import copy,array,os,collections,math,ROOT as r
+import steps.Master
+from core.analysisStep import analysisStep
+from core import utils
+from Jet import xcStrip
 #####################################
 class Asymmetry(analysisStep) :
     def __init__(self, collection) :
@@ -352,7 +352,7 @@ class mcTruthAsymmetryBinned(analysisStep) :
         bin = min(self.book[self.binVar].FindFixBin(binVar),self.bins)
         self.book.fill(Dy, self.binName%bin, 2, -50, 50, title = ";%s %d;events / bin"%(self.asymmVar,bin))
 
-    def outputSuffix(self) : return stepsMaster.Master.outputSuffix()
+    def outputSuffix(self) : return steps.Master.Master.outputSuffix()
 
     def varsToPickle(self) :
         return ["bins","min","max","binName","asymmVar","binVar"]

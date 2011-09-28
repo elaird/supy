@@ -1,7 +1,7 @@
 import os,collections,copy
 import ROOT as r
-from analysisStep import analysisStep
-import utils,configuration
+from core.analysisStep import analysisStep
+from core import utils,configuration
 #####################################
 pdgLookupExists = False
 try:

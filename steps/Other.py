@@ -1,7 +1,8 @@
 import copy,array,os,collections
 import ROOT as r
-from analysisStep import analysisStep
-import stepsMaster,configuration,utils,luminosity
+from core.analysisStep import analysisStep
+import Master
+from core import configuration,utils,luminosity
 #####################################
 class histogrammer(analysisStep) :
 

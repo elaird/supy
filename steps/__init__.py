@@ -1,7 +1,7 @@
-import re,copy,configuration,utils
+import re,copy
+from core import configuration,utils
 #####################################
-for module in configuration.stepsFiles() :
-    exec("import steps%s as %s"%(module,module))
+__all__ = ["Displayer", "Filter", "Gen", "Histos", "Jet", "Master", "Muon", "Other", "Photon", "Print", "Top", "Trigger", "Xclean.py"]
 #####################################
 def adjustSteps(inSteps, dataOrMc = None) :
     outSteps = []

@@ -1,5 +1,6 @@
-import calculables,utils
-from wrappedChain import *
+from core import utils
+from core.wrappedChain import *
+import calculables
 ##############################
 class NumberOfMatches(wrappedChain.calculable) :
     def __init__(self, collection = None) :

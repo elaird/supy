@@ -1,5 +1,6 @@
-from wrappedChain import *
-import calculables,math,utils,fitKinematic,operator,itertools,numpy as np
+from core.wrappedChain import *
+from core import utils,fitKinematic
+import calculables,math,operator,itertools,numpy as np
 ######################################
 class TopP4Calculable(wrappedChain.calculable) :
     def __init__(self, collection = None) :

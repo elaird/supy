@@ -1,6 +1,6 @@
-import ROOT as r
-import math,configuration
-from analysisStep import analysisStep
+import math, ROOT as r
+from core import configuration
+from core.analysisStep import analysisStep
 #####################################
 class photonPtSelector(analysisStep) :
 
