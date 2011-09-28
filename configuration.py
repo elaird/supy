@@ -101,7 +101,7 @@ def siteInfo(site = None, key = None) :
     return ss[site][key]
 
 def batchScripts() :
-    p = sitePrefix()
+    p = "site/"+sitePrefix()
     return ("%sSub.sh"%p, "%sJob.sh"%p, "%sTemplate.condor"%p)
 
 def mvCommand(site = None, src = None, dest = None) :
