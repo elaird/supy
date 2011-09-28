@@ -756,12 +756,12 @@ class ResidualCorrectionsFromFile(wrappedChain.calculable) :
 
     def fileName(self, collection) :
         fileDict = {}
-        fileDict[(     "ak5Jet","Pat")] = "Spring10DataV2_L2L3Residual_AK5Calo.txt"
-        fileDict[(   "xcak5Jet","Pat")] = "Spring10DataV2_L2L3Residual_AK5Calo.txt"
-        fileDict[(  "ak5JetJPT","Pat")] = "Spring10DataV2_L2L3Residual_AK5JPT.txt"
-        fileDict[("xcak5JetJPT","Pat")] = "Spring10DataV2_L2L3Residual_AK5JPT.txt"
-        fileDict[(   "ak5JetPF","Pat")] = "Spring10DataV2_L2L3Residual_AK5PF.txt"
-        fileDict[( "xcak5JetPF","Pat")] = "Spring10DataV2_L2L3Residual_AK5PF.txt"
+        fileDict[(     "ak5Jet","Pat")] = "data/Spring10DataV2_L2L3Residual_AK5Calo.txt"
+        fileDict[(   "xcak5Jet","Pat")] = "data/Spring10DataV2_L2L3Residual_AK5Calo.txt"
+        fileDict[(  "ak5JetJPT","Pat")] = "data/Spring10DataV2_L2L3Residual_AK5JPT.txt"
+        fileDict[("xcak5JetJPT","Pat")] = "data/Spring10DataV2_L2L3Residual_AK5JPT.txt"
+        fileDict[(   "ak5JetPF","Pat")] = "data/Spring10DataV2_L2L3Residual_AK5PF.txt"
+        fileDict[( "xcak5JetPF","Pat")] = "data/Spring10DataV2_L2L3Residual_AK5PF.txt"
 
         fileDict[("ak5JetPFGenJet","Pat")] = None
         fileDict[("ak5JetPF2PAT","Pat")] = None
@@ -796,8 +796,8 @@ class Resolution(wrappedChain.calculable) :
     @staticmethod
     def fileName(collection) :
         names = {}
-        for pre in ["ak5Jet","xcak5Jet"] : names[(pre,"Pat")] = "Spring10_PtResolution_AK5Calo.txt"
-        for pre in ["ak5JetPF","xcak5JetPF"] : names[(pre,"Pat")] = "Spring10_PtResolution_AK5PF.txt"
+        for pre in ["ak5Jet","xcak5Jet"] : names[(pre,"Pat")] = "data/Spring10_PtResolution_AK5Calo.txt"
+        for pre in ["ak5JetPF","xcak5JetPF"] : names[(pre,"Pat")] = "data/Spring10_PtResolution_AK5PF.txt"
         if collection not in names : return None
         return names[collection]
         
