@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import os,copy
-import analysis,steps,calculables,samples,organizer,plotter,utils
+from core import analysis,plotter,utils,organizer
+import steps,calculables,samples
 import ROOT as r
 
 class photonLook(analysis.analysis) :
@@ -312,7 +313,7 @@ class photonLook(analysis.analysis) :
         return outList
 
     def listOfSampleDictionaries(self) :
-        return [samples.mc, samples.jetmet, samples.photon]
+        return [samples.MC.mc, samples.JetMET.jetmet, samples.Photon.photon]
 
     def qcdMgNames2010(self) :
         return [#"v12_qcd_mg_ht_50_100_noIsoReqSkim",
@@ -371,7 +372,7 @@ class photonLook(analysis.analysis) :
         zinv_mg_2010   = specify(names = ["z_inv_mg_v12_skim"], color = r.kMagenta+3)
 
         #2011
-        jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/cert/Cert_160404-167913_7TeV_PromptReco_Collisions11_JSON.txt") #1078/pb
+        jw = calculables.Other.jsonWeight("cert/Cert_160404-167913_7TeV_PromptReco_Collisions11_JSON.txt") #1078/pb
         data = []
 
         data += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Zoe_skim",    weights = jw, overrideLumi = 188.9)

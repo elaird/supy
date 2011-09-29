@@ -1,11 +1,10 @@
 from core.analysis import analysis
-import os,steps,samples,calculables,calculables.Other
+import os,steps,samples,calculables
 
 class jsonMaker(analysis) :
     def listOfSteps(self,params) :
-        from steps import Print,Other
-        return [ Print.progressPrinter(2,300),
-                 Other.jsonMaker(),
+        return [ steps.Print.progressPrinter(2,300),
+                 steps.Other.jsonMaker(),
                  ]
 
     def listOfCalculables(self,params) :
@@ -47,8 +46,7 @@ class jsonMaker(analysis) :
         return out
 
     def listOfSampleDictionaries(self) :
-        from samples import JetMET,Muon,Photon,Electron
-        return [JetMET.jetmet, Muon.muon, Photon.photon, Electron.electron]
+        return [samples.JetMET.jetmet, samples.Muon.muon, samples.Photon.photon, samples.Electron.electron]
 
     def mainTree(self) :
         return ("lumiTree","tree")

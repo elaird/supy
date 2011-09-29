@@ -1,8 +1,7 @@
 import operator
 from inspect import isclass,ismodule,getargspec
 from core.wrappedChain import *
-##############################
-__all__ = ["Compatibility", "Electron", "Gen", "Jet", "Muon", "Other", "Photon", "Top", "Vertex", "XClean"]
+#more modules are imported at the end of this file
 ##############################
 class weight(wrappedChain.calculable) :
     def __init__(self, weights) :
@@ -177,3 +176,4 @@ class secondary(wrappedChain.calculable,analysisStep) :
         return sampleHists
                      
 ##############################
+import Compatibility,Electron,Gen,Jet,Muon,Other,Photon,Top,Vertex,XClean

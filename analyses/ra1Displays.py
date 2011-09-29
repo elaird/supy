@@ -1,9 +1,8 @@
-from core.analysis import analysis
+from core import analysis
 import steps,calculables,samples
 import copy,os,ROOT as r
-from calculables import *
 
-class ra1Displays(analysis) :
+class ra1Displays(analysis.analysis) :
     def useCachedFileLists(self) : return False
     
     def parameters(self) :

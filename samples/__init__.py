@@ -1,6 +1,5 @@
 import collections, copy
-
-__all__ = ["MC", "JetMET", "Muon", "Electron", "Photon", "SignalSkim", "WPol"]
+#more modules are imported at the end of this file
 
 def specify(names = [], overrideLumi = None, xsPostWeights = None, effectiveLumi = None, nFilesMax = None, nEventsMax = None, weights = [], color = 1, markerStyle = 1 , weightedName = None) :
     assert not (overrideLumi and type(names)==list)
@@ -60,3 +59,5 @@ class SampleHolder(dict) :
             sampleSpecs[sampleSpecs.index(spec)] = specify( **modArgs )[0]
             
         return sampleSpecs
+
+import MC,JetMET,Muon,Electron,Photon,SignalSkim,WPol
