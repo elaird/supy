@@ -2,7 +2,7 @@ import copy,array,os,collections,math,ROOT as r
 import steps.Master
 from core.analysisStep import analysisStep
 from core import utils
-from calculables.Jet import xcStrip
+
 #####################################
 class Asymmetry(analysisStep) :
     def __init__(self, collection) :
