@@ -1,7 +1,7 @@
 import re,copy
 from core import configuration,utils
 #####################################
-__all__ = ["Displayer", "Filter", "Gen", "Histos", "Jet", "Master", "Muon", "Other", "Photon", "Print", "Top", "Trigger", "Xclean.py"]
+__all__ = ["Displayer", "Filter", "Gen", "Histos", "Jet", "Master", "Muon", "Other", "Photon", "Print", "Top", "Trigger", "Xclean"]
 #####################################
 def adjustSteps(inSteps, dataOrMc = None) :
     outSteps = []

@@ -1,4 +1,5 @@
-import collections, configuration, calculables, copy
+import collections, calculables, copy
+from core import configuration
 
 def specify(names = [], overrideLumi = None, xsPostWeights = None, effectiveLumi = None, nFilesMax = None, nEventsMax = None, weights = [], color = 1, markerStyle = 1 , weightedName = None) :
     assert not (overrideLumi and type(names)==list)

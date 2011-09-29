@@ -1,5 +1,5 @@
 import samples
-from configuration import srm
+from core.configuration import srm
 mcOld = samples.SampleHolder()
 
 ###############

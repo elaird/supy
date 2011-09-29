@@ -1,5 +1,5 @@
 import samples
-from configuration import srm
+from core.configuration import srm
 muon = samples.SampleHolder()
 
 #L1Fast 2011

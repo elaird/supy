@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import os,sys,inspect,utils,configuration
+import os,sys,inspect
+from core import utils,configuration
 ############################################
 def opts() :
     from optparse import OptionParser
@@ -58,7 +59,7 @@ def moduleName(arg) :
 ############################################
 def importedClass(module) :
     exec("import "+module)
-    import analysis
+    from core import analysis
     count = 0
     theClass = None
     for itemName in dir(eval(module)) :

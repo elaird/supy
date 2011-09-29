@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-import os
-import analysis,utils,calculables,steps,samples,organizer,plotter
-import steps.Print,steps.Trigger,steps.Jet,steps.Other
+from core import analysis,utils,organizer,plotter
+import os,calculables,steps,samples, ROOT as r
+from steps import *
 from calculables import *
-import ROOT as r
 
 class example(analysis.analysis) :
     def parameters(self) :

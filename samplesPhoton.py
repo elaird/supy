@@ -1,5 +1,5 @@
 import samples
-from configuration import srm
+from core.configuration import srm
 photon = samples.SampleHolder()
 
 #L1OffsetL2L3

@@ -1,5 +1,5 @@
 import samples
-from configuration import srm
+from core.configuration import srm
 electron = samples.SampleHolder()
 
 # 2011

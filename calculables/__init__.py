@@ -56,7 +56,7 @@ def fromCollections(module,collections) :
 ##############################
 
 import random,string,os
-from analysisStep import analysisStep
+from core.analysisStep import analysisStep
 
 class secondary(wrappedChain.calculable,analysisStep) :
     

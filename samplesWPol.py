@@ -1,5 +1,5 @@
 import samples
-from configuration import srm
+from core.configuration import srm
 wpol = samples.SampleHolder()
 
 wpol.add("wpol_38", 'utils.fileListFromTextFile(fileName = "/home/hep/elaird1/58_wpol_events/EG_Nov4th_v1.txt")', lumi = 35.38)
