@@ -1,5 +1,5 @@
 from core.analysis import analysis
-import os,steps,calculables,samples,samples.JetMET
+import os,steps,calculables,samples
 
 class benchmark(analysis) :
 
@@ -10,7 +10,6 @@ class benchmark(analysis) :
     def listOfCalculables(self,_) :  return []
     
     def listOfSteps(self,_) :
-        import steps.Other
         touch = [
             #"triggered",
             #"prescaled",
@@ -25,3 +24,4 @@ class benchmark(analysis) :
         return [ steps.Other.touchstuff(touch) ]
 
 
+    

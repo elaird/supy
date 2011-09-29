@@ -46,8 +46,7 @@ class jsonMaker(analysis) :
         return out
 
     def listOfSampleDictionaries(self) :
-        from samples import JetMET,Muon,Photon,Electron
-        return [JetMET.jetmet, Muon.muon, Photon.photon, Electron.electron]
+        return [samples.JetMET.jetmet, samples.Muon.muon, samples.Photon.photon, samples.Electron.electron]
 
     def mainTree(self) :
         return ("lumiTree","tree")
