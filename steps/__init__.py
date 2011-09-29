@@ -1,5 +1,5 @@
 import re,copy
-from core import configuration,utils
+from core import configuration
 #####################################
 __all__ = ["Displayer", "Filter", "Gen", "Histos", "Jet", "Master", "Muon", "Other", "Photon", "Print", "Top", "Trigger", "Xclean"]
 #####################################
@@ -10,7 +10,8 @@ def adjustSteps(inSteps, dataOrMc = None) :
     for step in inSteps :
         disable = False
         if step.name in blackList : disable = True
-        if isinstance(step, Other.histogrammer) :
+        from steps.Other import histogrammer
+        if isinstance(step, histogrammer) :
             for matchString in histoBlackList :
                 vars = [step.var] if type(step.var) is str else step.var
                 for var in vars :
