@@ -21,7 +21,7 @@ class triggers(analysis) :
     
     def listOfSteps(self, pars) :
         return (
-            [stpes.Print.progressPrinter(),
+            [steps.Print.progressPrinter(),
              steps.Histos.value("%sPtSorted%s"%pars['muon'], 2,0,1),
              #steps.Filter.absEta("%sP4%s"%pars['muon'], max = 2.1, indices = "%sIndicesAnyIso%s"%pars['muon'], index = 0),
              steps.Trigger.triggerScan( pattern = r"HLT_Mu\d*_v\d", prescaleRequirement = "prescale==1", tag = "Mu"),

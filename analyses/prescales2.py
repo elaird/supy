@@ -22,7 +22,6 @@ class prescales2(analysis) :
                 }
     
     def listOfCalculables(self,pars) :
-        from calculables import Muon,Other,Vertex
         return (calculables.zeroArgs() +
                 calculables.fromCollections(calculables.Muon,[pars["muon"]]) +
                 [calculables.Muon.Indices( pars["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
