@@ -6,7 +6,7 @@ class deadEcalRegionsFromFile(wrappedChain.calculable) :
         self.trigPrims = r.std.vector(type(utils.LorentzV()))()
         self.nBadXtals = r.std.vector("int")()
         self.maxStatus = r.std.vector("int")()
-        inFile=open("deadRegionList.txt")
+        inFile=open("data/deadRegionList.txt")
         for line in inFile :
             if line[0]=="#" : continue
             fieldList = line.split()
@@ -28,7 +28,7 @@ class deadHcalChannelsFromFile(wrappedChain.calculable) :
     def __init__(self) :
         self.p4s = r.std.vector(type(utils.LorentzV()))()
         self.status = r.std.vector("int")()
-        inFile = open("hcalDeadChannels.txt")
+        inFile = open("data/hcalDeadChannels.txt")
         for line in inFile :
             if line[0]=="#" : continue
             fieldList = line.split()
