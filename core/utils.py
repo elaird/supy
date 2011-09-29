@@ -29,8 +29,10 @@ def delete(thing) :
     thing.IsA().Destructor(thing)
 #####################################
 def generateDictionaries(inList) :
-    for item in inList :
-        r.gInterpreter.GenerateDictionary(*item)
+    wd = os.getcwd()
+    r.gSystem.ChangeDirectory(wd+"/cpp")
+    for item in inList : r.gInterpreter.GenerateDictionary(*item)
+    r.gSystem.ChangeDirectory(wd)
 #####################################
 def compileSources(inList) :
     for sourceFile in inList :
