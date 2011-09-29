@@ -59,13 +59,13 @@ def moduleName(arg) :
 ############################################
 def importedClass(module) :
     exec("import "+module)
-    from core import analysis
+    from core.analysis import analysis
     count = 0
     theClass = None
     for itemName in dir(eval(module)) :
         item=eval(module+"."+itemName)
         if not inspect.isclass(item) : continue        
-        if issubclass(item, analysis.analysis) :
+        if issubclass(item, analysis) and item is not analysis :
             count+=1
             theClass = item
     assert count==1,arg+" needs exactly 1 class which inherits from analysis; it has "+str(count)
