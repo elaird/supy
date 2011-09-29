@@ -12,7 +12,7 @@ def stepsToDisableForData() : return ["genMotherHistogrammer", "photonPurityPlot
 def stepsToDisableForMc() : return ["l1Filter", "hltFilter", "hltFilterList", "lowestUnPrescaledTriggerFilter", "lowestUnPrescaledTriggerHistogrammer", "hbheNoiseFilter", "bxFilter", "physicsDeclaredFilter", "techBitFilter", "hbheNoise"]
 def histogramsToDisableForData() : return ["^gen"]
 def histogramsToDisableForMc() : return []
-def cppFiles() : return ["linkdef.cxx"]
+def cppFiles() : return ["cpp/linkdef.cxx"]
 
 def detectorSpecs() :
     return {

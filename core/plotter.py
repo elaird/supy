@@ -8,7 +8,7 @@ def setupStyle() :
     r.gStyle.SetOptStat(1111111)
 ##############################
 def setupTdrStyle() :
-    r.gROOT.ProcessLine(".L tdrstyle.C")
+    r.gROOT.ProcessLine(".L cpp/tdrstyle.C")
     r.setTDRStyle()
     #tweaks
     r.tdrStyle.SetPadRightMargin(0.06)
