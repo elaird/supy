@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
 from core.analysis import analysis
-from core import utils,organizer,plotter
-import os,calculables,steps,samples, ROOT as r
-from steps import *
-from calculables import *
+from core import plotter
+import calculables,steps,samples, ROOT as r
 
 class example(analysis) :
     def parameters(self) :

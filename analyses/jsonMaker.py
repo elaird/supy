@@ -1,11 +1,10 @@
 from core.analysis import analysis
-import os,steps,samples,calculables,calculables.Other
+import os,steps,samples,calculables
 
 class jsonMaker(analysis) :
     def listOfSteps(self,params) :
-        from steps import Print,Other
-        return [ Print.progressPrinter(2,300),
-                 Other.jsonMaker(),
+        return [ steps.Print.progressPrinter(2,300),
+                 steps.Other.jsonMaker(),
                  ]
 
     def listOfCalculables(self,params) :
