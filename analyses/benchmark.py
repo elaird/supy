@@ -1,16 +1,16 @@
-#!/usr/bin/env python
+from core.analysis import analysis
+import os,steps,calculables,samples,samples.JetMET
 
-import os,analysis,utils,steps,calculables,samples
+class benchmark(analysis) :
 
-class triggerSpeedTest(analysis.analysis) :
-    def outputDirectory(self) :
-        return "./"
+    def listOfSampleDictionaries(self) :  return [samples.JetMET.jetmet]
 
-    def listOfCalculables(self) :
-        return []
+    def listOfSamples(self,_) :  return samples.specify(names = "JetMETTau.Run2010A-Nov4ReReco_v1.RECO.Burt", nFilesMax = 10)
 
+    def listOfCalculables(self,_) :  return []
     
-    def listOfSteps(self) :
+    def listOfSteps(self,_) :
+        import steps.Other
         touch = [
             #"triggered",
             #"prescaled",
@@ -22,10 +22,6 @@ class triggerSpeedTest(analysis.analysis) :
             "muonP4Pat",
             "electronP4Pat",
             ]
-        return [ steps.touchstuff(touch) ]
+        return [ steps.Other.touchstuff(touch) ]
 
-    def listOfSampleDictionaries(self) :
-        return [samples.jetmet]
 
-    def listOfSamples(self) :
-        return [samples.specify(name = "JetMET.Run2010A")]

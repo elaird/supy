@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-from core import analysis,utils,organizer,plotter
+from core.analysis import analysis
+from core import utils,organizer,plotter
 import os,calculables,steps,samples, ROOT as r
 from steps import *
 from calculables import *
 
-class example(analysis.analysis) :
+class example(analysis) :
     def parameters(self) :
         return {"etRatherThanPt" : [False],
                 "jets" : ("ak5JetPF","Pat"),

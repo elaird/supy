@@ -1,10 +1,9 @@
-#!/usr/bin/env python
+from core.analysis import analysis
+import steps,calculables,samples
+import copy,os,ROOT as r
+from calculables import *
 
-import copy,os
-import analysis,steps,calculables,samples,organizer,plotter,utils
-import ROOT as r
-
-class ra1Displays(analysis.analysis) :
+class ra1Displays(analysis) :
     def useCachedFileLists(self) : return False
     
     def parameters(self) :
@@ -92,27 +91,28 @@ class ra1Displays(analysis.analysis) :
         return outList
     
     def listOfSteps(self, params) :
+        from steps import Print,Displayer,Other
         return [
-            steps.Print.progressPrinter(),
-            #steps.Other.variableGreaterFilter(675, "%sSumEt%s"%params["objects"]["jet"], suffix = "GeV"),
-            steps.Displayer.displayer(jets      = params["objects"]["jet"],
-                                      muons     = params["objects"]["muon"],
-                                      met       = params["objects"]["met"],
-                                      electrons = params["objects"]["electron"],
-                                      photons   = params["objects"]["photon"],                            
-                                      recHits   = params["objects"]["rechit"], recHitPtThreshold = 1.0,#GeV
-                                      scale = 400.0,#GeV
-                                      etRatherThanPt = params["etRatherThanPt"],
-                                      deltaPhiStarExtraName = params["lowPtName"],
-                                      deltaPhiStarCut = 0.5,
-                                      deltaPhiStarDR = 0.3,
-                                      j2Factor = params["thresholds"][2]/params["thresholds"][0],
-                                      mhtOverMetName = "%sMht%sOver%s"%(params["objects"]["jet"][0], params["objects"]["jet"][1]+params["highPtName"], params["objects"]["met"]),
-                                      metOtherAlgo  = params["objects"]["compMet"],
-                                      jetsOtherAlgo = params["objects"]["compJet"],
-                                      #doGenJets = True,
-                                      #prettyMode = True,
-                                      ),
+            Print.progressPrinter(),
+            #Other.variableGreaterFilter(675, "%sSumEt%s"%params["objects"]["jet"], suffix = "GeV"),
+            Displayer.displayer(jets      = params["objects"]["jet"],
+                                muons     = params["objects"]["muon"],
+                                met       = params["objects"]["met"],
+                                electrons = params["objects"]["electron"],
+                                photons   = params["objects"]["photon"],                            
+                                recHits   = params["objects"]["rechit"], recHitPtThreshold = 1.0,#GeV
+                                scale = 400.0,#GeV
+                                etRatherThanPt = params["etRatherThanPt"],
+                                deltaPhiStarExtraName = params["lowPtName"],
+                                deltaPhiStarCut = 0.5,
+                                deltaPhiStarDR = 0.3,
+                                j2Factor = params["thresholds"][2]/params["thresholds"][0],
+                                mhtOverMetName = "%sMht%sOver%s"%(params["objects"]["jet"][0], params["objects"]["jet"][1]+params["highPtName"], params["objects"]["met"]),
+                                metOtherAlgo  = params["objects"]["compMet"],
+                                jetsOtherAlgo = params["objects"]["compJet"],
+                                #doGenJets = True,
+                                #prettyMode = True,
+                                ),
             ]
     
     def listOfSampleDictionaries(self) :
