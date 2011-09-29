@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import copy,os
-import analysis,steps,calculables,samples,organizer,plotter,utils
+from core import analysis,plotter,utils
+import steps,calculables,samples
 import ROOT as r
 
 class hadronicLook(analysis.analysis) :
@@ -305,7 +306,7 @@ class hadronicLook(analysis.analysis) :
             [ steps.Other.passFilter("final") ]
     
     def listOfSampleDictionaries(self) :
-        return [samples.mc, samples.jetmet, samples.signalSkim]
+        return [samples.MC.mc, samples.JetMET.jetmet, samples.SignalSkim.signalSkim]
 
     def listOfSamples(self,params) :
         from samples import specify

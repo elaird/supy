@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-from core.analysis import analysis
-from core import plotter
+from core import analysis,plotter
 import calculables,steps,samples, ROOT as r
 
-class example(analysis) :
+class example(analysis.analysis) :
     def parameters(self) :
         return {"etRatherThanPt" : [False],
                 "jets" : ("ak5JetPF","Pat"),

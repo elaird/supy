@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import os,analysis,steps,calculables,samples,organizer,plotter,utils
+from core import analysis,organizer,plotter,utils
+import os,steps,calculables,samples
 import ROOT as r
 
 class muonLook(analysis.analysis) :
@@ -239,7 +240,7 @@ class muonLook(analysis.analysis) :
             ] + [steps.Other.variableGreaterFilter(375.0+100*iBin, "%sSumEt%s"%_jet, suffix = "GeV") for iBin in range(1,6)]
     
     def listOfSampleDictionaries(self) :
-        return [samples.mc, samples.muon]
+        return [samples.MC.mc, samples.Muon.muon]
 
     def listOfSamples(self,params) :
         from samples import specify

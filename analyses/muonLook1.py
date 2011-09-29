@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import os,analysis,steps,calculables,samples,organizer,plotter,utils
+from core import analysis,organizer,plotter,utils
+import os,steps,calculables,samples
 import ROOT as r
 
 class muonLook1(analysis.analysis) :
@@ -217,7 +218,7 @@ class muonLook1(analysis.analysis) :
             [ steps.Other.passFilter("final") ]
     
     def listOfSampleDictionaries(self) :
-        return [samples.mc, samples.muon]
+        return [samples.MC.mc, samples.Muon.muon]
 
     def listOfSamples(self,params) :
         from samples import specify

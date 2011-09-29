@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import os,copy
-import analysis,steps,calculables,samples,organizer,plotter,utils
+from core import analysis,plotter,utils,organizer
+import steps,calculables,samples
 import ROOT as r
 
 class photonLook(analysis.analysis) :
@@ -312,7 +313,7 @@ class photonLook(analysis.analysis) :
         return outList
 
     def listOfSampleDictionaries(self) :
-        return [samples.mc, samples.jetmet, samples.photon]
+        return [samples.MC.mc, samples.JetMET.jetmet, samples.Photon.photon]
 
     def qcdMgNames2010(self) :
         return [#"v12_qcd_mg_ht_50_100_noIsoReqSkim",
