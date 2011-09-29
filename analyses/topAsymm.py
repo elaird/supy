@@ -1,5 +1,8 @@
-import topAsymmShell,steps,calculables,samples,plotter,utils,organizer
+import topAsymmShell,steps,calculables,samples
+from core import plotter,utils,organizer
 import os,math,copy,ROOT as r
+from steps import *
+from calculables import *
 
 class topAsymm(topAsymmShell.topAsymmShell) :
     ########################################################################################
@@ -119,10 +122,10 @@ class topAsymm(topAsymmShell.topAsymmShell) :
 
     ########################################################################################
     def concludeAll(self) :
-        #super(topAsymm,self).concludeAll()
+        super(topAsymm,self).concludeAll()
         self.meldNorm()
-        #self.meldWpartitions()
-        #self.meldQCDpartitions()
+        self.meldWpartitions()
+        self.meldQCDpartitions()
 
     def conclude(self,pars) :
         org = self.organizer(pars)
@@ -216,7 +219,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                     if "top" in org.tag and ss["name"] is "Data 2011":  signal = contents
                     else : templates.append(contents)
                     print org.tag, ss["name"]
-            import fractions
+            from core import fractions
             cs = fractions.componentSolver(signal, templates, 1e4)
             with open("measuredFractions.txt","w") as file : print >> file, cs
             stuff = fractions.drawComponentSolver(cs)

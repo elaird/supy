@@ -8,7 +8,6 @@ def maxArrayLength() : return 256
 def computeEntriesForReport() : return False
 def printNodesUsed() : return False
 def fakeString() : return ";FAKE"
-def samplesFiles() : return ["MC", "JetMET", "Muon", "Electron", "Photon", "SignalSkim", "WPol"]
 def stepsToDisableForData() : return ["genMotherHistogrammer", "photonPurityPlots", "photonEfficiencyPlots"]
 def stepsToDisableForMc() : return ["l1Filter", "hltFilter", "hltFilterList", "lowestUnPrescaledTriggerFilter", "lowestUnPrescaledTriggerHistogrammer", "hbheNoiseFilter", "bxFilter", "physicsDeclaredFilter", "techBitFilter", "hbheNoise"]
 def histogramsToDisableForData() : return ["^gen"]

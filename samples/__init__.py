@@ -1,5 +1,6 @@
 import collections, calculables, copy
-from core import configuration
+
+__all__ = ["MC", "JetMET", "Muon", "Electron", "Photon", "SignalSkim", "WPol"]
 
 def specify(names = [], overrideLumi = None, xsPostWeights = None, effectiveLumi = None, nFilesMax = None, nEventsMax = None, weights = [], color = 1, markerStyle = 1 , weightedName = None) :
     assert not (overrideLumi and type(names)==list)
@@ -58,7 +59,3 @@ class SampleHolder(dict) :
             sampleSpecs[sampleSpecs.index(spec)] = samples.specify( **modArgs )[0]
             
         return sampleSpecs
-
-        
-for module in configuration.samplesFiles() :
-    exec("from samples%s import *"%module)
