@@ -1,32 +1,36 @@
-import os,math,ROOT as r
-import analysis,samples,calculables
+import samples,calculables,steps,os,math,ROOT as r
+from core.analysis import analysis
 
-class exampleReweight(analysis.analysis) :
+class exampleReweight(analysis) :
 
     def listOfSteps(self,pars) :
-        import steps
-        return [ steps.Print.progressPrinter(),
-                 steps.Other.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
-                 steps.Histos.multiplicity("vertexIndices",max=15),
-                 steps.Filter.multiplicity("vertexIndices",min=1),
-                 steps.Filter.pt("muonP4PF", min = 25, indices = "muonIndicesPF", index=0),
-                 steps.Histos.multiplicity("vertexIndices",max=15),
+        import calculables.Other
+        from steps import Print,Other,Histos,Filter
+        return [ Print.progressPrinter(),
+                 Other.histogrammer("genpthat",200,0,1000,title=";#hat{p_{T}} (GeV);events / bin"),
+                 Histos.multiplicity("vertexIndices",max=15),
+                 Filter.multiplicity("vertexIndices",min=1),
+                 Filter.pt("muonP4PF", min = 25, indices = "muonIndicesPF", index=0),
+                 Histos.multiplicity("vertexIndices",max=15),
                  calculables.Other.Ratio("nVertex", binning = (15,-0.5,14.5), thisSample = pars['baseSample'],
                                          target = ("SingleMu",[]), groups = [('qcd_mg',[]),('qcd_py6',[])],
                                          ),
-                 steps.Histos.multiplicity("vertexIndices",max=15),
+                 Histos.multiplicity("vertexIndices",max=15),
                  ]
     
     def listOfCalculables(self,pars) :
+        from calculables import Muon,Vertex
         muon = ("muon","PF")
         return ( calculables.zeroArgs() +
                  calculables.fromCollections(calculables.Muon, [muon]) +
-                 [ calculables.Muon.Indices( muon, ptMin = 10, combinedRelIsoMax = 0.15),
-                   calculables.Vertex.ID(),
-                   calculables.Vertex.Indices(),
+                 [ Muon.Indices( muon, ptMin = 10, combinedRelIsoMax = 0.15),
+                   Vertex.ID(),
+                   Vertex.Indices(),
                    ] )
 
-    def listOfSampleDictionaries(self) : return [samples.mc,samples.muon]
+    def listOfSampleDictionaries(self) :
+        from samples import MC,Muon
+        return [MC.mc,Muon.muon]
 
     def listOfSamples(self,pars) :
         def qcd_mg(eL) :
@@ -45,7 +49,7 @@ class exampleReweight(analysis.analysis) :
                 [])
                 
     def conclude(self,pars) :
-        import plotter
+        from core import plotter
         org = self.organizer(pars)
         org.mergeSamples(targetSpec = {"name":"qcd_mg", "color":r.kBlue}, allWithPrefix="qcd_mg")
         org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kRed}, allWithPrefix="qcd_py6")

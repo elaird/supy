@@ -1,7 +1,7 @@
-import os,analysis,steps,calculables,samples,organizer,plotter,utils
-import ROOT as r
+from core.analysis import analysis
+import os,steps,calculables,samples,ROOT as r
 
-class prescales2(analysis.analysis) :
+class prescales2(analysis) :
     def mutriggers(self) :
         ptv = {   #3:(3,4),
                   #5:(3,4,5,6),
@@ -50,7 +50,7 @@ class prescales2(analysis.analysis) :
             ]+[ steps.Trigger.prescaleScan(trig,ptMin,"%sTriggeringPt%s"%pars['muon']) for trig,ptMin in pars['triggers']]+[
             steps.Filter.value( "%sTriggeringPt%s"%pars['muon'],min = 31)]
 
-    def listOfSampleDictionaries(self) : return [samples.muon]
+    def listOfSampleDictionaries(self) : return [samples.Muon.muon]
 
     def listOfSamples(self,params) :
         return ( samples.specify( names = "SingleMu.Run2011A-PR-v4.FJ.Burt5", color = r.kViolet) +
@@ -69,10 +69,11 @@ class prescales2(analysis.analysis) :
         args = {"blackList":["lumiHisto","xsHisto","nJobsHisto"] + black,
                 "detailedCalculables" : True }
 
-        plotter.plotter(org, psFileName = self.psFileName(org.tag+"unmerged"), **args ).plotAll()
-        plotter.plotter(org, psFileName = self.psFileName(org.tag+"unmerged_nolog"), doLog=False, **args ).plotAll()
+        from core.plotter import plotter
+        plotter(org, psFileName = self.psFileName(org.tag+"unmerged"), **args ).plotAll()
+        plotter(org, psFileName = self.psFileName(org.tag+"unmerged_nolog"), doLog=False, **args ).plotAll()
         org.mergeSamples(targetSpec = {"name":"SingleMu","color":r.kRed}, allWithPrefix="SingleMu")
-        plotter.plotter(org, psFileName = self.psFileName(org.tag), **args ).plotAll()
+        plotter(org, psFileName = self.psFileName(org.tag), **args ).plotAll()
         self.printPrescales(org)
 
                 

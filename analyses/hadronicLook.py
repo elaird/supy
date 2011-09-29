@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import copy,os
-import analysis,steps,calculables,samples,organizer,plotter,utils
+from core import analysis,plotter,utils
+import steps,calculables,samples
 import ROOT as r
 
 class hadronicLook(analysis.analysis) :
@@ -305,7 +306,7 @@ class hadronicLook(analysis.analysis) :
             [ steps.Other.passFilter("final") ]
     
     def listOfSampleDictionaries(self) :
-        return [samples.mc, samples.jetmet, samples.signalSkim]
+        return [samples.MC.mc, samples.JetMET.jetmet, samples.SignalSkim.signalSkim]
 
     def listOfSamples(self,params) :
         from samples import specify
@@ -313,7 +314,7 @@ class hadronicLook(analysis.analysis) :
         def data() :
             out = []
 
-            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/cert/Cert_160404-167913_7TeV_PromptReco_Collisions11_JSON.txt") #1078/pb            
+            jw = calculables.Other.jsonWeight("cert/Cert_160404-167913_7TeV_PromptReco_Collisions11_JSON.txt") #1078/pb            
 
             out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.Bryn",   weights = jw, overrideLumi = 183.0)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn1",   weights = jw, overrideLumi =  70.2)

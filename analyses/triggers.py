@@ -1,9 +1,7 @@
-#!/usr/bin/env python
+from core.analysis import analysis
+import os,steps,calculables,samples,ROOT as r
 
-import os,analysis,steps,calculables,samples,organizer,plotter,utils
-import ROOT as r
-
-class triggers(analysis.analysis) :
+class triggers(analysis) :
     def parameters(self) :
         return { "muon" : self.vary({"pf" : ("muon","PF"), "pat" : ("muon","Pat")}),
                  "electron":("electron","PF") }
@@ -43,7 +41,7 @@ class triggers(analysis.analysis) :
              ])
     
     def listOfSampleDictionaries(self) :
-        return [samples.muon,samples.jetmet,samples.electron]
+        return [samples.Muon.muon,samples.JetMET.jetmet,samples.Electron.electron]
 
     def listOfSamples(self,pars) :
         return ( samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt5", color = r.kOrange) +
@@ -60,16 +58,15 @@ class triggers(analysis.analysis) :
         #org.mergeSamples(targetSpec = {"name":"SingleMu", "color":r.kBlack}, allWithPrefix="SingleMu")
         #org.scale()
         
-        #plot
-        pl = plotter.plotter(org,
-                             psFileName = self.psFileName(org.tag),
-                             #samplesForRatios = ("2010 Data","standard_model"),
-                             #sampleLabelsForRatios = ("data","s.m."),
-                             #whiteList = ["lowestUnPrescaledTrigger"],
-                             #doLog = False,
-                             #compactOutput = True,
-                             #noSci = True,
-                             #pegMinimum = 0.1,
-                             blackList = ["lumiHisto","xsHisto","nJobsHisto"],
-                             )
-        pl.plotAll()
+        from core.plotter import plotter
+        plotter(org,
+                psFileName = self.psFileName(org.tag),
+                #samplesForRatios = ("2010 Data","standard_model"),
+                #sampleLabelsForRatios = ("data","s.m."),
+                #whiteList = ["lowestUnPrescaledTrigger"],
+                #doLog = False,
+                #compactOutput = True,
+                #noSci = True,
+                #pegMinimum = 0.1,
+                blackList = ["lumiHisto","xsHisto","nJobsHisto"],
+                ).plotAll()

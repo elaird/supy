@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import os,analysis,steps,calculables,samples,organizer,plotter,utils
+from core import analysis,organizer,plotter,utils
+import os,steps,calculables,samples
 import ROOT as r
 
 class muonLook1(analysis.analysis) :
@@ -217,13 +218,13 @@ class muonLook1(analysis.analysis) :
             [ steps.Other.passFilter("final") ]
     
     def listOfSampleDictionaries(self) :
-        return [samples.mc, samples.muon]
+        return [samples.MC.mc, samples.Muon.muon]
 
     def listOfSamples(self,params) :
         from samples import specify
 
         def data() :
-            jw = calculables.Other.jsonWeight("/home/hep/elaird1/supy/cert/Cert_160404-163869_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #193/pb
+            jw = calculables.Other.jsonWeight("cert/Cert_160404-163869_7TeV_PromptReco_Collisions11_JSON.txt", acceptFutureRuns = False) #193/pb
             out = []
             out += specify(names = "SingleMu.Run2011A-PR-v2.Alex_1muskim"  , weights = jw, overrideLumi = 12.27)
             out += specify(names = "SingleMu.Run2011A-PR-v2.Robin1_1muskim", weights = jw, overrideLumi = 87.31)

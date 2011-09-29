@@ -1,6 +1,7 @@
-import analysis,samples,calculables,steps
+from core.analysis import analysis
+import samples,calculables,steps
 
-class topAsymmShell(analysis.analysis) :
+class topAsymmShell(analysis) :
 
     def parameters(self) :
         def mutriggers() :
@@ -95,7 +96,7 @@ class topAsymmShell(analysis.analysis) :
         return outList
 
     def listOfSampleDictionaries(self) :
-        return [samples.mc, samples.muon, samples.electron]
+        return [samples.MC.mc, samples.Muon.muon]
     
 
     @staticmethod

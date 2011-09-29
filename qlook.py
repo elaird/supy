@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import subprocess,collections,os
-import configuration,utils
+from core import configuration,utils
 
 def lines(cmd) :
     return utils.getCommandOutput(cmd)["stdout"].split("\n")
