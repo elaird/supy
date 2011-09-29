@@ -1,8 +1,5 @@
 from core.analysis import analysis
 import samples,calculables,steps
-from steps import *
-from samples import *
-from calculables import *
 
 class topAsymmShell(analysis) :
 

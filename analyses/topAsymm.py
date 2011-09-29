@@ -1,8 +1,6 @@
 import topAsymmShell,steps,calculables,samples
 from core import plotter,utils,organizer
 import os,math,copy,ROOT as r
-from steps import *
-from calculables import *
 
 class topAsymm(topAsymmShell.topAsymmShell) :
     ########################################################################################

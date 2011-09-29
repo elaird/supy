@@ -1,5 +1,5 @@
 from core.analysis import analysis
-import os,steps,calculables,samples,samples.Muon,ROOT as r
+import os,steps,calculables,samples,ROOT as r
 
 class prescales2(analysis) :
     def mutriggers(self) :
@@ -22,35 +22,33 @@ class prescales2(analysis) :
                 }
     
     def listOfCalculables(self,pars) :
-        from calculables import Muon,Other,Vertex
         return (calculables.zeroArgs() +
                 calculables.fromCollections(calculables.Muon,[pars["muon"]]) +
-                [Muon.Indices( pars["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
-                 Muon.TriggeringIndex(pars['muon'], ptMin = 10),
-                 Other.lowestUnPrescaledTrigger(zip(*pars["triggers"])[0]),
-                 Vertex.ID(),
-                 Vertex.Indices(),
+                [calculables.Muon.Indices( pars["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
+                 calculables.Muon.TriggeringIndex(pars['muon'], ptMin = 10),
+                 calculables.Other.lowestUnPrescaledTrigger(zip(*pars["triggers"])[0]),
+                 calculables.Vertex.ID(),
+                 calculables.Vertex.Indices(),
                  ])
 
     def listOfSteps(self,pars) :
-        from steps import Print, Filter, Trigger, Histos, Other
         return [
-            Print.progressPrinter(),
-            Filter.multiplicity("vertexIndices",min=1),
-            Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
-            Trigger.physicsDeclaredFilter(),
-            Filter.monster(),
-            Filter.hbheNoise(),
-            Filter.value("%sTriggeringPt%s"%pars["muon"],min=10),
-            Trigger.prescaleLumiEpochs(pars['triggers']),
-            Trigger.anyTrigger(zip(*pars['triggers'])[0]),
-            Histos.value("%sTriggeringPt%s"%pars["muon"],100,0,200),
-            Trigger.hltPrescaleHistogrammer(zip(*pars["triggers"])[0]),
-            Trigger.lowestUnPrescaledTriggerHistogrammer(),
-            Trigger.lowestUnPrescaledTriggerFilter(),
-            Histos.value("%sTriggeringPt%s"%pars["muon"],100,0,200),
-            ]+[ Trigger.prescaleScan(trig,ptMin,"%sTriggeringPt%s"%pars['muon']) for trig,ptMin in pars['triggers']]+[
-            Filter.value( "%sTriggeringPt%s"%pars['muon'],min = 31)]
+            steps.Print.progressPrinter(),
+            steps.Filter.multiplicity("vertexIndices",min=1),
+            steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
+            steps.Trigger.physicsDeclaredFilter(),
+            steps.Filter.monster(),
+            steps.Filter.hbheNoise(),
+            steps.Filter.value("%sTriggeringPt%s"%pars["muon"],min=10),
+            steps.Trigger.prescaleLumiEpochs(pars['triggers']),
+            steps.Trigger.anyTrigger(zip(*pars['triggers'])[0]),
+            steps.Histos.value("%sTriggeringPt%s"%pars["muon"],100,0,200),
+            steps.Trigger.hltPrescaleHistogrammer(zip(*pars["triggers"])[0]),
+            steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
+            steps.Trigger.lowestUnPrescaledTriggerFilter(),
+            steps.Histos.value("%sTriggeringPt%s"%pars["muon"],100,0,200),
+            ]+[ steps.Trigger.prescaleScan(trig,ptMin,"%sTriggeringPt%s"%pars['muon']) for trig,ptMin in pars['triggers']]+[
+            steps.Filter.value( "%sTriggeringPt%s"%pars['muon'],min = 31)]
 
     def listOfSampleDictionaries(self) : return [samples.Muon.muon]
 
