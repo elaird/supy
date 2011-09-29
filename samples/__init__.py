@@ -1,4 +1,4 @@
-import collections, calculables, copy
+import collections, copy
 
 __all__ = ["MC", "JetMET", "Muon", "Electron", "Photon", "SignalSkim", "WPol"]
 
@@ -40,6 +40,7 @@ class SampleHolder(dict) :
         self.inclusiveGroups.append( tuple(sorted(samplesGroup, key = lambda name: self[name].ptHatMin) ) )
 
     def manageInclusive(self, sampleSpecs = [], applyPostWeightXS = False) :
+        import calculables.Other
         inclusiveSpecs = filter(lambda ss: ss.name in self.inclusiveNames, sampleSpecs )
         for spec in inclusiveSpecs :
             group = next( g for g in self.inclusiveGroups if spec.name in g )
@@ -56,6 +57,6 @@ class SampleHolder(dict) :
             del modArgs["name"]
             modArgs["weights"] = copy.deepcopy(modArgs["weights"]) + [calculables.Other.pthatLess( nextPtHat.ptHatMin ) ]
             if applyPostWeightXS : modArgs["xsPostWeights"] = self[spec.name].xs - nextPtHat.xs
-            sampleSpecs[sampleSpecs.index(spec)] = samples.specify( **modArgs )[0]
+            sampleSpecs[sampleSpecs.index(spec)] = specify( **modArgs )[0]
             
         return sampleSpecs
