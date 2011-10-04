@@ -33,7 +33,9 @@ class Master(analysisStep) :
             print line.replace("Target","The output") + " has been written." 
 
         def cleanUp(stderr, files) :
-            assert not stderr, "hadd had this stderr: %s"%stderr
+            okList = ["", "Exception in thread QueueFeederThread (most likely raised during interpreter shutdown):"]
+            assert (stderr in okList), "hadd had this stderr: %s"%stderr
+            if stderr : print stderr
             for fileName in files : os.remove(fileName)
 
         if not all(os.path.exists(fileName) for fileName in products["outputFileName"]) : return

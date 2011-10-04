@@ -1,4 +1,4 @@
-import os,sys,copy,cPickle,collections,tempfile
+import os,sys,copy,cPickle,collections,tempfile,re
 import utils,steps,samples,configuration,calculables,organizer,wrappedChain
 from core.analysisLooper import analysisLooper
 import ROOT as r
@@ -122,6 +122,19 @@ class analysis(object) :
                     "color":sampleSpec.color, "markerStyle":sampleSpec.markerStyle }
         return [ sampleSpecDict(looper) for looper in self.listsOfLoopers[tag] ]
     
+    def adjustedSteps(self, pars = None, stepBlackList = [], histoBlackList = []) :
+        out = self.listOfSteps(pars)
+	for step in out :
+	    disable = False
+	    if step.name in stepBlackList : disable = True
+	    if isinstance(step, steps.Other.histogrammer) :
+	        for matchString in histoBlackList :
+	            vars = [step.var] if type(step.var) is str else step.var
+	            for var in vars :
+	                if re.search(matchString, var) : disable = True
+	    if disable : step.disable()
+	return out
+        
 ############
     def inputFilesListFile(self, sampleName) : return "%s/%s.inputFiles"%(self.globalStem, sampleName)
 
@@ -207,11 +220,15 @@ class analysis(object) :
             nEventsMax,nFilesMax = parseForNumberEvents(spec, tup, len(inputFiles), self.__nSlices)
             inputFiles = inputFiles[:nFilesMax]
 
-            adjustedSteps = [ steps.Master.Master(xs = tup.xs, xsPostWeights = spec.xsPostWeights,
-                                                  lumi = spec.overrideLumi if spec.overrideLumi!=None else tup.lumi,
-                                                  lumiWarn = lumiWarn(tup.lumi, nEventsMax, spec.nFilesMax) )
-                              ] + steps.adjustSteps(self.listOfSteps(pars), "Data" if tup.lumi else "Mc")
+            adjustedSteps = [steps.Master.Master(xs = tup.xs, xsPostWeights = spec.xsPostWeights,
+                                                 lumi = spec.overrideLumi if spec.overrideLumi!=None else tup.lumi,
+                                                 lumiWarn = lumiWarn(tup.lumi, nEventsMax, spec.nFilesMax) )]
 
+            toDisable = "ToDisableFor%s"%("Data" if tup.lumi else "Mc")
+            adjustedSteps += self.adjustedSteps(pars = pars,
+                                                stepBlackList = getattr(configuration, "steps%s"%toDisable)(),
+                                                histoBlackList = getattr(configuration, "histograms%s"%toDisable)())
+            
             return analysisLooper( mainTree = self.mainTree(),   otherTreesToKeepWhenSkimming = self.otherTreesToKeepWhenSkimming(),
                                    nEventsMax = nEventsMax,      leavesToBlackList = self.leavesToBlackList(),
                                    steps = adjustedSteps,        calculables = allCalculables( self.listOfCalculables(pars), spec.weights, adjustedSteps ),

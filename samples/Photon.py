@@ -35,6 +35,9 @@ photon.add("Photon.Run2011A-PromptReco-v4.AOD.Rob3_skim",    'utils.fileListFrom
 photon.add("Photon.Run2011A-PromptReco-v4.AOD.Rob4_skim",    'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v4.AOD.Rob4_*_skim.root", isDirectory = False)'%dir, lumi = 1.000000e+00)
 photon.add("Photon.Run2011A-PromptReco-v4.AOD.Darren1_skim", 'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v4.AOD.Darren1_*_skim.root", isDirectory = False)'%dir, lumi = 1.000000e+00)
 
+dir = "/vols/cms02/elaird1/29_skims/04_photons/v4_80_gev_pt_twiki_loose"
+photon.add("Photon.Run2011A-PromptReco-v4.AOD.Rob4_80gev_skim", 'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v4.AOD.Rob4_*_skim.root", isDirectory = False)'%dir, lumi = 1.000000e+00)
+
 #MC skims (L2L3)
 
 dir = "/vols/cms02/elaird1/29_skims/04_photons/v3"

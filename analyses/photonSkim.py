@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import os,analysis,utils,calculables,steps,samples,organizer
+from core import analysis,utils,organizer
+import calculables,steps,samples
 
 class photonSkim(analysis.analysis) :
     def parameters(self) :
@@ -63,7 +64,7 @@ class photonSkim(analysis.analysis) :
         #       specify(names = "dyll_jets_mg")
 
     def listOfSampleDictionaries(self) :
-        return [samples.jetmet, samples.photon, samples.mc]
+        return [samples.JetMET.jetmet, samples.Photon.photon, samples.MC.mc]
 
     def conclude(self, conf) :
         org = self.organizer(conf)
