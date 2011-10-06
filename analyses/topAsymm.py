@@ -75,6 +75,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                                             dists = {"%sB0pt%s"%obj["jet"] : (30,0,300),
                                                      "%sMt%s"%obj['muon']+"mixedSumP4" : (30,0,180),
                                                      "%sDeltaPhiB01%s"%obj["jet"] : (20,0,math.pi),
+                                                     "fitTopCosHelicityThetaL": (20,-1,1),
                                                      }),
             #steps.Filter.stop(),#####################################
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
@@ -164,7 +165,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                    "QCD_muon_pf" : []}
         organizers = [organizer.organizer(tag, [s for s in self.sampleSpecs(tag) if any(item in s['name'] for item in samples[tag])])
                       for tag in [p['tag'] for p in self.readyConfs]]
-        if not organizers : return
+        if len(organizers)<2 : return
         for org in organizers :
             org.mergeSamples(targetSpec = {"name":"Data 2011", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu")
             org.mergeSamples(targetSpec = {"name":"w_mg", "color":r.kRed if "Wlv" in org.tag else r.kBlue, "markerStyle": 22}, sources = ["w_jets_fj_mg.nvr"])
@@ -183,7 +184,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                    "QCD_muon_pf" : ["qcd_py6fjmu","SingleMu"]}
         organizers = [organizer.organizer(tag, [s for s in self.sampleSpecs(tag) if any(item in s['name'] for item in samples[tag])])
                       for tag in [p['tag'] for p in self.readyConfs]]
-        if not organizers : return
+        if len(organizers)<2 : return
         for org in organizers :
             org.mergeSamples(targetSpec = {"name":"Data 2011", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu")
             org.mergeSamples(targetSpec = {"name":"qcd_py6mu", "color":r.kRed if "QCD" in org.tag else r.kBlue, "markerStyle": 22}, allWithPrefix="qcd_py6fjmu")
@@ -204,7 +205,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
 
         organizers = [organizer.organizer(tag, [s for s in self.sampleSpecs(tag) if any(item in s['name'] for item in meldSamples[tag])])
                       for tag in [p['tag'] for p in self.readyConfs if p["tag"] in meldSamples]]
-        if not organizers : return
+        if len(organizers) < 2 : return
         for org in organizers :
             org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kViolet}, sources=["tt_tauola_fj.wNonQQbar.nvr","tt_tauola_fj.wTopAsymP00.nvr"])
             org.mergeSamples(targetSpec = {"name":"w_jets", "color":r.kRed}, allWithPrefix = "w_jets")
