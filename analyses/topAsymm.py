@@ -79,11 +79,17 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             #steps.Filter.stop(),#####################################
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             steps.Histos.value("TriDiscriminant",50,-1,1),
-            #steps.Top.discriminateNonTop(pars),
-            #steps.Filter.label('dNonQQ'),  steps.Top.discriminateQQbar(('fitTop','')),
             steps.Top.Asymmetry(('fitTop','')),
             steps.Top.Spin(('fitTop','')),
             #steps.Top.kinFitLook("fitTopRecoIndex"),
+            steps.Filter.value("TriDiscriminant",min=-0.68,max=0.8),
+            steps.Histos.value("TriDiscriminant",50,-1,1),
+            steps.Top.Asymmetry(('fitTop','')),
+            steps.Top.Spin(('fitTop','')),
+            steps.Filter.value("TriDiscriminant",min=-.56,max=0.72),
+            steps.Histos.value("TriDiscriminant",50,-1,1),
+            steps.Top.Asymmetry(('fitTop','')),
+            steps.Top.Spin(('fitTop','')),
             ])
     ########################################################################################
 
@@ -217,6 +223,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                     if "top" in org.tag and ss["name"] is "Data 2011":  signal = contents
                     else : templates.append(contents)
                     print org.tag, ss["name"]
+            with open('templates.txt','w') as file : print >>file, templates
             from core import fractions
             cs = fractions.componentSolver(signal, templates, 1e4)
             with open("measuredFractions.txt","w") as file : print >> file, cs
