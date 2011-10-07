@@ -476,3 +476,11 @@ def topologicalSort(paths) :
     assert not edges, "graph described by paths contains a cycle: no partial ordering possible.\n edges: %s"%str(edges)
     return ordered
 #####################################
+def justNameTitle(tkey) :
+    name,title = tkey.GetName(),tkey.GetTitle()
+    name = name.replace('-SLASH-','/')
+    L = len(title)
+    return ( (name,"") if name == title else
+             (name[:-L],title) if name[-L:] == title else
+             (name,title) )
+#####################################

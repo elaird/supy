@@ -193,7 +193,7 @@ class organizer(object) :
             for key,val in list(step.iteritems()):
                 step[key] = val[:index] + val[index+1:]
                 if not any(step[key]) :
-                    print "%s is gone."%key
+                    if self.verbose : print "%s is gone."%key
                     del step[key]
 
     def dropSteps(self, indices = [], allButIndices = []) :
@@ -223,17 +223,11 @@ class organizer(object) :
                         "leaf" if dirName=="Leaves" else 
                         "fake" if title.count(configuration.fakeString()) else 
                         "calc" )
-            def justNameTitle(name,title) :
-                L = len(title)
-                return ( (name,"") if name == title else
-                         (name[:-L],title) if name[-L:] == title else
-                         (name,title) )
             def parseCalc(cd) :
                 if dirName=="Master" and not cd.Get("Calculables") : return None
-                deps = frozenset([ justNameTitle(tkey.GetName(),tkey.GetTitle())[0]
-                                   for tkey in (cd.GetListOfKeys() if dirName!="Master" else
-                                                cd.Get("Calculables").GetListOfKeys() if cd.Get("Calculables") else [])])
-                name,title = justNameTitle(cd.GetName(),cd.GetTitle())
+                tkeys = (cd.Get("Calculables") if dirName=="Master" else cd).GetListOfKeys()
+                deps = frozenset([ utils.justNameTitle(t) for t in tkeys])
+                name,title = utils.justNameTitle(cd)
                 return tuple([name, title, category(title), deps])
 
             def keyNames(path,descend=False) :
@@ -263,12 +257,13 @@ class organizer(object) :
     def calculablesGraphs(self) :
         def graph(scalcs) :
             calcs = filter(lambda c: c[2]!="absent", scalcs)
+            calcByNameT = dict([(c[:2],c) for c in calcs])
             calcByName = dict([(c[0],c) for c in calcs])
             nodes = {}
             def addNode(calc) :
                 if calc in nodes : return
                 nodes[calc] = utils.vessel()
-                nodes[calc].deps = set([calcByName[depName] for depName in scalcs[calc]])
+                nodes[calc].deps = set([calcByNameT[depNameT] if depNameT in calcByNameT else calcByName[depNameT[0]] for depNameT in scalcs[calc]])
                 nodes[calc].feeds = set()
                 nodes[calc].depLevel = 0
                 for dep in nodes[calc].deps :

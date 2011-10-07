@@ -54,8 +54,9 @@ def fromCollections(module,collections) :
     return calcs
 ##############################
 
-import random,string,os
+import random,string,os,operator
 from core.analysisStep import analysisStep
+from core.utils import justNameTitle
 
 class secondary(wrappedChain.calculable,analysisStep) :
     
@@ -77,9 +78,8 @@ class secondary(wrappedChain.calculable,analysisStep) :
 
     @staticmethod
     def allDeps(node,graph, depsSoFar = set()) :
-        if node is None : return []
-        depsSoFar|=graph[node].deps
-        return reduce(lambda s,t: s|t, [secondary.allDeps(n,graph,depsSoFar) for n in graph[node].deps if n not in depsSoFar], graph[node].deps)
+        nodesToDo = graph[node].deps - depsSoFar
+        return set(reduce(operator.__or__, [secondary.allDeps(n,graph,depsSoFar|graph[node].deps) for n in nodesToDo], graph[node].deps))
     @staticmethod
     def equalAxes(p,q) :
         return all( getattr(getattr(p,ax)(),item)() == getattr(getattr(q,ax)(),item)()
@@ -106,12 +106,15 @@ class secondary(wrappedChain.calculable,analysisStep) :
 
         if "Calculables" not in keys : return "Missing deps"
         r.gDirectory.cd("Calculables")
-        cachedDeps = [(key.GetName(),key.GetTitle() if key.GetTitle()!=key.GetName() else '') for key in r.gDirectory.GetListOfKeys()]
+        cachedDeps = [justNameTitle(key) for key in r.gDirectory.GetListOfKeys()]
         deps = set((n,t) for n,t,_ in self.allDeps( next((key for key in org.calculablesGraphs[iSample] if key[0]==self.name),None),  org.calculablesGraphs[iSample] ))
 
         new = deps - deps.intersection(cachedDeps)
         old = deps.union(cachedDeps) - deps
-        if new or old : return "{%s} <- dependencies <+ {%s}"%(','.join(str(o) for o in old),','.join(str(n) for n in new))
+        if new or old :
+            return ("dependencies changed :\n" +
+                    '\n'.join(["                     +-> %s\t%s"%(c[0][:20].ljust(20),c[1][:40].ljust(40)) for c in new]+
+                              ["                     <-- %s\t%s"%(c[0][:20].ljust(20),c[1][:40].ljust(40)) for c in old])+  '\t')
 
         more = filter(lambda k: hists[k].GetEntries()>cachedHists[k].GetEntries(), hists.keys())
         less = filter(lambda k: hists[k].GetEntries()<cachedHists[k].GetEntries(), hists.keys())
@@ -148,7 +151,7 @@ class secondary(wrappedChain.calculable,analysisStep) :
             if "Calculables" in [k.GetName() for k in r.gDirectory.GetListOfKeys()] : r.gDirectory.rmdir("Calculables")
             r.gDirectory.mkdir("Calculables").cd()
             deps = self.allDeps(next((key for key in org.calculablesGraphs[iSample] if key[0]==self.name), None), org.calculablesGraphs[iSample])
-            for name,title,_ in deps : r.gDirectory.mkdir(name,title)
+            for name,title,_ in deps : r.gDirectory.mkdir(name+title.replace('/','-SLASH-'),title)
             cache.cd()
             print "\t%s"%sample['name']
         cache.Close()
