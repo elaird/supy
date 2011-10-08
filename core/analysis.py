@@ -36,6 +36,7 @@ class analysis(object) :
         self.__tags    = options.tags.split(',') if type(options.tags)==str else options.tags
         self.__samples = options.samples.split(',') if type(options.samples)==str else options.samples
         self.__omit    = options.omit.split(',')
+        self.__nocheck = options.nocheck
 
         self.localStem  = "%s/%s"%(configuration.siteInfo(site = self.__site, key = "localOutputDir" ), self.name)
         self.globalStem = "%s/%s"%(configuration.siteInfo(site = self.__site, key = "globalOutputDir"), self.name)
@@ -251,6 +252,7 @@ class analysis(object) :
 
 ############
     def manageSecondaries(self,update) :
+        if self.__nocheck : return
         for conf in self.readyConfs :
             loopers = self.listsOfLoopers[conf['tag']]
             for secondary in filter(self.isSecondary, loopers[0].steps) :
