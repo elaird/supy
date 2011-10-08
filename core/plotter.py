@@ -13,6 +13,7 @@ def setupTdrStyle() :
     #tweaks
     r.tdrStyle.SetPadRightMargin(0.06)
     r.tdrStyle.SetErrorX(r.TStyle().GetErrorX())
+    r.gStyle.SetPalette(1)
 ##############################
 def combineBinContentAndError(histo, binToContainCombo, binToBeKilled) :
     xflows     = histo.GetBinContent(binToBeKilled)
@@ -64,7 +65,7 @@ def makeAlphaTFunc(alphaTValue) :
     alphaTFunc.SetNpx(300)
     return alphaTFunc
 ##############################
-def adjustPad(pad, anMode) :
+def adjustPad(pad, anMode = False) :
     if not anMode :
         r.gPad.SetRightMargin(0.15)
         r.gPad.SetTicky()
@@ -224,9 +225,10 @@ class plotter(object) :
         f.close()
         print "The output file \""+texFile+"\" has been written."
         
-    def printOnePage(self, name, tight = False) :
+    def printOnePage(self, name = "", tight = False, padNumber = None) :
         fileName = "%s_%s.eps"%(self.psFileName.replace(".ps",""),name)
-        self.canvas.Print(fileName)
+        pad = self.canvas if padNumber is None else self.canvas.cd(padNumber)
+        pad.Print(fileName)
 
         if not tight : #make pdf
             os.system("epstopdf "+fileName)
@@ -239,12 +241,15 @@ class plotter(object) :
 
         print "The output file \"%s\" has been written."%fileName.replace(".eps",".pdf")
 
-    def individualPlots(self, plotSpecs, newSampleNames = {}, preliminary = True) :
+    def individualPlots(self, plotSpecs, newSampleNames = {}, preliminary = True, tdrStyle = True) :
         def goods(spec) :
             for item in ["stepName", "stepDesc", "plotName"] :
                 if item not in spec : return
 
             histoList = []
+            nMasters = [step.name for step in self.someOrganizer.steps].count("Master")
+            if nMasters!=1 : print "I have %d Master step(s)."%nMasters
+            
             for step in self.someOrganizer.steps :
                 if (step.name, step.title) != (spec["stepName"], spec["stepDesc"]) : continue
                 if spec["plotName"] not in step : continue
@@ -283,7 +288,7 @@ class plotter(object) :
                 histo.UseCurrentStyle()
 
         print utils.hyphens
-        setupTdrStyle()
+        if tdrStyle : setupTdrStyle()
 
         for spec in plotSpecs :
             histos,ignoreHistos = goods(spec)
@@ -296,9 +301,20 @@ class plotter(object) :
 
             legendCoords = spec["legendCoords"] if "legendCoords" in spec else (0.55, 0.55, 0.85, 0.85)
             stampCoords = spec["stampCoords"] if "stampCoords" in spec else (0.75, 0.5)
-            stuff = self.onePlotFunction(histos, ignoreHistos, newSampleNames, legendCoords, individual = True)
-            utils.cmsStamp(lumi = self.someOrganizer.lumi, preliminary = preliminary, coords = stampCoords)
-            self.printOnePage(spec["plotName"], tight = False)#self.anMode)
+            stuff,pads = self.onePlotFunction(histos, ignoreHistos, newSampleNames, legendCoords, individual = True)
+            if ("stamp" not in spec) or spec["stamp"] :
+                utils.cmsStamp(lumi = self.someOrganizer.lumi, preliminary = preliminary, coords = stampCoords)
+
+            args = {"name":spec["plotName"],
+                    "tight":False,#self.anMode
+                    }
+            if "sampleName" in spec :
+                sampleName = spec["sampleName"]
+                assert sampleName in pads,str(pads)
+                args["name"] += "_%s"%sampleName.replace(" ","_")
+                args["padNumber"] = pads[sampleName]
+                setTitles(histos, spec) #to allow for overwriting global title
+            self.printOnePage(**args)
         print utils.hyphens
 
     def printCalculablesDetailed(self, blocks) :
@@ -545,6 +561,7 @@ class plotter(object) :
             legend.SetBorderSize(0)
 
         count = 0
+        pads = {}
         for sample,histo,ignore in zip(self.someOrganizer.samples, histos, ignoreHistos) :
             if ignore or (not histo) or (not histo.GetEntries()) : continue
 
@@ -561,14 +578,15 @@ class plotter(object) :
 
             legend.AddEntry(histo, newSampleNames[sampleName] if (newSampleNames!=None and sampleName in newSampleNames) else sampleName, "lp")
             if dimension==1   : self.plot1D(histo, count, sample["goptions"] if ("goptions" in sample) else "", stuffToKeep)
-            elif dimension==2 : self.plot2D(histo, count, sampleName, stuffToKeep)
+            elif dimension==2 :
+                self.plot2D(histo, count, sampleName, stuffToKeep)
+                pads[sampleName] = 1+count
             else :
                 print "Skipping histo",histo.GetName(),"with dimension",dimension
                 continue
             count+=1
         if dimension==1 : legend.Draw()
-        return count,stuffToKeep
-
+        return count,stuffToKeep,pads
 
     def plotRatio(self,histos,dimension) :
         numLabel,denomLabel = self.sampleLabelsForRatios
@@ -621,9 +639,9 @@ class plotter(object) :
         self.setRanges(histos, *self.getExtremes(dimension, histos, ignoreHistos))
 
         if individual : 
-            count,stuffToKeep = self.plotEachHisto(dimension, histos, ignoreHistos, legendCoords = legendCoords, newSampleNames = newSampleNames)
+            count,stuffToKeep,pads = self.plotEachHisto(dimension, histos, ignoreHistos, legendCoords = legendCoords, newSampleNames = newSampleNames)
         else :
-            count,stuffToKeep = self.plotEachHisto(dimension, histos, ignoreHistos)
+            count,stuffToKeep,pads = self.plotEachHisto(dimension, histos, ignoreHistos)
             
         if self.plotRatios and dimension==1 :
             ratios = self.plotRatio(histos,dimension)
@@ -631,7 +649,7 @@ class plotter(object) :
         if count>0 and not individual :
             self.printCanvas()
         if individual :
-            return stuffToKeep
+            return stuffToKeep,pads
 
     def plot1D(self, histo, count, goptions, stuffToKeep) :
         adjustPad(r.gPad, self.anMode)
@@ -692,14 +710,14 @@ class plotter(object) :
     	yx.SetNpx(300)
     	
     	self.canvas.cd(count+1)
+        adjustPad(r.gPad)
+        
     	histo.GetYaxis().SetTitleOffset(1.2)
     	oldTitle=histo.GetTitle()
     	newTitle=sampleName if oldTitle=="" else sampleName+"_"+oldTitle
     	histo.SetTitle(newTitle)
     	histo.SetStats(False)
     	histo.GetZaxis().SetTitleOffset(1.3)
-    	r.gPad.SetRightMargin(0.15)
-    	r.gPad.SetTicky()
         if self.doLog : r.gPad.SetLogz()
 
         if self.doColzFor2D : histo.Draw("colz")
