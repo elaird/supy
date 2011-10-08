@@ -94,13 +94,15 @@ class plotter(object) :
                  latexYieldTable = False,
                  detailedCalculables = False,
                  shiftUnderOverFlows = True,
+                 rowColors = [r.kBlack],
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
                  blackList = [],
                  whiteList = []
                  ) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
-                     "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox","detailedCalculables"] :
+                     "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
+                     "detailedCalculables", "rowColors"] :
             setattr(self,item,eval(item))
 
         if "counts" not in self.whiteList : self.blackList.append("counts")
@@ -475,6 +477,7 @@ class plotter(object) :
         nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in steps]))
         for i,step in enumerate(steps[-self.nLinesMax:]) :
             absI = i + (0 if len(steps) <= self.nLinesMax else len(steps)-self.nLinesMax)
+            text.SetTextColor(self.rowColors[absI%len(self.rowColors)])
             letter = string.ascii_letters[absI]
             x = 0.01
             y = 0.98 - 0.33*(i+0.5+absI/5)/self.nLinesMax
@@ -491,6 +494,7 @@ class plotter(object) :
             self.yieldDict[letter] = nums
 
         self.sampleList = [s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]
+        text.SetTextColor(r.kBlack)
         text.DrawTextNDC(x, 0.5, "   "+"".join(self.sampleList))
         text.SetTextAlign(13)
         text.DrawTextNDC(0.05, 0.03, "events / %.3f pb^{-1}"% self.someOrganizer.lumi )
