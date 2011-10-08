@@ -544,6 +544,7 @@ class photonLook(analysis.analysis) :
                                           ],
                              doLog = False,
                              #latexYieldTable = True,
+                             rowColors = [r.kBlack, r.kViolet+4],
                              showErrorsOnDataYields = False,
                              #whiteList = ["xcak5JetIndicesPat",
                              #             #"photonPat1Pt",
