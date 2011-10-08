@@ -563,50 +563,80 @@ class photonLook(analysis.analysis) :
                              doLog = False,
                              anMode = True,
                              )
-        pl.individualPlots(plotSpecs = [{"plotName":"xcak5JetAlphaTFewBinsPat",
-                                         "stepName" :"alphaHistogrammer",
-                                         "stepDesc" :"xcak5JetPat",
-                                         "newTitle":";#alpha_{T};events / bin"},
+        plots1 = [{"plotName":"xcak5JetAlphaTFewBinsPat",
+                   "stepName" :"alphaHistogrammer",
+                   "stepDesc" :"xcak5JetPat",
+                   "newTitle":";#alpha_{T};events / bin"},
+                  
+                  {"plotName":"xcak5JetIndicesPat",
+                   "stepName" :"histogrammer",
+                   "stepDesc" :"(lambda x:len(x))(xcak5JetIndicesPat)",
+                   "newTitle":";N_{jets};events / bin"},
+                  
+                  {"plotName":"photonPat1Pt",
+                   "stepName":"singlePhotonHistogrammer",
+                   "stepDesc":"photonPat through index 0",
+                   "newTitle":";photon p_{T} (GeV);events / bin",
+                   "legendCoords": (0.2, 0.60, 0.5, 0.90),
+                   "stamp": False,
+                   "index":-1,
+                   "reBinFactor":5},
+                  ]
 
-                                        #{"plotName":"xcak5JetAlphaTRoughPat",
-                                        # "stepName" :"variablePtGreaterFilter",
-                                        # "stepDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
-                                        # "newTitle":";#alpha_{T};events / bin / 35 pb^{-1}"},
+        plots2 = [{"plotName":"photonPat1mhtVsPhotonPt",
+                   "stepName":"singlePhotonHistogrammer",
+                   "stepDesc":"photonPat through index 0",
+                   "newTitle":";photon p_{T} (GeV);MHT (GeV);events / bin",
+                   "stamp": False,
+                   "sampleName":"2011 Data",
+                   #"index":-1,
+                   },
+                  ]
 
-                                        {"plotName":"xcak5JetIndicesPat",
-                                         "stepName" :"histogrammer",
-                                         "stepDesc" :"(lambda x:len(x))(xcak5JetIndicesPat)",
-                                         "newTitle":";N_{jets};events / bin"},
-                                        
-                                        #{"plotName":"photonPat1MinDRToJet",
-                                        # "stepName" :"passFilter",
-                                        # "stepDesc" :"singlePhotonPlots2",
-                                        # "newTitle":";#DeltaR(photon, nearest jet);events / bin / 35 pb^{-1}",
-                                        # "reBinFactor":3},
-                                        #
-                                        #{"plotName":"photonPat1SeedTime",
-                                        # "stepName" :"passFilter",
-                                        # "stepDesc" :"singlePhotonPlots2",
-                                        # "newTitle":";time of photon seed crystal hit (ns);events / bin / 35 pb^{-1}",
-                                        # "sampleWhiteList": ["2010 Data"]},
-                                        #
-                                        #{"plotName":"photonPat1sigmaIetaIetaBarrel",
-                                        # "stepName" :"passFilter",
-                                        # "stepDesc" :"singlePhotonPlots2",
-                                        # "newTitle":";#sigma_{i#eta i#eta};events / bin / 35 pb^{-1}"},
-                                        
-                                        #{"plotName":"photonPat1combinedIsolation",
-                                        # "stepName" :"passFilter",
-                                        # "stepDesc" :"singlePhotonPlots2",
-                                        # "onlyDumpToFile":True},
+        plots3 = [{"plotName":"xcak5JetAlphaTRoughPat",
+                   "stepName" :"variablePtGreaterFilter",
+                   "stepDesc" :"xcak5JetSumP4Pat.pt()>=140.0 GeV",
+                   "newTitle":";#alpha_{T};events / bin / 35 pb^{-1}"},
 
-                                        ],
-                           newSampleNames = {"qcd_mg_nVtx": "Madgraph QCD",
-                                             "g_jets_mg_nVtx": "Madgraph #gamma + jets",
-                                             "2011 Data": "Data",
-                                             "standard_model_nVtx": "Standard Model",
-                                             },
+                  {"plotName":"photonPat1MinDRToJet",
+                   "stepName" :"passFilter",
+                   "stepDesc" :"singlePhotonPlots2",
+                   "newTitle":";#DeltaR(photon, nearest jet);events / bin / 35 pb^{-1}",
+                   "reBinFactor":3},
+                  
+                  {"plotName":"photonPat1SeedTime",
+                   "stepName" :"passFilter",
+                   "stepDesc" :"singlePhotonPlots2",
+                   "newTitle":";time of photon seed crystal hit (ns);events / bin / 35 pb^{-1}",
+                   "sampleWhiteList": ["2010 Data"]},
+                  
+                  {"plotName":"photonPat1sigmaIetaIetaBarrel",
+                   "stepName" :"passFilter",
+                   "stepDesc" :"singlePhotonPlots2",
+                   "newTitle":";#sigma_{i#eta i#eta};events / bin / 35 pb^{-1}"},
+                  
+                  {"plotName":"photonPat1combinedIsolation",
+                   "stepName" :"passFilter",
+                   "stepDesc" :"singlePhotonPlots2",
+                   "onlyDumpToFile":True},
+                  ]
+
+        newSampleNames = {"qcd_mg_nVtx": "Madgraph QCD",
+                          "g_jets_mg_nVtx": "Madgraph #gamma + jets",
+                          "2011 Data": "Data",
+                          "standard_model_nVtx": "Standard Model",
+                          }
+
+        pl.individualPlots(plotSpecs = plots2,
+                           newSampleNames = newSampleNames,
                            preliminary = True,
+                           tdrStyle = False,
+                           )
+
+        pl.individualPlots(plotSpecs = plots1,
+                           newSampleNames = newSampleNames,
+                           preliminary = True,
+                           tdrStyle = True,
                            )
 
     def makeNVertexWeights(self, org, tag, chopToOne = False) :
