@@ -127,6 +127,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
 
     ########################################################################################
     def concludeAll(self) :
+        self.rowcolors = [r.kBlack, r.kGray+3, r.kGray+2, r.kGray+1, r.kViolet+4]
         super(topAsymm,self).concludeAll()
         self.meldNorm()
         self.meldWpartitions()
@@ -150,14 +151,14 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                   "blackList":["lumiHisto","xsHisto","nJobsHisto"],
                   "samplesForRatios" : next(iter(filter(lambda x: x[0] in names and x[1] in names, [("Data 2011","standard_model")])), ("","")),
                   "sampleLabelsForRatios" : ("data","s.m."),
+                  "detailedCalculables" : True,
+                  "rowColors" : self.rowcolors,
                   }
         
         plotter.plotter(org, psFileName = self.psFileName(org.tag+"_log"),  doLog = True, pegMinimum = 0.01, **kwargs ).plotAll()
         plotter.plotter(org, psFileName = self.psFileName(org.tag+"_nolog"), doLog = False, **kwargs ).plotAll()
         kwargs["samplesForRatios"] = ("","")
         plotter.plotter(orgpdf, psFileName = self.psFileName(org.tag+"_pdf"), doLog = False, **kwargs ).plotAll()
-
-        #self.optimizeCut(org,signal = "t#bar{t}", background = "standard_model", var = "TopRatherThanWProbability")
 
     def meldWpartitions(self) :
         samples = {"top_muon_pf" : ["w_"],
@@ -176,6 +177,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                              psFileName = self.psFileName(melded.tag),
                              doLog = False,
                              blackList = ["lumiHisto","xsHisto","nJobsHisto"],
+                             rowColors = self.rowcolors,
                              ).plotAll()
 
     def meldQCDpartitions(self) :
@@ -195,8 +197,8 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                              psFileName = self.psFileName(melded.tag),
                              doLog = False,
                              blackList = ["lumiHisto","xsHisto","nJobsHisto"],
+                             rowColors = self.rowcolors,
                              ).plotAll()
-
 
     def meldNorm(self) :
         meldSamples = {"top_muon_pf" : ["SingleMu","P00","NonQQbar","w_jets"],
@@ -214,49 +216,37 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                                            "markerStyle":(20 if "top" in org.tag else 1)}, allWithPrefix="SingleMu")
             
         if True :
-            templates = []
+            templates = [None]
             dist = "TriDiscriminant"
             for org in organizers :
                 before = next(org.indicesOfStep("label","selection complete"))
                 distTup = org.steps[next(iter(filter(lambda i: before<i, org.indicesOfStepsWithKey(dist))))][dist]
                 for ss,hist in zip(org.samples,distTup) :            
                     contents = [hist.GetBinContent(i) for i in range(hist.GetNbinsX()+2)]
-                    if "top" in org.tag and ss["name"] is "Data 2011":  signal = contents
+                    if "top" in org.tag and ss["name"] is "Data 2011":  observed = contents
+                    elif ss["name"] is "t#bar{t}" : templates[0] = contents
                     else : templates.append(contents)
-                    print org.tag, ss["name"]
-            with open('templates.txt','w') as file : print >>file, templates
             from core import fractions
-            cs = fractions.componentSolver(signal, templates, 1e4)
-            with open("measuredFractions.txt","w") as file : print >> file, cs
+            outDir = self.globalStem
+            cs = fractions.componentSolver(observed, templates, 1e4)
+            with open(outDir+"/measuredFractions.txt","w") as file : print >> file, cs
+            with open(outDir+'/templates.txt','w') as file : print >> file, cs.components
             stuff = fractions.drawComponentSolver(cs)
-            stuff[0].Print("measuredFractions.eps")
+            stuff[0].Print(outDir+"/measuredFractions.eps")
+            os.system("epstopdf %s/measuredFractions.eps"%outDir)
+            os.system("rm %s/measuredFractions.eps"%outDir)
+            contours = utils.optimizationContours(cs.components[0], sum(cs.components[1:]), left=True, right=True)
+            contours[0].Print(outDir+"/contours.eps")
+            os.system("epstopdf %s/contours.eps"%outDir)
+            os.system("rm %s/contours.eps"%outDir)
         
         for org in organizers : org.scale(toPdf=True)
             
         melded = organizer.organizer.meld(organizers = organizers)
         pl = plotter.plotter(melded, psFileName = self.psFileName(melded.tag),
-                             doLog = False, blackList = ["lumiHisto","xsHisto","nJobsHisto"] ).plotAll()
+                             doLog = False,
+                             blackList = ["lumiHisto","xsHisto","nJobsHisto"],
+                             rowColors = self.rowcolors,
+                             ).plotAll()
 
-
-
-    def optimizeCut(org, signal = "", background = "", var = "", FOM = lambda s,b: s/math.sqrt(s+b) ) :
-        
-        iSignal = org.indexOfSampleWithName(signal)
-        iBack = org.indexOfSampleWithName(background)
-        iStep = next( org.indicesOfStepsWithKey(var) )
-
-        sHist = org.steps[iStep][var][iSignal]
-        bHist = org.steps[iStep][var][iBack]
-        bins = sHist.GetNbins()+2
-        S = [sHist.GetBinContent(i) for i in range(bins)]
-        B = [bHist.GetBinContent(i) for i in range(bins)]
-        
-
-        mDist = bHist.Clone("%s_fom"%var)
-        mDist.Reset()
-        iSeed = max((FOM(s,b),i) for i,s,b in zip(range(bins),S,B))[1]
-
-        iL = iR = iSeed
-        
-            
         
