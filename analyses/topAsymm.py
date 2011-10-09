@@ -117,7 +117,12 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         def ttbar_py(eL = None) :
             return (specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kBlue, weights = ["wNonQQbar","nvr"]) +
                     sum( [specify(names = "tt_tauola_fj", effectiveLumi = eL, color = color, weights = [ calculables.Top.wTopAsym(asym), "nvr" ] )
-                          for asym,color in [(0.0,r.kOrange), (-0.3,r.kGreen),(0.3,r.kRed)]], [])
+                          for asym,color in [(0.0,r.kOrange), (-0.3,r.kGreen),(0.3,r.kRed),
+                                             (-0.5,r.kYellow),(0.5,r.kYellow),
+                                             (-0.4,r.kYellow),(0.4,r.kYellow),
+                                             (-0.2,r.kYellow),(0.2,r.kYellow),
+                                             (-0.1,r.kYellow),(0.1,r.kYellow),
+                                             ]], [])
                     )[: 0 if "QCD" in pars['tag'] else 2 if 'Wlv' in pars['tag'] else None]
         def ewk(eL = None) :
             return specify( names = "w_jets_fj_mg", effectiveLumi = eL, color = 28, weights = "nvr" ) if "QCD" not in pars['tag'] else []
