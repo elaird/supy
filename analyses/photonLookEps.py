@@ -371,36 +371,26 @@ class photonLook(analysis.analysis) :
         g_jets_mg_2010 = specify(names = self.gJetsMgNames2010())
         zinv_mg_2010   = specify(names = ["z_inv_mg_v12_skim"], color = r.kMagenta+3)
 
-        ##2011 EPS
-        #jw = calculables.Other.jsonWeight("cert/Cert_160404-167913_7TeV_PromptReco_Collisions11_JSON.txt") #1078/pb
-        #data = []
-        #data += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Zoe_skim",    weights = jw, overrideLumi = 188.9)
-        #data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe1_skim",    weights = jw, overrideLumi =  70.0)
-        #data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe2_skim",    weights = jw, overrideLumi = 151.1)
-        #data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe3_skim",    weights = jw, overrideLumi =  74.4)
-        #data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob1_skim",    weights = jw, overrideLumi = 167.1)
-        #data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob2_skim",    weights = jw, overrideLumi = 119.7)
-        #data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob3_skim",    weights = jw, overrideLumi = 180.2)
-        #data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob4_skim",    weights = jw, overrideLumi =  69.3)
-        #data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Darren1_skim", weights = jw, overrideLumi =  36.3)
-
         #2011
-        jwPrompt = calculables.Other.jsonWeight("cert/Cert_160404-177515_7TeV_PromptReco_Collisions11_JSON.txt")
-        jwMay = calculables.Other.jsonWeight("cert/Cert_160404-163869_7TeV_May10ReReco_Collisions11_JSON_v3.txt")
-        jwAug = calculables.Other.jsonWeight("cert/Cert_170249-172619_7TeV_ReReco5Aug_Collisions11_JSON_v2.txt")
-
+        jw = calculables.Other.jsonWeight("cert/Cert_160404-167913_7TeV_PromptReco_Collisions11_JSON.txt") #1078/pb
         data = []
 
-        data += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Darren1", weights = jwMay   , overrideLumi = 202.7)
-        data += specify(names = "Photon.Run2011A-05Aug2011-v1.AOD.Bryn1",     weights = jwAug   , overrideLumi = 318.5)
-        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Bryn1",    weights = jwPrompt, overrideLumi = 549.8)
-        data += specify(names = "Photon.Run2011A-PromptReco-v6.AOD.Bryn1",    weights = jwPrompt, overrideLumi = 382.6)
-        data += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn1",    weights = jwPrompt, overrideLumi = 221.2)
-        data += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn2",    weights = jwPrompt, overrideLumi = 280.5)
-        data += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn3",    weights = jwPrompt, overrideLumi = 374.1)
+        data += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Zoe_skim",    weights = jw, overrideLumi = 188.9)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe1_skim",    weights = jw, overrideLumi =  70.0)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe2_skim",    weights = jw, overrideLumi = 151.1)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Zoe3_skim",    weights = jw, overrideLumi =  74.4)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob1_skim",    weights = jw, overrideLumi = 167.1)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob2_skim",    weights = jw, overrideLumi = 119.7)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob3_skim",    weights = jw, overrideLumi = 180.2)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Rob4_skim",    weights = jw, overrideLumi =  69.3)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Darren1_skim", weights = jw, overrideLumi =  36.3)
+
+        #freaks = specify(names = "photon200_3jet")
+        #cands1 = specify(names = "375_photons")
+        #cands2 = specify(names = "325_photons")
+        #cands3 = specify(names = "275_photons")
         
-        
-        eL = 20000.0
+        eL = 2000.0
 
         phw = calculables.Photon.photonWeight(var = "vertexIndices")
         
