@@ -1,5 +1,5 @@
-#/usr/bin/env python
-import math,numpy as np
+#!/usr/bin/env python
+import math, numpy as np
 
 class templateFitter(object) :
     '''Measure a parameter by polynomial interpolation of templates likelihood to model observation.'''
