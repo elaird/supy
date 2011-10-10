@@ -4,7 +4,7 @@ import math, numpy as np
 class templateFitter(object) :
     '''Measure a parameter by polynomial interpolation of templates likelihood to model observation.'''
 
-    def __init__(self, observed = (), templates = [()], pvals=[], ensembleSize = 0) :
+    def __init__(self, observed = (), templates = [()], pvals=[], ensembleSize = 0, cubic = False) :
         self.observed = np.array(observed)
         self.templates = np.array(templates)
         self.pvals = pvals
@@ -19,6 +19,9 @@ class templateFitter(object) :
 
         self.__coef = np.polyfit(pvals, templatesLL, deg = 3)[::-1]
         c = self.__coef
+
+        print c[3]/c[2]
+        print
 
         R = c[2]/(3*c[3])
         D = math.sqrt(R**2 - c[1]/(3*c[3]))
@@ -40,6 +43,41 @@ class templateFitter(object) :
     def error(self) : return self.__error
     
 
+import ROOT as r
+def drawTemplateFitter(tf, canvas = None) :
+    if not canvas : canvas = r.TCanvas()
+    canvas.cd(0)
+    canvas.Divide(2,2)
+
+    def rHist(name,bins,edges,poissonErrors=False) :
+        hist = r.TH1D(name,"",len(bins), np.array(edges,dtype='double'))
+        for i,bin in enumerate(bins) : 
+            hist.SetBinContent(i+1,bin)
+            hist.SetBinError(i+1,math.sqrt(bin) if poissonErrors else 0)
+        return hist
+
+    edges = range(len(tf.observed)+1)
+    observed = rHist("observed", tf.observed, edges, True)
+    templates = [rHist("template%d"%i, templ, edges) for i,templ in enumerate(tf.templates)]
+    observed.SetTitle("observed")
+    observed.SetMarkerStyle(20)
+    for i,templ in enumerate(templates) : templ.SetLineColor(i)
+
+
+    LL = r.TGraph(len(tf.pvals), tf.pvals, tf.templatesLL)
+    fit = r.TF1("fit","pol3",min(tf.pvals),max(tf.pvals))
+    for i,c in enumerate(tf.coefficients) : fit.SetParameter(i,c)
+
+    canvas.cd(0)
+    observed.Draw()
+    for t in templates : t.Draw("same")
+
+    canvas.cd(1)
+    LL.Draw('A*')
+    fit.Draw('same')
+
+    return canvas,observed,templates,LL,fit
+
 import sys
 if __name__=="__main__" :
     '''Test the template fitter.'''
@@ -47,7 +85,7 @@ if __name__=="__main__" :
     truePar = float(sys.argv[1]) if len(sys.argv)>1 else 0
     norm = int(sys.argv[2]) if len(sys.argv)>2 else 100
 
-    def template(p) : return norm * np.array([math.exp(-0.5*(x-p)**2) for x in range(-10,10)])
+    def template(p) : return norm *abs(p)**0.05* np.array([math.exp(-0.5*(x-p)**2) for x in range(-10,10)])
 
     pars = np.arange(-1,1.2,0.2)
     templates = [template(p) for p in pars]
@@ -55,3 +93,5 @@ if __name__=="__main__" :
 
     TF = templateFitter(observed, templates, pars)
     print "true value: ", truePar
+    canvas = drawTemplateFitter(TF)
+    raw_input()
