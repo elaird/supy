@@ -20,22 +20,21 @@ class templateFitter(object) :
         self.observed = np.array(observed)
         self.templates = np.array(templates)
         self.pars = pars
-        self.templatesLL = np.sum( self.observed * np.log(self.templates) - self.templates , axis = 1)
+        self.templatesN2LL = -2 * np.sum( self.observed * np.log(self.templates) - self.templates , axis = 1)
 
-        self.__coef = np.polyfit(pars, self.templatesLL, deg = 3)[::-1]
+        self.__coef = np.polyfit(pars, self.templatesN2LL, deg = 3)[::-1]
         c = self.__coef
 
         if abs(c[3]/c[2]) < 1e-6 : #epsilon
             self.__value = -0.5 * c[1]/c[2]
-            self.__error = math.sqrt(abs(0.25/c[2]))
-            print "using quadratic: abs(c_3/c_2) = ", abs(c[3]/c[2])
+            self.__error = c[2]**-0.5
+            print "using quadratic: (c_3/c_2) = ", (c[3]/c[2])
         else:
             R = c[2]/(3*c[3])
             D = math.sqrt(R**2 - c[1]/(3*c[3]))
-            self.__value = sorted([ -R+D, -R-D],  key = lambda p : 2*c[2] + 6*p*c[3] )[0]
-            curvature = - ( 2*c[2] + 6*c[3]*self.__value )
-            self.__error = (2*curvature)**-0.5
-        self.maxLL = sum([self.value**i * c[i] for i in range(4)])
+            self.__value = sorted([ -R+D, -R-D],  key = lambda p : 2*c[2] + 6*p*c[3] )[1]
+            self.__error =( c[2] + 3*c[3]*self.__value )**-0.5
+        self.n2LL = sum([self.value**i * c[i] for i in range(4)])
 
     @property
     def coefficients(self) : return self.__coef
@@ -48,7 +47,7 @@ class templateFitter(object) :
     @cached
     def ensemble(self) : return self.ensembleOf(self.__ensembleSize, self.templates[self.bestMatch], self.templates, self.pars)
     @property
-    def p_value(self) : return bisect.bisect(sorted([-toy.maxLL for toy in self.ensemble]), -self.maxLL) / float(self.__ensembleSize+1)
+    def p_value(self) : return 1-bisect.bisect(sorted([toy.n2LL for toy in self.ensemble]), self.n2LL) / float(self.__ensembleSize+1)
     @property
     def residuals(self) : return np.array([toy.value - self.pars[self.bestMatch] for toy in self.ensemble])
     @property
@@ -72,10 +71,10 @@ def drawTemplateFitter(tf, canvas = None) :
         return hist
 
     #------1
-    LL = r.TGraph(len(tf.pars), tf.pars, tf.templatesLL)
+    LL = r.TGraph(len(tf.pars), tf.pars, tf.templatesN2LL)
     fit = r.TF1("fit","pol3",min(tf.pars),max(tf.pars))
     for i,c in enumerate(tf.coefficients) : fit.SetParameter(i,c)
-    xMaxLL = [r.TGraph(2,np.array([val,val]),np.array([min(tf.templatesLL),max(tf.templatesLL)])) for val in [tf.value,tf.value+tf.error,tf.value-tf.error]]
+    xMaxLL = [r.TGraph(2,np.array([val,val]),np.array([min(tf.templatesN2LL),max(tf.templatesN2LL)])) for val in [tf.value,tf.value+tf.error,tf.value-tf.error]]
     for h in xMaxLL : h.SetLineColor(r.kBlue)
     xMaxLL[1].SetLineStyle(r.kDashed)
     xMaxLL[2].SetLineStyle(r.kDashed)
@@ -87,12 +86,12 @@ def drawTemplateFitter(tf, canvas = None) :
     fit.Draw('same')
 
     #------2
-    nlls = rHist("-logLs", *np.histogram([-toy.maxLL for toy in tf.ensemble], 100) )
-    nll = nlls.Clone('-logL') ; nll.Reset(); nll.SetBinContent(nll.FindFixBin(-tf.maxLL), nlls.GetMaximum()); 
-    nll.SetFillColor(r.kBlue); nlls.SetTitle("p-value: %0.4f"%tf.p_value)
+    n2lls = rHist("-2logLs", *np.histogram([toy.n2LL for toy in tf.ensemble], 100) )
+    n2ll = n2lls.Clone('-2logL') ; n2ll.Reset(); n2ll.SetBinContent(n2ll.FindFixBin(tf.n2LL), n2lls.GetMaximum()); 
+    n2ll.SetFillColor(r.kBlue); n2lls.SetTitle("p-value: %0.4f"%tf.p_value)
     canvas.cd(2)
-    nlls.Draw()
-    nll.Draw('same')
+    n2lls.Draw()
+    n2ll.Draw('same')
 
     #------3
     edges = range(len(tf.observed)+1)
@@ -114,7 +113,7 @@ def drawTemplateFitter(tf, canvas = None) :
     pull.Draw()
 
     canvas.Update()
-    return canvas,observed,templates,LL,fit,xMaxLL,nlls,nll,pull
+    return canvas,observed,templates,LL,fit,xMaxLL,n2lls,n2ll,pull
 
 import sys
 if __name__=="__main__" :
@@ -127,6 +126,7 @@ if __name__=="__main__" :
     norm = int(sys.argv[2]) if len(sys.argv)>2 else 100
 
     #def template(p) : return np.array([norm*math.exp(-0.5*(x-p)**2) for x in range(-10,10)])
+    #def template(p) : return np.array([100+norm*math.exp(-0.5*(x-p)**2) for x in range(-5,5)])
     def template(p) : return np.array([100+norm*math.exp(-0.5*(x-p)**2) for x in range(-5,5)])
 
     #pars = np.arange(-1,1.2,0.2)
