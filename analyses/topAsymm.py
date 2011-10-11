@@ -118,6 +118,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             return (specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kBlue, weights = ["wNonQQbar","nvr"]) +
                     sum( [specify(names = "tt_tauola_fj", effectiveLumi = eL, color = color, weights = [ calculables.Top.wTopAsym(asym), "nvr" ] )
                           for asym,color in [(0.0,r.kOrange), (-0.3,r.kGreen),(0.3,r.kRed),
+                                             (-0.6,r.kYellow),(0.6,r.kYellow),
                                              (-0.5,r.kYellow),(0.5,r.kYellow),
                                              (-0.4,r.kYellow),(0.4,r.kYellow),
                                              (-0.2,r.kYellow),(0.2,r.kYellow),
