@@ -1,6 +1,10 @@
 from multiprocessing import Process,JoinableQueue
 import os,collections,array,math,subprocess,cPickle,traceback,sys,itertools,operator
-import ROOT as r,numpy as np
+import ROOT as r
+try:
+    import numpy as np
+except:
+    pass
 #####################################
 hyphens="-"*115
 #####################################
