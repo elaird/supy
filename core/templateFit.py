@@ -16,16 +16,19 @@ class templateFitter(object) :
         return [cls(pseudo, templates, pars, 0) for pseudo in pseudos]
 
     def __init__(self, observed = (), templates = [()], pars=[], ensembleSize = 1e4) :
+        zero = 1e-6
+        epsilon = 1e-6
         self.__ensembleSize = ensembleSize
         self.observed = np.array(observed)
+        pars,templates = zip(*sorted(zip(pars,templates)))
         self.templates = np.array(templates)
-        self.pars = pars
-        self.templatesN2LL = -2 * np.sum( self.observed * np.log(self.templates) - self.templates , axis = 1)
+        self.pars = np.array(pars)
+        self.templatesN2LL = -2 * np.sum( self.observed * np.log(np.maximum(zero,self.templates)) - self.templates , axis = 1)
 
         self.__coef = np.polyfit(pars, self.templatesN2LL, deg = 3)[::-1]
         c = self.__coef
 
-        if abs(c[3]/c[2]) < 1e-6 : #epsilon
+        if abs(c[3]/c[2]) < epsilon :
             self.__value = -0.5 * c[1]/c[2]
             self.__error = c[2]**-0.5
             print "using quadratic: (c_3/c_2) = ", (c[3]/c[2])
@@ -126,7 +129,6 @@ if __name__=="__main__" :
     norm = int(sys.argv[2]) if len(sys.argv)>2 else 100
 
     #def template(p) : return np.array([norm*math.exp(-0.5*(x-p)**2) for x in range(-10,10)])
-    #def template(p) : return np.array([100+norm*math.exp(-0.5*(x-p)**2) for x in range(-5,5)])
     def template(p) : return np.array([100+norm*math.exp(-0.5*(x-p)**2) for x in range(-5,5)])
 
     #pars = np.arange(-1,1.2,0.2)
