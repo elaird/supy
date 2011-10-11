@@ -57,13 +57,25 @@ class NameDump(analysisStep) :
 #####################################
 class Counts(analysisStep) :
 
-    def __init__(self) :
+    def __init__(self, useCache = False) :
+        self.useCache = useCache
         self.counts = collections.defaultdict(int)
-        
+        self.cached = {}
+
     def uponAcceptance(self, eventVars) :
-        for pair in eventVars["triggered"] :
-            if pair.second : 
-                self.counts[pair.first] += 1
+        if not self.useCache :
+            for pair in eventVars["triggered"] :
+                if pair.second : self.counts[pair.first] += 1
+        else :
+            key = (eventVars["run"], eventVars["lumiSection"])
+            m = eventVars["triggered"]
+            self.updateCached(key, m)
+            for t in self.cached[key] :
+                if m[t] : self.counts[t] += 1
+
+    def updateCached(self, key, m) :
+        if key not in self.cached :
+            self.cached[key] = [pair.first for pair in m]
 
     def outputSuffix(self) :
         return "_triggerCounts.txt"
