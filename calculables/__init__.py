@@ -7,7 +7,7 @@ class weight(wrappedChain.calculable) :
     def __init__(self, weights) :
         self.calcNames = [w.name for w in weights]
         self.moreName = ".".join(["1"]+sorted(self.calcNames))
-    def update(self, ignored) :
+    def update(self,_) :
         weights = [self.source[n] for n in self.calcNames]
         self.value = reduce(operator.mul, weights, 1) if None not in weights else None
 ##############################
@@ -19,10 +19,16 @@ class indicesOther(wrappedChain.calculable) :
         self.indices      = "%sIndices%s"%collection
         self.indicesOther = "%sIndicesOther%s"%collection
 
-    def update(self,ignored) :
+    def update(self,_) :
         self.value = []
         if not self.source.node(self.indices).updated :
             self.source[self.indices]
+##############################
+class size(wrappedChain.calculable) :
+    @property
+    def name(self) : return "%s.size"%self.calc
+    def __init__(self, calc) : self.calc = calc
+    def update(self,_) : self.value = len(self.source[self.calc])
 ##############################
 def zeroArgs() :
     """Returns a list of instances of all zero argument calculables."""
