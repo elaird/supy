@@ -50,6 +50,12 @@ class PtOverSumPt(wrappedChain.calculable) :
         self.stash(['Pt','SumPt'])
     def update(self,_) : self.value = self.source[self.Pt] / self.source[self.SumPt]
 ######################################
+class SumP4AbsEta(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(['SumP4'])
+    def update(self,_) : self.value = abs(self.source[self.SumP4].eta())
+######################################
 class BoostZ(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
