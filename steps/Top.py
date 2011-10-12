@@ -216,7 +216,7 @@ class discriminateNonTop(analysisStep) :
 #####################################
 class discriminateQQbar(analysisStep) :
     def __init__(self, collection) :
-        for item in ['DeltaPhi','PtOverSumPt','SumP4'] :
+        for item in ['DeltaPhi','PtOverSumPt','SumP4','CosThetaDaggerTT'] :
             setattr(self,item,('%s'+item+'%s')%collection)
         
     @staticmethod
@@ -234,6 +234,7 @@ class discriminateQQbar(analysisStep) :
 
         self.book.fill( dphi, self.DeltaPhi, 51,0,2*math.pi, title = ';#Delta #phi_{ttbar};events / bin')
         self.book.fill( ev[self.PtOverSumPt], self.PtOverSumPt, 50,0,1, title = ';(t+tbar)_{pt}/(t_{pt}+tbar_{pt});events / bin')
+        self.book.fill( ev[self.CosThetaDaggerTT], self.CosThetaDaggerTT, 50,-1,1, title = ';cos#theta^{#dagger}_{tt}')
         sumP4 = ev[self.SumP4]
         self.book.fill( abs(sumP4.Rapidity()), self.SumP4+'AbsRapidity', 50,0,3, title = ';y_{ttbar};events / bin')
         self.book.fill( abs(sumP4.Eta()), self.SumP4+'AbsEta', 40,0,10, title = ';|#eta_{ttbar}|;events / bin')
