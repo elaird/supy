@@ -60,18 +60,12 @@ class templateFitter(object) :
     @property
     def pull(self) : return np.std(self.relResiduals)
 
+
 import utils, ROOT as r
 def drawTemplateFitter(tf, canvas = None) :
     if not canvas : canvas = r.TCanvas()
     canvas.cd(0)
     canvas.Divide(2,2)
-
-    def rHist(name,bins,edges,poissonErrors=False) :
-        hist = r.TH1D(name,"",len(bins), np.array(edges,dtype='double'))
-        for i,bin in enumerate(bins) : 
-            hist.SetBinContent(i+1,bin)
-            hist.SetBinError(i+1,math.sqrt(bin) if poissonErrors else 0)
-        return hist
 
     #------1
     LL = r.TGraph(len(tf.pars), tf.pars, tf.templatesN2LL)
@@ -89,7 +83,7 @@ def drawTemplateFitter(tf, canvas = None) :
     fit.Draw('same')
 
     #------2
-    n2lls = rHist("-2logLs", *np.histogram([toy.n2LL for toy in tf.ensemble], 100) )
+    n2lls = utils.rHist("-2logLs", *np.histogram([toy.n2LL for toy in tf.ensemble], 100) )
     n2ll = n2lls.Clone('-2logL') ; n2ll.Reset(); n2ll.SetBinContent(n2ll.FindFixBin(tf.n2LL), n2lls.GetMaximum()); 
     n2ll.SetFillColor(r.kBlue); n2lls.SetTitle("p-value: %0.4f"%tf.p_value)
     canvas.cd(2)
@@ -98,8 +92,8 @@ def drawTemplateFitter(tf, canvas = None) :
 
     #------3
     edges = range(len(tf.observed)+1)
-    observed = rHist("observed", tf.observed, edges, True)
-    templates = [rHist("template%d"%i, templ, edges) for i,templ in enumerate(tf.templates) if i in [0,len(tf.templates)-1,len(tf.templates)/2]]
+    observed = utils.rHist("observed", tf.observed, edges, True)
+    templates = [utils.rHist("template%d"%i, templ, edges) for i,templ in enumerate(tf.templates) if i in [0,len(tf.templates)-1,len(tf.templates)/2]]
     observed.SetTitle("observed")
     observed.SetMarkerStyle(20)
     for i,templ in enumerate(templates) : templ.SetLineColor([r.kRed,r.kGreen,r.kBlue][i])
@@ -111,7 +105,7 @@ def drawTemplateFitter(tf, canvas = None) :
 
     #------4
     relMean = np.mean(tf.relResiduals)
-    pull = rHist("relative residuals", *np.histogram(tf.relResiduals,100,(relMean-5,relMean+5)))
+    pull = utils.rHist("relative residuals", *np.histogram(tf.relResiduals,100,(relMean-5,relMean+5)))
     canvas.cd(4)
     pull.Draw()
 

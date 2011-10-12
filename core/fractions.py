@@ -67,21 +67,14 @@ def drawComponentSolver(cs, canvas = None) :
     canvas.cd(0)
     canvas.Divide(2,2)
 
-    def rHist(name,bins,edges,poissonErrors=False) :
-        hist = r.TH1D(name,"",len(bins), np.array(edges,dtype='double'))
-        for i,bin in enumerate(bins) : 
-            hist.SetBinContent(i+1,bin)
-            hist.SetBinError(i+1,math.sqrt(bin) if poissonErrors else 0)
-        return hist
-    
-    rTemplates = [rHist("template%d"%i,d,range(len(d)+1)) for i,d in enumerate(cs.components)]
-    rObs = rHist("observed",cs.observed,range(len(d)+1),True)
+    rTemplates = [utils.rHist("template%d"%i,d,range(len(d)+1)) for i,d in enumerate(cs.components)]
+    rObs = utils.rHist("observed",cs.observed,range(len(d)+1),True)
     rObs.SetTitle("ML fractions:   "+", ".join(utils.roundString(f,e,noSci=True) for f,e in zip(cs.fractions,cs.errors) ))
 
-    nlls = rHist("-logLs", *np.histogram([-toy.logL for toy in cs.ensemble], 100) )
+    nlls = utils.rHist("-logLs", *np.histogram([-toy.logL for toy in cs.ensemble], 100) )
     nll = nlls.Clone('-logL') ; nll.Reset(); nll.SetBinContent(nll.FindFixBin(-cs.logL), nlls.GetMaximum()); 
     nll.SetFillColor(r.kBlue); nll.SetTitle("p-value: %0.4f"%cs.p_value)
-    pulls = [ rHist("relative residuals %d"%i, *np.histogram(pull,100,(-5,5))) for i,pull in enumerate(cs.relResiduals.transpose())]
+    pulls = [ utils.rHist("relative residuals %d"%i, *np.histogram(pull,100,(-5,5))) for i,pull in enumerate(cs.relResiduals.transpose())]
 
     corr = cs.correlation
     corrH = r.TH2D("correlations","correlations", len(corr), -0.5, len(corr)-0.5, len(corr), -0.5, len(corr)-0.5)
