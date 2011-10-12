@@ -118,6 +118,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             return (specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kBlue, weights = ["wNonQQbar","nvr"]) +
                     sum( [specify(names = "tt_tauola_fj", effectiveLumi = eL, color = color, weights = [ calculables.Top.wTopAsym(asym), "nvr" ] )
                           for asym,color in [(0.0,r.kOrange), (-0.3,r.kGreen),(0.3,r.kRed),
+                                             (-0.6,r.kYellow),(0.6,r.kYellow),
                                              (-0.5,r.kYellow),(0.5,r.kYellow),
                                              (-0.4,r.kYellow),(0.4,r.kYellow),
                                              (-0.2,r.kYellow),(0.2,r.kYellow),
@@ -137,6 +138,11 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         self.meldNorm()
         self.meldWpartitions()
         self.meldQCDpartitions()
+        for var in ['lHadtDeltaY',
+                    'leptonRelativeY',
+                    'ttbarBeta',
+                    'ttbarDeltaAbsY',
+                    'ttbarSignedDeltaY' ] : self.templateFit(var)
 
     def conclude(self,pars) :
         org = self.organizer(pars)
@@ -206,7 +212,8 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                              ).plotAll()
 
     def meldNorm(self) :
-        meldSamples = {"top_muon_pf" : ["SingleMu","P00","NonQQbar","w_jets"],
+        meldSamples = {#"top_muon_pf" : ["SingleMu","P00","NonQQbar","w_jets"],
+                       "top_muon_pf" : ["SingleMu","tt_tauola_fj","w_jets"],
                        #"Wlv_muon_pf" : ["w_jets"],
                        "QCD_muon_pf" : ["SingleMu"]}
 
@@ -214,7 +221,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                       for tag in [p['tag'] for p in self.readyConfs if p["tag"] in meldSamples]]
         if len(organizers) < 2 : return
         for org in organizers :
-            org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kViolet}, sources=["tt_tauola_fj.wNonQQbar.nvr","tt_tauola_fj.wTopAsymP00.nvr"])
+            org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kViolet}, sources=["tt_tauola_fj.wNonQQbar.nvr","tt_tauola_fj.wTopAsymP00.nvr"], keepSources = True)
             org.mergeSamples(targetSpec = {"name":"w_jets", "color":r.kRed}, allWithPrefix = "w_jets")
             org.mergeSamples(targetSpec = {"name":"Data 2011",
                                            "color":r.kBlue if "qcd_" in org.tag else r.kBlack,
@@ -228,12 +235,16 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                 distTup = org.steps[next(iter(filter(lambda i: before<i, org.indicesOfStepsWithKey(dist))))][dist]
                 for ss,hist in zip(org.samples,distTup) :            
                     contents = [hist.GetBinContent(i) for i in range(hist.GetNbinsX()+2)]
-                    if "top" in org.tag and ss["name"] is "Data 2011":  observed = contents
+                    if "top" in org.tag and ss["name"] is "Data 2011":
+                        observed = contents
+                        self.nEventsObserved = sum(observed)
                     elif ss["name"] is "t#bar{t}" : templates[0] = contents
+                    elif "tt_tauola_fj" in ss['name'] : pass
                     else : templates.append(contents)
             from core import fractions
             outDir = self.globalStem
             cs = fractions.componentSolver(observed, templates, 1e4)
+            self.fraction = {"qcd":cs.fractions[2],"wjets":cs.fractions[1],"top":cs.fractions[0]}
             with open(outDir+"/measuredFractions.txt","w") as file : print >> file, cs
             with open(outDir+'/templates.txt','w') as file : print >> file, cs.components
             stuff = fractions.drawComponentSolver(cs)
@@ -254,4 +265,40 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                              rowColors = self.rowcolors,
                              ).plotAll()
 
+        self.orgMeldedNorm = melded
         
+    def templateFit(self, var, qqFrac = 0.15) :
+        org = self.orgMeldedNorm
+        nEvents = self.nEventsObserved
+
+        iW = org.indexOfSampleWithName("top.w_jets")
+        iQCD = org.indexOfSampleWithName("QCD.Data 2011")
+        iData = org.indexOfSampleWithName("top.Data 2011")
+        iTopNon = org.indexOfSampleWithName("top.tt_tauola_fj.wNonQQbar.nvr")
+        iTopQQs = [i for i,s in enumerate(org.samples) if 'wTopAsym' in s['name']]
+        asymm = [eval(org.samples[i]['name'].replace("top.tt_tauola_fj.wTopAsym","").replace(".nvr","").replace("P",".").replace("N","-.")) for i in iTopQQs]
+        
+        distTup = org.steps[next(org.indicesOfStepsWithKey(var))][var]
+
+        import numpy as np
+        def nparray(i) :
+            bins = np.array([distTup[i].GetBinContent(j) for j in range(distTup[i].GetNbinsX()+2)])
+            return bins/sum(bins)
+        
+        observed = nEvents * nparray(iData)
+        base = nEvents * ( self.fraction['qcd'] * nparray(iQCD) +
+                           self.fraction['wjets'] * nparray(iW) +
+                           self.fraction['top'] * (1-qqFrac) * nparray(iTopNon)
+                           )
+        templates = [base + nEvents * self.fraction['top'] * qqFrac * nparray(i) for i in iTopQQs]
+
+        from core import templateFit
+        TF = templateFit.templateFitter(observed, templates, asymm)
+        print utils.roundString(TF.value, TF.error , noSci=True)
+        stuff = templateFit.drawTemplateFitter(TF)
+        outName = self.globalStem + '/templateFit_%s_%d'%(var,qqFrac*100)
+        stuff[0].Print(outName+'.ps(')
+        stuff[0].cd(3).SetLogy(1)
+        stuff[0].Print(outName+'.ps)')
+        os.system('ps2pdf %s.ps %s.pdf'%(outName,outName))
+        os.system('rm %s.ps'%outName)

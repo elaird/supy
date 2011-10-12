@@ -47,7 +47,7 @@ class componentSolver(object) :
     @cached
     def ensemble(self) : return self.ensembleOf(self.__ensembleSize, self.expected, self.__comps)
     @property
-    def p_value(self) : return bisect.bisect(sorted([-toy.logL for toy in self.ensemble]), -self.logL) / float(self.__ensembleSize+1)
+    def p_value(self) : return 1-bisect.bisect(sorted([-toy.logL for toy in self.ensemble]), -self.logL) / float(self.__ensembleSize+1)
     @property
     def residuals(self) : return np.array([toy.fractions - self.fractions for toy in self.ensemble])
     @property
