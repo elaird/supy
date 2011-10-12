@@ -219,6 +219,15 @@ class CosHelicityThetaQ(wrappedChain.calculable) :
         boost2 = r.Math.Boost(beta.x(), beta.y(), beta.z())
         self.value = r.Math.VectorUtil.CosTheta( top, boost2(boost1(p4['q'])))
 ######################################
+class CosThetaDaggerTT(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(['BoostZAlt','P4'])
+    def update(self,_) :
+        boost = self.source[self.BoostZAlt]
+        p4 = self.source[self.P4]
+        self.value = r.Math.VectorUtil.CosTheta(boost(p4['t']),boost(p4['tbar']))
+######################################
 ######################################
 
 class genTopP4(wrappedChain.calculable) :
