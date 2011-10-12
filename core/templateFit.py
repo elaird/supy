@@ -16,28 +16,20 @@ class templateFitter(object) :
         return [cls(pseudo, templates, pars, 0) for pseudo in pseudos]
 
     def __init__(self, observed = (), templates = [()], pars=[], ensembleSize = 1e4) :
-        zero = 1e-6
-        epsilon = 1e-6
+        self.templates = np.maximum(1e-6,templates) # avoid log(0)
+        self.templatesN2LL = -2 * np.sum( observed * np.log(self.templates) - self.templates , axis = 1)
+        self.__coef = np.polyfit(pars, self.templatesN2LL, deg = 3)[::-1]
+
+        _,c1,c2,c3 = self.__coef
+        R = c2 / (3*c3)
+        D = math.sqrt(R**2 - c1 / (3*c3) )
+        curve,self.__value = max([ (2*c2+6*p*c3, p) for p in [-R+D, -R-D]])
+        self.__error = ( 0.5*curve )**-0.5
+
+        self.pars = pars
         self.__ensembleSize = ensembleSize
         self.observed = np.array(observed)
-        pars,templates = zip(*sorted(zip(pars,templates)))
-        self.templates = np.array(templates)
-        self.pars = np.array(pars)
-        self.templatesN2LL = -2 * np.sum( self.observed * np.log(np.maximum(zero,self.templates)) - self.templates , axis = 1)
-
-        self.__coef = np.polyfit(pars, self.templatesN2LL, deg = 3)[::-1]
-        c = self.__coef
-
-        if abs(c[3]/c[2]) < epsilon :
-            self.__value = -0.5 * c[1]/c[2]
-            self.__error = c[2]**-0.5
-            print "using quadratic: (c_3/c_2) = ", (c[3]/c[2])
-        else:
-            R = c[2]/(3*c[3])
-            D = math.sqrt(R**2 - c[1]/(3*c[3]))
-            self.__value = sorted([ -R+D, -R-D],  key = lambda p : 2*c[2] + 6*p*c[3] )[1]
-            self.__error =( c[2] + 3*c[3]*self.__value )**-0.5
-        self.n2LL = sum([self.value**i * c[i] for i in range(4)])
+        self.n2LL = sum([self.value**i * self.__coef[i] for i in range(4)])
 
     @property
     def coefficients(self) : return self.__coef
@@ -46,7 +38,7 @@ class templateFitter(object) :
     @property
     def error(self) : return self.__error
     @property
-    def bestMatch(self) : return next(iter(sorted(enumerate(self.pars),key = lambda p : abs(p[1]-self.value))))[0]
+    def bestMatch(self) : return list(self.pars).index(min(self.pars, key = lambda p: abs(p-self.value)))
     @cached
     def ensemble(self) : return self.ensembleOf(self.__ensembleSize, self.templates[self.bestMatch], self.templates, self.pars)
     @property
@@ -60,18 +52,22 @@ class templateFitter(object) :
     @property
     def pull(self) : return np.std(self.relResiduals)
 
+class templateEnsembles(object) :
+    def __init__(self, nToys, templates, pars) :
+        pars, templates = zip(*sorted(zip(pars,templates)))
+        self.pars,self.templates = pars,templates
+        self.ensembles = [templateFitter.ensembleOf(nToys, templ, templates, pars) for templ in templates ]
+        self.biases = [np.mean([toy.value for toy in ensemble]) - par for par,ensemble in zip(pars,self.ensembles)]
+        relativeResiduals = [np.array([(toy.value-par)/toy.error for toy in ensemble]) for par,ensemble in zip(pars,self.ensembles)]
+        self.pulls = [np.std(rr) for rr in relativeResiduals]
+        self.meanError = self.pulls * np.array([np.mean([toy.error for toy in ensemble]) for ensemble in self.ensembles])
+        self.sensitivity = np.mean(self.meanError[1:-1])
+
 import utils, ROOT as r
 def drawTemplateFitter(tf, canvas = None) :
     if not canvas : canvas = r.TCanvas()
     canvas.cd(0)
     canvas.Divide(2,2)
-
-    def rHist(name,bins,edges,poissonErrors=False) :
-        hist = r.TH1D(name,"",len(bins), np.array(edges,dtype='double'))
-        for i,bin in enumerate(bins) : 
-            hist.SetBinContent(i+1,bin)
-            hist.SetBinError(i+1,math.sqrt(bin) if poissonErrors else 0)
-        return hist
 
     #------1
     LL = r.TGraph(len(tf.pars), tf.pars, tf.templatesN2LL)
@@ -89,7 +85,7 @@ def drawTemplateFitter(tf, canvas = None) :
     fit.Draw('same')
 
     #------2
-    n2lls = rHist("-2logLs", *np.histogram([toy.n2LL for toy in tf.ensemble], 100) )
+    n2lls = utils.rHist("-2logLs", *np.histogram([toy.n2LL for toy in tf.ensemble], 100) )
     n2ll = n2lls.Clone('-2logL') ; n2ll.Reset(); n2ll.SetBinContent(n2ll.FindFixBin(tf.n2LL), n2lls.GetMaximum()); 
     n2ll.SetFillColor(r.kBlue); n2lls.SetTitle("p-value: %0.4f"%tf.p_value)
     canvas.cd(2)
@@ -98,8 +94,9 @@ def drawTemplateFitter(tf, canvas = None) :
 
     #------3
     edges = range(len(tf.observed)+1)
-    observed = rHist("observed", tf.observed, edges, True)
-    templates = [rHist("template%d"%i, templ, edges) for i,templ in enumerate(tf.templates) if i in [0,len(tf.templates)-1,len(tf.templates)/2]]
+    observed = utils.rHist("observed", tf.observed, edges, True)
+    spars,stemplates = zip(*sorted(zip(tf.pars,tf.templates)))
+    templates = [utils.rHist("template%d"%i, templ, edges) for i,templ in enumerate(stemplates) if i in [0,len(spars)-1,len(spars)/2]]
     observed.SetTitle("observed")
     observed.SetMarkerStyle(20)
     for i,templ in enumerate(templates) : templ.SetLineColor([r.kRed,r.kGreen,r.kBlue][i])
@@ -111,7 +108,7 @@ def drawTemplateFitter(tf, canvas = None) :
 
     #------4
     relMean = np.mean(tf.relResiduals)
-    pull = rHist("relative residuals", *np.histogram(tf.relResiduals,100,(relMean-5,relMean+5)))
+    pull = utils.rHist("relative residuals", *np.histogram(tf.relResiduals,100,(relMean-5,relMean+5)))
     canvas.cd(4)
     pull.Draw()
 
@@ -128,11 +125,9 @@ if __name__=="__main__" :
     truePar = float(sys.argv[1]) if len(sys.argv)>1 else 0
     norm = int(sys.argv[2]) if len(sys.argv)>2 else 100
 
-    #def template(p) : return np.array([norm*math.exp(-0.5*(x-p)**2) for x in range(-10,10)])
     def template(p) : return np.array([100+norm*math.exp(-0.5*(x-p)**2) for x in range(-5,5)])
 
-    #pars = np.arange(-1,1.2,0.2)
-    pars = np.arange(-2.0,2.2,0.2)
+    pars = np.arange(-1.0,1.1,0.1)
     templates = [template(p) for p in pars]
     observed = np.array([np.random.poisson(mu) for mu in template(truePar)])
 
@@ -140,9 +135,21 @@ if __name__=="__main__" :
     print "true value: ", truePar
     print "measured : ", utils.roundString(TF.value,TF.error)
     canvas = drawTemplateFitter(TF)
-
+    
     print "p-value :", TF.p_value
     print "bias : ", TF.bias
     print "pull : ", TF.pull
-
+    
     raw_input()
+
+
+
+    def format(d) : return "[ %s ]"%', '.join("%.3f"%f for f in d)
+            
+    ensembles = templateEnsembles(500, templates, pars)
+    print "pars : ".rjust(20), format(ensembles.pars)
+    print "biases : ".rjust(20), format(ensembles.biases)
+    print "pulls : ".rjust(20), format(ensembles.pulls)
+    print "meanErrors : ".rjust(20), format(ensembles.meanError)
+    print "sensitivity : ".rjust(20), ensembles.sensitivity
+    

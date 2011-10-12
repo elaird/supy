@@ -518,3 +518,11 @@ def optimizationContours(signal, backgd, left = True, right = True) :
     c.cd(4); ssqrtb.Draw(option);  contour.Draw("cont3 same")
     r.gStyle.SetOptStat(stat)
     return [c,eff,pur,signalb,ssqrtb,contour]
+#####################################
+def rHist(name,bins,edges,poissonErrors=False) :
+    hist = r.TH1D(name,"",len(bins), np.array(edges,dtype='double'))
+    for i,bin in enumerate(bins) : 
+        hist.SetBinContent(i+1,bin)
+        hist.SetBinError(i+1,math.sqrt(bin) if poissonErrors else 0)
+    return hist
+#####################################
