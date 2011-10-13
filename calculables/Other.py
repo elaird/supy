@@ -283,9 +283,10 @@ class Discriminant(calculables.secondary) :
                  left = {"pre":"","samples":[],"tag":""},
                  right = {"pre":"","samples":[],"tag":""},
                  dists = {}, # key = calc or leaf name : val = (bins,min,max)
+                 bins = 50,
                  correlations = False
                  ) :
-        for item in ['fixes','left','right','dists','correlations'] : setattr(self,item,eval(item))
+        for item in ['fixes','left','right','dists','correlations','bins'] : setattr(self,item,eval(item))
         self.moreName = "L:"+left['pre']+"; R:"+right['pre']+"; "+','.join(dists.keys())
 
     def setup(self,*_) :
@@ -302,7 +303,7 @@ class Discriminant(calculables.secondary) :
 
     def uponAcceptance(self,ev) :
         for key,val in self.dists.iteritems() : self.book.fill(ev[key], key, *val, title = ";%s;events / bin"%key)
-        self.book.fill(ev[self.name], self.name, 50, 0, 1, title = ";%s;events / bin"%self.name)
+        self.book.fill(ev[self.name], self.name, self.bins, 0, 1, title = ";%s;events / bin"%self.name)
         if self.correlations :
             for (key1,val1),(key2,val2) in itertools.combinations(self.dists.iteritems(),2) :
                 self.book.fill((ev[key1],ev[key2]),"_cov_%s_%s"%(key1,key2), *zip(val1,val2), title = ';%s;%s;events / bin'%(key1,key2))
