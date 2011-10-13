@@ -345,7 +345,7 @@ def dependence(TH2, name="", minimum=-1.5, maximum=1.5) :
     if not TH2: return None
     TH2.GetDirectory().cd()
     dep = TH2.Clone(name if name else TH2.GetName()+"_dependence")
-    dep.GetZaxis().SetTitle("dependence")
+    dep.SetZTitle("dependence")
     norm = TH2.Integral()
     projX = TH2.ProjectionX()
     projY = TH2.ProjectionY()
