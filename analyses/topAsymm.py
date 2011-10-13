@@ -18,6 +18,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
     def listOfCalculables(self, pars) :
         calcs = super(topAsymm,self).listOfCalculables(pars)
         calcs.append( calculables.Other.TriDiscriminant(LR = "DiscriminantWQCD", LC = "DiscriminantTopW", RC = "DiscriminantTopQCD") )
+        calcs.append( calculables.size("%sIndices%s"%pars['objects']['jet']))
         return calcs
     ########################################################################################
 
@@ -45,6 +46,17 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             steps.Filter.multiplicity("TopReconstruction",min=1),
             steps.Histos.value("TopRatherThanWProbability",100,0,1),
             steps.Filter.label("selection complete"),
+            calculables.Other.Discriminant( fixes = ("","TopQqQg"),
+                                            left = {"pre":"qq", "tag":"top_muon_pf", "samples":['tt_tauola_fj.wNonQQbar.nvr']},
+                                            right = {"pre":"qg", "tag":"top_muon_pf", "samples":['tt_tauola_fj.wTopAsymP00.nvr']},
+                                            dists = {"fitTopPtOverSumPt" : (20,0,1),
+                                                     "fitTopCosThetaDaggerTT" : (40,-1,1),
+                                                     "fitTopSumP4AbsEta" : (21,0,7),
+                                                     "%sIndices%s.size"%obj["jet"] : (10,-0.5,9.5)
+                                                     },
+                                            correlations = True,
+                                            bins = 14),
+            #steps.Filter.stop(),#####################################
             calculables.Other.Discriminant( fixes = ("","TopW"),
                                             left = {"pre":"w_jets_fj_mg", "tag":"top_muon_pf", "samples":[]},
                                             right = {"pre":"tt_tauola_fj", "tag":"top_muon_pf", "samples": ['tt_tauola_fj.%s.nvr'%s for s in ['wNonQQbar','wTopAsymP00']]},
@@ -164,6 +176,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                   "sampleLabelsForRatios" : ("data","s.m."),
                   "detailedCalculables" : True,
                   "rowColors" : self.rowcolors,
+                  "dependence2D" : True
                   }
         
         plotter.plotter(org, psFileName = self.psFileName(org.tag+"_log"),  doLog = True, pegMinimum = 0.01, **kwargs ).plotAll()
