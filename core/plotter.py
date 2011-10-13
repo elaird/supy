@@ -95,6 +95,7 @@ class plotter(object) :
                  detailedCalculables = False,
                  shiftUnderOverFlows = True,
                  rowColors = [r.kBlack],
+                 dependence2D = False,
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
                  blackList = [],
                  whiteList = []
@@ -102,7 +103,7 @@ class plotter(object) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
-                     "detailedCalculables", "rowColors"] :
+                     "detailedCalculables", "rowColors","dependence2D"] :
             setattr(self,item,eval(item))
 
         if "counts" not in self.whiteList : self.blackList.append("counts")
@@ -525,7 +526,7 @@ class plotter(object) :
 
     def setRanges(self, histos, globalMin, globalMax) :
         for histo in histos :
-            if not histo or histo.GetName()[-len("_dependence"):] == "_dependence" : continue        
+            if not histo : continue
             if self.doLog :
                 histo.SetMinimum(0.5*globalMin) if self.pegMinimum==None else histo.SetMinimum(self.pegMinimum)
                 histo.SetMaximum(2.0*globalMax)
@@ -642,10 +643,8 @@ class plotter(object) :
         if self.shiftUnderOverFlows : shiftUnderAndOverflows(dimension, histos, self.dontShiftList)
         self.setRanges(histos, *self.getExtremes(dimension, histos, ignoreHistos))
 
-        if individual : 
-            count,stuffToKeep,pads = self.plotEachHisto(dimension, histos, ignoreHistos, legendCoords = legendCoords, newSampleNames = newSampleNames)
-        else :
-            count,stuffToKeep,pads = self.plotEachHisto(dimension, histos, ignoreHistos)
+        kwargs = {"legendCoords":legendCoords, "newSampleNames":newSampleNames} if individual else {}
+        count,stuffToKeep,pads = self.plotEachHisto(dimension, histos, ignoreHistos, **kwargs)
             
         if self.plotRatios and dimension==1 :
             ratios = self.plotRatio(histos,dimension)
@@ -654,6 +653,12 @@ class plotter(object) :
             self.printCanvas()
         if individual :
             return stuffToKeep,pads
+        if dimension==2 and self.dependence2D :
+            depHistos = tuple(utils.dependence(h) for h in histos)
+            self.prepareCanvas(depHistos, dimension)
+            count,stuffToKeep,pads = self.plotEachHisto(dimension, depHistos, ignoreHistos, **kwargs)
+            self.canvas.cd(0)
+            if count>0 : self.printCanvas()
 
     def plot1D(self, histo, count, goptions, stuffToKeep) :
         adjustPad(r.gPad, self.anMode)
@@ -724,8 +729,7 @@ class plotter(object) :
     	histo.GetZaxis().SetTitleOffset(1.3)
         if self.doLog : r.gPad.SetLogz()
 
-        if self.doColzFor2D : histo.Draw("colz")
-        else :           histo.Draw()
+        histo.Draw("colz" if self.doColzFor2D else "")
 
         #plot-specific stuff
         if "deltaHtOverHt_vs_mHtOverHt" in histo.GetName() \
