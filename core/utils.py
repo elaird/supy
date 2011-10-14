@@ -343,7 +343,7 @@ def partialSumP4Centroid(partials) :
 #####################################
 def dependence(TH2, name="", minimum=-5, maximum=5, inSigma = True) :
     if not TH2: return None
-    TH2.GetDirectory().cd()
+    if TH2.GetDirectory() : TH2.GetDirectory().cd()
     dep = TH2.Clone(name if name else TH2.GetName()+"_dependence")
     dep.SetZTitle("dependence")
     norm = TH2.Integral()
