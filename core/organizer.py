@@ -54,6 +54,12 @@ class organizer(object) :
         self.steps # rows
         self.calculablesGraphs
 
+    def __deepcopy__(self, memo) :
+        new = copy.copy(self)
+        new.samples = copy.copy(self.samples)
+        new.__steps = copy.deepcopy(self.__steps, memo)
+        return new
+
     @classmethod
     def meld(cls, tagprefix = "melded", organizers = []) :
         ordering = utils.topologicalSort([tuple(org.tag.split("_")) for org in organizers])            
