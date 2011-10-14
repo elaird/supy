@@ -70,7 +70,7 @@ def drawTemplateFitter(tf, canvas = None) :
     canvas.Divide(2,2)
 
     #------1
-    LL = r.TGraph(len(tf.pars), tf.pars, tf.templatesN2LL)
+    LL = r.TGraph(len(tf.pars), np.array(tf.pars), tf.templatesN2LL)
     fit = r.TF1("fit","pol3",min(tf.pars),max(tf.pars))
     for i,c in enumerate(tf.coefficients) : fit.SetParameter(i,c)
     xMaxLL = [r.TGraph(2,np.array([val,val]),np.array([min(tf.templatesN2LL),max(tf.templatesN2LL)])) for val in [tf.value,tf.value+tf.error,tf.value-tf.error]]
