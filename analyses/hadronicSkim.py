@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-import os,analysis,utils,calculables,steps,samples,organizer
+import os
+from core import analysis,utils
+import calculables,steps,samples
 
 def nameList(t, name)  : return list(set([obj[name] for obj in dict(t).values()]))
 
@@ -9,18 +11,13 @@ class hadronicSkim(analysis.analysis) :
         objects = {}
         fields =                           [ "jet",                "muon",       "muonsInJets", "jetPtMin"]
         objects["calo"] = dict(zip(fields, [("xcak5Jet","Pat"),   ("muon","Pat"),        False,      30.0 ]))
-        objects["jpt"]  = dict(zip(fields, [("xcak5JetJPT","Pat"),("muon","Pat"),         True,      30.0 ]))
-        objects["pf"]   = dict(zip(fields, [("xcak5JetPF","Pat"), ("muon","Pat"),         True,      30.0 ]))
+        #objects["pf"]   = dict(zip(fields, [("xcak5JetPF","Pat"), ("muon","Pat"),         True,      30.0 ]))
         return {"recoAlgos": tuple(objects.iteritems())}
 
     def listOfSteps(self, params) :
         stepList = [
             steps.Print.progressPrinter(2,300),
-            steps.Trigger.techBitFilter([0],True),
-            steps.Trigger.physicsDeclared(),
-            steps.Other.vertexRequirementFilter(),
-            steps.Other.monsterEventFilter(),
-            steps.Jet.htSelector(nameList(params["recoAlgos"], "jet"), 350.0),
+            steps.Jet.htSelector(nameList(params["recoAlgos"], "jet"), 250.0),
             steps.Other.skimmer(),
             ]
         return stepList
@@ -28,7 +25,6 @@ class hadronicSkim(analysis.analysis) :
     def calcListJet(self, obj) :
         outList = [
             calculables.XClean.xcJet(obj["jet"],
-                                     applyResidualCorrectionsToData = True,
                                      gamma = None,
                                      gammaDR = 0.5,
                                      muon = obj["muon"],
@@ -52,20 +48,12 @@ class hadronicSkim(analysis.analysis) :
 
         return outList
     
-    def listOfSamples(self,params) :
+    def listOfSamples(self, params) :
         from samples import specify
-        return [
-            specify(name = "JetMETTau.Run2010A-Nov4ReReco_v1.RECO.Burt"),
-            specify(name = "JetMET.Run2010A-Nov4ReReco_v1.RECO.Burt"),
-            specify(name = "Jet.Run2010B-Nov4ReReco_v1.RECO.Burt"),
-            specify(name = "MultiJet.Run2010B-Nov4ReReco_v1.RECO.Burt"),
-            specify(name = "Jet.Run2010B-Nov4ReReco_v1.RECO.Henning"),
-            specify(name = "JetMETTau.Run2010A-Nov4ReReco_v1.RECO.Henning"),
-            ]
+        return specify(names = "zinv_jets_mg")
 
     def listOfSampleDictionaries(self) :
-        return [samples.jetmet,samples.mc]
+        return [samples.MC.mc]
 
-    def conclude(self) :
-        org = organizer.organizer( self.sampleSpecs() )
-        utils.printSkimResults(org)
+    def conclude(self, config) :
+        utils.printSkimResults(self.organizer(config))

@@ -87,6 +87,9 @@ mc.add("zinv_jets_mg",'%s/henning//ICF/automated/2011_04_13_12_16_30/")'%srm, xs
 mc.add("dyll_jets_mg", '%s/gouskos//ICF/automated/2011_05_02_12_39_53/DYJetsToLL_TuneZ2_M-50_7TeV-madgraph-tauola.Spring11-PU_S1_START311_V1G1-v1.AODSIM ")'%srm,
        xs = {"LO":2321.0, "NNLO":3048}["NNLO"])
 
+mc.add("zinv_jets_mg_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/29_skims/07_zinv/v1/zinv_jets_mg_*_skim.root", isDirectory = False)', xs = 2.353024e-03 * 5.715000e+03)
+
+
 #PYTHIA
 mc.add("tt_tauola_pythia",'%s%s/TT_TuneZ2_7TeV-pythia6-tauola.%s")'%(srm,burt_ttbar,spring11pu), xs = {"LO":94, "BurtGuessNLO":122}["BurtGuessNLO"])
 mc.add("w_enu", '%s%s/WToENu_TuneZ2_7TeV-pythia6.%s)'%(srm,burt_ewk,spring11pu),            xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
