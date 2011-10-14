@@ -132,15 +132,14 @@ class analysisLooper :
         for step in self.steps :
             step.setOutputFileStem(self.outputFileStem)
             step.setInputFileStem(self.inputFileStem)
+            step.priorFilters = set(priorFilters)
+            if step.isSelector and step!=self.steps[0] : priorFilters.append((step.name,step.moreNames))
+            if minimal : continue
+
             current = current.mkdir(step.name)
             step.book = autoBook(current)
-            step.tracer = wrappedChain.keyTracer(None) if configuration.trace() and (step.isSelector or issubclass(type(step),wrappedChain.wrappedChain.calculable)) else None
-            step.priorFilters = set(priorFilters)
-
             self.steps[0].books.append(step.book)
-            if step.isSelector and step!=self.steps[0] : priorFilters.append((step.name,step.moreNames))
-
-            if minimal : continue
+            step.tracer = wrappedChain.keyTracer(None) if configuration.trace() and (step.isSelector or issubclass(type(step),wrappedChain.wrappedChain.calculable)) else None
             if self.quietMode : step.makeQuiet()
             assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.name
             step.setup(self.chains[self.mainTree], self.mainTree[0])
