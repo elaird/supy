@@ -60,6 +60,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             calculables.Other.Discriminant( fixes = ("","TopW"),
                                             left = {"pre":"w_jets_fj_mg", "tag":"top_muon_pf", "samples":[]},
                                             right = {"pre":"tt_tauola_fj", "tag":"top_muon_pf", "samples": ['tt_tauola_fj.%s.nvr'%s for s in ['wNonQQbar','wTopAsymP00']]},
+                                            correlations = True,
                                             dists = {"%sKt%s"%obj["jet"] : (25,0,150),
                                                      "%sB0pt%s"%obj["jet"] : (30,0,300),
                                                      "%s3absEta%s"%obj["jet"] : (20,0,4),
@@ -72,6 +73,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             calculables.Other.Discriminant( fixes = ("","TopQCD"),
                                             left = {"pre":"SingleMu", "tag":"QCD_muon_pf", "samples":[]},
                                             right = {"pre":"tt_tauola_fj", "tag":"top_muon_pf", "samples": ['tt_tauola_fj.%s.nvr'%s for s in ['wNonQQbar','wTopAsymP00']]},
+                                            correlations = True,
                                             dists = {"%sKt%s"%obj["jet"] : (25,0,150),
                                                      "%sB0pt%s"%obj["jet"] : (30,0,300),
                                                      "%s3absEta%s"%obj["jet"] : (20,0,4),
@@ -84,6 +86,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             calculables.Other.Discriminant( fixes = ("","WQCD"),
                                             left = {"pre":"w_jets_fj_mg", "tag":"top_muon_pf", "samples":[]},
                                             right = {"pre":"SingleMu", "tag":"QCD_muon_pf", "samples":[]},
+                                            correlations = True,
                                             dists = {"%sB0pt%s"%obj["jet"] : (30,0,300),
                                                      "%sMt%s"%obj['muon']+"mixedSumP4" : (30,0,180),
                                                      "%sDeltaPhiB01%s"%obj["jet"] : (20,0,math.pi),
@@ -164,8 +167,9 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.N30", "color":r.kRed}, sources = ["tt_tauola_fj.wTopAsymN30.nvr","tt_tauola_fj.wNonQQbar.nvr"][:1])
         org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.P30", "color":r.kGreen}, sources = ["tt_tauola_fj.wTopAsymP30.nvr","tt_tauola_fj.wNonQQbar.nvr"][:1])
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+2}, sources = ["qcd_py6","t#bar{t}","w_jets_fj_mg.nvr"], keepSources = True)
+        for ss in filter(lambda ss: 'tt_tauola' in ss['name'],org.samples) : org.drop(ss['name'])
 
-        print "\n\nPrepare for barf...\n"; orgpdf = copy.deepcopy(org); print "\n...yuck!\n\n"
+        orgpdf = copy.deepcopy(org)
         orgpdf.scale( toPdf = True )
         org.scale( lumiToUseInAbsenceOfData = 1.1e3 )
 
@@ -281,6 +285,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         self.orgMeldedNorm = melded
         
     def templateFit(self, var, qqFrac = 0.15) :
+        if not hasattr(self,'orgMeldedNorm') : return
         org = self.orgMeldedNorm
         nEvents = self.nEventsObserved
 
