@@ -275,15 +275,15 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         
         for org in organizers : org.scale(toPdf=True)
             
-        melded = organizer.organizer.meld(organizers = organizers)
+        self.orgMeldedNorm= organizer.organizer.meld(organizers = organizers)
+        melded = copy.deepcopy(self.orgMeldedNorm)
+        for ss in filter(lambda ss: 'tt_tauola_fj' in ss['name'], melded.samples) : melded.drop(ss['name'])
         pl = plotter.plotter(melded, psFileName = self.psFileName(melded.tag),
                              doLog = False,
                              blackList = ["lumiHisto","xsHisto","nJobsHisto"],
                              rowColors = self.rowcolors,
                              ).plotAll()
-
-        self.orgMeldedNorm = melded
-        
+    
     def templateFit(self, var, qqFrac = 0.15) :
         if not hasattr(self,'orgMeldedNorm') : return
         org = self.orgMeldedNorm
