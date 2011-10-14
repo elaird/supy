@@ -251,19 +251,23 @@ class analysis(object) :
         if looper.readyMerge(nSlices) : looper.mergeFunc(nSlices)
 
 ############
+
     def manageSecondaries(self,update) :
+        def manage(conf,secondary) :
+            org = self.organizer(conf)
+            index = next(org.indicesOfStep(secondary.name,secondary.moreNames), next(org.indicesOfStep(secondary.name),None))
+            if index==None :
+                print " !! Not found: %s    %s"%(secondary.name,secondary.moreNames)
+                return
+            org.dropSteps( allButIndices = [index])
+            if update==True or (type(update)==str and secondary.name in update.split(',')) :
+                secondary.doCache(org)
+            else : secondary.checkCache(org)
+
         if self.__nocheck : return
-        for conf in self.readyConfs :
-            loopers = self.listsOfLoopers[conf['tag']]
-            for secondary in filter(self.isSecondary, loopers[0].steps) :
-                org = self.organizer(conf)
-                index = next(org.indicesOfStep(secondary.name,secondary.moreNames), next(org.indicesOfStep(secondary.name),None))
-                if index==None :
-                    print " !! Not found: %s    %s"%(secondary.name,secondary.moreNames)
-                    continue
-                org.dropSteps( allButIndices = [index])
-                if update==True or (type(update)==str and secondary.name in update.split(',')) :
-                    secondary.doCache(org)
-                else : secondary.checkCache(org)
+        confLoopers = [(conf,self.listsOfLoopers[conf['tag']][0]) for conf in self.readyConfs]
+        for _,looper in confLoopers : looper.setupSteps(minimal = True, withBook = False)
+        args = sum([[(conf,secondary) for secondary in filter(self.isSecondary, looper.steps)] for conf,looper in confLoopers],[])
+        utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(manage), args)
 
     def isSecondary(self,step) : return issubclass(type(step),wrappedChain.wrappedChain.calculable)
