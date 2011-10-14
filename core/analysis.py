@@ -266,7 +266,7 @@ class analysis(object) :
 
         if self.__nocheck : return
         confLoopers = [(conf,self.listsOfLoopers[conf['tag']][0]) for conf in self.readyConfs]
-        for _,looper in confLoopers : looper.setupSteps(minimal = True)
+        for _,looper in confLoopers : looper.setupSteps(minimal = True, withBook = False)
         args = sum([[(conf,secondary) for secondary in filter(self.isSecondary, looper.steps)] for conf,looper in confLoopers],[])
         utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(manage), args)
 

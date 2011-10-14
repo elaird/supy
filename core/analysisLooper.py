@@ -123,7 +123,7 @@ class analysisLooper :
                 utils.delete(hist)
                 #del step.book[name]
         
-    def setupSteps(self, minimal = False) :
+    def setupSteps(self, withBook = True, minimal = False) :
         r.gROOT.cd()
         current = r.gDirectory
         priorFilters = []
@@ -134,11 +134,13 @@ class analysisLooper :
             step.setInputFileStem(self.inputFileStem)
             step.priorFilters = set(priorFilters)
             if step.isSelector and step!=self.steps[0] : priorFilters.append((step.name,step.moreNames))
-            if minimal : continue
 
-            current = current.mkdir(step.name)
-            step.book = autoBook(current)
-            self.steps[0].books.append(step.book)
+            if withBook : 
+                current = current.mkdir(step.name)
+                step.book = autoBook(current)
+                self.steps[0].books.append(step.book)
+
+            if minimal : continue
             step.tracer = wrappedChain.keyTracer(None) if configuration.trace() and (step.isSelector or issubclass(type(step),wrappedChain.wrappedChain.calculable)) else None
             if self.quietMode : step.makeQuiet()
             assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.name
