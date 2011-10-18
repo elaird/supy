@@ -331,11 +331,11 @@ class photonLook(analysis.analysis) :
 
     def qcdMgNames(self) :
         l = ["100", "250", "500", "1000", "inf"]
-        return ["qcd_mg_ht_%s_%s_skim"%(a,b) for a,b in zip(l[:-1], l[1:])]
+        return ["qcd_mg_ht_%s_%s_spring11_skim"%(a,b) for a,b in zip(l[:-1], l[1:])]
 
     def gJetsMgNames(self) :
         l = ["40", "100", "200", "inf"]
-        return ["g_jets_mg_ht_%s_%s_skim"%(a,b) for a,b in zip(l[:-1], l[1:])]
+        return ["g_jets_mg_ht_%s_%s_spring11_skim"%(a,b) for a,b in zip(l[:-1], l[1:])]
 
     #def qcdPyNames(self) : #full samples
     #    l = ["15", "30", "50", "80", "120", "170", "300", "470", "600", "800", "1000", "1400", "1800"]
