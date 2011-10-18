@@ -48,6 +48,7 @@ class organizer(object) :
         r.gROOT.cd()
         self.verbose = verbose
         self.scaled = False
+        self.doNotScale = ["lumiHisto","xsHisto","xsPostWeightsHisto","nJobsHisto","nEventsHisto"]
         self.lumi = 1.0
         self.tag = tag
         self.samples = tuple(copy.deepcopy(sampleSpecs)) # columns
@@ -67,7 +68,7 @@ class organizer(object) :
         for org in organizers : org.tag = '_'.join(filter(lambda st: st not in subTags, org.tag.split('_')))
         tag = '_'.join([tagprefix]+sorted(subTags, key = lambda x:ordering.index(x)))
 
-        if len(set(org.lumi for org in organizers if org.lumi))!=1 :
+        if len(set(org.lumi for org in organizers if org.lumi)) > 1 :
             print "Warning: melding organizers with distinct lumi values, using max."
             print [org.lumi for org in organizers if org.lumi]
         sizes = [len(org.samples) for org in organizers]
@@ -124,8 +125,8 @@ class organizer(object) :
         self.__steps = tuple(steps + [self.step(self.samples)])
         return self.__steps
 
-    def mergeSamples(self,sources = [], targetSpec = {}, keepSources = False, allWithPrefix = None) :
-        assert not self.scaled, "Merge must be called before calling scale."
+    def mergeSamples(self,sources = [], targetSpec = {}, keepSources = False, allWithPrefix = None, force = False) :
+        assert force or not self.scaled, "Merge must be called before calling scale."
 
         if not sources and allWithPrefix: sources = [s["name"] for s in self.samples if re.match(allWithPrefix,s["name"])]
         sourceIndices = [i for i in range(len(self.samples)) if self.samples[i]["name"] in sources]
@@ -145,6 +146,7 @@ class organizer(object) :
         elif all(["lumi" in s for s in sources]):
             target["lumiOfSources"] = [s["lumi"] for s in sources ]
             target["lumi"] = sum(target['lumiOfSources'])
+        elif force: pass
         else: raise Exception("Cannot merge data with sim")
         
         def tuplePopInsert(orig, item) :
@@ -177,7 +179,7 @@ class organizer(object) :
 
         for step in self.steps :
             for key,hists in step.iteritems() :
-                if key in ["lumiHisto","xsHisto","xsPostWeightsHisto","nJobsHisto","nEventsHisto"] : continue
+                if key in self.doNotScale : continue
                 for i,h in enumerate(hists):
                     if not h: continue
                     if toPdf :
@@ -188,6 +190,14 @@ class organizer(object) :
                     axis = h.GetYaxis() if dim==1 else h.GetZaxis() if dim==2 else None
                     if axis: axis.SetTitle("p.d.f." if toPdf else "%s / %s pb^{-1}"%(axis.GetTitle(),str(self.lumi)))
         self.scaled = True
+
+    def scaleOneRaw(self, index, factor) :
+        for step in self.steps :
+            for key,hists in step.iteritems() :
+                if key in self.doNotScale : continue
+                if not hists[index] : continue
+                hists[index].Scale(factor)
+        self.scaled = True                
 
     def drop(self,sampleName) :
         index = self.indexOfSampleWithName(sampleName)
