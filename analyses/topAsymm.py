@@ -149,16 +149,16 @@ class topAsymm(topAsymmShell.topAsymmShell) :
     ########################################################################################
     def concludeAll(self) :
         self.rowcolors = [r.kBlack, r.kGray+3, r.kGray+2, r.kGray+1, r.kViolet+4]
-        super(topAsymm,self).concludeAll()
+#        super(topAsymm,self).concludeAll()
         self.meldNorm()
-        self.meldWpartitions()
-        self.meldQCDpartitions()
-        for var in ['lHadtDeltaY',
-                    'leptonRelativeY',
-                    'ttbarBeta',
-                    'ttbarDeltaAbsY',
-                    'ttbarSignedDeltaY' ] : self.templateFit(var)
-
+#        self.meldWpartitions()
+#        self.meldQCDpartitions()
+#        for var in ['lHadtDeltaY',
+#                    'leptonRelativeY',
+#                    'ttbarBeta',
+#                    'ttbarDeltaAbsY',
+#                    'ttbarSignedDeltaY' ] : self.templateFit(var)
+#
     def conclude(self,pars) :
         org = self.organizer(pars)
         org.mergeSamples(targetSpec = {"name":"Data 2011", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu")
@@ -180,12 +180,13 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                   "sampleLabelsForRatios" : ("data","s.m."),
                   "detailedCalculables" : True,
                   "rowColors" : self.rowcolors,
-                  "dependence2D" : True
                   }
         
         plotter.plotter(org, psFileName = self.psFileName(org.tag+"_log"),  doLog = True, pegMinimum = 0.01, **kwargs ).plotAll()
         plotter.plotter(org, psFileName = self.psFileName(org.tag+"_nolog"), doLog = False, **kwargs ).plotAll()
+
         kwargs["samplesForRatios"] = ("","")
+        kwargs["dependence2D"] = True
         plotter.plotter(orgpdf, psFileName = self.psFileName(org.tag+"_pdf"), doLog = False, **kwargs ).plotAll()
 
     def meldWpartitions(self) :
@@ -241,12 +242,11 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kViolet}, sources=["tt_tauola_fj.wNonQQbar.nvr","tt_tauola_fj.wTopAsymP00.nvr"], keepSources = True)
             org.mergeSamples(targetSpec = {"name":"w_jets", "color":r.kRed}, allWithPrefix = "w_jets")
             org.mergeSamples(targetSpec = {"name":"Data 2011",
-                                           "color":r.kBlue if "qcd_" in org.tag else r.kBlack,
+                                           "color":r.kBlue if "QCD_" in org.tag else r.kBlack,
                                            "markerStyle":(20 if "top" in org.tag else 1)}, allWithPrefix="SingleMu")
-            
+        dist = "TriDiscriminant"
         if True :
             templates = [None]
-            dist = "TriDiscriminant"
             for org in organizers :
                 before = next(org.indicesOfStep("label","selection complete"))
                 distTup = org.steps[next(iter(filter(lambda i: before<i, org.indicesOfStepsWithKey(dist))))][dist]
@@ -272,16 +272,27 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             contours[0].Print(outDir+"/contours.eps")
             os.system("epstopdf %s/contours.eps"%outDir)
             os.system("rm %s/contours.eps"%outDir)
-        
-        for org in organizers : org.scale(toPdf=True)
-            
+
         self.orgMeldedNorm= organizer.organizer.meld(organizers = organizers)
+        before = next(self.orgMeldedNorm.indicesOfStep("label","selection complete"))
+        distTup = self.orgMeldedNorm.steps[next(iter(filter(lambda i: before<i, self.orgMeldedNorm.indicesOfStepsWithKey(dist))))][dist]
+        iData = [ss['name'] for ss in self.orgMeldedNorm.samples].index("top.Data 2011")
+        nBins = distTup[iData].GetNbinsX()
+        nDataDist = distTup[iData].Integral(0,nBins+1)
+        for iSample,sample in enumerate(self.orgMeldedNorm.samples) :
+            if sample['name'] == "top.w_jets" : self.orgMeldedNorm.scaleOneRaw(iSample, self.fraction['wjets'] * nDataDist / distTup[iSample].Integral(0,nBins+1))
+            if sample['name'] == "top.t#bar{t}": self.orgMeldedNorm.scaleOneRaw(iSample, self.fraction['top'] * nDataDist / distTup[iSample].Integral(0,nBins+1))
+            if sample['name'] == 'QCD.Data 2011': self.orgMeldedNorm.scaleOneRaw(iSample, self.fraction['qcd'] * nDataDist / distTup[iSample].Integral(0,nBins+1))
+        
         melded = copy.deepcopy(self.orgMeldedNorm)
         for ss in filter(lambda ss: 'tt_tauola_fj' in ss['name'], melded.samples) : melded.drop(ss['name'])
+        melded.mergeSamples(targetSpec = {"name":"S.M.", "color":r.kGreen+2}, sources = ['top.w_jets','top.t#bar{t}','QCD.Data 2011'], keepSources = True, force = True)
         pl = plotter.plotter(melded, psFileName = self.psFileName(melded.tag),
                              doLog = False,
                              blackList = ["lumiHisto","xsHisto","nJobsHisto"],
                              rowColors = self.rowcolors,
+                             samplesForRatios = ("top.Data 2011","S.M."),
+                             sampleLabelsForRatios = ('data','s.m.')
                              ).plotAll()
     
     def templateFit(self, var, qqFrac = 0.15) :
