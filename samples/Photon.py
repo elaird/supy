@@ -17,6 +17,8 @@ photon.add("Photon.Run2011B-PromptReco-v1.AOD.Bryn2",    '%s/bm409/ICF/automated
            lumi = 1.0) #job 519,  259/ 260 completed
 photon.add("Photon.Run2011B-PromptReco-v1.AOD.Bryn3",    '%s/bm409/ICF/automated/2011_10_03_12_23_10/Photon.Run2011B-PromptReco-v1.AOD")'%srm,
            lumi = 1.0) #job 531,  313/ 338 completed
+#photon.add("Photon.Run2011B-PromptReco-v1.AOD.Bryn4",    '%s/bm409//ICF/automated/2011_10_17_12_55_58/Photon.Run2011B-PromptReco-v1.AOD")'%srm,
+#           lumi = 1.0) #job 570,   82/ 432 completed
 
 ### EPS below ###
 

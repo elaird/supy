@@ -101,11 +101,20 @@ mc.add("z_nunu",  '%s/henning//ICF/automated/2011_04_15_10_55_57/")'%srm, xs = 4
 #MG (L2L3)
 #gJetMg = "/elaird//ICF/automated/2011_04_04_11_45_04/"
 gJetMg = "/bm409//ICF/automated/2011_06_08_16_42_46/"
-mc.add("g_jets_mg_ht_40_100",'%s/%s/GJets_TuneD6T_HT-40To100_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
+mc.add("g_jets_mg_ht_40_100_spring11",'%s/%s/GJets_TuneD6T_HT-40To100_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
        xs = {"LO":23620, "fakeNLO":23620*mgKFactor}["fakeNLO"])
-mc.add("g_jets_mg_ht_100_200",'%s/%s/GJets_TuneD6T_HT-100To200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
+mc.add("g_jets_mg_ht_100_200_spring11",'%s/%s/GJets_TuneD6T_HT-100To200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
        xs = {"LO":3476, "fakeNLO":3476*mgKFactor}["fakeNLO"])
-mc.add("g_jets_mg_ht_200_inf"   ,'%s/%s/GJets_TuneD6T_HT-200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
+mc.add("g_jets_mg_ht_200_inf_spring11"   ,'%s/%s/GJets_TuneD6T_HT-200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
+       xs = {"LO":485, "fakeNLO":485*mgKFactor}["fakeNLO"])
+
+#MG (L1FastJetL2L3)
+gJetMg = "/elaird//ICF/automated/2011_10_14_14_40_23/"
+mc.add("g_jets_mg_ht_40_100_summer11",  '%s/%s/GJets_TuneZ2_40_HT_100_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, gJetMg),
+       xs = {"LO":23620, "fakeNLO":23620*mgKFactor}["fakeNLO"])
+mc.add("g_jets_mg_ht_100_200_summer11", '%s/%s/GJets_TuneZ2_100_HT_200_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, gJetMg),
+       xs = {"LO":3476, "fakeNLO":3476*mgKFactor}["fakeNLO"])
+mc.add("g_jets_mg_ht_200_inf_summer11", '%s/%s/GJets_TuneZ2_200_HT_inf_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, gJetMg),
        xs = {"LO":485, "fakeNLO":485*mgKFactor}["fakeNLO"])
 
 #MG (L1OffsetL2L3)
