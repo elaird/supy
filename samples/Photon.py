@@ -17,6 +17,8 @@ photon.add("Photon.Run2011B-PromptReco-v1.AOD.Bryn2",    '%s/bm409/ICF/automated
            lumi = 1.0) #job 519,  259/ 260 completed
 photon.add("Photon.Run2011B-PromptReco-v1.AOD.Bryn3",    '%s/bm409/ICF/automated/2011_10_03_12_23_10/Photon.Run2011B-PromptReco-v1.AOD")'%srm,
            lumi = 1.0) #job 531,  313/ 338 completed
+#photon.add("Photon.Run2011B-PromptReco-v1.AOD.Bryn4",    '%s/bm409//ICF/automated/2011_10_17_12_55_58/Photon.Run2011B-PromptReco-v1.AOD")'%srm,
+#           lumi = 1.0) #job 570,   82/ 432 completed
 
 ### EPS below ###
 
@@ -57,16 +59,21 @@ dir = "/vols/cms02/elaird1/29_skims/04_photons/v4_80_gev_pt_twiki_loose"
 photon.add("Photon.Run2011A-PromptReco-v4.AOD.Rob4_80gev_skim", 'utils.fileListFromDisk(location = "%s/Photon.Run2011A-PromptReco-v4.AOD.Rob4_*_skim.root", isDirectory = False)'%dir, lumi = 1.000000e+00)
 
 #MC skims (L2L3)
-
 dir = "/vols/cms02/elaird1/29_skims/04_photons/v3"
-photon.add("qcd_mg_ht_100_250_skim",    'utils.fileListFromDisk(location = "%s/qcd_mg_ht_100_250_*_skim.root", isDirectory = False)'%dir,    xs = 3.993528e-06 * 8.890000e+06)
-photon.add("qcd_mg_ht_250_500_skim",    'utils.fileListFromDisk(location = "%s/qcd_mg_ht_250_500_*_skim.root", isDirectory = False)'%dir,    xs = 2.616362e-04 * 2.171700e+05)
-photon.add("qcd_mg_ht_500_1000_skim",   'utils.fileListFromDisk(location = "%s/qcd_mg_ht_500_1000_*_skim.root", isDirectory = False)'%dir,   xs = 3.590070e-04 * 6.604000e+03)
-photon.add("qcd_mg_ht_1000_inf_skim",   'utils.fileListFromDisk(location = "%s/qcd_mg_ht_1000_inf_*_skim.root", isDirectory = False)'%dir,   xs = 3.015362e-04 * 1.054100e+02)
+photon.add("qcd_mg_ht_100_250_spring11_skim",    'utils.fileListFromDisk(location = "%s/qcd_mg_ht_100_250_*_skim.root", isDirectory = False)'%dir,    xs = 3.993528e-06 * 8.890000e+06)
+photon.add("qcd_mg_ht_250_500_spring11_skim",    'utils.fileListFromDisk(location = "%s/qcd_mg_ht_250_500_*_skim.root", isDirectory = False)'%dir,    xs = 2.616362e-04 * 2.171700e+05)
+photon.add("qcd_mg_ht_500_1000_spring11_skim",   'utils.fileListFromDisk(location = "%s/qcd_mg_ht_500_1000_*_skim.root", isDirectory = False)'%dir,   xs = 3.590070e-04 * 6.604000e+03)
+photon.add("qcd_mg_ht_1000_inf_spring11_skim",   'utils.fileListFromDisk(location = "%s/qcd_mg_ht_1000_inf_*_skim.root", isDirectory = False)'%dir,   xs = 3.015362e-04 * 1.054100e+02)
 
-photon.add("g_jets_mg_ht_40_100_skim",  'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_40_100_*_skim.root", isDirectory = False)'%dir,  xs = 8.443371e-05 * 2.999740e+04)
-photon.add("g_jets_mg_ht_100_200_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_*_skim.root", isDirectory = False)'%dir, xs = 3.710456e-02 * 4.414520e+03)
-photon.add("g_jets_mg_ht_200_inf_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_200_inf_*_skim.root", isDirectory = False)'%dir, xs = 8.309607e-02 * 6.159500e+02)
+photon.add("g_jets_mg_ht_40_100_spring11_skim",  'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_40_100_*_skim.root", isDirectory = False)'%dir,  xs = 8.443371e-05 * 2.999740e+04)
+photon.add("g_jets_mg_ht_100_200_spring11_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_*_skim.root", isDirectory = False)'%dir, xs = 3.710456e-02 * 4.414520e+03)
+photon.add("g_jets_mg_ht_200_inf_spring11_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_200_inf_*_skim.root", isDirectory = False)'%dir, xs = 8.309607e-02 * 6.159500e+02)
+
+#MC skims (L1FastJetL2L3)
+dir = "/vols/cms02/elaird1/29_skims/04_photons/v6"
+photon.add("g_jets_mg_ht_40_100_summer11_skim",  'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_40_100_summer11_*_skim.root", isDirectory = False)'%dir,  xs = 1.114472e-04 * 2.999740e+04)
+photon.add("g_jets_mg_ht_100_200_summer11_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_summer11_*_skim.root", isDirectory = False)'%dir, xs = 3.303680e-02 * 4.414520e+03)
+photon.add("g_jets_mg_ht_200_inf_summer11_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_200_inf_summer11_*_skim.root", isDirectory = False)'%dir, xs = 8.159796e-02 * 6.159500e+02)
 
 #MG EWK/TT
 dir = "/vols/cms02/elaird1/29_skims/04_photons/v1"

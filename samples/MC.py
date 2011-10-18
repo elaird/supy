@@ -89,6 +89,17 @@ mc.add("dyll_jets_mg", '%s/gouskos//ICF/automated/2011_05_02_12_39_53/DYJetsToLL
 
 mc.add("zinv_jets_mg_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/29_skims/07_zinv/v1/zinv_jets_mg_*_skim.root", isDirectory = False)', xs = 2.353024e-03 * 5.715000e+03)
 
+#MG Summer '11 Z->nunu
+zNunuLoc = "/dburton//ICF/automated/2011_10_10_13_33_29/"
+mc.add("znunu_jets_mg_ht_50_100",  '%s/%s/ZJetsToNuNu_50_HT_100_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM_")'%(srm, zNunuLoc), xs = 1.0)
+mc.add("znunu_jets_mg_ht_100_200", '%s/%s/ZJetsToNuNu_100_HT_200_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, zNunuLoc), xs = 1.0)
+mc.add("znunu_jets_mg_ht_200_inf", '%s/%s/ZJetsToNuNu_200_HT_inf_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, zNunuLoc), xs = 1.0)
+
+dir = "/vols/cms02/elaird1/29_skims/07_zinv/v2"
+mc.add("znunu_jets_mg_ht_50_100_skim",  'utils.fileListFromDisk(location = "%s/znunu_jets_mg_ht_50_100_*_skim.root", isDirectory = False)'%dir,  xs = 1.288242e-03 * 1.000000e+00)
+mc.add("znunu_jets_mg_ht_100_200_skim", 'utils.fileListFromDisk(location = "%s/znunu_jets_mg_ht_100_200_*_skim.root", isDirectory = False)'%dir, xs = 9.922905e-03 * 1.000000e+00)
+mc.add("znunu_jets_mg_ht_200_inf_skim", 'utils.fileListFromDisk(location = "%s/znunu_jets_mg_ht_200_inf_*_skim.root", isDirectory = False)'%dir, xs = 5.364460e-01 * 1.000000e+00)
+
 
 #PYTHIA
 mc.add("tt_tauola_pythia",'%s%s/TT_TuneZ2_7TeV-pythia6-tauola.%s")'%(srm,burt_ttbar,spring11pu), xs = {"LO":94, "BurtGuessNLO":122}["BurtGuessNLO"])
@@ -101,11 +112,20 @@ mc.add("z_nunu",  '%s/henning//ICF/automated/2011_04_15_10_55_57/")'%srm, xs = 4
 #MG (L2L3)
 #gJetMg = "/elaird//ICF/automated/2011_04_04_11_45_04/"
 gJetMg = "/bm409//ICF/automated/2011_06_08_16_42_46/"
-mc.add("g_jets_mg_ht_40_100",'%s/%s/GJets_TuneD6T_HT-40To100_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
+mc.add("g_jets_mg_ht_40_100_spring11",'%s/%s/GJets_TuneD6T_HT-40To100_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
        xs = {"LO":23620, "fakeNLO":23620*mgKFactor}["fakeNLO"])
-mc.add("g_jets_mg_ht_100_200",'%s/%s/GJets_TuneD6T_HT-100To200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
+mc.add("g_jets_mg_ht_100_200_spring11",'%s/%s/GJets_TuneD6T_HT-100To200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
        xs = {"LO":3476, "fakeNLO":3476*mgKFactor}["fakeNLO"])
-mc.add("g_jets_mg_ht_200_inf"   ,'%s/%s/GJets_TuneD6T_HT-200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
+mc.add("g_jets_mg_ht_200_inf_spring11"   ,'%s/%s/GJets_TuneD6T_HT-200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
+       xs = {"LO":485, "fakeNLO":485*mgKFactor}["fakeNLO"])
+
+#MG (L1FastJetL2L3)
+gJetMg = "/elaird//ICF/automated/2011_10_14_14_40_23/"
+mc.add("g_jets_mg_ht_40_100_summer11",  '%s/%s/GJets_TuneZ2_40_HT_100_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, gJetMg),
+       xs = {"LO":23620, "fakeNLO":23620*mgKFactor}["fakeNLO"])
+mc.add("g_jets_mg_ht_100_200_summer11", '%s/%s/GJets_TuneZ2_100_HT_200_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, gJetMg),
+       xs = {"LO":3476, "fakeNLO":3476*mgKFactor}["fakeNLO"])
+mc.add("g_jets_mg_ht_200_inf_summer11", '%s/%s/GJets_TuneZ2_200_HT_inf_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, gJetMg),
        xs = {"LO":485, "fakeNLO":485*mgKFactor}["fakeNLO"])
 
 #MG (L1OffsetL2L3)
