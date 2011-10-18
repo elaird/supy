@@ -87,7 +87,7 @@ mc.add("zinv_jets_mg",'%s/henning//ICF/automated/2011_04_13_12_16_30/")'%srm, xs
 mc.add("dyll_jets_mg", '%s/gouskos//ICF/automated/2011_05_02_12_39_53/DYJetsToLL_TuneZ2_M-50_7TeV-madgraph-tauola.Spring11-PU_S1_START311_V1G1-v1.AODSIM ")'%srm,
        xs = {"LO":2321.0, "NNLO":3048}["NNLO"])
 
-mc.add("zinv_jets_mg_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/29_skims/07_zinv/v1/zinv_jets_mg_*_skim.root", isDirectory = False)', xs = 2.353024e-03 * 5.715000e+03)
+mc.add("zinv_jets_mg_spring11_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/29_skims/07_zinv/v1/zinv_jets_mg_*_skim.root", isDirectory = False)', xs = 2.353024e-03 * 5.715000e+03)
 
 #MG Summer '11 Z->nunu
 zNunuLoc = "/dburton//ICF/automated/2011_10_10_13_33_29/"
