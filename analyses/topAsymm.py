@@ -149,10 +149,10 @@ class topAsymm(topAsymmShell.topAsymmShell) :
     ########################################################################################
     def concludeAll(self) :
         self.rowcolors = [r.kBlack, r.kGray+3, r.kGray+2, r.kGray+1, r.kViolet+4]
-#        super(topAsymm,self).concludeAll()
-        self.meldNorm()
-#        self.meldWpartitions()
-#        self.meldQCDpartitions()
+        super(topAsymm,self).concludeAll()
+        self.meldScale()
+        self.meldWpartitions()
+        self.meldQCDpartitions()
 #        for var in ['lHadtDeltaY',
 #                    'leptonRelativeY',
 #                    'ttbarBeta',
@@ -229,62 +229,52 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                              rowColors = self.rowcolors,
                              ).plotAll()
 
-    def meldNorm(self) :
-        meldSamples = {#"top_muon_pf" : ["SingleMu","P00","NonQQbar","w_jets"],
-                       "top_muon_pf" : ["SingleMu","tt_tauola_fj","w_jets"],
+    def meldScale(self) :
+        meldSamples = {"top_muon_pf" : ["SingleMu","tt_tauola_fj","w_jets"],
                        #"Wlv_muon_pf" : ["w_jets"],
                        "QCD_muon_pf" : ["SingleMu"]}
-
+        
         organizers = [organizer.organizer(tag, [s for s in self.sampleSpecs(tag) if any(item in s['name'] for item in meldSamples[tag])])
                       for tag in [p['tag'] for p in self.readyConfs if p["tag"] in meldSamples]]
-        if len(organizers) < 2 : return
+        if len(organizers) < len(meldSamples) : return
         for org in organizers :
             org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kViolet}, sources=["tt_tauola_fj.wNonQQbar.nvr","tt_tauola_fj.wTopAsymP00.nvr"], keepSources = True)
             org.mergeSamples(targetSpec = {"name":"w_jets", "color":r.kRed}, allWithPrefix = "w_jets")
             org.mergeSamples(targetSpec = {"name":"Data 2011",
                                            "color":r.kBlue if "QCD_" in org.tag else r.kBlack,
                                            "markerStyle":(20 if "top" in org.tag else 1)}, allWithPrefix="SingleMu")
-        dist = "TriDiscriminant"
-        if True :
-            templates = [None]
-            for org in organizers :
-                before = next(org.indicesOfStep("label","selection complete"))
-                distTup = org.steps[next(iter(filter(lambda i: before<i, org.indicesOfStepsWithKey(dist))))][dist]
-                for ss,hist in zip(org.samples,distTup) :            
-                    contents = [hist.GetBinContent(i) for i in range(hist.GetNbinsX()+2)]
-                    if "top" in org.tag and ss["name"] is "Data 2011":
-                        observed = contents
-                        self.nEventsObserved = sum(observed)
-                    elif ss["name"] is "t#bar{t}" : templates[0] = contents
-                    elif "tt_tauola_fj" in ss['name'] : pass
-                    else : templates.append(contents)
-            from core import fractions
-            outDir = self.globalStem
-            cs = fractions.componentSolver(observed, templates, 1e4)
-            self.fraction = {"qcd":cs.fractions[2],"wjets":cs.fractions[1],"top":cs.fractions[0]}
-            with open(outDir+"/measuredFractions.txt","w") as file : print >> file, cs
-            with open(outDir+'/templates.txt','w') as file : print >> file, cs.components
-            stuff = fractions.drawComponentSolver(cs)
-            stuff[0].Print(outDir+"/measuredFractions.eps")
-            os.system("epstopdf %s/measuredFractions.eps"%outDir)
-            os.system("rm %s/measuredFractions.eps"%outDir)
-            contours = utils.optimizationContours(cs.components[0], sum(cs.components[1:]), left=True, right=True)
-            contours[0].Print(outDir+"/contours.eps")
-            os.system("epstopdf %s/contours.eps"%outDir)
-            os.system("rm %s/contours.eps"%outDir)
 
-        self.orgMeldedNorm= organizer.organizer.meld(organizers = organizers)
-        before = next(self.orgMeldedNorm.indicesOfStep("label","selection complete"))
-        distTup = self.orgMeldedNorm.steps[next(iter(filter(lambda i: before<i, self.orgMeldedNorm.indicesOfStepsWithKey(dist))))][dist]
-        iData = [ss['name'] for ss in self.orgMeldedNorm.samples].index("top.Data 2011")
-        nBins = distTup[iData].GetNbinsX()
-        nDataDist = distTup[iData].Integral(0,nBins+1)
-        for iSample,sample in enumerate(self.orgMeldedNorm.samples) :
-            if sample['name'] == "top.w_jets" : self.orgMeldedNorm.scaleOneRaw(iSample, self.fraction['wjets'] * nDataDist / distTup[iSample].Integral(0,nBins+1))
-            if sample['name'] == "top.t#bar{t}": self.orgMeldedNorm.scaleOneRaw(iSample, self.fraction['top'] * nDataDist / distTup[iSample].Integral(0,nBins+1))
-            if sample['name'] == 'QCD.Data 2011': self.orgMeldedNorm.scaleOneRaw(iSample, self.fraction['qcd'] * nDataDist / distTup[iSample].Integral(0,nBins+1))
+        self.orgMelded = organizer.organizer.meld(organizers = organizers)
+        dist = "TriDiscriminant"
+        before = next(self.orgMelded.indicesOfStep("label","selection complete"))
+        distTup = self.orgMelded.steps[next(iter(filter(lambda i: before<i, self.orgMelded.indicesOfStepsWithKey(dist))))][dist]
+
+        templateSamples = ['top.t#bar{t}','top.w_jets','QCD.Data 2011']
+        templates = [None] * len(templateSamples)
+        for ss,hist in zip(self.orgMelded.samples,distTup) :
+            contents = [hist.GetBinContent(i) for i in range(hist.GetNbinsX()+2)]
+            if ss['name'] == "top.Data 2011" :
+                observed = contents
+                nEventsObserved = sum(observed)
+            elif ss['name'] in templateSamples :
+                templates[templateSamples.index(ss['name'])] = contents
+            else : pass
         
-        melded = copy.deepcopy(self.orgMeldedNorm)
+        from core.fractions import componentSolver,drawComponentSolver
+        cs = componentSolver(observed, templates, 1e4)
+        csCanvas = drawComponentSolver(cs)
+        contours = utils.optimizationContours(cs.components[0], sum(cs.components[1:]), left=True, right=True)
+        utils.tCanvasPrintPdf(csCanvas[0], "%s/measuredFractions"%self.globalStem)
+        utils.tCanvasPrintPdf(contours[0], "%s/contours"%self.globalStem)
+        with open(self.globalStem+"/measuredFractions.txt","w") as file : print >> file, cs
+        with open(self.globalStem+'/templates.txt','w') as file : print >> file, cs.components
+
+        fractions = dict(zip(templateSamples,cs.fractions))
+        
+        for iSample,ss in enumerate(self.orgMelded.samples) :
+            if ss['name'] in fractions : self.orgMelded.scaleOneRaw(iSample, fractions[ss['name']] * nEventsObserved / distTup[iSample].Integral(0,distTup[iSample].GetNbinsX()+1))
+        
+        melded = copy.deepcopy(self.orgMelded)
         for ss in filter(lambda ss: 'tt_tauola_fj' in ss['name'], melded.samples) : melded.drop(ss['name'])
         melded.mergeSamples(targetSpec = {"name":"S.M.", "color":r.kGreen+2}, sources = ['top.w_jets','top.t#bar{t}','QCD.Data 2011'], keepSources = True, force = True)
         pl = plotter.plotter(melded, psFileName = self.psFileName(melded.tag),
@@ -295,9 +285,11 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                              sampleLabelsForRatios = ('data','s.m.')
                              ).plotAll()
     
+
+
     def templateFit(self, var, qqFrac = 0.15) :
         if not hasattr(self,'orgMeldedNorm') : return
-        org = self.orgMeldedNorm
+        org = self.orgMelded
         nEvents = self.nEventsObserved
 
         iW = org.indexOfSampleWithName("top.w_jets")
