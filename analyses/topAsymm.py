@@ -149,16 +149,16 @@ class topAsymm(topAsymmShell.topAsymmShell) :
     ########################################################################################
     def concludeAll(self) :
         self.rowcolors = [r.kBlack, r.kGray+3, r.kGray+2, r.kGray+1, r.kViolet+4]
-        super(topAsymm,self).concludeAll()
+        #super(topAsymm,self).concludeAll()
+        #self.meldWpartitions()
+        #self.meldQCDpartitions()
         self.meldScale()
-        self.meldWpartitions()
-        self.meldQCDpartitions()
-#        for var in ['lHadtDeltaY',
-#                    'leptonRelativeY',
-#                    'ttbarBeta',
-#                    'ttbarDeltaAbsY',
-#                    'ttbarSignedDeltaY' ] : self.templateFit(var)
-#
+        for var in ['lHadtDeltaY',
+                    'leptonRelativeY',
+                    'ttbarBeta',
+                    'ttbarDeltaAbsY',
+                    'ttbarSignedDeltaY' ] : self.templateFit(var)
+
     def conclude(self,pars) :
         org = self.organizer(pars)
         org.mergeSamples(targetSpec = {"name":"Data 2011", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu")
@@ -288,35 +288,34 @@ class topAsymm(topAsymmShell.topAsymmShell) :
 
 
     def templateFit(self, var, qqFrac = 0.15) :
-        if not hasattr(self,'orgMeldedNorm') : return
+        if not hasattr(self,'orgMelded') : print 'orgMelded is not present!' ; return
         org = self.orgMelded
-        nEvents = self.nEventsObserved
 
-        iW = org.indexOfSampleWithName("top.w_jets")
-        iQCD = org.indexOfSampleWithName("QCD.Data 2011")
-        iData = org.indexOfSampleWithName("top.Data 2011")
-        iTopNon = org.indexOfSampleWithName("top.tt_tauola_fj.wNonQQbar.nvr")
-        iTopQQs = [i for i,s in enumerate(org.samples) if 'wTopAsym' in s['name']]
-        asymm = [eval(org.samples[i]['name'].replace("top.tt_tauola_fj.wTopAsym","").replace(".nvr","").replace("P",".").replace("N","-.")) for i in iTopQQs]
+        topQQs = [s['name'] for s in org.samples if 'wTopAsym' in s['name']]
+        asymm = [eval(name.replace("top.tt_tauola_fj.wTopAsym","").replace(".nvr","").replace("P",".").replace("N","-.")) for name in topQQs]
         
         distTup = org.steps[next(org.indicesOfStepsWithKey(var))][var]
 
         import numpy as np
-        def nparray(i) :
-            bins = np.array([distTup[i].GetBinContent(j) for j in range(distTup[i].GetNbinsX()+2)])
-            return bins/sum(bins)
-        
-        observed = nEvents * nparray(iData)
-        base = nEvents * ( self.fraction['qcd'] * nparray(iQCD) +
-                           self.fraction['wjets'] * nparray(iW) +
-                           self.fraction['top'] * (1-qqFrac) * nparray(iTopNon)
-                           )
-        templates = [base + nEvents * self.fraction['top'] * qqFrac * nparray(i) for i in iTopQQs]
+        def nparray(name, scaleToN = None) :
+            hist = distTup[ org.indexOfSampleWithName(name) ]
+            bins = np.array([hist.GetBinContent(j) for j in range(hist.GetNbinsX()+2)])
+            if scaleToN : bins *= (scaleToN / sum(bins))
+            return bins
+
+        nTT = sum(nparray('top.t#bar{t}'))
+        observed = nparray('top.Data 2011')
+        base = ( nparray('QCD.Data 2011') +
+                 nparray('top.w_jets') +
+                 nparray('top.tt_tauola_fj.wNonQQbar.nvr', scaleToN = (1-qqFrac) * nTT )
+                 )
+        templates = [base +  nparray(qqtt, qqFrac*nTT ) for qqtt in topQQs]
 
         from core import templateFit
         TF = templateFit.templateFitter(observed, templates, asymm)
         print utils.roundString(TF.value, TF.error , noSci=True)
         stuff = templateFit.drawTemplateFitter(TF)
+
         outName = self.globalStem + '/templateFit_%s_%d'%(var,qqFrac*100)
         stuff[0].Print(outName+'.ps(')
         stuff[0].cd(3).SetLogy(1)
