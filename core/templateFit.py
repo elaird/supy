@@ -66,6 +66,7 @@ class templateEnsembles(object) :
 import utils, ROOT as r
 def drawTemplateFitter(tf, canvas = None) :
     if not canvas : canvas = r.TCanvas()
+    else: canvas.Clear()
     canvas.cd(0)
     canvas.Divide(2,2)
 

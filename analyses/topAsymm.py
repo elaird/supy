@@ -289,36 +289,40 @@ class topAsymm(topAsymmShell.topAsymmShell) :
 
     def templateFit(self, var, qqFrac = 0.15) :
         if not hasattr(self,'orgMelded') : print 'orgMelded is not present!' ; return
-        org = self.orgMelded
+        from core import templateFit
+        import numpy as np
 
+        org = self.orgMelded
         topQQs = [s['name'] for s in org.samples if 'wTopAsym' in s['name']]
         asymm = [eval(name.replace("top.tt_tauola_fj.wTopAsym","").replace(".nvr","").replace("P",".").replace("N","-.")) for name in topQQs]
-        
-        distTup = org.steps[next(org.indicesOfStepsWithKey(var))][var]
 
-        import numpy as np
         def nparray(name, scaleToN = None) :
             hist = distTup[ org.indexOfSampleWithName(name) ]
             bins = np.array([hist.GetBinContent(j) for j in range(hist.GetNbinsX()+2)])
             if scaleToN : bins *= (scaleToN / sum(bins))
             return bins
 
-        nTT = sum(nparray('top.t#bar{t}'))
-        observed = nparray('top.Data 2011')
-        base = ( nparray('QCD.Data 2011') +
-                 nparray('top.w_jets') +
-                 nparray('top.tt_tauola_fj.wNonQQbar.nvr', scaleToN = (1-qqFrac) * nTT )
-                 )
-        templates = [base +  nparray(qqtt, qqFrac*nTT ) for qqtt in topQQs]
-
-        from core import templateFit
-        TF = templateFit.templateFitter(observed, templates, asymm)
-        print utils.roundString(TF.value, TF.error , noSci=True)
-        stuff = templateFit.drawTemplateFitter(TF)
-
         outName = self.globalStem + '/templateFit_%s_%d'%(var,qqFrac*100)
-        stuff[0].Print(outName+'.ps(')
-        stuff[0].cd(3).SetLogy(1)
-        stuff[0].Print(outName+'.ps)')
+        canvas = r.TCanvas()
+        canvas.Print(outName+'.ps[')
+        for iStep in org.indicesOfStepsWithKey(var) :
+            distTup = org.steps[iStep][var]
+
+            nTT = sum(nparray('top.t#bar{t}'))
+            observed = nparray('top.Data 2011')
+            base = ( nparray('QCD.Data 2011') +
+                     nparray('top.w_jets') +
+                     nparray('top.tt_tauola_fj.wNonQQbar.nvr', scaleToN = (1-qqFrac) * nTT )
+                     )
+            templates = [base +  nparray(qqtt, qqFrac*nTT ) for qqtt in topQQs]
+
+            TF = templateFit.templateFitter(observed, templates, asymm)
+            print utils.roundString(TF.value, TF.error , noSci=True)
+            stuff = templateFit.drawTemplateFitter(TF, canvas)
+            canvas.Print(outName+'.ps')
+            #stuff[0].cd(3).SetLogy(1)
+            #stuff[0].Print(outName+'.ps')
+
+        canvas.Print(outName+'.ps]')
         os.system('ps2pdf %s.ps %s.pdf'%(outName,outName))
         os.system('rm %s.ps'%outName)
