@@ -532,3 +532,8 @@ def rHist(name,bins,edges,poissonErrors=False) :
         hist.SetBinError(i+1,math.sqrt(bin) if poissonErrors else 0)
     return hist
 #####################################
+def tCanvasPrintPdf(canvas, fileName) :
+    canvas.Print("%s.eps"%fileName)
+    os.system("epstopdf %s.eps"%fileName)
+    os.system("rm %s.eps"%fileName)
+    
