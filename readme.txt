@@ -7,13 +7,13 @@ GPLv3 (http://www.gnu.org/licenses/gpl.html)
 | Instructions |
 ----------------
 1) Set up pyROOT:
-- use a CMSSW area: cd /somewhere/CMSSW_4_1_3/src && cmsenv
+- use a CMSSW area: cd /somewhere/CMSSW_4_2_8/src && cmsenv
 - or see note (A)
 
-2) Check out the code:
-- [if needed: export CVSROOT=username@cmscvs.cern.ch:/cvs_server/repositories/CMSSW;export CVS_RSH=ssh]
-- cvs co -d supy -r V11-5 UserCode/elaird/supy
+2) Check out the code (try branch 'eps' or 'master')
+- git clone https://github.com/elaird/supy.git
 - cd supy
+- git checkout <branchname>
 
 3) Run it!
 - ./supy analyses/example.py --loop 1
@@ -32,4 +32,4 @@ http://wlav.web.cern.ch/wlav/pyroot/
 --------
 | Bugs |
 --------
-Please send bug reports to edward.laird@cern.ch.
+Please report problems at https://github.com/elaird/supy/issues or contact edward dot laird at cern dot ch.
