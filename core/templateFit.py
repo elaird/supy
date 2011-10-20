@@ -62,12 +62,40 @@ class templateEnsembles(object) :
         self.pars,self.templates = pars,templates
         self.ensembles = [templateFitter.ensembleOf(nToys, templ, templates, pars) for templ in templates ]
         self.biases = [np.mean([toy.value for toy in ensemble]) - par for par,ensemble in zip(pars,self.ensembles)]
-        relativeResiduals = [np.array([(toy.value-par)/toy.error for toy in ensemble]) for par,ensemble in zip(pars,self.ensembles)]
-        self.pulls = [np.std(rr) for rr in relativeResiduals]
-        self.meanError = self.pulls * np.array([np.mean([toy.error for toy in ensemble]) for ensemble in self.ensembles])
-        self.sensitivity = np.mean(self.meanError[1:-1])
+        self.relativeResiduals = [np.array([(toy.value-par)/toy.error for toy in ensemble]) for par,ensemble in zip(pars,self.ensembles)]
+        self.pulls = [np.std(rr) for rr in self.relativeResiduals]
+        self.meanErrors = self.pulls * np.array([np.mean([toy.error for toy in ensemble]) for ensemble in self.ensembles])
+        self.sensitivity = np.mean(self.meanErrors[1:-1])
 
 import utils, ROOT as r
+
+def drawTemplateEnsembles(ens, canvas = None) :
+    if not canvas : canvas = r.TCanvas()
+    else : canvas.Clear()
+    canvas.cd(0)
+    canvas.Divide(2,2)
+
+    bias = r.TGraph(len(ens.pars)-2, np.array(ens.pars[1:-1]), np.array(ens.biases[1:-1]))
+    pull = r.TGraph(len(ens.pars)-2, np.array(ens.pars[1:-1]), np.array(ens.pulls[1:-1]))
+    err  = r.TGraph(len(ens.pars)-2, np.array(ens.pars[1:-1]), np.array(ens.meanErrors[1:-1]))
+    rrs = [utils.rHist("relRes%.3f"%par,*np.histogram(rr,100,(-5,5))) for par,rr in zip(ens.pars,ens.relativeResiduals)[1:-1]]
+    for item in [bias,pull,err] : item.SetMarkerStyle(20)
+    height = 1.1 * max(rr.GetMaximum() for rr in rrs)
+    for rr in rrs : rr.SetMaximum(height)
+    bias.Fit("pol1","Q"); b0 = bias.GetFunction("pol1").GetParameter(0); b1 = bias.GetFunction("pol1").GetParameter(1)
+    pull.Fit("pol0","Q"); p0 = pull.GetFunction("pol0").GetParameter(0)
+
+    canvas.cd(1) ; bias.SetTitle("Bias : %.3f + %.3f x"%(b0,b1)); bias.Draw("AP")
+    canvas.cd(2) ; pull.SetTitle("Pull : %.3f"%p0); pull.Draw("AP"); 
+    canvas.cd(3) ; err.SetTitle("Expected Uncertainty : %.3f"%ens.sensitivity) ; err.SetMinimum(0); err.SetMaximum(2*max(ens.meanErrors)); err.Draw("AP")
+    canvas.cd(4)
+    for i,rr in enumerate(rrs) :
+        rr.SetLineColor(i)
+        rr.Draw("same" if i else "")
+
+    return canvas,bias,pull,err,rrs
+    
+
 def drawTemplateFitter(tf, canvas = None) :
     if not canvas : canvas = r.TCanvas()
     else: canvas.Clear()
