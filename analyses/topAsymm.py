@@ -154,11 +154,15 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         #self.meldQCDpartitions()
         self.meldScale()
         #self.plotmeldScale()
-        for var in ['lHadtDeltaY',
-                    'leptonRelativeY',
-                    'ttbarBeta',
-                    'ttbarDeltaAbsY',
-                    'ttbarSignedDeltaY' ] : self.templateFit(var)
+        import numpy as np
+        qqFracs = np.arange(0.1,0.6,0.05)
+        vars = ['lHadtDeltaY',
+                'leptonRelativeY',
+                'ttbarBeta',
+                'ttbarDeltaAbsY',
+                'ttbarSignedDeltaY' ]
+        args = sum([[(iStep, var, qqFrac) for iStep in self.orgMelded.indicesOfStepsWithKey(var) for qqFrac in qqFracs] for var in vars],[])
+        for arg in args : self.pickleEnsemble(*arg)
 
     def conclude(self,pars) :
         org = self.organizer(pars)
@@ -311,24 +315,31 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         templates = [base +  nparray(qqtt, qqFrac*nTT ) for qqtt in topQQs]
         return zip(asymm, templates), observed
 
-    def templateFit(self, var, qqFrac = 0.15) :
+    def ensembleFileName(self, iStep, var, qqFrac, suffix = '.pickleData') :
+        return "%s/ensembles/%d_%s_%.3f%s"%(self.globalStem,iStep,var,qqFrac,suffix)
+
+    def pickleEnsemble(self, iStep, var, qqFrac ) :
+        from core import templateFit
+        utils.mkdir(self.globalStem+'/ensembles')
+        templates,observed = self.templates(iStep, var, qqFrac)
+        ensemble = templateFit.templateEnsembles(2e3, *zip(*templates) )
+        print qqFrac, iStep, var, "%.3f"%ensemble.sensitivity 
+        utils.writePickle(self.ensembleFileName(iStep,var,qqFrac), ensemble)
+        
+    def templateFit(self, iStep, var, qqFrac = 0.15) :
         if not hasattr(self,'orgMelded') : print 'run meldScale() before templateFit().'; return
         from core import templateFit
 
         outName = self.globalStem + '/templateFit_%s_%d'%(var,qqFrac*100)
-        canvas = r.TCanvas()
-        canvas.Print(outName+'.ps[')
-        for iStep in self.orgMelded.indicesOfStepsWithKey(var) :
-            templates,observed = self.templates(iStep, var, qqFrac)
-            ensemble = templateFit.templateEnsembles(2e3, *zip(*templates) )
-            #TF = templateFit.templateFitter(observed, *zip(*templates) )
-
-            print qqFrac, iStep, var, "%.3f"%ensemble.sensitivity, utils.roundString(TF.value, TF.error , noSci=True)
-
-            stuff = templateFit.drawTemplateFitter(TF, canvas)
-            canvas.Print(outName+'.ps')
-            for item in sum([i if type(i) is list else [i] for i in stuff[1:]],[]) : utils.delete(item)
-
-        canvas.Print(outName+'.ps]')
-        os.system('ps2pdf %s.ps %s.pdf'%(outName,outName))
-        os.system('rm %s.ps'%outName)
+        #TF = templateFit.templateFitter(observed, *zip(*templates) )
+        #print utils.roundString(TF.value, TF.error , noSci=True)
+        
+        #canvas = r.TCanvas()
+        #canvas.Print(outName+'.ps[')
+        #stuff = templateFit.drawTemplateFitter(TF, canvas)
+        #canvas.Print(outName+'.ps')
+        #for item in sum([i if type(i) is list else [i] for i in stuff[1:]],[]) : utils.delete(item)
+        
+        #canvas.Print(outName+'.ps]')
+        #os.system('ps2pdf %s.ps %s.pdf'%(outName,outName))
+        #os.system('rm %s.ps'%outName)
