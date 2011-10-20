@@ -100,15 +100,15 @@ mc.add("z_nunu",  '%s/henning//ICF/automated/2011_04_15_10_55_57/")'%srm, xs = 4
 #Z->nunu
 zNunuLoc = "/dburton//ICF/automated/2011_10_10_13_33_29/"
 tag = "7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM"
-mc.add("znunu_jets_mg_ht_50_100",  '%s/%s/ZJetsToNuNu_50_HT_100_%s_")'%(srm, zNunuLoc, tag), xs = {"LO":1450  , "fakeNLO":1450  *mgKFactor}["fakeNLO"])
-mc.add("znunu_jets_mg_ht_100_200", '%s/%s/ZJetsToNuNu_100_HT_200_%s")'%(srm, zNunuLoc, tag), xs = {"LO": 805.7, "fakeNLO": 805.7*mgKFactor}["fakeNLO"])
-mc.add("znunu_jets_mg_ht_200_inf", '%s/%s/ZJetsToNuNu_200_HT_inf_%s")'%(srm, zNunuLoc, tag), xs = {"LO": 250  , "fakeNLO": 250  *mgKFactor}["fakeNLO"])
+mc.add("znunu_jets_mg_ht_50_100_summer11",  '%s/%s/ZJetsToNuNu_50_HT_100_%s_")'%(srm, zNunuLoc, tag), xs = {"LO":1450  , "fakeNLO":1450  *mgKFactor}["fakeNLO"])
+mc.add("znunu_jets_mg_ht_100_200_summer11", '%s/%s/ZJetsToNuNu_100_HT_200_%s")'%(srm, zNunuLoc, tag), xs = {"LO": 805.7, "fakeNLO": 805.7*mgKFactor}["fakeNLO"])
+mc.add("znunu_jets_mg_ht_200_inf_summer11", '%s/%s/ZJetsToNuNu_200_HT_inf_%s")'%(srm, zNunuLoc, tag), xs = {"LO": 250  , "fakeNLO": 250  *mgKFactor}["fakeNLO"])
 
 dir = "/vols/cms02/elaird1/29_skims/07_zinv/v2"
 l = 'utils.fileListFromDisk(isDirectory = False, location = '
-mc.add("znunu_jets_mg_ht_50_100_skim",  '%s"%s/znunu_jets_mg_ht_50_100_*_skim.root")'%(l, dir),  xs = 1.288242e-03 * 1841.5)
-mc.add("znunu_jets_mg_ht_100_200_skim", '%s"%s/znunu_jets_mg_ht_100_200_*_skim.root")'%(l, dir), xs = 9.922905e-03 * 1023.2)
-mc.add("znunu_jets_mg_ht_200_inf_skim", '%s"%s/znunu_jets_mg_ht_200_inf_*_skim.root")'%(l, dir), xs = 5.364460e-01 *  317.5)
+mc.add("znunu_jets_mg_ht_50_100_summer11_skim",  '%s"%s/znunu_jets_mg_ht_50_100_*_skim.root")'%(l, dir),  xs = 1.288242e-03 * 1841.5)
+mc.add("znunu_jets_mg_ht_100_200_summer11_skim", '%s"%s/znunu_jets_mg_ht_100_200_*_skim.root")'%(l, dir), xs = 9.922905e-03 * 1023.2)
+mc.add("znunu_jets_mg_ht_200_inf_summer11_skim", '%s"%s/znunu_jets_mg_ht_200_inf_*_skim.root")'%(l, dir), xs = 5.364460e-01 *  317.5)
 
 ##### G + jets #########
 #MG (L2L3)
