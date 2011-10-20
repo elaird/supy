@@ -13,9 +13,9 @@ class templateFitter(object) :
     @classmethod
     def ensembleOf(cls, nToys, template, templates, pars) :
         pseudos = np.array([np.random.poisson(mu, nToys) for mu in template]).transpose()
-        return [cls(pseudo, templates, pars, 0) for pseudo in pseudos]
+        return [cls(pseudo, pars, templates, 0) for pseudo in pseudos]
 
-    def __init__(self, observed = (), templates = [()], pars=[], ensembleSize = 1e4) :
+    def __init__(self, observed = (), pars = [], templates = [()], ensembleSize = 1e4) :
         self.templates = np.maximum(1e-6,templates) # avoid log(0)
         self.templatesN2LL = -2 * np.sum( observed * np.log(self.templates) - self.templates , axis = 1)
         self.__coef = np.polyfit(pars, self.templatesN2LL, deg = 3)[::-1]
@@ -53,7 +53,7 @@ class templateFitter(object) :
     def pull(self) : return np.std(self.relResiduals)
 
 class templateEnsembles(object) :
-    def __init__(self, nToys, templates, pars) :
+    def __init__(self, nToys, pars, templates ) :
         pars, templates = zip(*sorted(zip(pars,templates)))
         self.pars,self.templates = pars,templates
         self.ensembles = [templateFitter.ensembleOf(nToys, templ, templates, pars) for templ in templates ]
@@ -128,11 +128,10 @@ if __name__=="__main__" :
 
     def template(p) : return np.array([100+norm*math.exp(-0.5*(x-p)**2) for x in range(-5,5)])
 
-    pars = np.arange(-1.0,1.1,0.1)
-    templates = [template(p) for p in pars]
+    templates = [(p,template(p)) for p in np.arange(-1.0,1.1,0.1)]
     observed = np.array([np.random.poisson(mu) for mu in template(truePar)])
 
-    TF = templateFitter(observed, templates, pars)
+    TF = templateFitter(observed, *templates)
     print "true value: ", truePar
     print "measured : ", utils.roundString(TF.value,TF.error)
     canvas = drawTemplateFitter(TF)
@@ -143,11 +142,9 @@ if __name__=="__main__" :
     
     raw_input()
 
-
-
     def format(d) : return "[ %s ]"%', '.join("%.3f"%f for f in d)
             
-    ensembles = templateEnsembles(500, templates, pars)
+    ensembles = templateEnsembles(500, *templates )
     print "pars : ".rjust(20), format(ensembles.pars)
     print "biases : ".rjust(20), format(ensembles.biases)
     print "pulls : ".rjust(20), format(ensembles.pulls)
