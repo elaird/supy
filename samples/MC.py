@@ -96,8 +96,9 @@ mc.add("w_munu", '%s%s/WToMuNu_TuneZ2_7TeV-pythia6.%s)'%(srm,burt_ewk,spring11pu
 mc.add("w_taunu", '%s%s/WToTauNu_TuneZ2_7TeV-pythia6-tauola.%s)'%(srm,burt_ewk,spring11pu), xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
 mc.add("z_nunu",  '%s/henning//ICF/automated/2011_04_15_10_55_57/")'%srm, xs = 4292)
 
-##MG Summer '11 HT-binned samples
-#Z->nunu
+
+## MG Summer '11 samples (CMSSW_4_2_5 / V15-03-14 / L1FastJetL2L3)
+# Z->nunu (HT binned)
 zNunuLoc = "/dburton//ICF/automated/2011_10_10_13_33_29/"
 tag = "7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM"
 mc.add("znunu_jets_mg_ht_50_100_summer11",  '%s/%s/ZJetsToNuNu_50_HT_100_%s_")'%(srm, zNunuLoc, tag), xs = {"LO": 309.5, "fakeNLO": 309.5*mgKFactor}["fakeNLO"])
@@ -110,8 +111,30 @@ mc.add("znunu_jets_mg_ht_50_100_summer11_skim",   '%s"%s/znunu_jets_mg_ht_50_100
 mc.add("znunu_jets_mg_ht_100_200_summer11_skim", '%s"%s/znunu_jets_mg_ht_100_200_*_skim.root")'%(l, dir), xs = 9.922905e-03 * 125.2*mgKFactor)
 mc.add("znunu_jets_mg_ht_200_inf_summer11_skim", '%s"%s/znunu_jets_mg_ht_200_inf_*_skim.root")'%(l, dir), xs = 5.364460e-01 *  32.9*mgKFactor)
 
-##### G + jets #########
-#MG (L2L3)
+# W->lnu (HT binned)
+wFactor = 31314./24640
+mc.add("w_jets_mg_tauola_ht_300_inf_summer11", '%s/gouskos//ICF/automated/2011_08_19_18_17_37/")'%srm, xs = {"LO":48.49, "guessNLO":48.49*wFactor}["guessNLO"])
+
+# TT
+mc.add("tt_jets_mg_tauola_summer11", '%s/mstoye//ICF/automated/2011_07_30_02_06_09/", alwaysUseLastAttempt = True)'%srm, xs = {"LO":94.76, "guessNLO":157.5}["guessNLO"])
+
+# G + jets (HT binned)
+gJetMg = "/elaird//ICF/automated/2011_10_14_14_40_23/"
+tag = "7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM"
+mc.add("g_jets_mg_ht_40_100_summer11",   '%s/%s/GJets_TuneZ2_40_HT_100_%s")'%(srm, gJetMg, tag), xs = {"LO":25690,   "fakeNLO":25690  *mgKFactor}["fakeNLO"])
+mc.add("g_jets_mg_ht_100_200_summer11", '%s/%s/GJets_TuneZ2_100_HT_200_%s")'%(srm, gJetMg, tag), xs = {"LO": 5213,   "fakeNLO": 5213  *mgKFactor}["fakeNLO"])
+mc.add("g_jets_mg_ht_200_inf_summer11", '%s/%s/GJets_TuneZ2_200_HT_inf_%s")'%(srm, gJetMg, tag), xs = {"LO":  798.3, "fakeNLO":  798.3*mgKFactor}["fakeNLO"])
+
+# G + jets (HT binned) skims
+dir = "/vols/cms02/elaird1/29_skims/04_photons/v6"
+l = 'utils.fileListFromDisk(isDirectory = False, location = '
+mc.add("g_jets_mg_ht_40_100_summer11_skim",   '%s"%s/g_jets_mg_ht_40_100_summer11_*_skim.root")'%(l, dir), xs = 1.114472e-04 * 25690  *mgKFactor)
+mc.add("g_jets_mg_ht_100_200_summer11_skim", '%s"%s/g_jets_mg_ht_100_200_summer11_*_skim.root")'%(l, dir), xs = 3.303680e-02 *  5213  *mgKFactor)
+mc.add("g_jets_mg_ht_200_inf_summer11_skim", '%s"%s/g_jets_mg_ht_200_inf_summer11_*_skim.root")'%(l, dir), xs = 8.159796e-02 *   798.3*mgKFactor)
+
+
+
+## MG  Spring '11 (L2L3)
 #gJetMg = "/elaird//ICF/automated/2011_04_04_11_45_04/"
 gJetMg = "/bm409//ICF/automated/2011_06_08_16_42_46/"
 mc.add("g_jets_mg_ht_40_100_spring11",'%s/%s/GJets_TuneD6T_HT-40To100_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
@@ -120,20 +143,6 @@ mc.add("g_jets_mg_ht_100_200_spring11",'%s/%s/GJets_TuneD6T_HT-100To200_7TeV-mad
        xs = {"LO":3476, "fakeNLO":3476*mgKFactor}["fakeNLO"])
 mc.add("g_jets_mg_ht_200_inf_spring11"   ,'%s/%s/GJets_TuneD6T_HT-200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
        xs = {"LO":485, "fakeNLO":485*mgKFactor}["fakeNLO"])
-
-#MG Summer '11 (L1FastJetL2L3)
-gJetMg = "/elaird//ICF/automated/2011_10_14_14_40_23/"
-tag = "7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM"
-mc.add("g_jets_mg_ht_40_100_summer11",   '%s/%s/GJets_TuneZ2_40_HT_100_%s")'%(srm, gJetMg, tag), xs = {"LO":25690,   "fakeNLO":25690  *mgKFactor}["fakeNLO"])
-mc.add("g_jets_mg_ht_100_200_summer11", '%s/%s/GJets_TuneZ2_100_HT_200_%s")'%(srm, gJetMg, tag), xs = {"LO": 5213,   "fakeNLO": 5213  *mgKFactor}["fakeNLO"])
-mc.add("g_jets_mg_ht_200_inf_summer11", '%s/%s/GJets_TuneZ2_200_HT_inf_%s")'%(srm, gJetMg, tag), xs = {"LO":  798.3, "fakeNLO":  798.3*mgKFactor}["fakeNLO"])
-
-#MG Summer '11 skims (L1FastJetL2L3)
-dir = "/vols/cms02/elaird1/29_skims/04_photons/v6"
-l = 'utils.fileListFromDisk(isDirectory = False, location = '
-mc.add("g_jets_mg_ht_40_100_summer11_skim",   '%s"%s/g_jets_mg_ht_40_100_summer11_*_skim.root")'%(l, dir), xs = 1.114472e-04 * 25690  *mgKFactor)
-mc.add("g_jets_mg_ht_100_200_summer11_skim", '%s"%s/g_jets_mg_ht_100_200_summer11_*_skim.root")'%(l, dir), xs = 3.303680e-02 *  5213  *mgKFactor)
-mc.add("g_jets_mg_ht_200_inf_summer11_skim", '%s"%s/g_jets_mg_ht_200_inf_summer11_*_skim.root")'%(l, dir), xs = 8.159796e-02 *   798.3*mgKFactor)
 
 #MG (L1OffsetL2L3)
 gJetMg = "/bm409//ICF/automated/2011_06_16_17_15_39/"
