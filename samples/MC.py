@@ -79,7 +79,7 @@ burt_ttbar = '/bbetchar//ICF/automated/2011_04_07_19_30_01/'
 burt_ewk = '/bbetchar//ICF/automated/2011_04_07_19_40_51/'
 spring11pu = "Spring11-PU_S1_START311_V1G1-v1.AODSIM"
 
-#MG
+#MG Spring '11
 mc.add("tt_tauola_mg",'%s%s/TTJets_TuneZ2_7TeV-madgraph-tauola.%s",itemsToSkip = ["SusyCAF_Tree_49_1_0fC.root","SusyCAF_Tree_24_1_cuB.root"])'%(srm,burt_ttbar,spring11pu), xs = {"LO":121, "BurtGuessNLO":157.5}["BurtGuessNLO"])
 mc.add("w_jets_mg",'%s%s/WJetsToLNu_TuneZ2_7TeV-madgraph-tauola.%s")'%(srm,burt_ewk,spring11pu), xs = {"LO":24640, "BurtGuessNNLO": 31924}["BurtGuessNNLO"])
 mc.add("zinv_jets_mg",'%s/henning//ICF/automated/2011_04_13_12_16_30/")'%srm, xs = {"LO":4500.0,"fakeNLO":4500.0*mgKFactor}["fakeNLO"])
@@ -89,24 +89,26 @@ mc.add("dyll_jets_mg", '%s/gouskos//ICF/automated/2011_05_02_12_39_53/DYJetsToLL
 
 mc.add("zinv_jets_mg_spring11_skim", 'utils.fileListFromDisk(location = "/vols/cms02/elaird1/29_skims/07_zinv/v1/zinv_jets_mg_*_skim.root", isDirectory = False)', xs = 2.353024e-03 * 5.715000e+03)
 
-#MG Summer '11 Z->nunu
-zNunuLoc = "/dburton//ICF/automated/2011_10_10_13_33_29/"
-mc.add("znunu_jets_mg_ht_50_100",  '%s/%s/ZJetsToNuNu_50_HT_100_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM_")'%(srm, zNunuLoc), xs = 1.0)
-mc.add("znunu_jets_mg_ht_100_200", '%s/%s/ZJetsToNuNu_100_HT_200_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, zNunuLoc), xs = 1.0)
-mc.add("znunu_jets_mg_ht_200_inf", '%s/%s/ZJetsToNuNu_200_HT_inf_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, zNunuLoc), xs = 1.0)
-
-dir = "/vols/cms02/elaird1/29_skims/07_zinv/v2"
-mc.add("znunu_jets_mg_ht_50_100_skim",  'utils.fileListFromDisk(location = "%s/znunu_jets_mg_ht_50_100_*_skim.root", isDirectory = False)'%dir,  xs = 1.288242e-03 * 1.000000e+00)
-mc.add("znunu_jets_mg_ht_100_200_skim", 'utils.fileListFromDisk(location = "%s/znunu_jets_mg_ht_100_200_*_skim.root", isDirectory = False)'%dir, xs = 9.922905e-03 * 1.000000e+00)
-mc.add("znunu_jets_mg_ht_200_inf_skim", 'utils.fileListFromDisk(location = "%s/znunu_jets_mg_ht_200_inf_*_skim.root", isDirectory = False)'%dir, xs = 5.364460e-01 * 1.000000e+00)
-
-
 #PYTHIA
 mc.add("tt_tauola_pythia",'%s%s/TT_TuneZ2_7TeV-pythia6-tauola.%s")'%(srm,burt_ttbar,spring11pu), xs = {"LO":94, "BurtGuessNLO":122}["BurtGuessNLO"])
 mc.add("w_enu", '%s%s/WToENu_TuneZ2_7TeV-pythia6.%s)'%(srm,burt_ewk,spring11pu),            xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
 mc.add("w_munu", '%s%s/WToMuNu_TuneZ2_7TeV-pythia6.%s)'%(srm,burt_ewk,spring11pu),          xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
 mc.add("w_taunu", '%s%s/WToTauNu_TuneZ2_7TeV-pythia6-tauola.%s)'%(srm,burt_ewk,spring11pu), xs = {"LO": 7899, "BurtGuessNNLO": 10234}["BurtGuessNNLO"])
 mc.add("z_nunu",  '%s/henning//ICF/automated/2011_04_15_10_55_57/")'%srm, xs = 4292)
+
+##MG Summer '11 HT-binned samples
+#Z->nunu
+zNunuLoc = "/dburton//ICF/automated/2011_10_10_13_33_29/"
+tag = "7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM"
+mc.add("znunu_jets_mg_ht_50_100_summer11",  '%s/%s/ZJetsToNuNu_50_HT_100_%s_")'%(srm, zNunuLoc, tag), xs = {"LO":1450  , "fakeNLO":1450  *mgKFactor}["fakeNLO"])
+mc.add("znunu_jets_mg_ht_100_200_summer11", '%s/%s/ZJetsToNuNu_100_HT_200_%s")'%(srm, zNunuLoc, tag), xs = {"LO": 805.7, "fakeNLO": 805.7*mgKFactor}["fakeNLO"])
+mc.add("znunu_jets_mg_ht_200_inf_summer11", '%s/%s/ZJetsToNuNu_200_HT_inf_%s")'%(srm, zNunuLoc, tag), xs = {"LO": 250  , "fakeNLO": 250  *mgKFactor}["fakeNLO"])
+
+dir = "/vols/cms02/elaird1/29_skims/07_zinv/v2"
+l = 'utils.fileListFromDisk(isDirectory = False, location = '
+mc.add("znunu_jets_mg_ht_50_100_summer11_skim",  '%s"%s/znunu_jets_mg_ht_50_100_*_skim.root")'%(l, dir),  xs = 1.288242e-03 * 1841.5)
+mc.add("znunu_jets_mg_ht_100_200_summer11_skim", '%s"%s/znunu_jets_mg_ht_100_200_*_skim.root")'%(l, dir), xs = 9.922905e-03 * 1023.2)
+mc.add("znunu_jets_mg_ht_200_inf_summer11_skim", '%s"%s/znunu_jets_mg_ht_200_inf_*_skim.root")'%(l, dir), xs = 5.364460e-01 *  317.5)
 
 ##### G + jets #########
 #MG (L2L3)
@@ -119,14 +121,14 @@ mc.add("g_jets_mg_ht_100_200_spring11",'%s/%s/GJets_TuneD6T_HT-100To200_7TeV-mad
 mc.add("g_jets_mg_ht_200_inf_spring11"   ,'%s/%s/GJets_TuneD6T_HT-200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
        xs = {"LO":485, "fakeNLO":485*mgKFactor}["fakeNLO"])
 
-#MG (L1FastJetL2L3)
+#MG Summer '11 (L1FastJetL2L3)
 gJetMg = "/elaird//ICF/automated/2011_10_14_14_40_23/"
 mc.add("g_jets_mg_ht_40_100_summer11",  '%s/%s/GJets_TuneZ2_40_HT_100_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, gJetMg),
-       xs = {"LO":23620, "fakeNLO":23620*mgKFactor}["fakeNLO"])
+       xs = {"LO":224439, "fakeNLO":224439*mgKFactor}["fakeNLO"])
 mc.add("g_jets_mg_ht_100_200_summer11", '%s/%s/GJets_TuneZ2_100_HT_200_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, gJetMg),
-       xs = {"LO":3476, "fakeNLO":3476*mgKFactor}["fakeNLO"])
+       xs = {"LO":58101, "fakeNLO":58101*mgKFactor}["fakeNLO"])
 mc.add("g_jets_mg_ht_200_inf_summer11", '%s/%s/GJets_TuneZ2_200_HT_inf_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, gJetMg),
-       xs = {"LO":485, "fakeNLO":485*mgKFactor}["fakeNLO"])
+       xs = {"LO":5220, "fakeNLO":5220*mgKFactor}["fakeNLO"])
 
 #MG (L1OffsetL2L3)
 gJetMg = "/bm409//ICF/automated/2011_06_16_17_15_39/"

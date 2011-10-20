@@ -337,6 +337,11 @@ class photonLook(analysis.analysis) :
         l = ["40", "100", "200", "inf"]
         return ["g_jets_mg_ht_%s_%s_%s_skim"%(a, b, era) for a,b in zip(l[:-1], l[1:])]
 
+    def zNunuMgNames(self, era = "summer11") :
+        if era=="spring11" : return ["zinv_jets_mg"]
+        l = ["50", "100", "200", "inf"]
+        return ["znunu_jets_mg_ht_%s_%s_%s_skim"%(a, b, era) for a,b in zip(l[:-1], l[1:])]
+
     #def qcdPyNames(self) : #full samples
     #    l = ["15", "30", "50", "80", "120", "170", "300", "470", "600", "800", "1000", "1400", "1800"]
     #    return ["qcd_py6_pt_%s_%s"%(a,b) for a,b in zip(l[:-2], l[1:-1])]
@@ -416,7 +421,7 @@ class photonLook(analysis.analysis) :
         ttbar_mg = specify(effectiveLumi = eL, color = r.kOrange, names = ["tt_tauola_mg_noIsoReqSkim"])
         zjets_mg = specify(effectiveLumi = eL, color = r.kYellow-3, names = ["dyll_jets_mg_noIsoReqSkim"])
         wjets_mg = specify(effectiveLumi = eL, color = 28, names = ["w_jets_mg_noIsoReqSkim"])
-        zinv_mg  = specify(effectiveLumi = eL, color = r.kMagenta, names = ["zinv_jets_mg"])
+        zinv_mg  = specify(effectiveLumi = eL, color = r.kMagenta, names = self.zNunuMgNames(era = "summer11"), weights = phw)
 
         zinv_py6 = specify(effectiveLumi = eL, color = r.kMagenta, names = ["z_nunu"])
         
