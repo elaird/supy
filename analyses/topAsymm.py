@@ -291,11 +291,11 @@ class topAsymm(topAsymmShell.topAsymmShell) :
 
     def templates(self, iStep, var, qqFrac) :
         if not hasattr(self,'orgMelded') : print 'run meldScale() before asking for templates()'; return
-        import numpy as np
         topQQs = [s['name'] for s in self.orgMelded.samples if 'wTopAsym' in s['name']]
         asymm = [eval(name.replace("top.tt_tauola_fj.wTopAsym","").replace(".nvr","").replace("P",".").replace("N","-.")) for name in topQQs]
-
         distTup = self.orgMelded.steps[iStep][var]
+
+        import numpy as np
         def nparray(name, scaleToN = None) :
             hist = distTup[ self.orgMelded.indexOfSampleWithName(name) ]
             bins = np.array([hist.GetBinContent(j) for j in range(hist.GetNbinsX()+2)])
@@ -321,18 +321,13 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         for iStep in self.orgMelded.indicesOfStepsWithKey(var) :
             templates,observed = self.templates(iStep, var, qqFrac)
             ensemble = templateFit.templateEnsembles(2e3, *zip(*templates) )
-            TF = templateFit.templateFitter(observed, *zip(*templates) )
+            #TF = templateFit.templateFitter(observed, *zip(*templates) )
 
             print qqFrac, iStep, var, "%.3f"%ensemble.sensitivity, utils.roundString(TF.value, TF.error , noSci=True)
 
             stuff = templateFit.drawTemplateFitter(TF, canvas)
             canvas.Print(outName+'.ps')
-            for item in stuff[1:] :
-                if type(item) is list :
-                    for sub in item : utils.delete(sub)
-                else: utils.delete(item)
-            #stuff[0].cd(3).SetLogy(1)
-            #stuff[0].Print(outName+'.ps')
+            for item in sum([i if type(i) is list else [i] for i in stuff[1:]],[]) : utils.delete(item)
 
         canvas.Print(outName+'.ps]')
         os.system('ps2pdf %s.ps %s.pdf'%(outName,outName))
