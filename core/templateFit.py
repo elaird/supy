@@ -26,6 +26,7 @@ class templateFitter(object) :
         curve,self.__value = max([ (2*c2+6*p*c3, p) for p in [-R+D, -R-D]])
         self.__error = ( 0.5*curve )**-0.5
 
+        self.n2LL = sum([self.value**i * coef[i] for i in range(4)])
         self.__ensembleSize = ensembleSize
         if ensembleSize :
             self.__coef = coef
@@ -33,7 +34,6 @@ class templateFitter(object) :
             self.observed = np.array(observed)
             self.templates = templates
             self.templatesN2LL = templatesN2LL
-            self.n2LL = sum([self.value**i * self.__coef[i] for i in range(4)])
 
     @property
     def value(self) : return self.__value
@@ -96,7 +96,7 @@ def drawTemplateEnsembles(ens, canvas = None) :
     return canvas,bias,pull,err,rrs
     
 
-def drawTemplateFitter(tf, canvas = None) :
+def drawTemplateFitter(tf, canvas = None, trueVal = None) :
     if not canvas : canvas = r.TCanvas()
     else: canvas.Clear()
     canvas.cd(0)
@@ -108,13 +108,18 @@ def drawTemplateFitter(tf, canvas = None) :
     for i,c in enumerate(tf.coefficients) : fit.SetParameter(i,c)
     xMaxLL = [r.TGraph(2,np.array([val,val]),np.array([min(tf.templatesN2LL),max(tf.templatesN2LL)])) for val in [tf.value,tf.value+tf.error,tf.value-tf.error]]
     for h in xMaxLL : h.SetLineColor(r.kBlue)
+    if trueVal != None :
+        xMaxLL.append(r.TGraph(2,np.array([trueVal,trueVal]),np.array([min(tf.templatesN2LL),max(tf.templatesN2LL)])))
+        xMaxLL[-1].SetLineColor(r.kRed)
+        xMaxLL[-1].SetLineWidth(2)
     xMaxLL[1].SetLineStyle(r.kDashed)
     xMaxLL[2].SetLineStyle(r.kDashed)
     LL.SetTitle("best fit: %s  | corrected: %s"%(utils.roundString(tf.value,tf.error, noSci=True), 
-                                                 utils.roundString(tf.value-tf.bias, tf.error*tf.pull,noSci=True)))
+                                                 utils.roundString(tf.value-tf.bias, tf.error*tf.pull,noSci=True)) +
+                ("  |  %0.3f"%trueVal if trueVal is not None else ""))
     canvas.cd(1)
     LL.Draw('A*')
-    for h in xMaxLL : h.Draw('')
+    for h in reversed(xMaxLL) : h.Draw('')
     fit.Draw('same')
 
     #------2
