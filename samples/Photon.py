@@ -69,12 +69,6 @@ photon.add("g_jets_mg_ht_40_100_spring11_skim",  'utils.fileListFromDisk(locatio
 photon.add("g_jets_mg_ht_100_200_spring11_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_*_skim.root", isDirectory = False)'%dir, xs = 3.710456e-02 * 4.414520e+03)
 photon.add("g_jets_mg_ht_200_inf_spring11_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_200_inf_*_skim.root", isDirectory = False)'%dir, xs = 8.309607e-02 * 6.159500e+02)
 
-#MG Summer '11 skims (L1FastJetL2L3)
-dir = "/vols/cms02/elaird1/29_skims/04_photons/v6"
-photon.add("g_jets_mg_ht_40_100_summer11_skim",  'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_40_100_summer11_*_skim.root", isDirectory = False)'%dir,  xs = 1.114472e-04 * 285037)
-photon.add("g_jets_mg_ht_100_200_summer11_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_summer11_*_skim.root", isDirectory = False)'%dir, xs = 3.303680e-02 * 73788)
-photon.add("g_jets_mg_ht_200_inf_summer11_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_200_inf_summer11_*_skim.root", isDirectory = False)'%dir, xs = 8.159796e-02 * 6629)
-
 #MG EWK/TT
 dir = "/vols/cms02/elaird1/29_skims/04_photons/v1"
 photon.add("dyll_jets_mg_noIsoReqSkim", 'utils.fileListFromDisk(location = "%s/dyll_jets_mg_*_skim.root", isDirectory = False)'%dir,xs = 5.224434e-04 * 3.048000e+03)
