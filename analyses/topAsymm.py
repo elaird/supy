@@ -154,14 +154,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         #self.meldQCDpartitions()
         self.meldScale()
         #self.plotmeldScale()
-        qqFracs = sorted(list(np.arange(0.1,0.65,0.05))+[0.12])
-        vars = ['lHadtDeltaY',
-                'leptonRelativeY',
-                'ttbarBeta',
-                'ttbarDeltaAbsY',
-                'ttbarSignedDeltaY' ]
-        args = sum([[(iStep, var, qqFrac) for iStep in self.orgMelded.indicesOfStepsWithKey(var) for qqFrac in qqFracs] for var in vars],[])
-        utils.operateOnListUsingQueue(6, utils.qWorker(self.pickleEnsemble), args)
+        self.ensembleTest()
 
     def conclude(self,pars) :
         org = self.organizer(pars)
@@ -312,6 +305,17 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                  )
         templates = [base +  nparray(qqtt, qqFrac*nTT ) for qqtt in topQQs]
         return zip(asymm, templates), observed
+    
+    def ensembleTest(self) :
+        qqFracs = sorted(list(np.arange(0.1,0.65,0.05))+[0.12])
+        vars = ['lHadtDeltaY',
+                'ttbarDeltaAbsY',
+                #'leptonRelativeY',
+                #'ttbarBeta',
+                #'ttbarSignedDeltaY'
+                ]
+        args = sum([[(iStep, var, qqFrac) for iStep in list(self.orgMelded.indicesOfStepsWithKey(var))[:1] for qqFrac in qqFracs] for var in vars],[])
+        utils.operateOnListUsingQueue(6, utils.qWorker(self.pickleEnsemble), args)
 
     def ensembleFileName(self, iStep, var, qqFrac, suffix = '.pickleData') :
         return "%s/ensembles/%d_%s_%.3f%s"%(self.globalStem,iStep,var,qqFrac,suffix)
@@ -323,6 +327,24 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         ensemble = templateFit.templateEnsembles(2e3, *zip(*templates) )
         print qqFrac, iStep, var, "%.3f"%ensemble.sensitivity 
         utils.writePickle(self.ensembleFileName(iStep,var,qqFrac), ensemble)
+
+        name = self.ensembleFileName(iStep,var,qqFrac,'')
+        canvas = r.TCanvas()
+        canvas.Print(name+'.ps[')
+        stuff = templateFit.drawTemplateEnsembles(ensemble, canvas)
+        canvas.Print(name+".ps")
+        import random
+        for i in range(20) :
+            par, templ = random.choice(zip(ensemble.pars,ensemble.templates)[2:-2])
+            pseudo = [np.random.poisson(mu) for mu in templ]
+            tf = templateFit.templateFitter(pseudo,ensemble.pars,ensemble.templates, 1e3)
+            stuff = templateFit.drawTemplateFitter(tf,canvas, trueVal = par)
+            canvas.Print(name+".ps")
+            for item in sum([i if type(i) is list else [i] for i in stuff[1:]],[]) : utils.delete(item)
+
+        canvas.Print(name+'.ps]')
+        os.system('ps2pdf %s.ps %s.pdf'%(name,name))
+        os.system('rm %s.ps'%name)
         
     def templateFit(self, iStep, var, qqFrac = 0.15) :
         if not hasattr(self,'orgMelded') : print 'run meldScale() before templateFit().'; return
@@ -332,8 +354,6 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         #TF = templateFit.templateFitter(observed, *zip(*templates) )
         #print utils.roundString(TF.value, TF.error , noSci=True)
         
-        #canvas = r.TCanvas()
-        #canvas.Print(outName+'.ps[')
         #stuff = templateFit.drawTemplateFitter(TF, canvas)
         #canvas.Print(outName+'.ps')
         #for item in sum([i if type(i) is list else [i] for i in stuff[1:]],[]) : utils.delete(item)
