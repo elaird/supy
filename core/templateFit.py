@@ -16,27 +16,31 @@ class templateFitter(object) :
         return [cls(pseudo, pars, templates, 0) for pseudo in pseudos]
 
     def __init__(self, observed = (), pars = [], templates = [()], ensembleSize = 1e4) :
-        self.templates = np.maximum(1e-6,templates) # avoid log(0)
-        self.templatesN2LL = -2 * np.sum( observed * np.log(self.templates) - self.templates , axis = 1)
-        self.__coef = np.polyfit(pars, self.templatesN2LL, deg = 3)[::-1]
+        templates = np.maximum(1e-6,templates) # avoid log(0)
+        templatesN2LL = -2 * np.sum( observed * np.log(templates) - templates , axis = 1)
+        coef = np.polyfit(pars, templatesN2LL, deg = 3)[::-1]
 
-        _,c1,c2,c3 = self.__coef
+        _,c1,c2,c3 = coef
         R = c2 / (3*c3)
         D = math.sqrt(R**2 - c1 / (3*c3) )
         curve,self.__value = max([ (2*c2+6*p*c3, p) for p in [-R+D, -R-D]])
         self.__error = ( 0.5*curve )**-0.5
 
-        self.pars = pars
         self.__ensembleSize = ensembleSize
-        self.observed = np.array(observed)
-        self.n2LL = sum([self.value**i * self.__coef[i] for i in range(4)])
+        if ensembleSize :
+            self.__coef = coef
+            self.pars = pars
+            self.observed = np.array(observed)
+            self.templates = templates
+            self.templatesN2LL = templatesN2LL
+            self.n2LL = sum([self.value**i * self.__coef[i] for i in range(4)])
 
-    @property
-    def coefficients(self) : return self.__coef
     @property
     def value(self) : return self.__value
     @property
     def error(self) : return self.__error
+    @property
+    def coefficients(self) : return self.__coef
     @property
     def bestMatch(self) : return list(self.pars).index(min(self.pars, key = lambda p: abs(p-self.value)))
     @cached
