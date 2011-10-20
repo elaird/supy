@@ -121,14 +121,14 @@ mc.add("g_jets_mg_ht_100_200_spring11",'%s/%s/GJets_TuneD6T_HT-100To200_7TeV-mad
 mc.add("g_jets_mg_ht_200_inf_spring11"   ,'%s/%s/GJets_TuneD6T_HT-200_7TeV-madgraph.Spring11-PU_S1_START311_V1G1-v1.AODSIM")'%(srm, gJetMg),
        xs = {"LO":485, "fakeNLO":485*mgKFactor}["fakeNLO"])
 
-#MG (L1FastJetL2L3)
+#MG Summer '11 (L1FastJetL2L3)
 gJetMg = "/elaird//ICF/automated/2011_10_14_14_40_23/"
 mc.add("g_jets_mg_ht_40_100_summer11",  '%s/%s/GJets_TuneZ2_40_HT_100_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, gJetMg),
-       xs = {"LO":23620, "fakeNLO":23620*mgKFactor}["fakeNLO"])
+       xs = {"LO":224439, "fakeNLO":224439*mgKFactor}["fakeNLO"])
 mc.add("g_jets_mg_ht_100_200_summer11", '%s/%s/GJets_TuneZ2_100_HT_200_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, gJetMg),
-       xs = {"LO":3476, "fakeNLO":3476*mgKFactor}["fakeNLO"])
+       xs = {"LO":58101, "fakeNLO":58101*mgKFactor}["fakeNLO"])
 mc.add("g_jets_mg_ht_200_inf_summer11", '%s/%s/GJets_TuneZ2_200_HT_inf_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM")'%(srm, gJetMg),
-       xs = {"LO":485, "fakeNLO":485*mgKFactor}["fakeNLO"])
+       xs = {"LO":5220, "fakeNLO":5220*mgKFactor}["fakeNLO"])
 
 #MG (L1OffsetL2L3)
 gJetMg = "/bm409//ICF/automated/2011_06_16_17_15_39/"

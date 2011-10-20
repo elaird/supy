@@ -2,7 +2,7 @@ import samples
 from core.configuration import srm
 photon = samples.SampleHolder()
 
-#L2L3Residual
+#L1FJL2L3Residual
 photon.add("Photon.Run2011A-May10ReReco-v1.AOD.Darren1", '%s/dburton/ICF/automated/2011_10_04_23_05_48/Photon.Run2011A-May10ReReco-v1.AOD")'%srm,
            lumi = 1.0) #job 536, 1393/1414 completed
 photon.add("Photon.Run2011A-05Aug2011-v1.AOD.Bryn1",     '%s/bm409/ICF/automated/2011_09_29_15_37_16/Photon.Run2011A-05Aug2011-v1.AOD")'%srm,
@@ -69,11 +69,11 @@ photon.add("g_jets_mg_ht_40_100_spring11_skim",  'utils.fileListFromDisk(locatio
 photon.add("g_jets_mg_ht_100_200_spring11_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_*_skim.root", isDirectory = False)'%dir, xs = 3.710456e-02 * 4.414520e+03)
 photon.add("g_jets_mg_ht_200_inf_spring11_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_200_inf_*_skim.root", isDirectory = False)'%dir, xs = 8.309607e-02 * 6.159500e+02)
 
-#MC skims (L1FastJetL2L3)
+#MG Summer '11 skims (L1FastJetL2L3)
 dir = "/vols/cms02/elaird1/29_skims/04_photons/v6"
-photon.add("g_jets_mg_ht_40_100_summer11_skim",  'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_40_100_summer11_*_skim.root", isDirectory = False)'%dir,  xs = 1.114472e-04 * 2.999740e+04)
-photon.add("g_jets_mg_ht_100_200_summer11_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_summer11_*_skim.root", isDirectory = False)'%dir, xs = 3.303680e-02 * 4.414520e+03)
-photon.add("g_jets_mg_ht_200_inf_summer11_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_200_inf_summer11_*_skim.root", isDirectory = False)'%dir, xs = 8.159796e-02 * 6.159500e+02)
+photon.add("g_jets_mg_ht_40_100_summer11_skim",  'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_40_100_summer11_*_skim.root", isDirectory = False)'%dir,  xs = 1.114472e-04 * 285037)
+photon.add("g_jets_mg_ht_100_200_summer11_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_100_200_summer11_*_skim.root", isDirectory = False)'%dir, xs = 3.303680e-02 * 73788)
+photon.add("g_jets_mg_ht_200_inf_summer11_skim", 'utils.fileListFromDisk(location = "%s/g_jets_mg_ht_200_inf_summer11_*_skim.root", isDirectory = False)'%dir, xs = 8.159796e-02 * 6629)
 
 #MG EWK/TT
 dir = "/vols/cms02/elaird1/29_skims/04_photons/v1"
