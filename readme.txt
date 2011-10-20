@@ -16,8 +16,8 @@ git clone git://github.com/elaird/supy.git
 git clone git://github.com/your_username/supy.git
 cd supy
 
-3) Run it!
-- ./supy analyses/example.py --loop 1
+3) Run the example (the example input files are located on AFS):
+./supy analyses/example.py --loop 1
 
 ---------------------
 | Brief Description |
