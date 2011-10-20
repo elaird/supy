@@ -1,6 +1,6 @@
 import topAsymmShell,steps,calculables,samples
 from core import plotter,utils,organizer
-import os,math,copy,ROOT as r
+import os,math,copy,ROOT as r, numpy as np
 
 class topAsymm(topAsymmShell.topAsymmShell) :
     ########################################################################################
@@ -154,15 +154,14 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         #self.meldQCDpartitions()
         self.meldScale()
         #self.plotmeldScale()
-        import numpy as np
-        qqFracs = np.arange(0.1,0.6,0.05)
+        qqFracs = sorted(list(np.arange(0.1,0.65,0.05))+[0.12])
         vars = ['lHadtDeltaY',
                 'leptonRelativeY',
                 'ttbarBeta',
                 'ttbarDeltaAbsY',
                 'ttbarSignedDeltaY' ]
         args = sum([[(iStep, var, qqFrac) for iStep in self.orgMelded.indicesOfStepsWithKey(var) for qqFrac in qqFracs] for var in vars],[])
-        for arg in args : self.pickleEnsemble(*arg)
+        utils.operateOnListUsingQueue(6, utils.qWorker(self.pickleEnsemble), args)
 
     def conclude(self,pars) :
         org = self.organizer(pars)
@@ -299,7 +298,6 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         asymm = [eval(name.replace("top.tt_tauola_fj.wTopAsym","").replace(".nvr","").replace("P",".").replace("N","-.")) for name in topQQs]
         distTup = self.orgMelded.steps[iStep][var]
 
-        import numpy as np
         def nparray(name, scaleToN = None) :
             hist = distTup[ self.orgMelded.indexOfSampleWithName(name) ]
             bins = np.array([hist.GetBinContent(j) for j in range(hist.GetNbinsX()+2)])
