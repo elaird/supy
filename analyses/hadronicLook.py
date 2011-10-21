@@ -5,6 +5,64 @@ from core import analysis,plotter,utils
 import steps,calculables,samples
 import ROOT as r
 
+def triggerTuple(l = [], keys = []) :
+    out = []
+    for item in l :
+        stem = "HLT"
+        for key in keys :
+            stem += "_%s%s"%(key, str(item[key]).replace(".","p"))
+        for version in item["v"] :
+            out.append("%s_v%d"%(stem, version))
+    return tuple(out)
+
+#required to be sorted
+triggers_ht_2010 = ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3")
+
+triggers_ht_eps = tuple(["HLT_HT250_MHT60_v%d"%i for i in [2,3,4,6,7]   ]+
+                        ["HLT_HT250_MHT70_v%d"%i for i in [1,3,4]       ]+
+                        ["HLT_HT250_MHT80_v%d"%i for i in [3,4]         ]+
+                        ["HLT_HT250_MHT90_v%d"%i for i in [1]           ]+
+                        ["HLT_HT250_MHT100_v%d"%i for i in [1]          ]+
+                        ["HLT_HT260_MHT60_v%d"%i for i in [2]           ])
+
+triggers_mht_2011 = triggerTuple(l = [{"HT":250, "MHT":  60, "v":[1,2,3,4,5,6,7]},
+                                      {"HT":260, "MHT":  60, "v":[1,2]},
+                                      {"HT":250, "MHT":  70, "v":[1,2,3,4]},
+                                      {"HT":250, "MHT":  80, "v":[1,2,3,4]},
+                                      {"HT":250, "MHT":  90, "v":[1,2,3,4]},
+                                      {"HT":250, "MHT": 100, "v":[1,2]},
+                                      
+                                      {"HT":300, "MHT":  75, "v":[1,2,3,4,5,6,7,8]},
+                                      {"HT":300, "MHT":  80, "v":[1,2]},
+                                      {"HT":300, "MHT":  90, "v":[1,2]},
+                                      
+                                      {"HT":350, "MHT":  70, "v":[1,2]},
+                                      {"HT":350, "MHT":  80, "v":[1,2]},
+                                      {"HT":350, "MHT":  90, "v":[1]},
+
+                                      {"HT":400, "MHT":  80, "v":[1]},
+                                      ], keys = ("HT", "MHT"))
+                                      
+triggers_alphaT_2011 = triggerTuple(l  = [#{"HT":250, "AlphaT": 0.53, "v":range(1,7)},
+                                          #{"HT":250, "AlphaT": 0.54, "v":range(2,5)},
+                                          #{"HT":250, "AlphaT": 0.55, "v":range(1,3)},
+                                          #{"HT":250, "AlphaT": 0.62, "v":range(1,3)},
+                                          
+                                          {"HT":300, "AlphaT": 0.52, "v":range(1,6)},
+                                          {"HT":300, "AlphaT": 0.53, "v":range(1,7)},
+                                          #{"HT":300, "AlphaT": 0.54, "v":range(1,3)},
+                                          
+                                          {"HT":350, "AlphaT": 0.51, "v":range(1,6)},
+                                          {"HT":350, "AlphaT": 0.52, "v":range(1,3)},
+                                          {"HT":350, "AlphaT": 0.53, "v":range(1,8)},
+                                          
+                                          {"HT":400, "AlphaT": 0.51, "v":range(1,8)},
+                                          {"HT":400, "AlphaT": 0.52, "v":range(1,3)},
+                                          
+                                          {"HT":450, "AlphaT": 0.51, "v":range(1,3)},
+                                          {"HT":450, "AlphaT": 0.52, "v":range(1,3)},
+                                          ], keys = ("HT", "AlphaT"))
+
 class hadronicLook(analysis.analysis) :
     def parameters(self) :
         objects = self.vary()
@@ -42,25 +100,7 @@ class hadronicLook(analysis.analysis) :
                                                 ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#3
                                                 ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#4
                                                 ][2:3] )),
-                 #required to be sorted
-                 #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
-                 #"triggerList": ("HLT_HT250_AlphaT0p55_v1","HLT_HT250_AlphaT0p55_v2","HLT_HT250_MHT60_v2","HLT_HT250_MHT60_v3","HLT_HT260_MHT60_v2","HLT_HT300_MHT75_v2","HLT_HT300_MHT75_v3","HLT_HT300_MHT75_v4"),#alphaT trigger test
-                 "triggerList": tuple(["HLT_HT250_MHT60_v%d"%i for i in [2,3,4,6,7]   ]+
-                                      ["HLT_HT250_MHT70_v%d"%i for i in [1,3,4]       ]+
-                                      ["HLT_HT250_MHT80_v%d"%i for i in [3,4]         ]+
-                                      ["HLT_HT250_MHT90_v%d"%i for i in [1]           ]+
-                                      ["HLT_HT250_MHT100_v%d"%i for i in [1]          ]+
-                                      ["HLT_HT260_MHT60_v%d"%i for i in [2]           ]
-
-                                      #["HLT_HT300_MHT75_v%d"%i for i in [2,3,4,5,7,8] ]+
-                                      #["HLT_HT300_MHT80_v%d"%i for i in [1]           ]+
-                                      #["HLT_HT300_MHT90_v%d"%i for i in [1]           ]+
-                                      #
-                                      #["HLT_HT350_MHT70_v%d"%i for i in [1]           ]+
-                                      #["HLT_HT350_MHT80_v%d"%i for i in [1]           ]+
-                                      #
-                                      #["HLT_HT250_MHT100_v%d"%i for i in [1]]
-                                      )
+                 "triggerList": triggers_mht_2011,
                  }
 
     def ra1Cosmetics(self) : return False
@@ -306,12 +346,30 @@ class hadronicLook(analysis.analysis) :
             [ steps.Other.passFilter("final") ]
     
     def listOfSampleDictionaries(self) :
-        return [samples.MC.mc, samples.JetMET.jetmet, samples.SignalSkim.signalSkim]
+        return [samples.HT.ht, samples.JetMET.jetmet, samples.MC.mc]
 
     def listOfSamples(self,params) :
         from samples import specify
 
         def data() :
+            out = []
+
+            #2011
+            jwPrompt = calculables.Other.jsonWeight("cert/Cert_160404-177515_7TeV_PromptReco_Collisions11_JSON.txt")
+            jwMay = calculables.Other.jsonWeight("cert/Cert_160404-163869_7TeV_May10ReReco_Collisions11_JSON_v3.txt")
+            jwAug = calculables.Other.jsonWeight("cert/Cert_170249-172619_7TeV_ReReco5Aug_Collisions11_JSON_v2.txt")
+            
+            out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.job536", weights = jwMay   , overrideLumi = 204.4)
+            out += specify(names = "HT.Run2011A-05Aug2011-v1.AOD.job528",   weights = jwAug   , overrideLumi = 360.3)
+            out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.job535",  weights = jwPrompt, overrideLumi = 730.6)
+            out += specify(names = "HT.Run2011A-PromptReco-v6.AOD.job527",  weights = jwPrompt, overrideLumi = 640.2)
+            out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job515",  weights = jwPrompt, overrideLumi = 200.7)
+            out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job519",  weights = jwPrompt, overrideLumi = 254.6)
+            out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job531",  weights = jwPrompt, overrideLumi = 248.7)
+
+            return out
+
+        def dataEps() :
             out = []
 
             jw = calculables.Other.jsonWeight("cert/Cert_160404-167913_7TeV_PromptReco_Collisions11_JSON.txt") #1078/pb            
@@ -404,7 +462,7 @@ class hadronicLook(analysis.analysis) :
             x.update(y)
             return x
         
-        org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "HT.Run2011A")
+        org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "HT.Run2011")
 
         mcOps = {"markerStyle":1, "lineWidth":3, "goptions":"hist"}
         if "pythia6"  in org.tag :
