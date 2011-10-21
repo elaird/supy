@@ -63,7 +63,7 @@ class hadronicLook(analysis.analysis) :
                                       )
                  }
 
-    def ra1Cosmetics(self) : return False
+    def ra1Cosmetics(self) : return True
     
     def calcListJet(self, obj, etRatherThanPt, ptMin, lowPtThreshold, lowPtName, highPtThreshold, highPtName, htThreshold) :
         def calcList(jet, met, photon, muon, electron, muonsInJets, jetIdFlag) :
@@ -359,28 +359,17 @@ class hadronicLook(analysis.analysis) :
             return specify( effectiveLumi = eL, color = r.kGreen,
                             names = [("g_jets_mg_ht_%d_%d")[:None if t[1] else -2] for t in zip(gM,gM[1:]+["inf"])] )
 
-        def ttbar_mg(eL, era = "") :
-            names = ""
-            if era=="spring11" : names = "tt_tauola_mg"
-            if era=="summer11" : names = "tt_jets_mg_tauola_summer11"
-            return specify( names = names, effectiveLumi = eL, color = r.kOrange)
+        def ttbar_mg(eL) :
+            return specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kOrange)
         
-        def ewk(eL, era = "") :
-            zName = ""
-            wName = ""
-            if era=="spring11" :
-                zName = "zinv_jets_mg"
-                wName = "w_jets_mg"
-            if era=="summer11" :
-                zName = "znunu_jets_mg_ht_200_inf_summer11_skim"
-                wName = "w_jets_mg_tauola_ht_300_inf_summer11"
-            
-            return ( specify(names = zName,  effectiveLumi = eL, color = r.kRed + 1) +
+        def ewk(eL) :
+            return ( specify(names = "zinv_jets_mg",  effectiveLumi = eL, color = r.kRed + 1) +
                      #specify(names = "z_jets_mg_v12_skim", effectiveLumi = eL, color = r.kYellow-3) +
-                     specify(names = wName, effectiveLumi = eL, color = 28         ) )
+                     specify(names = "w_jets_mg", effectiveLumi = eL, color = 28         ) )
 
         def susy(eL) :
-            return specify(names = "lm6", effectiveLumi = eL, color = r.kRed)
+            return ( specify(names = "lm1", effectiveLumi = eL, color = r.kMagenta) +
+                     specify(names = "lm6", effectiveLumi = eL, color = r.kRed) )
 
         def scan(tanBeta) :
             return specify(names = "scan_tanbeta%d"%tanBeta, color = r.kMagenta, nFilesMax = 1)
@@ -388,40 +377,54 @@ class hadronicLook(analysis.analysis) :
         qcd_func,g_jets_func = {"py6": (qcd_py6,g_jets_py6),
                                 "py8": (qcd_py8,g_jets_py6), # no g_jets_py8 available
                                 "mg" : (qcd_mg, g_jets_mg ) }[params["mcSoup"]]
-        #era = "spring11"
-        era = "summer11"
-        smLumi = 30000 # 1/pb
-        susyLumi = 60000
+        eL = 30000 # 1/pb
+        susyEL = eL
         #return data()
         return ( data() +
-                 qcd_func(smLumi) + #g_jets_func(eL) +
-                 ttbar_mg(smLumi, era = era) + ewk(smLumi, era = era) +
-                 susy(susyLumi)
+                 qcd_func(eL) + #g_jets_func(eL) +
+                 ttbar_mg(eL) + ewk(eL) +
+                 susy(susyEL)
                  ) if params["tanBeta"]==None else scan(params["tanBeta"])
 
     def mergeSamples(self, org) :
-        def md(x, y) :
-            x.update(y)
-            return x
-        
-        org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "HT.Run2011A")
+        def py8(org, smSources) :
+            org.mergeSamples(targetSpec = {"name":"qcd_py8", "color":r.kBlue}, allWithPrefix="qcd_py8")
+            org.mergeSamples(targetSpec = {"name":"g_jets_py6_v12", "color":r.kGreen}, allWithPrefix="v12_g_jets_py6")
+            smSources.append("qcd_py8")
+            smSources.append("g_jets_py6_v12")
 
-        mcOps = {"markerStyle":1, "lineWidth":3, "goptions":"hist"}
+        def mg(org, smSources) :
+            org.mergeSamples(targetSpec = {"name":"qcd_mg", "color":r.kBlue}, allWithPrefix="v12_qcd_mg")
+            org.mergeSamples(targetSpec = {"name":"g_jets_mg", "color":r.kGreen}, allWithPrefix="v12_g_jets_mg")
+            smSources.append("qcd_mg_v12")
+            smSources.append("g_jets_mg_v12")
+
+        ewkSources = ["tt_tauola_mg", "zinv_jets_mg", "w_jets_mg"] #note: include DY samples
+        smSources = copy.deepcopy(ewkSources)
+        for i in range(len(smSources)) :
+            smSources[i] = smSources[i]+(self.skimString if hasattr(self,"skimString") else "")
+
+        lineWidth = 3
+        goptions = "hist"
+        if "pythia8"  in org.tag : py8(org, smSources)
+        if "madgraph" in org.tag : mg (org, smSources)
         if "pythia6"  in org.tag :
-            org.mergeSamples(targetSpec = md({"name":"QCD Multijet", "color":r.kGreen+3}, mcOps), allWithPrefix = "qcd_py6")
-        org.mergeSamples(targetSpec = md({"name":"tt", "color": r.kBlue}, mcOps), allWithPrefix = "tt")
-        org.mergeSamples(targetSpec = md({"name":"Z + jets", "color": r.kRed+1}, mcOps), allWithPrefix = "z")
-        org.mergeSamples(targetSpec = md({"name":"W + jets", "color": r.kOrange-3}, mcOps), allWithPrefix = "w_jets")
-        org.mergeSamples(targetSpec = md({"name":"LM6", "color":r.kMagenta}, mcOps), allWithPrefix = "lm6")
-        ewkSources = ["tt", "Z + jets", "W + jets"]
-        qcdSources = ["QCD Multijet"]
+            if not self.ra1Cosmetics() :
+                org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
+                smSources.append("qcd_py6")
+            else :
+                org.mergeSamples(targetSpec = {"name":"QCD Multijet", "color":r.kGreen+3, "markerStyle":1, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="qcd_py6")
 
-        if not self.ra1Cosmetics() :
-            org.mergeSamples(targetSpec = md({"name":"Standard Model ", "color":r.kAzure+6}, mcOps), sources = ewkSources + qcdSources, keepSources = True)
-        else :
-            ewk = "t#bar{t}, W, Z + Jets"
-            org.mergeSamples(targetSpec = md({"name":ewk, "color":r.kBlue}, mcOps), sources = ewkSources)
-            org.mergeSamples(targetSpec = md({"name":"Standard Model ", "color":r.kAzure+6}, mcOps), sources = qcdSources + [ewk], keepSources = True)
+        #org.mergeSamples(targetSpec = {"name":"2010 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="Nov4")
+        org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="HT.Run2011A")
+
+        if not self.ra1Cosmetics() : 
+            org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+3}, sources = smSources, keepSources = True)        
+        else : #Henning's requests
+            org.mergeSamples(targetSpec = {"name":"t#bar{t}, W, Z + Jets", "color":r.kBlue, "markerStyle":1, "lineWidth":lineWidth, "goptions":goptions}, sources = ewkSources)
+            org.mergeSamples(targetSpec = {"name":"Standard Model ", "color":r.kAzure+6, "markerStyle":1, "lineWidth":lineWidth, "goptions":goptions}, sources = ["QCD Multijet", "t#bar{t}, W, Z + Jets"], keepSources = True)
+            org.mergeSamples(targetSpec = {"name":"LM1", "color":r.kRed,     "lineStyle":9, "markerStyle":1, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="lm1")
+            org.mergeSamples(targetSpec = {"name":"LM6", "color":r.kMagenta, "lineStyle":2, "markerStyle":1, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="lm6")
 
     def conclude(self, conf) :
         org = self.organizer(conf)
@@ -438,10 +441,11 @@ class hadronicLook(analysis.analysis) :
         #plot
         pl = plotter.plotter(org,
                              psFileName = self.psFileName(org.tag),
-                             samplesForRatios = ("2011 Data","Standard Model "),
+                             samplesForRatios = ("2011 Data","standard_model" if not self.ra1Cosmetics() else "Standard Model "),
                              sampleLabelsForRatios = ("data","s.m."),
+                             #samplesForRatios = ("calo_325_scaled.xcak5JetnJetsWeightPat", "calo_325_scaled"),
+                             #sampleLabelsForRatios = ("3jet","Njet"),
                              showStatBox = not self.ra1Cosmetics(),
-                             rowColors = [r.kBlack, r.kViolet+4],
                              #whiteList = ["lowestUnPrescaledTrigger"],
                              #doLog = False,
                              #compactOutput = True,
