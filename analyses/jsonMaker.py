@@ -18,18 +18,13 @@ class jsonMaker(analysis) :
 
         out = []
 
-        #out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.Bryn",   weights = jw)
-        #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn1",   weights = jw)
-        #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn2",   weights = jw)
-        #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn3",   weights = jw)
-
-        out += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Darren1", weights = jwMay)
-        out += specify(names = "Photon.Run2011A-05Aug2011-v1.AOD.Bryn1",     weights = jwAug)
-        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Bryn1",    weights = jwPrompt)
-        out += specify(names = "Photon.Run2011A-PromptReco-v6.AOD.Bryn1",    weights = jwPrompt)
-        out += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn1",    weights = jwPrompt)
-        out += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn2",    weights = jwPrompt)
-        out += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn3",    weights = jwPrompt)
+        out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.Darren1", weights = jwMay)
+        out += specify(names = "HT.Run2011A-05Aug2011-v1.AOD.Bryn1",     weights = jwAug)
+        out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn1",    weights = jwPrompt)
+        out += specify(names = "HT.Run2011A-PromptReco-v6.AOD.Bryn1",    weights = jwPrompt)
+        out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.Bryn1",    weights = jwPrompt)
+        out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.Bryn2",    weights = jwPrompt)
+        out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.Bryn3",    weights = jwPrompt)
 
         #out += specify(names = [ "SingleMu.Run2011A-May10-v1.FJ.Burt",
         #                         "SingleMu.Run2011A-PR-v4.FJ.Burt1",
@@ -41,7 +36,7 @@ class jsonMaker(analysis) :
         return out
 
     def listOfSampleDictionaries(self) :
-        return [samples.JetMET.jetmet, samples.Muon.muon, samples.Photon.photon, samples.Electron.electron]
+        return [samples.HT.ht, samples.Muon.muon, samples.Photon.photon, samples.Electron.electron]
 
     def mainTree(self) :
         return ("lumiTree","tree")
