@@ -1,6 +1,6 @@
 import topAsymmShell,steps,calculables,samples
-from core import plotter,utils,organizer
-import os,math,copy,ROOT as r
+from core import plotter,utils,organizer,templateFit
+import os,math,copy,ROOT as r, numpy as np
 
 class topAsymm(topAsymmShell.topAsymmShell) :
     ########################################################################################
@@ -149,15 +149,12 @@ class topAsymm(topAsymmShell.topAsymmShell) :
     ########################################################################################
     def concludeAll(self) :
         self.rowcolors = [r.kBlack, r.kGray+3, r.kGray+2, r.kGray+1, r.kViolet+4]
-        #super(topAsymm,self).concludeAll()
-        #self.meldWpartitions()
-        #self.meldQCDpartitions()
+        super(topAsymm,self).concludeAll()
+        self.meldWpartitions()
+        self.meldQCDpartitions()
         self.meldScale()
-        for var in ['lHadtDeltaY',
-                    'leptonRelativeY',
-                    'ttbarBeta',
-                    'ttbarDeltaAbsY',
-                    'ttbarSignedDeltaY' ] : self.templateFit(var)
+        self.plotMeldScale()
+        self.ensembleTest()
 
     def conclude(self,pars) :
         org = self.organizer(pars)
@@ -229,6 +226,19 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                              rowColors = self.rowcolors,
                              ).plotAll()
 
+    def plotMeldScale(self) :
+        if not hasattr(self,"orgMelded") : print "run meldScale() before plotMeldScale()"; return
+        melded = copy.deepcopy(self.orgMelded)
+        for ss in filter(lambda ss: 'tt_tauola_fj' in ss['name'], melded.samples) : melded.drop(ss['name'])
+        melded.mergeSamples(targetSpec = {"name":"S.M.", "color":r.kGreen+2}, sources = ['top.w_jets','top.t#bar{t}','QCD.Data 2011'], keepSources = True, force = True)
+        pl = plotter.plotter(melded, psFileName = self.psFileName(melded.tag),
+                             doLog = False,
+                             blackList = ["lumiHisto","xsHisto","nJobsHisto"],
+                             rowColors = self.rowcolors,
+                             samplesForRatios = ("top.Data 2011","S.M."),
+                             sampleLabelsForRatios = ('data','s.m.')
+                             ).plotAll()
+
     def meldScale(self) :
         meldSamples = {"top_muon_pf" : ["SingleMu","tt_tauola_fj","w_jets"],
                        #"Wlv_muon_pf" : ["w_jets"],
@@ -273,56 +283,100 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         
         for iSample,ss in enumerate(self.orgMelded.samples) :
             if ss['name'] in fractions : self.orgMelded.scaleOneRaw(iSample, fractions[ss['name']] * nEventsObserved / distTup[iSample].Integral(0,distTup[iSample].GetNbinsX()+1))
-        
-        melded = copy.deepcopy(self.orgMelded)
-        for ss in filter(lambda ss: 'tt_tauola_fj' in ss['name'], melded.samples) : melded.drop(ss['name'])
-        melded.mergeSamples(targetSpec = {"name":"S.M.", "color":r.kGreen+2}, sources = ['top.w_jets','top.t#bar{t}','QCD.Data 2011'], keepSources = True, force = True)
-        pl = plotter.plotter(melded, psFileName = self.psFileName(melded.tag),
-                             doLog = False,
-                             blackList = ["lumiHisto","xsHisto","nJobsHisto"],
-                             rowColors = self.rowcolors,
-                             samplesForRatios = ("top.Data 2011","S.M."),
-                             sampleLabelsForRatios = ('data','s.m.')
-                             ).plotAll()
-    
+                
 
-
-    def templateFit(self, var, qqFrac = 0.15) :
-        if not hasattr(self,'orgMelded') : print 'orgMelded is not present!' ; return
-        from core import templateFit
-        import numpy as np
-
-        org = self.orgMelded
-        topQQs = [s['name'] for s in org.samples if 'wTopAsym' in s['name']]
+    def templates(self, iStep, var, qqFrac) :
+        if not hasattr(self,'orgMelded') : print 'run meldScale() before asking for templates()'; return
+        topQQs = [s['name'] for s in self.orgMelded.samples if 'wTopAsym' in s['name']]
         asymm = [eval(name.replace("top.tt_tauola_fj.wTopAsym","").replace(".nvr","").replace("P",".").replace("N","-.")) for name in topQQs]
+        distTup = self.orgMelded.steps[iStep][var]
 
         def nparray(name, scaleToN = None) :
-            hist = distTup[ org.indexOfSampleWithName(name) ]
+            hist = distTup[ self.orgMelded.indexOfSampleWithName(name) ]
             bins = np.array([hist.GetBinContent(j) for j in range(hist.GetNbinsX()+2)])
             if scaleToN : bins *= (scaleToN / sum(bins))
             return bins
 
-        outName = self.globalStem + '/templateFit_%s_%d'%(var,qqFrac*100)
+        nTT = sum(nparray('top.t#bar{t}'))
+        observed = nparray('top.Data 2011')
+        base = ( nparray('QCD.Data 2011') +
+                 nparray('top.w_jets') +
+                 nparray('top.tt_tauola_fj.wNonQQbar.nvr', scaleToN = (1-qqFrac) * nTT )
+                 )
+        templates = [base +  nparray(qqtt, qqFrac*nTT ) for qqtt in topQQs]
+        return zip(asymm, templates), observed
+    
+
+
+    def ensembleFileName(self, iStep, var, qqFrac, suffix = '.pickleData') :
+        return "%s/ensembles/%d_%s_%.3f%s"%(self.globalStem,iStep,var,qqFrac,suffix)
+
+    def ensembleTest(self) :
+        qqFracs = sorted([0.10, 0.12, 0.15, 0.20, 0.25, 0.30, 0.40, 0.60])
+        vars = ['lHadtDeltaY',
+                'ttbarDeltaAbsY',
+                'leptonRelativeY',
+                'ttbarBeta',
+                'ttbarSignedDeltaY'
+                ]
+        args = sum([[(iStep, var, qqFrac) for iStep in list(self.orgMelded.indicesOfStepsWithKey(var))[:None] for qqFrac in qqFracs] for var in vars],[])
+        utils.operateOnListUsingQueue(6, utils.qWorker(self.pickleEnsemble), args)
+        ensembles = dict([(arg,utils.readPickle(self.ensembleFileName(*arg))) for arg in args])
+
+        for iStep in sorted(set([iStep for iStep,var,qqFrac in ensembles])) :
+            canvas = r.TCanvas()
+            vars = set([var for jStep,var,qqFrac in ensembles if jStep==iStep])
+            legend = r.TLegend(0.7,0.5,0.9,0.9)
+            graphs = {}
+            for iVar,var in enumerate(vars) :
+                points = sorted([(qqFrac,ensemble.sensitivity) for (jStep, jVar, qqFrac),ensemble in ensembles.iteritems() if jStep==iStep and jVar==var])
+                qqs,sens = zip(*points)
+                graphs[var] = r.TGraph(len(points),np.array(qqs),np.array(sens))
+                graphs[var].SetLineColor(iVar+1)
+                graphs[var].Draw('' if iVar else "AL")
+                graphs[var].SetMinimum(0)
+                graphs[var].SetTitle("Sensitivity @ step %d;fraction of t#bar{t} from q#bar{q};expected uncertainty on A_{fb}"%iStep)
+                legend.AddEntry(graphs[var],var,'l')
+            legend.Draw()
+            utils.tCanvasPrintPdf(canvas, '%s/sensetivity_%d'%(self.globalStem,iStep))
+                
+
+    def pickleEnsemble(self, iStep, var, qqFrac ) :
+        utils.mkdir(self.globalStem+'/ensembles')
+        templates,observed = self.templates(iStep, var, qqFrac)
+        ensemble = templateFit.templateEnsembles(2e3, *zip(*templates) )
+        utils.writePickle(self.ensembleFileName(iStep,var,qqFrac), ensemble)
+
+        name = self.ensembleFileName(iStep,var,qqFrac,'')
         canvas = r.TCanvas()
-        canvas.Print(outName+'.ps[')
-        for iStep in org.indicesOfStepsWithKey(var) :
-            distTup = org.steps[iStep][var]
+        canvas.Print(name+'.ps[')
+        stuff = templateFit.drawTemplateEnsembles(ensemble, canvas)
+        canvas.Print(name+".ps")
+        import random
+        for i in range(20) :
+            par, templ = random.choice(zip(ensemble.pars,ensemble.templates)[2:-2])
+            pseudo = [np.random.poisson(mu) for mu in templ]
+            tf = templateFit.templateFitter(pseudo,ensemble.pars,ensemble.templates, 1e3)
+            stuff = templateFit.drawTemplateFitter(tf,canvas, trueVal = par)
+            canvas.Print(name+".ps")
+            for item in sum([i if type(i) is list else [i] for i in stuff[1:]],[]) : utils.delete(item)
 
-            nTT = sum(nparray('top.t#bar{t}'))
-            observed = nparray('top.Data 2011')
-            base = ( nparray('QCD.Data 2011') +
-                     nparray('top.w_jets') +
-                     nparray('top.tt_tauola_fj.wNonQQbar.nvr', scaleToN = (1-qqFrac) * nTT )
-                     )
-            templates = [base +  nparray(qqtt, qqFrac*nTT ) for qqtt in topQQs]
+        canvas.Print(name+'.ps]')
+        os.system('ps2pdf %s.ps %s.pdf'%(name,name))
+        os.system('rm %s.ps'%name)
+        
+    def templateFit(self, iStep, var, qqFrac = 0.15) :
+        print "FIXME"; return
+        if not hasattr(self,'orgMelded') : print 'run meldScale() before templateFit().'; return
 
-            TF = templateFit.templateFitter(observed, templates, asymm)
-            print utils.roundString(TF.value, TF.error , noSci=True)
-            stuff = templateFit.drawTemplateFitter(TF, canvas)
-            canvas.Print(outName+'.ps')
-            #stuff[0].cd(3).SetLogy(1)
-            #stuff[0].Print(outName+'.ps')
-
-        canvas.Print(outName+'.ps]')
-        os.system('ps2pdf %s.ps %s.pdf'%(outName,outName))
-        os.system('rm %s.ps'%outName)
+        outName = self.globalStem + '/templateFit_%s_%d'%(var,qqFrac*100)
+        #TF = templateFit.templateFitter(observed, *zip(*templates) )
+        #print utils.roundString(TF.value, TF.error , noSci=True)
+        
+        #stuff = templateFit.drawTemplateFitter(TF, canvas)
+        #canvas.Print(outName+'.ps')
+        #for item in sum([i if type(i) is list else [i] for i in stuff[1:]],[]) : utils.delete(item)
+        
+        #canvas.Print(outName+'.ps]')
+        #os.system('ps2pdf %s.ps %s.pdf'%(outName,outName))
+        #os.system('rm %s.ps'%outName)
