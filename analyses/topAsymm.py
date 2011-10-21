@@ -1,5 +1,5 @@
 import topAsymmShell,steps,calculables,samples
-from core import plotter,utils,organizer
+from core import plotter,utils,organizer,templateFit
 import os,math,copy,ROOT as r, numpy as np
 
 class topAsymm(topAsymmShell.topAsymmShell) :
@@ -149,11 +149,11 @@ class topAsymm(topAsymmShell.topAsymmShell) :
     ########################################################################################
     def concludeAll(self) :
         self.rowcolors = [r.kBlack, r.kGray+3, r.kGray+2, r.kGray+1, r.kViolet+4]
-        #super(topAsymm,self).concludeAll()
-        #self.meldWpartitions()
-        #self.meldQCDpartitions()
+        super(topAsymm,self).concludeAll()
+        self.meldWpartitions()
+        self.meldQCDpartitions()
         self.meldScale()
-        #self.plotmeldScale()
+        self.plotMeldScale()
         self.ensembleTest()
 
     def conclude(self,pars) :
@@ -306,26 +306,45 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         templates = [base +  nparray(qqtt, qqFrac*nTT ) for qqtt in topQQs]
         return zip(asymm, templates), observed
     
-    def ensembleTest(self) :
-        qqFracs = sorted(list(np.arange(0.1,0.65,0.05))+[0.12])
-        vars = ['lHadtDeltaY',
-                'ttbarDeltaAbsY',
-                #'leptonRelativeY',
-                #'ttbarBeta',
-                #'ttbarSignedDeltaY'
-                ]
-        args = sum([[(iStep, var, qqFrac) for iStep in list(self.orgMelded.indicesOfStepsWithKey(var))[:1] for qqFrac in qqFracs] for var in vars],[])
-        utils.operateOnListUsingQueue(6, utils.qWorker(self.pickleEnsemble), args)
+
 
     def ensembleFileName(self, iStep, var, qqFrac, suffix = '.pickleData') :
         return "%s/ensembles/%d_%s_%.3f%s"%(self.globalStem,iStep,var,qqFrac,suffix)
 
+    def ensembleTest(self) :
+        qqFracs = sorted([0.10, 0.12, 0.15, 0.20, 0.25, 0.30, 0.40, 0.60])
+        vars = ['lHadtDeltaY',
+                'ttbarDeltaAbsY',
+                'leptonRelativeY',
+                'ttbarBeta',
+                'ttbarSignedDeltaY'
+                ]
+        args = sum([[(iStep, var, qqFrac) for iStep in list(self.orgMelded.indicesOfStepsWithKey(var))[:None] for qqFrac in qqFracs] for var in vars],[])
+        utils.operateOnListUsingQueue(6, utils.qWorker(self.pickleEnsemble), args)
+        ensembles = dict([(arg,utils.readPickle(self.ensembleFileName(*arg))) for arg in args])
+
+        for iStep in sorted(set([iStep for iStep,var,qqFrac in ensembles])) :
+            canvas = r.TCanvas()
+            vars = set([var for jStep,var,qqFrac in ensembles if jStep==iStep])
+            legend = r.TLegend(0.7,0.5,0.9,0.9)
+            graphs = {}
+            for iVar,var in enumerate(vars) :
+                points = sorted([(qqFrac,ensemble.sensitivity) for (jStep, jVar, qqFrac),ensemble in ensembles.iteritems() if jStep==iStep and jVar==var])
+                qqs,sens = zip(*points)
+                graphs[var] = r.TGraph(len(points),np.array(qqs),np.array(sens))
+                graphs[var].SetLineColor(iVar+1)
+                graphs[var].Draw('' if iVar else "AL")
+                graphs[var].SetMinimum(0)
+                graphs[var].SetTitle("Sensitivity @ step %d;fraction of t#bar{t} from q#bar{q};expected uncertainty on A_{fb}"%iStep)
+                legend.AddEntry(graphs[var],var,'l')
+            legend.Draw()
+            utils.tCanvasPrintPdf(canvas, '%s/sensetivity_%d'%(self.globalStem,iStep))
+                
+
     def pickleEnsemble(self, iStep, var, qqFrac ) :
-        from core import templateFit
         utils.mkdir(self.globalStem+'/ensembles')
         templates,observed = self.templates(iStep, var, qqFrac)
         ensemble = templateFit.templateEnsembles(2e3, *zip(*templates) )
-        print qqFrac, iStep, var, "%.3f"%ensemble.sensitivity 
         utils.writePickle(self.ensembleFileName(iStep,var,qqFrac), ensemble)
 
         name = self.ensembleFileName(iStep,var,qqFrac,'')
@@ -347,8 +366,8 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         os.system('rm %s.ps'%name)
         
     def templateFit(self, iStep, var, qqFrac = 0.15) :
+        print "FIXME"; return
         if not hasattr(self,'orgMelded') : print 'run meldScale() before templateFit().'; return
-        from core import templateFit
 
         outName = self.globalStem + '/templateFit_%s_%d'%(var,qqFrac*100)
         #TF = templateFit.templateFitter(observed, *zip(*templates) )
