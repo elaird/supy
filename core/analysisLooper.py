@@ -14,6 +14,7 @@ class analysisLooper :
                     "localStem", "globalStem", "subDir", "inputFiles", "name", "nEventsMax", "quietMode"] :
             setattr(self, arg, eval(arg))
 
+        self.trace = configuration.trace() and not any([step.requiresNoTrace() for step in self.steps])
         self.outputDir = self.globalDir #the value will be modified in self.prepareOutputDirectory()
         self.inputDir = self.globalDir 
         self.checkSteps()
@@ -66,7 +67,7 @@ class analysisLooper :
                                                       useSetBranchAddress = not any([step.requiresNoSetBranchAddress() for step in self.steps]),
                                                       leavesToBlackList = self.leavesToBlackList,
                                                       maxArrayLength = configuration.maxArrayLength(),
-                                                      trace = configuration.trace(),
+                                                      trace = self.trace,
                                                       cacheSizeMB = configuration.ttreecacheMB(),
                                                       )
             for step in filter(lambda s: (issubclass(type(s),wrappedChain.wrappedChain.calculable) and
@@ -141,7 +142,7 @@ class analysisLooper :
                 self.steps[0].books.append(step.book)
 
             if minimal : continue
-            step.tracer = wrappedChain.keyTracer(None) if configuration.trace() and (step.isSelector or issubclass(type(step),wrappedChain.wrappedChain.calculable)) else None
+            step.tracer = wrappedChain.keyTracer(None) if self.trace and (step.isSelector or issubclass(type(step),wrappedChain.wrappedChain.calculable)) else None
             if self.quietMode : step.makeQuiet()
             assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.name
             step.setup(self.chains[self.mainTree], self.mainTree[0])
@@ -154,7 +155,7 @@ class analysisLooper :
             for step in self.steps :
                 r.gDirectory.mkdir(step.name, step.moreNames).cd()
                 for hist in [step.book[name] for name in step.book.fillOrder] : hist.Write()
-                if configuration.trace() and step.isSelector :
+                if self.trace and step.isSelector :
                     r.gDirectory.mkdir("Calculables").cd()
                     for key in step.tracer.tracedKeys : r.gDirectory.mkdir(key)
                     r.gDirectory.GetMother().cd()
