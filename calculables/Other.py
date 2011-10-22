@@ -109,22 +109,29 @@ class RecHitSumPt(wrappedChain.calculable) :
     @property
     def name(self) :
         return "%sRecHitSumPt"%self.collection
-    def __init__(self, collection = None, minEcalSeverity = 2, minHcalSeverity = 10) :
-        for item in ["collection", "minEcalSeverity", "minHcalSeverity"] :
+    def __init__(self, collection = None, minEcalSeverity = 2, minHcalSeverity = 10, excludeHf = True, prune = True) :
+        for item in ["collection", "minEcalSeverity", "minHcalSeverity", "excludeHf", "prune"] :
             setattr(self, item, eval(item))
         self.considerSeverity = self.collection=="Calo"
         self.subdetectors = configuration.detectorSpecs()["cms"]["%sSubdetectors"%self.collection]
+        if excludeHf : self.subdetectors = filter(lambda s:"Hf" not in s, self.subdetectors)
         self.recHitCollections = configuration.detectorSpecs()["cms"]["%sRecHitCollections"%self.collection]
     def update(self, ignored) :
         self.value = 0.0
         for detector in self.subdetectors :
             minSeverityLevel = self.minEcalSeverity if detector[0]=="E" else self.minHcalSeverity
+            considered = []
             for collectionName in self.recHitCollections :
                 p4Var = "rechit%s%s%s%s"%(collectionName, self.collection, "P4", detector)
                 slVar = "rechit%s%s%s%s"%(collectionName, self.collection, "SeverityLevel", detector)
                 for iHit in range(len(self.source[p4Var])) :
-                    if self.considerSeverity and (self.source[slVar].at(iHit)<minSeverityLevel) : continue                    
-                    self.value += self.source[p4Var].at(iHit).pt()
+                    if self.considerSeverity and (self.source[slVar].at(iHit)<minSeverityLevel) : continue
+                    hit = self.source[p4Var].at(iHit)
+                    coords = (hit.eta(), hit.phi())
+                    if self.prune :
+                        if coords in considered : continue
+                        considered.append(coords)
+                    self.value += hit.pt()
 ##############################
 class RecHitSumP4(wrappedChain.calculable) :
     @property
