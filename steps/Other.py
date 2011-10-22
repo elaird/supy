@@ -2,7 +2,7 @@ import copy,array,os,collections
 import ROOT as r
 from core.analysisStep import analysisStep
 import Master
-from core import configuration,utils,luminosity
+from core import utils,luminosity
 #####################################
 class histogrammer(analysisStep) :
 
@@ -73,13 +73,15 @@ class assertNotYetCalculated(analysisStep) :
 class skimmer(analysisStep) :
     
     def __init__(self) :
-        assert not configuration.trace(), "Skimmer works in non-traced mode; turn off configuration.trace() for now."
         self.outputTree=0
         self.moreName="(see below)"
         self.alsoWriteExtraTree=False #hard-code until this functionality is fixed
         self.outputTreeExtraIsSetup=False
 
     def requiresNoSetBranchAddress(self) :
+        return True
+
+    def requiresNoTrace(self) :
         return True
 
     def setup(self, chain, fileDir) :
