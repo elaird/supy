@@ -49,6 +49,7 @@ class analysisStep(object) :
     def setOutputFileStem(self, stem) : self.__outputFileStem = stem
     def setInputFileStem(self, stem) : self.__inputFileStem = stem
     def requiresNoSetBranchAddress(self) : return False
+    def requiresNoTrace(self) : return False
     def disable(self) : self.disabled = True
     def makeQuiet(self) : self.quietMode = True
     def invert(self, val = True) :
