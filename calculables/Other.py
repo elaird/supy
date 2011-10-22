@@ -110,7 +110,7 @@ class RecHitSumPt(wrappedChain.calculable) :
     def name(self) :
         return "%sRecHitSumPt"%self.collection
     def __init__(self, collection = None, minEcalSeverity = 2, minHcalSeverity = 10, excludeHf = True, prune = True) :
-        for item in ["collection", "minEcalSeverity", "minHcalSeverity", "excludeHf", "prune"] :
+        for item in ["collection", "minEcalSeverity", "minHcalSeverity", "prune"] :
             setattr(self, item, eval(item))
         self.considerSeverity = self.collection=="Calo"
         self.subdetectors = configuration.detectorSpecs()["cms"]["%sSubdetectors"%self.collection]
