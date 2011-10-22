@@ -310,6 +310,9 @@ class hadronicLook(analysis.analysis) :
             steps.Other.histogrammer("%sMht%sOver%s"%(_jet[0],_jet[1]+params["highPtName"],_met), 100, 0.0, 3.0,
                                      title = ";MHT %s%s / %s;events / bin"%(_jet[0],_jet[1]+params["highPtName"],_met)),
 
+            steps.Other.histogrammer("%sRecHitSumPt"%params["objects"]["rechit"], 30, 0, 300, title = ";Sum of HBHE (sev.#geq10), EB,EE (sev.#geq2) RecHit p_{T} (GeV);events / bin"),
+            steps.Filter.value("%sRecHitSumPt"%params["objects"]["rechit"], max = 30.0),
+            
             #steps.Other.skimmer(),
             #steps.Other.duplicateEventCheck(),
             #steps.Other.cutBitHistogrammer(self.togglePfJet(_jet), self.togglePfMet(_met)),
@@ -342,8 +345,7 @@ class hadronicLook(analysis.analysis) :
             #                          #doGenJets = True,
             #                          markusMode = False,
             #                          ),
-            ] + scanAfter + [steps.Other.variableGreaterFilter(bin, "%sSumEt%s"%_jet, suffix = "GeV") for bin in [475, 575, 675, 775, 875]] +\
-            [ steps.Other.passFilter("final") ]
+            ] + scanAfter + [steps.Other.variableGreaterFilter(bin, "%sSumEt%s"%_jet, suffix = "GeV") for bin in [475, 575, 675, 775, 875]]
     
     def listOfSampleDictionaries(self) :
         return [samples.HT.ht, samples.JetMET.jetmet, samples.MC.mc]
@@ -367,6 +369,7 @@ class hadronicLook(analysis.analysis) :
             out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job519",  weights = jwPrompt, overrideLumi = 254.6)
             out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job531",  weights = jwPrompt, overrideLumi = 248.7)
 
+            #out = specify(names = "calo_375")
             return out
 
         def dataEps() :
