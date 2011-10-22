@@ -597,11 +597,15 @@ class plotter(object) :
         numLabel,denomLabel = self.sampleLabelsForRatios
         numSampleName,denomSampleNames = self.samplesForRatios
         if type(denomSampleNames)!=list: denomSampleNames = [denomSampleNames]
-        
-        numHisto = histos[self.someOrganizer.indexOfSampleWithName(numSampleName)]
-        denomHistos = map(lambda name: histos[self.someOrganizer.indexOfSampleWithName(name)], denomSampleNames)
 
         ratios = []
+
+        numIndex = self.someOrganizer.indexOfSampleWithName(numSampleName)
+        if numIndex==None : return ratios
+        
+        numHisto = histos[numIndex]
+        denomHistos = map(lambda name: histos[self.someOrganizer.indexOfSampleWithName(name)], denomSampleNames)
+
         same = ""
         for denomHisto in denomHistos :
             ratio = None
