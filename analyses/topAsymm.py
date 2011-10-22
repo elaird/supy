@@ -285,11 +285,11 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             if ss['name'] in fractions : self.orgMelded.scaleOneRaw(iSample, fractions[ss['name']] * nEventsObserved / distTup[iSample].Integral(0,distTup[iSample].GetNbinsX()+1))
                 
 
-    def templates(self, iStep, var, qqFrac) :
+    def templates(self, iStep, dist, qqFrac) :
         if not hasattr(self,'orgMelded') : print 'run meldScale() before asking for templates()'; return
         topQQs = [s['name'] for s in self.orgMelded.samples if 'wTopAsym' in s['name']]
         asymm = [eval(name.replace("top.tt_tauola_fj.wTopAsym","").replace(".nvr","").replace("P",".").replace("N","-.")) for name in topQQs]
-        distTup = self.orgMelded.steps[iStep][var]
+        distTup = self.orgMelded.steps[iStep][dist]
 
         def nparray(name, scaleToN = None) :
             hist = distTup[ self.orgMelded.indexOfSampleWithName(name) ]
@@ -308,46 +308,46 @@ class topAsymm(topAsymmShell.topAsymmShell) :
     
 
 
-    def ensembleFileName(self, iStep, var, qqFrac, suffix = '.pickleData') :
-        return "%s/ensembles/%d_%s_%.3f%s"%(self.globalStem,iStep,var,qqFrac,suffix)
+    def ensembleFileName(self, iStep, dist, qqFrac, suffix = '.pickleData') :
+        return "%s/ensembles/%d_%s_%.3f%s"%(self.globalStem,iStep,dist,qqFrac,suffix)
 
     def ensembleTest(self) :
         qqFracs = sorted([0.10, 0.12, 0.15, 0.20, 0.25, 0.30, 0.40, 0.60])
-        vars = ['lHadtDeltaY',
+        dists = ['lHadtDeltaY',
                 'ttbarDeltaAbsY',
                 'leptonRelativeY',
                 'ttbarBeta',
                 'ttbarSignedDeltaY'
                 ]
-        args = sum([[(iStep, var, qqFrac) for iStep in list(self.orgMelded.indicesOfStepsWithKey(var))[:None] for qqFrac in qqFracs] for var in vars],[])
+        args = sum([[(iStep, dist, qqFrac) for iStep in list(self.orgMelded.indicesOfStepsWithKey(dist))[:None] for qqFrac in qqFracs] for dist in dists],[])
         utils.operateOnListUsingQueue(6, utils.qWorker(self.pickleEnsemble), args)
         ensembles = dict([(arg,utils.readPickle(self.ensembleFileName(*arg))) for arg in args])
 
-        for iStep in sorted(set([iStep for iStep,var,qqFrac in ensembles])) :
+        for iStep in sorted(set([iStep for iStep,dist,qqFrac in ensembles])) :
             canvas = r.TCanvas()
-            vars = set([var for jStep,var,qqFrac in ensembles if jStep==iStep])
+            dists = sorted(set([dist for jStep,dist,qqFrac in ensembles if jStep==iStep]))
             legend = r.TLegend(0.7,0.5,0.9,0.9)
             graphs = {}
-            for iVar,var in enumerate(vars) :
-                points = sorted([(qqFrac,ensemble.sensitivity) for (jStep, jVar, qqFrac),ensemble in ensembles.iteritems() if jStep==iStep and jVar==var])
+            for iDist,dist in enumerate(dists) :
+                points = sorted([(qqFrac,ensemble.sensitivity) for (jStep, jDist, qqFrac),ensemble in ensembles.iteritems() if jStep==iStep and jDist==dist])
                 qqs,sens = zip(*points)
-                graphs[var] = r.TGraph(len(points),np.array(qqs),np.array(sens))
-                graphs[var].SetLineColor(iVar+1)
-                graphs[var].Draw('' if iVar else "AL")
-                graphs[var].SetMinimum(0)
-                graphs[var].SetTitle("Sensitivity @ step %d;fraction of t#bar{t} from q#bar{q};expected uncertainty on A_{fb}"%iStep)
-                legend.AddEntry(graphs[var],var,'l')
+                graphs[dist] = r.TGraph(len(points),np.array(qqs),np.array(sens))
+                graphs[dist].SetLineColor(iDist+1)
+                graphs[dist].Draw('' if iDist else "AL")
+                graphs[dist].SetMinimum(0)
+                graphs[dist].SetTitle("Sensitivity @ step %d;fraction of t#bar{t} from q#bar{q};expected uncertainty on A_{fb}"%iStep)
+                legend.AddEntry(graphs[dist],dist,'l')
             legend.Draw()
             utils.tCanvasPrintPdf(canvas, '%s/sensetivity_%d'%(self.globalStem,iStep))
                 
 
-    def pickleEnsemble(self, iStep, var, qqFrac ) :
+    def pickleEnsemble(self, iStep, dist, qqFrac ) :
         utils.mkdir(self.globalStem+'/ensembles')
-        templates,observed = self.templates(iStep, var, qqFrac)
+        templates,observed = self.templates(iStep, dist, qqFrac)
         ensemble = templateFit.templateEnsembles(2e3, *zip(*templates) )
-        utils.writePickle(self.ensembleFileName(iStep,var,qqFrac), ensemble)
+        utils.writePickle(self.ensembleFileName(iStep,dist,qqFrac), ensemble)
 
-        name = self.ensembleFileName(iStep,var,qqFrac,'')
+        name = self.ensembleFileName(iStep,dist,qqFrac,'')
         canvas = r.TCanvas()
         canvas.Print(name+'.ps[')
         stuff = templateFit.drawTemplateEnsembles(ensemble, canvas)
@@ -365,11 +365,11 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         os.system('ps2pdf %s.ps %s.pdf'%(name,name))
         os.system('rm %s.ps'%name)
         
-    def templateFit(self, iStep, var, qqFrac = 0.15) :
+    def templateFit(self, iStep, dist, qqFrac = 0.15) :
         print "FIXME"; return
         if not hasattr(self,'orgMelded') : print 'run meldScale() before templateFit().'; return
 
-        outName = self.globalStem + '/templateFit_%s_%d'%(var,qqFrac*100)
+        outName = self.globalStem + '/templateFit_%s_%d'%(dist,qqFrac*100)
         #TF = templateFit.templateFitter(observed, *zip(*templates) )
         #print utils.roundString(TF.value, TF.error , noSci=True)
         
