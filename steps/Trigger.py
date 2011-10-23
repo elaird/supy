@@ -119,12 +119,11 @@ class lowestUnPrescaledTriggerHistogrammer(analysisStep) :
         paths = dict.__getitem__(eventVars,self.key).sortedListOfPaths
         for path in paths :
             s = path.split("_")
-            assert s[0]=="HLT",s
-            if self.collectVersions and s[-1][0]=="v" :
+            if self.collectVersions and s[0]=="HLT" and s[-1][0]=="v" :
                 self.label[path] = "_".join(s[1:-1])
             else :
-                self.label[path] = "_".join(s[1:])
-        self.labels = sorted(list(set(self.label.values())))
+                self.label[path] = path
+        self.labels = sorted(list(set(self.label.values()))) if self.collectVersions else paths
         self.nBins = len(self.labels)
         
     def uponAcceptance(self, eventVars) :
