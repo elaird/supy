@@ -269,7 +269,7 @@ class hadronicLook(analysis.analysis) :
             #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (80,   0.4,   0.6 ), "HLT_HT350_AlphaT0p53_v1", ["HLT_HT350_v2"]),
             
             #many plots
-            steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
+            steps.Trigger.lowestUnPrescaledTriggerHistogrammer(collectVersions = True),
             steps.Other.passFilter("singleJetPlots1"),
             steps.Jet.singleJetHistogrammer(_jet),
             steps.Other.passFilter("jetSumPlots1"), 
