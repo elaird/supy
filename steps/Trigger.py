@@ -110,15 +110,28 @@ class lowestUnPrescaledTriggerFilter(analysisStep) :
         return eventVars["triggered"][eventVars["lowestUnPrescaledTrigger"]]
 #####################################
 class lowestUnPrescaledTriggerHistogrammer(analysisStep) :
-    def __init__(self) :
+    def __init__(self, collectVersions = True) :
         self.key = "lowestUnPrescaledTrigger"
+        self.collectVersions = collectVersions
+
+    def makeLabels(self, eventVars) :
+        self.label = {}
+        paths = dict.__getitem__(eventVars,self.key).sortedListOfPaths
+        for path in paths :
+            s = path.split("_")
+            if self.collectVersions and s[0]=="HLT" and s[-1][0]=="v" :
+                self.label[path] = "_".join(s[1:-1])
+            else :
+                self.label[path] = path
+        self.labels = sorted(list(set(self.label.values()))) if self.collectVersions else paths
+        self.nBins = len(self.labels)
         
     def uponAcceptance(self, eventVars) :
-        if not hasattr(self,"listOfPaths") :
-            self.listOfPaths = dict.__getitem__(eventVars,self.key).sortedListOfPaths
-            self.nPaths = len(self.listOfPaths)
-        i = self.listOfPaths.index(eventVars[self.key])
-        self.book.fill( i, self.key, self.nPaths, 0.0, self.nPaths, title = ";lowest un-prescaled path;events / bin", xAxisLabels = self.listOfPaths)
+        if not hasattr(self, "labels") :
+            self.makeLabels(eventVars)
+
+        iBin = self.labels.index(self.label[eventVars[self.key]])
+        self.book.fill(iBin, self.key, self.nBins, 0.0, self.nBins, title = ";lowest un-prescaled path;events / bin", xAxisLabels = self.labels)
 #####################################
 class l1Filter(analysisStep) :
 
