@@ -153,6 +153,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         self.meldWpartitions()
         self.meldQCDpartitions()
         self.meldScale()
+        self.measureQQbarComponent()
         self.plotMeldScale()
         self.ensembleTest()
 
@@ -284,6 +285,23 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         for iSample,ss in enumerate(self.orgMelded.samples) :
             if ss['name'] in fractions : self.orgMelded.scaleOneRaw(iSample, fractions[ss['name']] * nEventsObserved / distTup[iSample].Integral(0,distTup[iSample].GetNbinsX()+1))
                 
+
+    def measureQQbarComponent(self) :
+        dist = "DiscriminantTopQqQg"
+        dists = dict(zip([ss['name'] for ss in self.orgMelded.samples ],
+                         self.orgMelded.steps[next(self.orgMelded.indicesOfStepsWithKey(dist))][dist] ) )
+        def contents(name) : return np.array([dists[name].GetBinContent(i) for i in range(dists[name].GetNbinsX()+2)])
+
+        from core.fractions import componentSolver, drawComponentSolver
+        cs = componentSolver(observed = contents('top.Data 2011'),
+                             components = [ contents('top.tt_tauola_fj.wTopAsymP00.nvr'), contents('top.tt_tauola_fj.wNonQQbar.nvr')],
+                             ensembleSize = 1e4,
+                             base = contents('top.w_jets') + contents('QCD.Data 2011')
+                             )
+        csCanvas = drawComponentSolver(cs)
+        utils.tCanvasPrintPdf(csCanvas[0], "%s/measuredQQFractions"%self.globalStem)
+        with open(self.globalStem+"/measuredQQFractions.txt","w") as file :  print >> file, cs
+
 
     def templates(self, iStep, dist, qqFrac) :
         if not hasattr(self,'orgMelded') : print 'run meldScale() before asking for templates()'; return
