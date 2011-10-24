@@ -338,7 +338,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                 graphs[dist].SetTitle("Sensitivity @ step %d;fraction of t#bar{t} from q#bar{q};expected uncertainty on A_{fb}"%iStep)
                 legend.AddEntry(graphs[dist],dist,'l')
             legend.Draw()
-            utils.tCanvasPrintPdf(canvas, '%s/sensetivity_%d'%(self.globalStem,iStep))
+            utils.tCanvasPrintPdf(canvas, '%s/sensitivity_%d'%(self.globalStem,iStep))
                 
 
     def pickleEnsemble(self, iStep, dist, qqFrac ) :
