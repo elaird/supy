@@ -110,7 +110,7 @@ class lowestUnPrescaledTriggerFilter(analysisStep) :
         return eventVars["triggered"][eventVars["lowestUnPrescaledTrigger"]]
 #####################################
 class lowestUnPrescaledTriggerHistogrammer(analysisStep) :
-    def __init__(self, collectVersions = False) :
+    def __init__(self, collectVersions = True) :
         self.key = "lowestUnPrescaledTrigger"
         self.collectVersions = collectVersions
 
