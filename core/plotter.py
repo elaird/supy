@@ -107,7 +107,7 @@ class plotter(object) :
             setattr(self,item,eval(item))
 
         if "counts" not in self.whiteList : self.blackList.append("counts")
-        self.plotRatios = self.samplesForRatios!=("","")        
+        self.plotRatios = self.samplesForRatios!=("","")
         self.psOptions = "Landscape"
         self.canvas = r.TCanvas("canvas", "canvas", 500, 500) if self.anMode else r.TCanvas()
         self.pageNumber = -1
@@ -484,17 +484,30 @@ class plotter(object) :
             y = 0.98 - 0.33*(i+0.5+absI/5)/self.nLinesMax
             text.DrawTextNDC(x, y, nametitle.format(letter, step.name, step.title ))
             self.cutDict[letter] = (step.name, step.title)
-            
+
             nums = []
+            ratios = [None]*len(self.samplesForRatios)
             for k,sample in zip(step.yields,self.someOrganizer.samples) :
                 special = "lumi" in sample and not self.showErrorsOnDataYields
                 s = utils.roundString(*k, width=(colWidth-space), noSci = self.noSci or special, noErr = special) if k else "-    "
+                if sample["name"] in self.samplesForRatios : ratios[self.samplesForRatios.index(sample["name"])] = k
                 nums.append(s.rjust(colWidth))
 
+            if len(ratios)==2 :
+                s = "-    "
+                if ratios[0] and ratios[1] and ratios[0][0] and ratios[1][0] :
+                    value = ratios[0][0]/float(ratios[1][0])
+                    error = value*math.sqrt((ratios[0][1]/float(ratios[0][0]))**2 + (ratios[1][1]/float(ratios[1][0]))**2)
+                    ratio = (value, error)
+                    s = utils.roundString(*ratio, width=(colWidth-space))
+                nums.append(s.rjust(colWidth))
+                
             text.DrawTextNDC(x, y-0.49, "%s: %s"%(letter, "".join(nums)))
             self.yieldDict[letter] = nums
 
         self.sampleList = [s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]
+        if self.plotRatios and len(self.samplesForRatios)==2 :
+            self.sampleList += ("%s/%s"%self.sampleLabelsForRatios)[:(colWidth-space)].rjust(colWidth)
         text.SetTextColor(r.kBlack)
         text.DrawTextNDC(x, 0.5, "   "+"".join(self.sampleList))
         text.SetTextAlign(13)
