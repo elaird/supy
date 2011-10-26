@@ -7,17 +7,14 @@ if len(sys.argv)<3 :
     print "will remove the runs present in B [C...] from A and print the result to stdout."
     sys.exit()
 
-def dictRead(fileName = "") :
-    f = open(fileName)
-    out = f.read()
-    f.close()
-    return eval(out)
+def jsonFromFile(fileName = "") :
+    with open(fileName) as f : 
+        return eval(f.read())
 
-out = dictRead(fileName = sys.argv[1])
+orig = jsonFromFile(sys.argv[1])
+popRuns = sum([jsonFromFile(name).keys() for name in sys.argv[2:]],[])
 
-for arg in sys.argv[2:] :
-    d = dictRead(fileName = arg)
-    for key in d.keys() :
-        if key in out : del out[key]
+for run in set(popRuns) :
+    if run in orig : orig.pop(run)
 
-print str(out).replace("'",'"')
+print str(orig).replace("'",'"')
