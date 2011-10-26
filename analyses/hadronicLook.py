@@ -334,9 +334,9 @@ class hadronicLook(analysis.analysis) :
             out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job515",  weights = jwPrompt, overrideLumi = 200.7)
             out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job519",  weights = jwPrompt, overrideLumi = 257.3)
             out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job531",  weights = jwPrompt, overrideLumi = 248.7)
-            out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job533",  weights = jwPrompt, overrideLumi =  99.0)
-            out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job564",  weights = jwPrompt, overrideLumi = 362.6)
-            #out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job592",  weights = jwPrompt, overrideLumi =   0.0)
+            #out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job533",  weights = jwPrompt, overrideLumi =  99.0) #need to investigate triggers
+            #out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job564",  weights = jwPrompt, overrideLumi = 362.6)
+            ##out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job592",  weights = jwPrompt, overrideLumi =   0.0)
 
             #out = specify(names = "calo_375")
             return out
