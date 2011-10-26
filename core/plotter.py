@@ -77,6 +77,7 @@ class plotter(object) :
                  psFileName = "out.ps",
                  samplesForRatios = ("",""),
                  sampleLabelsForRatios = ("",""),
+                 printRatios = False,
                  showStatBox = True,
                  doLog = True,
                  pegMinimum = None,
@@ -103,7 +104,7 @@ class plotter(object) :
         for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
-                     "detailedCalculables", "rowColors","dependence2D"] :
+                     "detailedCalculables", "rowColors","dependence2D", "printRatios"] :
             setattr(self,item,eval(item))
 
         if "counts" not in self.whiteList : self.blackList.append("counts")
@@ -493,7 +494,7 @@ class plotter(object) :
                 if sample["name"] in self.samplesForRatios : ratios[self.samplesForRatios.index(sample["name"])] = k
                 nums.append(s.rjust(colWidth))
 
-            if len(ratios)==2 :
+            if self.printRatios and len(ratios)==2 :
                 s = "-    "
                 if ratios[0] and ratios[1] and ratios[0][0] and ratios[1][0] :
                     value = ratios[0][0]/float(ratios[1][0])
@@ -506,7 +507,7 @@ class plotter(object) :
             self.yieldDict[letter] = nums
 
         self.sampleList = [s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]
-        if self.plotRatios and len(self.samplesForRatios)==2 :
+        if self.printRatios and len(self.samplesForRatios)==2 :
             self.sampleList += ("%s/%s"%self.sampleLabelsForRatios)[:(colWidth-space)].rjust(colWidth)
         text.SetTextColor(r.kBlack)
         text.DrawTextNDC(x, 0.5, "   "+"".join(self.sampleList))
