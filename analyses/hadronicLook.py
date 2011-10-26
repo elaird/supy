@@ -501,6 +501,7 @@ class hadronicLook(analysis.analysis) :
                              psFileName = self.psFileName(org.tag),
                              samplesForRatios = ("2011 Data","Standard Model "),
                              sampleLabelsForRatios = ("data","s.m."),
+                             printRatios = True,
                              showStatBox = not self.ra1Cosmetics(),
                              rowColors = [r.kBlack, r.kViolet+4],
                              #whiteList = ["lowestUnPrescaledTrigger"],
