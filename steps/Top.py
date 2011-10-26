@@ -298,14 +298,16 @@ class mcTruthTemplates(analysisStep) :
         if not ev['genTopTTbar'] : return
 
         self.book.fill(ev['genTopAlpha'],'alpha',10,0,2,title=';genTopAlpha;events / bin')
+        self.book.fill(math.sqrt(ev['genTopAlpha']),'alpha_sqrt',10,0,math.sqrt(2),title=';#sqrt{#alpha};events / bin')
         alpha = '_alpha%02d'%int(10*ev['genTopAlpha'])
 
+        self.book.fill(ev['genTopCosThetaStarAvg'], 'cosThetaStarAvg', 20, -1, 1, title = ';cosThetaStarAvg;events / bin')
         self.book.fill(ev['genTopCosThetaStarAvg'], 'cosThetaStarAvg%s'%alpha, 20, -1, 1, title = ';cosThetaStarAvg;events / bin')
         self.book.fill(ev['genTopCosThetaStarAngle'], 'cosThetaStarAngle%s'%alpha, 30, 0, 0.5*math.pi, title = ';cosThetaStarAngle;events / bin')
 
         self.book.fill(ev['genTopBoostZAlt'].Beta(), "boostz", 20, -1, 1, title = ';boost z;events / bin')
         self.book.fill(ev['genTopBeta'], 'genTopBeta', 20,-2,2, title = ";beta;events / bin")
-        self.book.fill( (ev['genTopCosThetaStarAvg'],ev['genTopCosThetaStarAlt']), 'cts_v_ctsbar%s'%alpha, (100,100),(-1,-1),(1,1), title = ';costhetaQT;cosThetaQbarTbar;events/bin')
+        self.book.fill( (ev['genTopCosThetaStarAvg'],ev['genTopCosThetaStarAlt']), 'cts_v_ctsbar%s'%alpha, (100,100),(-1,-1),(1,1), title = ';costhetaAvg;cosThetaAlt;events / bin')
         #self.book.fill( (ev['genTopCosThetaStar'],ev['genTopAlpha']), 'cts_v_alpha', (25,25),(-1,0),(1,1), title = ';costhetaQT;#alpha;events/bin')
         #self.book.fill( (ev['genTopCosThetaStarAvg'],ev['genTopAlpha']), 'ctsavg_v_alpha', (25,25),(-1,0),(1,1), title = ';costhetaAvg;#alpha;%s events/bin')
         #self.book.fill(ev['genTopTTbarSumP4'].M(), "genttbarinvmass", 40,0,1000, title = ';ttbar invariant mass;events / bin' )

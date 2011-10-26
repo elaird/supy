@@ -1,25 +1,22 @@
-#!/usr/bin/env python
+from core.analysis import analysis
+import steps,calculables,samples
 
-import os,analysis,steps,calculables,samples,organizer,plotter,utils,math
-import ROOT as r
-
-class topAsymmTemplates(analysis.analysis) :
+class topAsymmTemplates(analysis) :
     def parameters(self) :
-        return {"generator" : self.vary({#"compare":["mg","pythia"],
-                                         "mg":"mg",
-                                         #"pythia":"pythia"
+        return {"effectiveLumi" : None,
+                "generator" : self.vary({"compare":["_mg",""],
+                                         "mg":"_mg",
+                                         "pythia":""
                                          }),
-                "effectiveLumi" : None# 100
                 }
 
     def listOfCalculables(self, pars) :
-        outList  = calculables.zeroArgs()
-        outList += [
-            calculables.Vertex.ID(),
-            calculables.Vertex.Indices(),
-            ]
-        outList += calculables.fromCollections(calculables.Top,[('genTop',""),('fitTop',"")])
-        return outList
+        return ( calculables.zeroArgs() +
+                 calculables.fromCollections(calculables.Top,[('genTop',""),('fitTop',"")]) +
+                 [ calculables.Vertex.ID(),
+                   calculables.Vertex.Indices(),
+                   ]
+                 )
     
     def listOfSteps(self, pars) :
         return [steps.Print.progressPrinter(),
@@ -32,25 +29,25 @@ class topAsymmTemplates(analysis.analysis) :
                 steps.Filter.label("q direction"),       steps.Top.mcTruthQDir(),
                 ]
     
-    def listOfSampleDictionaries(self) : return [samples.mc]
+    def listOfSampleDictionaries(self) : return [samples.MC.mc]
 
     def listOfSamples(self,pars) :
-        from samples import specify
+        import ROOT as r
         eL = pars["effectiveLumi"]
 
         if type(pars["generator"]) is list :
             suffixColor = zip(pars["generator"],[r.kBlack,r.kRed])
-            return sum([specify(names = "tt_tauola_fj_%s"%suf, effectiveLumi = eL, color = col) for suf,col in suffixColor],[])
+            return sum([samples.specify(names = "tt_tauola_fj%s"%suf, effectiveLumi = eL, color = col) for suf,col in suffixColor],[])
 
-        sample = "tt_tauola_fj_%s"%pars["generator"]
+        sample = "tt_tauola_fj%s"%pars["generator"]
         asymms = [(r.kBlue, -0.3),
                   (r.kGreen, 0.0),
                   (r.kRed,   0.3)]
         intrinsicR = -0.05 if pars['generator'] == "mg" else 0.0
         return (
-            #specify( names = sample, effectiveLumi = 500, color = r.kBlack,     weights = calculables.Gen.wNonQQbar()) +
-            #specify( names = sample, effectiveLumi = eL, color = r.kRed,       weights = calculables.Gen.wQQbar()) +
-            sum([specify(names = sample, effectiveLumi = eL, color = col, weights = calculables.Top.wTopAsym(A,intrinsicR=intrinsicR)) for col,A in asymms],[]) +
+            #samples.specify( names = sample, effectiveLumi = 500, color = r.kBlack,     weights = calculables.Gen.wNonQQbar()) +
+            #samples.specify( names = sample, effectiveLumi = eL, color = r.kRed,       weights = calculables.Gen.wQQbar()) +
+            sum([samples.specify(names = sample, effectiveLumi = eL, color = col, weights = calculables.Top.wTopAsym(A,intrinsicR=intrinsicR)) for col,A in asymms],[]) +
             [])
     
     def conclude(self,pars) :
@@ -62,11 +59,10 @@ class topAsymmTemplates(analysis.analysis) :
                                                                                                              "genTopTrue",
                                                                                                              "genTopMez"
                                                                                                              ]))
+        from core import plotter
         pl = plotter.plotter(org,
                              psFileName = self.psFileName(org.tag),
                              doLog = False,
-                             #compactOutput = True,
-                             #noSci = True,
                              pegMinimum = 0.1,
                              blackList = ["lumiHisto","xsHisto","nJobsHisto"],
                              ).plotAll()
