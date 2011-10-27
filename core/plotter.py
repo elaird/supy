@@ -473,7 +473,9 @@ class plotter(object) :
         text.SetTextSize(0.45*text.GetTextSize())
 
         pageWidth = 111
-        colWidth = min(25, pageWidth/len(self.someOrganizer.samples))
+        nSamples = len(self.someOrganizer.samples)
+        if self.printRatios : nSamples += 1
+        colWidth = min(25, pageWidth/nSamples)
         space = 1
 
         nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in steps]))
