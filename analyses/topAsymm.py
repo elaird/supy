@@ -156,6 +156,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         self.measureQQbarComponent()
         self.plotMeldScale()
         self.ensembleTest()
+        self.PEcurves()
 
     def conclude(self,pars) :
         org = self.organizer(pars)
@@ -274,9 +275,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         from core.fractions import componentSolver,drawComponentSolver
         cs = componentSolver(observed, templates, 1e4)
         csCanvas = drawComponentSolver(cs)
-        contours = utils.optimizationContours(cs.components[0], sum(cs.components[1:]), left=True, right=True)
         utils.tCanvasPrintPdf(csCanvas[0], "%s/measuredFractions"%self.globalStem)
-        utils.tCanvasPrintPdf(contours[0], "%s/contours"%self.globalStem)
         with open(self.globalStem+"/measuredFractions.txt","w") as file : print >> file, cs
         with open(self.globalStem+'/templates.txt','w') as file : print >> file, cs.components
 
@@ -285,6 +284,36 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         for iSample,ss in enumerate(self.orgMelded.samples) :
             if ss['name'] in fractions : self.orgMelded.scaleOneRaw(iSample, fractions[ss['name']] * nEventsObserved / distTup[iSample].Integral(0,distTup[iSample].GetNbinsX()+1))
                 
+    def PEcurves(self) :
+        specs = ([{'var' : "ak5JetPFNTrkHiEffPat[i[%d]]:xcak5JetPFIndicesBtaggedPat"%bIndex, 'left':True, 'right':False} for bIndex in [0,1,2]] +
+                 [{'var' : "TopRatherThanWProbability",                                      'left':True, 'right':False},
+                  {'var' : "TriDiscriminant",                                                'left':True, 'right':True}])
+        pes = {}
+        for spec in specs :
+            dists = dict(zip([ss['name'] for ss in self.orgMelded.samples ],
+                             self.orgMelded.steps[next(self.orgMelded.indicesOfStepsWithKey(spec['var']))][spec['var']] ) )
+            contours = utils.optimizationContours( [dists['top.t#bar{t}']],
+                                                   [dists[s] for s in ['QCD.Data 2011','top.w_jets']],
+                                                   **spec
+                                                   )
+            utils.tCanvasPrintPdf(contours[0], "%s/PE_%s"%(self.globalStem,spec['var']))
+            if spec['left']^spec['right'] : pes[spec['var']] = contours[1]
+        c = r.TCanvas()
+        leg = r.TLegend(0.5,0.8,1.0,1.0)
+        graphs = []
+        for i,(var,pe) in enumerate(pes.iteritems()) :
+            pur,eff = zip(*pe)
+            g = r.TGraph(len(pe), np.array(eff), np.array(pur))
+            g.SetTitle("%s;efficiency;purity"%var)
+            g.SetLineColor(i+2)
+            g.SetMaximum(0)
+            g.SetMinimum(1)
+            leg.AddEntry(g,var,'l')
+            graphs.append(g)
+            g.Draw('L' if i else 'AL')
+        leg.Draw()
+        utils.tCanvasPrintPdf(c, "%s/purity_v_efficiency"%self.globalStem)
+        return
 
     def measureQQbarComponent(self) :
         dist = "DiscriminantTopQqQg"

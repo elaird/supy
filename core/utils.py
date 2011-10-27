@@ -494,15 +494,37 @@ def justNameTitle(tkey) :
              (name[:-L],title) if name[-L:] == title else
              (name,title) )
 #####################################
-def optimizationContours(signal, backgd, left = True, right = True) :
+def optimizationContours(signals, backgds, left = True, right = True, var = "") :
     stat = r.gStyle.GetOptStat()
     r.gStyle.SetOptStat(0)
-    N = len(signal)
-    def h(name,scale="") : return r.TH2D(name,name+";lower;upper;"+scale,N,0,N,N,0,N)
+    nBins = signals[0].GetNbinsX()
+    edges = [signals[0].GetBinLowEdge(i) for i in range(nBins+2)]
+    signal = sum([np.array([sample.GetBinContent(i) for i in range(nBins+2)]) for sample in signals])
+    backgd = sum([np.array([sample.GetBinContent(i) for i in range(nBins+2)]) for sample in backgds])
+
+    if left^right :
+        eff = np.array([ sum( signal[::left-right][i:]) for i in range(len(signal)) ])[::left-right] / sum(signal)
+        s = np.array([ sum( signal[::left-right][i:]) for i in range(len(signal)) ])[::left-right]
+        b = np.array([ sum( backgd[::left-right][i:]) for i in range(len(backgd)) ])[::left-right]
+        pur = s / np.maximum(1e-6,s+b)
+
+        gEff, gPur = [r.TGraph(nBins, np.array(edges), vals) for vals in [eff,pur]]
+        for g,col in [(gEff,r.kRed),(gPur,r.kBlue)]:
+            g.SetTitle(var)
+            g.SetLineColor(col)
+            g.SetMinimum(0)
+            g.SetMaximum(1)
+        c = r.TCanvas()
+        c.SetGrid()
+        gEff.Draw("AL")
+        gPur.Draw("L")
+        return c,zip(pur,eff),gEff,gPur
+
+    def h(name,scale="") : return r.TH2D(name,name+";lower;upper;"+scale,nBins,0,nBins,nBins,0,nBins)
     eff,pur,signalb,ssqrtb,contour = (h('efficiency'),h('purity'),h("signalOverBackground"),h('signalOverSqrtBackground',"1e1"),h('contour'))
 
     S = float(sum(signal))
-    for low,up in itertools.combinations(range(N),2) :
+    for low,up in itertools.combinations(range(nBins),2) :
         s = sum(signal[low:up])
         b = sum(backgd[low:up])
         eff.SetBinContent(low+1,up+1,s/S)
@@ -533,6 +555,8 @@ def rHist(name,bins,edges,poissonErrors=False) :
     return hist
 #####################################
 def tCanvasPrintPdf(canvas, fileName, verbose = True) :
+    illegal = [':','[',']','(',')']
+    for ill in illegal : fileName = fileName.replace(ill,"_")
     canvas.Print("%s.eps"%fileName)
     os.system("epstopdf %s.eps"%fileName)
     os.system("rm %s.eps"%fileName)
