@@ -538,35 +538,38 @@ def tCanvasPrintPdf(canvas, fileName, verbose = True) :
     os.system("rm %s.eps"%fileName)
     if verbose : print "Output file: %s.pdf"%fileName
 #####################################
-def edgesRebinned( hist, targetUncRel, pivot = 0) :
+def edgesRebinned( hist, targetUncRel, pivot = 0, offset = 0 ) :
+    '''Find a rebinning symmetric around the pivot, such that every
+    bin has a minimum relative uncertainty.  '''
+
+    def uncRel(x) : return (-1 if not x else
+                             1e6 if not x[0] else
+                             math.sqrt(x[1])/x[0])
+    def sumUncRel(_x) :
+        v,e2 = zip(*_x)
+        return uncRel((sum(e2),sum(v)))
 
     def blocks(x) :
-        def uncRel(_x) : 
-            v,e2 = zip(*_x)
-            return math.sqrt(sum(e2)) / sum(v) if sum(v) else 1
-
         for leftmost in range(1,len(x)) :
-            if uncRel(x[:leftmost]) >  targetUncRel :  continue
-            if uncRel(x[leftmost:]) >  targetUncRel :  return (x,)
+            if sumUncRel(x[:leftmost]) >  targetUncRel :  continue
+            if sumUncRel(x[leftmost+1:]) >  targetUncRel :  return (x,)
             return (x[:leftmost],) + blocks(x[leftmost:])
         return (x,)
 
     nBins = hist.GetNbinsX()
-    edges = np.array([hist.GetBinLowEdge(i) for i in range(1,nBins+2)])
-    vals = np.array([hist.GetBinContent(i) for i in range(1,nBins+2)])
-    errs2 = np.array([hist.GetBinError(i)**2 for i in range(1,nBins+2)])
-    assert pivot in edges
-    iZero = list(edges).index(pivot)
+    edges = [hist.GetBinLowEdge(i) for i in range(1,nBins+2)]
+    vals  = [hist.GetBinContent(i) for i in range(1,nBins+2)]
+    errs2 = [hist.GetBinError(i)**2 for i in range(1,nBins+2)]
+    iPivot = edges.index(pivot)
 
-    R = zip(vals,errs2)[iZero:]
-    L = zip(vals,errs2)[:iZero][::-1]
-    
-    RL = [max(L,R, key = lambda x: x[1]/x[0] if x[0] else 1) for L,R in zip(L,R)]
-    
-    blockLens = [1] + [len(b) for b in blocks(RL[1:])]
+    R = zip(vals,errs2)[iPivot:]
+    L = zip(vals,errs2)[:iPivot][::-1]
+    RL = [max(el,ar, key = uncRel) for el,ar in itertools.izip_longest(L,R)]
+
+    blockLens = [offset] + [len(b) for b in blocks(RL[offset:])]
     blockShifts = [sum(blockLens[:i+1]) for i in range(len(blockLens))]
 
-    iEdges = sorted( [iZero + i for i in blockShifts] +
-                     [iZero - i for i in blockShifts] )
+    iEdges = sorted( set( [min(len(edges)-1, iPivot + i) for i in blockShifts[:len(R)]] +
+                          [max(0,            iPivot - i) for i in blockShifts[:len(L)]] ))
 
-    return np.array([edges[i] for i in iEdges])
+    return array.array('d',[edges[i] for i in iEdges])
