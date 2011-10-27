@@ -95,17 +95,17 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             #steps.Filter.stop(),#####################################
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             steps.Histos.value("TriDiscriminant",50,-1,1),
-            steps.Top.Asymmetry(('fitTop','')),
+            steps.Top.Asymmetry(('fitTop',''), bins = 640),
             steps.Top.Spin(('fitTop','')),
             #steps.Top.kinFitLook("fitTopRecoIndex"),
-            steps.Filter.value("TriDiscriminant",min=-0.68,max=0.8),
-            steps.Histos.value("TriDiscriminant",50,-1,1),
-            steps.Top.Asymmetry(('fitTop','')),
-            steps.Top.Spin(('fitTop','')),
-            steps.Filter.value("TriDiscriminant",min=-.56,max=0.72),
-            steps.Histos.value("TriDiscriminant",50,-1,1),
-            steps.Top.Asymmetry(('fitTop','')),
-            steps.Top.Spin(('fitTop','')),
+            #steps.Filter.value("TriDiscriminant",min=-0.64,max=0.8),
+            #steps.Histos.value("TriDiscriminant",50,-1,1),
+            #steps.Top.Asymmetry(('fitTop',''), bins = 640),
+            #steps.Top.Spin(('fitTop','')),
+            #steps.Filter.value("TriDiscriminant",min=-.56,max=0.72),
+            #steps.Histos.value("TriDiscriminant",50,-1,1),
+            #steps.Top.Asymmetry(('fitTop','')),
+            #steps.Top.Spin(('fitTop','')),
             ])
     ########################################################################################
 
@@ -232,7 +232,6 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         if not hasattr(self,"orgMelded") : print "run meldScale() before plotMeldScale()"; return
         melded = copy.deepcopy(self.orgMelded)
         for ss in filter(lambda ss: 'tt_tauola_fj' in ss['name'], melded.samples) : melded.drop(ss['name'])
-        melded.mergeSamples(targetSpec = {"name":"S.M.", "color":r.kGreen+2}, sources = ['top.w_jets','top.t#bar{t}','QCD.Data 2011'], keepSources = True, force = True)
         pl = plotter.plotter(melded, psFileName = self.psFileName(melded.tag),
                              doLog = False,
                              blackList = ["lumiHisto","xsHisto","nJobsHisto"],
@@ -283,8 +282,10 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         
         for iSample,ss in enumerate(self.orgMelded.samples) :
             if ss['name'] in fractions : self.orgMelded.scaleOneRaw(iSample, fractions[ss['name']] * nEventsObserved / distTup[iSample].Integral(0,distTup[iSample].GetNbinsX()+1))
+        self.orgMelded.mergeSamples(targetSpec = {"name":"S.M.", "color":r.kGreen+2}, sources = ['top.w_jets','top.t#bar{t}','QCD.Data 2011'], keepSources = True, force = True)
                 
     def PEcurves(self) :
+        if not hasattr(self, 'orgMelded') : return
         specs = ([{'var' : "ak5JetPFNTrkHiEffPat[i[%d]]:xcak5JetPFIndicesBtaggedPat"%bIndex, 'left':True, 'right':False} for bIndex in [0,1,2]] +
                  [{'var' : "TopRatherThanWProbability",                                      'left':True, 'right':False},
                   {'var' : "TriDiscriminant",                                                'left':True, 'right':True}])
@@ -304,14 +305,13 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         for i,(var,pe) in enumerate(pes.iteritems()) :
             pur,eff = zip(*pe)
             g = r.TGraph(len(pe), np.array(eff), np.array(pur))
-            g.SetTitle("%s;efficiency;purity"%var)
+            g.SetTitle(";efficiency;purity")
             g.SetLineColor(i+2)
-            g.SetMaximum(0)
-            g.SetMinimum(1)
             leg.AddEntry(g,var,'l')
             graphs.append(g)
-            g.Draw('L' if i else 'AL')
+            g.Draw('' if i else 'AL')
         leg.Draw()
+        c.Update()
         utils.tCanvasPrintPdf(c, "%s/purity_v_efficiency"%self.globalStem)
         return
 
@@ -337,9 +337,11 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         topQQs = [s['name'] for s in self.orgMelded.samples if 'wTopAsym' in s['name']]
         asymm = [eval(name.replace("top.tt_tauola_fj.wTopAsym","").replace(".nvr","").replace("P",".").replace("N","-.")) for name in topQQs]
         distTup = self.orgMelded.steps[iStep][dist]
+        edges = utils.edgesRebinned( distTup[ self.orgMelded.indexOfSampleWithName("S.M.") ], targetUncRel = 0.04 )
 
         def nparray(name, scaleToN = None) :
-            hist = distTup[ self.orgMelded.indexOfSampleWithName(name) ]
+            hist_orig = distTup[ self.orgMelded.indexOfSampleWithName(name) ]
+            hist = hist_orig.Rebin(len(edges)-1, "%s_rebinned"%hist_orig.GetName(), edges)
             bins = np.array([hist.GetBinContent(j) for j in range(hist.GetNbinsX()+2)])
             if scaleToN : bins *= (scaleToN / sum(bins))
             return bins
@@ -359,12 +361,11 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         return "%s/ensembles/%d_%s_%.3f%s"%(self.globalStem,iStep,dist,qqFrac,suffix)
 
     def ensembleTest(self) :
-        qqFracs = sorted([0.10, 0.12, 0.15, 0.20, 0.25, 0.30, 0.40, 0.60])
+        qqFracs = sorted([0.10, 0.12, 0.15, 0.20, 0.25, 0.30, 0.40, 0.60, 1.0])
         dists = ['lHadtDeltaY',
-                'ttbarDeltaAbsY',
-                'leptonRelativeY',
-                'ttbarBeta',
-                'ttbarSignedDeltaY'
+                 'ttbarDeltaAbsY',
+                 'leptonRelativeY',
+                 'ttbarSignedDeltaY'
                 ]
         args = sum([[(iStep, dist, qqFrac) for iStep in list(self.orgMelded.indicesOfStepsWithKey(dist))[:None] for qqFrac in qqFracs] for dist in dists],[])
         utils.operateOnListUsingQueue(6, utils.qWorker(self.pickleEnsemble), args)
@@ -382,7 +383,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                 graphs[dist].SetLineColor(iDist+1)
                 graphs[dist].Draw('' if iDist else "AL")
                 graphs[dist].SetMinimum(0)
-                graphs[dist].SetTitle("Sensitivity @ step %d;fraction of t#bar{t} from q#bar{q};expected uncertainty on A_{fb}"%iStep)
+                graphs[dist].SetTitle("Sensitivity @ step %d;fraction of t#bar{t} from q#bar{q};expected uncertainty on R"%iStep)
                 legend.AddEntry(graphs[dist],dist,'l')
             legend.Draw()
             utils.tCanvasPrintPdf(canvas, '%s/sensitivity_%d'%(self.globalStem,iStep))

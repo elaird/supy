@@ -561,3 +561,40 @@ def tCanvasPrintPdf(canvas, fileName, verbose = True) :
     os.system("epstopdf %s.eps"%fileName)
     os.system("rm %s.eps"%fileName)
     if verbose : print "Output file: %s.pdf"%fileName
+#####################################
+def edgesRebinned( hist, targetUncRel, pivot = 0, offset = 0 ) :
+    '''Find a rebinning symmetric around the pivot, such that every
+    bin has a minimum relative uncertainty.  '''
+
+    def uncRel(x) : return (-1 if not x else
+                             1e6 if not x[0] else
+                             math.sqrt(x[1])/x[0])
+    def sumUncRel(_x) :
+        v,e2 = zip(*_x)
+        return uncRel((sum(e2),sum(v)))
+
+    def blocks(x) :
+        for leftmost in range(1,len(x)) :
+            if sumUncRel(x[:leftmost]) >  targetUncRel :  continue
+            if sumUncRel(x[leftmost+1:]) >  targetUncRel :  return (x,)
+            return (x[:leftmost],) + blocks(x[leftmost:])
+        return (x,)
+
+    nBins = hist.GetNbinsX()
+    edges = [hist.GetBinLowEdge(i) for i in range(1,nBins+2)]
+    vals  = [hist.GetBinContent(i) for i in range(1,nBins+2)]
+    errs2 = [hist.GetBinError(i)**2 for i in range(1,nBins+2)]
+    iPivot = edges.index(pivot)
+
+    R = zip(vals,errs2)[iPivot:]
+    L = zip(vals,errs2)[:iPivot][::-1]
+    RL = [max(el,ar, key = uncRel) for el,ar in itertools.izip_longest(L,R)]
+
+    blockLens = [offset] + [len(b) for b in blocks(RL[offset:])]
+    blockShifts = [sum(blockLens[:i+1]) for i in range(len(blockLens))]
+
+    iEdges = sorted( set( [0,len(edges)-1] + 
+                          [min(len(edges)-1, iPivot + i) for i in blockShifts[:len(R)]] +
+                          [max(0,            iPivot - i) for i in blockShifts[:len(L)]] ))
+
+    return array.array('d',[edges[i] for i in iEdges])

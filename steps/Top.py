@@ -5,25 +5,26 @@ from core import utils
 
 #####################################
 class Asymmetry(analysisStep) :
-    def __init__(self, collection) :
+    def __init__(self, collection, bins = 18 ) :
         self.collection = collection
         for item in ["LeptonCharge","SignedLeptonRapidity","RelativeLeptonRapidity",
                      "DeltaAbsYttbar","DirectedDeltaYttbar","Beta","DirectedDeltaYLHadt",
                      "DirectedLTopRapidity","DirectedHTopRapidity"] :
             setattr(self,item,("%s"+item+"%s")%collection)
-        self.bins = 18
+        self.bins = bins
+        self.moreName = "with %d bins."%bins
 
     def uponAcceptance(self,ev) :
-        for charge in ["",["Negative","Positive"][max(0,ev[self.LeptonCharge])]] :
+        for charge in ["",["Negative","Positive"][max(0,ev[self.LeptonCharge])]][:1] :
             self.book.fill(ev[self.SignedLeptonRapidity], "leptonSignedY"+charge, self.bins,-3,3, title = "%s;leptonSignedY;events / bin"%charge)
             self.book.fill(ev[self.RelativeLeptonRapidity], "leptonRelativeY"+charge, self.bins,-3,3, title = "%s;#Delta y;events / bin"%charge)
-            self.book.fill(ev[self.DirectedLTopRapidity], "dirLtopY"+charge, self.bins,-3,3, title = "%s;y_{ltop};events / bin"%charge)
-            self.book.fill(ev[self.DirectedHTopRapidity], "dirHtopY"+charge, self.bins,-3,3, title = "%s;y_{htop};events / bin"%charge)
+            #self.book.fill(ev[self.DirectedLTopRapidity], "dirLtopY"+charge, self.bins,-3,3, title = "%s;y_{ltop};events / bin"%charge)
+            #self.book.fill(ev[self.DirectedHTopRapidity], "dirHtopY"+charge, self.bins,-3,3, title = "%s;y_{htop};events / bin"%charge)
 
         self.book.fill( ev[self.DeltaAbsYttbar],      'ttbarDeltaAbsY',    self.bins, -3, 3, title = ';#Delta|Y|_{ttbar};events / bin' )
         self.book.fill( ev[self.DirectedDeltaYttbar], 'ttbarSignedDeltaY', self.bins, -4, 4, title = ';sumP4dir * #Delta Y_{ttbar};events / bin' )
         self.book.fill( ev[self.DirectedDeltaYLHadt], 'lHadtDeltaY',       self.bins, -4, 4, title = ';#Delta Y_{lhadt};events / bin')
-        self.book.fill( ev[self.Beta],                'ttbarBeta',         self.bins, -math.sqrt(2), math.sqrt(2), title = ';#beta_{ttbar};events / bin')
+        #self.book.fill( ev[self.Beta],                'ttbarBeta',         self.bins, -math.sqrt(2), math.sqrt(2), title = ';#beta_{ttbar};events / bin')
 #####################################
 class Spin(analysisStep) :
     def __init__(self, collection) :
