@@ -235,7 +235,7 @@ class organizer(object) :
     def calculables(self) :
         def nodes(file, dirName) :
             def category(title) :
-                return ("sltr" if dirName=="Master" else
+                return ("fltr" if dirName=="Master" else
                         "leaf" if dirName=="Leaves" else 
                         "fake" if title.count(configuration.fakeString()) else 
                         "calc" )
