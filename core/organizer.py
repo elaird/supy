@@ -235,7 +235,7 @@ class organizer(object) :
     def calculables(self) :
         def nodes(file, dirName) :
             def category(title) :
-                return ("fltr" if dirName=="Master" else
+                return ("sltr" if dirName=="Master" else
                         "leaf" if dirName=="Leaves" else 
                         "fake" if title.count(configuration.fakeString()) else 
                         "calc" )
@@ -316,7 +316,7 @@ class organizer(object) :
                                      "purple" if "track" in key[0] else "black")
         def nodeFontSize(node) : return 10 + 2*(len(node.deps) + len(node.feeds))
         def nodeTexts(nodes) :
-            return ['%s [label="%s" shape="%s" fontcolor="%s" color="%s" fontsize="%s"];'%(nodeName(node),node[0][:30],{"fltr":"box","calc":"ellipse","leaf":"plaintext"}[node[2]], nodeColor(node), nodeColor(node), nodeFontSize(nodes[node])) for node in nodes]
+            return ['%s [label="%s" shape="%s" fontcolor="%s" color="%s" fontsize="%s"];'%(nodeName(node),node[0][:30],{"sltr":"box","calc":"ellipse","leaf":"plaintext"}[node[2]], nodeColor(node), nodeColor(node), nodeFontSize(nodes[node])) for node in nodes]
         def edgeTexts(nodes) :
             return sum([["%s -> %s;"%(nodeName(node),nodeName(feed)) for feed in nodes[node].feeds] for node in nodes], [])
         if not hasattr(self,"_organizer__calculablesDotFile") :
