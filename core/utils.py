@@ -569,7 +569,8 @@ def edgesRebinned( hist, targetUncRel, pivot = 0, offset = 0 ) :
     blockLens = [offset] + [len(b) for b in blocks(RL[offset:])]
     blockShifts = [sum(blockLens[:i+1]) for i in range(len(blockLens))]
 
-    iEdges = sorted( set( [min(len(edges)-1, iPivot + i) for i in blockShifts[:len(R)]] +
+    iEdges = sorted( set( [0,len(edges)-1] + 
+                          [min(len(edges)-1, iPivot + i) for i in blockShifts[:len(R)]] +
                           [max(0,            iPivot - i) for i in blockShifts[:len(L)]] ))
 
     return array.array('d',[edges[i] for i in iEdges])
