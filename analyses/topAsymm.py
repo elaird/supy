@@ -153,6 +153,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         self.meldWpartitions()
         self.meldQCDpartitions()
         self.meldScale()
+        self.dilutions()
         self.measureQQbarComponent()
         self.plotMeldScale()
         self.ensembleTest()
@@ -283,7 +284,30 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         for iSample,ss in enumerate(self.orgMelded.samples) :
             if ss['name'] in fractions : self.orgMelded.scaleOneRaw(iSample, fractions[ss['name']] * nEventsObserved / distTup[iSample].Integral(0,distTup[iSample].GetNbinsX()+1))
         self.orgMelded.mergeSamples(targetSpec = {"name":"S.M.", "color":r.kGreen+2}, sources = ['top.w_jets','top.t#bar{t}','QCD.Data 2011'], keepSources = True, force = True)
-                
+
+    def dilutions(self) :
+        import itertools
+        fileName = '%s/dilutions.txt'%self.globalStem
+        with open(fileName, "w") as file :
+            names = [ss['name'] for ss in self.orgMelded.samples]
+            iSamples = [names.index(n) for n in ['top.t#bar{t}','top.w_jets','QCD.Data 2011','top.tt_tauola_fj.wNonQQbar.nvr','top.tt_tauola_fj.wTopAsymP00.nvr']]
+            for i,iS in enumerate(iSamples) : print >> file, i,names[iS]
+            print >> file
+            print >> file, ''.rjust(40), ''.join(("[%d,%d]"%pair).rjust(10) for pair in itertools.combinations(range(len(iSamples)), 2))
+            for step in self.orgMelded.steps :
+                if not any("Discriminant" in item for item in step.nameTitle) : continue
+                print >> file
+                print >> file
+                print >> file, utils.hyphens
+                print >> file, step.name, step.title
+                print >> file, utils.hyphens
+                print >> file
+                for hname,hists in step.iteritems() :
+                    if issubclass(type(next(iter(filter(None,hists)))),r.TH2) : continue
+                    aHists = [[hists[i].GetBinContent(j) for j in range(0,hists[i].GetNbinsX()+2)] for i in iSamples]
+                    print >> file, hname.rjust(40), ''.join([(("%.3f"%round(utils.dilution(A,B),3))).rjust(10) for A,B in itertools.combinations(aHists,2)])
+        print "Output file: %s"%fileName
+
     def PEcurves(self) :
         if not hasattr(self, 'orgMelded') : return
         specs = ([{'var' : "ak5JetPFNTrkHiEffPat[i[%d]]:xcak5JetPFIndicesBtaggedPat"%bIndex, 'left':True, 'right':False} for bIndex in [0,1,2]] +
@@ -337,7 +361,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         topQQs = [s['name'] for s in self.orgMelded.samples if 'wTopAsym' in s['name']]
         asymm = [eval(name.replace("top.tt_tauola_fj.wTopAsym","").replace(".nvr","").replace("P",".").replace("N","-.")) for name in topQQs]
         distTup = self.orgMelded.steps[iStep][dist]
-        edges = utils.edgesRebinned( distTup[ self.orgMelded.indexOfSampleWithName("S.M.") ], targetUncRel = 0.04 )
+        edges = utils.edgesRebinned( distTup[ self.orgMelded.indexOfSampleWithName("S.M.") ], targetUncRel = 0.05, offset = 2 )
 
         def nparray(name, scaleToN = None) :
             hist_orig = distTup[ self.orgMelded.indexOfSampleWithName(name) ]
@@ -363,11 +387,11 @@ class topAsymm(topAsymmShell.topAsymmShell) :
     def ensembleTest(self) :
         qqFracs = sorted([0.10, 0.12, 0.15, 0.20, 0.25, 0.30, 0.40, 0.60, 1.0])
         dists = ['lHadtDeltaY',
-                 'ttbarDeltaAbsY',
-                 'leptonRelativeY',
-                 'ttbarSignedDeltaY'
+                 #'ttbarDeltaAbsY',
+                 #'leptonRelativeY',
+                 #'ttbarSignedDeltaY'
                 ]
-        args = sum([[(iStep, dist, qqFrac) for iStep in list(self.orgMelded.indicesOfStepsWithKey(dist))[:None] for qqFrac in qqFracs] for dist in dists],[])
+        args = sum([[(iStep, dist, qqFrac) for iStep in list(self.orgMelded.indicesOfStepsWithKey(dist))[1:2] for qqFrac in qqFracs] for dist in dists],[])
         utils.operateOnListUsingQueue(6, utils.qWorker(self.pickleEnsemble), args)
         ensembles = dict([(arg,utils.readPickle(self.ensembleFileName(*arg))) for arg in args])
 
