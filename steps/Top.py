@@ -257,7 +257,7 @@ class mcTruthQDir(analysisStep) :
         qqbar = ev['genQQbar']
         if qqbar :
             qdir = 1 if ev['genP4'][qqbar[0]].pz()>0 else -1
-            for sumP4 in ['genSumP4','genTopSumP4','mixedSumP4','mixedSumP4Nu'][:4 if self.withNu else 3 if self.withLepton else 2] :
+            for sumP4 in ['genSumP4','genTopSumP4','mixedSumP4','mixedSumP4Nu','fitTopSumP4'][:5 if self.withNu else 3 if self.withLepton else 2] :
                 self.book.fill( qdir * ev[sumP4].pz(), "qdir_%s_pz"%sumP4, 100,-3000,3000, title = ';qdir * %s.pz;events/bin'%sumP4)
                 self.book.fill( qdir * ev[sumP4].Eta(), "qdir_%s_eta"%sumP4, 100,-10,10, title = ';qdir * %s.eta;events/bin'%sumP4)
         
