@@ -571,7 +571,7 @@ def edgesRebinned( hist, targetUncRel, pivot = 0, offset = 0 ) :
                              math.sqrt(x[1])/x[0])
     def sumUncRel(_x) :
         v,e2 = zip(*_x)
-        return uncRel((sum(e2),sum(v)))
+        return uncRel((sum(v),sum(e2)))
 
     def blocks(x) :
         for leftmost in range(1,len(x)) :
