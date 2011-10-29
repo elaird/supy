@@ -71,7 +71,7 @@ class secondary(wrappedChain.calculable,analysisStep) :
     
     '''
     Functions an inheritor may wish to redefine :
-    * calculable.update(self,ignored)
+    * calculable.update(self,_)
     * analysisStep.setup()
     * analysisStep.endFunc()
     * analysisStep.mergeFunc()
