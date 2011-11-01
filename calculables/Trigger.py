@@ -15,6 +15,8 @@ class TriggerWeight(calculables.secondary) :
         self.binning = (100,0,200)
         for item in ['triggers','thresholds','tag','samples'] : setattr(self,item,eval(item))
 
+    def onlySamples(self) : return self.samples
+
     def setupDicts(self) :
         dd = collections.defaultdict
         self.epochLumis = dd(lambda : dd(set)) #set of lumis by run by (prescale set)

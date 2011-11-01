@@ -489,7 +489,7 @@ def topologicalSort(paths) :
 #####################################
 def justNameTitle(tkey) :
     name,title = tkey.GetName(),tkey.GetTitle()
-    name = name.replace('-SLASH-','/')
+    name = name.replace('-SLASH-','/').replace('-SEMI-',';').replace('-COLON-',':')
     L = len(title)
     return ( (name,"") if name == title else
              (name[:-L],title) if name[-L:] == title else
