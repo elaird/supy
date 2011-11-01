@@ -456,6 +456,7 @@ def writePickle(fileName, payload) :
     pickleFile.close()
 #####################################
 def unionProbability(indPs) :
+    indPs = filter(None, indPs)
     return sum([ (-1)**r * sum([reduce(operator.mul,ps,1) for ps in itertools.combinations(indPs, r+1)]) for r in range(len(indPs))])
 #####################################
 def jsonFromRunDict(runDict) :
