@@ -192,20 +192,26 @@ class DiMuonPt(wrappedChain.calculable) :
         self.value = 0 if not Z else Z.pt()
 ##############################
 class TriggeringIndex(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(['IndicesTriggering'])
+    def update(self,_) : self.value = next(iter(self.source[self.IndicesTriggering]), None)
+##############################
+class IndicesTriggering(wrappedChain.calculable) :
     def __init__(self, collection = None, ptMin = None) :
         self.fixes = collection
         self.stash(["P4","IndicesAnyIso"])
         self.absEtaMax = 2.1
         self.ptMin = ptMin
-        self.moreName = "%s in |eta|<%.1f; max pt>%.1f"%(self.IndicesAnyIso,self.absEtaMax,self.ptMin)
+        self.moreName = "%s in |eta|<%.1f; max pt>%.1f"%(self.IndicesAnyIso,self.absEtaMax,self.ptMin if self.ptMin else 0.)
 
     def update(self,ignored) :
-        self.value = None
+        self.value = []
         p4 = self.source[self.P4]
         for i in self.source[self.IndicesAnyIso] :
             if p4[i].pt() < self.ptMin : break
             if abs(p4[i].eta()) < self.absEtaMax :
-                self.value = i
+                self.value.append( i )
                 break
 #####################################
 class TriggeringPt(wrappedChain.calculable) :

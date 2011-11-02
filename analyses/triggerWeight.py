@@ -25,7 +25,7 @@ class triggerWeight(analysis) :
         return (calculables.zeroArgs() +
                 calculables.fromCollections(calculables.Muon,[pars["muon"]]) +
                 [calculables.Muon.Indices( pars["muon"], ptMin = 10, combinedRelIsoMax = 0.15),
-                 calculables.Muon.TriggeringIndex(pars['muon'], ptMin = 10),
+                 calculables.Muon.IndicesTriggering( pars['muon'] ),
                  calculables.Vertex.ID(),
                  calculables.Vertex.Indices(),
                  calculables.Other.abbreviation( "nVertexRatio", "nvr" ),
@@ -45,8 +45,8 @@ class triggerWeight(analysis) :
                                               triggers = zip(*pars['triggers'])[0], thresholds = zip(*pars['triggers'])[1]),
             calculables.Other.Ratio("nVertex", binning = (15,-0.5,14.5), thisSample = pars['baseSample'],
                                     target = ("SingleMu",[]), groups = [('qcd_py6',[]),('w_jets_fj_mg',[])]),
-            steps.Histos.value("%sCombinedRelativeIso%s"%pars['muon'], 100, 0, 1, "%sIndicesAnyIso%s"%pars['muon'], index=0),
-            steps.Histos.absEta("%sP4%s"%pars['muon'], 100,0,3, "%sIndicesAnyIso%s"%pars['muon'], index=0),
+            steps.Histos.value("%sCombinedRelativeIso%s"%pars['muon'], 100, 0, 1, "%sIndicesTriggering%s"%pars['muon'], index=0),
+            steps.Histos.absEta("%sP4%s"%pars['muon'], 100,0,3, "%sIndicesTriggering%s"%pars['muon'], index=0),
             ]
             
     def listOfSampleDictionaries(self) : return [samples.Muon.muon,samples.MC.mc]
