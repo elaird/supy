@@ -42,12 +42,12 @@ def compileSources(inList) :
     for sourceFile in inList :
         r.gROOT.LoadMacro(sourceFile+"+")
 #####################################
-def operateOnListUsingQueue(nCores,workerFunc,inList) :
+def operateOnListUsingQueue(nCores,workerFunc,inList,daemon=True) :
     q = JoinableQueue()
     listOfProcesses=[]
     for i in range(nCores):
         p = Process(target = workerFunc, args = (q,))
-        p.daemon = True
+        p.daemon = daemon
         p.start()
         listOfProcesses.append(p)
     map(q.put,inList)
