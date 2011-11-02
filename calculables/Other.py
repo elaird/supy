@@ -302,6 +302,8 @@ class Discriminant(calculables.secondary) :
         for item in ['fixes','left','right','dists','correlations','bins'] : setattr(self,item,eval(item))
         self.moreName = "L:"+left['pre']+"; R:"+right['pre']+"; "+','.join(dists.keys())
 
+    def onlySamples(self) : return [self.left['pre'],self.right['pre']]
+
     def setup(self,*_) :
         left = self.fromCache( [self.left['pre']], self.dists.keys(), tag = self.left['tag'])[self.left['pre']]
         right = self.fromCache( [self.right['pre']], self.dists.keys(), tag = self.right['tag'])[self.right['pre']]
