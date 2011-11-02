@@ -27,7 +27,7 @@ def recordedInvMicrobarns(json) :
     return sum(lumiQueryAPI.calculateTotalRecorded(dataperRun[2]) for dataperRun in lumidata if dataperRun[1])
 
 def recordedInvMicrobarnsShotgun(jsons, cores = 2, cacheDir = './' ) :
-    pickles = ["%s%d.pickle"%(cacheDir,hash(str(json))) for json in jsons]
+    pickles = ["%s/%d.pickle"%(cacheDir,hash(str(sorted([(key,val) for key,val in json.iteritems()])))) for json in jsons]
     def worker(pickle, json) :
         if not os.path.exists(pickle) : utils.writePickle(pickle, recordedInvMicrobarns(json))
     utils.operateOnListUsingQueue(cores, utils.qWorker(worker), zip(pickles,jsons))
