@@ -1,6 +1,6 @@
 import ROOT as r
 import numpy as np
-import calculables,collections
+import calculables,collections,os
 from core import luminosity,utils
 from core.wrappedChain import wrappedChain
 
@@ -69,6 +69,7 @@ class TriggerWeight(calculables.secondary) :
     def staticEpochLumis(self) : return dict((epoch,dict(self.epochLumis[epoch].iteritems())) for epoch in self.epochLumis)
 
     def varsToPickle(self) : return ["staticEpochLumis"]
+    def outputSuffix(self) : return "_%s/"%self.name
 
     def mergeFunc(self,products) :
         self.setupDicts()
@@ -77,12 +78,14 @@ class TriggerWeight(calculables.secondary) :
                 for run in eLumis[epoch] :
                     self.epochLumis[epoch][run] |= eLumis[epoch][run]
         if not self.epochLumis : return
+
+        lumiDir = self.outputFileName
+        if not os.path.exists(lumiDir) : utils.mkdir(lumiDir)
         
-        lumis = [luminosity.recordedInvMicrobarns(utils.jsonFromRunDict(self.epochLumis[epoch]))/1e6 for epoch in self.epochLumis ]
+        lumis = luminosity.recordedInvMicrobarnsShotgun( [utils.jsonFromRunDict(self.epochLumis[epoch]) for epoch in self.epochLumis ] , cores = 4, cacheDir = lumiDir)
         probs = [ [1./prescale if prescale else 0 for prescale in epoch] for epoch in self.epochLumis ]
         inclu = [ [utils.unionProbability(prob[:i+1]) for i in range(len(prob))] for prob in probs ]
         thresholds = sorted(set(self.thresholds))
-        print thresholds
         inclusives = [ [max([0]+[p for p,t in zip(inc,self.thresholds) if t is thresh]) for thresh in thresholds] for inc in inclu ]
         weights = np.array(lumis).dot(inclusives) / sum(lumis)
 
