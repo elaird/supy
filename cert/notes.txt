@@ -27,3 +27,5 @@ To get the full data set please make a PSet out of the following jobs (username 
 535
 536
 
+Email from Sudan to SUSY, Oct. 21, 2011:
+Use v3 of Aug.5 Re-reco JSON

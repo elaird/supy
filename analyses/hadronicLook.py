@@ -234,40 +234,6 @@ class hadronicLook(analysis.analysis) :
             #steps.Other.histogrammer("logErrorTooManySeeds",    2, 0.0, 1.0, title = ";logErrorTooManySeeds;events / bin"),
             #steps.Other.histogrammer("logErrorTooManyClusters", 2, 0.0, 1.0, title = ";logErrorTooManyClusters;events / bin"),
             
-            #steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT350_v2", ["HLT_HT300_v3"]),
-            ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT350_v2", ["HLT_HT250_v2"]),
-            ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT350_v2", ["HLT_HT200_v2"]),
-            ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT350_v2", ["HLT_HT150_v2"]),
-            #
-            #steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 150.0, 450.0), "HLT_HT300_v3", ["HLT_HT250_v2"], permissive = True),
-            ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT300_v3", ["HLT_HT200_v2"]),
-            ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT300_v3", ["HLT_HT150_v2"]),
-            #
-            #steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 100.0, 400.0), "HLT_HT250_v2", ["HLT_HT200_v2"], permissive = True),
-            ##steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60, 200.0, 500.0), "HLT_HT250_v2", ["HLT_HT150_v2"]),
-            #
-            #steps.Trigger.hltTurnOnHistogrammer( "%sSumEt%s"%_jet,    (60,  50.0, 350.0), "HLT_HT200_v2", ["HLT_HT150_v2"], permissive = True),
-            #
-            #steps.Other.variableGreaterFilter(150.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
-            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (70,   0.4,   0.75), "HLT_HT150_AlphaT0p60_v1", ["HLT_HT150_v2"]),
-            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (70,   0.4,   0.75), "HLT_HT150_AlphaT0p70_v1", ["HLT_HT150_v2"]),
-            #
-            #steps.Other.variableGreaterFilter(200.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
-            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (60,   0.4,   0.7 ), "HLT_HT200_AlphaT0p60_v1", ["HLT_HT200_v2"]),
-            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (60,   0.4,   0.7 ), "HLT_HT200_AlphaT0p65_v1", ["HLT_HT200_v2"]),
-            #
-            #steps.Other.variableGreaterFilter(250.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
-            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (60,   0.4,   0.7 ), "HLT_HT250_AlphaT0p55_v1", ["HLT_HT250_v2"]),
-            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (60,   0.4,   0.7 ), "HLT_HT250_AlphaT0p62_v1", ["HLT_HT250_v2"]),
-            #
-            #steps.Other.variableGreaterFilter(300.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
-            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (80,   0.4,   0.6 ), "HLT_HT300_AlphaT0p52_v1", ["HLT_HT300_v3"]),
-            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (80,   0.4,   0.6 ), "HLT_HT300_AlphaT0p54_v1", ["HLT_HT300_v3"]),
-            #
-            #steps.Other.variableGreaterFilter(350.0,"%sSum%s%s"%(_jet[0], _et, _jet[1]), suffix = "GeV"),
-            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (80,   0.4,   0.6 ), "HLT_HT350_AlphaT0p51_v1", ["HLT_HT350_v2"]),
-            #steps.Trigger.hltTurnOnHistogrammer( "%sAlphaTEt%s"%_jet, (80,   0.4,   0.6 ), "HLT_HT350_AlphaT0p53_v1", ["HLT_HT350_v2"]),
-            
             #many plots
             steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
             steps.Other.passFilter("singleJetPlots1"),
@@ -357,17 +323,20 @@ class hadronicLook(analysis.analysis) :
             out = []
 
             #2011
-            jwPrompt = calculables.Other.jsonWeight("cert/Cert_160404-177515_7TeV_PromptReco_Collisions11_JSON.txt")
+            jwPrompt = calculables.Other.jsonWeight("cert/Cert_160404-178677_7TeV_PromptReco_Collisions11_JSON.sub.txt")
             jwMay = calculables.Other.jsonWeight("cert/Cert_160404-163869_7TeV_May10ReReco_Collisions11_JSON_v3.txt")
-            jwAug = calculables.Other.jsonWeight("cert/Cert_170249-172619_7TeV_ReReco5Aug_Collisions11_JSON_v2.txt")
+            jwAug = calculables.Other.jsonWeight("cert/Cert_170249-172619_7TeV_ReReco5Aug_Collisions11_JSON_v3.txt")
             
             out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.job536", weights = jwMay   , overrideLumi = 204.4)
-            out += specify(names = "HT.Run2011A-05Aug2011-v1.AOD.job528",   weights = jwAug   , overrideLumi = 360.3)
+            out += specify(names = "HT.Run2011A-05Aug2011-v1.AOD.job528",   weights = jwAug   , overrideLumi = 355.4)
             out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.job535",  weights = jwPrompt, overrideLumi = 730.6)
             out += specify(names = "HT.Run2011A-PromptReco-v6.AOD.job527",  weights = jwPrompt, overrideLumi = 640.2)
             out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job515",  weights = jwPrompt, overrideLumi = 200.7)
-            out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job519",  weights = jwPrompt, overrideLumi = 254.6)
+            out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job519",  weights = jwPrompt, overrideLumi = 257.3)
             out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job531",  weights = jwPrompt, overrideLumi = 248.7)
+            #out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job533",  weights = jwPrompt, overrideLumi =  99.0) #need to investigate triggers
+            #out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job564",  weights = jwPrompt, overrideLumi = 362.6)
+            ##out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job592",  weights = jwPrompt, overrideLumi =   0.0)
 
             #out = specify(names = "calo_375")
             return out
