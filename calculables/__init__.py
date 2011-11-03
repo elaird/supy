@@ -85,6 +85,7 @@ class secondary(wrappedChain.calculable,analysisStep) :
 
     @staticmethod
     def allDeps(node,graph, depsSoFar = set()) :
+        if node is None : return set()
         nodesToDo = graph[node].deps - depsSoFar
         return set(reduce(operator.__or__, [secondary.allDeps(n,graph,depsSoFar|graph[node].deps) for n in nodesToDo], graph[node].deps))
     @staticmethod
