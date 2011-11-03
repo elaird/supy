@@ -1,5 +1,5 @@
 from core.analysis import analysis
-import os,steps,calculables,samples,ROOT as r
+import math,steps,calculables,samples,ROOT as r
 
 class triggerWeight(analysis) :
     def mutriggers(self) :
@@ -44,9 +44,26 @@ class triggerWeight(analysis) :
             calculables.Trigger.TriggerWeight(samples = ['SingleMu.Run2011A-PR-v4.FJ.Burt.tw','SingleMu.Run2011A-May10-v1.FJ.Burt.tw'],
                                               triggers = zip(*pars['triggers'])[0], thresholds = zip(*pars['triggers'])[1]),
             calculables.Other.Ratio("nVertex", binning = (15,-0.5,14.5), thisSample = pars['baseSample'],
-                                    target = ("SingleMu",[]), groups = [('qcd_py6',[]),('w_jets_fj_mg',[])]),
+                                    target = ("SingleMu",[]), groups = [('qcd_py6',[]),('w_jets_fj_mg',[]),('tt_tauola_fj_mg',[])]),
             steps.Histos.value("%sCombinedRelativeIso%s"%pars['muon'], 100, 0, 1, "%sIndicesTriggering%s"%pars['muon'], index=0),
-            steps.Histos.absEta("%sP4%s"%pars['muon'], 100,0,3, "%sIndicesTriggering%s"%pars['muon'], index=0),
+            steps.Histos.absEta("%sP4%s"%pars['muon'], 200,0,2.2, "%sIndicesTriggering%s"%pars['muon'], index=0),
+            steps.Histos.phi("%sP4%s"%pars['muon'], 200,-math.pi,math.pi, "%sIndicesTriggering%s"%pars['muon'], index=0),
+            steps.Histos.generic(("%sP4%s"%pars['muon'],"%sTriggeringIndex%s"%pars['muon']),
+                                 (100,100),(0,-math.pi),(2.2,math.pi), title = ";mu |eta|;mu phi;events / bin",
+                                 funcString = "lambda x: (abs(x[0][x[1]].eta()),x[0][x[1]].phi())" ),
+
+            steps.Filter.absEta( "%sP4%s"%pars['muon'], min = 1.8, indices = "%sIndicesTriggering%s"%pars['muon'], index = 0),
+            #steps.Filter.value("%sTriggeringPt%s"%pars['muon'], min = 35, max = 45),
+
+            steps.Histos.pt("%sP4%s"%pars['muon'], 200,0,200, "%sIndicesTriggering%s"%pars['muon'], index=0),
+            steps.Histos.pt("%sP4%s"%pars['muon'], 200,30,50, "%sIndicesTriggering%s"%pars['muon'], index=0),
+
+            steps.Histos.value("%sCombinedRelativeIso%s"%pars['muon'], 100, 0, 1, "%sIndicesTriggering%s"%pars['muon'], index=0),
+            steps.Histos.absEta("%sP4%s"%pars['muon'], 200,0,2.2, "%sIndicesTriggering%s"%pars['muon'], index=0),
+            steps.Histos.phi("%sP4%s"%pars['muon'], 200,-math.pi,math.pi, "%sIndicesTriggering%s"%pars['muon'], index=0),
+            steps.Histos.generic(("%sP4%s"%pars['muon'],"%sTriggeringIndex%s"%pars['muon']),
+                                 (100,100),(0,-math.pi),(2.2,math.pi), title = ";mu |eta|;mu phi;events / bin",
+                                 funcString = "lambda x: (abs(x[0][x[1]].eta()),x[0][x[1]].phi())" ),
             ]
             
     def listOfSampleDictionaries(self) : return [samples.Muon.muon,samples.MC.mc]
@@ -61,8 +78,9 @@ class triggerWeight(analysis) :
                                            'qcd_py6fjmu_pt_80_120',
                                            'qcd_py6fjmu_pt_120_150',
                                            'qcd_py6fjmu_pt_150',
-                                           'w_jets_fj_mg'
-                                           ], weights = ['tw','nvr'] , effectiveLumi = 100))
+                                           'w_jets_fj_mg',
+                                           'tt_tauola_fj_mg'
+                                           ], weights = ['tw','nvr'] , effectiveLumi = 300))
     
     def conclude(self,pars) :
         from core.plotter import plotter
@@ -70,11 +88,13 @@ class triggerWeight(analysis) :
         org.mergeSamples(targetSpec = {"name":"SingleMu","color":r.kBlack,"markerStyle":20}, allWithPrefix="SingleMu")
         org.mergeSamples(targetSpec = {"name":"qcd", "color":r.kBlue}, allWithPrefix="qcd")
         org.mergeSamples(targetSpec = {"name":"w_jets","color":r.kRed}, allWithPrefix="w_jets")
-        org.mergeSamples(targetSpec = {"name":"s.m.", "color":r.kGreen+3}, keepSources = True, sources = ['qcd','w_jets'])
+        org.mergeSamples(targetSpec = {"name":"t#bar{t}","color":r.kViolet}, allWithPrefix="tt_tauola_fj_mg")
+        #org.scaleOneRaw([ss['name'] for ss in org.samples].index('w_jets'), 0.6)
+        org.mergeSamples(targetSpec = {"name":"s.m.", "color":r.kGreen+3}, keepSources = True, sources = ['qcd','w_jets','t#bar{t}'], force = True)
         org.scale()
 
         kwargs = { "blackList":["lumiHisto","xsHisto","nJobsHisto","muonTriggerWeightPF"],
-                   "samplesForRatios":("SingleMu","s.m.")}
-        plotter(org, psFileName = self.psFileName(org.tag),
-                **kwargs
-                ).plotAll()
+                   "samplesForRatios":("SingleMu","s.m.") if "s.m." in [ss['name'] for ss in org.samples] else ("","")}
+
+        plotter(org, psFileName = self.psFileName(org.tag+'_log'),   doLog = True,  **kwargs).plotAll()
+        plotter(org, psFileName = self.psFileName(org.tag+'_nolog'), doLog = False, **kwargs).plotAll()
