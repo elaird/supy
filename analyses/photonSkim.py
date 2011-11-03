@@ -29,7 +29,7 @@ class photonSkim(analysis.analysis) :
 
     def qcdMgNames(self) :
         l = ["100", "250", "500", "1000", "inf"]
-        return ["qcd_mg_ht_%s_%s"%(a,b) for a,b in zip(l[:-1], l[1:])]
+        return ["qcd_mg_ht_%s_%s_summer11"%(a,b) for a,b in zip(l[:-1], l[1:])]
 
     def gJetsMgNames(self) :
         l = ["40", "100", "200", "inf"]
@@ -47,8 +47,8 @@ class photonSkim(analysis.analysis) :
         #out += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn2"   )
         #out += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn3"   )
 
-        #out += specify(names = self.qcdMgNames())
-        out += specify(names = self.gJetsMgNames())
+        out += specify(names = self.qcdMgNames())
+        #out += specify(names = self.gJetsMgNames())
 
         return out
     

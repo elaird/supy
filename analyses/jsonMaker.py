@@ -18,16 +18,34 @@ class jsonMaker(analysis) :
 
         out = []
 
-        out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.job536", weights = jwMay)
-        out += specify(names = "HT.Run2011A-05Aug2011-v1.AOD.job528",   weights = jwAug)
-        out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.job535",  weights = jwPrompt)
-        out += specify(names = "HT.Run2011A-PromptReco-v6.AOD.job527",  weights = jwPrompt)
-        out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job515",  weights = jwPrompt)
-        out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job519",  weights = jwPrompt)
-        out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job531",  weights = jwPrompt)
-        out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job533",  weights = jwPrompt)
-        out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job564",  weights = jwPrompt)
-        out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job592",  weights = jwPrompt)
+        #out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.job536", weights = jwMay)
+        #out += specify(names = "HT.Run2011A-05Aug2011-v1.AOD.job528",   weights = jwAug)
+        #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.job535",  weights = jwPrompt)
+        #out += specify(names = "HT.Run2011A-PromptReco-v6.AOD.job527",  weights = jwPrompt)
+        #out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job515",  weights = jwPrompt)
+        #out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job519",  weights = jwPrompt)
+        #out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job531",  weights = jwPrompt)
+        #out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job533",  weights = jwPrompt)
+        #out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job564",  weights = jwPrompt)
+        #out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.job592",  weights = jwPrompt)
+
+        #out += specify(names = "HT.Run2011A-May10ReReco-v1.AOD.Darren1", weights = jwMay)
+        #out += specify(names = "HT.Run2011A-05Aug2011-v1.AOD.Bryn1",     weights = jwAug)
+        #out += specify(names = "HT.Run2011A-PromptReco-v4.AOD.Bryn1",    weights = jwPrompt)
+        #out += specify(names = "HT.Run2011A-PromptReco-v6.AOD.Bryn1",    weights = jwPrompt)
+        #out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.Bryn1",    weights = jwPrompt)
+        #out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.Bryn2",    weights = jwPrompt)
+        #out += specify(names = "HT.Run2011B-PromptReco-v1.AOD.Bryn3",    weights = jwPrompt)
+
+        out += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.job536")
+        out += specify(names = "Photon.Run2011A-05Aug2011-v1.AOD.job528")
+        out += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.job535")
+        out += specify(names = "Photon.Run2011A-PromptReco-v6.AOD.job527")
+        out += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.job515")
+        out += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.job519")
+        out += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.job531")
+        out += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.job570")
+        out += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.job598")
 
         #out += specify(names = [ "SingleMu.Run2011A-May10-v1.FJ.Burt",
         #                         "SingleMu.Run2011A-PR-v4.FJ.Burt1",
