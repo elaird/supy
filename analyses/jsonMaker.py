@@ -4,7 +4,7 @@ import os,steps,samples,calculables
 class jsonMaker(analysis) :
     def listOfSteps(self,params) :
         return [ steps.Print.progressPrinter(2,300),
-                 steps.Other.jsonMaker(calculateLumi = False),
+                 steps.Other.jsonMaker(),
                  ]
 
     def listOfCalculables(self,params) :
