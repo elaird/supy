@@ -1,4 +1,6 @@
 from core.wrappedChain import wrappedChain
+from core import utils
+import calculables
 import ROOT as r
 ##############################
 class genSumP4(wrappedChain.calculable) :
@@ -237,3 +239,47 @@ class genParticleCounter(wrappedChain.calculable) :
             #whose mothers have index 0 or 1
             if self.source["genMotherIndex"].at(iParticle) not in [0,1] : continue
             self.incrementCategory(self.source["genPdgId"].at(iParticle))
+######################################
+class qDirProbPlus(calculables.secondary) :
+    def __init__(self, var, limit, tag, sample, path = None) :
+        for item in ['var','tag','sample', 'limit','path'] : setattr(self,item,eval(item))
+        self.fixes = ('',var)
+        self.dist = "qdir.%s"%self.var
+        self.p = None
+
+    def setup(self,*_) :
+        import numpy as np
+        orig = self.fromCache( [self.sample], [self.dist], tag = self.tag)[self.sample][self.dist]
+        if not orig : return
+
+        edges = utils.edgesRebinned(orig, targetUncRel = 0.065)
+        hist = orig.Rebin(len(edges)-1, "tmp", edges)
+        vals  = [hist.GetBinContent(i) for i in range(1,len(edges))]
+        del hist
+        iZero = edges.index(0)
+        R = np.array(vals[iZero:])
+        L = np.array(vals[:iZero])[::-1]
+        p = R / ( R + L )
+
+        self.p = r.TH1D(self.name, ";|%s|;p of correct qDir"%self.var, len(edges[iZero:])-1, edges[iZero:])
+        for i in range(len(p)) : self.p.SetBinContent(i+1,p[i])
+        self.p.SetBinContent(len(edges[iZero:])+2, edges[-1])
+
+        if self.path is not None :
+            c = r.TCanvas()
+            self.p.Draw('hist')
+            utils.tCanvasPrintPdf(c,'%s/%s'%(self.path,'.'.join([self.name,self.sample,self.tag])))
+            del c
+
+    def update(self,_) :
+        var = self.source[self.var]
+        p = self.p.GetBinContent(self.p.FindFixBin(var)) if self.p else 0.5
+        self.value = p if var > 0 else 1-p
+
+    def uponAcceptance(self,ev) :
+        if ev['isRealData'] : return
+        qqbar = ev['genQQbar']
+        if not qqbar : return
+        qdir = 1 if ev['genP4'][qqbar[0]].pz()>0 else -1
+        var = ev[self.var]
+        self.book.fill(qdir*var, self.dist, 1000, -self.limit, self.limit, title = ";qdir * %s;events / bin"%self.var )

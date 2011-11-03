@@ -50,6 +50,12 @@ class PtOverSumPt(wrappedChain.calculable) :
         self.stash(['Pt','SumPt'])
     def update(self,_) : self.value = self.source[self.Pt] / self.source[self.SumPt]
 ######################################
+class SumP4Eta(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(['SumP4'])
+    def update(self,_) : self.value = self.source[self.SumP4].eta()
+######################################
 class SumP4AbsEta(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
@@ -93,14 +99,20 @@ class DirectedDeltaYttbar(wrappedChain.calculable) :
     def update(self,_) :
         self.value = self.source[self.SignQuarkZ] * self.source[self.DeltaYttbar]
 ######################################
-class DirectedDeltaYLHadt(wrappedChain.calculable) :
+class DeltaYLHadt(wrappedChain.calculable) :
     def __init__(self, collection = None) :
         self.fixes = collection
-        self.stash(['SignQuarkZ','P4','LeptonCharge'])
+        self.stash(['P4','LeptonCharge'])
     def update(self,_) :
         p4 = self.source[self.P4]
         qLep = self.source[self.LeptonCharge]
-        self.value = self.source[self.SignQuarkZ] * qLep * (p4['lepton'].Rapidity() - p4['t' if qLep<0 else 'tbar'].Rapidity())
+        self.value =  qLep * (p4['lepton'].Rapidity() - p4['t' if qLep<0 else 'tbar'].Rapidity())
+######################################
+class DirectedDeltaYLHadt(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(['SignQuarkZ','DeltaYLHadt'])
+    def update(self,_) : self.value = self.source[self.SignQuarkZ] * self.source[self.DeltaYLHadt]
 ######################################
 class SignedLeptonRapidity(wrappedChain.calculable) :
     def __init__(self, collection = None) :
@@ -534,4 +546,3 @@ class TopRatherThanWProbability(wrappedChain.calculable) :
         wL = self.source["OtherJetsLikelihood"]
         denom = (topL + wL * self.invPriorTopMinusOne)
         self.value = (topL / denom) if denom else self.priorTop
-######################################

@@ -23,7 +23,7 @@ class Asymmetry(analysisStep) :
 
         self.book.fill( ev[self.DeltaAbsYttbar],      'ttbarDeltaAbsY',    self.bins, -3, 3, title = ';#Delta|Y|_{ttbar};events / bin' )
         self.book.fill( ev[self.DirectedDeltaYttbar], 'ttbarSignedDeltaY', self.bins, -4, 4, title = ';sumP4dir * #Delta Y_{ttbar};events / bin' )
-        self.book.fill( ev[self.DirectedDeltaYLHadt], 'lHadtDeltaY',       self.bins, -4, 4, title = ';#Delta Y_{lhadt};events / bin')
+        self.book.fill( ev[self.DirectedDeltaYLHadt], 'lHadtDeltaY',       self.bins, -4, 4, title = ';sumP4dir * #Delta Y_{lhadt};events / bin')
         #self.book.fill( ev[self.Beta],                'ttbarBeta',         self.bins, -math.sqrt(2), math.sqrt(2), title = ';#beta_{ttbar};events / bin')
 #####################################
 class Spin(analysisStep) :

@@ -94,6 +94,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                                                      "%sDeltaPhiB01%s"%obj["jet"] : (20,0,math.pi),
                                                      "fitTopCosHelicityThetaL": (20,-1,1),
                                                      }),
+            calculables.Gen.qDirProbPlus('fitTopSumP4Eta', 10, 'top_muon_pf', 'tt_tauola_fj.wTopAsymP00.tw.nvr', path = self.globalStem),
             #steps.Filter.stop(),#####################################
             steps.Histos.multiplicity("%sIndices%s"%obj["jet"]),
             steps.Histos.value("TriDiscriminant",50,-1,1),
@@ -151,15 +152,15 @@ class topAsymm(topAsymmShell.topAsymmShell) :
     ########################################################################################
     def concludeAll(self) :
         self.rowcolors = [r.kBlack, r.kGray+3, r.kGray+2, r.kGray+1, r.kViolet+4]
-        #super(topAsymm,self).concludeAll()
-        #self.meldWpartitions()
-        #self.meldQCDpartitions()
+        super(topAsymm,self).concludeAll()
+        self.meldWpartitions()
+        self.meldQCDpartitions()
         self.meldScale()
-        #self.dilutions()
-        #self.measureQQbarComponent()
-        #self.plotMeldScale()
+        self.dilutions()
+        self.measureQQbarComponent()
+        self.plotMeldScale()
         self.ensembleTest()
-        #self.PEcurves()
+        self.PEcurves()
 
     def conclude(self,pars) :
         org = self.organizer(pars)
@@ -363,7 +364,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         topQQs = [s['name'] for s in self.orgMelded.samples if 'wTopAsym' in s['name']]
         asymm = [eval(name.replace("top.tt_tauola_fj.wTopAsym","").replace(".tw.nvr","").replace("P",".").replace("N","-.")) for name in topQQs]
         distTup = self.orgMelded.steps[iStep][dist]
-        edges = utils.edgesRebinned( distTup[ self.orgMelded.indexOfSampleWithName("S.M.") ], targetUncRel = 0.01, offset = 2 )
+        edges = utils.edgesRebinned( distTup[ self.orgMelded.indexOfSampleWithName("S.M.") ], targetUncRel = 0.015, offset = 2 )
 
         def nparray(name, scaleToN = None) :
             hist_orig = distTup[ self.orgMelded.indexOfSampleWithName(name) ]
