@@ -22,9 +22,12 @@ class templateFitter(object) :
 
         _,c1,c2,c3 = coef
         R = c2 / (3*c3)
-        D = math.sqrt(R**2 - c1 / (3*c3) )
-        curve,self.__value = max([ (2*c2+6*p*c3, p) for p in [-R+D, -R-D]])
-        self.__error = ( 0.5*curve )**-0.5
+        D = math.sqrt(max(0, R**2 - c1 / (3*c3) ))
+        if c3 and D :
+            curve,self.__value = max([ (2*c2+6*p*c3, p) for p in [-R+D, -R-D]])
+            self.__error = ( 0.5*curve )**-0.5
+        else:
+            self.__value,self.__error = (-0.5*c1/c2, c2**-0.5) if c2>0 else (0.,2.)
 
         self.n2LL = sum([self.value**i * coef[i] for i in range(4)])
         self.__ensembleSize = ensembleSize
