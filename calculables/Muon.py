@@ -210,9 +210,7 @@ class IndicesTriggering(wrappedChain.calculable) :
         p4 = self.source[self.P4]
         for i in self.source[self.IndicesAnyIso] :
             if p4[i].pt() < self.ptMin : break
-            if abs(p4[i].eta()) < self.absEtaMax :
-                self.value.append( i )
-                break
+            if abs(p4[i].eta()) < self.absEtaMax : self.value.append( i )
 #####################################
 class TriggeringPt(wrappedChain.calculable) :
     def __init__(self, collection = None) :
