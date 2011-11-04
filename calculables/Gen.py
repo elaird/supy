@@ -247,6 +247,8 @@ class qDirProbPlus(calculables.secondary) :
         self.dist = "qdir.%s"%self.var
         self.p = None
 
+    def onlySamples(self) : return [self.sample]
+
     def setup(self,*_) :
         import numpy as np
         orig = self.fromCache( [self.sample], [self.dist], tag = self.tag)[self.sample][self.dist]
