@@ -100,6 +100,13 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             steps.Histos.value("TriDiscriminant",50,-1,1),
             steps.Top.Asymmetry(('fitTop',''), bins = 640),
             steps.Top.Spin(('fitTop','')),
+
+            steps.Histos.value('fitTopSumP4Eta', 12, -6, 6),
+            steps.Filter.absEta('fitTopSumP4', min = 1),
+            steps.Histos.value('fitTopSumP4Eta', 12, -6, 6),
+            steps.Top.Asymmetry(('fitTop',''), bins = 640),
+            steps.Top.Spin(('fitTop','')),
+
             #steps.Top.kinFitLook("fitTopRecoIndex"),
             #steps.Filter.value("TriDiscriminant",min=-0.64,max=0.8),
             #steps.Histos.value("TriDiscriminant",50,-1,1),
@@ -157,7 +164,7 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         self.meldQCDpartitions()
         self.meldScale()
         self.dilutions()
-        self.measureQQbarComponent()
+        #self.measureQQbarComponent()
         self.plotMeldScale()
         self.ensembleTest()
         self.PEcurves()
