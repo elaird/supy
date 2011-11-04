@@ -5,6 +5,8 @@ if len(sys.argv)<3 :
     print "Usage:"
     print " %s A B [C ...]"%sys.argv[0]
     print "will remove the runs present in B [C...] from A and print the result to stdout."
+    print " %s A [a,b]"%sys.argv[0]
+    print "will remove all runs outside range [a,b] from A and print the result to stdout."
     sys.exit()
 
 def jsonFromFile(fileName = "") :
@@ -12,7 +14,11 @@ def jsonFromFile(fileName = "") :
         return eval(f.read())
 
 orig = jsonFromFile(sys.argv[1])
-popRuns = sum([jsonFromFile(name).keys() for name in sys.argv[2:]],[])
+try:
+    popRuns = sum([jsonFromFile(name).keys() for name in sys.argv[2:]],[])
+except:
+    lo,hi = eval(sys.argv[2])
+    popRuns = [ run for run in orig if not (lo <= eval(run) <= hi) ]
 
 for run in set(popRuns) :
     if run in orig : orig.pop(run)
