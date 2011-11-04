@@ -242,7 +242,7 @@ class analysis(object) :
 ############
     def mergeAllOutput(self) :
         args = sum([[(conf['tag'],looper) for looper in self.listsOfLoopers[conf['tag']]] for conf in self.configurations],[])
-        utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(self.mergeOutput), args)
+        utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(self.mergeOutput), args, False)
         #for arg in args : self.mergeOutput(*arg)
     
     def mergeOutput(self,tag,looper) :

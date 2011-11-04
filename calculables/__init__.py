@@ -68,6 +68,7 @@ class secondary(wrappedChain.calculable,analysisStep) :
     
     defaultValue = None
     def organize(self,org) : pass
+    def onlySamples(self) : return [] # declaration of which samples _not_ to ignore, [] ignores none
     
     '''
     Functions an inheritor may wish to redefine :
@@ -84,6 +85,7 @@ class secondary(wrappedChain.calculable,analysisStep) :
 
     @staticmethod
     def allDeps(node,graph, depsSoFar = set()) :
+        if node is None : return set()
         nodesToDo = graph[node].deps - depsSoFar
         return set(reduce(operator.__or__, [secondary.allDeps(n,graph,depsSoFar|graph[node].deps) for n in nodesToDo], graph[node].deps))
     @staticmethod
@@ -93,6 +95,7 @@ class secondary(wrappedChain.calculable,analysisStep) :
 
     def checkOne(self,cache,org,iSample) :
         sample = org.samples[iSample]['name']
+        if self.onlySamples() and sample not in self.onlySamples() : return
         
         if sample not in [key.GetName() for key in cache.GetListOfKeys()] : return "no cache"
         cache.cd(sample)
@@ -149,15 +152,15 @@ class secondary(wrappedChain.calculable,analysisStep) :
         print "Updating " + self.cacheFileName()
 
         for iSample,sample in enumerate(org.samples) :
+            if self.onlySamples() and sample['name'] not in self.onlySamples() : continue
             if sample['name'] in [k.GetName() for k in cache.GetListOfKeys()] : cache.rmdir(sample['name'])
             cache.mkdir(sample['name']).cd()
             for hists in org.steps[0].values() :
                 if hists[iSample] : hists[iSample].Write()
 
-            if "Calculables" in [k.GetName() for k in r.gDirectory.GetListOfKeys()] : r.gDirectory.rmdir("Calculables")
             r.gDirectory.mkdir("Calculables").cd()
             deps = self.allDeps(next((key for key in org.calculablesGraphs[iSample] if key[0]==self.name), None), org.calculablesGraphs[iSample])
-            for name,title,_ in deps : r.gDirectory.mkdir(name+title.replace('/','-SLASH-'),title)
+            for name,title,_ in deps : r.gDirectory.mkdir(name+title.replace('/','-SLASH-').replace(';','-SEMI-').replace(':','-COLON-'),title)
             cache.cd()
             print "\t%s"%sample['name']
         cache.Close()
@@ -185,4 +188,4 @@ class secondary(wrappedChain.calculable,analysisStep) :
         return sampleHists
                      
 ##############################
-import Compatibility,Electron,Gen,Jet,Muon,Other,Photon,Top,Vertex,XClean
+import Compatibility,Electron,Gen,Jet,Muon,Other,Photon,Top,Vertex,XClean,Trigger

@@ -19,7 +19,7 @@ class generic(analysisStep) :
             
         value = eventVars[self.var] if self.oneD else \
                 tuple(map(eventVars.__getitem__,self.var))
-        if value is None or (not self.oneD and not all(value)) : return #temporary bug
+        if value is None or ((not self.oneD) and any(v is None for v in value)) : return
 
         self.book.fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
 #####################################
@@ -58,6 +58,9 @@ class pt(value) :
 class pz(value) :
     def wrapName(self) : return ".pz"
     def wrap(self,val) : return val.pz()
+class phi(value) :
+    def wrapName(self) : return ".phi"
+    def wrap(self,val) : return val.phi()
 class eta(value) :
     def wrapName(self) : return ".eta"
     def wrap(self,val) : return val.eta()

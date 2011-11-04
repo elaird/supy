@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys,os,tempfile
+import sys,os,tempfile,utils
 import configuration
 sys.path.extend([configuration.siteInfo(key="CMSSW_lumi")])
 
@@ -26,6 +26,12 @@ def recordedInvMicrobarns(json) :
     lumidata =  lumiQueryAPI.recordedLumiForRange (session, pars, jsonToIFP(json))    
     return sum(lumiQueryAPI.calculateTotalRecorded(dataperRun[2]) for dataperRun in lumidata if dataperRun[1])
 
+def recordedInvMicrobarnsShotgun(jsons, cores = 2, cacheDir = './' ) :
+    pickles = ["%s/%d.pickle"%(cacheDir,hash(str(sorted([(key,val) for key,val in json.iteritems()])))) for json in jsons]
+    def worker(pickle, json) :
+        if not os.path.exists(pickle) : utils.writePickle(pickle, recordedInvMicrobarns(json))
+    utils.operateOnListUsingQueue(cores, utils.qWorker(worker), zip(pickles,jsons))
+    return [utils.readPickle(pickle) for pickle in pickles ]
 
 if __name__=='__main__' :
     print

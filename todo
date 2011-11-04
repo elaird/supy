@@ -15,6 +15,8 @@
 * continue clean-up of hadronicLook
 * consider threshold for adding muons to jets
 
+* review utils.operateOnListUsingQueue()
+
 (ongoing)
 * profile
 

@@ -42,12 +42,12 @@ def compileSources(inList) :
     for sourceFile in inList :
         r.gROOT.LoadMacro(sourceFile+"+")
 #####################################
-def operateOnListUsingQueue(nCores,workerFunc,inList) :
+def operateOnListUsingQueue(nCores,workerFunc,inList,daemon=True) :
     q = JoinableQueue()
     listOfProcesses=[]
     for i in range(nCores):
         p = Process(target = workerFunc, args = (q,))
-        p.daemon = True
+        p.daemon = daemon
         p.start()
         listOfProcesses.append(p)
     map(q.put,inList)
@@ -456,6 +456,7 @@ def writePickle(fileName, payload) :
     pickleFile.close()
 #####################################
 def unionProbability(indPs) :
+    indPs = filter(None, indPs)
     return sum([ (-1)**r * sum([reduce(operator.mul,ps,1) for ps in itertools.combinations(indPs, r+1)]) for r in range(len(indPs))])
 #####################################
 def jsonFromRunDict(runDict) :
@@ -488,7 +489,7 @@ def topologicalSort(paths) :
 #####################################
 def justNameTitle(tkey) :
     name,title = tkey.GetName(),tkey.GetTitle()
-    name = name.replace('-SLASH-','/')
+    name = name.replace('-SLASH-','/').replace('-SEMI-',';').replace('-COLON-',':')
     L = len(title)
     return ( (name,"") if name == title else
              (name[:-L],title) if name[-L:] == title else

@@ -835,6 +835,8 @@ class ProbabilityGivenBQN(calculables.secondary) :
     @property
     def name(self) : return self.__name
 
+    def onlySamples(self) : return [self.samples[0]]
+
     def setup(self,*_) :
         hists = self.fromCache([self.samples[0]],['B','Q','N'], tag = self.tag)
         self.histsBQN = [hists[self.samples[0]][jetType] for jetType in ['B','Q','N']]

@@ -5,7 +5,8 @@ class topAsymmShell(analysis) :
 
     def parameters(self) :
         def mutriggers() :
-            ptv = {   #3:(3,4),
+            ptv = {
+                #3:(3,4),
                 #5:(3,4,5,6),
                 #8:(1,2,3,4),
                 12:(1,2,3,4,5),
@@ -25,7 +26,7 @@ class topAsymmShell(analysis) :
 
         leptons = self.vary()
         fieldsLepton    =                            ["name","ptMin", "etaMax",              "isoVar", "triggers"]
-        leptons["muon"]     = dict(zip(fieldsLepton, ["muon",     31,     2.1, "CombinedRelativeIso", tuple(zip(*mutriggers())[0])]))
+        leptons["muon"]     = dict(zip(fieldsLepton, ["muon",     20,     2.1, "CombinedRelativeIso",   mutriggers()]))
         #leptons["electron"] = dict(zip(fieldsLepton, ["electron", 30,       9,         "IsoCombined", ("FIX","ME")]))
         
         bVar = "NTrkHiEff" # "TrkCountingHighEffBJetTags"
@@ -57,7 +58,7 @@ class topAsymmShell(analysis) :
             calculables.Jet.IndicesBtagged(obj["jet"],pars["bVar"]),
             calculables.Jet.Indices(      obj["jet"],      ptMin = 20, etaMax = 3.5, flagName = "JetIDloose"),
             calculables.Muon.Indices(     obj["muon"],     ptMin = 10, combinedRelIsoMax = 0.15),
-            calculables.Muon.TriggeringIndex( obj["muon"], ptMin = 10),
+            calculables.Muon.IndicesTriggering(obj["muon"]),
             calculables.Electron.Indices( obj["electron"], ptMin = 10, simpleEleID = "80", useCombinedIso = True),
             calculables.Photon.Indices(   obj["photon"],   ptMin = 25, flagName = "photonIDLooseFromTwikiPat"),
 
@@ -72,7 +73,7 @@ class topAsymmShell(analysis) :
 
             calculables.Vertex.ID(),
             calculables.Vertex.Indices(),
-            calculables.Other.lowestUnPrescaledTrigger(pars["lepton"]["triggers"]),
+            calculables.Other.lowestUnPrescaledTrigger(zip(*pars["lepton"]["triggers"])[0]),
 
             calculables.Top.mixedSumP4(transverse = obj["met"], longitudinal = obj["sumP4"]),
             calculables.Other.pt("mixedSumP4"),
@@ -86,6 +87,7 @@ class topAsymmShell(analysis) :
             calculables.Other.Covariance(('met','PF')),
             calculables.Other.abbreviation( "TrkCountingHighEffBJetTags", "NTrkHiEff", fixes = calculables.Jet.xcStrip(obj['jet']) ),
             calculables.Other.abbreviation( "nVertexRatio", "nvr" ),
+            calculables.Other.abbreviation('muonTriggerWeightPF','tw'),
             calculables.Jet.pt( obj['jet'], index = 0, Btagged = True ),
             calculables.Jet.absEta( obj['jet'], index = 3, Btagged = False)
             ]
@@ -107,9 +109,8 @@ class topAsymmShell(analysis) :
             steps.Trigger.physicsDeclaredFilter(),
             steps.Filter.monster(),
             steps.Trigger.l1Filter("L1Tech_BPTX_plus_AND_minus.v0"),
-            steps.Trigger.hltPrescaleHistogrammer(pars['lepton']['triggers']),
+            steps.Trigger.hltPrescaleHistogrammer(zip(*pars['lepton']['triggers'])[0]),
             steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
-            steps.Trigger.lowestUnPrescaledTriggerFilter(), #FIXME ele
             steps.Histos.multiplicity("vertexIndices", max=15),
             steps.Histos.value("%sPtSorted%s"%obj['muon'], 2,-0.5,1.5),
             steps.Filter.multiplicity("vertexIndices",min=1),
