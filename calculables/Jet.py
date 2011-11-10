@@ -283,6 +283,14 @@ class SumPt(wrappedChain.calculable) :
         pts = self.source[self.Pt]
         self.value = reduce( lambda x,i: x+pts[i], self.source[self.Indices] , 0)
 ##############################
+class RawSumPt(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
+        self.fixes = collection
+        self.stash(["CorrectedP4"],xcStrip(collection))
+    def update(self,ignored) :
+        #self.value = sum([p4.pt() for p4 in self.source[self.CorrectedP4]])
+        self.value = sum(utils.hackMap(lambda p4: p4.pt(), self.source[self.CorrectedP4]))
+##############################
 class SumPz(wrappedChain.calculable) :
     def __init__(self,collection = None) :
         self.fixes = collection
@@ -317,6 +325,17 @@ class SumP4Ignored(wrappedChain.calculable) :
         p4s = self.source[self.CorrectedP4]
         self.value = reduce( lambda x,i: x+p4s.at(i), self.source[self.IndicesIgnored], utils.LorentzV())
 #####################################
+class RawSumP4(wrappedChain.calculable) :
+    def __init__(self, collection) :
+        self.fixes = collection
+        self.stash(['CorrectedP4'],xcStrip(collection))
+        self.value = utils.LorentzV()
+    def update(self,ignored) : 
+        self.value.SetCoordinates(0,0,0,0)
+        #self.value = sum(self.source[self.CorrectedP4],self.value)
+        p4s = self.source[self.CorrectedP4]
+        for i in range(len(p4s)) : self.value += p4s[i]
+####################################
 class Mht(wrappedChain.calculable) :
     def __init__(self,collection) :
         self.fixes = collection
@@ -339,6 +358,68 @@ class Meff(wrappedChain.calculable) :
         self.stash(["Sum"])
     def update(self,ignored) :
         self.value = self.source[self.Mht]+self.source[self.Sum]
+####################################
+class Boost(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["SumP4"])
+    def update(self,ignored) :
+        self.value = self.sources[self.SumP4].pz()
+####################################
+class RelativeBoost(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["Boost","SumPz"])
+    def update(self,ignored) :
+        self.value = self.source[self.Boost] / self.source[self.SumPz]
+##############################
+class LongP4(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["CorrectedP4","Indices"])
+    def update(self,ignored) :
+        p4s = self.source[self.CorrectedP4]
+        self.value = reduce(lambda x,p4: max(x+p4,x-p4,key=lambda p:p.pt()), [p4s.at(i) for i in self.source[self.Indices]], utils.LorentzV())
+##############################
+class Stretch(wrappedChain.calculable) :
+    def __init__(self,collection=None) :
+        self.fixes = collection
+        self.stash(["LongP4","SumPt"])
+    def update(self,ignored) :
+        self.value = self.source[self.LongP4].pt() / self.source[self.SumPt]
+##############################
+class CosLongMht(wrappedChain.calculable) :
+    def __init__(self,collection=None) :
+        self.fixes = collection
+        self.stash(["SumP4","LongP4"])
+    def update(self,ignored) :
+        self.value = abs(math.cos(r.Math.VectorUtil.DeltaPhi(self.source[self.SumP4],self.source[self.LongP4])))
+##############################
+class PartialSumP4(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["CorrectedP4","IndicesPhi"])
+    def update(self,ignored) :
+        self.value = utils.partialSumP4( self.source[self.CorrectedP4], self.source[self.IndicesPhi])
+class PartialSumP4Centroid(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["PartialSumP4"])
+    def update(self,ignored) :
+        self.value = utils.partialSumP4Centroid(self.source[self.PartialSumP4])
+class PartialSumP4Area(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["PartialSumP4"])
+    def update(self,ignored) :
+        self.value = utils.partialSumP4Area(self.source[self.PartialSumP4])
+class Pi(wrappedChain.calculable) :
+    def __init__(self,collection) :
+        self.fixes = collection
+        self.stash(["PartialSumP4Area"])
+        self.stash(["Meff"], (collection[0], "Pt"+collection[1]))
+    def update(self,ignored) :
+        self.value = 0.25 * self.source[self.Meff]**2 / self.source[self.PartialSumP4Area]
 ##############################
 class SumP4PlusPhotons(wrappedChain.calculable) :
     def __init__(self, collection = None, extraName = "", photon = None) :
@@ -507,6 +588,63 @@ class DeltaPhiMht(wrappedChain.calculable) :
         sumP4 = self.source[self.SumP4]
         p4s = self.source[self.CorrectedP4]
         self.value = map(r.Math.VectorUtil.DeltaPhi, [-sumP4]*len(p4s), p4s)
+##############################
+class MhtSensitivity(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["Pt","Mht","DeltaPhiMht"])
+    def sensitivity(self,pt,dphi) :
+        return math.sqrt(pt) / self.source[self.Mht] * math.cos(dphi)
+    def update(self,ignored) :
+        self.value = map(self.sensitivity, self.source[self.Pt], self.source[self.DeltaPhiMht])
+##############################
+class MhtProjection(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["Pt","Mht","DeltaPhiMht"])
+    def projection(pt,dphi) :
+        return self.source[self.Mht] / math.sqrt(pt) * math.cos(dphi)
+    def update(self,ignored) :
+        self.value = map(self.projection, self.source[self.Pt], self.source[self.DeltaPhiMht] )
+##############################
+class MaxAbsMhtSensitivity(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","MhtSensitivity"])
+    def update(self,ignored) :
+        indices = self.source[self.Indices]
+        sens = self.source[self.MhtSensitivity]
+        self.value = None if not indices else max([(abs(sens[i]),sens[i]) for i in indices])[1]
+##############################
+class MaxMhtSensitivity(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","MhtSensitivity"])
+    def update(self,ignored) :
+        indices = self.source[self.Indices]
+        sens = self.source[self.MhtSensitivity]
+        self.value = None if not indices else max([sens[i] for i in indices])
+###############################
+class MhtCombinedSensitivity(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","Pt","Mht","DeltaPhiMht"])
+    def update(self,ignored) :
+        mht = self.source[self.Mht]
+        indices = self.source[self.Indices]
+        pt = self.source[self.Pt]
+        dphi = self.source[self.DeltaPhiMht]
+        self.value = None if not indices else \
+                     math.sqrt( sum([ pt[i]*(math.cos(dphi[i]))**2 for i in indices]) ) / mht
+##############################
+class MaxProjMht(wrappedChain.calculable) :
+    def __init__(self,collection = None) :
+        self.fixes = collection
+        self.stash(["Indices","MhtProjection"])
+    def update(self,ignored) :
+        indices = self.source[self.Indices]
+        mhtProj = self.source[self.MhtProjection]
+        self.value = None if not indices else max([mhtProj[i] for i in indices])
 #####################################
 class MhtOverMet(wrappedChain.calculable) :
     @property
@@ -816,166 +954,3 @@ class DeltaPhiB01(wrappedChain.calculable) :
         b = self.source[self.IndicesBtagged]
         self.value = abs(r.Math.VectorUtil.DeltaPhi(p4[b[0]],p4[b[1]]))
 ######################################
-
-
-
-
-
-####################################
-### Deprecated #####################
-####################################
-class Boost(wrappedChain.calculable) :
-    def __init__(self,collection) :
-        self.fixes = collection
-        self.stash(["SumP4"])
-        self.deprecated = True
-    def update(self,ignored) :
-        self.value = self.sources[self.SumP4].pz()
-####################################
-class RelativeBoost(wrappedChain.calculable) :
-    def __init__(self,collection) :
-        self.fixes = collection
-        self.stash(["Boost","SumPz"])
-        self.deprecated = True
-    def update(self,ignored) :
-        self.value = self.source[self.Boost] / self.source[self.SumPz]
-##############################
-class LongP4(wrappedChain.calculable) :
-    def __init__(self,collection = None) :
-        self.fixes = collection
-        self.stash(["CorrectedP4","Indices"])
-        self.deprecated = True
-    def update(self,ignored) :
-        p4s = self.source[self.CorrectedP4]
-        self.value = reduce(lambda x,p4: max(x+p4,x-p4,key=lambda p:p.pt()), [p4s.at(i) for i in self.source[self.Indices]], utils.LorentzV())
-##############################
-class Stretch(wrappedChain.calculable) :
-    def __init__(self,collection=None) :
-        self.fixes = collection
-        self.stash(["LongP4","SumPt"])
-        self.deprecated = True
-    def update(self,ignored) :
-        self.value = self.source[self.LongP4].pt() / self.source[self.SumPt]
-##############################
-class CosLongMht(wrappedChain.calculable) :
-    def __init__(self,collection=None) :
-        self.fixes = collection
-        self.stash(["SumP4","LongP4"])
-        self.deprecated = True
-    def update(self,ignored) :
-        self.value = abs(math.cos(r.Math.VectorUtil.DeltaPhi(self.source[self.SumP4],self.source[self.LongP4])))
-##############################
-class PartialSumP4(wrappedChain.calculable) :
-    def __init__(self,collection) :
-        self.fixes = collection
-        self.stash(["CorrectedP4","IndicesPhi"])
-        self.deprecated = True
-    def update(self,ignored) :
-        self.value = utils.partialSumP4( self.source[self.CorrectedP4], self.source[self.IndicesPhi])
-class PartialSumP4Centroid(wrappedChain.calculable) :
-    def __init__(self,collection) :
-        self.fixes = collection
-        self.stash(["PartialSumP4"])
-        self.deprecated = True
-    def update(self,ignored) :
-        self.value = utils.partialSumP4Centroid(self.source[self.PartialSumP4])
-class PartialSumP4Area(wrappedChain.calculable) :
-    def __init__(self,collection) :
-        self.fixes = collection
-        self.stash(["PartialSumP4"])
-        self.deprecated = True
-    def update(self,ignored) :
-        self.value = utils.partialSumP4Area(self.source[self.PartialSumP4])
-class Pi(wrappedChain.calculable) :
-    def __init__(self,collection) :
-        self.fixes = collection
-        self.stash(["PartialSumP4Area"])
-        self.stash(["Meff"], (collection[0], "Pt"+collection[1]))
-        self.deprecated = True
-    def update(self,ignored) :
-        self.value = 0.25 * self.source[self.Meff]**2 / self.source[self.PartialSumP4Area]
-##############################
-class MhtSensitivity(wrappedChain.calculable) :
-    def __init__(self,collection = None) :
-        self.fixes = collection
-        self.stash(["Pt","Mht","DeltaPhiMht"])
-        self.deprecated = True
-    def sensitivity(self,pt,dphi) :
-        return math.sqrt(pt) / self.source[self.Mht] * math.cos(dphi)
-    def update(self,ignored) :
-        self.value = map(self.sensitivity, self.source[self.Pt], self.source[self.DeltaPhiMht])
-##############################
-class MhtProjection(wrappedChain.calculable) :
-    def __init__(self,collection = None) :
-        self.fixes = collection
-        self.stash(["Pt","Mht","DeltaPhiMht"])
-        self.deprecated = True
-    def projection(pt,dphi) :
-        return self.source[self.Mht] / math.sqrt(pt) * math.cos(dphi)
-    def update(self,ignored) :
-        self.value = map(self.projection, self.source[self.Pt], self.source[self.DeltaPhiMht] )
-##############################
-class MaxAbsMhtSensitivity(wrappedChain.calculable) :
-    def __init__(self,collection = None) :
-        self.fixes = collection
-        self.stash(["Indices","MhtSensitivity"])
-        self.deprecated = True
-    def update(self,ignored) :
-        indices = self.source[self.Indices]
-        sens = self.source[self.MhtSensitivity]
-        self.value = None if not indices else max([(abs(sens[i]),sens[i]) for i in indices])[1]
-##############################
-class MaxMhtSensitivity(wrappedChain.calculable) :
-    def __init__(self,collection = None) :
-        self.fixes = collection
-        self.stash(["Indices","MhtSensitivity"])
-        self.deprecated = True
-    def update(self,ignored) :
-        indices = self.source[self.Indices]
-        sens = self.source[self.MhtSensitivity]
-        self.value = None if not indices else max([sens[i] for i in indices])
-###############################
-class MhtCombinedSensitivity(wrappedChain.calculable) :
-    def __init__(self,collection = None) :
-        self.fixes = collection
-        self.stash(["Indices","Pt","Mht","DeltaPhiMht"])
-        self.deprecated = True
-    def update(self,ignored) :
-        mht = self.source[self.Mht]
-        indices = self.source[self.Indices]
-        pt = self.source[self.Pt]
-        dphi = self.source[self.DeltaPhiMht]
-        self.value = None if not indices else \
-                     math.sqrt( sum([ pt[i]*(math.cos(dphi[i]))**2 for i in indices]) ) / mht
-##############################
-class MaxProjMht(wrappedChain.calculable) :
-    def __init__(self,collection = None) :
-        self.fixes = collection
-        self.stash(["Indices","MhtProjection"])
-        self.deprecated = True
-    def update(self,ignored) :
-        indices = self.source[self.Indices]
-        mhtProj = self.source[self.MhtProjection]
-        self.value = None if not indices else max([mhtProj[i] for i in indices])
-##############################
-class RawSumPt(wrappedChain.calculable) :
-    def __init__(self, collection = None) :
-        self.fixes = collection
-        self.stash(["CorrectedP4"],xcStrip(collection))
-        self.deprecated = True
-    def update(self,ignored) :
-        #self.value = sum([p4.pt() for p4 in self.source[self.CorrectedP4]])
-        self.value = sum(utils.hackMap(lambda p4: p4.pt(), self.source[self.CorrectedP4]))
-##############################
-class RawSumP4(wrappedChain.calculable) :
-    def __init__(self, collection) :
-        self.fixes = collection
-        self.stash(['CorrectedP4'],xcStrip(collection))
-        self.value = utils.LorentzV()
-        self.deprecated = True
-    def update(self,ignored) : 
-        self.value.SetCoordinates(0,0,0,0)
-        #self.value = sum(self.source[self.CorrectedP4],self.value)
-        p4s = self.source[self.CorrectedP4]
-        for i in range(len(p4s)) : self.value += p4s[i]
-####################################
