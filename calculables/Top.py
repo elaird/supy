@@ -246,6 +246,23 @@ class CosThetaDaggerTT(wrappedChain.calculable) :
         p4 = self.source[self.P4]
         self.value = r.Math.VectorUtil.CosTheta(boost(p4['t']),boost(p4['tbar']))
 ######################################
+class RadiativeCoherence(wrappedChain.calculable) :
+    def __init__(self, collection = None, jets = None ) :
+        self.fixes = collection
+        self.stash(['BoostZAlt','RecoIndex','SignQuarkZ'])
+        self.stash(['CorrectedP4','Indices'], jets)
+
+    def update(self,_) :
+        topReco = self.source["TopReconstruction"][self.source[self.RecoIndex]]
+        boost = self.source[self.BoostZAlt]
+        thetaTop = boost(topReco['top' if self.source[self.SignQuarkZ]>0 else 'tbar']).theta()
+        p4 = self.source[self.CorrectedP4]
+        extraPtTheta = [ ( p4[i].pt(), boost(p4[i]).theta() )  for i in (set(self.source[self.Indices]) - set(topReco['iPQHL']))]
+        sumPtExtra = sum( pt for pt,theta in extraPtTheta )
+        sumPtExtraInCones = (sum( pt for pt,theta in extraPtTheta if theta < thetaTop ) +
+                             sum( pt for pt,theta in extraPtTheta if theta > math.pi - thetaTop ) )
+        self.value = None if not sumPtExtra else sumPtExtraInCones/sumPtExtra - 1
+######################################
 ######################################
 
 class genTopP4(wrappedChain.calculable) :

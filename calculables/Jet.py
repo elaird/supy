@@ -358,6 +358,15 @@ class Meff(wrappedChain.calculable) :
         self.stash(["Sum"])
     def update(self,ignored) :
         self.value = self.source[self.Mht]+self.source[self.Sum]
+##############################
+class M3(wrappedChain.calculable) :
+    def __init__(self, collection) :
+        self.fixes = collection
+        self.stash(["CorrectedP4","Indices"])
+    def update(self,ignored) :
+        p4 = self.source[self.CorrectedP4]
+        sumP4s = sorted([p4[i]+p4[j]+p4[k] for i,j,k in itertools.combinations(self.source[self.Indices], 3)], key = lambda sumP4 : -sumP4.pt() )
+        self.value = sumP4s[0].M() if sumP4s else None
 ####################################
 class Boost(wrappedChain.calculable) :
     def __init__(self,collection) :

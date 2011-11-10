@@ -356,3 +356,11 @@ class TriDiscriminant(wrappedChain.calculable) :
         R  = int( self.split < self.source[self.LR] )
         self.value = ( 1 - self.source[self.RC] ) if R else ( self.source[self.LC] - 1 )
 #####################################
+class KarlsruheDiscriminant(wrappedChain.calculable) :
+    def __init__(self, jet, met) :
+        self.stash(['M3'],jet)
+        self.met = met
+        self.moreName = "-8.met if met<40 else m3; %s%s; %s"%(jet+(met,))
+    def update(self,_) :
+        met = self.source[self.met].pt()
+        self.value = -8*met if met<40 else self.source[self.M3]
