@@ -168,7 +168,7 @@ class Alpha(wrappedChain.calculable) :
         self.FourMtop2 = 4 * 172**2
     def update(self,_) :
         x = self.FourMtop2 / self.source[self.SumP4].M2()
-        self.value = 2 * max(0,(1-x)/(1+x))
+        self.value =  max(0,(1-x)/(1+x))
 ######################################
 class Beta(wrappedChain.calculable) :
     def __init__(self, collection = None) :
