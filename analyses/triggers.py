@@ -3,7 +3,9 @@ import os,steps,calculables,samples,ROOT as r
 
 class triggers(analysis) :
     def parameters(self) :
-        return { "muon" : self.vary({"pf" : ("muon","PF"), "pat" : ("muon","Pat")}),
+        return { "muon" : self.vary({"pf" : ("muon","PF"),
+                                     #"pat" : ("muon","Pat")
+                                     }),
                  "electron":("electron","PF") }
     
     def listOfCalculables(self, pars) :
@@ -44,12 +46,12 @@ class triggers(analysis) :
         return [samples.Muon.muon,samples.JetMET.jetmet,samples.Electron.electron]
 
     def listOfSamples(self,pars) :
-        return ( samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt5", color = r.kOrange) +
-                 samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt4", color = r.kViolet) +
-                 samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt3", color = r.kBlue,) +
-                 samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt2", color = r.kGreen) +
-                 samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt1", color = r.kBlack) +
-                 samples.specify(names = "SingleMu.Run2011A-May10-v1.FJ.Burt", color = r.kRed ) +
+        return ( samples.specify(names = "SingleMu.2011B-PR1.1b", color = r.kOrange) +
+                 samples.specify(names = "SingleMu.2011B-PR1.1a", color = r.kViolet) +
+                 samples.specify(names = "SingleMu.2011A-Oct.1", color = r.kBlue,) +
+                 samples.specify(names = "SingleMu.2011A-Aug.1", color = r.kGreen) +
+                 samples.specify(names = "SingleMu.2011A-PR4.1", color = r.kBlack) +
+                 samples.specify(names = "SingleMu.2011A-May.1", color = r.kRed ) +
                  [])
         
 
