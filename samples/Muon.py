@@ -6,8 +6,8 @@ muon.add("SingleMu.2011A-May.1",'%s/bbetchar/ICF/automated/2011_11_06_08_14_36/"
 muon.add("SingleMu.2011A-PR4.1",'%s/bbetchar/ICF/automated/2011_11_06_08_25_27/",alwaysUseLastAttempt = True)'%srm, lumi = 886.7901)
 muon.add("SingleMu.2011A-Aug.1",'%s/bbetchar/ICF/automated/2011_11_06_08_35_40/")'%srm, lumi = 356.7521)
 muon.add("SingleMu.2011A-Oct.1",'%s/bbetchar/ICF/automated/2011_11_06_08_44_13/")'%srm, lumi = 641.7003)
-muon.add("SingleMu.2011B-PR1.1a",'%s//bbetchar/ICF/automated/2011_11_06_20_02_03/",alwaysUseLastAttempt = True)'%srm, lumi = 1)
-muon.add("SingleMu.2011B-PR1.1b",'%s//bbetchar/ICF/automated/2011_11_06_20_11_30/",alwaysUseLastAttempt = True)'%srm, lumi = 1)
+muon.add("SingleMu.2011B-PR1.1a",'%s//bbetchar/ICF/automated/2011_11_06_20_02_03/",alwaysUseLastAttempt = True)'%srm, lumi = 1049.6221)
+muon.add("SingleMu.2011B-PR1.1b",'%s//bbetchar/ICF/automated/2011_11_06_20_11_30/",alwaysUseLastAttempt = True)'%srm, lumi = 1527.7806)
 
 #L1Fast 2011
 muon.add("SingleMu.Run2011A-PR-v4.FJ.Burt",'%s/bbetchar/ICF/automated/2011_07_21_00_50_15/")'%srm, lumi = 887.2389)
