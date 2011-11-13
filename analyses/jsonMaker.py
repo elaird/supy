@@ -13,8 +13,8 @@ class jsonMaker(analysis) :
                                'SingleMu.2011A-PR4.1',
                                'SingleMu.2011A-Aug.1',
                                'SingleMu.2011A-Oct.1',
-                               #'SingleMu.2011B-PR1.1a',
-                               #'SingleMu.2011B-PR1.1b',
+                               'SingleMu.2011B-PR1.1a',
+                               'SingleMu.2011B-PR1.1b',
                                ], [])] # no json filtering necessary, golden json used
 
         group['Photon'] = [(['Photon.Run2011A-May10ReReco-v1.AOD.job536',
