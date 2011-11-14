@@ -8,12 +8,12 @@ from core.wrappedChain import wrappedChain
 class TriggerWeight(calculables.secondary) :
     '''Probability that the event was triggered.'''
     
-    def __init__(self, samples, tag = None, collection = ('muon','PF'), var = 'Pt', index = 'TriggeringIndex', triggers = [], thresholds = []) :
+    def __init__(self, samples, tag = None, collection = ('muon','PF'), var = 'Pt', index = 'TriggeringIndex', triggers = [], thresholds = [], unreliable = {}) :
         self.fixes = collection
         self.var = "%s%s%s"%(self.fixes[0],var,self.fixes[1])
         self.index = "%s%s%s"%(self.fixes[0],index,self.fixes[1])
         self.binning = (100,0,200)
-        for item in ['triggers','thresholds','tag','samples'] : setattr(self,item,eval(item))
+        for item in ['triggers','thresholds','tag','samples','unreliable'] : setattr(self,item,eval(item))
 
     def onlySamples(self) : return self.samples
 
@@ -40,7 +40,9 @@ class TriggerWeight(calculables.secondary) :
     def triggerFired(self, val, triggered) :
         for thresh,trig in zip(self.thresholds,self.triggers) :
             if thresh > val : return False
-            if triggered[trig] : return True
+            if triggered[trig] and (trig not in self.unreliable or
+                                    self.source['prescaled'][trig] not in self.unreliable[trig]):
+                return True
         return False
 
     def update(self,_) :
@@ -61,7 +63,9 @@ class TriggerWeight(calculables.secondary) :
         
         run,lumi = (ev["run"],ev["lumiSection"])
         if lumi in self.lumis[run] : return
-        key = tuple([ev["prescaled"][trigger] for trigger in self.triggers])
+        key = tuple([ev["prescaled"][trig] for trig in self.triggers])
+        if self.unreliable : key = tuple([0 if trig in self.unreliable and ps in self.unreliable[trig] else ps for ps,trig in zip(key,self.triggers)])
+
         self.epochLumis[key][run].add(lumi)
         self.lumis[run].add(lumi)
 

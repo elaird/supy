@@ -328,12 +328,13 @@ class prescaleScan(analysisStep) :
         self.book.fill( ev['triggered'][self.trigger], name, 2,0,2, title = '%s;Fail / Pass;event / bin'%(name))
 #####################################
 class anyTrigger(analysisStep) :
-    def __init__(self, sortedListOfPaths = []) :
+    def __init__(self, sortedListOfPaths = [], unreliable = {}) :
         self.sortedListOfPaths = sortedListOfPaths
+        self.unreliable = unreliable
         self.moreName = "any of "+','.join(self.sortedListOfPaths).replace("HLT_","")
         
     def select(self, ev) :
-        return any(ev['triggered'][item] for item in self.sortedListOfPaths)
+        return any(ev['triggered'][item] for item in self.sortedListOfPaths if item not in self.unreliable or ev['prescaled'][item] not in self.unreliable[item])
 
 #####################################
 class prescaleLumiEpochs(analysisStep) :

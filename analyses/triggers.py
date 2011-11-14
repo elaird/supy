@@ -3,7 +3,9 @@ import os,steps,calculables,samples,ROOT as r
 
 class triggers(analysis) :
     def parameters(self) :
-        return { "muon" : self.vary({"pf" : ("muon","PF"), "pat" : ("muon","Pat")}),
+        return { "muon" : self.vary({"pf" : ("muon","PF"),
+                                     #"pat" : ("muon","Pat")
+                                     }),
                  "electron":("electron","PF") }
     
     def listOfCalculables(self, pars) :
@@ -24,8 +26,8 @@ class triggers(analysis) :
             [steps.Print.progressPrinter(),
              steps.Histos.value("%sPtSorted%s"%pars['muon'], 2,0,1),
              #steps.Filter.absEta("%sP4%s"%pars['muon'], max = 2.1, indices = "%sIndicesAnyIso%s"%pars['muon'], index = 0),
-             steps.Trigger.triggerScan( pattern = r"HLT_Mu\d*_v\d", prescaleRequirement = "prescale==1", tag = "Mu"),
-             steps.Trigger.triggerScan( pattern = r"HLT_Mu\d*_v\d", prescaleRequirement = "True", tag = "MuAll"),
+             steps.Trigger.triggerScan( pattern = r"HLT_Mu\d*(_eta2p1)?_v\d", prescaleRequirement = "prescale==1", tag = "Mu"),
+             steps.Trigger.triggerScan( pattern = r"HLT_Mu\d*(_eta2p1)?_v\d", prescaleRequirement = "True", tag = "MuAll"),
              #steps.Trigger.triggerScan( pattern = r"HLT_Ele\d*", prescaleRequirement = "prescale==1", tag = "Ele"),
              #steps.Trigger.triggerScan( pattern = r"HLT_HT\d*U($|_v\d*)", prescaleRequirement = "prescale==1", tag = "HT"),
              #steps.Trigger.triggerScan( pattern = r"HLT_Jet\d*U($|_v\d*)", prescaleRequirement = "prescale==1", tag = "Jet"),
@@ -44,12 +46,12 @@ class triggers(analysis) :
         return [samples.Muon.muon,samples.JetMET.jetmet,samples.Electron.electron]
 
     def listOfSamples(self,pars) :
-        return ( samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt5", color = r.kOrange) +
-                 samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt4", color = r.kViolet) +
-                 samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt3", color = r.kBlue,) +
-                 samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt2", color = r.kGreen) +
-                 samples.specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt1", color = r.kBlack) +
-                 samples.specify(names = "SingleMu.Run2011A-May10-v1.FJ.Burt", color = r.kRed ) +
+        return ( samples.specify(names = "SingleMu.2011B-PR1.1b", color = r.kOrange) +
+                 samples.specify(names = "SingleMu.2011B-PR1.1a", color = r.kViolet) +
+                 samples.specify(names = "SingleMu.2011A-Oct.1", color = r.kBlue,) +
+                 samples.specify(names = "SingleMu.2011A-Aug.1", color = r.kGreen) +
+                 samples.specify(names = "SingleMu.2011A-PR4.1", color = r.kBlack) +
+                 samples.specify(names = "SingleMu.2011A-May.1", color = r.kRed ) +
                  [])
         
 

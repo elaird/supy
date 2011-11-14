@@ -82,7 +82,7 @@ def getCommandOutput(command):
     stdout,stderr = p.communicate()
     return {"stdout":stdout, "stderr":stderr, "returncode":p.returncode}
 #####################################
-def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = "") :
+def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = "", numericallyIncrementingKeys = True ) :
     import re
     from collections import defaultdict
     # CRAB old : filepathWithName_JOB_ATTEMPT.root
@@ -113,6 +113,12 @@ def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = 
         print "File duplications, unresolved(%d), resolved(%d) %s" % (len(abandoned), resolved, location)
         if abandoned : print "Rerun with 'alwaysUseLastAttempt = True' in order to recover the following:"
         for key,val in abandoned : print '\t', key[1], "{ %s }"%'|'.join(str((attempt,size)) for attempt,size,rnd in val)
+
+    if numericallyIncrementingKeys :
+        keys = set(int(key[1].replace("_","")) for key in versionDict)
+        missing = set(range(1,max(keys)+1)) - keys
+        if missing : print "Possibly missing %d jobs {%s}"%(len(missing),','.join(str(i) for i in sorted(missing)))
+
     return outList
 #####################################
 def fileListFromSrmLs(dCachePrefix = None, dCacheTrim = None, location = None, itemsToSkip = [], sizeThreshold = -1, pruneList = True, alwaysUseLastAttempt = False) :
