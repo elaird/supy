@@ -2,19 +2,33 @@ from core.analysis import analysis
 import math,steps,calculables,samples,ROOT as r
 
 class triggerWeight(analysis) :
-    def mutriggers(self) :
-        ptv = {   #3:(3,4),
-                  #5:(3,4,5,6),
-                  #8:(1,2,3,4),
-                 12:(1,2,3,4,5),
-                 15:(2,3,4,5,6),
-                 20:(1,2,3,4,5),
-                 24:(1,2,3,4,5),
-                 30:(1,2,3,4,5),
-                 40:(1,2,3),
-                 #100:(1,2,3),
+    def mutriggers(self) :             # L1 prescaling evidence
+        ptv = { 12   :(1,2,3,4,5),     # 7,8,11,12
+                15   :(2,3,4,5,6,8,9), # 12,13
+                20   :(1,2,3,4,5,7,8),
+                24   :(1,2,3,4,5,7,8,11,12),
+                24.21:(1,),
+                30   :(1,2,3,4,5,7,8,11,12),
+                30.21:(1,),
+                40   :(1,2,3,5,6,9,10),
+                40.21:(1,4,5),
+                }
+        return sum([[("HLT_Mu%d%s_v%d"%(int(pt),"_eta2p1" if type(pt)!=int else "",v),int(pt)+1) for v in vs] for pt,vs in sorted(ptv.iteritems())],[])
+
+    def unreliableTriggers(self) :
+        '''Evidence of L1 prescaling at these ostensible prescale values'''
+        return { "HLT_Mu15_v9":(25,65),
+                 "HLT_Mu20_v8":(30,),
+                 "HLT_Mu24_v8":(20,25),
+                 "HLT_Mu24_v11":(35,),
+                 "HLT_Mu24_v12":(35,),
+                 "HLT_Mu30_v8":(4,10),
+                 "HLT_Mu30_v11":(4,20),
+                 "HLT_Mu30_v12":(8,20),
+                 "HLT_Mu40_v6":(4,),
+                 "HLT_Mu40_v9":(10,),
+                 "HLT_Mu40_v10":(10,)
                  }
-        return sum([[("HLT_Mu%d_v%d"%(pt,v),pt+1) for v in vs] for pt,vs in sorted(ptv.iteritems())],[])
 
     def parameters(self) :
         return {"muon" : ("muon","PF"),
@@ -41,8 +55,9 @@ class triggerWeight(analysis) :
             steps.Trigger.physicsDeclaredFilter(),
             steps.Filter.monster(),
             steps.Filter.hbheNoise(),
-            calculables.Trigger.TriggerWeight(samples = ['SingleMu.Run2011A-PR-v4.FJ.Burt.tw','SingleMu.Run2011A-May10-v1.FJ.Burt.tw'],
-                                              triggers = zip(*pars['triggers'])[0], thresholds = zip(*pars['triggers'])[1]),
+            calculables.Trigger.TriggerWeight(samples = [ss.weightedName for ss in self.listOfSamples(pars) if 'SingleMu' in ss.name],
+                                              triggers = zip(*pars['triggers'])[0], thresholds = zip(*pars['triggers'])[1],
+                                              unreliable = self.unreliableTriggers()),
             calculables.Other.Ratio("nVertex", binning = (15,-0.5,14.5), thisSample = pars['baseSample'],
                                     target = ("SingleMu",[]), groups = [('qcd_py6',[]),('w_jets_fj_mg',[]),('tt_tauola_fj_mg',[])]),
             steps.Histos.value("%sCombinedRelativeIso%s"%pars['muon'], 100, 0, 1, "%sIndicesTriggering%s"%pars['muon'], index=0),
@@ -69,8 +84,12 @@ class triggerWeight(analysis) :
     def listOfSampleDictionaries(self) : return [samples.Muon.muon,samples.MC.mc]
 
     def listOfSamples(self,params) :
-        return ( samples.specify( names = ['SingleMu.Run2011A-PR-v4.FJ.Burt', 
-                                           'SingleMu.Run2011A-May10-v1.FJ.Burt'], weights = 'tw') +
+        return ( samples.specify( names = ['SingleMu.2011B-PR1.1b',
+                                           'SingleMu.2011B-PR1.1a',
+                                           'SingleMu.2011A-Oct.1',
+                                           'SingleMu.2011A-Aug.1',
+                                           'SingleMu.2011A-PR4.1',
+                                           'SingleMu.2011A-May.1'], weights = 'tw') +
                  samples.specify( names = ['qcd_py6fjmu_pt_15_20',
                                            'qcd_py6fjmu_pt_20_30',
                                            'qcd_py6fjmu_pt_30_50',
