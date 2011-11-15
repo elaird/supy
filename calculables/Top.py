@@ -495,25 +495,30 @@ class genTopRecoIndex(wrappedChain.calculable) :
         if len(iPass) : self.value = iPass[0]
 ######################################
 class wTopAsym(wrappedChain.calculable) :
-    def __init__(self, rPrime, totalEff = None, intrinsicR = 0) :
-        self.fixes = ("",("N" if rPrime < 0 else "P") + "%02d"%(100*abs(rPrime)))
-        self.rPrime = rPrime
-        self.R = intrinsicR
-        self.epsilon = 1.
-        self.epsilon = 1. / max( self.weight(math.sqrt(2),2),
-                                 self.weight(-math.sqrt(2),2))
-
-        assert self.epsilon <= 1.
-        assert totalEff < self.epsilon
-        if 0 < totalEff : self.epsilon = totalEff
+    def __init__(self, R, intrinsicR, intrinsicC ) :
+        self.fixes = ("",("N" if R < 0 else "P") + "%02d"%(100*abs(R)))
+        for item in ['R','intrinsicR','intrinsicC'] : setattr(self,item,eval(item))
+        for a100 in range(101) :
+            ar = 0.01*a100 * self.intrinsicC
+            f = self.f(a)
+            assert f*(6+2*ar)*self.R <  (6*math.sqrt(ar) if ar) > 1 else 3*(1+ar))
         
-    def weight(self,beta,alpha) :
-        base = 3 * (1+beta*beta) / (6+2.*alpha)
-        return (base+beta*self.rPrime) / (base+beta*self.R)
+    def f(self, a) : return math.sqrt(a)
+
+    def weight(self,a,x) :
+        base = (1+x*x*a*self.intrinsicC) * 3. / (6+2*a*self.intrinsicC)
+        f = self.f(a)
+        return ( base + x*f*self.A ) / ( base + x*f*self.intrinsicA )
     
     def update(self,_) :
-        self.value = None if not self.source['genQQbar'] else self.weight(self.source['genTopBeta'],
-                                                                          self.source['genTopAlpha'])
+        x,_ = self.source['genttCosThetaStar']
+        self.value = None if x==None else self.weight( self.source['genTopAlpha'], x )
+######################################
+class wTopAsymConst(wTopAsym) :
+    def f(self, a) : return math.sqrt(a)
+######################################
+class wTopAsymLine(wTopAsym) :
+    def f(self, a) : a
 ######################################
 class TopComboQQBBLikelihood(wrappedChain.calculable) :
     def __init__(self, jets = None, tag = None) :
