@@ -91,9 +91,7 @@ class genIndicesStatus3NoStatus3Daughter(wrappedChain.calculable) :
 ##############################
 class genttCosThetaStar(wrappedChain.calculable) :
     def update(self,_) :
-        assert self.source['wQQbar']
-
-        self.value = ()
+        self.value = (None,None)
         ids = list(self.source['genPdgId'])
         if not (6 in ids and -6 in ids) :
             print "Fail ttbar"
@@ -103,16 +101,16 @@ class genttCosThetaStar(wrappedChain.calculable) :
         iTop = ids.index(6)
         iTbar = ids.index(-6)
         iQ,iQbar = sorted([mom[iTop],mom[iTop]+1], key = ids.__getitem__,reverse=True)
-        if ids[iQ]+ids[iQbar] :
-            print "Fail qqbar", iQ,iQbar
-            return
+        if ids[iQ]+ids[iQbar] : return #Fail qqbar
 
         p4s = self.source['genP4']
         beta = (p4s[iQ]+p4s[iQbar]).BoostToCM()
         boost = r.Math.Boost(beta.x(), beta.y(), beta.z())
+        top = boost(p4s[iTop])
+        tbar = boost(p4s[iTbar])
         cosTheta = r.Math.VectorUtil.CosTheta( boost(p4s[iQ]), boost(p4s[iTop]))
         cosThetaBar = r.Math.VectorUtil.CosTheta( boost(p4s[iQbar]), boost(p4s[iTbar]))
-        self.value = (cosTheta,cosThetaBar)
+        self.value = (cosTheta,cosThetaBar) if top.E() > tbar.E() else (cosThetaBar,cosTheta)
 ##############################
 class genMinDeltaRPhotonOther(wrappedChain.calculable) :
     @property
