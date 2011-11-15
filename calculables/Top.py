@@ -501,7 +501,7 @@ class wTopAsym(wrappedChain.calculable) :
         for a100 in range(101) :
             ar = 0.01*a100 * self.intrinsicC
             f = self.f(a)
-            assert f*(6+2*ar)*self.R <  (6*math.sqrt(ar) if ar) > 1 else 3*(1+ar))
+            assert f*(6+2*ar)*self.R <  (6*math.sqrt(ar) if ar > 1 else 3*(1+ar))
         
     def f(self, a) : return math.sqrt(a)
 
