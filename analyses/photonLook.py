@@ -47,12 +47,12 @@ class photonLook(analysis.analysis) :
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  "triggerList": tuple(#["HLT_Photon50_CaloIdVL_v%d"%i for i in range(1,3)] +
                                       #["HLT_Photon50_CaloIdVL_IsoL_v%d"%i for i in range(1,5)]+
-                                      ["HLT_Photon75_CaloIdVL_v%d"%i for i in range(1,7)]+
-                                      ["HLT_Photon75_CaloIdVL_IsoL_v%d"%i for i in range(1,7)]+
-                                      ["HLT_Photon90_CaloIdVL_v%d"%i for i in range(1,4)]+
-                                      ["HLT_Photon90_CaloIdVL_IsoL_v%d"%i for i in range(1,4)]
-                                      #["HLT_Photon125_v%d"%i for i in range(1,3)] +
-                                      #["HLT_Photon135_v%d"%i for i in range(1,2)]+
+                                      ["HLT_Photon75_CaloIdVL_v%d"%i for i in range(1,8)]+
+                                      ["HLT_Photon75_CaloIdVL_IsoL_v%d"%i for i in range(1,11)]+
+                                      ["HLT_Photon90_CaloIdVL_v%d"%i for i in range(1,5)]+
+                                      ["HLT_Photon90_CaloIdVL_IsoL_v%d"%i for i in range(1,8)]+
+                                      ["HLT_Photon125_v%d"%i for i in range(1,3)]+
+                                      ["HLT_Photon135_v%d"%i for i in range(1,3)]
                                       ),#2011 epoch 1
                  }
 
@@ -392,18 +392,23 @@ class photonLook(analysis.analysis) :
         #2011
         jwPrompt = calculables.Other.jsonWeight("cert/Cert_160404-177515_7TeV_PromptReco_Collisions11_JSON.txt")
         jwMay = calculables.Other.jsonWeight("cert/Cert_160404-163869_7TeV_May10ReReco_Collisions11_JSON_v3.txt")
-        jwAug = calculables.Other.jsonWeight("cert/Cert_170249-172619_7TeV_ReReco5Aug_Collisions11_JSON_v2.txt")
+        jwAug = calculables.Other.jsonWeight("cert/Cert_170249-172619_7TeV_ReReco5Aug_Collisions11_JSON_v3.txt")
 
         data = []
 
-        data += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Darren1", weights = jwMay   , overrideLumi = 202.7)
-        data += specify(names = "Photon.Run2011A-05Aug2011-v1.AOD.Bryn1",     weights = jwAug   , overrideLumi = 318.5)
-        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Bryn1",    weights = jwPrompt, overrideLumi = 549.8)
-        data += specify(names = "Photon.Run2011A-PromptReco-v6.AOD.Bryn1",    weights = jwPrompt, overrideLumi = 382.6)
-        data += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn1",    weights = jwPrompt, overrideLumi = 221.2)
-        data += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn2",    weights = jwPrompt, overrideLumi = 280.5)
-        data += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn3",    weights = jwPrompt, overrideLumi = 374.1)
-        
+        #data += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Darren1", weights = jwMay   , overrideLumi = 202.7)
+        #data += specify(names = "Photon.Run2011A-05Aug2011-v1.AOD.Bryn1",     weights = jwAug   , overrideLumi = 318.5)
+        #data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Bryn1",    weights = jwPrompt, overrideLumi = 549.8)
+        #data += specify(names = "Photon.Run2011A-PromptReco-v6.AOD.Bryn1",    weights = jwPrompt, overrideLumi = 382.6)
+        #data += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn1",    weights = jwPrompt, overrideLumi = 221.2)
+        #data += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn2",    weights = jwPrompt, overrideLumi = 280.5)
+        #data += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn3",    weights = jwPrompt, overrideLumi = 374.1)
+
+        data += specify(names = "Photon.Run2011A-05Aug2011-v1.AOD.job663")
+        data += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.job662")
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.job664")
+        data += specify(names = "Photon.Run2011A-PromptReco-v6.AOD.job667")
+        data += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.job668")
         
         eL = 20000.0
 
