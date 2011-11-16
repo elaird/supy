@@ -481,10 +481,11 @@ class plotter(object) :
         nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in steps]))
         for i,step in enumerate(steps[-self.nLinesMax:]) :
             absI = i + (0 if len(steps) <= self.nLinesMax else len(steps)-self.nLinesMax)
+
             text.SetTextColor(self.rowColors[absI%len(self.rowColors)])
             letter = string.ascii_letters[absI]
             x = 0.01
-            y = 0.98 - 0.33*(i+0.5+absI/5)/self.nLinesMax
+            y = 0.98 - 0.33*(i+0.5+(absI/5) - ((absI-i)/5) )/self.nLinesMax
             text.DrawTextNDC(x, y, nametitle.format(letter, step.name, step.title ))
             self.cutDict[letter] = (step.name, step.title)
 
@@ -505,7 +506,7 @@ class plotter(object) :
                     s = utils.roundString(*ratio, width=(colWidth-space))
                 nums.append(s.rjust(colWidth))
                 
-            text.DrawTextNDC(x, y-0.49, "%s: %s"%(letter, "".join(nums)))
+            text.DrawTextNDC(x, y-0.51, "%s: %s"%(letter, "".join(nums)))
             self.yieldDict[letter] = nums
 
         self.sampleList = [s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]
