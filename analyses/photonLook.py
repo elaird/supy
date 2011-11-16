@@ -42,7 +42,7 @@ class photonLook(analysis.analysis) :
                                                 ("375",        (375.0, None,  100.0, 50.0)),#2
                                                 ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#3
                                                 ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#4
-                                                ][2:] )),
+                                                ][2:3] )),
                  #required to be sorted
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
                  "triggerList": tuple(#["HLT_Photon50_CaloIdVL_v%d"%i for i in range(1,3)] +
@@ -390,12 +390,11 @@ class photonLook(analysis.analysis) :
         #data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Darren1_skim", weights = jw, overrideLumi =  36.3)
 
         #2011
-        jwPrompt = calculables.Other.jsonWeight("cert/Cert_160404-177515_7TeV_PromptReco_Collisions11_JSON.txt")
-        jwMay = calculables.Other.jsonWeight("cert/Cert_160404-163869_7TeV_May10ReReco_Collisions11_JSON_v3.txt")
-        jwAug = calculables.Other.jsonWeight("cert/Cert_170249-172619_7TeV_ReReco5Aug_Collisions11_JSON_v3.txt")
-
         data = []
 
+        #jwPrompt = calculables.Other.jsonWeight("cert/Cert_160404-177515_7TeV_PromptReco_Collisions11_JSON.txt")
+        #jwMay = calculables.Other.jsonWeight("cert/Cert_160404-163869_7TeV_May10ReReco_Collisions11_JSON_v3.txt")
+        #jwAug = calculables.Other.jsonWeight("cert/Cert_170249-172619_7TeV_ReReco5Aug_Collisions11_JSON_v3.txt")
         #data += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.Darren1", weights = jwMay   , overrideLumi = 202.7)
         #data += specify(names = "Photon.Run2011A-05Aug2011-v1.AOD.Bryn1",     weights = jwAug   , overrideLumi = 318.5)
         #data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.Bryn1",    weights = jwPrompt, overrideLumi = 549.8)
@@ -426,7 +425,9 @@ class photonLook(analysis.analysis) :
         ttbar_mg = specify(effectiveLumi = eL, color = r.kOrange, names = ["tt_tauola_mg_noIsoReqSkim"])
         zjets_mg = specify(effectiveLumi = eL, color = r.kYellow-3, names = ["dyll_jets_mg_noIsoReqSkim"])
         wjets_mg = specify(effectiveLumi = eL, color = 28, names = ["w_jets_mg_noIsoReqSkim"])
-        zinv_mg  = specify(effectiveLumi = eL, color = r.kMagenta, names = self.zNunuMgNames(era = "summer11"), weights = phw)
+
+        zinv_mg           = specify(effectiveLumi = eL, color = r.kMagenta, names = self.zNunuMgNames(era = "summer11"))
+        zinv_mg_weighted  = specify(effectiveLumi = eL, color = r.kMagenta, names = self.zNunuMgNames(era = "summer11"), weights = phw)
 
         zinv_py6 = specify(effectiveLumi = eL, color = r.kMagenta, names = ["z_nunu"])
         
@@ -447,10 +448,10 @@ class photonLook(analysis.analysis) :
             #outList += wjets_mg
             #outList += ttbar_mg
 
-            #outList += qcd_mg
-            #outList += g_jets_mg
-            outList += qcd_mg_weighted
-            outList += g_jets_mg_weighted
+            outList += qcd_mg
+            outList += g_jets_mg
+            #outList += qcd_mg_weighted
+            #outList += g_jets_mg_weighted
             
             outList += data
 
@@ -460,16 +461,16 @@ class photonLook(analysis.analysis) :
             #outList += cands3
         else :
             #outList += zinv_mg_2010
-            outList += zinv_mg
             #outList += zinv_py6
+
+            outList += zinv_mg
+            #outList += zinv_mg_weighted
             
         return outList
 
     def mergeSamples(self, org) :
         smSources = []
-        smSources2010 = []
-        smSourcesWeighted = []
-        ewkSources = ["z_inv_mg", "z_jets_mg", "w_jets_mg"]
+        #ewkSources = ["z_inv_mg", "z_jets_mg", "w_jets_mg"]
         #smSources += ewkSources
 
         #org.mergeSamples(targetSpec = {"name":"qcd_py6",    "color":r.kBlue},  sources = self.qcdPyNames())
@@ -477,15 +478,16 @@ class photonLook(analysis.analysis) :
         #smSources += ["qcd_py6", "g_jets_py6"]
         #org.mergeSamples(targetSpec = {"name":"standard_model_py6",         "color":r.kRed,   "markerStyle":1}, sources = smSources, keepSources = True)
 
-        #org.mergeSamples(targetSpec = {"name":"qcd_mg",    "color":r.kBlue+3},  sources = self.qcdMgNames(era = "spring11"))
-        #org.mergeSamples(targetSpec = {"name":"g_jets_mg", "color":r.kGreen+3}, sources = self.gJetsMgNames(era = "summer11"))
-        #smSources += ["qcd_mg", "g_jets_mg"]
-        #org.mergeSamples(targetSpec = {"name":"standard_model",          "color":r.kRed+3,   "markerStyle":1}, sources = smSources, keepSources = True)
+        names = [("_nVtx", ".photonWeight"), ("", "")][1]
+        if "Z" in org.tag :
+            org.mergeSamples(targetSpec = {"name":"znunu_mg%s"%names[0], "color":r.kMagenta}, sources = [item+names[1] for item in self.zNunuMgNames(era = "summer11")])
+            return
+        
+        org.mergeSamples(targetSpec = {"name":"qcd_mg%s"%names[0],    "color":r.kBlue},  sources = [item+names[1] for item in self.qcdMgNames(era = "spring11")])
+        org.mergeSamples(targetSpec = {"name":"g_jets_mg%s"%names[0], "color":r.kGreen}, sources = [item+names[1] for item in self.gJetsMgNames(era = "summer11")])
 
-        org.mergeSamples(targetSpec = {"name":"qcd_mg_nVtx",    "color":r.kBlue},  sources = [item+".photonWeight" for item in self.qcdMgNames(era = "spring11")])
-        org.mergeSamples(targetSpec = {"name":"g_jets_mg_nVtx", "color":r.kGreen}, sources = [item+".photonWeight" for item in self.gJetsMgNames(era = "summer11")])
-        smSourcesWeighted += ["qcd_mg_nVtx", "g_jets_mg_nVtx"]
-        org.mergeSamples(targetSpec = {"name":"standard_model_nVtx", "color":r.kRed}, sources = smSourcesWeighted, keepSources = True)
+        smSources += ["qcd_mg%s"%names[0], "g_jets_mg%s"%names[0]]
+        org.mergeSamples(targetSpec = {"name":"standard_model%s"%names[0], "color":r.kRed}, sources = smSources, keepSources = True)
         
         org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix = "Photon.Run2011")
             
@@ -502,15 +504,15 @@ class photonLook(analysis.analysis) :
     def concludeAll(self) :
         #super(photonLook,self).concludeAll()
 
-        for item in ["275","325","375"] :
+        for item in ["275","325","375"][-1:] :
             organizers = [self.organizer(conf) for conf in self.readyConfs if (item in conf["tag"])]
             for org in organizers :
+                self.mergeSamples(org)
                 if "Z" in org.tag :
-                    lumi = 1057.
+                    lumi = 3641.9
                     org.scale(lumi)
                     print "WARNING: HARD-CODED LUMI FOR Z MODE! (%g)"%lumi
                 else :
-                    self.mergeSamples(org)
                     org.scale()
             melded = organizer.organizer.meld(organizers = organizers)
             self.makeStandardPlots(melded)
@@ -521,13 +523,13 @@ class photonLook(analysis.analysis) :
         
         ##for skimming only
         #utils.printSkimResults(org)
-            
+
+        self.mergeSamples(org)
         if "Z" in org.tag :
-            lumi = 1057.
+            lumi = 3641.9
             org.scale(lumi)
             print "WARNING: HARD-CODED LUMI FOR Z MODE! (%g)"%lumi
         else :
-            self.mergeSamples(org)
             org.scale()
             
         self.makeStandardPlots(org)
@@ -563,9 +565,9 @@ class photonLook(analysis.analysis) :
                                           "nJetsPlusnPhotonsStatus1Photon", "jetHtPlusPhotonHtStatus1Photon",
                                           ],
                              doLog = False,
+                             printRatios = True,
                              #latexYieldTable = True,
                              rowColors = [r.kBlack, r.kViolet+4],
-                             showErrorsOnDataYields = False,
                              #whiteList = ["xcak5JetIndicesPat",
                              #             #"photonPat1Pt",
                              #             #"photonPat1mhtVsPhotonPt",
