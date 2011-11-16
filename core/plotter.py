@@ -620,7 +620,10 @@ class plotter(object) :
         if numIndex==None : return ratios
         
         numHisto = histos[numIndex]
-        denomHistos = map(lambda name: histos[self.someOrganizer.indexOfSampleWithName(name)], denomSampleNames)
+        try:
+            denomHistos = map(lambda name: histos[self.someOrganizer.indexOfSampleWithName(name)], denomSampleNames)
+        except TypeError:
+            return ratios
 
         same = ""
         for denomHisto in denomHistos :
