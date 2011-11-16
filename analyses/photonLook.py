@@ -545,6 +545,7 @@ class photonLook(analysis.analysis) :
                                   [("2011 Data","standard_model_nVtx"),
                                    (".2011 Data",".standard_model_nVtx"),
                                    ("g.2011 Data","g.standard_model_nVtx"),
+                                   ("g.2011 Data","g.standard_model"),
                                    ("2011 Data","standard_model"),
                                    ("2011 Data","standard_model_py6"),
                                    ("2010 Data","sm_2010")])
