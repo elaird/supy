@@ -36,14 +36,20 @@ class muonLook(analysis.analysis) :
                                                 ("325_scaled", (325.0, 375.0,  86.7, 43.3)),#3
                                                 ("275_scaled", (275.0, 325.0,  73.3, 36.7)),#4
                                                 ("225_scaled", (225.0, 275.0,  60.0, 30.0)),#5
-                                                ][2:] )),
+                                                ][2:3] )),
 
-                 "triggerList":tuple(["HLT_Mu15_v%d" %i for i in range(2,7)]+
-                                     ["HLT_Mu20_v%d" %i for i in range(1,6)]+
-                                     ["HLT_Mu24_v%d" %i for i in range(1,6)]+
-                                     ["HLT_Mu30_v%d" %i for i in range(1,6)]+
-                                     ["HLT_Mu40_v%d" %i for i in range(1,4)]+
-                                     ["HLT_Mu100_v%d"%i for i in range(1,4)])
+                 #"triggerList":tuple(["HLT_Mu15_v%d" %i for i in range(2,7)]+
+                 #                    ["HLT_Mu20_v%d" %i for i in range(1,6)]+
+                 #                    ["HLT_Mu24_v%d" %i for i in range(1,6)]+
+                 #                    ["HLT_Mu30_v%d" %i for i in range(1,6)]+
+                 #                    ["HLT_Mu40_v%d" %i for i in range(1,4)]+
+                 #                    ["HLT_Mu100_v%d"%i for i in range(1,4)])
+                 "triggerList":tuple(["HLT_DoubleMu3_v%d" %i for i in [3,4,5,7,9,10,13,14]]+
+                                     ["HLT_DoubleMu5_v%d" %i for i in [1,4,5]]+
+                                     ["HLT_DoubleMu6_v%d" %i for i in [1,2,3,5,7,8]]+
+                                     ["HLT_DoubleMu7_v%d" %i for i in [1,2,3,5,7,8,11,12]]+
+                                     ["HLT_DoubleMu45_v%d" %i for i in [1,3,5,6,9,10]]
+                                     )
                  }
 
     def calcListJet(self, obj, etRatherThanPt, ptMin, lowPtThreshold, lowPtName, highPtThreshold, highPtName) :
@@ -240,12 +246,12 @@ class muonLook(analysis.analysis) :
             ] + [steps.Other.variableGreaterFilter(375.0+100*iBin, "%sSumEt%s"%_jet, suffix = "GeV") for iBin in range(1,6)]
     
     def listOfSampleDictionaries(self) :
-        return [samples.MC.mc, samples.Muon.muon]
+        return [samples.MC.mc, samples.Muon.muon, samples.DoubleMu.mumu]
 
     def listOfSamples(self,params) :
         from samples import specify
 
-        def data() :
+        def dataSingleMu() :
             jw = calculables.Other.jsonWeight("cert/Cert_160404-167151_7TeV_PromptReco_Collisions11_JSON.txt") #869/pb            
             out = []
             out += specify(names = "SingleMu.Run2011A-PR-v4.FJ.Burt2_2mu_skim",   weights = jw, overrideLumi = 216.43)
@@ -253,6 +259,19 @@ class muonLook(analysis.analysis) :
             out += specify(names = "SingleMu.Run2011A-May10-v1.FJ.Burt_2mu_skim", weights = jw, overrideLumi = 186.55)
             return out
 
+        def dataDoubleMu() :
+            out = []
+            out += specify(names = "DoubleMu.Run2011A-05Aug2011-v1.AOD.job663",  )
+            out += specify(names = "DoubleMu.Run2011A-May10ReReco-v1.AOD.job662",)
+            #out += specify(names = "DoubleMu.Run2011A-PromptReco-v4.AOD.job664", )
+            out += specify(names = "DoubleMu.Run2011A-PromptReco-v6.AOD.job665", )
+            out += specify(names = "DoubleMu.Run2011B-PromptReco-v1.AOD.job666", )
+            
+            return out
+
+        def data() :
+            return dataDoubleMu()
+        
         eL = 3000 # 1/pb
         #return data()
         return (data() +\
@@ -268,7 +287,7 @@ class muonLook(analysis.analysis) :
         #utils.printSkimResults(org)            
 
         lineWidth = 3; goptions = "hist"
-        org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu.Run2011A")
+        org.mergeSamples(targetSpec = {"name":"2011 Data", "color":r.kBlack, "markerStyle":20}, allWithPrefix="DoubleMu.Run2011")
         org.mergeSamples(targetSpec = {"name":"t#bar{t}",  "color":r.kOrange, "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="tt")
         org.mergeSamples(targetSpec = {"name":"DY->ll",    "color":r.kBlue,   "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="dyll")
         org.mergeSamples(targetSpec = {"name":"W + jets",  "color":r.kRed,    "lineWidth":lineWidth, "goptions":goptions}, allWithPrefix="w_jets")

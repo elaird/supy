@@ -3,6 +3,14 @@ from core.configuration import srm
 photon = samples.SampleHolder()
 
 #L1FJL2L3Residual
+a = "alwaysUseLastAttempt = True"
+photon.add("Photon.Run2011A-05Aug2011-v1.AOD.job663",  '%s/elaird/ICF/automated/2011_11_11_15_48_22/Photon.Run2011A-05Aug2011-v1.AOD")'%srm,            lumi = 356.6)
+photon.add("Photon.Run2011A-May10ReReco-v1.AOD.job662",'%s/henning/ICF/automated/2011_11_11_14_03_49/Photon.Run2011A-May10ReReco-v1.AOD")'%srm,         lumi = 193.3)
+photon.add("Photon.Run2011A-PromptReco-v4.AOD.job664", '%s/dburton/ICF/automated/2011_11_11_14_54_49/Photon.Run2011A-PromptReco-v4.AOD", %s)'%(srm,a),  lumi = 441.3)
+photon.add("Photon.Run2011A-PromptReco-v6.AOD.job667", '%s/bainbrid/ICF/automated/2011_11_15_18_44_33/")'%srm,                                          lumi = 83.0)
+photon.add("Photon.Run2011B-PromptReco-v1.AOD.job668", '%s/bm409//ICF/automated/2011_11_13_16_44_38/")'%srm,                                            lumi = 2567.7)
+
+#L1FJL2L3Residual
 photon.add("Photon.Run2011A-May10ReReco-v1.AOD.job536", '%s/dburton/ICF/automated/2011_10_04_23_05_48/Photon.Run2011A-May10ReReco-v1.AOD")'%srm, lumi = 1.0) #job 536, 1393/1414 completed
 photon.add("Photon.Run2011A-05Aug2011-v1.AOD.job528",   '%s/bm409/ICF/automated/2011_09_29_15_37_16/Photon.Run2011A-05Aug2011-v1.AOD")'%srm, lumi = 1.0) #job 528,  414/ 470 completed
 photon.add("Photon.Run2011A-PromptReco-v4.AOD.job535",  '%s/bm409/ICF/automated/2011_10_04_17_23_30/Photon.Run2011A-PromptReco-v4.AOD")'%srm, lumi = 1.0) #job 535, 1018/1636 completed

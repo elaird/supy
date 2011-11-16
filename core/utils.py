@@ -116,7 +116,7 @@ def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = 
 
     if numericallyIncrementingKeys :
         keys = set(int(key[1].replace("_","")) for key in versionDict)
-        missing = set(range(1,max(keys)+1)) - keys
+        missing = set(range(1,max(keys)+1 if keys else 1)) - keys
         if missing : print "Possibly missing %d jobs {%s}"%(len(missing),','.join(str(i) for i in sorted(missing)))
 
     return outList
