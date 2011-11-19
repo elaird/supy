@@ -1,8 +1,11 @@
-import numpy,math,utils
+import math,utils
 try:
     import scipy.optimize as opt
 except: pass
-import numpy as np
+try:
+    import numpy as np
+except:
+    pass
 
 widthTop = 13.1/2
 ###########################

@@ -1,6 +1,11 @@
 from core.wrappedChain import *
 from core import utils,configuration
-import calculables,math,operator,itertools,numpy as np
+import calculables,math,operator,itertools
+try:
+    import numpy as np
+except:
+    pass
+
 #####################################
 class localEntry(wrappedChain.calculable) :
     def update(self,localEntry) :

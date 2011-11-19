@@ -1,8 +1,11 @@
 import ROOT as r
-import numpy as np
 import calculables,collections,os
 from core import luminosity,utils
 from core.wrappedChain import wrappedChain
+try:
+    import numpy as np
+except:
+    pass
 
 #####################################
 class TriggerWeight(calculables.secondary) :
