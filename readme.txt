@@ -27,7 +27,7 @@ To be written.
 ----------------
 | Dependencies |
 ----------------
-ROOT (>=5.27.06) and python (>=2.6) are required; CMSSW is not.  These
+ROOT (>=5.27.06) and python (2.x, x>=6) are required; CMSSW is not.  These
 are useful pages for setting up and learning pyROOT:
 http://root.cern.ch/drupal/content/how-use-use-python-pyroot-interpreter
 http://wlav.web.cern.ch/wlav/pyroot/
@@ -37,13 +37,15 @@ http://wlav.web.cern.ch/wlav/pyroot/
 -----------
 - TTrees with multiple leaves per branch are not yet supported.
 
-- A std::vector<bool> stored in a TTree is not yet supported.
+- pyROOT does not support leaves whose names collide with the names of
+  TChain member functions
 
 - Creating a Lorentz vector every event is slow.  As a workaround, use
   core.utils.LorentzV (see calculables.Jet.SumP4 for an example).
 
 - Iterating through a std::map<string, bool> is slow.  Consider using
   a cache (see steps.Trigger.Counts for an example).
+
 
 --------
 | Bugs |
