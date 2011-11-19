@@ -3,6 +3,9 @@
 from core import analysis,plotter
 import calculables,steps,samples, ROOT as r
 
+GeV=1.0e+3
+TeV=1.0e+3*GeV
+
 class example_ttbar(analysis.analysis) :
     def mainTree(self) : return ("/","physics")
     def otherTreesToKeepWhenSkimming(self) : return []
@@ -14,11 +17,24 @@ class example_ttbar(analysis.analysis) :
         
         outList=[
             steps.Print.progressPrinter(),
+            steps.Histos.multiplicity(var = "jet_pt", max = 20), 
+            steps.Histos.multiplicity(var = "jet_Indices", max = 20), 
+            steps.Filter.multiplicity(min = 4, var = "jet_Indices"),
+            steps.Histos.multiplicity(var = "jet_Indices", max = 20),
+            steps.Histos.eta(var = "jet_P4", N = 20, low = -2., up = +2., indices = "jet_Indices"),
+            steps.Histos.value(var = "jet_M01" , N = 50, low = 0., up = 1.0e+3*GeV),
+            steps.Filter.value(var = "jet_M01", min = 1.0*TeV),
+            steps.Other.skimmer()
             ]
         return outList
     
     def listOfCalculables(self,config) :
         listOfCalculables = calculables.zeroArgs()
+        listOfCalculables += [calculables.Davide.Indices(collection = ("jet_",""), # prefix,suffix
+                                                         ptMin=30.*GeV,
+                                                         etaMax=1.5),
+                              calculables.Davide.P4(collection = ("jet_",""))]
+        listOfCalculables += [calculables.Davide.M01(collection = ("jet_",""))]
         return listOfCalculables
 
     def listOfSampleDictionaries(self) :
@@ -43,12 +59,12 @@ class example_ttbar(analysis.analysis) :
                 samples.specify(names = "ttbar_skimMu", color = r.kViolet, effectiveLumi = 10.0e+3)
                 )
 
-##     def conclude(self,pars) :
-##         #make a pdf file with plots from the histograms created above
-##         org = self.organizer(pars)
-##         org.scale()
-##         plotter.plotter( org,
-##                          psFileName = self.psFileName(org.tag),
-##                          samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
-##                          sampleLabelsForRatios = ("data","sim"),
-##                          ).plotAll()
+    def conclude(self,pars) :
+        #make a pdf file with plots from the histograms created above
+        org = self.organizer(pars)
+        org.scale()
+        plotter.plotter( org,
+                         psFileName = self.psFileName(org.tag),
+                         #samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
+                         #sampleLabelsForRatios = ("data","sim"),
+                         ).plotAll()
