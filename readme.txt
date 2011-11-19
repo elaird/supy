@@ -32,6 +32,9 @@ are useful pages for setting up and learning pyROOT:
 http://root.cern.ch/drupal/content/how-use-use-python-pyroot-interpreter
 http://wlav.web.cern.ch/wlav/pyroot/
 
+- If afs is mounted on your machine, you could use something like
+this: https://github.com/elaird/ra1stats/blob/master/env.sh
+
 -----------
 | Gotchas |
 -----------
@@ -45,7 +48,6 @@ http://wlav.web.cern.ch/wlav/pyroot/
 
 - Iterating through a std::map<string, bool> is slow.  Consider using
   a cache (see steps.Trigger.Counts for an example).
-
 
 --------
 | Bugs |
