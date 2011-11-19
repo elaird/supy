@@ -125,6 +125,9 @@ def dictionariesToGenerate() :
         ("vector<ROOT::Math::PositionVector3D<ROOT::Math::Cartesian3D<float>,ROOT::Math::DefaultCoordinateSystemTag> >", "vector;Math/Point3D.h"),
         #ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> > etc. is addressed in linkdef.cxx
         ("vector<ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> > >", "vector;Math/LorentzVector.h"),
+        ("vector< vector< float > >", "vector"),
+        ("vector< vector< unsigned int> >", "vector"),
+        ("vector< vector< int> >", "vector"),
         ]
 
 def srmFunc() :
