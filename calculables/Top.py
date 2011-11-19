@@ -1,6 +1,11 @@
 from core.wrappedChain import *
 from core import utils,fitKinematic
-import calculables,math,operator,itertools,numpy as np
+import calculables,math,operator,itertools
+try:
+    import numpy as np
+except:
+    pass
+
 ######################################
 class TopP4Calculable(wrappedChain.calculable) :
     def __init__(self, collection = None) :
