@@ -157,7 +157,7 @@ class wrappedChain(dict) :
             if not hasattr(self,"fixes") : self.fixes = ("","")
             return self.fixes[0] + self.__class__.__name__ + self.fixes[1]
 
-        def stash(self,leafNames, fixes=None) :
+        def stash(self, leafNames = [], fixes = None) :
             Name = self.name
             for leaf in leafNames:
                 assert not hasattr(self,leaf), "%s already has attribute %s"%(Name,leaf)
