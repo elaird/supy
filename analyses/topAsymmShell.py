@@ -41,7 +41,7 @@ class topAsymmShell(analysis) :
                  "nJets2" : {"min":4,"max":None},
                  "bVar" : bVar,
                  "selection" : self.vary({"top" : {"bCut":bCut["normal"],  "lIso":lIso["normal"]},
-                                          "Wlv" : {"bCut":bCut["inverted"],"lIso":lIso["normal"]},
+                                          #"Wlv" : {"bCut":bCut["inverted"],"lIso":lIso["normal"]},
                                           "QCD" : {"bCut":bCut["normal"],  "lIso":lIso["inverted"]}
                                           })
                  }

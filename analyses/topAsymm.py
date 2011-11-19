@@ -18,8 +18,48 @@ class topAsymm(topAsymmShell.topAsymmShell) :
     def listOfCalculables(self, pars) :
         calcs = super(topAsymm,self).listOfCalculables(pars)
         calcs.append( calculables.Other.TriDiscriminant(LR = "DiscriminantWQCD", LC = "DiscriminantTopW", RC = "DiscriminantTopQCD") )
+        calcs.append( calculables.Other.KarlsruheDiscriminant(pars['objects']['jet'], pars['objects']['met']) )
         calcs.append( calculables.size("%sIndices%s"%pars['objects']['jet']))
+        calcs.append( calculables.Top.RadiativeCoherence(('fitTop',''),pars['objects']['jet']))
         return calcs
+    ########################################################################################
+
+    def listOfSamples(self,pars) :
+        from samples import specify
+
+        def data( ) :
+            return specify( names = ["SingleMu.Run2011A-PR-v4.FJ.Burt","SingleMu.Run2011A-May10-v1.FJ.Burt"], weights = 'tw' )
+
+        def qcd_py6_mu(eL = None) :
+            q6 = [0,5,15,20,30,50,80,120,150,None]
+            iCut = q6.index(15)
+            return specify( effectiveLumi = eL, weights = ['tw','nvr'],
+                            names = ["qcd_py6fjmu_pt_%s"%("%d_%d"%(low,high) if high else "%d"%low) for low,high in zip(q6[:-1],q6[1:])[iCut:]] )  if "Wlv" not in pars['tag'] else []
+        def qcd_mg(eL = None) :
+            qM = ["%d"%t for t in [50,100,250,500,1000][1:]]
+            return specify( effectiveLumi = eL, color = r.kBlue, weights = ['tw','nvr'],
+                            names = ["qcd_mg_ht_%s_%s"%t for t in zip(qM,qM[1:]+["inf"])]) if "Wlv" not in pars['tag'] else []
+        def ttbar_mg(eL = None) :
+            return (specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kBlue, weights = ['wNonQQbar','tw','nvr']) +
+                    sum([specify( names = "tt_tauola_mg", effectiveLumi = eL, color = color, weights = [calculables.Top.wTopAsym( asym, R_sm = -0.05), 'nvr' ])
+                         for asym,color in [(0.0,r.kOrange),(-0.3,r.kGreen),(0.3,r.kRed)]], [])
+                    )[: 0 if "QCD" in pars['tag'] else 2 if 'Wlv' in pars['tag'] else None]
+        def ttbar_py(eL = None) :
+            return (specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kBlue, weights = ["wNonQQbar",'tw','nvr']) +
+                    sum( [specify(names = "tt_tauola_fj", effectiveLumi = eL, color = color, weights = [ calculables.Top.wTopAsym(asym), 'tw','nvr' ] )
+                          for asym,color in [(0.0,r.kOrange),
+                                             (-0.3,r.kGreen),(0.3,r.kRed),
+                                             #(-0.6,r.kYellow),(0.6,r.kYellow),
+                                             #(-0.5,r.kYellow),(0.5,r.kYellow),
+                                             #(-0.4,r.kYellow),(0.4,r.kYellow),
+                                             #(-0.2,r.kYellow),(0.2,r.kYellow),
+                                             #(-0.1,r.kYellow),(0.1,r.kYellow),
+                                             ]], [])
+                    )[: 0 if "QCD" in pars['tag'] else 2 if 'Wlv' in pars['tag'] else None]
+        def ewk(eL = None) :
+            return specify( names = "w_jets_fj_mg", effectiveLumi = eL, color = 28, weights = ['tw','nvr'] ) if "QCD" not in pars['tag'] else []
+
+        return  ( data() + qcd_py6_mu() + ewk() + ttbar_py() )
     ########################################################################################
 
     def listOfSteps(self, pars) :
@@ -46,8 +86,11 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             ] + self.selectionSteps(pars, withPlots = True) + [
             #steps.Filter.stop(),#####################################
             steps.Filter.multiplicity("TopReconstruction",min=1),
-            steps.Histos.value("TopRatherThanWProbability",100,0,1),
             steps.Filter.label("selection complete"),
+            steps.Histos.value("%sM3%s"%obj['jet'], 20,0,800),
+            steps.Histos.value("KarlsruheDiscriminant", 28, -320, 800 ),
+            steps.Histos.value("TopRatherThanWProbability",100,0,1),
+            steps.Histos.value("fitTopRadiativeCoherence", 100,-1,1),
             #calculables.Other.Discriminant( fixes = ("","TopQqQg"),
             #                                left = {"pre":"qq", "tag":"top_muon_pf", "samples":['tt_tauola_fj.wNonQQbar.tw.nvr']},
             #                                right = {"pre":"qg", "tag":"top_muon_pf", "samples":['tt_tauola_fj.wTopAsymP00.tw.nvr']},
@@ -101,11 +144,11 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             steps.Top.Asymmetry(('fitTop',''), bins = 640),
             steps.Top.Spin(('fitTop','')),
 
-            steps.Histos.value('fitTopSumP4Eta', 12, -6, 6),
-            steps.Filter.absEta('fitTopSumP4', min = 1),
-            steps.Histos.value('fitTopSumP4Eta', 12, -6, 6),
-            steps.Top.Asymmetry(('fitTop',''), bins = 640),
-            steps.Top.Spin(('fitTop','')),
+            #steps.Histos.value('fitTopSumP4Eta', 12, -6, 6),
+            #steps.Filter.absEta('fitTopSumP4', min = 1),
+            #steps.Histos.value('fitTopSumP4Eta', 12, -6, 6),
+            #steps.Top.Asymmetry(('fitTop',''), bins = 640),
+            #steps.Top.Spin(('fitTop','')),
 
             #steps.Top.kinFitLook("fitTopRecoIndex"),
             #steps.Filter.value("TriDiscriminant",min=-0.64,max=0.8),
@@ -119,65 +162,29 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             ])
     ########################################################################################
 
-    def listOfSamples(self,pars) :
-        from samples import specify
-
-        def data( ) :
-            return specify( names = ["SingleMu.Run2011A-PR-v4.FJ.Burt","SingleMu.Run2011A-May10-v1.FJ.Burt"], weights = 'tw' )
-
-        def qcd_py6_mu(eL = None) :
-            q6 = [0,5,15,20,30,50,80,120,150,None]
-            iCut = q6.index(15)
-            return specify( effectiveLumi = eL, weights = ['tw','nvr'],
-                            names = ["qcd_py6fjmu_pt_%s"%("%d_%d"%(low,high) if high else "%d"%low) for low,high in zip(q6[:-1],q6[1:])[iCut:]] )  if "Wlv" not in pars['tag'] else []
-        def qcd_mg(eL = None) :
-            qM = ["%d"%t for t in [50,100,250,500,1000][1:]]
-            return specify( effectiveLumi = eL, color = r.kBlue, weights = ['tw','nvr'],
-                            names = ["qcd_mg_ht_%s_%s"%t for t in zip(qM,qM[1:]+["inf"])]) if "Wlv" not in pars['tag'] else []
-        def ttbar_mg(eL = None) :
-            return (specify( names = "tt_tauola_mg", effectiveLumi = eL, color = r.kBlue, weights = ['wNonQQbar','tw','nvr']) +
-                    sum([specify( names = "tt_tauola_mg", effectiveLumi = eL, color = color, weights = [calculables.Top.wTopAsym( asym, intrinsicR = -0.05), 'nvr' ])
-                         for asym,color in [(0.0,r.kOrange),(-0.3,r.kGreen),(0.3,r.kRed)]], [])
-                    )[: 0 if "QCD" in pars['tag'] else 2 if 'Wlv' in pars['tag'] else None]
-        def ttbar_py(eL = None) :
-            return (specify(names = "tt_tauola_fj", effectiveLumi = eL, color = r.kBlue, weights = ["wNonQQbar",'tw','nvr']) +
-                    sum( [specify(names = "tt_tauola_fj", effectiveLumi = eL, color = color, weights = [ calculables.Top.wTopAsym(asym), 'tw','nvr' ] )
-                          for asym,color in [(0.0,r.kOrange), (-0.3,r.kGreen),(0.3,r.kRed),
-                                             (-0.6,r.kYellow),(0.6,r.kYellow),
-                                             (-0.5,r.kYellow),(0.5,r.kYellow),
-                                             (-0.4,r.kYellow),(0.4,r.kYellow),
-                                             (-0.2,r.kYellow),(0.2,r.kYellow),
-                                             (-0.1,r.kYellow),(0.1,r.kYellow),
-                                             ]], [])
-                    )[: 0 if "QCD" in pars['tag'] else 2 if 'Wlv' in pars['tag'] else None]
-        def ewk(eL = None) :
-            return specify( names = "w_jets_fj_mg", effectiveLumi = eL, color = 28, weights = ['tw','nvr'] ) if "QCD" not in pars['tag'] else []
-
-        return  ( data() + qcd_py6_mu() + ewk() + ttbar_py() )
-    ########################################################################################
 
     ########################################################################################
     def concludeAll(self) :
         self.rowcolors = [r.kBlack, r.kGray+3, r.kGray+2, r.kGray+1, r.kViolet+4]
         super(topAsymm,self).concludeAll()
-        self.meldWpartitions()
-        self.meldQCDpartitions()
+        #self.meldWpartitions()
+        #self.meldQCDpartitions()
         self.meldScale()
-        self.dilutions()
+        #self.dilutions()
         #self.measureQQbarComponent()
         self.plotMeldScale()
-        self.ensembleTest()
-        self.PEcurves()
+        #self.ensembleTest()
+        #self.PEcurves()
 
     def conclude(self,pars) :
         org = self.organizer(pars)
         org.mergeSamples(targetSpec = {"name":"Data 2011", "color":r.kBlack, "markerStyle":20}, allWithPrefix="SingleMu")
         org.mergeSamples(targetSpec = {"name":"qcd_py6", "color":r.kBlue}, allWithPrefix="qcd_py6")
-        org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kViolet}, sources=["tt_tauola_fj.wNonQQbar.tw.nvr","tt_tauola_fj.wTopAsymP00.tw.nvr"])
+        org.mergeSamples(targetSpec = {"name":"t#bar{t}", "color":r.kViolet}, sources=["tt_tauola_fj.wNonQQbar.tw.nvr","tt_tauola_fj.wTopAsymP00.tw.nvr"], keepSources = True)
         org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.N30", "color":r.kRed}, sources = ["tt_tauola_fj.wTopAsymN30.tw.nvr","tt_tauola_fj.wNonQQbar.tw.nvr"][:1])
         org.mergeSamples(targetSpec = {"name":"t#bar{t}.q#bar{q}.P30", "color":r.kGreen}, sources = ["tt_tauola_fj.wTopAsymP30.tw.nvr","tt_tauola_fj.wNonQQbar.tw.nvr"][:1])
         org.mergeSamples(targetSpec = {"name":"standard_model", "color":r.kGreen+2}, sources = ["qcd_py6","t#bar{t}","w_jets_fj_mg.tw.nvr"], keepSources = True)
-        for ss in filter(lambda ss: 'tt_tauola' in ss['name'],org.samples) : org.drop(ss['name'])
+        #for ss in filter(lambda ss: 'tt_tauola' in ss['name'],org.samples) : org.drop(ss['name'])
 
         orgpdf = copy.deepcopy(org)
         orgpdf.scale( toPdf = True )
@@ -267,30 +274,36 @@ class topAsymm(topAsymmShell.topAsymmShell) :
                                            "markerStyle":(20 if "top" in org.tag else 1)}, allWithPrefix="SingleMu")
 
         self.orgMelded = organizer.organizer.meld(organizers = organizers)
-        dist = "TriDiscriminant"
-        before = next(self.orgMelded.indicesOfStep("label","selection complete"))
-        distTup = self.orgMelded.steps[next(iter(filter(lambda i: before<i, self.orgMelded.indicesOfStepsWithKey(dist))))][dist]
 
-        templateSamples = ['top.t#bar{t}','top.w_jets','QCD.Data 2011']
-        templates = [None] * len(templateSamples)
-        for ss,hist in zip(self.orgMelded.samples,distTup) :
-            contents = [hist.GetBinContent(i) for i in range(hist.GetNbinsX()+2)]
-            if ss['name'] == "top.Data 2011" :
-                observed = contents
-                nEventsObserved = sum(observed)
-            elif ss['name'] in templateSamples :
-                templates[templateSamples.index(ss['name'])] = contents
-            else : pass
-        
-        from core.fractions import componentSolver,drawComponentSolver
-        cs = componentSolver(observed, templates, 1e4)
-        csCanvas = drawComponentSolver(cs)
-        utils.tCanvasPrintPdf(csCanvas[0], "%s/measuredFractions"%self.globalStem)
-        with open(self.globalStem+"/measuredFractions.txt","w") as file : print >> file, cs
-        with open(self.globalStem+'/templates.txt','w') as file : print >> file, cs.components
+        def measureFractions(dist) :
+            before = next(self.orgMelded.indicesOfStep("label","selection complete"))
+            distTup = self.orgMelded.steps[next(iter(filter(lambda i: before<i, self.orgMelded.indicesOfStepsWithKey(dist))))][dist]
+            #distTup = self.orgMelded.steps[next(self.orgMelded.indicesOfStepsWithKey(dist))][dist]
 
-        fractions = dict(zip(templateSamples,cs.fractions))
+            templateSamples = ['top.t#bar{t}','top.w_jets','QCD.Data 2011']
+            templates = [None] * len(templateSamples)
+            for ss,hist in zip(self.orgMelded.samples,distTup) :
+                contents = [hist.GetBinContent(i) for i in range(hist.GetNbinsX()+2)]
+                if ss['name'] == "top.Data 2011" :
+                    observed = contents
+                    nEventsObserved = sum(observed)
+                elif ss['name'] in templateSamples :
+                    templates[templateSamples.index(ss['name'])] = contents
+                else : pass
         
+            from core.fractions import componentSolver,drawComponentSolver
+            cs = componentSolver(observed, templates, 1e4)
+            csCanvas = drawComponentSolver(cs)
+            name = "measuredFractions_%s"%dist
+            utils.tCanvasPrintPdf(csCanvas[0], "%s/%s"%(self.globalStem,name))
+            with open(self.globalStem+"/%s.txt"%name,"w") as file :
+                print >> file, cs
+                print >> file, cs.components
+            return distTup,cs
+
+        distTup,cs = map(measureFractions,["KarlsruheDiscriminant","TriDiscriminant"])[-1]
+
+        fractions = dict(zip(templateSamples,cs.fractions))        
         for iSample,ss in enumerate(self.orgMelded.samples) :
             if ss['name'] in fractions : self.orgMelded.scaleOneRaw(iSample, fractions[ss['name']] * nEventsObserved / distTup[iSample].Integral(0,distTup[iSample].GetNbinsX()+1))
         self.orgMelded.mergeSamples(targetSpec = {"name":"S.M.", "color":r.kGreen+2}, sources = ['top.w_jets','top.t#bar{t}','QCD.Data 2011'], keepSources = True, force = True)
@@ -390,7 +403,6 @@ class topAsymm(topAsymmShell.topAsymmShell) :
         return zip(asymm, templates), observed
     
 
-
     def ensembleFileName(self, iStep, dist, qqFrac, suffix = '.pickleData') :
         return "%s/ensembles/%d_%s_%.3f%s"%(self.globalStem,iStep,dist,qqFrac,suffix)
 
@@ -422,7 +434,6 @@ class topAsymm(topAsymmShell.topAsymmShell) :
             legend.Draw()
             utils.tCanvasPrintPdf(canvas, '%s/sensitivity_%d'%(self.globalStem,iStep))
                 
-
     def pickleEnsemble(self, iStep, dist, qqFrac ) :
         utils.mkdir(self.globalStem+'/ensembles')
         templates,observed = self.templates(iStep, dist, qqFrac)

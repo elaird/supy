@@ -168,7 +168,7 @@ class Alpha(wrappedChain.calculable) :
         self.FourMtop2 = 4 * 172**2
     def update(self,_) :
         x = self.FourMtop2 / self.source[self.SumP4].M2()
-        self.value = 2 * max(0,(1-x)/(1+x))
+        self.value =  max(0,(1-x)/(1+x))
 ######################################
 class Beta(wrappedChain.calculable) :
     def __init__(self, collection = None) :
@@ -245,6 +245,23 @@ class CosThetaDaggerTT(wrappedChain.calculable) :
         boost = self.source[self.BoostZAlt]
         p4 = self.source[self.P4]
         self.value = r.Math.VectorUtil.CosTheta(boost(p4['t']),boost(p4['tbar']))
+######################################
+class RadiativeCoherence(wrappedChain.calculable) :
+    def __init__(self, collection = None, jets = None ) :
+        self.fixes = collection
+        self.stash(['BoostZAlt','RecoIndex','SignQuarkZ'])
+        self.stash(['CorrectedP4','Indices'], jets)
+
+    def update(self,_) :
+        topReco = self.source["TopReconstruction"][self.source[self.RecoIndex]]
+        boost = self.source[self.BoostZAlt]
+        thetaTop = boost(topReco['top' if self.source[self.SignQuarkZ]>0 else 'tbar']).theta()
+        p4 = self.source[self.CorrectedP4]
+        extraPtTheta = [ ( p4[i].pt(), boost(p4[i]).theta() )  for i in (set(self.source[self.Indices]) - set(topReco['iPQHL']))]
+        sumPtExtra = sum( pt for pt,theta in extraPtTheta )
+        sumPtExtraInCones = (sum( pt for pt,theta in extraPtTheta if theta < thetaTop ) +
+                             sum( pt for pt,theta in extraPtTheta if theta > math.pi - thetaTop ) )
+        self.value = None if not sumPtExtra else sumPtExtraInCones/sumPtExtra - 1
 ######################################
 ######################################
 
@@ -478,25 +495,31 @@ class genTopRecoIndex(wrappedChain.calculable) :
         if len(iPass) : self.value = iPass[0]
 ######################################
 class wTopAsym(wrappedChain.calculable) :
-    def __init__(self, rPrime, totalEff = None, intrinsicR = 0) :
-        self.fixes = ("",("N" if rPrime < 0 else "P") + "%02d"%(100*abs(rPrime)))
-        self.rPrime = rPrime
-        self.R = intrinsicR
-        self.epsilon = 1.
-        self.epsilon = 1. / max( self.weight(math.sqrt(2),2),
-                                 self.weight(-math.sqrt(2),2))
-
-        assert self.epsilon <= 1.
-        assert totalEff < self.epsilon
-        if 0 < totalEff : self.epsilon = totalEff
+    def __init__(self, R, R_sm = 0, intrinsicC = 1) :
+        self.fixes = ("",("N" if R < 0 else "P") + "%02d"%(100*abs(R)))
+        for item in ['R','R_sm','intrinsicC'] : setattr(self,item,eval(item))
+        for a100 in range(101) :
+            a =  0.01*a100 * self.intrinsicC
+            ar = a*self.intrinsicC
+            g = self.g(a)
+            assert g*(6+2*ar)*self.R <  (6*math.sqrt(ar) if ar > 1 else 3*(1+ar))
         
-    def weight(self,beta,alpha) :
-        base = 3 * (1+beta*beta) / (6+2.*alpha)
-        return (base+beta*self.rPrime) / (base+beta*self.R)
+    def g(self, a) : return math.sqrt(a)
+
+    def weight(self,a,x) :
+        base = (1+x*x*a*self.intrinsicC) * 3. / (6+2*a*self.intrinsicC)
+        g = self.g(a)
+        return ( base + x*g*self.R ) / ( base + x*g*self.R_sm )
     
     def update(self,_) :
-        self.value = None if not self.source['genQQbar'] else self.weight(self.source['genTopBeta'],
-                                                                          self.source['genTopAlpha'])
+        x,_ = self.source['genttCosThetaStar']
+        self.value = None if x==None else self.weight( self.source['genTopAlpha'], x )
+######################################
+class wTopAsymConst(wTopAsym) :
+    def f(self, a) : return math.sqrt(a)
+######################################
+class wTopAsymLine(wTopAsym) :
+    def f(self, a) : a
 ######################################
 class TopComboQQBBLikelihood(wrappedChain.calculable) :
     def __init__(self, jets = None, tag = None) :

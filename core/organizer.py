@@ -62,7 +62,7 @@ class organizer(object) :
         return new
 
     @classmethod
-    def meld(cls, tagprefix = "melded", organizers = []) :
+    def meld(cls, tagprefix = "melded", organizers = [], lastStep = None ) :
         ordering = utils.topologicalSort([tuple(org.tag.split("_")) for org in organizers])            
         subTags = filter(lambda st: all(org.tag.split('_').count(st)==1 for org in organizers), ordering)
         for org in organizers : org.tag = '_'.join(filter(lambda st: st not in subTags, org.tag.split('_')))
@@ -83,6 +83,7 @@ class organizer(object) :
 
         instance.__steps = [cls.step.melded((tagprefix,', '.join(org.tag for org in organizers)), sizes)]
         for start,stop in zip(shared,shared[1:]+[None]) :
+            if lastStep and start == lastStep : break
             slices = [org.steps[next(org.indicesOfStep(*start)):
                                 next(org.indicesOfStep(*stop)) if stop else None] for org in organizers]
             order = utils.topologicalSort([tuple(step.nameTitle for step in slice) for slice in slices])

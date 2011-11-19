@@ -54,10 +54,10 @@ class leastsqLeptonicTop(object) :
             return np.append( self.inv * [x[0],dS,dL],
                               self.invT * (self.massT - (self.mu + self.fitNu + self.fitB).M()) )
 
-        deltas,_ = opt.leastsq(lepResiduals, 3*[0], epsfcn=0.01)
+        deltas,_ = opt.leastsq(lepResiduals, 3*[0], epsfcn=0.01, ftol=1e-3)
         if 0 <= self.discriminant : return lepResiduals(deltas)
         self.bound = True
-        best,_ = opt.leastsq(lepBoundResiduals, [0, math.atan2(self.nuXY[1],self.nuXY[0])], epsfcn=0.01)
+        best,_ = opt.leastsq(lepBoundResiduals, [0, math.atan2(self.nuXY[1],self.nuXY[0])], epsfcn=0.01, ftol=1e-3)
         return lepBoundResiduals(best)
         
 ###########################
@@ -83,7 +83,7 @@ class leastsqHadronicTop(object) :
             return np.append((d*self.invJ), [ (self.massW-W.M())*self.invW,
                                               (self.massT-T.M())*self.invT])
 
-        self.deltaJ,_ = opt.leastsq(hadResiduals,3*[0],epsfcn=0.01)
+        self.deltaJ,_ = opt.leastsq(hadResiduals,3*[0],epsfcn=0.01, ftol=1e-3)
         self.fitJ = self.rawJ * (1+self.deltaJ)
         self.residualsPQBWT = hadResiduals(self.deltaJ)
         self.chi2 = self.residualsPQBWT.dot(self.residualsPQBWT)
