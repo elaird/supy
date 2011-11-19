@@ -20,13 +20,15 @@ class topAsymmTemplates(analysis) :
     
     def listOfSteps(self, pars) :
         return [steps.Print.progressPrinter(),
-                steps.Filter.label("all"),         steps.Top.mcTruthTemplates(),
-                steps.Filter.OR([steps.Filter.value('genTTbarIndices',min=0,index='lplus'),
-                                 steps.Filter.value('genTTbarIndices',min=0,index='lminus')]),
-                steps.Top.mcTruthTemplates(),
-                steps.Filter.label("acceptance"),        steps.Top.mcTruthAcceptance(),
-                steps.Filter.label("discriminateQQbar"), steps.Top.discriminateQQbar(('genTop','')),
-                steps.Filter.label("q direction"),       steps.Top.mcTruthQDir(),
+                #steps.Gen.topPrinter(),
+                steps.Gen.genParticlePrinter()
+                #steps.Filter.label("all"),         steps.Top.mcTruthTemplates(),
+                #steps.Filter.OR([steps.Filter.value('genTTbarIndices',min=0,index='lplus'),
+                #                 steps.Filter.value('genTTbarIndices',min=0,index='lminus')]),
+                #steps.Top.mcTruthTemplates(),
+                #steps.Filter.label("acceptance"),        steps.Top.mcTruthAcceptance(),
+                #steps.Filter.label("discriminateQQbar"), steps.Top.discriminateQQbar(('genTop','')),
+                #steps.Filter.label("q direction"),       steps.Top.mcTruthQDir(),
                 ]
     
     def listOfSampleDictionaries(self) : return [samples.MC.mc]
@@ -37,17 +39,19 @@ class topAsymmTemplates(analysis) :
 
         if type(pars["generator"]) is list :
             suffixColor = zip(pars["generator"],[r.kBlack,r.kRed])
-            return sum([samples.specify(names = "tt_tauola_fj%s"%suf, effectiveLumi = eL, color = col) for suf,col in suffixColor],[])
+            return sum([samples.specify(names = "tt_tauola_fj%s"%suf, effectiveLumi = eL, color = col ) for suf,col in suffixColor],[])
+            #return sum([samples.specify(names = "tt_tauola_fj%s"%suf, effectiveLumi = eL, color = col, weights = "wQQbar" ) for suf,col in suffixColor],[])
+            #return sum([samples.specify(names = "tt_tauola_fj%s"%suf, effectiveLumi = eL, color = col, weights = ["wQQbar","TwoToTwo"] ) for suf,col in suffixColor],[])
 
         sample = "tt_tauola_fj%s"%pars["generator"]
         asymms = [(r.kBlue, -0.3),
                   (r.kGreen, 0.0),
                   (r.kRed,   0.3)]
-        intrinsicR = -0.05 if pars['generator'] == "mg" else 0.0
+        R_sm = -0.05 if pars['generator'] == "mg" else 0.0
         return (
             #samples.specify( names = sample, effectiveLumi = 500, color = r.kBlack,     weights = calculables.Gen.wNonQQbar()) +
             #samples.specify( names = sample, effectiveLumi = eL, color = r.kRed,       weights = calculables.Gen.wQQbar()) +
-            sum([samples.specify(names = sample, effectiveLumi = eL, color = col, weights = calculables.Top.wTopAsym(A,intrinsicR=intrinsicR)) for col,A in asymms],[]) +
+            sum([samples.specify(names = sample, effectiveLumi = eL, color = col, weights = calculables.Top.wTopAsym(R,R_sm=R_sm)) for col,R in asymms],[]) +
             [])
     
     def conclude(self,pars) :

@@ -495,20 +495,21 @@ class genTopRecoIndex(wrappedChain.calculable) :
         if len(iPass) : self.value = iPass[0]
 ######################################
 class wTopAsym(wrappedChain.calculable) :
-    def __init__(self, R, intrinsicR, intrinsicC ) :
+    def __init__(self, R, R_sm = 0, intrinsicC = 1) :
         self.fixes = ("",("N" if R < 0 else "P") + "%02d"%(100*abs(R)))
-        for item in ['R','intrinsicR','intrinsicC'] : setattr(self,item,eval(item))
+        for item in ['R','R_sm','intrinsicC'] : setattr(self,item,eval(item))
         for a100 in range(101) :
-            ar = 0.01*a100 * self.intrinsicC
-            f = self.f(a)
-            assert f*(6+2*ar)*self.R <  (6*math.sqrt(ar) if ar > 1 else 3*(1+ar))
+            a =  0.01*a100 * self.intrinsicC
+            ar = a*self.intrinsicC
+            g = self.g(a)
+            assert g*(6+2*ar)*self.R <  (6*math.sqrt(ar) if ar > 1 else 3*(1+ar))
         
-    def f(self, a) : return math.sqrt(a)
+    def g(self, a) : return math.sqrt(a)
 
     def weight(self,a,x) :
         base = (1+x*x*a*self.intrinsicC) * 3. / (6+2*a*self.intrinsicC)
-        f = self.f(a)
-        return ( base + x*f*self.A ) / ( base + x*f*self.intrinsicA )
+        g = self.g(a)
+        return ( base + x*g*self.R ) / ( base + x*g*self.R_sm )
     
     def update(self,_) :
         x,_ = self.source['genttCosThetaStar']
