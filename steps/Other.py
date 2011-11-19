@@ -188,12 +188,9 @@ class skimmer(analysisStep) :
         print utils.hyphens
 #####################################
 class hbheNoiseFilter(analysisStep) :
-    def __init__(self, invert = False) :
-        self.invert = invert
-        if self.invert : self.moreName = "[INVERTED]"
 
     def select (self,eventVars) :
-        return eventVars["hbheNoiseFilterResult"]^self.invert
+        return eventVars["hbheNoiseFilterResult"]
 #####################################
 class productGreaterFilter(analysisStep) :
 
