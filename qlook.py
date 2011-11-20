@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import subprocess,collections,os
-from core import configuration,utils
+import sites
+from core import utils
 
 def lines(cmd) :
     return utils.getCommandOutput(cmd)["stdout"].split("\n")
@@ -11,7 +12,7 @@ def stats(l) :
     wait = collections.defaultdict(int)
 
     for line in l[2:] :
-        d = dict(zip(configuration.siteInfo(key = "queueHeaders"), line.split()))
+        d = dict(zip(sites.info(key = "queueHeaders"), line.split()))
         if vars["state"] not in d : continue
         if "queueName" in vars and not vars["queueName"] in d[vars["queue"]] : continue
         
@@ -47,6 +48,6 @@ def summary(run, wait) :
 def sample(l) :
     print "\n".join(l)[:-1]
 
-vars = configuration.siteInfo(key = "queueVars")
+vars = sites.info(key = "queueVars")
 summary(*stats(lines(vars["summary"])))
 sample(lines(vars["sample"]))

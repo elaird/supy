@@ -1,5 +1,5 @@
 import samples
-from core.configuration import srm
+from sites import srm
 jetmet = samples.SampleHolder()
 
 #2011

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import sys,os,tempfile,utils
-import configuration
-sys.path.extend([configuration.siteInfo(key="CMSSW_lumi")])
+import configuration,sites
+sys.path.extend([sites.info(key="CMSSW_lumi")])
 
 try:
     from RecoLuminosity.LumiDB import lumiQueryAPI,inputFilesetParser

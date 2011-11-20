@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os,sys,inspect
 from core import utils,configuration
+import sites
 ############################################
 def opts() :
     from optparse import OptionParser
@@ -97,10 +98,10 @@ def doBatch(someInstance) :
     argsAndOptions.remove("--batch")
     baseCmd = "./supy "+" ".join(argsAndOptions)
 
-    subScript,jobScript,condorTemplate = configuration.batchScripts()
+    subScript,jobScript,condorTemplate = sites.batchScripts()
     os.system("chmod +x "+subScript)
 
-    site = configuration.sitePrefix()
+    site = sites.prefix()
 
     scriptDir = someInstance.globalStem
     os.system("mkdir -p "+scriptDir)

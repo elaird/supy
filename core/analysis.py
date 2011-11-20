@@ -1,5 +1,5 @@
 import os,sys,copy,cPickle,collections,tempfile,re
-import utils,steps,samples,configuration,calculables,organizer,wrappedChain
+import utils,steps,samples,configuration,calculables,organizer,wrappedChain,sites
 from core.analysisLooper import analysisLooper
 import ROOT as r
 #####################################
@@ -32,14 +32,14 @@ class analysis(object) :
         self.__jobId   = options.jobId
         self.__tag     = options.tag
         self.__sample  = options.sample
-        self.__site    = options.site if options.site!=None else configuration.sitePrefix()
+        self.__site    = options.site if options.site!=None else sites.prefix()
         self.__tags    = options.tags.split(',') if type(options.tags)==str else options.tags
         self.__samples = options.samples.split(',') if type(options.samples)==str else options.samples
         self.__omit    = options.omit.split(',')
         self.__nocheck = options.nocheck
 
-        self.localStem  = "%s/%s"%(configuration.siteInfo(site = self.__site, key = "localOutputDir" ), self.name)
-        self.globalStem = "%s/%s"%(configuration.siteInfo(site = self.__site, key = "globalOutputDir"), self.name)
+        self.localStem  = "%s/%s"%(sites.info(site = self.__site, key = "localOutputDir" ), self.name)
+        self.globalStem = "%s/%s"%(sites.info(site = self.__site, key = "globalOutputDir"), self.name)
     
         self.sampleDict = samples.SampleHolder()
         map(self.sampleDict.update,self.listOfSampleDictionaries())
@@ -145,7 +145,7 @@ class analysis(object) :
         return tmpDir,localFileName,globalFileName
 
     def localToGlobal(self, tmpDir, localFileName, globalFileName) :
-        os.system(configuration.mvCommand(site = self.__site, src = localFileName, dest = globalFileName))
+        os.system(sites.mvCommand(site = self.__site, src = localFileName, dest = globalFileName))
         os.system("rm -r %s"%tmpDir)
 
     def makeInputFileLists(self) :
