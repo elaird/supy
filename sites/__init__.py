@@ -1,6 +1,6 @@
 import os,socket
 
-def sitePrefix() :
+def prefix() :
     d = {"hep.ph.ic.ac.uk":"ic",
          "sesame1":"pu",
          "cern.ch":"cern",
@@ -11,7 +11,7 @@ def sitePrefix() :
         if match in hostName : return prefix
     return "other"
 
-def siteSpecs() :
+def specs() :
     user = os.environ["USER"]
     return {
         "ic"  :{"localOutputDir" : "/vols/cms02/%s/tmp/"%user,
@@ -64,15 +64,15 @@ def siteSpecs() :
                  },
         }
 
-def siteInfo(site = None, key = None) :
-    if site==None : site = sitePrefix()
-    ss = siteSpecs()
-    assert site in ss, "site %s does not appear in siteSpecs()"%site
+def info(site = None, key = None) :
+    if site==None : site = prefix()
+    ss = specs()
+    assert site in ss, "site %s does not appear in specs()"%site
     assert key in ss[site], "site %s does not have key %s"%(site, key)
     return ss[site][key]
 
 def batchScripts() :
-    p = "site/"+sitePrefix()
+    p = "sites/"+prefix()
     return ("%sSub.sh"%p, "%sJob.sh"%p, "%sTemplate.condor"%p)
 
 def mvCommand(site = None, src = None, dest = None) :
@@ -87,7 +87,7 @@ def mvCommand(site = None, src = None, dest = None) :
     return d[site]
 
 def srmFunc() :
-    return 'utils.fileListFromSrmLs(dCachePrefix = "%s", dCacheTrim = "%s", location="%s'%(siteInfo(key = "dCachePrefix"),
-                                                                                           siteInfo(key = "dCacheTrim"),
-                                                                                           siteInfo(key = "srmPrefix"))
+    return 'utils.fileListFromSrmLs(dCachePrefix = "%s", dCacheTrim = "%s", location="%s'%(info(key = "dCachePrefix"),
+                                                                                           info(key = "dCacheTrim"),
+                                                                                           info(key = "srmPrefix"))
 srm = srmFunc()
