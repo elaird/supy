@@ -1,5 +1,5 @@
 import samples
-from core.configuration import srm
+from sites import srm
 mc = samples.SampleHolder()
 
 mgKFactor = 3048.0/2400.0 #Z+jets NNLO/LO

@@ -1,5 +1,5 @@
 import samples
-from core.configuration import srm
+from sites import srm
 muon = samples.SampleHolder()
 
 muon.add("SingleMu.2011A-May.1",'%s/bbetchar/ICF/automated/2011_11_06_08_14_36/")'%srm, lumi = 200.1519)
