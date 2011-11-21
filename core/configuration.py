@@ -6,9 +6,9 @@ def maxArrayLength() : return 256
 def computeEntriesForReport() : return False
 def printNodesUsed() : return False
 def fakeString() : return ";FAKE"
-def stepsToDisableForData() : return ["genMotherHistogrammer", "photonPurityPlots", "photonEfficiencyPlots"]
-def stepsToDisableForMc() : return ["l1Filter", "hltFilter", "hltFilterList", "lowestUnPrescaledTriggerFilter", "lowestUnPrescaledTriggerHistogrammer", "hbheNoiseFilter", "bxFilter", "physicsDeclaredFilter", "techBitFilter", "hbheNoise"]
-def histogramsToDisableForData() : return ["^gen"]
+def stepsToDisableForData() : return []
+def stepsToDisableForMc() : return []
+def histogramsToDisableForData() : return []
 def histogramsToDisableForMc() : return []
 def cppFiles() : return ["cpp/linkdef.cxx"]
 
