@@ -8,7 +8,6 @@ GPLv3 (http://www.gnu.org/licenses/gpl.html)
 ---------------
 1) Set up pyROOT:
 - use a CMSSW area: cd /somewhere/CMSSW_4_2_8/src && cmsenv
-- or see note (A)
 
 2) Clone the repository:
 git clone git://github.com/elaird/supy.git
@@ -27,8 +26,8 @@ To be written.
 ----------------
 | Dependencies |
 ----------------
-ROOT (>=5.27.06) and python (2.x, x>=6) are required; CMSSW is not.  These
-are useful pages for setting up and learning pyROOT:
+ROOT (>=5.27.06) and python (2.x, x>=6) are required; CMSSW is not required.  
+These are useful pages for setting up and learning pyROOT:
 http://root.cern.ch/drupal/content/how-use-use-python-pyroot-interpreter
 http://wlav.web.cern.ch/wlav/pyroot/
 
