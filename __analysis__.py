@@ -2,7 +2,6 @@ import os,sys,tempfile,re
 import utils,steps,samples,configuration,calculables,sites
 from __organizer__ import organizer
 from __analysisLooper__ import analysisLooper
-import ROOT as r
 #####################################
 class analysis(object) :
     """base class for an analysis

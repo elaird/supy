@@ -1,4 +1,4 @@
-import copy,array,os,cPickle,tempfile,collections
+import copy,os,tempfile,collections
 from supy import autoBook,wrappedChain,configuration,utils,keyTracer
 import ROOT as r
 #####################################
