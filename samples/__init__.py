@@ -60,4 +60,4 @@ class SampleHolder(dict) :
             
         return sampleSpecs
 
-import MC,JetMET,HT,Muon,Electron,Photon,SignalSkim,WPol,DoubleMu
+for module in [] : import module
