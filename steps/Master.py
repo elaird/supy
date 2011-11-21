@@ -39,7 +39,7 @@ class Master(analysisStep) :
             for fileName in files : os.remove(fileName)
 
         if not all(os.path.exists(fileName) for fileName in products["outputFileName"]) : return
-        hAdd = utils.getCommandOutput("./phaddy -f %s %s"%(self.outputFileName, " ".join(products["outputFileName"])))
+        hAdd = utils.getCommandOutput("phaddy -f %s %s"%(self.outputFileName, " ".join(products["outputFileName"])))
         
         printComment(hAdd["stdout"])
         cleanUp(hAdd["stderr"], products["outputFileName"])

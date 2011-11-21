@@ -2,7 +2,12 @@ import supy, ROOT as r
 
 class example_analysis(supy.analysis) :
     
-    def listOfSteps(self,config) :  return [ supy.steps.Print.progressPrinter() ]
+    def listOfSteps(self,config) :
+        return [
+            supy.steps.Print.progressPrinter(),
+            supy.steps.Histos.value('run',20,0,1e4),
+            supy.steps.Histos.value('bx',20,0,1e4)
+            ]
     
     def listOfCalculables(self,config) : return supy.calculables.zeroArgs()
     
@@ -20,8 +25,8 @@ class example_analysis(supy.analysis) :
         #make a pdf file with plots from the histograms created above
         org = self.organizer(pars)
         org.scale()
-        supy.plotter.plotter( org,
-                              psFileName = self.psFileName(org.tag),
-                              samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
-                              sampleLabelsForRatios = ("data","sim"),
-                              ).plotAll()
+        supy.plotter( org,
+                      psFileName = self.psFileName(org.tag),
+                      samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
+                      sampleLabelsForRatios = ("data","sim"),
+                      ).plotAll()
