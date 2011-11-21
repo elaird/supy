@@ -184,4 +184,4 @@ class secondary(wrappedChain.calculable,analysisStep) :
         return sampleHists
                      
 ##############################
-#for module in ['Other'] : exec("import %s"%module)
+for module in ['other'] : exec("import %s"%module)

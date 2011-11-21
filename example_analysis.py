@@ -6,10 +6,14 @@ class example_analysis(supy.analysis) :
         return [
             supy.steps.Print.progressPrinter(),
             supy.steps.Histos.value('run',20,0,1e4),
-            supy.steps.Histos.value('bx',20,0,1e4)
+            supy.steps.Histos.value('bx',20,0,1e4),
+            supy.steps.Histos.value('Two',10,0,10),
             ]
     
-    def listOfCalculables(self,config) : return supy.calculables.zeroArgs()
+    def listOfCalculables(self,config) :
+        return ( supy.calculables.zeroArgs() +
+                 [supy.calculables.other.FixedValue('Two',2) ]
+                 )
     
     def listOfSampleDictionaries(self) :
         exampleDict = supy.samples.SampleHolder()
