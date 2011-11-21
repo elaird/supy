@@ -1,6 +1,6 @@
-import os,sys,copy,cPickle,collections,tempfile,re
-import utils,steps,samples,configuration,calculables,organizer,wrappedChain,sites
-from core.analysisLooper import analysisLooper
+import os,sys,tempfile,re
+import utils,steps,samples,configuration,calculables,organizer,sites
+from analysisLooper import analysisLooper
 import ROOT as r
 #####################################
 class analysis(object) :
@@ -270,4 +270,4 @@ class analysis(object) :
         args = sum([[(conf,secondary) for secondary in filter(self.isSecondary, looper.steps)] for conf,looper in confLoopers],[])
         utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(manage), args)
 
-    def isSecondary(self,step) : return issubclass(type(step),wrappedChain.wrappedChain.calculable)
+    def isSecondary(self,step) : return issubclass(type(step),calculables.secondary)

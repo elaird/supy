@@ -1,5 +1,5 @@
 import ROOT as r
-import os,math,string,collections,itertools
+import os,math,string,itertools
 import utils,configuration
 ##############################
 def setupStyle() :

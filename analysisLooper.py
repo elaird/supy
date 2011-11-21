@@ -1,5 +1,5 @@
 import copy,array,os,cPickle,tempfile,collections
-import wrappedChain,utils,steps,configuration
+import wrappedChain,utils,configuration
 from autoBook import autoBook
 import ROOT as r
 #####################################
