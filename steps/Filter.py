@@ -1,7 +1,6 @@
 import copy,array,os,collections
 import ROOT as r
-from core.analysisStep import analysisStep
-from core import utils
+from supy import analysisStep,utils
 #####################################
 class label(analysisStep) :
     def __init__(self,title) : self.moreName = title

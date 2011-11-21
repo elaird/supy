@@ -1,6 +1,7 @@
 import os,sys,tempfile,re
-import utils,steps,samples,configuration,calculables,organizer,sites
-from analysisLooper import analysisLooper
+import utils,steps,samples,configuration,calculables,sites
+from __organizer__ import organizer
+from __analysisLooper__ import analysisLooper
 import ROOT as r
 #####################################
 class analysis(object) :
@@ -21,7 +22,7 @@ class analysis(object) :
     def parameters(self) : return {}
     def conclude(self, config) : return
     def concludeAll(self) : utils.operateOnListUsingQueue( configuration.nCoresDefault(), utils.qWorker(self.conclude), zip(self.readyConfs) )
-    def organizer(self, config) : return organizer.organizer(config['tag'], self.sampleSpecs(config['tag']))
+    def organizer(self, config) : return organizer(config['tag'], self.sampleSpecs(config['tag']))
 
 ############
     def __init__(self, options) :

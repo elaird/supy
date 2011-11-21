@@ -1,5 +1,6 @@
-from core.wrappedChain import *
-import calculables,math,operator,itertools
+from supy import wrappedChain
+import supy.calculables
+import math,operator,itertools
 
 #####################################
 class localEntry(wrappedChain.calculable) :
@@ -36,7 +37,7 @@ class FixedValue(wrappedChain.calculable) :
     def update(self, ignored) :
         pass
 #####################################
-class Ratio(calculables.secondary) :
+class Ratio(supy.calculables.secondary) :
     def __init__(self, var=None, binning=(0,0,0), thisSample = None, target = ("",[]), groups = []) :
         self.fixes = (var,"")
         self.defaultValue = 1.0
@@ -75,7 +76,7 @@ class Ratio(calculables.secondary) :
           org.mergeSamples( targetSpec = {"name":pre}, allWithPrefix = pre )
          for pre,samples in self.groups + [self.target] ]
 #####################################
-class Discriminant(calculables.secondary) :
+class Discriminant(supy.calculables.secondary) :
     def __init__(self, fixes = ("",""),
                  left = {"pre":"","samples":[],"tag":""},
                  right = {"pre":"","samples":[],"tag":""},

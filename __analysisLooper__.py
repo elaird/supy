@@ -1,6 +1,5 @@
 import copy,array,os,cPickle,tempfile,collections
-import wrappedChain,utils,configuration
-from autoBook import autoBook
+from supy import autoBook,wrappedChain,configuration,utils,keyTracer
 import ROOT as r
 #####################################
 class analysisLooper :
@@ -35,7 +34,7 @@ class analysisLooper :
             assert step.isSelector, "The master step must be a selector."
         selectors = [ (s.name,s.moreNames) for s in self.steps if s.isSelector ]
         for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s) is not allowed."%sel
-        inter = set(s.name for s in self.steps if not issubclass(type(s),wrappedChain.wrappedChain.calculable)).intersection(set(c.name for c in self.calculables))
+        inter = set(s.name for s in self.steps if not issubclass(type(s),wrappedChain.calculable)).intersection(set(c.name for c in self.calculables))
         if inter: print "Steps and calculables cannot share names { %s }"%', '.join(n for n in inter)
         
     def childName(self, nSlices, iSlice) : return "%s_%d_%d"%(self.name,nSlices,iSlice)
@@ -62,15 +61,15 @@ class analysisLooper :
 
     def loop(self) :
         if self.nEventsMax!=0 :
-            chainWrapper = wrappedChain.wrappedChain( self.chains[self.mainTree],
-                                                      calculables = self.calculables,
-                                                      useSetBranchAddress = not any([step.requiresNoSetBranchAddress() for step in self.steps]),
-                                                      leavesToBlackList = self.leavesToBlackList,
-                                                      maxArrayLength = configuration.maxArrayLength(),
-                                                      trace = self.trace,
-                                                      cacheSizeMB = configuration.ttreecacheMB(),
-                                                      )
-            for step in filter(lambda s: (issubclass(type(s),wrappedChain.wrappedChain.calculable) and
+            chainWrapper = wrappedChain( self.chains[self.mainTree],
+                                         calculables = self.calculables,
+                                         useSetBranchAddress = not any([step.requiresNoSetBranchAddress() for step in self.steps]),
+                                         leavesToBlackList = self.leavesToBlackList,
+                                         maxArrayLength = configuration.maxArrayLength(),
+                                         trace = self.trace,
+                                         cacheSizeMB = configuration.ttreecacheMB(),
+                                         )
+            for step in filter(lambda s: (issubclass(type(s),wrappedChain.calculable) and
                                           hasattr(s,"source") and
                                           hasattr(s.source,"tracedKeys")), self.steps) :
                 step.tracer = step.source
@@ -142,7 +141,7 @@ class analysisLooper :
                 self.steps[0].books.append(step.book)
 
             if minimal : continue
-            step.tracer = wrappedChain.keyTracer(None) if self.trace and (step.isSelector or issubclass(type(step),wrappedChain.wrappedChain.calculable)) else None
+            step.tracer = keyTracer(None) if self.trace and (step.isSelector or issubclass(type(step),wrappedChain.calculable)) else None
             if self.quietMode : step.makeQuiet()
             assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.name
             step.setup(self.chains[self.mainTree], self.mainTree[0])

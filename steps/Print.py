@@ -1,5 +1,5 @@
 import time
-from core.analysisStep import analysisStep
+from supy import analysisStep
 #####################################
 class progressPrinter(analysisStep) :
 
@@ -21,7 +21,7 @@ class progressPrinter(analysisStep) :
 #####################################
 class printstuff(analysisStep) :
 
-    def __init__(self,stuff []) :
+    def __init__(self,stuff = []) :
         self.stuff = stuff
         self.moreName = "print all in %s" % str(stuff)
         print '\t'.join(stuff)

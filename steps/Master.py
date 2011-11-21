@@ -1,6 +1,6 @@
-from core.analysisStep import analysisStep
-from core import utils
 import os
+from supy import utils
+from supy import analysisStep
 #####################################
 class Master(analysisStep) :
     def __init__(self, xs, xsPostWeights, lumi, lumiWarn) :

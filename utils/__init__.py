@@ -5,6 +5,9 @@ try:
     import numpy as np
 except:
     pass
+
+for module in ['algos','cms','io','root'] : exec("from %s import *"%module)
+
 #####################################
 hyphens="-"*115
 #####################################

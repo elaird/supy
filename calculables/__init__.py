@@ -1,6 +1,6 @@
 import operator
 from inspect import isclass,ismodule,getargspec
-from core.wrappedChain import *
+from supy import wrappedChain
 #more modules are imported at the end of this file
 ##############################
 class weight(wrappedChain.calculable) :
@@ -57,8 +57,8 @@ def fromCollections(module,collections) :
 ##############################
 
 import random,string,os,operator
-from core.analysisStep import analysisStep
-from core.utils import justNameTitle
+from supy import analysisStep
+from supy.utils import justNameTitle
 
 class secondary(wrappedChain.calculable,analysisStep) :
     
@@ -184,4 +184,4 @@ class secondary(wrappedChain.calculable,analysisStep) :
         return sampleHists
                      
 ##############################
-for module in [Other] : import module
+#for module in ['Other'] : exec("import %s"%module)

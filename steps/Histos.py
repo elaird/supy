@@ -1,7 +1,6 @@
 import copy,array,os,collections
 import ROOT as r
-from core.analysisStep import analysisStep
-from core import utils
+from supy import analysisStep,utils
 #####################################
 class generic(analysisStep) :
 
