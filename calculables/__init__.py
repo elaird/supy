@@ -11,14 +11,10 @@ class weight(wrappedChain.calculable) :
         weights = [self.source[n] for n in self.calcNames]
         self.value = reduce(operator.mul, weights, 1) if None not in weights else None
 ##############################
-class indicesOther(wrappedChain.calculable) :
-    @property
-    def name(self) : return self.indicesOther
-    
+class IndicesOther(wrappedChain.calculable) :
     def __init__(self, collection = None) :
-        self.indices      = "%sIndices%s"%collection
-        self.indicesOther = "%sIndicesOther%s"%collection
-
+        self.fixes = collection
+        self.stash(['Indices'])
     def update(self,_) :
         self.value = []
         if not self.source.node(self.indices).updated :
@@ -188,4 +184,4 @@ class secondary(wrappedChain.calculable,analysisStep) :
         return sampleHists
                      
 ##############################
-import Compatibility,Electron,Gen,Jet,Muon,Other,Photon,Top,Vertex,XClean,Trigger,Davide
+for module in [Other] : import module
