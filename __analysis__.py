@@ -128,7 +128,7 @@ class analysis(object) :
 	for step in out :
 	    disable = False
 	    if step.name in stepBlackList : disable = True
-	    if isinstance(step, steps.other.histogrammer) :
+	    if isinstance(step, steps.histos.generic) :
 	        for matchString in histoBlackList :
 	            vars = [step.var] if type(step.var) is str else step.var
 	            for var in vars :
