@@ -2,7 +2,7 @@ import os
 from supy import utils
 from supy import analysisStep
 #####################################
-class Master(analysisStep) :
+class master(analysisStep) :
     def __init__(self, xs, xsPostWeights, lumi, lumiWarn) :
         for item in ["xs", "xsPostWeights", "lumi", "lumiWarn"] : setattr(self, item, eval(item))
         

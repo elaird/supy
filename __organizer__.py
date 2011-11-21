@@ -101,7 +101,7 @@ class organizer(object) :
 
         for sample in self.samples :
             sample['file'] = r.TFile(sample["outputFileName"])
-            sample['dir'] = sample['file'].Get("Master")
+            sample['dir'] = sample['file'].Get("master")
             def extract(histName,bin=1) :
                 hist = sample['dir'].Get(histName)
                 return hist.GetBinContent(bin) if hist and hist.GetEntries() else 0
@@ -236,13 +236,13 @@ class organizer(object) :
     def calculables(self) :
         def nodes(file, dirName) :
             def category(title) :
-                return ("sltr" if dirName=="Master" else
+                return ("sltr" if dirName=="master" else
                         "leaf" if dirName=="Leaves" else 
                         "fake" if title.count(configuration.fakeString()) else 
                         "calc" )
             def parseCalc(cd) :
-                if dirName=="Master" and not cd.Get("Calculables") : return None
-                tkeys = (cd.Get("Calculables") if dirName=="Master" else cd).GetListOfKeys()
+                if dirName=="master" and not cd.Get("Calculables") : return None
+                tkeys = (cd.Get("Calculables") if dirName=="master" else cd).GetListOfKeys()
                 deps = frozenset([ utils.justNameTitle(t) for t in tkeys])
                 name,title = utils.justNameTitle(cd)
                 return tuple([name, title, category(title), deps])
@@ -252,12 +252,12 @@ class organizer(object) :
                          if type(file.Get(path+k.GetName())) is r.TDirectoryFile and k.GetName()!="Calculables" ]
                 return [path+dir for dir in dirs] + sum([keyNames(path+dir+"/",descend) for dir in dirs if descend],[])
 
-            return filter(None,[parseCalc(file.Get(name)) for name in keyNames(dirName+'/',descend=(dirName=="Master"))])
+            return filter(None,[parseCalc(file.Get(name)) for name in keyNames(dirName+'/',descend=(dirName=="master"))])
         
         def calcs(sample) :
             return ( nodes(sample['file'], "Calculables") +
                      nodes(sample['file'], "Leaves") +
-                     nodes(sample['file'], "Master")
+                     nodes(sample['file'], "master")
                      )
         
         if not hasattr(self,"_organizer__calculables") :

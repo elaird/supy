@@ -1,1 +1,2 @@
-import master,print,filter,histos,other
+from __master__ import master
+import printer,filter,histos,other

@@ -30,7 +30,7 @@ class analysisLooper :
     def checkSteps(self) :
         for iStep,step in enumerate(self.steps) :
             if iStep : continue
-            assert step.name=="Master", "The master step must occur first."
+            assert step.name=="master", "The master step must occur first."
             assert step.isSelector, "The master step must be a selector."
         selectors = [ (s.name,s.moreNames) for s in self.steps if s.isSelector ]
         for sel in selectors : assert 1==selectors.count(sel), "Duplicate selector (%s,%s) is not allowed."%sel

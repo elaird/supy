@@ -1,5 +1,5 @@
 import math,operator,itertools
-xfrom supy import wrappedChain
+from supy import wrappedChain
 from . import secondary
 
 #####################################
@@ -27,7 +27,7 @@ class abbreviation(wrappedChain.calculable) :
 class crock(wrappedChain.calculable) :
     def update(self,localEntry) : self.value = {}
 #####################################
-class FixedValue(wrappedChain.calculable) :
+class fixedValue(wrappedChain.calculable) :
     @property
     def name(self) :
         return self.label
