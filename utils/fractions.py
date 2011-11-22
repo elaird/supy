@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import math, bisect, numpy as np
+import bisect, numpy as np
 
 class cached(object):
     def __init__(self, func): self.__func = func
@@ -62,7 +62,8 @@ class componentSolver(object) :
 
 
 
-import sys, utils, itertools, ROOT as r
+import sys, itertools, ROOT as r
+from supy import utils
 def drawComponentSolver(cs, canvas = None) :
     if not canvas : canvas = r.TCanvas()
     canvas.cd(0)

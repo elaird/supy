@@ -1,4 +1,4 @@
-import os,collections,subprocess,cPickle
+import os,subprocess,cPickle
 #####################################
 def mkdir(path) :
     try:

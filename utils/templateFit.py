@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import math, bisect, numpy as np
+import math, bisect
+try:
+    import numpy as np
+except: pass
 
 class cached(object):
     def __init__(self, func): self.__func = func
@@ -70,7 +73,8 @@ class templateEnsembles(object) :
         self.meanErrors = self.pulls * np.array([np.mean([toy.error for toy in ensemble]) for ensemble in self.ensembles])
         self.sensitivity = np.mean(self.meanErrors[1:-1])
 
-import utils, ROOT as r
+from supy import utils
+import ROOT as r
 
 def drawTemplateEnsembles(ens, canvas = None) :
     if not canvas : canvas = r.TCanvas()
@@ -171,7 +175,7 @@ if __name__=="__main__" :
     templates = [(p,template(p)) for p in np.arange(-1.0,1.1,0.1)]
     observed = np.array([np.random.poisson(mu) for mu in template(truePar)])
 
-    TF = templateFitter(observed, *templates)
+    TF = templateFitter(observed, *zip(*templates))
     print "true value: ", truePar
     print "measured : ", utils.roundString(TF.value,TF.error)
     canvas = drawTemplateFitter(TF)

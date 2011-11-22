@@ -1,11 +1,8 @@
-from multiprocessing import Process,JoinableQueue
-import os,collections,array,math,subprocess,cPickle,traceback,sys,itertools,operator
-import ROOT as r
+import os,math, ROOT as r
 try:
     import numpy as np
 except:
     pass
-
 
 #####################################
 def generateDictionaries(inList) :

@@ -1,6 +1,5 @@
 from multiprocessing import Process,JoinableQueue
-import os,traceback,sys,itertools
-import ROOT as r
+import traceback,sys,itertools, ROOT as r
 try:
     import numpy as np
 except:
