@@ -1,5 +1,4 @@
 import collections, copy
-#more modules are imported at the end of this file
 
 def specify(names = [], overrideLumi = None, xsPostWeights = None, effectiveLumi = None, nFilesMax = None, nEventsMax = None, weights = [], color = 1, markerStyle = 1 , weightedName = None) :
     assert not (overrideLumi and type(names)==list)
@@ -60,4 +59,3 @@ class SampleHolder(dict) :
             
         return sampleSpecs
 
-for module in [] : import module
