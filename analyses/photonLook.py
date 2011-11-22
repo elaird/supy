@@ -45,15 +45,13 @@ class photonLook(analysis.analysis) :
                                                 ][2:3] )),
                  #required to be sorted
                  #"triggerList" : ("HLT_HT100U","HLT_HT100U_v3","HLT_HT120U","HLT_HT140U","HLT_HT150U_v3"), #2010
-                 "triggerList": tuple(#["HLT_Photon50_CaloIdVL_v%d"%i for i in range(1,3)] +
-                                      #["HLT_Photon50_CaloIdVL_IsoL_v%d"%i for i in range(1,5)]+
-                                      ["HLT_Photon75_CaloIdVL_v%d"%i for i in range(1,8)]+
+                 "triggerList": tuple(["HLT_Photon75_CaloIdVL_v%d"%i for i in range(1,8)]+
                                       ["HLT_Photon75_CaloIdVL_IsoL_v%d"%i for i in range(1,11)]+
                                       ["HLT_Photon90_CaloIdVL_v%d"%i for i in range(1,5)]+
                                       ["HLT_Photon90_CaloIdVL_IsoL_v%d"%i for i in range(1,8)]+
                                       ["HLT_Photon125_v%d"%i for i in range(1,3)]+
                                       ["HLT_Photon135_v%d"%i for i in range(1,3)]
-                                      ),#2011 epoch 1
+                                      ),#2011
                  }
 
     def listOfCalculables(self, params) :
@@ -256,7 +254,7 @@ class photonLook(analysis.analysis) :
             steps.Photon.singlePhotonHistogrammer(_photon, _jet),
             
             steps.Other.variableGreaterFilter(0.55,"%sAlphaTEt%s"%_jet),
-
+            steps.Trigger.lowestUnPrescaledTriggerHistogrammer(),
             
             steps.Jet.photon1PtOverHtHistogrammer(jets = _jet, photons = _photon, etRatherThanPt = _etRatherThanPt),            
             steps.Other.histogrammer("%sIndices%s"%_jet,10,-0.5,9.5, title=";number of %s%s passing ID#semicolon p_{T}#semicolon #eta cuts;events / bin"%_jet,
@@ -403,11 +401,11 @@ class photonLook(analysis.analysis) :
         #data += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn2",    weights = jwPrompt, overrideLumi = 280.5)
         #data += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.Bryn3",    weights = jwPrompt, overrideLumi = 374.1)
 
-        data += specify(names = "Photon.Run2011A-05Aug2011-v1.AOD.job663")
-        data += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.job662")
-        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.job664")
-        data += specify(names = "Photon.Run2011A-PromptReco-v6.AOD.job667")
-        data += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.job668")
+        data += specify(names = "Photon.Run2011A-May10ReReco-v1.AOD.job662_skim",color = r.kBlack)
+        data += specify(names = "Photon.Run2011A-PromptReco-v4.AOD.job664_skim", color = r.kRed)
+        data += specify(names = "Photon.Run2011A-05Aug2011-v1.AOD.job663_skim",  color = r.kBlue)
+        data += specify(names = "Photon.Run2011A-PromptReco-v6.AOD.job667_skim", color = r.kGreen)
+        data += specify(names = "Photon.Run2011B-PromptReco-v1.AOD.job668_skim", color = r.kCyan)
         
         eL = 20000.0
 
@@ -509,7 +507,7 @@ class photonLook(analysis.analysis) :
             for org in organizers :
                 self.mergeSamples(org)
                 if "Z" in org.tag :
-                    lumi = 3641.9
+                    lumi = 4529.2
                     org.scale(lumi)
                     print "WARNING: HARD-CODED LUMI FOR Z MODE! (%g)"%lumi
                 else :
@@ -526,7 +524,7 @@ class photonLook(analysis.analysis) :
 
         self.mergeSamples(org)
         if "Z" in org.tag :
-            lumi = 3641.9
+            lumi = 4529.2
             org.scale(lumi)
             print "WARNING: HARD-CODED LUMI FOR Z MODE! (%g)"%lumi
         else :

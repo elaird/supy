@@ -28,11 +28,11 @@ class jsonMaker(analysis) :
                              'Photon.Run2011B-PromptReco-v1.AOD.job598',
                              ], [])]
 
-        group['Photon2'] = [(["Photon.Run2011A-05Aug2011-v1.AOD.job663",
-                              "Photon.Run2011A-May10ReReco-v1.AOD.job662",
-                              "Photon.Run2011A-PromptReco-v4.AOD.job664",
-                              "Photon.Run2011A-PromptReco-v6.AOD.job667",
-                              "Photon.Run2011B-PromptReco-v1.AOD.job668",
+        group['Photon2'] = [(["Photon.Run2011A-05Aug2011-v1.AOD.job663_skim",
+                              "Photon.Run2011A-May10ReReco-v1.AOD.job662_skim",
+                              "Photon.Run2011A-PromptReco-v4.AOD.job664_skim",
+                              "Photon.Run2011A-PromptReco-v6.AOD.job667_skim",
+                              "Photon.Run2011B-PromptReco-v1.AOD.job668_skim",
                               ], [])]
 
         group['Mumu'] = [(["DoubleMu.Run2011A-05Aug2011-v1.AOD.job663",
