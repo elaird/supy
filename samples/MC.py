@@ -135,11 +135,21 @@ mc.add("g_jets_mg_ht_200_inf_summer11_skim", '%s"%s/g_jets_mg_ht_200_inf_summer1
 # QCD (HT binned)
 qcdDset1 = "QCD_TuneZ2_HT-%s_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM"
 qcdDset3 = "QCD_TuneZ2_HT-%s_7TeV-madgraph.Summer11-PU_S4_START42_V11-v3.AODSIM"
-qcdDir = "/dburton//ICF/automated/2011_10_26_12_39_58/"
-mc.add("qcd_mg_ht_100_250_summer11",  '%s/%s/%s")'%(srm, qcdDir, qcdDset1%"100To250"), xs = {"LO":4194000.0, "fakeNLO":4194000.0*mgKFactor}["fakeNLO"])
-mc.add("qcd_mg_ht_250_500_summer11",  '%s/%s/%s")'%(srm, qcdDir, qcdDset3%"250To500"), xs = {"LO": 198500.0, "fakeNLO": 198500.0*mgKFactor}["fakeNLO"])
-mc.add("qcd_mg_ht_500_1000_summer11", '%s/%s/%s")'%(srm, qcdDir, qcdDset1%"500To1000"),xs = {"LO":   5856.0, "fakeNLO":   5856.0*mgKFactor}["fakeNLO"])
-mc.add("qcd_mg_ht_1000_inf_summer11", '%s/%s/%s")'%(srm, qcdDir, qcdDset1%"1000"),     xs = {"LO":    122.6, "fakeNLO":    122.6*mgKFactor}["fakeNLO"])
+qcdDir1 = "/dburton//ICF/automated/2011_10_26_12_39_58/"
+qcdDir2 = "/dburton//ICF/automated/2011_11_24_13_30_10/"
+
+mc.add("qcd_mg_ht_100_250_summer11",  '%s/%s/%s")'%(srm, qcdDir1, qcdDset1%"100To250"), xs = {"LO":4194000.0, "fakeNLO":4194000.0*mgKFactor}["fakeNLO"])
+mc.add("qcd_mg_ht_250_500_summer11",  '%s/%s")'   %(srm, qcdDir2,                    ), xs = {"LO": 198500.0, "fakeNLO": 198500.0*mgKFactor}["fakeNLO"])
+mc.add("qcd_mg_ht_500_1000_summer11", '%s/%s/%s")'%(srm, qcdDir1, qcdDset1%"500To1000"),xs = {"LO":   5856.0, "fakeNLO":   5856.0*mgKFactor}["fakeNLO"])
+mc.add("qcd_mg_ht_1000_inf_summer11", '%s/%s/%s")'%(srm, qcdDir1, qcdDset1%"1000"),     xs = {"LO":    122.6, "fakeNLO":    122.6*mgKFactor}["fakeNLO"])
+
+# QCD (HT binned) skims
+dir = "/vols/cms02/elaird1/29_skims/04_photons/v8"
+l = 'utils.fileListFromDisk(isDirectory = False, location = '
+mc.add("qcd_mg_ht_100_250_summer11_skim",   '%s"%s/qcd_mg_ht_100_250_summer11_*_skim.root")'%(l, dir), xs = 3.180463e-06 * 5.326380e+06)
+mc.add("qcd_mg_ht_250_500_summer11_skim",   '%s"%s/qcd_mg_ht_250_500_summer11_*_skim.root")'%(l, dir), xs = 2.491150e-04 * 2.520950e+05)
+mc.add("qcd_mg_ht_500_1000_summer11_skim", '%s"%s/qcd_mg_ht_500_1000_summer11_*_skim.root")'%(l, dir), xs = 2.405978e-04 * 7.437120e+03)
+mc.add("qcd_mg_ht_1000_inf_summer11_skim", '%s"%s/qcd_mg_ht_1000_inf_summer11_*_skim.root")'%(l, dir), xs = 1.675973e-04 * 1.557020e+02)
 
 ## MG  Spring '11 (L2L3)
 #gJetMg = "/elaird//ICF/automated/2011_04_04_11_45_04/"
