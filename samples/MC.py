@@ -135,11 +135,13 @@ mc.add("g_jets_mg_ht_200_inf_summer11_skim", '%s"%s/g_jets_mg_ht_200_inf_summer1
 # QCD (HT binned)
 qcdDset1 = "QCD_TuneZ2_HT-%s_7TeV-madgraph.Summer11-PU_S4_START42_V11-v1.AODSIM"
 qcdDset3 = "QCD_TuneZ2_HT-%s_7TeV-madgraph.Summer11-PU_S4_START42_V11-v3.AODSIM"
-qcdDir = "/dburton//ICF/automated/2011_10_26_12_39_58/"
-mc.add("qcd_mg_ht_100_250_summer11",  '%s/%s/%s")'%(srm, qcdDir, qcdDset1%"100To250"), xs = {"LO":4194000.0, "fakeNLO":4194000.0*mgKFactor}["fakeNLO"])
-mc.add("qcd_mg_ht_250_500_summer11",  '%s/%s/%s")'%(srm, qcdDir, qcdDset3%"250To500"), xs = {"LO": 198500.0, "fakeNLO": 198500.0*mgKFactor}["fakeNLO"])
-mc.add("qcd_mg_ht_500_1000_summer11", '%s/%s/%s")'%(srm, qcdDir, qcdDset1%"500To1000"),xs = {"LO":   5856.0, "fakeNLO":   5856.0*mgKFactor}["fakeNLO"])
-mc.add("qcd_mg_ht_1000_inf_summer11", '%s/%s/%s")'%(srm, qcdDir, qcdDset1%"1000"),     xs = {"LO":    122.6, "fakeNLO":    122.6*mgKFactor}["fakeNLO"])
+qcdDir1 = "/dburton//ICF/automated/2011_10_26_12_39_58/"
+qcdDir2 = "/dburton//ICF/automated/2011_11_24_13_30_10/"
+
+mc.add("qcd_mg_ht_100_250_summer11",  '%s/%s/%s")'%(srm, qcdDir1, qcdDset1%"100To250"), xs = {"LO":4194000.0, "fakeNLO":4194000.0*mgKFactor}["fakeNLO"])
+mc.add("qcd_mg_ht_250_500_summer11",  '%s/%s")'   %(srm, qcdDir2,                    ), xs = {"LO": 198500.0, "fakeNLO": 198500.0*mgKFactor}["fakeNLO"])
+mc.add("qcd_mg_ht_500_1000_summer11", '%s/%s/%s")'%(srm, qcdDir1, qcdDset1%"500To1000"),xs = {"LO":   5856.0, "fakeNLO":   5856.0*mgKFactor}["fakeNLO"])
+mc.add("qcd_mg_ht_1000_inf_summer11", '%s/%s/%s")'%(srm, qcdDir1, qcdDset1%"1000"),     xs = {"LO":    122.6, "fakeNLO":    122.6*mgKFactor}["fakeNLO"])
 
 ## MG  Spring '11 (L2L3)
 #gJetMg = "/elaird//ICF/automated/2011_04_04_11_45_04/"
