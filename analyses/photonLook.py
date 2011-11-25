@@ -411,10 +411,10 @@ class photonLook(analysis.analysis) :
 
         phw = calculables.Photon.photonWeight(var = "vertexIndices")
         
-        qcd_mg          = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdMgNames(era = "spring11"))
+        qcd_mg          = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdMgNames(era = "summer11"))
         g_jets_mg       = specify(effectiveLumi = eL, color = r.kGreen, names = self.gJetsMgNames(era = "summer11"))
 
-        qcd_mg_weighted = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdMgNames(era = "spring11"), weights = phw)
+        qcd_mg_weighted = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdMgNames(era = "summer11"), weights = phw)
         g_jets_mg_weighted = specify(effectiveLumi = eL, color = r.kGreen, names = self.gJetsMgNames(era = "summer11"), weights = phw)
 
         qcd_py6         = specify(effectiveLumi = eL, color = r.kBlue, names = self.qcdPyNames())
@@ -481,7 +481,7 @@ class photonLook(analysis.analysis) :
             org.mergeSamples(targetSpec = {"name":"znunu_mg%s"%names[0], "color":r.kMagenta}, sources = [item+names[1] for item in self.zNunuMgNames(era = "summer11")])
             return
         
-        org.mergeSamples(targetSpec = {"name":"qcd_mg%s"%names[0],    "color":r.kBlue},  sources = [item+names[1] for item in self.qcdMgNames(era = "spring11")])
+        org.mergeSamples(targetSpec = {"name":"qcd_mg%s"%names[0],    "color":r.kBlue},  sources = [item+names[1] for item in self.qcdMgNames(era = "summer11")])
         org.mergeSamples(targetSpec = {"name":"g_jets_mg%s"%names[0], "color":r.kGreen}, sources = [item+names[1] for item in self.gJetsMgNames(era = "summer11")])
 
         smSources += ["qcd_mg%s"%names[0], "g_jets_mg%s"%names[0]]
