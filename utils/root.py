@@ -5,9 +5,9 @@ except:
     pass
 
 #####################################
-def generateDictionaries(inList) :
+def generateDictionaries(inList, dir = None) :
     wd = os.getcwd()
-    r.gSystem.ChangeDirectory(wd+"/cpp")
+    r.gSystem.ChangeDirectory((dir if dir!=None else wd)+"/cpp")
     for item in inList : r.gInterpreter.GenerateDictionary(*item)
     r.gSystem.ChangeDirectory(wd)
 #####################################

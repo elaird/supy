@@ -128,8 +128,8 @@ setupSCIPY()
 setupROOT()
 
 # compile cpp source files
-supy.utils.compileSources(inList = supy.configuration.cppFiles())
-supy.utils.generateDictionaries(inList = supy.configuration.dictionariesToGenerate())
+supy.utils.compileSources(inList = [supyDir+'/'+item for item in supy.configuration.cppFiles()])
+supy.utils.generateDictionaries(inList = supy.configuration.dictionariesToGenerate(), dir = supyDir)
 
 # construct the analysis
 someClass = importedClass(moduleName(arg))
