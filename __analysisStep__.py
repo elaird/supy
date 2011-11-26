@@ -9,6 +9,7 @@ class analysisStep(object) :
     integerWidth,docWidth,moreWidth = 10,40,50
     moreName = moreName2 = ""
     disabled = quietMode = False
+    only = ''
     __invert = False
     
     def setup(self, inputChain, fileDirectory) : return
@@ -52,11 +53,20 @@ class analysisStep(object) :
     def requiresNoTrace(self) : return False
     def disable(self) : self.disabled = True
     def makeQuiet(self) : self.quietMode = True
+
     def invert(self, val = True) :
         self.__invert = val
         if val : self.moreName += " [INVERTED]"
         return self
-        
+
+    def onlySim(self) :
+        self.only = 'sim'
+        return self
+
+    def onlyData(self) :
+        self.only = 'data'
+        return self
+
     def name1(self) : return self.name.ljust(self.docWidth)+self.moreName.ljust(self.moreWidth)
     def name2(self) : return "" if self.moreName2=="" else "\n"+"".ljust(self.docWidth)+self.moreName2.ljust(self.moreWidth)
     def printStatistics(self) :
