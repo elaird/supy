@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-import os,sys,inspect
-from supy import utils,configuration,sites,analysis
+import os,sys,inspect,supy
+supyDir = supy.utils.popPath(supy.__file__)
 ############################################
 def opts() :
     from optparse import OptionParser
@@ -65,7 +65,7 @@ def importedClass(module) :
     for itemName in dir(eval(module)) :
         item=eval(module+"."+itemName)
         if not inspect.isclass(item) : continue        
-        if issubclass(item, analysis) and item is not analysis :
+        if issubclass(item, supy.analysis) and item is not supy.analysis :
             count+=1
             theClass = item
     assert count==1,arg+" needs exactly 1 class which inherits from analysis; it has "+str(count)
@@ -76,10 +76,11 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
     jobScriptFileName = "%(base)s/%(tag)s/%(sample)s/job%(iSlice)d.sh"%indexDict
 
     os.system("cp -p "+jobScript+" "+jobScriptFileName)
-    outJobScript = open(jobScriptFileName,"a")
-    outJobScript.write("\ncd "+os.environ["PWD"]+"\n")
-    outJobScript.write(jobCmd)
-    outJobScript.close()
+    with open(jobScriptFileName,"a") as file :
+        print >>file
+        print >>file, "export PYTHONPATH=%s:$PYTHONPATH"%supy.utils.popPath(supyDir)
+        print >>file, "cd "+os.environ["PWD"]
+        print >>file, jobCmd
 
     if os.path.exists(condorTemplate) :
         condorFileName = jobScriptFileName.replace(".sh",".condor")
@@ -88,18 +89,18 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
     else :
         arg = jobScriptFileName
 
-    subCmd = "./%s %s"%(subScript, arg)
+    subCmd = "%s %s"%(subScript, arg)
     os.system(subCmd)
 ############################################
 def doBatch(someInstance) :
     argsAndOptions = sys.argv[1:]
     argsAndOptions.remove("--batch")
-    baseCmd = "./supy "+" ".join(argsAndOptions)
+    baseCmd = supyDir+"/run/supy "+" ".join(argsAndOptions)
 
-    subScript,jobScript,condorTemplate = sites.batchScripts()
-    os.system("chmod +x "+subScript)
+    subScript,jobScript,condorTemplate = supy.sites.batchScripts()
+    os.system("chmod +x %s/%s"%(supyDir,subScript))
 
-    site = sites.prefix()
+    site = supy.sites.prefix()
 
     scriptDir = someInstance.globalStem
     os.system("mkdir -p "+scriptDir)
@@ -115,8 +116,8 @@ def doBatch(someInstance) :
                                  "iSlice":iSlice,
                                  "site":site}
                 args.append( (baseCmd + " --site %(site)s --jobid %(iSlice)d --tag '%(tag)s' --sample %(sample)s"%listOfIndices,
-                               listOfIndices, subScript, jobScript, condorTemplate) )
-    utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(submitBatchJob), args)
+                              listOfIndices, supyDir+'/'+subScript, supyDir+'/'+jobScript, condorTemplate) )
+    supy.utils.operateOnListUsingQueue(supy.configuration.nCoresDefault(), supy.utils.qWorker(submitBatchJob), args)
 ############################################
         
 # get options
@@ -127,8 +128,8 @@ setupSCIPY()
 setupROOT()
 
 # compile cpp source files
-utils.compileSources(inList = configuration.cppFiles())
-utils.generateDictionaries(inList = configuration.dictionariesToGenerate())
+supy.utils.compileSources(inList = supy.configuration.cppFiles())
+supy.utils.generateDictionaries(inList = supy.configuration.dictionariesToGenerate())
 
 # construct the analysis
 someClass = importedClass(moduleName(arg))

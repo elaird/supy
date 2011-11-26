@@ -22,6 +22,8 @@ def writePickle(fileName, payload) :
     cPickle.dump(payload, pickleFile)
     pickleFile.close()
 #####################################        
+def popPath(p, char = '/') : return char.join(p.split(char)[:-1])
+#####################################
 def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = "", numericallyIncrementingKeys = True ) :
     import re
     from collections import defaultdict
