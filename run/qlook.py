@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 import subprocess,collections,os
-import sites
-from core import utils
+from supy import sites,utils
 
 def lines(cmd) :
     return utils.getCommandOutput(cmd)["stdout"].split("\n")
