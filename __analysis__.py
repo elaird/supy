@@ -210,7 +210,8 @@ class analysis(object) :
             adjustedSteps = ([steps.master(xs = tup.xs, xsPostWeights = spec.xsPostWeights,
                                            lumi = spec.overrideLumi if spec.overrideLumi!=None else tup.lumi,
                                            lumiWarn = lumiWarn(tup.lumi, nEventsMax, spec.nFilesMax) )] +
-                             filter(lambda s: s.only in ['','data' if tup.lumi else 'sim'], self.listOfSteps(pars)) )
+                             self.listOfSteps(pars) )
+            for step in filter(lambda s: s.only not in ['','data' if tup.lumi else 'sim'], adjustedSteps) : step.disabled = True
             
             return analysisLooper( mainTree = self.mainTree(),   otherTreesToKeepWhenSkimming = self.otherTreesToKeepWhenSkimming(),
                                    nEventsMax = nEventsMax,      leavesToBlackList = self.leavesToBlackList(),
