@@ -1,5 +1,4 @@
 import collections, copy
-#more modules are imported at the end of this file
 
 def specify(names = [], overrideLumi = None, xsPostWeights = None, effectiveLumi = None, nFilesMax = None, nEventsMax = None, weights = [], color = 1, markerStyle = 1 , weightedName = None) :
     assert not (overrideLumi and type(names)==list)
@@ -39,7 +38,7 @@ class SampleHolder(dict) :
         self.inclusiveGroups.append( tuple(sorted(samplesGroup, key = lambda name: self[name].ptHatMin) ) )
 
     def manageInclusive(self, sampleSpecs = [], applyPostWeightXS = False) :
-        import calculables.Other
+        import calculables.other
         inclusiveSpecs = filter(lambda ss: ss.name in self.inclusiveNames, sampleSpecs )
         for spec in inclusiveSpecs :
             group = next( g for g in self.inclusiveGroups if spec.name in g )
@@ -54,10 +53,9 @@ class SampleHolder(dict) :
             modArgs = dict([(item,getattr(spec,item)) for item in spec._fields])
             modArgs["names"] = modArgs["name"]
             del modArgs["name"]
-            modArgs["weights"] = copy.deepcopy(modArgs["weights"]) + [calculables.Other.pthatLess( nextPtHat.ptHatMin ) ]
+            modArgs["weights"] = copy.deepcopy(modArgs["weights"]) + [calculables.other.pthatLess( nextPtHat.ptHatMin ) ]
             if applyPostWeightXS : modArgs["xsPostWeights"] = self[spec.name].xs - nextPtHat.xs
             sampleSpecs[sampleSpecs.index(spec)] = specify( **modArgs )[0]
             
         return sampleSpecs
 
-import MC,JetMET,HT,Muon,Electron,Photon,SignalSkim,WPol,DoubleMu

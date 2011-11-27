@@ -1,1 +1,2 @@
-import Displayer,Filter,Gen,Histos,Jet,Master,Muon,Other,Photon,Print,Top,Trigger,Xclean
+from __master__ import master
+import printer,filters,histos,other

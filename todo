@@ -39,6 +39,3 @@
 * kill vertexRequirementFilter in favor of vertexIndices and multiplicityFilter
 * kill variablePt(Greater/Less)Filter in favor of ptFilter
 * kill jetPtFilter in favor of ptFilter
-
-* move all the filters in stepsOther to stepsFilter.
-* rename 'passFilter' to 'label'
