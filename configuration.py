@@ -7,6 +7,9 @@ def computeEntriesForReport() : return False
 def printNodesUsed() : return False
 def fakeString() : return ";FAKE"
 def cppFiles() : return ["cpp/linkdef.cxx"]
+def whereami() : return max('/'.join(__file__.split('/')[:-1]), '.')
+def hadd() : return ['hadd',
+                     whereami()+'/run/phaddy'][1]
 
 def detectorSpecs() :
     return {
