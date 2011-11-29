@@ -18,7 +18,7 @@ class IndicesOther(wrappedChain.calculable) :
     def update(self,_) :
         self.value = []
         if not self.source.node(self.Indices).updated :
-            self.source[self.indices]
+            self.source[self.Indices]
 ##############################
 class size(wrappedChain.calculable) :
     @property
