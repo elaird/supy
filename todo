@@ -17,6 +17,8 @@
 
 * review utils.operateOnListUsingQueue()
 
+* add skimmer i/o check to utils.io.printSkimResults
+
 (ongoing)
 * profile
 
