@@ -203,7 +203,7 @@ class analysis(object) :
             assert spec.weightedName not in sampleNames,"Duplicate sample name %s is not allowed."%spec.weightedName ; sampleNames.add(spec.weightedName)
             pars = dict( list(conf.iteritems()) + [("baseSample",spec.name), ("sample",spec.weightedName) ] )
             tup = self.sampleDict[spec.name]
-            inputFiles = utils.readPickle(self.inputFilesListFile(spec.name))[:spec.nFilesMax]
+            inputFiles = utils.readPickle(self.inputFilesListFile(spec.name), "Have you looped?")[:spec.nFilesMax]
             nEventsMax,nFilesMax = parseForNumberEvents(spec, tup, len(inputFiles), self.__nSlices)
             inputFiles = inputFiles[:nFilesMax]
 
