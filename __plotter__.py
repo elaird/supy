@@ -466,13 +466,14 @@ class plotter(object) :
         text = r.TText()
         text.SetNDC()
         text.SetTextFont(102)
-        text.SetTextSize(0.45*text.GetTextSize())
+        text.SetTextSize(0.40*text.GetTextSize())
 
         pageWidth = 111
         nSamples = len(self.someOrganizer.samples)
         if self.printRatios : nSamples += 1
         colWidth = min(25, pageWidth/nSamples)
         space = 1
+        cycle = 100
 
         nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in steps]))
         for i,step in enumerate(steps[-self.nLinesMax:]) :
@@ -481,10 +482,7 @@ class plotter(object) :
             text.SetTextColor(self.rowColors[absI%len(self.rowColors)])
             letter = string.ascii_letters[absI]
             x = 0.01
-            y = 0.98 - 0.33*(i+0.5+(absI/5) - ((absI-i)/5) )/self.nLinesMax
-            text.DrawTextNDC(x, y, nametitle.format(letter, step.name, step.title ))
-            if step.name=='label' : self.pdfOptions = step.title
-            self.cutDict[letter] = (step.name, step.title)
+            y = 0.98 - 0.33*(i+0.5+(absI/cycle) - ((absI-i)/cycle) )/self.nLinesMax
 
             nums = []
             ratios = [None]*len(self.samplesForRatios)
@@ -503,8 +501,18 @@ class plotter(object) :
                     s = utils.roundString(*ratio, width=(colWidth-space))
                 nums.append(s.rjust(colWidth))
                 
-            text.DrawTextNDC(x, y-0.51, "%s: %s"%(letter, "".join(nums)))
-            self.yieldDict[letter] = nums
+            if step.name=='label' :
+                self.pdfOptions = step.title
+                text.SetTextFont(132)
+                label = "[  %s  ]"%step.title
+                text.DrawTextNDC(0.0, y, label)
+                text.DrawTextNDC(0.0, y-0.51, label )
+                text.SetTextFont(102)
+            else:
+                text.DrawTextNDC(x, y, nametitle.format(letter, step.name, step.title ))
+                text.DrawTextNDC(x, y-0.51, "%s: %s"%(letter, "".join(nums)))
+                self.cutDict[letter] = (step.name, step.title)
+                self.yieldDict[letter] = nums
 
         self.sampleList = [s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]
         if self.printRatios and len(self.samplesForRatios)==2 :
