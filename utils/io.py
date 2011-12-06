@@ -1,4 +1,4 @@
-import os,subprocess,cPickle
+import sys,os,subprocess,cPickle
 #####################################
 def mkdir(path) :
     try:
@@ -12,15 +12,18 @@ def getCommandOutput(command):
     stdout,stderr = p.communicate()
     return {"stdout":stdout, "stderr":stderr, "returncode":p.returncode}
 #####################################
-def readPickle(fileName) :
-    pickleFile = open(fileName)
-    payload = cPickle.load(pickleFile)
-    pickleFile.close()
-    return payload
-def writePickle(fileName, payload) :
-    pickleFile = open(fileName,"w")
-    cPickle.dump(payload, pickleFile)
-    pickleFile.close()
+def readPickle(fileName, errorMessage = "readPickle() failed", exitOnError = True) :
+    try:
+        with open(fileName) as pickleFile : return cPickle.load(pickleFile)
+    except:
+        print errorMessage, "   (cannot open %s)"%fileName
+        if exitOnError: sys.exit(0)
+def writePickle(fileName, payload, errorMessage = "writePickle() failed", exitOnError = True) :
+    try:
+        with open(fileName,'w') as pickleFile : cPickle.dump(payload,pickleFile)
+    except:
+        print errorMessage, "   (cannot open %s"%fileName
+        if exitOnError: sys.exit(0)
 #####################################        
 def popPath(p, char = '/') : return char.join(p.split(char)[:-1])
 #####################################
