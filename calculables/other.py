@@ -60,6 +60,10 @@ class eta(value) :
     @staticmethod
     def function(x) : return x.eta()
 #####################################
+class size(value) :
+    @staticmethod
+    def function(x) : return len(x)
+#####################################
 
 
 
