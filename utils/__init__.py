@@ -6,6 +6,7 @@ except:
     pass
 
 for module in ['algos','cms','io','root'] : exec("from %s import *"%module)
+for module in ['fitKinematic','luminosity','fractions','templateFit','minuit'] : exec("import %s"%module)
 
 #####################################
 hyphens="-"*115

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import sys,os,tempfile
-from supy import configuration,sites,utils
+from supy import configuration,sites
+import __init__ as utils
 sys.path.extend([sites.info(key="CMSSW_lumi")])
 
 try:
