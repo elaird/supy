@@ -74,7 +74,7 @@ def adjustPad(pad, anMode = False) :
 class plotter(object) :
     def __init__(self,
                  someOrganizer,
-                 psFileName = "out.ps",
+                 pdfFileName = "out.pdf",
                  samplesForRatios = ("",""),
                  sampleLabelsForRatios = ("",""),
                  printRatios = False,
@@ -101,7 +101,7 @@ class plotter(object) :
                  blackList = [],
                  whiteList = []
                  ) :
-        for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
+        for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
                      "detailedCalculables", "rowColors","dependence2D", "printRatios"] :
@@ -109,9 +109,10 @@ class plotter(object) :
 
         if "counts" not in self.whiteList : self.blackList.append("counts")
         self.plotRatios = self.samplesForRatios!=("","")
-        self.psOptions = "Landscape"
         self.canvas = r.TCanvas("canvas", "canvas", 500, 500) if self.anMode else r.TCanvas()
         self.pageNumber = -1
+        self.pdfOptions = ''
+        if pdfFileName[-3:]==".ps" : self.pdfFileName = self.pdfFileName.replace('.ps','.pdf')
 
         #used for making latex tables
         self.cutDict = {}
@@ -152,7 +153,7 @@ class plotter(object) :
                 self.onePlotFunction(step[plotName])
 
         self.printCanvas("]")
-        self.makePdf()
+        print self.pdfFileName, 'has been written'
         if self.latexYieldTable : self.printLatexYieldTable()
         print utils.hyphens
 
@@ -174,7 +175,7 @@ class plotter(object) :
 ''')
 
     def printLatexYieldTable(self, blackList = ["passFilter"]) :
-        texFile = self.psFileName.replace(".ps",".tex")
+        texFile = self.pdfFileName.replace(".pdf",".tex")
         f = open(texFile, "w")
         f.write(r'''
 \documentclass[landscape]{article}
@@ -230,7 +231,7 @@ class plotter(object) :
         print "The output file \""+texFile+"\" has been written."
         
     def printOnePage(self, name = "", tight = False, padNumber = None) :
-        fileName = "%s_%s.eps"%(self.psFileName.replace(".ps",""),name)
+        fileName = "%s_%s.eps"%(self.pdfFileName.replace(".pdf",""),name)
         pad = self.canvas if padNumber is None else self.canvas.cd(padNumber)
         pad.Print(fileName)
 
@@ -268,7 +269,7 @@ class plotter(object) :
 
         def onlyDumpToFile(histos, spec) :
             if "onlyDumpToFile" in spec and spec["onlyDumpToFile"] :
-                rootFileName = self.psFileName.replace(".ps","_%s.root"%spec["plotName"])
+                rootFileName = self.pdfFileName.replace(".pdf","_%s.root"%spec["plotName"])
                 f = r.TFile(rootFileName, "RECREATE")
                 for h in histos :
                     h.Write()
@@ -454,13 +455,8 @@ class plotter(object) :
             text.SetTextSize(0.45*text.GetTextSize())
             text.SetTextAlign(33)
             text.DrawText(0.95, 0.03, "page %3d"%self.pageNumber)
-        self.canvas.Print(self.psFileName+extra,self.psOptions)
-
-    def makePdf(self) :
-        pdfFile=self.psFileName.replace(".ps",".pdf")
-        os.system("ps2pdf "+self.psFileName+" "+pdfFile)
-        os.system("gzip -f "+self.psFileName)
-        print "The output file \""+pdfFile+"\" has been written."
+        self.canvas.Print(self.pdfFileName+extra,('pdf ' if extra=='[' else 'Title:')+self.pdfOptions)
+        self.pdfOptions = ''
 
     def printSteps(self, steps, printAll=False) :
         if printAll and len(steps)>self.nLinesMax : self.printSteps(steps[:1-self.nLinesMax],printAll)
@@ -487,6 +483,7 @@ class plotter(object) :
             x = 0.01
             y = 0.98 - 0.33*(i+0.5+(absI/5) - ((absI-i)/5) )/self.nLinesMax
             text.DrawTextNDC(x, y, nametitle.format(letter, step.name, step.title ))
+            if step.name=='label' : self.pdfOptions = step.title
             self.cutDict[letter] = (step.name, step.title)
 
             nums = []
