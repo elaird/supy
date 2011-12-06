@@ -86,6 +86,7 @@ class analysis(object) :
             self.__configs = [ dict( [("tag",[])] + [(key,val) for key,val in parameters.iteritems() if type(val)!=self.vary] ) ]
             for param,variations in parameters.iteritems() :
                 if type(variations) is self.vary :
+                    assert len(variations), "Empty <vary> for parameter '%s'"%param
                     self.__configs = sum([[ dict( list(conf.iteritems()) + [ (param,val), ("tag",conf["tag"]+[str(key)]) ] )
                                             for key,val in variations.iteritems()] for conf in self.__configs],[])
             for conf in self.__configs : conf['tag'] = '_'.join(conf['tag'])
