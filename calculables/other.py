@@ -37,6 +37,26 @@ class fixedValue(wrappedChain.calculable) :
     def update(self, ignored) :
         pass
 #####################################
+
+
+
+#####################################
+class pt(wrappedChain.calculable) :
+    def __init__(self,var) :
+        self.fixes = ("%s."%var, "")
+        self.var = var
+    def update(self,_) : self.value = self.source[self.var].pt()
+#####################################
+class eta(wrappedChain.calculable) :
+    def __init__(self,var) :
+        self.fixes = ("%s."%var, "")
+        self.var = var
+    def update(self,_) : self.value = self.source[self.var].eta()
+#####################################
+
+
+
+#####################################
 class Ratio(secondary) :
     def __init__(self, var=None, binning=(0,0,0), thisSample = None, target = ("",[]), groups = []) :
         self.fixes = (var,"")
