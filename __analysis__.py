@@ -82,10 +82,12 @@ class analysis(object) :
     def configurations(self) :
         if not hasattr(self,"_analysis__configs") :
             parameters = self.parameters()
+            order = ( parameters['vary'] if 'vary' in parameters else [] ) + [p for p in parameters if p not in parameters['vary']]
             for item in ['tag','sample','baseSample'] : assert item not in parameters
             self.__configs = [ dict( [("tag",[])] + [(key,val) for key,val in parameters.iteritems() if type(val)!=self.vary] ) ]
-            for param,variations in parameters.iteritems() :
+            for param,variations in sorted(parameters.iteritems(), key = lambda x: order.index(x[0])) :
                 if type(variations) is self.vary :
+                    assert len(variations), "Empty <vary> for parameter '%s'"%param
                     self.__configs = sum([[ dict( list(conf.iteritems()) + [ (param,val), ("tag",conf["tag"]+[str(key)]) ] )
                                             for key,val in variations.iteritems()] for conf in self.__configs],[])
             for conf in self.__configs : conf['tag'] = '_'.join(conf['tag'])
@@ -203,7 +205,7 @@ class analysis(object) :
             assert spec.weightedName not in sampleNames,"Duplicate sample name %s is not allowed."%spec.weightedName ; sampleNames.add(spec.weightedName)
             pars = dict( list(conf.iteritems()) + [("baseSample",spec.name), ("sample",spec.weightedName) ] )
             tup = self.sampleDict[spec.name]
-            inputFiles = utils.readPickle(self.inputFilesListFile(spec.name))[:spec.nFilesMax]
+            inputFiles = utils.readPickle(self.inputFilesListFile(spec.name), "Have you looped?")[:spec.nFilesMax]
             nEventsMax,nFilesMax = parseForNumberEvents(spec, tup, len(inputFiles), self.__nSlices)
             inputFiles = inputFiles[:nFilesMax]
 
