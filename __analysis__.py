@@ -82,7 +82,8 @@ class analysis(object) :
     def configurations(self) :
         if not hasattr(self,"_analysis__configs") :
             parameters = self.parameters()
-            order = ( parameters['vary'] if 'vary' in parameters else [] ) + [p for p in parameters if p not in parameters['vary']]
+            if 'vary' not in parameters : parameters['vary'] = []
+            order = parameters['vary'] + [p for p in parameters if p not in parameters['vary']]
             for item in ['tag','sample','baseSample'] : assert item not in parameters
             self.__configs = [ dict( [("tag",[])] + [(key,val) for key,val in parameters.iteritems() if type(val)!=self.vary] ) ]
             for param,variations in sorted(parameters.iteritems(), key = lambda x: order.index(x[0])) :
