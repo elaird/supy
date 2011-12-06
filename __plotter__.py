@@ -96,6 +96,7 @@ class plotter(object) :
                  detailedCalculables = False,
                  shiftUnderOverFlows = True,
                  rowColors = [r.kBlack],
+                 rowCycle = 5,
                  dependence2D = False,
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
                  blackList = [],
@@ -104,7 +105,7 @@ class plotter(object) :
         for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
-                     "detailedCalculables", "rowColors","dependence2D", "printRatios"] :
+                     "detailedCalculables", "rowColors","rowCycle","dependence2D", "printRatios"] :
             setattr(self,item,eval(item))
 
         if "counts" not in self.whiteList : self.blackList.append("counts")
@@ -473,7 +474,6 @@ class plotter(object) :
         if self.printRatios : nSamples += 1
         colWidth = min(25, pageWidth/nSamples)
         space = 1
-        cycle = 100
 
         nametitle = "{0}:  {1:<%d}   {2}" % (3+max([len(s.name) for s in steps]))
         for i,step in enumerate(steps[-self.nLinesMax:]) :
@@ -482,7 +482,7 @@ class plotter(object) :
             text.SetTextColor(self.rowColors[absI%len(self.rowColors)])
             letter = string.ascii_letters[absI]
             x = 0.01
-            y = 0.98 - 0.33*(i+0.5+(absI/cycle) - ((absI-i)/cycle) )/self.nLinesMax
+            y = 0.98 - 0.33*(i+0.5+(absI/self.rowCycle) - ((absI-i)/self.rowCycle) )/self.nLinesMax
 
             nums = []
             ratios = [None]*len(self.samplesForRatios)
