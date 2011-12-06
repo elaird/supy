@@ -1,4 +1,4 @@
-import math,utils
+import math, __init__ as utils
 try:
     import scipy.optimize as opt
 except: pass

@@ -63,7 +63,7 @@ class componentSolver(object) :
 
 
 import sys, itertools, ROOT as r
-from supy import utils
+import __init__ as utils
 def drawComponentSolver(cs, canvas = None) :
     if not canvas : canvas = r.TCanvas()
     canvas.cd(0)

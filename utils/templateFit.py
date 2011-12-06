@@ -73,7 +73,7 @@ class templateEnsembles(object) :
         self.meanErrors = self.pulls * np.array([np.mean([toy.error for toy in ensemble]) for ensemble in self.ensembles])
         self.sensitivity = np.mean(self.meanErrors[1:-1])
 
-from supy import utils
+import __init__ as utils
 import ROOT as r
 
 def drawTemplateEnsembles(ens, canvas = None) :
