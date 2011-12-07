@@ -115,7 +115,7 @@ class analysis(object) :
     def jobsFile(self,tag,sample) :
         if self.__loop : os.system("mkdir -p %s/%s/%s"%(self.globalStem,tag,sample))
         return "/".join([self.globalStem, tag, sample,"jobs"])
-    def psFileName(self,tag = "") : return "%s/%s%s.ps"%(self.globalStem, self.name, "_"+tag if len(tag) else "")
+    def pdfFileName(self,tag = "") : return "%s/%s%s.pdf"%(self.globalStem, self.name, "_"+tag if len(tag) else "")
 
     def sampleSpecs(self, tag = "") :
         confSamples = self.filteredSamples(next(conf for conf in self.configurations if conf['tag']==tag))

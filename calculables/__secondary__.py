@@ -69,7 +69,8 @@ class secondary(wrappedChain.calculable,analysisStep) :
         return
 
     def checkCache(self,org) :
-        self.organize(org)
+        self.__organize(org)
+
         if not os.path.exists(self.cacheFileName()) :
             print
             print "!! No cache: %s"%self.cacheFileName()
@@ -84,12 +85,11 @@ class secondary(wrappedChain.calculable,analysisStep) :
             print '\n'.join("\t%s : %s"%(m,s) for s,m in msgs)
         
     def doCache(self,org) :
-        self.organize(org)
+        self.__organize(org)
         cache = r.TFile.Open(self.cacheFileName(),"UPDATE")
         print "Updating " + self.cacheFileName()
 
         for iSample,sample in enumerate(org.samples) :
-            if self.onlySamples() and sample['name'] not in self.onlySamples() : continue
             if sample['name'] in [k.GetName() for k in cache.GetListOfKeys()] : cache.rmdir(sample['name'])
             cache.mkdir(sample['name']).cd()
             for hists in org.steps[0].values() :
@@ -124,4 +124,11 @@ class secondary(wrappedChain.calculable,analysisStep) :
         cache.Close()
         return sampleHists
                      
+    def __organize(self,org) :
+        self.organize(org)
+        only = self.onlySamples()
+        if only:
+            for name in [s['name'] for s in org.samples if s['name'] not in only] :
+                org.drop(name)
+
 ##############################
