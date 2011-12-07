@@ -113,6 +113,7 @@ class plotter(object) :
         if "counts" not in self.whiteList : self.blackList.append("counts")
         self.plotRatios = self.samplesForRatios!=("","")
         self.canvas = r.TCanvas("canvas", "canvas", 500, 500) if self.anMode else r.TCanvas()
+        self.formerMaxAbsI = -1
         self.pageNumber = -1
         self.pdfOptions = ''
         if pdfFileName[-3:]==".ps" : self.pdfFileName = self.pdfFileName.replace('.ps','.pdf')
@@ -504,11 +505,17 @@ class plotter(object) :
                 text.DrawTextNDC(0.01, y-0.51, label )
                 text.SetTextFont(font)
             else:
-                text.DrawTextNDC(x, y, nametitle.format(letter, step.name, step.title ))
+                text.DrawTextNDC(x, y-0.00, nametitle.format(letter, step.name, step.title ))
                 text.DrawTextNDC(x, y-0.51, "%s: %s"%(letter, "".join(nums)))
                 self.cutDict[letter] = (step.name, step.title)
                 self.yieldDict[letter] = nums
 
+            if absI > self.formerMaxAbsI :
+                text.SetTextColor(r.kBlack)
+                text.DrawTextNDC(0.008,y-0.00,'|')
+                text.DrawTextNDC(0.008,y-0.51,'|')
+
+        self.formerMaxAbsI = absI
         self.sampleList = [s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]
         if self.printRatios and len(self.samplesForRatios)==2 :
             self.sampleList += ("%s/%s"%self.sampleLabelsForRatios)[:(colWidth-space)].rjust(colWidth)
