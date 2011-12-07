@@ -89,7 +89,7 @@ class plotter(object) :
                  noSci = False,
                  showErrorsOnDataYields = False,
                  linYAfter = None,
-                 nLinesMax = 23,
+                 nLinesMax = 22,
                  nColumnsMax = 75,
                  pageNumbers = True,
                  latexYieldTable = False,
@@ -97,6 +97,7 @@ class plotter(object) :
                  shiftUnderOverFlows = True,
                  rowColors = [r.kBlack],
                  rowCycle = 5,
+                 omit2D = False,
                  dependence2D = False,
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
                  blackList = [],
@@ -105,9 +106,10 @@ class plotter(object) :
         for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
-                     "detailedCalculables", "rowColors","rowCycle","dependence2D", "printRatios"] :
+                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D", "printRatios"] :
             setattr(self,item,eval(item))
 
+        self.nLinesMax -= nLinesMax/rowCycle
         if "counts" not in self.whiteList : self.blackList.append("counts")
         self.plotRatios = self.samplesForRatios!=("","")
         self.canvas = r.TCanvas("canvas", "canvas", 500, 500) if self.anMode else r.TCanvas()
@@ -332,7 +334,7 @@ class plotter(object) :
         maxLensB = [max(len(b) for a,b,c in block) for block in blocks]
         stringBlocks = [["%s%s  %s"%(a,b.ljust(maxLenB),c) for a,b,c in block] for block,maxLenB in zip(blocks,maxLensB)]
         for iLine,line in enumerate(sum(stringBlocks,[])) :
-            y=1.0 - 0.35*(iLine+0.5)/self.nLinesMax
+            y=0.98 - 0.35*(iLine+0.5)/self.nLinesMax
             text.DrawTextNDC(0,y, line)
         return text
             
@@ -469,9 +471,8 @@ class plotter(object) :
         text.SetTextFont(102)
         text.SetTextSize(0.40*text.GetTextSize())
 
-        pageWidth = 111
-        nSamples = len(self.someOrganizer.samples)
-        if self.printRatios : nSamples += 1
+        pageWidth = 120
+        nSamples = len(self.someOrganizer.samples) + int(self.printRatios)
         colWidth = min(25, pageWidth/nSamples)
         space = 1
 
@@ -481,8 +482,8 @@ class plotter(object) :
 
             text.SetTextColor(self.rowColors[absI%len(self.rowColors)])
             letter = string.ascii_letters[absI]
-            x = 0.01
-            y = 0.98 - 0.33*(i+0.5+(absI/self.rowCycle) - ((absI-i)/self.rowCycle) )/self.nLinesMax
+            x = 0.02
+            y = 0.98 - 0.43*(i+0.5+(absI/self.rowCycle) - ((absI-i)/self.rowCycle) )/self.nLinesMax
 
             nums = []
             ratios = [None]*len(self.samplesForRatios)
@@ -501,13 +502,15 @@ class plotter(object) :
                     s = utils.roundString(*ratio, width=(colWidth-space))
                 nums.append(s.rjust(colWidth))
                 
+            if step.name in ['master','label']: self.pdfOptions = step.title
             if step.name=='label' :
-                self.pdfOptions = step.title
-                text.SetTextFont(132)
+                text.SetTextColor(r.kBlack)
+                font = text.GetTextFont()
+                text.SetTextFont(62)
                 label = "[  %s  ]"%step.title
-                text.DrawTextNDC(0.0, y, label)
-                text.DrawTextNDC(0.0, y-0.51, label )
-                text.SetTextFont(102)
+                text.DrawTextNDC(0.01, y, label)
+                text.DrawTextNDC(0.01, y-0.51, label )
+                text.SetTextFont(font)
             else:
                 text.DrawTextNDC(x, y, nametitle.format(letter, step.name, step.title ))
                 text.DrawTextNDC(x, y-0.51, "%s: %s"%(letter, "".join(nums)))
@@ -605,6 +608,7 @@ class plotter(object) :
 
             legend.AddEntry(histo, newSampleNames[sampleName] if (newSampleNames!=None and sampleName in newSampleNames) else sampleName, "lp")
             if dimension==1   : self.plot1D(histo, count, sample["goptions"] if ("goptions" in sample) else "", stuffToKeep)
+            elif dimension==2 and self.omit2D : continue
             elif dimension==2 :
                 self.plot2D(histo, count, sampleName, stuffToKeep)
                 pads[sampleName] = 1+count
