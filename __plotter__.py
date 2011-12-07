@@ -74,7 +74,7 @@ def adjustPad(pad, anMode = False) :
 class plotter(object) :
     def __init__(self,
                  someOrganizer,
-                 psFileName = "out.ps",
+                 pdfFileName = "out.pdf",
                  samplesForRatios = ("",""),
                  sampleLabelsForRatios = ("",""),
                  printRatios = False,
@@ -89,29 +89,33 @@ class plotter(object) :
                  noSci = False,
                  showErrorsOnDataYields = False,
                  linYAfter = None,
-                 nLinesMax = 17,
-                 nColumnsMax = 67,
+                 nLinesMax = 22,
+                 nColumnsMax = 75,
                  pageNumbers = True,
                  latexYieldTable = False,
                  detailedCalculables = False,
                  shiftUnderOverFlows = True,
                  rowColors = [r.kBlack],
+                 rowCycle = 5,
+                 omit2D = False,
                  dependence2D = False,
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
                  blackList = [],
                  whiteList = []
                  ) :
-        for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
+        for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
-                     "detailedCalculables", "rowColors","dependence2D", "printRatios"] :
+                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D", "printRatios"] :
             setattr(self,item,eval(item))
 
+        self.nLinesMax -= nLinesMax/rowCycle
         if "counts" not in self.whiteList : self.blackList.append("counts")
         self.plotRatios = self.samplesForRatios!=("","")
-        self.psOptions = "Landscape"
         self.canvas = r.TCanvas("canvas", "canvas", 500, 500) if self.anMode else r.TCanvas()
         self.pageNumber = -1
+        self.pdfOptions = ''
+        if pdfFileName[-3:]==".ps" : self.pdfFileName = self.pdfFileName.replace('.ps','.pdf')
 
         #used for making latex tables
         self.cutDict = {}
@@ -152,7 +156,7 @@ class plotter(object) :
                 self.onePlotFunction(step[plotName])
 
         self.printCanvas("]")
-        self.makePdf()
+        print self.pdfFileName, 'has been written'
         if self.latexYieldTable : self.printLatexYieldTable()
         print utils.hyphens
 
@@ -174,7 +178,7 @@ class plotter(object) :
 ''')
 
     def printLatexYieldTable(self, blackList = ["passFilter"]) :
-        texFile = self.psFileName.replace(".ps",".tex")
+        texFile = self.pdfFileName.replace(".pdf",".tex")
         f = open(texFile, "w")
         f.write(r'''
 \documentclass[landscape]{article}
@@ -230,7 +234,7 @@ class plotter(object) :
         print "The output file \""+texFile+"\" has been written."
         
     def printOnePage(self, name = "", tight = False, padNumber = None) :
-        fileName = "%s_%s.eps"%(self.psFileName.replace(".ps",""),name)
+        fileName = "%s_%s.eps"%(self.pdfFileName.replace(".pdf",""),name)
         pad = self.canvas if padNumber is None else self.canvas.cd(padNumber)
         pad.Print(fileName)
 
@@ -268,7 +272,7 @@ class plotter(object) :
 
         def onlyDumpToFile(histos, spec) :
             if "onlyDumpToFile" in spec and spec["onlyDumpToFile"] :
-                rootFileName = self.psFileName.replace(".ps","_%s.root"%spec["plotName"])
+                rootFileName = self.pdfFileName.replace(".pdf","_%s.root"%spec["plotName"])
                 f = r.TFile(rootFileName, "RECREATE")
                 for h in histos :
                     h.Write()
@@ -330,7 +334,7 @@ class plotter(object) :
         maxLensB = [max(len(b) for a,b,c in block) for block in blocks]
         stringBlocks = [["%s%s  %s"%(a,b.ljust(maxLenB),c) for a,b,c in block] for block,maxLenB in zip(blocks,maxLensB)]
         for iLine,line in enumerate(sum(stringBlocks,[])) :
-            y=1.0 - 0.35*(iLine+0.5)/self.nLinesMax
+            y=0.98 - 0.35*(iLine+0.5)/self.nLinesMax
             text.DrawTextNDC(0,y, line)
         return text
             
@@ -391,38 +395,32 @@ class plotter(object) :
             return "%.1f"%value
             
         def loopOneType(mergedSamples = False) :
-            sampleNames  = ["sample",""]
-            nEventsIn    = ["nEventsIn",""]
-            lumis        = ["  lumi (/pb)",""]
+            nameEventsLumi = []
             for sample in self.someOrganizer.samples :
                 if "sources" not in sample :
                     if mergedSamples : continue
-                    sampleNames.append(sample["name"])
-                    nEventsIn.append(str(int(sample["nEvents"])))
-                    lumis.append(getLumi(sample = sample))
+                    nameEventsLumi.append((sample["name"],str(int(sample['nEvents'])),getLumi(sample)))
                 else :
                     if not mergedSamples : continue
-                    localSampleNames = []
-                    localNEventsIn = []
-                    localLumis = []
+                    localNEL = []
                     useThese = True
 
                     for iSource in range(len(sample["sources"])) :
                         name = sample["sources"][iSource]
                         N    = sample["nEvents"][iSource]
-                        if type(N) is list :
-                            useThese = False
-                            break
-                        localSampleNames.append(name)
-                        localNEventsIn.append(str(int(N)))
-                        localLumis.append(getLumi(sample,iSource))
-                    if useThese :
-                        sampleNames.extend(localSampleNames)
-                        nEventsIn.extend(localNEventsIn)
-                        lumis.extend(localLumis)
-            return sampleNames,nEventsIn,lumis
+                        if type(N) is list : useThese = False; break
+                        localNEL.append((name,str(int(N)),getLumi(sample,iSource)))
+                    if useThese : nameEventsLumi += localNEL
+
+            nameEventsLumi.sort( key = lambda x: (x[0][:5], int(float(x[2])), -int(x[1]), x[0][5:] ))
+            if not nameEventsLumi : return (None,None,None)
+            name,events,lumi = zip(*nameEventsLumi)
+            return ( ["sample",""]+list(name),
+                     ["nEventsIn",""] + list(events),
+                     ["  lumi (/pb)",""] + list(lumi) )
 
         def printOneType(x, sampleNames, nEventsIn, lumis) :
+            if not sampleNames : return
             sLength = max([len(item) for item in sampleNames])
             nLength = max([len(item) for item in nEventsIn]  )
             lLength = max([len(item) for item in lumis]      )
@@ -430,11 +428,9 @@ class plotter(object) :
             total = sLength + nLength + lLength + 15
             if total>self.nColumnsMax : text.SetTextSize(defSize*self.nColumnsMax/(total+0.0))
                 
-            nSamples = len(sampleNames)
-            if nSamples == 1 : return
-            for j,i in enumerate(sorted(range(nSamples), key=lambda i: (sampleNames[i][:5],float(lumis[i]) if lumis[i] and "lumi" not in lumis[i] else None, sampleNames[i][5:] ))) :
+            for j,(name,events,lumi) in enumerate(zip(sampleNames,nEventsIn,lumis)) :
                 y = 0.9 - 0.55*(j+0.5)/self.nLinesMax
-                out = sampleNames[i].ljust(sLength)+nEventsIn[i].rjust(nLength+3)+lumis[i].rjust(lLength+3)
+                out = name.ljust(sLength) + events.rjust(nLength+3) + lumi.rjust(lLength+3)
                 text.DrawTextNDC(x, y, out)
 
         printOneType( 0.02, *loopOneType(False) )
@@ -454,13 +450,8 @@ class plotter(object) :
             text.SetTextSize(0.45*text.GetTextSize())
             text.SetTextAlign(33)
             text.DrawText(0.95, 0.03, "page %3d"%self.pageNumber)
-        self.canvas.Print(self.psFileName+extra,self.psOptions)
-
-    def makePdf(self) :
-        pdfFile=self.psFileName.replace(".ps",".pdf")
-        os.system("ps2pdf "+self.psFileName+" "+pdfFile)
-        os.system("gzip -f "+self.psFileName)
-        print "The output file \""+pdfFile+"\" has been written."
+        self.canvas.Print(self.pdfFileName+extra,('pdf ' if extra=='[' else 'Title:')+self.pdfOptions)
+        self.pdfOptions = ''
 
     def printSteps(self, steps, printAll=False) :
         if printAll and len(steps)>self.nLinesMax : self.printSteps(steps[:1-self.nLinesMax],printAll)
@@ -470,11 +461,10 @@ class plotter(object) :
         text = r.TText()
         text.SetNDC()
         text.SetTextFont(102)
-        text.SetTextSize(0.45*text.GetTextSize())
+        text.SetTextSize(0.40*text.GetTextSize())
 
-        pageWidth = 111
-        nSamples = len(self.someOrganizer.samples)
-        if self.printRatios : nSamples += 1
+        pageWidth = 120
+        nSamples = len(self.someOrganizer.samples) + int(self.printRatios)
         colWidth = min(25, pageWidth/nSamples)
         space = 1
 
@@ -484,10 +474,8 @@ class plotter(object) :
 
             text.SetTextColor(self.rowColors[absI%len(self.rowColors)])
             letter = string.ascii_letters[absI]
-            x = 0.01
-            y = 0.98 - 0.33*(i+0.5+(absI/5) - ((absI-i)/5) )/self.nLinesMax
-            text.DrawTextNDC(x, y, nametitle.format(letter, step.name, step.title ))
-            self.cutDict[letter] = (step.name, step.title)
+            x = 0.02
+            y = 0.98 - 0.43*(i+0.5+(absI/self.rowCycle) - ((absI-i)/self.rowCycle) )/self.nLinesMax
 
             nums = []
             ratios = [None]*len(self.samplesForRatios)
@@ -506,8 +494,20 @@ class plotter(object) :
                     s = utils.roundString(*ratio, width=(colWidth-space))
                 nums.append(s.rjust(colWidth))
                 
-            text.DrawTextNDC(x, y-0.51, "%s: %s"%(letter, "".join(nums)))
-            self.yieldDict[letter] = nums
+            if step.name in ['master','label']: self.pdfOptions = step.title
+            if step.name=='label' :
+                text.SetTextColor(r.kBlack)
+                font = text.GetTextFont()
+                text.SetTextFont(62)
+                label = "[  %s  ]"%step.title
+                text.DrawTextNDC(0.01, y, label)
+                text.DrawTextNDC(0.01, y-0.51, label )
+                text.SetTextFont(font)
+            else:
+                text.DrawTextNDC(x, y, nametitle.format(letter, step.name, step.title ))
+                text.DrawTextNDC(x, y-0.51, "%s: %s"%(letter, "".join(nums)))
+                self.cutDict[letter] = (step.name, step.title)
+                self.yieldDict[letter] = nums
 
         self.sampleList = [s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]
         if self.printRatios and len(self.samplesForRatios)==2 :
@@ -600,6 +600,7 @@ class plotter(object) :
 
             legend.AddEntry(histo, newSampleNames[sampleName] if (newSampleNames!=None and sampleName in newSampleNames) else sampleName, "lp")
             if dimension==1   : self.plot1D(histo, count, sample["goptions"] if ("goptions" in sample) else "", stuffToKeep)
+            elif dimension==2 and self.omit2D : continue
             elif dimension==2 :
                 self.plot2D(histo, count, sampleName, stuffToKeep)
                 pads[sampleName] = 1+count
