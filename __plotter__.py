@@ -395,38 +395,32 @@ class plotter(object) :
             return "%.1f"%value
             
         def loopOneType(mergedSamples = False) :
-            sampleNames  = ["sample",""]
-            nEventsIn    = ["nEventsIn",""]
-            lumis        = ["  lumi (/pb)",""]
+            nameEventsLumi = []
             for sample in self.someOrganizer.samples :
                 if "sources" not in sample :
                     if mergedSamples : continue
-                    sampleNames.append(sample["name"])
-                    nEventsIn.append(str(int(sample["nEvents"])))
-                    lumis.append(getLumi(sample = sample))
+                    nameEventsLumi.append((sample["name"],str(int(sample['nEvents'])),getLumi(sample)))
                 else :
                     if not mergedSamples : continue
-                    localSampleNames = []
-                    localNEventsIn = []
-                    localLumis = []
+                    localNEL = []
                     useThese = True
 
                     for iSource in range(len(sample["sources"])) :
                         name = sample["sources"][iSource]
                         N    = sample["nEvents"][iSource]
-                        if type(N) is list :
-                            useThese = False
-                            break
-                        localSampleNames.append(name)
-                        localNEventsIn.append(str(int(N)))
-                        localLumis.append(getLumi(sample,iSource))
-                    if useThese :
-                        sampleNames.extend(localSampleNames)
-                        nEventsIn.extend(localNEventsIn)
-                        lumis.extend(localLumis)
-            return sampleNames,nEventsIn,lumis
+                        if type(N) is list : useThese = False; break
+                        localNEL.append((name,str(int(N)),getLumi(sample,iSource)))
+                    if useThese : nameEventsLumi += localNEL
+
+            nameEventsLumi.sort( key = lambda x: (x[0][:5], int(float(x[2])), -int(x[1]), x[0][5:] ))
+            if not nameEventsLumi : return (None,None,None)
+            name,events,lumi = zip(*nameEventsLumi)
+            return ( ["sample",""]+list(name),
+                     ["nEventsIn",""] + list(events),
+                     ["  lumi (/pb)",""] + list(lumi) )
 
         def printOneType(x, sampleNames, nEventsIn, lumis) :
+            if not sampleNames : return
             sLength = max([len(item) for item in sampleNames])
             nLength = max([len(item) for item in nEventsIn]  )
             lLength = max([len(item) for item in lumis]      )
@@ -434,11 +428,9 @@ class plotter(object) :
             total = sLength + nLength + lLength + 15
             if total>self.nColumnsMax : text.SetTextSize(defSize*self.nColumnsMax/(total+0.0))
                 
-            nSamples = len(sampleNames)
-            if nSamples == 1 : return
-            for j,i in enumerate(sorted(range(nSamples), key=lambda i: (sampleNames[i][:5],float(lumis[i]) if lumis[i] and "lumi" not in lumis[i] else None, sampleNames[i][5:] ))) :
+            for j,(name,events,lumi) in enumerate(zip(sampleNames,nEventsIn,lumis)) :
                 y = 0.9 - 0.55*(j+0.5)/self.nLinesMax
-                out = sampleNames[i].ljust(sLength)+nEventsIn[i].rjust(nLength+3)+lumis[i].rjust(lLength+3)
+                out = name.ljust(sLength) + events.rjust(nLength+3) + lumi.rjust(lLength+3)
                 text.DrawTextNDC(x, y, out)
 
         printOneType( 0.02, *loopOneType(False) )
