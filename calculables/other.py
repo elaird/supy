@@ -73,7 +73,7 @@ class Ratio(secondary) :
         self.fixes = (var,"")
         self.defaultValue = 1.0
 
-        self.thisGroup = next((pre for pre,samples in groups if thisSample in samples),
+        self.thisGroup = next((pre for pre,samples in groups if thisSample in [s.split('.')[0] for s in samples]),
                               next((pre for pre,samples in groups if not samples and thisSample.find(pre)==0),
                                    None ))
         if self.thisGroup==None and not (thisSample in target[1] or (not target[1]) and thisSample.find(target[0])==0) :
@@ -90,7 +90,9 @@ class Ratio(secondary) :
             self.weights.Scale(1./self.weights.Integral(0,self.weights.GetNbinsX()+1))
             source.Scale(1./source.Integral(0,source.GetNbinsX()+1))
             self.weights.Divide(source)
-        else : self.weights = None
+        else :
+            print "Ratio did not find the group for %s."%self.thisGroup
+            self.weights = None
         
     def uponAcceptance(self,ev) :
         me = ev[self.name]
