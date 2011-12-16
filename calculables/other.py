@@ -130,6 +130,8 @@ class Discriminant(secondary) :
             if h : h.Scale(1./integral if integral else 1.)
 
         for key in self.dists :
+            if not left[key]: print "%s (left) : cannot find %s"%(self.name,key)
+            if not right[key]: print "%s (right) : cannot find %s"%(self.name,key)
             if left[key] and right[key] : left[key].Divide(right[key])
             else: left[key] = None
         self.likelihoodRatios = left
@@ -143,7 +145,7 @@ class Discriminant(secondary) :
 
     def likelihoodRatio(self,key) :
         hist = self.likelihoodRatios[key]
-        return 1 if not hist else hist.GetBinContent(hist.FindFixBin(self.source[key]))
+        return 0.5 if not hist else hist.GetBinContent(hist.FindFixBin(self.source[key]))
 
     def update(self,_) :
         likelihoodRatios = [self.likelihoodRatio(key) for key in self.dists]
