@@ -31,13 +31,14 @@ class master(supy.analysisStep) :
             print line.replace("Target","The output") + " has been written." 
 
         def cleanUp(stderr, files) :
-            okList = ["", "Exception in thread QueueFeederThread (most likely raised during interpreter shutdown):"]
-            assert (stderr in okList), "hadd had this stderr: %s"%stderr
+            okList = ["", "Exception in thread QueueFeederThread (most likely raised during interpreter shutdown):",]
+            commonWarning = "Warning in <TEnvRec::ChangeValue>"
+            assert (stderr in okList or commonWarning in stderr), "hadd had this stderr: '%s'"%stderr
             if stderr : print stderr
             for fileName in files : os.remove(fileName)
 
         if not all(os.path.exists(fileName) for fileName in products["outputFileName"]) : return
         hAdd = supy.utils.getCommandOutput("%s -f %s %s"%(supy.configuration.hadd(),self.outputFileName, " ".join(products["outputFileName"])))
-        
+
         printComment(hAdd["stdout"])
         cleanUp(hAdd["stderr"], products["outputFileName"])
