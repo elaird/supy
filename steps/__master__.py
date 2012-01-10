@@ -28,12 +28,21 @@ class master(supy.analysisStep) :
         def printComment(lines) :
             skip = ['Source file','Target path','Found subdirectory']
             line = next(L for L in lines.split('\n') if not any(item in L for item in skip))
-            print line.replace("Target","The output") + " has been written." 
+            print line.replace("Target","The output") + " has been written."
 
         def cleanUp(stderr, files) :
-            okList = ["", "Exception in thread QueueFeederThread (most likely raised during interpreter shutdown):",]
-            commonWarning = "Warning in <TEnvRec::ChangeValue>"
-            assert (stderr in okList or commonWarning in stderr), "hadd had this stderr: '%s'"%stderr
+            okList = ["", "Exception in thread QueueFeederThread (most likely raised during interpreter shutdown):",
+                      "Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<bool>=vector.dll vectorbool.dll> for level 0; ignored\n"
+                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<char>=vector.dll vectorbool.dll> for level 0; ignored\n"
+                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<short>=vector.dll vectorbool.dll> for level 0; ignored\n"
+                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<long>=vector.dll vectorbool.dll> for level 0; ignored\n"
+                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-char>=vector.dll vectorbool.dll> for level 0; ignored\n"
+                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-short>=vector.dll vectorbool.dll> for level 0; ignored\n"
+                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-int>=vector.dll vectorbool.dll> for level 0; ignored\n"
+                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-long>=vector.dll vectorbool.dll> for level 0; ignored\n"
+                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<float>=vector.dll vectorbool.dll> for level 0; ignored\n"
+                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<double>=vector.dll vectorbool.dll> for level 0; ignored\n",]
+            assert (stderr in okList), "hadd had this stderr: '%s'"%stderr
             if stderr : print stderr
             for fileName in files : os.remove(fileName)
 
