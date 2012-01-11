@@ -1,5 +1,5 @@
 import math,operator,itertools, ROOT as r
-from supy import wrappedChain
+from supy import wrappedChain,utils
 from . import secondary
 
 #####################################
@@ -129,6 +129,7 @@ class Discriminant(secondary) :
             integral = h.Integral(0,h.GetNbinsX()+1)
             if h : h.Scale(1./integral if integral else 1.)
 
+        self.printDilutions(left,right)
         for key in self.dists :
             if not left[key]: print "%s (left) : cannot find %s"%(self.name,key)
             if not right[key]: print "%s (right) : cannot find %s"%(self.name,key)
@@ -136,12 +137,23 @@ class Discriminant(secondary) :
             else: left[key] = None
         self.likelihoodRatios = left
 
+    def printDilutions(self,L,R) :
+        with open(self.outputFileName, "w") as file :
+            print >> file, "L:", self.left
+            print >> file, "R:", self.right
+            print >> file
+            for key in set.intersection(set(L),set(R)) :
+                if issubclass(type(L[key]),r.TH2) : continue
+                print >> file, key, "\t", round(utils.dilution(utils.binValues(L[key]),utils.binValues(R[key])),3)
+        print "Wrote file: %s"%self.outputFileName
+
     def uponAcceptance(self,ev) :
         for key,val in self.dists.iteritems() : self.book.fill(ev[key], key, *val, title = ";%s;events / bin"%key)
         self.book.fill(ev[self.name], self.name, self.bins, 0, 1, title = ";%s;events / bin"%self.name)
         if self.correlations :
             for (key1,val1),(key2,val2) in itertools.combinations(self.dists.iteritems(),2) :
-                self.book.fill((ev[key1],ev[key2]),"_cov_%s_%s"%(key1,key2), *zip(val1,val2), title = ';%s;%s;events / bin'%(key1,key2))
+                self.book.fill( ( max( val1[1], min( val1[2]-1e-6, ev[key1] )),
+                                  max( val2[1], min( val2[2]-1e-6, ev[key2] ))),"_cov_%s_%s"%(key1,key2), *zip(val1,val2), title = ';%s;%s;events / bin'%(key1,key2))
 
     def likelihoodRatio(self,key) :
         hist = self.likelihoodRatios[key]
