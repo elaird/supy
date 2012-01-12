@@ -476,7 +476,7 @@ class plotter(object) :
             text.SetTextColor(self.rowColors[absI%len(self.rowColors)])
             letter = string.ascii_letters[absI]
             x = 0.02
-            y = 0.98 - 0.43*(i+0.5+(absI/self.rowCycle) - ((absI-i)/self.rowCycle) )/self.nLinesMax
+            y = 0.98 - 0.34*(i+0.5+(absI/self.rowCycle) - ((absI-i)/self.rowCycle) )/self.nLinesMax
 
             nums = []
             ratios = [None]*len(self.samplesForRatios)
