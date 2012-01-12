@@ -143,6 +143,7 @@ class Discriminant(secondary) :
             print >> file, "R:", self.right
             print >> file
             for key in set.intersection(set(L),set(R)) :
+                if not (L[key] and R[key]) : continue
                 if issubclass(type(L[key]),r.TH2) : continue
                 print >> file, key, "\t", round(utils.dilution(utils.binValues(L[key]),utils.binValues(R[key])),3)
         print "Wrote file: %s"%self.outputFileName
