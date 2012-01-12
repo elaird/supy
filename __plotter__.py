@@ -191,7 +191,7 @@ class plotter(object) :
         filtered = []
         descDict = {}
         rows = []
-        for key in string.ascii_letters[:len(self.cutDict.keys())] :
+        for key in sorted(self.cutDict.keys(), key = string.ascii_letters.index) :
             name,desc = self.cutDict[key]
             if name in blackList :
                 filtered.append(key)
@@ -215,7 +215,7 @@ class plotter(object) :
 
         rowsLettered = []
         rowsDescribed = []
-        for key in string.ascii_letters[:len(self.yieldDict.keys())] :
+        for key in sorted(self.yieldDict.keys(), key = string.ascii_letters.index) :
             if key in filtered : continue
             yields = self.yieldDict[key]
             for i in range(len(yields)) :
