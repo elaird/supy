@@ -71,6 +71,9 @@ def adjustPad(pad, anMode = False) :
         r.gPad.SetTicky()
         r.gPad.SetTickx()
 ##############################
+def inDict(d, key, default) :
+    return d[key] if key in d else default
+##############################
 class plotter(object) :
     def __init__(self,
                  someOrganizer,
@@ -234,11 +237,15 @@ class plotter(object) :
         f.close()
         print "The output file \""+texFile+"\" has been written."
         
-    def printOnePage(self, name = "", tight = False, padNumber = None) :
+    def printOnePage(self, name = "", tight = False, padNumber = None, alsoC = False) :
         fileName = "%s_%s.eps"%(self.pdfFileName.replace(".pdf",""),name)
         pad = self.canvas if padNumber is None else self.canvas.cd(padNumber)
         pad.Print(fileName)
-
+        message = "The output file \"%s\" has been written."%fileName
+        if alsoC :
+            pad.Print(fileName.replace(".eps",".C"))
+            print message.replace(".eps",".C")
+            
         if not tight : #make pdf
             os.system("epstopdf "+fileName)
             os.system("rm       "+fileName)
@@ -248,7 +255,7 @@ class plotter(object) :
             os.system("epstopdf "+epsiFile)
             os.system("rm       "+epsiFile)
 
-        print "The output file \"%s\" has been written."%fileName.replace(".eps",".pdf")
+        print message.replace(".eps",".pdf")
 
     def individualPlots(self, plotSpecs, newSampleNames = {}, cms = True, preliminary = True, tdrStyle = True) :
         def goods(spec) :
@@ -323,6 +330,7 @@ class plotter(object) :
 
             args = {"name":spec["plotName"],
                     "tight":False,#self.anMode
+                    "alsoC":spec["alsoC"] if "alsoC" in spec else False,
                     }
             if "sampleName" in spec :
                 sampleName = spec["sampleName"]
@@ -603,18 +611,18 @@ class plotter(object) :
             if ignore or (not histo) or (not histo.GetEntries()) : continue
 
             if "color" in sample :
-                histo.SetLineColor(sample["color"])
-                histo.SetMarkerColor(sample["color"])
-            if "markerStyle" in sample :
-                histo.SetMarkerStyle(sample["markerStyle"])
-            if "lineStyle" in sample :
-                histo.SetLineStyle(sample["lineStyle"])
-            if "lineWidth" in sample :
-                histo.SetLineWidth(sample["lineWidth"])
+                for item in ["Line", "Marker"] :
+                    getattr(histo,"Set%sColor"%item)(sample["color"])
+            for item in ["lineColor", "lineStyle", "lineWidth",
+                         "markerStyle", "markerColor", "fillStyle", "fillColor"] :
+                if item in sample : getattr(histo, "Set"+item.capitalize()[0]+item[1:])(sample[item])
 
             sampleName = opts["newSampleNames"][sample["name"]] if sample["name"] in opts["newSampleNames"] else sample["name"]
             legendEntries.append( (histo, sampleName, "lp") )
-            if dimension==1   : self.plot1D(histo, count, sample["goptions"] if ("goptions" in sample) else "", stuffToKeep)
+            if dimension==1 :
+                stuffToKeep += self.plot1D(histo, count,
+                                           goptions = inDict(sample, "goptions", ""),
+                                           double = inDict(sample, "double", ""))
             elif dimension==2 and self.omit2D : continue
             elif dimension==2 :
                 self.plot2D(histo, count, sampleName, stuffToKeep)
@@ -706,48 +714,58 @@ class plotter(object) :
             self.canvas.cd(0)
             if count>0 : self.printCanvas()
 
-    def plot1D(self, histo, count, goptions, stuffToKeep) :
+    def plot1D(self, histo, count, goptions = "", double = "") :
+        keep = []
         adjustPad(r.gPad, self.anMode)
+
         if count==0 :
-            histo.SetStats(self.showStatBox)
             if not self.anMode : histo.GetYaxis().SetTitleOffset(1.25)
-            histo.Draw(goptions)
             if self.doLog : r.gPad.SetLogy()
         else :
-            histo.SetStats(self.showStatBox)
-            histo.Draw(goptions+"same")
-            r.gStyle.SetOptFit(0)
-            if self.doMetFit and "met" in histo.GetName() :
-                r.gStyle.SetOptFit(1111)
-                func=metFit(histo)
-                stuffToKeep.append(func)
-                    
-                r.gPad.Update()
-                tps=histo.FindObject("stats")
-                stuffToKeep.append(tps)
-                tps.SetLineColor(histo.GetLineColor())
-                tps.SetTextColor(histo.GetLineColor())
-                if iHisto==0 :
-                    tps.SetX1NDC(0.75)
-                    tps.SetX2NDC(0.95)
-                    tps.SetY1NDC(0.75)
-                    tps.SetY2NDC(0.95)
-                else :
-                    tps.SetX1NDC(0.75)
-                    tps.SetX2NDC(0.95)
-                    tps.SetY1NDC(0.50)
-                    tps.SetY2NDC(0.70)
+            goptions += "same"
+
+        histo.SetStats(self.showStatBox)
+        histo.Draw(goptions)
+
+        if double :
+            histo2 = histo.Clone(histo.GetName()+"_cloneDouble")
+            histo2.SetFillStyle(0)
+            histo2.Draw("histsame")
+            keep.append(histo2)
+
+        r.gStyle.SetOptFit(0)
+        if self.doMetFit and "met" in histo.GetName() :
+            r.gStyle.SetOptFit(1111)
+            func=metFit(histo)
+            keep.append(func)
+
+            r.gPad.Update()
+            tps=histo.FindObject("stats")
+            keep.append(tps)
+            tps.SetLineColor(histo.GetLineColor())
+            tps.SetTextColor(histo.GetLineColor())
+            if iHisto==0 :
+                tps.SetX1NDC(0.75)
+                tps.SetX2NDC(0.95)
+                tps.SetY1NDC(0.75)
+                tps.SetY2NDC(0.95)
+            else :
+                tps.SetX1NDC(0.75)
+                tps.SetX2NDC(0.95)
+                tps.SetY1NDC(0.50)
+                tps.SetY2NDC(0.70)
 
         #move stat box
         r.gPad.Update()
         tps=histo.FindObject("stats")
-        stuffToKeep.append(tps)
+        keep.append(tps)
         if tps :
             tps.SetTextColor(histo.GetLineColor())
             tps.SetX1NDC(0.86)
             tps.SetX2NDC(1.00)
             tps.SetY1NDC(0.70)
             tps.SetY2NDC(1.00)
+        return keep
 
     def lineDraw(self, name, offset, slope, histo, color = r.kBlack, suffix = "") :
         if name not in histo.GetName() : return None
