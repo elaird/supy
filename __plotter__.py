@@ -617,8 +617,8 @@ class plotter(object) :
                          "markerStyle", "markerColor", "fillStyle", "fillColor"] :
                 if item in sample : getattr(histo, "Set"+item.capitalize()[0]+item[1:])(sample[item])
 
-            sampleName = opts["newSampleNames"][sample["name"]] if sample["name"] in opts["newSampleNames"] else sample["name"]
-            legendEntries.append( (histo, sampleName, "lp") )
+            sampleName = inDict(opts["newSampleNames"], sample["name"], sample["name"])
+            legendEntries.append( (histo, sampleName, inDict(sample, "legendOpt", "lp")) )
             if dimension==1 :
                 stuffToKeep += self.plot1D(histo, count,
                                            goptions = inDict(sample, "goptions", ""),
