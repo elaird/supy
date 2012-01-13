@@ -303,6 +303,13 @@ class plotter(object) :
             for histo in h :
                 histo.UseCurrentStyle()
 
+        def setRanges(h, spec) :
+            for item in ["xRange", "yRange"] :
+                if item not in spec : continue
+                for histo in h :
+                    method = "Get%saxis"%item[0].capitalize()
+                    getattr(histo, method)().SetRangeUser(*spec[item])
+
         print utils.hyphens
         if tdrStyle : setupTdrStyle()
 
@@ -312,6 +319,7 @@ class plotter(object) :
             
             if onlyDumpToFile(histos, spec) : continue
             rebin(histos, spec)
+            setRanges(histos, spec)
             setTitles(histos, spec)
             stylize(histos)
 
