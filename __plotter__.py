@@ -1,6 +1,6 @@
 import ROOT as r
 import os,math,string,itertools
-import utils,configuration
+import utils,configuration as conf
 ##############################
 def setupStyle() :
     r.gROOT.SetStyle("Plain")
@@ -8,7 +8,7 @@ def setupStyle() :
     r.gStyle.SetOptStat(1111111)
 ##############################
 def setupTdrStyle() :
-    r.gROOT.ProcessLine(".L cpp/tdrstyle.C")
+    r.gROOT.ProcessLine(".L %s/cpp/tdrstyle.C"%conf.whereami())
     r.setTDRStyle()
     #tweaks
     r.tdrStyle.SetPadRightMargin(0.06)
@@ -250,7 +250,7 @@ class plotter(object) :
 
         print "The output file \"%s\" has been written."%fileName.replace(".eps",".pdf")
 
-    def individualPlots(self, plotSpecs, newSampleNames = {}, preliminary = True, tdrStyle = True) :
+    def individualPlots(self, plotSpecs, newSampleNames = {}, cms = True, preliminary = True, tdrStyle = True) :
         def goods(spec) :
             for item in ["stepName", "stepDesc", "plotName"] :
                 if item not in spec : return
@@ -308,11 +308,18 @@ class plotter(object) :
             setTitles(histos, spec)
             stylize(histos)
 
-            legendCoords = spec["legendCoords"] if "legendCoords" in spec else (0.55, 0.55, 0.85, 0.85)
-            stampCoords = spec["stampCoords"] if "stampCoords" in spec else (0.75, 0.5)
-            stuff,pads = self.onePlotFunction(histos, ignoreHistos, newSampleNames, legendCoords, individual = True)
+            individual = {"legendCoords": (0.55, 0.55, 0.85, 0.85),
+                          "reverseLegend": False,
+                          "stampCoords": (0.75, 0.5),
+                          "ignoreHistos": ignoreHistos
+                          }
+            for key in spec :
+                if key in individual :
+                    individual[key] = spec[key]
+
+            stuff,pads = self.onePlotFunction(histos, individual = individual)
             if ("stamp" not in spec) or spec["stamp"] :
-                utils.cmsStamp(lumi = self.someOrganizer.lumi, preliminary = preliminary, coords = stampCoords)
+                utils.cmsStamp(lumi = self.someOrganizer.lumi, cms = cms, preliminary = preliminary, coords = individual["stampCoords"])
 
             args = {"name":spec["plotName"],
                     "tight":False,#self.anMode
@@ -351,7 +358,7 @@ class plotter(object) :
         def third(c) : return c[2]
         groups = dict((cat,[name for name,more,_ in group]) for cat,group in itertools.groupby(sorted(allCalcs, key=third) , key=third))
         cats = groups.keys()
-        fake = configuration.fakeString()
+        fake = conf.fakeString()
         imperfect = ( ( name,  more.replace(fake,""), '  '.join("%4d"%groups[key].count(name) for key in cats))
                       for name,more,cat in set(allCalcs)
                       if cat is 'fake' or cat is "calc" and not (bool(groups["leaf"].count(name))^bool(groups["calc"].count(name))) )
@@ -581,20 +588,20 @@ class plotter(object) :
                 else :      my+=1
             self.canvas.Divide(mx,my)
 
-    def plotEachHisto(self, dimension, histos, ignoreHistos, newSampleNames = None, legendCoords = (0.55, 0.55, 0.85, 0.85)) :
+    def plotEachHisto(self, dimension, histos, opts) :
         stuffToKeep = []
-        legend = r.TLegend(0.86, 0.60, 1.00, 0.10) if not self.anMode else r.TLegend(*legendCoords)
+        legend = r.TLegend(*opts["legendCoords"])
         stuffToKeep.append(legend)
+        legendEntries = []
         if self.anMode :
             legend.SetFillStyle(0)
             legend.SetBorderSize(0)
 
         count = 0
         pads = {}
-        for sample,histo,ignore in zip(self.someOrganizer.samples, histos, ignoreHistos) :
+        for sample,histo,ignore in zip(self.someOrganizer.samples, histos, opts["ignoreHistos"]) :
             if ignore or (not histo) or (not histo.GetEntries()) : continue
 
-            sampleName = sample["name"]
             if "color" in sample :
                 histo.SetLineColor(sample["color"])
                 histo.SetMarkerColor(sample["color"])
@@ -605,7 +612,8 @@ class plotter(object) :
             if "lineWidth" in sample :
                 histo.SetLineWidth(sample["lineWidth"])
 
-            legend.AddEntry(histo, newSampleNames[sampleName] if (newSampleNames!=None and sampleName in newSampleNames) else sampleName, "lp")
+            sampleName = opts["newSampleNames"][sample["name"]] if sample["name"] in opts["newSampleNames"] else sample["name"]
+            legendEntries.append( (histo, sampleName, "lp") )
             if dimension==1   : self.plot1D(histo, count, sample["goptions"] if ("goptions" in sample) else "", stuffToKeep)
             elif dimension==2 and self.omit2D : continue
             elif dimension==2 :
@@ -615,7 +623,10 @@ class plotter(object) :
                 print "Skipping histo",histo.GetName(),"with dimension",dimension
                 continue
             count+=1
-        if dimension==1 : legend.Draw()
+        if dimension==1 :
+            if opts["reverseLegend"] : legendEntries.reverse()
+            for e in legendEntries : legend.AddEntry(*e)
+            legend.Draw()
         return count,stuffToKeep,pads
 
     def plotRatio(self,histos,dimension) :
@@ -664,16 +675,22 @@ class plotter(object) :
             ratios.append(ratio)
         return ratios
 
-    def onePlotFunction(self, histos, ignoreHistos = None, newSampleNames = None, legendCoords = None, individual = False) :
+    def onePlotFunction(self, histos, individual = {}) :
         dimension = dimensionOfHisto(histos)
         self.prepareCanvas(histos, dimension)
 
-        if ignoreHistos==None : ignoreHistos = [False]*len(histos)
+        options = {"newSampleNames": {},
+                   "legendCoords": (0.86, 0.60, 1.00, 0.10),
+                   "reverseLegend": False,
+                   "ignoreHistos": [],
+                   }
+        options.update(individual)
+        if not options["ignoreHistos"] : options["ignoreHistos"] = [False]*len(histos)
+        
         if self.shiftUnderOverFlows : shiftUnderAndOverflows(dimension, histos, self.dontShiftList)
-        self.setRanges(histos, *self.getExtremes(dimension, histos, ignoreHistos))
+        self.setRanges(histos, *self.getExtremes(dimension, histos, options["ignoreHistos"]))
 
-        kwargs = {"legendCoords":legendCoords, "newSampleNames":newSampleNames} if individual else {}
-        count,stuffToKeep,pads = self.plotEachHisto(dimension, histos, ignoreHistos, **kwargs)
+        count,stuffToKeep,pads = self.plotEachHisto(dimension, histos, options)
             
         if self.plotRatios and dimension==1 :
             ratios = self.plotRatio(histos,dimension)
@@ -685,7 +702,7 @@ class plotter(object) :
         if dimension==2 and self.dependence2D :
             depHistos = tuple(utils.dependence(h) for h in histos)
             self.prepareCanvas(depHistos, dimension)
-            count,stuffToKeep,pads = self.plotEachHisto(dimension, depHistos, ignoreHistos, **kwargs)
+            count,stuffToKeep,pads = self.plotEachHisto(dimension, depHistos, options)
             self.canvas.cd(0)
             if count>0 : self.printCanvas()
 
