@@ -714,7 +714,7 @@ class plotter(object) :
             self.canvas.cd(0)
             if count>0 : self.printCanvas()
 
-    def plot1D(self, histo, count, goptions = "", double = "") :
+    def plot1D(self, histo, count, goptions = "", double = False) :
         keep = []
         adjustPad(r.gPad, self.anMode)
 
