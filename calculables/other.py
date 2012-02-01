@@ -93,7 +93,7 @@ class Ratio(secondary) :
         else :
             print "Ratio did not find the group for %s."%self.thisGroup
             self.weights = None
-        
+       
     def uponAcceptance(self,ev) :
         me = ev[self.name]
         self.book.fill( ev[self.var], "allweighted", *self.binning       , title = ";%s;events / bin"%self.var )
@@ -107,7 +107,39 @@ class Ratio(secondary) :
     def organize(self,org) :
         [ org.mergeSamples( targetSpec = {"name":pre}, sources = samples ) if samples else
           org.mergeSamples( targetSpec = {"name":pre}, allWithPrefix = pre )
-         for pre,samples in self.groups + [self.target] ]
+          for pre,samples in self.groups + ([self.target] if type(self)==Ratio else []) ]
+#####################################
+class Target(Ratio) :
+    '''Provides weights to make var have the distribution given by target. '''
+    def __init__(self, var = None, target = None, thisSample = None, groups = []) :
+        self.fixes = (var,"")
+        self.defaultValue = 1.0
+
+        self.thisGroup = next((pre for pre,samples in groups if thisSample in [s.split('.')[0] for s in samples]),
+                              next((pre for pre,samples in groups if not samples and thisSample.find(pre)==0),
+                                   None ))
+        if self.thisGroup==None :
+            groups.append((thisSample,[thisSample]))
+            self.thisGroup = thisSample
+        
+        for item in ["var","target","groups"] : setattr(self,item,eval(item))
+
+    def setup(self,*_) :
+        file = r.TFile.Open(self.target[0])
+        self.weights = file.Get(self.target[1]).Clone("weights")
+        self.weights.SetDirectory(0)
+        file.Close()
+        N = self.weights.GetNbinsX()
+        self.binning = ( N, self.weights.GetBinLowEdge(1), self.weights.GetBinLowEdge(N+1))
+
+        source = self.fromCache( [self.thisGroup], ['unweighted'])[self.thisGroup]['unweighted']
+        if source and self.weights :
+            self.weights.Scale(1./self.weights.Integral(0,self.weights.GetNbinsX()+1))
+            source.Scale(1./source.Integral(0,source.GetNbinsX()+1))
+            self.weights.Divide(source)
+        else :
+            print "Ratio did not find the group for %s."%self.thisGroup
+            self.weights = None
 #####################################
 class Discriminant(secondary) :
     def __init__(self, fixes = ("",""),
