@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import sys,os,tempfile
-from supy import configuration,sites,utils
+from supy import configuration,sites
+import __init__ as utils
 sys.path.extend([sites.info(key="CMSSW_lumi")])
 
 try:
@@ -35,7 +36,6 @@ def recordedInvMicrobarnsShotgun(jsons, cores = 2, cacheDir = './' ) :
 
 if __name__=='__main__' :
     print
-    from supy import utils
     if len(sys.argv)<2 : print 'Pass list of "{json}" and/or filenames as argument'; sys.exit(0)
 
     def output(arg) :

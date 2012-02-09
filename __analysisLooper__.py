@@ -133,7 +133,7 @@ class analysisLooper :
             step.setOutputFileStem(self.outputFileStem)
             step.setInputFileStem(self.inputFileStem)
             step.priorFilters = set(priorFilters)
-            if step.isSelector and step!=self.steps[0] : priorFilters.append((step.name,step.moreNames))
+            if step.isSelector and step.name not in ['master','label'] : priorFilters.append((step.name,step.moreNames))
 
             if withBook : 
                 current = current.mkdir(step.name)

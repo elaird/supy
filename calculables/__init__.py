@@ -20,12 +20,6 @@ class IndicesOther(wrappedChain.calculable) :
         if not self.source.node(self.Indices).updated :
             self.source[self.Indices]
 ##############################
-class size(wrappedChain.calculable) :
-    @property
-    def name(self) : return "%s.size"%self.calc
-    def __init__(self, calc) : self.calc = calc
-    def update(self,_) : self.value = len(self.source[self.calc])
-##############################
 def zeroArgs(module) :
     """Returns a list of instances of all zero argument calculables."""
 

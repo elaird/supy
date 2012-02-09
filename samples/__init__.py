@@ -1,4 +1,8 @@
 import collections, copy
+from supy import utils
+
+def test(sampleHolder) :
+    return [(name,len(eval(ss.filesCommand))) for name,ss in sorted(sampleHolder.items())]
 
 def specify(names = [], overrideLumi = None, xsPostWeights = None, effectiveLumi = None, nFilesMax = None, nEventsMax = None, weights = [], color = 1, markerStyle = 1 , weightedName = None) :
     assert not (overrideLumi and type(names)==list)

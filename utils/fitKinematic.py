@@ -1,4 +1,4 @@
-import math,utils
+import math, __init__ as utils
 try:
     import scipy.optimize as opt
 except: pass
@@ -26,6 +26,9 @@ class leastsqLeptonicTop(object) :
         eig,self.Rinv = np.linalg.eig(nuErr)
         self.R = self.Rinv.transpose()
         self.inv = 1./np.append([bResolution],np.sqrt(np.maximum(1,eig)))
+
+        self.setFittedNu(nuXY)
+        _,self.rawW,self.rawT = np.cumsum([mu,self.fitNu,self.rawB])
         
         self.residualsBSLT = self.fit()
         self.chi2 = self.residualsBSLT.dot(self.residualsBSLT)

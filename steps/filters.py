@@ -18,6 +18,25 @@ class multiplicity(analysisStep) :
         self.max = max if max!=None else 1e6
     def select(self,eventVars) :
         return self.min <= len(eventVars[self.var]) <= self.max
+
+class unique(analysisStep) :
+    def select(self,ev) : return len(set(ev[self.var])) == len(ev[self.var])
+    def __init__(self,var) :
+        self.var = var
+        self.moreName = var
+
+class minimum(analysisStep) :
+    def select(self,ev) : return  self.min <= min(ev[self.var])
+    def __init__(self, var, min=None ) :
+        for item in ['var','min'] : setattr(self,item,eval(item))
+        self.moreName = "%.1f <= min(%s)"%(min,var)
+
+class maximum(analysisStep) :
+    def select(self,ev) : return  max(ev[self.var]) <= self.max or self.max==None
+    def __init__(self, var, max=None ) :
+        for item in ['var','min'] : setattr(self,item,eval(item))
+        self.moreName = "max(%s) <= %.1f"%(var,max)
+    
 #####################################
 class value(analysisStep) :
     def __init__(self, var, min = None, max = None, indices = "", index = None) :

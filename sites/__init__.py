@@ -14,12 +14,14 @@ def prefix() :
 def specs() :
     user = os.environ["USER"]
     return {
-        "ic"  :{"localOutputDir" : "/vols/cms02/%s/tmp/"%user,
-                "globalOutputDir": "/vols/cms02/%s/tmp/"%user,
+        "ic"  :{"localOutputDir" : "/vols/cms04/%s/tmp/"%user,
+                "globalOutputDir": "/vols/cms04/%s/tmp/"%user,
                 #"dCachePrefix"   : "dcap://gfe02.grid.hep.ph.ic.ac.uk",
                 #"dCacheTrim"     : "",
-                "dCachePrefix"   : "root://gfe02.grid.hep.ph.ic.ac.uk",
+                #"dCachePrefix"   : "root://gfe02.grid.hep.ph.ic.ac.uk",
+                "dCachePrefix"   : "root://xrootd.grid.hep.ph.ic.ac.uk//",
                 "dCacheTrim"     : "/pnfs/hep.ph.ic.ac.uk/data/cms",
+
                 "srmPrefix"      : "srm://gfe02.grid.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN=/pnfs/hep.ph.ic.ac.uk/data/cms/store/user",
                 "queueHeaders"   : ["job-ID", "prior", "name", "user", "state", "submit1", "submit2", "queue", "slots", "ja-task-ID"],
                 "queueVars"      : {"queue":"queue", "user":"user", "state":"state", "run":"r", "summary":"qstat -u '*'", "sample":"qstat | head"},

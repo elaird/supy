@@ -1,6 +1,6 @@
 import ROOT as r
 import os,math,string,itertools
-import utils,configuration
+import utils,configuration as conf
 ##############################
 def setupStyle() :
     r.gROOT.SetStyle("Plain")
@@ -8,7 +8,7 @@ def setupStyle() :
     r.gStyle.SetOptStat(1111111)
 ##############################
 def setupTdrStyle() :
-    r.gROOT.ProcessLine(".L cpp/tdrstyle.C")
+    r.gROOT.ProcessLine(".L %s/cpp/tdrstyle.C"%conf.whereami())
     r.setTDRStyle()
     #tweaks
     r.tdrStyle.SetPadRightMargin(0.06)
@@ -71,10 +71,13 @@ def adjustPad(pad, anMode = False) :
         r.gPad.SetTicky()
         r.gPad.SetTickx()
 ##############################
+def inDict(d, key, default) :
+    return d[key] if key in d else default
+##############################
 class plotter(object) :
     def __init__(self,
                  someOrganizer,
-                 psFileName = "out.ps",
+                 pdfFileName = "out.pdf",
                  samplesForRatios = ("",""),
                  sampleLabelsForRatios = ("",""),
                  printRatios = False,
@@ -89,29 +92,34 @@ class plotter(object) :
                  noSci = False,
                  showErrorsOnDataYields = False,
                  linYAfter = None,
-                 nLinesMax = 17,
-                 nColumnsMax = 67,
+                 nLinesMax = 22,
+                 nColumnsMax = 75,
                  pageNumbers = True,
                  latexYieldTable = False,
                  detailedCalculables = False,
                  shiftUnderOverFlows = True,
                  rowColors = [r.kBlack],
+                 rowCycle = 5,
+                 omit2D = False,
                  dependence2D = False,
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
                  blackList = [],
                  whiteList = []
                  ) :
-        for item in ["someOrganizer","psFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
+        for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
-                     "detailedCalculables", "rowColors","dependence2D", "printRatios"] :
+                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D", "printRatios"] :
             setattr(self,item,eval(item))
 
+        self.nLinesMax -= nLinesMax/rowCycle
         if "counts" not in self.whiteList : self.blackList.append("counts")
         self.plotRatios = self.samplesForRatios!=("","")
-        self.psOptions = "Landscape"
         self.canvas = r.TCanvas("canvas", "canvas", 500, 500) if self.anMode else r.TCanvas()
+        self.formerMaxAbsI = -1
         self.pageNumber = -1
+        self.pdfOptions = ''
+        if pdfFileName[-3:]==".ps" : self.pdfFileName = self.pdfFileName.replace('.ps','.pdf')
 
         #used for making latex tables
         self.cutDict = {}
@@ -152,7 +160,7 @@ class plotter(object) :
                 self.onePlotFunction(step[plotName])
 
         self.printCanvas("]")
-        self.makePdf()
+        print self.pdfFileName, 'has been written'
         if self.latexYieldTable : self.printLatexYieldTable()
         print utils.hyphens
 
@@ -174,7 +182,7 @@ class plotter(object) :
 ''')
 
     def printLatexYieldTable(self, blackList = ["passFilter"]) :
-        texFile = self.psFileName.replace(".ps",".tex")
+        texFile = self.pdfFileName.replace(".pdf",".tex")
         f = open(texFile, "w")
         f.write(r'''
 \documentclass[landscape]{article}
@@ -186,7 +194,7 @@ class plotter(object) :
         filtered = []
         descDict = {}
         rows = []
-        for key in string.ascii_letters[:len(self.cutDict.keys())] :
+        for key in sorted(self.cutDict.keys(), key = string.ascii_letters.index) :
             name,desc = self.cutDict[key]
             if name in blackList :
                 filtered.append(key)
@@ -210,7 +218,7 @@ class plotter(object) :
 
         rowsLettered = []
         rowsDescribed = []
-        for key in string.ascii_letters[:len(self.yieldDict.keys())] :
+        for key in sorted(self.yieldDict.keys(), key = string.ascii_letters.index) :
             if key in filtered : continue
             yields = self.yieldDict[key]
             for i in range(len(yields)) :
@@ -229,11 +237,15 @@ class plotter(object) :
         f.close()
         print "The output file \""+texFile+"\" has been written."
         
-    def printOnePage(self, name = "", tight = False, padNumber = None) :
-        fileName = "%s_%s.eps"%(self.psFileName.replace(".ps",""),name)
+    def printOnePage(self, name = "", tight = False, padNumber = None, alsoC = False) :
+        fileName = "%s_%s.eps"%(self.pdfFileName.replace(".pdf",""),name)
         pad = self.canvas if padNumber is None else self.canvas.cd(padNumber)
         pad.Print(fileName)
-
+        message = "The output file \"%s\" has been written."%fileName
+        if alsoC :
+            pad.Print(fileName.replace(".eps",".C"))
+            print message.replace(".eps",".C")
+            
         if not tight : #make pdf
             os.system("epstopdf "+fileName)
             os.system("rm       "+fileName)
@@ -243,9 +255,9 @@ class plotter(object) :
             os.system("epstopdf "+epsiFile)
             os.system("rm       "+epsiFile)
 
-        print "The output file \"%s\" has been written."%fileName.replace(".eps",".pdf")
+        print message.replace(".eps",".pdf")
 
-    def individualPlots(self, plotSpecs, newSampleNames = {}, preliminary = True, tdrStyle = True) :
+    def individualPlots(self, plotSpecs, newSampleNames = {}, cms = True, preliminary = True, tdrStyle = True) :
         def goods(spec) :
             for item in ["stepName", "stepDesc", "plotName"] :
                 if item not in spec : return
@@ -268,7 +280,7 @@ class plotter(object) :
 
         def onlyDumpToFile(histos, spec) :
             if "onlyDumpToFile" in spec and spec["onlyDumpToFile"] :
-                rootFileName = self.psFileName.replace(".ps","_%s.root"%spec["plotName"])
+                rootFileName = self.pdfFileName.replace(".pdf","_%s.root"%spec["plotName"])
                 f = r.TFile(rootFileName, "RECREATE")
                 for h in histos :
                     h.Write()
@@ -291,6 +303,13 @@ class plotter(object) :
             for histo in h :
                 histo.UseCurrentStyle()
 
+        def setRanges(h, spec) :
+            for item in ["xRange", "yRange"] :
+                if item not in spec : continue
+                for histo in h :
+                    method = "Get%saxis"%item[0].capitalize()
+                    getattr(histo, method)().SetRangeUser(*spec[item])
+
         print utils.hyphens
         if tdrStyle : setupTdrStyle()
 
@@ -300,17 +319,26 @@ class plotter(object) :
             
             if onlyDumpToFile(histos, spec) : continue
             rebin(histos, spec)
+            setRanges(histos, spec)
             setTitles(histos, spec)
             stylize(histos)
 
-            legendCoords = spec["legendCoords"] if "legendCoords" in spec else (0.55, 0.55, 0.85, 0.85)
-            stampCoords = spec["stampCoords"] if "stampCoords" in spec else (0.75, 0.5)
-            stuff,pads = self.onePlotFunction(histos, ignoreHistos, newSampleNames, legendCoords, individual = True)
+            individual = {"legendCoords": (0.55, 0.55, 0.85, 0.85),
+                          "reverseLegend": False,
+                          "stampCoords": (0.75, 0.5),
+                          "ignoreHistos": ignoreHistos
+                          }
+            for key in spec :
+                if key in individual :
+                    individual[key] = spec[key]
+
+            stuff,pads = self.onePlotFunction(histos, individual = individual)
             if ("stamp" not in spec) or spec["stamp"] :
-                utils.cmsStamp(lumi = self.someOrganizer.lumi, preliminary = preliminary, coords = stampCoords)
+                utils.cmsStamp(lumi = self.someOrganizer.lumi, cms = cms, preliminary = preliminary, coords = individual["stampCoords"])
 
             args = {"name":spec["plotName"],
                     "tight":False,#self.anMode
+                    "alsoC":spec["alsoC"] if "alsoC" in spec else False,
                     }
             if "sampleName" in spec :
                 sampleName = spec["sampleName"]
@@ -330,7 +358,7 @@ class plotter(object) :
         maxLensB = [max(len(b) for a,b,c in block) for block in blocks]
         stringBlocks = [["%s%s  %s"%(a,b.ljust(maxLenB),c) for a,b,c in block] for block,maxLenB in zip(blocks,maxLensB)]
         for iLine,line in enumerate(sum(stringBlocks,[])) :
-            y=1.0 - 0.35*(iLine+0.5)/self.nLinesMax
+            y=0.98 - 0.35*(iLine+0.5)/self.nLinesMax
             text.DrawTextNDC(0,y, line)
         return text
             
@@ -346,7 +374,7 @@ class plotter(object) :
         def third(c) : return c[2]
         groups = dict((cat,[name for name,more,_ in group]) for cat,group in itertools.groupby(sorted(allCalcs, key=third) , key=third))
         cats = groups.keys()
-        fake = configuration.fakeString()
+        fake = conf.fakeString()
         imperfect = ( ( name,  more.replace(fake,""), '  '.join("%4d"%groups[key].count(name) for key in cats))
                       for name,more,cat in set(allCalcs)
                       if cat is 'fake' or cat is "calc" and not (bool(groups["leaf"].count(name))^bool(groups["calc"].count(name))) )
@@ -391,38 +419,32 @@ class plotter(object) :
             return "%.1f"%value
             
         def loopOneType(mergedSamples = False) :
-            sampleNames  = ["sample",""]
-            nEventsIn    = ["nEventsIn",""]
-            lumis        = ["  lumi (/pb)",""]
+            nameEventsLumi = []
             for sample in self.someOrganizer.samples :
                 if "sources" not in sample :
                     if mergedSamples : continue
-                    sampleNames.append(sample["name"])
-                    nEventsIn.append(str(int(sample["nEvents"])))
-                    lumis.append(getLumi(sample = sample))
+                    nameEventsLumi.append((sample["name"],str(int(sample['nEvents'])),getLumi(sample)))
                 else :
                     if not mergedSamples : continue
-                    localSampleNames = []
-                    localNEventsIn = []
-                    localLumis = []
+                    localNEL = []
                     useThese = True
 
                     for iSource in range(len(sample["sources"])) :
                         name = sample["sources"][iSource]
                         N    = sample["nEvents"][iSource]
-                        if type(N) is list :
-                            useThese = False
-                            break
-                        localSampleNames.append(name)
-                        localNEventsIn.append(str(int(N)))
-                        localLumis.append(getLumi(sample,iSource))
-                    if useThese :
-                        sampleNames.extend(localSampleNames)
-                        nEventsIn.extend(localNEventsIn)
-                        lumis.extend(localLumis)
-            return sampleNames,nEventsIn,lumis
+                        if type(N) is list : useThese = False; break
+                        localNEL.append((name,str(int(N)),getLumi(sample,iSource)))
+                    if useThese : nameEventsLumi += localNEL
+
+            nameEventsLumi.sort( key = lambda x: (x[0][:5], int(float(x[2])), -int(x[1]), x[0][5:] ))
+            if not nameEventsLumi : return (None,None,None)
+            name,events,lumi = zip(*nameEventsLumi)
+            return ( ["sample",""]+list(name),
+                     ["nEventsIn",""] + list(events),
+                     ["  lumi (/pb)",""] + list(lumi) )
 
         def printOneType(x, sampleNames, nEventsIn, lumis) :
+            if not sampleNames : return
             sLength = max([len(item) for item in sampleNames])
             nLength = max([len(item) for item in nEventsIn]  )
             lLength = max([len(item) for item in lumis]      )
@@ -430,11 +452,9 @@ class plotter(object) :
             total = sLength + nLength + lLength + 15
             if total>self.nColumnsMax : text.SetTextSize(defSize*self.nColumnsMax/(total+0.0))
                 
-            nSamples = len(sampleNames)
-            if nSamples == 1 : return
-            for j,i in enumerate(sorted(range(nSamples), key=lambda i: (sampleNames[i][:5],float(lumis[i]) if lumis[i] and "lumi" not in lumis[i] else None, sampleNames[i][5:] ))) :
+            for j,(name,events,lumi) in enumerate(zip(sampleNames,nEventsIn,lumis)) :
                 y = 0.9 - 0.55*(j+0.5)/self.nLinesMax
-                out = sampleNames[i].ljust(sLength)+nEventsIn[i].rjust(nLength+3)+lumis[i].rjust(lLength+3)
+                out = name.ljust(sLength) + events.rjust(nLength+3) + lumi.rjust(lLength+3)
                 text.DrawTextNDC(x, y, out)
 
         printOneType( 0.02, *loopOneType(False) )
@@ -454,13 +474,8 @@ class plotter(object) :
             text.SetTextSize(0.45*text.GetTextSize())
             text.SetTextAlign(33)
             text.DrawText(0.95, 0.03, "page %3d"%self.pageNumber)
-        self.canvas.Print(self.psFileName+extra,self.psOptions)
-
-    def makePdf(self) :
-        pdfFile=self.psFileName.replace(".ps",".pdf")
-        os.system("ps2pdf "+self.psFileName+" "+pdfFile)
-        os.system("gzip -f "+self.psFileName)
-        print "The output file \""+pdfFile+"\" has been written."
+        self.canvas.Print(self.pdfFileName+extra,('pdf ' if extra=='[' else 'Title:')+self.pdfOptions)
+        self.pdfOptions = ''
 
     def printSteps(self, steps, printAll=False) :
         if printAll and len(steps)>self.nLinesMax : self.printSteps(steps[:1-self.nLinesMax],printAll)
@@ -470,11 +485,10 @@ class plotter(object) :
         text = r.TText()
         text.SetNDC()
         text.SetTextFont(102)
-        text.SetTextSize(0.45*text.GetTextSize())
+        text.SetTextSize(0.40*text.GetTextSize())
 
-        pageWidth = 111
-        nSamples = len(self.someOrganizer.samples)
-        if self.printRatios : nSamples += 1
+        pageWidth = 120
+        nSamples = len(self.someOrganizer.samples) + int(self.printRatios)
         colWidth = min(25, pageWidth/nSamples)
         space = 1
 
@@ -484,10 +498,8 @@ class plotter(object) :
 
             text.SetTextColor(self.rowColors[absI%len(self.rowColors)])
             letter = string.ascii_letters[absI]
-            x = 0.01
-            y = 0.98 - 0.33*(i+0.5+(absI/5) - ((absI-i)/5) )/self.nLinesMax
-            text.DrawTextNDC(x, y, nametitle.format(letter, step.name, step.title ))
-            self.cutDict[letter] = (step.name, step.title)
+            x = 0.02
+            y = 0.98 - 0.34*(i+0.5+(absI/self.rowCycle) - ((absI-i)/self.rowCycle) )/self.nLinesMax
 
             nums = []
             ratios = [None]*len(self.samplesForRatios)
@@ -506,9 +518,27 @@ class plotter(object) :
                     s = utils.roundString(*ratio, width=(colWidth-space))
                 nums.append(s.rjust(colWidth))
                 
-            text.DrawTextNDC(x, y-0.51, "%s: %s"%(letter, "".join(nums)))
-            self.yieldDict[letter] = nums
+            if step.name in ['master','label']: self.pdfOptions = step.title
+            if step.name=='label' :
+                text.SetTextColor(r.kBlack)
+                font = text.GetTextFont()
+                text.SetTextFont(62)
+                label = "[  %s  ]"%step.title
+                text.DrawTextNDC(0.01, y, label)
+                text.DrawTextNDC(0.01, y-0.51, label )
+                text.SetTextFont(font)
+            else:
+                text.DrawTextNDC(x, y-0.00, nametitle.format(letter, step.name, step.title ))
+                text.DrawTextNDC(x, y-0.51, "%s: %s"%(letter, "".join(nums)))
+                self.cutDict[letter] = (step.name, step.title)
+                self.yieldDict[letter] = nums
 
+            if absI > self.formerMaxAbsI :
+                text.SetTextColor(r.kBlack)
+                text.DrawTextNDC(0.008,y-0.00,'|')
+                text.DrawTextNDC(0.008,y-0.51,'|')
+
+        self.formerMaxAbsI = absI
         self.sampleList = [s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]
         if self.printRatios and len(self.samplesForRatios)==2 :
             self.sampleList += ("%s/%s"%self.sampleLabelsForRatios)[:(colWidth-space)].rjust(colWidth)
@@ -574,32 +604,34 @@ class plotter(object) :
                 else :      my+=1
             self.canvas.Divide(mx,my)
 
-    def plotEachHisto(self, dimension, histos, ignoreHistos, newSampleNames = None, legendCoords = (0.55, 0.55, 0.85, 0.85)) :
+    def plotEachHisto(self, dimension, histos, opts) :
         stuffToKeep = []
-        legend = r.TLegend(0.86, 0.60, 1.00, 0.10) if not self.anMode else r.TLegend(*legendCoords)
+        legend = r.TLegend(*opts["legendCoords"])
         stuffToKeep.append(legend)
+        legendEntries = []
         if self.anMode :
             legend.SetFillStyle(0)
             legend.SetBorderSize(0)
 
         count = 0
         pads = {}
-        for sample,histo,ignore in zip(self.someOrganizer.samples, histos, ignoreHistos) :
+        for sample,histo,ignore in zip(self.someOrganizer.samples, histos, opts["ignoreHistos"]) :
             if ignore or (not histo) or (not histo.GetEntries()) : continue
 
-            sampleName = sample["name"]
             if "color" in sample :
-                histo.SetLineColor(sample["color"])
-                histo.SetMarkerColor(sample["color"])
-            if "markerStyle" in sample :
-                histo.SetMarkerStyle(sample["markerStyle"])
-            if "lineStyle" in sample :
-                histo.SetLineStyle(sample["lineStyle"])
-            if "lineWidth" in sample :
-                histo.SetLineWidth(sample["lineWidth"])
+                for item in ["Line", "Marker"] :
+                    getattr(histo,"Set%sColor"%item)(sample["color"])
+            for item in ["lineColor", "lineStyle", "lineWidth",
+                         "markerStyle", "markerColor", "fillStyle", "fillColor"] :
+                if item in sample : getattr(histo, "Set"+item.capitalize()[0]+item[1:])(sample[item])
 
-            legend.AddEntry(histo, newSampleNames[sampleName] if (newSampleNames!=None and sampleName in newSampleNames) else sampleName, "lp")
-            if dimension==1   : self.plot1D(histo, count, sample["goptions"] if ("goptions" in sample) else "", stuffToKeep)
+            sampleName = inDict(opts["newSampleNames"], sample["name"], sample["name"])
+            legendEntries.append( (histo, sampleName, inDict(sample, "legendOpt", "lp")) )
+            if dimension==1 :
+                stuffToKeep += self.plot1D(histo, count,
+                                           goptions = inDict(sample, "goptions", ""),
+                                           double = inDict(sample, "double", ""))
+            elif dimension==2 and self.omit2D : continue
             elif dimension==2 :
                 self.plot2D(histo, count, sampleName, stuffToKeep)
                 pads[sampleName] = 1+count
@@ -607,7 +639,10 @@ class plotter(object) :
                 print "Skipping histo",histo.GetName(),"with dimension",dimension
                 continue
             count+=1
-        if dimension==1 : legend.Draw()
+        if dimension==1 :
+            if opts["reverseLegend"] : legendEntries.reverse()
+            for e in legendEntries : legend.AddEntry(*e)
+            legend.Draw()
         return count,stuffToKeep,pads
 
     def plotRatio(self,histos,dimension) :
@@ -630,45 +665,48 @@ class plotter(object) :
         for denomHisto in denomHistos :
             ratio = None
             if numHisto and denomHisto and numHisto.GetEntries() and denomHisto.GetEntries() :
-                try:
-                    ratio = utils.ratioHistogram(numHisto,denomHisto)
-                    ratio.SetMinimum(0.0)
-                    ratio.SetMaximum(2.0)
-                    ratio.GetYaxis().SetTitle(numLabel+"/"+denomLabel)
-                    self.canvas.cd(2)
-                    adjustPad(r.gPad, self.anMode)
-                    r.gPad.SetGridy()
-                    ratio.SetStats(False)
-                    ratio.GetXaxis().SetLabelSize(0.0)
-                    ratio.GetXaxis().SetTickLength(3.5*ratio.GetXaxis().GetTickLength())
-                    ratio.GetYaxis().SetLabelSize(0.2)
-                    ratio.GetYaxis().SetNdivisions(502,True)
-                    ratio.GetXaxis().SetTitleOffset(0.2)
-                    ratio.GetYaxis().SetTitleSize(0.2)
-                    ratio.GetYaxis().SetTitleOffset(0.2)
-                    if len(denomHistos)==1: ratio.SetMarkerStyle(numHisto.GetMarkerStyle())
-                    color = numHisto.GetLineColor() if len(denomHistos)==1 else denomHisto.GetLineColor()
-                    ratio.SetLineColor(color)
-                    ratio.SetMarkerColor(color)
-                    ratio.Draw(same)
-                    same = "same"
-                except:
-                    print "failed to make ratio for plot",numHisto.GetName()
+                ratio = utils.ratioHistogram(numHisto,denomHisto)
+                ratio.SetMinimum(0.0)
+                ratio.SetMaximum(2.0)
+                ratio.GetYaxis().SetTitle(numLabel+"/"+denomLabel)
+                self.canvas.cd(2)
+                adjustPad(r.gPad, self.anMode)
+                r.gPad.SetGridy()
+                ratio.SetStats(False)
+                ratio.GetXaxis().SetLabelSize(0.0)
+                ratio.GetXaxis().SetTickLength(3.5*ratio.GetXaxis().GetTickLength())
+                ratio.GetYaxis().SetLabelSize(0.2)
+                ratio.GetYaxis().SetNdivisions(502,True)
+                ratio.GetXaxis().SetTitleOffset(0.2)
+                ratio.GetYaxis().SetTitleSize(0.2)
+                ratio.GetYaxis().SetTitleOffset(0.2)
+                if len(denomHistos)==1: ratio.SetMarkerStyle(numHisto.GetMarkerStyle())
+                color = numHisto.GetLineColor() if len(denomHistos)==1 else denomHisto.GetLineColor()
+                ratio.SetLineColor(color)
+                ratio.SetMarkerColor(color)
+                ratio.Draw(same)
+                same = "same"
             else :
                 self.canvas.cd(2)
             ratios.append(ratio)
         return ratios
 
-    def onePlotFunction(self, histos, ignoreHistos = None, newSampleNames = None, legendCoords = None, individual = False) :
+    def onePlotFunction(self, histos, individual = {}) :
         dimension = dimensionOfHisto(histos)
         self.prepareCanvas(histos, dimension)
 
-        if ignoreHistos==None : ignoreHistos = [False]*len(histos)
+        options = {"newSampleNames": {},
+                   "legendCoords": (0.86, 0.60, 1.00, 0.10),
+                   "reverseLegend": False,
+                   "ignoreHistos": [],
+                   }
+        options.update(individual)
+        if not options["ignoreHistos"] : options["ignoreHistos"] = [False]*len(histos)
+        
         if self.shiftUnderOverFlows : shiftUnderAndOverflows(dimension, histos, self.dontShiftList)
-        self.setRanges(histos, *self.getExtremes(dimension, histos, ignoreHistos))
+        self.setRanges(histos, *self.getExtremes(dimension, histos, options["ignoreHistos"]))
 
-        kwargs = {"legendCoords":legendCoords, "newSampleNames":newSampleNames} if individual else {}
-        count,stuffToKeep,pads = self.plotEachHisto(dimension, histos, ignoreHistos, **kwargs)
+        count,stuffToKeep,pads = self.plotEachHisto(dimension, histos, options)
             
         if self.plotRatios and dimension==1 :
             ratios = self.plotRatio(histos,dimension)
@@ -680,52 +718,62 @@ class plotter(object) :
         if dimension==2 and self.dependence2D :
             depHistos = tuple(utils.dependence(h) for h in histos)
             self.prepareCanvas(depHistos, dimension)
-            count,stuffToKeep,pads = self.plotEachHisto(dimension, depHistos, ignoreHistos, **kwargs)
+            count,stuffToKeep,pads = self.plotEachHisto(dimension, depHistos, options)
             self.canvas.cd(0)
             if count>0 : self.printCanvas()
 
-    def plot1D(self, histo, count, goptions, stuffToKeep) :
+    def plot1D(self, histo, count, goptions = "", double = False) :
+        keep = []
         adjustPad(r.gPad, self.anMode)
+
         if count==0 :
-            histo.SetStats(self.showStatBox)
             if not self.anMode : histo.GetYaxis().SetTitleOffset(1.25)
-            histo.Draw(goptions)
             if self.doLog : r.gPad.SetLogy()
         else :
-            histo.SetStats(self.showStatBox)
-            histo.Draw(goptions+"same")
-            r.gStyle.SetOptFit(0)
-            if self.doMetFit and "met" in histo.GetName() :
-                r.gStyle.SetOptFit(1111)
-                func=metFit(histo)
-                stuffToKeep.append(func)
-                    
-                r.gPad.Update()
-                tps=histo.FindObject("stats")
-                stuffToKeep.append(tps)
-                tps.SetLineColor(histo.GetLineColor())
-                tps.SetTextColor(histo.GetLineColor())
-                if iHisto==0 :
-                    tps.SetX1NDC(0.75)
-                    tps.SetX2NDC(0.95)
-                    tps.SetY1NDC(0.75)
-                    tps.SetY2NDC(0.95)
-                else :
-                    tps.SetX1NDC(0.75)
-                    tps.SetX2NDC(0.95)
-                    tps.SetY1NDC(0.50)
-                    tps.SetY2NDC(0.70)
+            goptions += "same"
+
+        histo.SetStats(self.showStatBox)
+        histo.Draw(goptions)
+
+        if double :
+            histo2 = histo.Clone(histo.GetName()+"_cloneDouble")
+            histo2.SetFillStyle(0)
+            histo2.Draw("histsame")
+            keep.append(histo2)
+
+        r.gStyle.SetOptFit(0)
+        if self.doMetFit and "met" in histo.GetName() :
+            r.gStyle.SetOptFit(1111)
+            func=metFit(histo)
+            keep.append(func)
+
+            r.gPad.Update()
+            tps=histo.FindObject("stats")
+            keep.append(tps)
+            tps.SetLineColor(histo.GetLineColor())
+            tps.SetTextColor(histo.GetLineColor())
+            if iHisto==0 :
+                tps.SetX1NDC(0.75)
+                tps.SetX2NDC(0.95)
+                tps.SetY1NDC(0.75)
+                tps.SetY2NDC(0.95)
+            else :
+                tps.SetX1NDC(0.75)
+                tps.SetX2NDC(0.95)
+                tps.SetY1NDC(0.50)
+                tps.SetY2NDC(0.70)
 
         #move stat box
         r.gPad.Update()
         tps=histo.FindObject("stats")
-        stuffToKeep.append(tps)
+        keep.append(tps)
         if tps :
             tps.SetTextColor(histo.GetLineColor())
             tps.SetX1NDC(0.86)
             tps.SetX2NDC(1.00)
             tps.SetY1NDC(0.70)
             tps.SetY2NDC(1.00)
+        return keep
 
     def lineDraw(self, name, offset, slope, histo, color = r.kBlack, suffix = "") :
         if name not in histo.GetName() : return None

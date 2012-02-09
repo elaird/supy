@@ -1,5 +1,5 @@
-import math,operator,itertools
-from supy import wrappedChain
+import math,operator,itertools, ROOT as r
+from supy import wrappedChain,utils
 from . import secondary
 
 #####################################
@@ -37,12 +37,43 @@ class fixedValue(wrappedChain.calculable) :
     def update(self, ignored) :
         pass
 #####################################
+
+
+#####################################
+class value(wrappedChain.calculable) :
+    def __init__( self, var, indices = None, index = None, short = None) :
+        self.fixes = ("%s."%var, "%d%s"%(index, short if indices!=None and short!=None else indices) if index else "")
+        for item in ['var','indices','index','short'] : setattr(self,item,eval(item))
+    def update(self,_) :
+        var = self.source[self.var]
+        indices = [] if self.index is None else self.source[self.indices]
+        self.value = self.function( var if self.index is None else
+                                    var[self.source[self.indices][self.index]])  if self.index<len(indices) else None
+    @staticmethod
+    def function(x) : return x
+#####################################
+class pt(value) :
+    @staticmethod
+    def function(x) : return x.pt()
+#####################################
+class eta(value) :
+    @staticmethod
+    def function(x) : return x.eta()
+#####################################
+class size(value) :
+    @staticmethod
+    def function(x) : return len(x)
+#####################################
+
+
+
+#####################################
 class Ratio(secondary) :
     def __init__(self, var=None, binning=(0,0,0), thisSample = None, target = ("",[]), groups = []) :
         self.fixes = (var,"")
         self.defaultValue = 1.0
 
-        self.thisGroup = next((pre for pre,samples in groups if thisSample in samples),
+        self.thisGroup = next((pre for pre,samples in groups if thisSample in [s.split('.')[0] for s in samples]),
                               next((pre for pre,samples in groups if not samples and thisSample.find(pre)==0),
                                    None ))
         if self.thisGroup==None and not (thisSample in target[1] or (not target[1]) and thisSample.find(target[0])==0) :
@@ -59,8 +90,10 @@ class Ratio(secondary) :
             self.weights.Scale(1./self.weights.Integral(0,self.weights.GetNbinsX()+1))
             source.Scale(1./source.Integral(0,source.GetNbinsX()+1))
             self.weights.Divide(source)
-        else : self.weights = None
-        
+        else :
+            print "Ratio did not find the group for %s."%self.thisGroup
+            self.weights = None
+       
     def uponAcceptance(self,ev) :
         me = ev[self.name]
         self.book.fill( ev[self.var], "allweighted", *self.binning       , title = ";%s;events / bin"%self.var )
@@ -74,7 +107,39 @@ class Ratio(secondary) :
     def organize(self,org) :
         [ org.mergeSamples( targetSpec = {"name":pre}, sources = samples ) if samples else
           org.mergeSamples( targetSpec = {"name":pre}, allWithPrefix = pre )
-         for pre,samples in self.groups + [self.target] ]
+          for pre,samples in self.groups + ([self.target] if type(self)==Ratio else []) ]
+#####################################
+class Target(Ratio) :
+    '''Provides weights to make var have the distribution given by target. '''
+    def __init__(self, var = None, target = None, thisSample = None, groups = []) :
+        self.fixes = (var,"")
+        self.defaultValue = 1.0
+
+        self.thisGroup = next((pre for pre,samples in groups if thisSample in [s.split('.')[0] for s in samples]),
+                              next((pre for pre,samples in groups if not samples and thisSample.find(pre)==0),
+                                   None ))
+        if self.thisGroup==None :
+            groups.append((thisSample,[thisSample]))
+            self.thisGroup = thisSample
+        
+        for item in ["var","target","groups"] : setattr(self,item,eval(item))
+
+    def setup(self,*_) :
+        file = r.TFile.Open(self.target[0])
+        self.weights = file.Get(self.target[1]).Clone("weights")
+        self.weights.SetDirectory(0)
+        file.Close()
+        N = self.weights.GetNbinsX()
+        self.binning = ( N, self.weights.GetBinLowEdge(1), self.weights.GetBinLowEdge(N+1))
+
+        source = self.fromCache( [self.thisGroup], ['unweighted'])[self.thisGroup]['unweighted']
+        if source and self.weights :
+            self.weights.Scale(1./self.weights.Integral(0,self.weights.GetNbinsX()+1))
+            source.Scale(1./source.Integral(0,source.GetNbinsX()+1))
+            self.weights.Divide(source)
+        else :
+            print "Ratio did not find the group for %s."%self.thisGroup
+            self.weights = None
 #####################################
 class Discriminant(secondary) :
     def __init__(self, fixes = ("",""),
@@ -96,21 +161,36 @@ class Discriminant(secondary) :
             integral = h.Integral(0,h.GetNbinsX()+1)
             if h : h.Scale(1./integral if integral else 1.)
 
+        self.printDilutions(left,right)
         for key in self.dists :
+            if not left[key]: print "%s (left) : cannot find %s"%(self.name,key)
+            if not right[key]: print "%s (right) : cannot find %s"%(self.name,key)
             if left[key] and right[key] : left[key].Divide(right[key])
             else: left[key] = None
         self.likelihoodRatios = left
+
+    def printDilutions(self,L,R) :
+        with open(self.outputFileName, "w") as file :
+            print >> file, "L:", self.left
+            print >> file, "R:", self.right
+            print >> file
+            for key in set.intersection(set(L),set(R)) :
+                if not (L[key] and R[key]) : continue
+                if issubclass(type(L[key]),r.TH2) : continue
+                print >> file, key, "\t", round(utils.dilution(utils.binValues(L[key]),utils.binValues(R[key])),3)
+        print "Wrote file: %s"%self.outputFileName
 
     def uponAcceptance(self,ev) :
         for key,val in self.dists.iteritems() : self.book.fill(ev[key], key, *val, title = ";%s;events / bin"%key)
         self.book.fill(ev[self.name], self.name, self.bins, 0, 1, title = ";%s;events / bin"%self.name)
         if self.correlations :
             for (key1,val1),(key2,val2) in itertools.combinations(self.dists.iteritems(),2) :
-                self.book.fill((ev[key1],ev[key2]),"_cov_%s_%s"%(key1,key2), *zip(val1,val2), title = ';%s;%s;events / bin'%(key1,key2))
+                self.book.fill( ( max( val1[1], min( val1[2]-1e-6, ev[key1] )),
+                                  max( val2[1], min( val2[2]-1e-6, ev[key2] ))),"_cov_%s_%s"%(key1,key2), *zip(val1,val2), title = ';%s;%s;events / bin'%(key1,key2))
 
     def likelihoodRatio(self,key) :
         hist = self.likelihoodRatios[key]
-        return 1 if not hist else hist.GetBinContent(hist.FindFixBin(self.source[key]))
+        return 0.5 if not hist else hist.GetBinContent(hist.FindFixBin(self.source[key]))
 
     def update(self,_) :
         likelihoodRatios = [self.likelihoodRatio(key) for key in self.dists]
