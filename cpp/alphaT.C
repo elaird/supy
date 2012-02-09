@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <iostream>
 
+// The specification is Section 4.2 of CMS PAS SUS-09-001
+// available at http://cdsweb.cern.ch/record/1194509/files/SUS-09-001-pas.pdf
+
 struct fabs_less { 
   bool operator()(const double x, const double y) const { 
     return fabs(x) < fabs(y); 
