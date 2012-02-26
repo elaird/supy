@@ -20,8 +20,8 @@ class abbreviation(wrappedChain.calculable) :
     @property
     def name(self) : return self.abr
     def __init__(self, var = "", abr = "", fixes = ("","")) :
-        self.moreName = ('%s'+var+'%s')%fixes
-        self.abr = ('%s'+abr+'%s')%fixes
+        self.moreName = var.join(fixes)
+        self.abr = abr.join(fixes)
     def update(self,_) : self.value = self.source[self.moreName]
 #####################################
 class crock(wrappedChain.calculable) :
