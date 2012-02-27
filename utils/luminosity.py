@@ -1,31 +1,26 @@
 #!/usr/bin/env python
 
 import sys,os,tempfile
-from supy import configuration,sites
+from supy import configuration
 import __init__ as utils
-sys.path.extend([sites.info(key="CMSSW_lumi")])
 
 try:
-    from RecoLuminosity.LumiDB import lumiQueryAPI,inputFilesetParser
-except: pass
-
-def jsonToIFP(json) :
-    with tempfile.NamedTemporaryFile() as file :
-        print >> file, str(json).replace("'",'"')
-        file.flush()
-        return inputFilesetParser.inputFilesetParser(file.name)
+    from RecoLuminosity.LumiDB import lumiCalcAPI,sessionManager,lumiCorrections
+except:
+    pass
 
 def recordedInvMicrobarns(json) :
-    pars = lumiQueryAPI.ParametersObject()
-    pars.noWarnings  = True
-    pars.norm        = 1.0
-    pars.lumiversion = '0001'
-    pars.beammode    = 'STABLE BEAMS'
+    jsonALT = dict([(int(run),sum([range(begin,end+1) for begin,end in lumis],[])) for run,lumis in json.items()])
 
-    session,svc =  lumiQueryAPI.setupSession( connectString = 'frontier://LumiCalc/CMS_LUMI_PROD',
-                                              parameters = pars, siteconfpath = None, debug = False)
-    lumidata =  lumiQueryAPI.recordedLumiForRange (session, pars, jsonToIFP(json))    
-    return sum(lumiQueryAPI.calculateTotalRecorded(dataperRun[2]) for dataperRun in lumidata if dataperRun[1])
+    session = sessionManager.sessionManager("frontier://LumiCalc/CMS_LUMI_PROD").openSession( cpp2sqltype = [('unsigned int','NUMBER(10)'),('unsigned long long','NUMBER(20)')])
+    session.transaction().start(True)
+    lumidata = lumiCalcAPI.lumiForRange( session.nominalSchema(),
+                                         jsonALT,
+                                         norm = 1.0,
+                                         finecorrections = lumiCorrections.pixelcorrectionsForRange(session.nominalSchema(),jsonALT.keys()),
+                                         lumitype='PIXEL',
+                                         branchName='DATA')
+    return sum( sum(data[6] for data in lumis) for run,lumis in lumidata.iteritems() if lumis)
 
 def recordedInvMicrobarnsShotgun(jsons, cores = 2, cacheDir = './' ) :
     pickles = ["%s/%d.pickle"%(cacheDir,hash(str(sorted([(key,val) for key,val in json.iteritems()])))) for json in jsons]
