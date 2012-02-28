@@ -25,7 +25,7 @@ def specs() :
                 "srmPrefix"      : "srm://gfe02.grid.hep.ph.ic.ac.uk:8443/srm/managerv2?SFN=/pnfs/hep.ph.ic.ac.uk/data/cms/store/user",
                 "queueHeaders"   : ["job-ID", "prior", "name", "user", "state", "submit1", "submit2", "queue", "slots", "ja-task-ID"],
                 "queueVars"      : {"queue":"queue", "user":"user", "state":"state", "run":"r", "summary":"qstat -u '*'", "sample":"qstat | head"},
-                "CMSSW_lumi"     : "/vols/sl5_exp_software/cms/slc5_ia32_gcc434/cms/cmssw/CMSSW_3_8_7/src/",
+                "CMSSW_lumi"     : None,
                 },
         "pu"  :{"localOutputDir" : "/tmp/%s"%user,
                 "globalOutputDir": "/tigress-hsm/%s/tmp/"%user,
