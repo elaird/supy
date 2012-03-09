@@ -65,6 +65,8 @@ class componentSolver(object) :
 import sys, itertools, ROOT as r
 import __init__ as utils
 def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], ) :
+    oldStyle = r.gStyle.GetOptStat()
+    r.gStyle.SetOptStat(1101)
     if not canvas : canvas = r.TCanvas()
     canvas.Clear()
     canvas.cd(0)
@@ -109,18 +111,19 @@ def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], ) 
     nll.Draw("histsame")
 
     canvas.cd(3)
-    leg = r.TLegend(0.1,0.1,0.9,0.9)
+    leg = r.TLegend(0.05,0.05,0.95,0.95)
     leg.SetTextFont(102)
     labels = ["sample"]+(templateNames+len(rTemplates)*[""])[:len(rTemplates)]+["fixed","observed"]
+    countLabels = [label.replace("#bar{","").replace("}","") for label in labels]
     fractions = ["fraction"]+[utils.roundString(f,e,noSci=True) for f,e in zip(cs.fractions,cs.errors)] + ["%.3f"%(float(sum(cs.base))/sum(cs.observed)),"1.0"]
-    events = ["events"] + [str(int(sum(comp))) for comp in cs.components] + [str(int(sum(cs.base))),str(sum(cs.observed))]
+    events = ["events"] + [str(int(sum(comp))) for comp in cs.components] + [str(int(sum(cs.base))),str(int(sum(cs.observed)))]
     objects = [0]+rTemplates + [base,rObs]
 
     [ leg.AddEntry(obj,
-                   label.ljust(6+len(max(labels))) + 
-                   frac.ljust(6+len(max(fractions))) + 
-                   ev.rjust(len(max(events))), 
-                   '' if label=='sample' else 'lpe' if label=='observed' else 'f') for label,frac,ev,obj in zip(labels,fractions,events,objects) ]
+                   label.ljust(2+max(len(it) for it in countLabels) - len(countLabel) + len(label)) + 
+                   frac.ljust(2+max(len(it) for it in fractions)) + 
+                   ev.rjust(max(len(it) for it in events)) + "   ", 
+                   '' if label=='sample' else 'lpe' if label=='observed' else 'f') for label,countLabel,frac,ev,obj in zip(labels,countLabels,fractions,events,objects) ]
     leg.Draw()
 
     canvas.cd(1)
@@ -132,6 +135,7 @@ def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], ) 
 
     r.gStyle.SetOptStat(1000000)
     canvas.Update()
+    r.gStyle.SetOptStat(oldStyle)
     return [canvas,rObs,rTemplates,stats,pulls,nlls,nll,leg]
 
 
