@@ -72,6 +72,7 @@ def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], ) 
 
     provisionalTitle = "ML fractions:   "+", ".join(utils.roundString(f,e,noSci=True) for f,e in zip(cs.fractions,cs.errors) )
 
+    base = utils.rHist("base",cs.base,range(len(cs.base)+1)); base.SetFillColor(r.kGray)
     rTemplates = [utils.rHist("template%d"%i,d,range(len(d)+1)) for i,d in enumerate(cs.components)]
     rObs = utils.rHist("observed",cs.observed,range(len(d)+1),True)
     rObs.SetTitle("%s;bin # ;events"%(distName if distName else provisionalTitle))
@@ -103,23 +104,37 @@ def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], ) 
     for s in stats : s.Draw()
 
     canvas.Update()
+    canvas.cd(2) ; 
+    nlls.Draw(); 
+    nll.Draw("histsame")
 
-    canvas.cd(2) ; nlls.Draw(); nll.Draw("histsame")
+    canvas.cd(3)
+    leg = r.TLegend(0.1,0.1,0.9,0.9)
+    leg.SetTextFont(102)
+    labels = ["sample"]+(templateNames+len(rTemplates)*[""])[:len(rTemplates)]+["fixed","observed"]
+    fractions = ["fraction"]+[utils.roundString(f,e,noSci=True) for f,e in zip(cs.fractions,cs.errors)] + ["%.3f"%(float(sum(cs.base))/sum(cs.observed)),"1.0"]
+    events = ["events"] + [str(int(sum(comp))) for comp in cs.components] + [str(int(sum(cs.base))),str(sum(cs.observed))]
+    objects = [0]+rTemplates + [base,rObs]
 
-    def draw(i,logY = False) :
-        canvas.cd(i).SetLogy(logY)
-        rObs.Draw("e")
-        for t in rTemplates : t.Draw("histsame")
-        rObs.Draw("esame")
+    [ leg.AddEntry(obj,
+                   label.ljust(6+len(max(labels))) + 
+                   frac.ljust(6+len(max(fractions))) + 
+                   ev.rjust(len(max(events))), 
+                   '' if label=='sample' else 'lpe' if label=='observed' else 'f') for label,frac,ev,obj in zip(labels,fractions,events,objects) ]
+    leg.Draw()
 
-    base = utils.rHist("base",cs.base,range(len(cs.base)+1)) ; base.SetFillColor(r.kGray)
+    canvas.cd(1)
     rTemplates = sorted(rTemplates,key=lambda t: -t.Integral()) + [base]
     for t,h in reversed(zip(rTemplates[:-1],rTemplates[1:])) : t.Add(h)
-    draw(1, logY = False)
+    rObs.Draw("e")
+    for t in rTemplates : t.Draw("histsame")
+    rObs.Draw("esame")
 
     r.gStyle.SetOptStat(1000000)
     canvas.Update()
-    return [canvas,rObs,rTemplates,stats,pulls,nlls,nll]
+    return [canvas,rObs,rTemplates,stats,pulls,nlls,nll,leg]
+
+
 
 if __name__=="__main__" :
     r.gROOT.SetStyle("Plain")
