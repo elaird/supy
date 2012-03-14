@@ -65,11 +65,12 @@ def makeAlphaTFunc(alphaTValue) :
     alphaTFunc.SetNpx(300)
     return alphaTFunc
 ##############################
-def adjustPad(pad, anMode = False) :
+def adjustPad(pad, anMode = False, pushLeft = False) :
     if not anMode :
         r.gPad.SetRightMargin(0.15)
         r.gPad.SetTicky()
         r.gPad.SetTickx()
+        if pushLeft : r.gPad.SetLeftMargin(0.4)
 ##############################
 def inDict(d, key, default) :
     return d[key] if key in d else default
@@ -104,12 +105,13 @@ class plotter(object) :
                  dependence2D = False,
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
                  blackList = [],
-                 whiteList = []
+                 whiteList = [],
+                 pushLeft = False
                  ) :
         for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
-                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D", "printRatios"] :
+                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D", "printRatios","pushLeft"] :
             setattr(self,item,eval(item))
 
         self.nLinesMax -= nLinesMax/rowCycle
@@ -467,13 +469,13 @@ class plotter(object) :
 
     def printCanvas(self, extra = "") :
         self.pageNumber += 1
-        if self.pageNumbers and self.pageNumber>1 :
+        if self.pageNumber>1 :
             text = r.TText()
             text.SetNDC()
             text.SetTextFont(102)
             text.SetTextSize(0.45*text.GetTextSize())
             text.SetTextAlign(33)
-            text.DrawText(0.95, 0.03, "page %3d"%self.pageNumber)
+            text.DrawText(0.95, 0.03, "page %3d"%self.pageNumber if self.pageNumbers else ".")
         self.canvas.Print(self.pdfFileName+extra,('pdf ' if extra=='[' else 'Title:')+self.pdfOptions)
         self.pdfOptions = ''
 
@@ -651,15 +653,13 @@ class plotter(object) :
         if type(denomSampleNames)!=list: denomSampleNames = [denomSampleNames]
 
         ratios = []
-
-        numIndex = self.someOrganizer.indexOfSampleWithName(numSampleName)
-        if numIndex==None : return ratios
-        
-        numHisto = histos[numIndex]
         try:
+            numHisto = histos[self.someOrganizer.indexOfSampleWithName(numSampleName)]
             denomHistos = map(lambda name: histos[self.someOrganizer.indexOfSampleWithName(name)], denomSampleNames)
         except TypeError:
             return ratios
+
+        if not numHisto : return ratios
 
         same = ""
         for denomHisto in denomHistos :
@@ -791,7 +791,7 @@ class plotter(object) :
     	yx.SetNpx(300)
     	
     	self.canvas.cd(count+1)
-        adjustPad(r.gPad)
+        adjustPad(r.gPad, pushLeft = self.pushLeft )
         
     	histo.GetYaxis().SetTitleOffset(1.2)
     	oldTitle=histo.GetTitle()

@@ -64,27 +64,29 @@ class componentSolver(object) :
 
 import sys, itertools, ROOT as r
 import __init__ as utils
-def drawComponentSolver(cs, canvas = None) :
+def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], ) :
+    oldStyle = r.gStyle.GetOptStat()
+    r.gStyle.SetOptStat(1101)
     if not canvas : canvas = r.TCanvas()
+    canvas.Clear()
     canvas.cd(0)
     canvas.Divide(2,2)
 
+    provisionalTitle = "ML fractions:   "+", ".join(utils.roundString(f,e,noSci=True) for f,e in zip(cs.fractions,cs.errors) )
+
+    base = utils.rHist("base",cs.base,range(len(cs.base)+1)); base.SetFillColor(r.kGray)
     rTemplates = [utils.rHist("template%d"%i,d,range(len(d)+1)) for i,d in enumerate(cs.components)]
     rObs = utils.rHist("observed",cs.observed,range(len(d)+1),True)
-    rObs.SetTitle("ML fractions:   "+", ".join(utils.roundString(f,e,noSci=True) for f,e in zip(cs.fractions,cs.errors) ))
+    rObs.SetTitle("%s;bin # ;events"%(distName if distName else provisionalTitle))
+    rObs.SetMarkerStyle(20)
 
     nlls = utils.rHist("-logLs", *np.histogram([-toy.logL for toy in cs.ensemble], 100) )
     nll = nlls.Clone('-logL') ; nll.Reset(); nll.SetBinContent(nll.FindFixBin(-cs.logL), nlls.GetMaximum()); 
-    nll.SetFillColor(r.kBlue); nll.SetTitle("p-value: %0.4f"%cs.p_value)
-    pulls = [ utils.rHist("relative residuals %d"%i, *np.histogram(pull,100,(-5,5))) for i,pull in enumerate(cs.relResiduals.transpose())]
+    nll.SetFillColor(r.kBlue); nlls.SetTitle("p-value in ensemble: %0.4f;-logL of pseudo-experiment;pseudo-experiments"%cs.p_value)
+    pulls = [ utils.rHist( templateNames[i] if templateNames else "relative residuals %d"%i, 
+                           *np.histogram(pull,100,(-5,5))) for i,pull in enumerate(cs.relResiduals.transpose())]
 
-    corr = cs.correlation
-    corrH = r.TH2D("correlations","correlations", len(corr), -0.5, len(corr)-0.5, len(corr), -0.5, len(corr)-0.5)
-    for i,j in itertools.product(range(len(corr)), repeat = 2) : corrH.SetBinContent(i+1,j+1,round(corr[i][j],3))
-    corrH.SetMaximum(1)
-    corrH.SetMinimum(-1)
-    canvas.cd(3)
-    corrH.Draw("colztext")
+    [dist.SetTitleSize(0.05,j) for dist in (rTemplates+pulls+[rObs,nll,nlls]) for j in ['X','Y'] ]
 
     stats = []
     for i,a,t in zip(range(len(cs.fractions)),pulls,rTemplates) : 
@@ -92,6 +94,7 @@ def drawComponentSolver(cs, canvas = None) :
         t.SetLineColor(i+2)
         a.SetLineColor(i+2)
         a.SetMaximum(1.1*max(h.GetMaximum() for h in pulls))
+        a.SetTitle(";( f^{pseudo} - f ) / #sigma^{pseudo};pseudo-experiments")
         canvas.cd(4); a.Draw("sames" if i else "")
         canvas.Update()
         st = a.GetListOfFunctions().FindObject("stats")
@@ -102,22 +105,40 @@ def drawComponentSolver(cs, canvas = None) :
         stats.append( st.Clone("stats%d"%i) )
     for s in stats : s.Draw()
 
-    canvas.cd(2) ; nll.Draw(); nlls.Draw("histsame")
-    rObs.SetMarkerStyle(20)
+    canvas.Update()
+    canvas.cd(2) ; 
+    nlls.Draw(); 
+    nll.Draw("histsame")
 
-    def draw(i,logY = False) :
-        canvas.cd(i).SetLogy(logY)
-        rObs.Draw("e")
-        for t in rTemplates : t.Draw("histsame")
-        rObs.Draw("esame")
+    canvas.cd(3)
+    leg = r.TLegend(0.05,0.05,0.95,0.95)
+    leg.SetTextFont(102)
+    labels = ["sample"]+(templateNames+len(rTemplates)*[""])[:len(rTemplates)]+["fixed","observed"]
+    countLabels = [label.replace("#bar{","").replace("}","") for label in labels]
+    fractions = ["fraction"]+[utils.roundString(f,e,noSci=True) for f,e in zip(cs.fractions,cs.errors)] + ["%.3f"%(float(sum(cs.base))/sum(cs.observed)),"1.0"]
+    events = ["events"] + [str(int(sum(comp))) for comp in cs.components] + [str(int(sum(cs.base))),str(int(sum(cs.observed)))]
+    objects = [0]+rTemplates + [base,rObs]
 
-    base = utils.rHist("base",cs.base,range(len(cs.base)+1)) ; base.SetFillColor(r.kGray)
+    [ leg.AddEntry(obj,
+                   label.ljust(2+max(len(it) for it in countLabels) - len(countLabel) + len(label)) + 
+                   frac.ljust(2+max(len(it) for it in fractions)) + 
+                   ev.rjust(max(len(it) for it in events)) + "   ", 
+                   '' if label=='sample' else 'lpe' if label=='observed' else 'f') for label,countLabel,frac,ev,obj in zip(labels,countLabels,fractions,events,objects) ]
+    leg.Draw()
+
+    canvas.cd(1)
     rTemplates = sorted(rTemplates,key=lambda t: -t.Integral()) + [base]
     for t,h in reversed(zip(rTemplates[:-1],rTemplates[1:])) : t.Add(h)
-    draw(1, logY = False)
-    #draw(3, logY = True)
+    rObs.Draw("e")
+    for t in rTemplates : t.Draw("histsame")
+    rObs.Draw("esame")
+
+    r.gStyle.SetOptStat(1000000)
     canvas.Update()
-    return [canvas,rObs,rTemplates,stats,pulls,nlls,nll,corrH]
+    r.gStyle.SetOptStat(oldStyle)
+    return [canvas,rObs,rTemplates,stats,pulls,nlls,nll,leg]
+
+
 
 if __name__=="__main__" :
     r.gROOT.SetStyle("Plain")
@@ -149,7 +170,7 @@ if __name__=="__main__" :
     print eval(repr(ff))
 
     if True : 
-        stuff = drawComponentSolver(ff)
+        stuff = drawComponentSolver(ff, distName = "Constructed Distribution", templateNames = ['red','green','blue','yellow'][:len(templates)])
         canvas = stuff[0]
-        canvas.Print('test.eps')
+        canvas.Print('test.pdf')
         raw_input()
