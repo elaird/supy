@@ -469,13 +469,13 @@ class plotter(object) :
 
     def printCanvas(self, extra = "") :
         self.pageNumber += 1
-        if self.pageNumbers and self.pageNumber>1 :
+        if self.pageNumber>1 :
             text = r.TText()
             text.SetNDC()
             text.SetTextFont(102)
             text.SetTextSize(0.45*text.GetTextSize())
             text.SetTextAlign(33)
-            text.DrawText(0.95, 0.03, "page %3d"%self.pageNumber)
+            text.DrawText(0.95, 0.03, "page %3d"%self.pageNumber if self.pageNumbers else ".")
         self.canvas.Print(self.pdfFileName+extra,('pdf ' if extra=='[' else 'Title:')+self.pdfOptions)
         self.pdfOptions = ''
 
@@ -653,15 +653,13 @@ class plotter(object) :
         if type(denomSampleNames)!=list: denomSampleNames = [denomSampleNames]
 
         ratios = []
-
-        numIndex = self.someOrganizer.indexOfSampleWithName(numSampleName)
-        if numIndex==None : return ratios
-        
-        numHisto = histos[numIndex]
         try:
+            numHisto = histos[self.someOrganizer.indexOfSampleWithName(numSampleName)]
             denomHistos = map(lambda name: histos[self.someOrganizer.indexOfSampleWithName(name)], denomSampleNames)
         except TypeError:
             return ratios
+
+        if not numHisto : return ratios
 
         same = ""
         for denomHisto in denomHistos :
