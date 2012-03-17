@@ -197,7 +197,7 @@ class Discriminant(secondary) :
         self.value = 1. / ( 1 + reduce(operator.mul, likelihoodRatios, 1) )
 
     def organize(self,org) :
-        [ org.mergeSamples( targetSpec = {'name':item['pre']}, sources = item['samples']) if item['samples'] else
+        [ org.mergeSamples( targetSpec = {'name':item['pre']}, sources = item['samples'], scaleFactors = item['sf'] if 'sf' in item else [], force = True) if item['samples'] else
           org.mergeSamples( targetSpec = {'name':item['pre']}, allWithPrefix = item['pre'])
           for item in [self.left,self.right]]
         for sample in list(org.samples) :
