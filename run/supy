@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os,sys,inspect,supy
+import os,sys,inspect,supy,configuration
 ############################################
 def opts() :
     from optparse import OptionParser
@@ -32,6 +32,9 @@ def opts() :
     if options.batch :
         assert (options.loop!=None and options.slices!=None), "when using --batch, use also --loop and --slices"
     return options,args[0]
+############################################
+def whereami() :
+    return supy.utils.whereami(__file__)+"/../"
 ############################################
 def setupSCIPY() :
     try:
@@ -77,7 +80,7 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
     os.system("cp -p "+jobScript+" "+jobScriptFileName)
     with open(jobScriptFileName,"a") as file :
         print >>file
-        print >>file, "export PYTHONPATH=%s:$PYTHONPATH"%supy.utils.popPath(supy.configuration.whereami())
+        print >>file, "export PYTHONPATH=%s:$PYTHONPATH"%supy.utils.popPath(whereami())
         print >>file, "cd "+os.environ["PWD"]
         print >>file, jobCmd
 
@@ -94,10 +97,10 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
 def doBatch(someInstance) :
     argsAndOptions = sys.argv[1:]
     argsAndOptions.remove("--batch")
-    baseCmd = supy.configuration.whereami()+"/run/supy "+" ".join(argsAndOptions)
+    baseCmd = whereami()+"/run/supy "+" ".join(argsAndOptions)
 
     subScript,jobScript,condorTemplate = supy.sites.batchScripts()
-    os.system("chmod +x %s/%s"%(supy.configuration.whereami(),subScript))
+    os.system("chmod +x %s/%s"%(whereami(),subScript))
 
     site = supy.sites.prefix()
 
@@ -115,8 +118,8 @@ def doBatch(someInstance) :
                                  "iSlice":iSlice,
                                  "site":site}
                 args.append( (baseCmd + " --site %(site)s --jobid %(iSlice)d --tag '%(tag)s' --sample %(sample)s"%listOfIndices,
-                              listOfIndices, supy.configuration.whereami()+'/'+subScript, supy.configuration.whereami()+'/'+jobScript, condorTemplate) )
-    supy.utils.operateOnListUsingQueue(supy.configuration.nCoresDefault(), supy.utils.qWorker(submitBatchJob), args)
+                              listOfIndices, whereami()+'/'+subScript, whereami()+'/'+jobScript, condorTemplate) )
+    supy.utils.operateOnListUsingQueue(configuration.nCoresDefault(), supy.utils.qWorker(submitBatchJob), args)
 ############################################
         
 # get options
@@ -127,8 +130,8 @@ setupSCIPY()
 setupROOT()
 
 # compile cpp source files
-supy.utils.compileSources(inList = [supy.configuration.whereami()+'/'+item for item in supy.configuration.cppFiles()])
-supy.utils.generateDictionaries(inList = supy.configuration.dictionariesToGenerate(), dir = supy.configuration.whereami())
+supy.utils.compileSources(inList = [whereami()+'/'+item for item in configuration.cppFiles()])
+supy.utils.generateDictionaries(inList = configuration.dictionariesToGenerate(), dir = whereami())
 
 # construct the analysis
 someClass = importedClass(moduleName(arg))
