@@ -1,5 +1,9 @@
 from __wrappedChain__ import keyTracer
 import defaultConfiguration
+
+def whereami() :
+    return max('/'.join(__file__.split('/')[:-1]), '.')
+
 for item in [
     'autoBook',
     'wrappedChain',

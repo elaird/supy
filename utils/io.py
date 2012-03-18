@@ -27,8 +27,6 @@ def writePickle(fileName, payload, errorMessage = "writePickle() failed", exitOn
 #####################################        
 def popPath(p, char = '/') : return char.join(p.split(char)[:-1])
 #####################################
-def whereami(file = "") : return max('/'.join(file.split('/')[:-1]), '.')
-#####################################
 def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = "", numericallyIncrementingKeys = True ) :
     import re
     from collections import defaultdict
