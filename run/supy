@@ -130,7 +130,7 @@ setupSCIPY()
 setupROOT()
 
 # compile cpp source files
-supy.utils.compileSources(inList = [whereami()+'/'+item for item in configuration.cppFiles()])
+supy.utils.compileSources(inList = configuration.cppFiles())
 supy.utils.generateDictionaries(inList = configuration.dictionariesToGenerate(), dir = whereami())
 
 # construct the analysis
