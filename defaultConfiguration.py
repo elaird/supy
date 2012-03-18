@@ -40,9 +40,12 @@ def hadd() :
 def dictionariesToGenerate() :
     return []
 
-def initializeROOT(r) :
+def initializeROOT(r, sourceFiles = []) :
     r.gROOT.SetStyle("Plain")
     r.gStyle.SetPalette(1)
     r.TH1.SetDefaultSumw2(True)
     r.gErrorIgnoreLevel = 2000
     r.gROOT.SetBatch(True)
+
+    for sourceFile in sourceFiles :
+        r.gROOT.LoadMacro(sourceFile+"+")

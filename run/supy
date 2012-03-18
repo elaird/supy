@@ -42,7 +42,7 @@ def setupSCIPY() :
 def setupROOT() :
     sys.argv.append("-b")
     import ROOT as r
-    configuration.initializeROOT(r)
+    configuration.initializeROOT(r, configuration.cppFiles())
     sys.argv.pop()
 ############################################
 def moduleName(arg) :
@@ -120,8 +120,7 @@ options,arg = opts()
 setupSCIPY()
 setupROOT()
 
-# compile cpp source files
-supy.utils.compileSources(inList = configuration.cppFiles())
+# generate dictionaries
 supy.utils.generateDictionaries(inList = configuration.dictionariesToGenerate(), dir = supy.whereami())
 
 # construct the analysis
