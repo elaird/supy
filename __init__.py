@@ -9,4 +9,3 @@ for item in [
     'analysis',
     'configuration',
     ] : exec("from __%s__ import %s"%(item,item))
-
