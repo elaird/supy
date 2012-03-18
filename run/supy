@@ -33,9 +33,6 @@ def opts() :
         assert (options.loop!=None and options.slices!=None), "when using --batch, use also --loop and --slices"
     return options,args[0]
 ############################################
-def whereami() :
-    return supy.utils.whereami(__file__)+"/../"
-############################################
 def setupSCIPY() :
     try:
         import scipy.optimize as opt
@@ -80,7 +77,7 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
     os.system("cp -p "+jobScript+" "+jobScriptFileName)
     with open(jobScriptFileName,"a") as file :
         print >>file
-        print >>file, "export PYTHONPATH=%s:$PYTHONPATH"%supy.utils.popPath(whereami())
+        print >>file, "export PYTHONPATH=%s:$PYTHONPATH"%supy.utils.popPath(supy.whereami())
         print >>file, "cd "+os.environ["PWD"]
         print >>file, jobCmd
 
@@ -97,10 +94,10 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
 def doBatch(someInstance) :
     argsAndOptions = sys.argv[1:]
     argsAndOptions.remove("--batch")
-    baseCmd = whereami()+"/run/supy "+" ".join(argsAndOptions)
+    baseCmd = supy.whereami()+"/run/supy "+" ".join(argsAndOptions)
 
     subScript,jobScript,condorTemplate = supy.sites.batchScripts()
-    os.system("chmod +x %s/%s"%(whereami(),subScript))
+    os.system("chmod +x %s/%s"%(supy.whereami(),subScript))
 
     site = supy.sites.prefix()
 
@@ -118,7 +115,7 @@ def doBatch(someInstance) :
                                  "iSlice":iSlice,
                                  "site":site}
                 args.append( (baseCmd + " --site %(site)s --jobid %(iSlice)d --tag '%(tag)s' --sample %(sample)s"%listOfIndices,
-                              listOfIndices, whereami()+'/'+subScript, whereami()+'/'+jobScript, condorTemplate) )
+                              listOfIndices, supy.whereami()+'/'+subScript, supy.whereami()+'/'+jobScript, condorTemplate) )
     supy.utils.operateOnListUsingQueue(configuration.nCoresDefault(), supy.utils.qWorker(submitBatchJob), args)
 ############################################
         
@@ -131,7 +128,7 @@ setupROOT()
 
 # compile cpp source files
 supy.utils.compileSources(inList = configuration.cppFiles())
-supy.utils.generateDictionaries(inList = configuration.dictionariesToGenerate(), dir = whereami())
+supy.utils.generateDictionaries(inList = configuration.dictionariesToGenerate(), dir = supy.whereami())
 
 # construct the analysis
 someClass = importedClass(moduleName(arg))

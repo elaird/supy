@@ -1,6 +1,7 @@
 import ROOT as r
 import os,math,string,itertools
 import utils,configuration as conf
+from supy import whereami
 ##############################
 def setupStyle() :
     r.gROOT.SetStyle("Plain")
@@ -8,7 +9,7 @@ def setupStyle() :
     r.gStyle.SetOptStat(1111111)
 ##############################
 def setupTdrStyle() :
-    r.gROOT.ProcessLine(".L %s/cpp/tdrstyle.C"%utils.io.whereami(__file__))
+    r.gROOT.ProcessLine(".L %s/cpp/tdrstyle.C"%whereami())
     r.setTDRStyle()
     #tweaks
     r.tdrStyle.SetPadRightMargin(0.06)
