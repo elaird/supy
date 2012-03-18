@@ -7,5 +7,6 @@ for item in [
     'analysisStep',
     'analysisLooper',
     'analysis',
+    'configuration',
     ] : exec("from __%s__ import %s"%(item,item))
 
