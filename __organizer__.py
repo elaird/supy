@@ -126,7 +126,7 @@ class organizer(object) :
         self.__steps = tuple(steps + [self.step(self.samples)])
         return self.__steps
 
-    def mergeSamples(self,sources = [], targetSpec = {}, keepSources = False, allWithPrefix = None, force = False) :
+    def mergeSamples(self,sources = [], targetSpec = {}, keepSources = False, allWithPrefix = None, force = False, scaleFactors = [] ) :
         assert force or not self.scaled, "Merge must be called before calling scale."
 
         if not sources and allWithPrefix: sources = [s["name"] for s in self.samples if re.match(allWithPrefix,s["name"])]
@@ -149,6 +149,8 @@ class organizer(object) :
             target["lumi"] = sum(target['lumiOfSources'])
         elif force: pass
         else: raise Exception("Cannot merge data with sim")
+
+        if not scaleFactors : scaleFactors = [1.0]*len(sources)
         
         def tuplePopInsert(orig, item) :
             val = list(orig)
@@ -164,7 +166,8 @@ class organizer(object) :
             for key,val in step.iteritems():
                 sources = filter(None, map(val.__getitem__,sourceIndices))
                 hist = sources[0].Clone(key) if len(sources) else None
-                for h in sources[1:]: hist.Add(h)
+                if len(sources) : hist.Scale(scaleFactors[0])
+                for h,sf in zip(sources,scaleFactors)[1:]: hist.Add( h, sf )
                 step[key] = tuplePopInsert( val, hist )
             step.rawFailPass = tuplePopInsert( step.rawFailPass, None )
         self.samples = tuplePopInsert( self.samples, target )
