@@ -1,6 +1,6 @@
 from __wrappedChain__ import keyTracer
+import defaultConfiguration
 for item in [
-    'configuration',
     'autoBook',
     'wrappedChain',
     'organizer',
