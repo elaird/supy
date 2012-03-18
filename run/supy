@@ -41,14 +41,8 @@ def setupSCIPY() :
 ############################################
 def setupROOT() :
     sys.argv.append("-b")
-    
     import ROOT as r
-    r.gROOT.SetStyle("Plain")
-    r.gStyle.SetPalette(1)
-    r.TH1.SetDefaultSumw2(True)
-    r.gErrorIgnoreLevel = 2000
-    r.gROOT.SetBatch(True)
-
+    configuration.initializeROOT(r)
     sys.argv.pop()
 ############################################
 def moduleName(arg) :

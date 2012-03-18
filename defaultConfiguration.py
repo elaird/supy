@@ -39,3 +39,10 @@ def hadd() :
 
 def dictionariesToGenerate() :
     return []
+
+def initializeROOT(r) :
+    r.gROOT.SetStyle("Plain")
+    r.gStyle.SetPalette(1)
+    r.TH1.SetDefaultSumw2(True)
+    r.gErrorIgnoreLevel = 2000
+    r.gROOT.SetBatch(True)
