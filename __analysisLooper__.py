@@ -1,5 +1,6 @@
 import copy,os,tempfile,collections
-from supy import autoBook,wrappedChain,configuration,utils,keyTracer
+import configuration
+from supy import autoBook,wrappedChain,utils,keyTracer
 import ROOT as r
 #####################################
 class analysisLooper :

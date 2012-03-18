@@ -1,4 +1,4 @@
-import supy,os
+import supy,os,configuration
 #####################################
 class master(supy.analysisStep) :
     def __init__(self, xs, xsPostWeights, lumi, lumiWarn) :
@@ -47,7 +47,7 @@ class master(supy.analysisStep) :
             for fileName in files : os.remove(fileName)
 
         if not all(os.path.exists(fileName) for fileName in products["outputFileName"]) : return
-        hAdd = supy.utils.getCommandOutput("%s -f %s %s"%(supy.configuration.hadd(),self.outputFileName, " ".join(products["outputFileName"])))
+        hAdd = supy.utils.getCommandOutput("%s -f %s %s"%(configuration.hadd(),self.outputFileName, " ".join(products["outputFileName"])))
 
         printComment(hAdd["stdout"])
         cleanUp(hAdd["stderr"], products["outputFileName"])
