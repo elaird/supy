@@ -1,4 +1,13 @@
 class configuration(object) :
+    def mainTree(self) :
+        return ("/","tree")
+
+    def otherTreesToKeepWhenSkimming(self) :
+        return []
+
+    def leavesToBlackList(self) :
+        return []
+
     def ttreecacheMB(self) :
         return 20
 
@@ -28,9 +37,6 @@ class configuration(object) :
     
     def hadd(self) :
         return "hadd"
-
-    def detectorSpecs(self) :
-        return {}
 
     def dictionariesToGenerate(self) :
         return []
