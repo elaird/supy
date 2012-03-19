@@ -83,7 +83,7 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
 def doBatch(someInstance) :
     argsAndOptions = sys.argv[1:]
     argsAndOptions.remove("--batch")
-    baseCmd = supy.whereami()+"/run/supy "+" ".join(argsAndOptions)
+    baseCmd = supy.whereami()+"/bin/supy "+" ".join(argsAndOptions)
 
     subScript,jobScript,condorTemplate = supy.sites.batchScripts()
     os.system("chmod +x %s/%s"%(supy.whereami(),subScript))
