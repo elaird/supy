@@ -33,12 +33,6 @@ def opts() :
         assert (options.loop!=None and options.slices!=None), "when using --batch, use also --loop and --slices"
     return options,args[0]
 ############################################
-def setupSCIPY() :
-    try:
-        import scipy.optimize as opt
-    except:
-        pass
-############################################
 def setupROOT() :
     sys.argv.append("-b")
     import ROOT as r
@@ -89,7 +83,7 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
 def doBatch(someInstance) :
     argsAndOptions = sys.argv[1:]
     argsAndOptions.remove("--batch")
-    baseCmd = supy.whereami()+"/run/supy "+" ".join(argsAndOptions)
+    baseCmd = supy.whereami()+"/bin/supy "+" ".join(argsAndOptions)
 
     subScript,jobScript,condorTemplate = supy.sites.batchScripts()
     os.system("chmod +x %s/%s"%(supy.whereami(),subScript))
@@ -118,7 +112,6 @@ def doBatch(someInstance) :
 options,arg = opts()
 
 # set up ROOT
-setupSCIPY()
 setupROOT()
 
 # generate dictionaries
