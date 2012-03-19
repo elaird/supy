@@ -19,6 +19,20 @@
 
 * add skimmer i/o check to utils.io.printSkimResults
 
+(from commissioning with Davide)
+* python version check
+* investigate possibility of adding a remote upstream
+* fix the extra tree in skimmer
+* types of steps
+* rip out hbheNoiseFilter
+* document parameters behaviour
+* xsec: document units
+* make file names uniform
+* legend covering the x10^3 units
+* support string
+* wrap the return when there is an unknown type
+* understand trace limitation with chain access
+
 (ongoing)
 * profile
 
