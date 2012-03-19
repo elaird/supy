@@ -153,7 +153,7 @@ class Discriminant(secondary) :
         self.moreName = "L:"+left['pre']+"; R:"+right['pre']+"; "+','.join(dists.keys())
 
     def onlySamples(self) : return [self.left['pre'],self.right['pre']]
-    def baseSamples(self) : return set(self.left['samples']+self.right['samples'])
+    def baseSamples(self) : return set(self.left['samples']+self.right['samples']) if self.left['samples'] and self.right['samples'] else []
 
     def setup(self,*_) :
         left = self.fromCache( [self.left['pre']], self.dists.keys(), tag = self.left['tag'])[self.left['pre']]
