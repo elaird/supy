@@ -11,10 +11,6 @@ def generateDictionaries(inList, dir = None) :
     for item in inList : r.gInterpreter.GenerateDictionary(*item)
     r.gSystem.ChangeDirectory(wd)
 #####################################
-def compileSources(inList) :
-    for sourceFile in inList :
-        r.gROOT.LoadMacro(sourceFile+"+")
-#####################################
 lvClass = None
 def LorentzV(*args) :
     global lvClass

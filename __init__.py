@@ -1,4 +1,9 @@
 from __wrappedChain__ import keyTracer
+import defaults
+
+def whereami() :
+    return max('/'.join(__file__.split('/')[:-1]), '.')
+
 for item in [
     'autoBook',
     'wrappedChain',
@@ -8,4 +13,3 @@ for item in [
     'analysisLooper',
     'analysis',
     ] : exec("from __%s__ import %s"%(item,item))
-

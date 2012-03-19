@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-import sys,os,tempfile
-from supy import configuration
+import sys,os,tempfile,configuration
 import __init__ as utils
 
 try:

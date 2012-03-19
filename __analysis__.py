@@ -14,10 +14,10 @@ class analysis(object) :
     def listOfSampleDictionaries(self) : raise Exception("NotImplemented", "Implement a member function %s"%"sampleDict(self)")
     def listOfSamples(self,config) :     raise Exception("NotImplemented", "Implement a member function %s"%"listOfSamples(self,config)")
 
-    def mainTree(self) : return ("susyTree","tree")
-    def otherTreesToKeepWhenSkimming(self) : return [("lumiTree","tree")]
+    def mainTree(self) : return configuration.mainTree()
+    def otherTreesToKeepWhenSkimming(self) : return configuration.otherTreesToKeepWhenSkimming()
     def useCachedFileLists(self) : return configuration.useCachedFileLists()
-    def leavesToBlackList(self) : return []
+    def leavesToBlackList(self) : return configuration.leavesToBlackList()
     def parameters(self) : return {}
     def conclude(self, config) : return
     def concludeAll(self) : utils.operateOnListUsingQueue( configuration.nCoresDefault(), utils.qWorker(self.conclude), zip(self.readyConfs) )
