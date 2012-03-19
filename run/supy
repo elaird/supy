@@ -71,7 +71,8 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
     os.system("cp -p "+jobScript+" "+jobScriptFileName)
     with open(jobScriptFileName,"a") as file :
         print >>file
-        print >>file, "export PYTHONPATH=%s:$PYTHONPATH"%supy.utils.popPath(supy.whereami())
+        for item in ["PYTHONPATH", "LD_LIBRARY_PATH"] :
+            print >>file, "export %s=%s"%(item, os.environ[item])
         print >>file, "cd "+os.environ["PWD"]
         print >>file, jobCmd
 
