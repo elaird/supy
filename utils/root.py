@@ -6,6 +6,7 @@ except:
 
 #####################################
 def generateDictionaries(inList, dir = None) :
+    '''http://root.cern.ch/drupal/content/how-generate-dictionary'''
     wd = os.getcwd()
     r.gSystem.ChangeDirectory((dir if dir!=None else wd)+"/cpp")
     for item in inList : r.gInterpreter.GenerateDictionary(*item)

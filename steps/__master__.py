@@ -31,17 +31,7 @@ class master(supy.analysisStep) :
             print line.replace("Target","The output") + " has been written."
 
         def cleanUp(stderr, files) :
-            okList = ["", "Exception in thread QueueFeederThread (most likely raised during interpreter shutdown):",
-                      "Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<bool>=vector.dll vectorbool.dll> for level 0; ignored\n"
-                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<char>=vector.dll vectorbool.dll> for level 0; ignored\n"
-                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<short>=vector.dll vectorbool.dll> for level 0; ignored\n"
-                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<long>=vector.dll vectorbool.dll> for level 0; ignored\n"
-                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-char>=vector.dll vectorbool.dll> for level 0; ignored\n"
-                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-short>=vector.dll vectorbool.dll> for level 0; ignored\n"
-                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-int>=vector.dll vectorbool.dll> for level 0; ignored\n"
-                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-long>=vector.dll vectorbool.dll> for level 0; ignored\n"
-                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<float>=vector.dll vectorbool.dll> for level 0; ignored\n"
-                      +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<double>=vector.dll vectorbool.dll> for level 0; ignored\n",]
+            okList = configuration.haddErrorsToIgnore()
             assert (stderr in okList), "hadd had this stderr: '%s'"%stderr
             if stderr : print stderr
             for fileName in files : os.remove(fileName)

@@ -11,33 +11,47 @@ def ttreecacheMB() :
     return 20
 
 def trace() :
+    '''Record dependencies of (wrappedChain.calculable)s'''
     return False
 
 def nCoresDefault() :
     return 4
 
 def useCachedFileLists() :
+    '''WARNING: False is always correct. True saves time, but may bite you.
+
+    The cache is keyed on sample name, and is not updated
+    by changing the sample definition or actual files on disk.
+    Clear the cache by removing sample_name.inputFiles'''
     return False
 
 def maxArrayLength() :
+    '''In case of array TTree branches, the maximum length.  STL (eg, std::vector) has no maximum.'''
     return 256
 
 def computeEntriesForReport() :
+    '''WARNING: If set to True, all files in chain must be read before looping, which may be slow.'''
     return False
 
 def printNodesUsed() :
+    '''Dumps nodes accessed from wrappedChain to stdout at end of job: useful for debugging.'''
     return False
 
 def fakeString() :
+    '''String used by plotter to identify wrappedChain.calculable.isFake()'''
     return ";FAKE"
 
 def hadd() :
+    '''You may wish to use an alternative to hadd, such as run/phaddy'''
     return "hadd"
 
-def dictionariesToGenerate() :
+def cppROOTDictionariesToGenerate() :
+    '''List of pairs of strings. pair[0] is the C++ class name; pair[1] is a semicolon list of required header files.
+    Used by utils.root.generateDictionaries()'''
     return []
 
 def cppFiles() :
+    '''List of strings specifying cpp files to compile and load into ROOT namespace.'''
     return []
 
 def initializeROOT(r, cppFiles = []) :
@@ -49,3 +63,17 @@ def initializeROOT(r, cppFiles = []) :
 
     for sourceFile in cppFiles :
         r.gROOT.LoadMacro(sourceFile+"+")
+
+
+def haddErrorsToIgnore() :
+    return ["", "Exception in thread QueueFeederThread (most likely raised during interpreter shutdown):",
+            "Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<bool>=vector.dll vectorbool.dll> for level 0; ignored\n"
+            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<char>=vector.dll vectorbool.dll> for level 0; ignored\n"
+            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<short>=vector.dll vectorbool.dll> for level 0; ignored\n"
+            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<long>=vector.dll vectorbool.dll> for level 0; ignored\n"
+            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-char>=vector.dll vectorbool.dll> for level 0; ignored\n"
+            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-short>=vector.dll vectorbool.dll> for level 0; ignored\n"
+            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-int>=vector.dll vectorbool.dll> for level 0; ignored\n"
+            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-long>=vector.dll vectorbool.dll> for level 0; ignored\n"
+            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<float>=vector.dll vectorbool.dll> for level 0; ignored\n"
+            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<double>=vector.dll vectorbool.dll> for level 0; ignored\n",]

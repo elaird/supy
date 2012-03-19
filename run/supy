@@ -122,7 +122,7 @@ setupSCIPY()
 setupROOT()
 
 # generate dictionaries
-supy.utils.generateDictionaries(inList = configuration.dictionariesToGenerate(), dir = supy.whereami())
+supy.utils.generateDictionaries(inList = configuration.cppROOTDictionariesToGenerate(), dir = supy.whereami())
 
 # construct the analysis
 someClass = importedClass(moduleName(arg))
