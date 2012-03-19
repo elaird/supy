@@ -31,13 +31,13 @@ def printNodesUsed() :
 def fakeString() :
     return ";FAKE"
 
-def cppFiles() :
-    return []
-
 def hadd() :
     return "hadd"
 
 def dictionariesToGenerate() :
+    return []
+
+def cppFiles() :
     return []
 
 def initializeROOT(r, cppFiles = []) :
