@@ -195,7 +195,8 @@ class analysisLooper :
             pickleFileBlocks[-1] = pickleFileBlocks[-1].replace(self.name,self.childName(nSlices,iSlice))
             pickleFileName = '/'.join(pickleFileBlocks)
             if not os.path.exists(pickleFileName) :
-                print "Can't find file : %s"%pickleFileName
+                fields = pickleFileName.split('/')
+                print '/'.join(fields[:-1] + ["job%s.sh"%fields[-1].replace('.pickledData','').split('_')[-1]])
                 foundAll = False
         return foundAll
 
