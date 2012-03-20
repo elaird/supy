@@ -55,6 +55,7 @@ class analysisStep(object) :
     def makeQuiet(self) : self.quietMode = True
 
     def invert(self, val = True) :
+        assert not self.__invert, "step has already been inverted"
         self.__invert = val
         if val : self.moreName += " [INVERTED]"
         return self

@@ -47,7 +47,8 @@ def hadd() :
 
 def cppROOTDictionariesToGenerate() :
     '''List of pairs of strings. pair[0] is the C++ class name; pair[1] is a semicolon list of required header files.
-    Used by utils.root.generateDictionaries()'''
+    Used by utils.root.generateDictionaries().
+    See https://github.com/betchart/susycaf/blob/master/configuration.py for an example.'''
     return []
 
 def cppFiles() :
@@ -66,14 +67,4 @@ def initializeROOT(r, cppFiles = []) :
 
 
 def haddErrorsToIgnore() :
-    return ["", "Exception in thread QueueFeederThread (most likely raised during interpreter shutdown):",
-            "Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<bool>=vector.dll vectorbool.dll> for level 0; ignored\n"
-            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<char>=vector.dll vectorbool.dll> for level 0; ignored\n"
-            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<short>=vector.dll vectorbool.dll> for level 0; ignored\n"
-            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<long>=vector.dll vectorbool.dll> for level 0; ignored\n"
-            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-char>=vector.dll vectorbool.dll> for level 0; ignored\n"
-            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-short>=vector.dll vectorbool.dll> for level 0; ignored\n"
-            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-int>=vector.dll vectorbool.dll> for level 0; ignored\n"
-            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<unsigned-long>=vector.dll vectorbool.dll> for level 0; ignored\n"
-            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<float>=vector.dll vectorbool.dll> for level 0; ignored\n"
-            +"Warning in <TEnvRec::ChangeValue>: duplicate entry <Library.vector<double>=vector.dll vectorbool.dll> for level 0; ignored\n",]
+    return ["", "Exception in thread QueueFeederThread (most likely raised during interpreter shutdown):",]
