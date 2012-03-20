@@ -380,7 +380,7 @@ class plotter(object) :
         fake = conf.fakeString()
         imperfect = ( ( name,  more.replace(fake,""), '  '.join("%4d"%groups[key].count(name) for key in cats))
                       for name,more,cat in set(allCalcs)
-                      if cat is 'fake' or cat is "calc" and not (bool(groups["leaf"].count(name))^bool(groups["calc"].count(name))) )
+                      if cat is 'fake' or cat is "calc" and not ("leaf" in groups and (bool(groups["leaf"].count(name))^bool(groups["calc"].count(name)))) )
 
         calcs = (([("Calculables",'(imperfect)','  '.join(cats)), ('','','')] + max( list(imperfect), [('','NONE','')])) if selectImperfect else \
                  ([("Calculables",'',''),                         ('','','')] + max( list(genuine), [('','NONE','')])) )
