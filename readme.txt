@@ -16,7 +16,7 @@ git clone git://github.com/your_username/supy.git
 cd supy
 
 3) Run the example (the example input files are located on AFS):
-./supy analyses/example.py --loop 1
+./bin/supy example_analysis.py --loop 1
 
 ---------------------
 | Brief Description |
