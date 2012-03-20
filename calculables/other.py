@@ -153,6 +153,7 @@ class Discriminant(secondary) :
         self.moreName = "L:"+left['pre']+"; R:"+right['pre']+"; "+','.join(dists.keys())
 
     def onlySamples(self) : return [self.left['pre'],self.right['pre']]
+    def baseSamples(self) : return set(self.left['samples']+self.right['samples']) if self.left['samples'] and self.right['samples'] else []
 
     def setup(self,*_) :
         left = self.fromCache( [self.left['pre']], self.dists.keys(), tag = self.left['tag'])[self.left['pre']]
@@ -199,7 +200,7 @@ class Discriminant(secondary) :
     def organize(self,org) :
         [ org.mergeSamples( targetSpec = {'name':item['pre']}, sources = item['samples'], scaleFactors = item['sf'] if 'sf' in item else [], force = True) if item['samples'] else
           org.mergeSamples( targetSpec = {'name':item['pre']}, allWithPrefix = item['pre'])
-          for item in [self.left,self.right]]
+          for item in [self.left,self.right] if org.tag == item['tag']]
         for sample in list(org.samples) :
             if (sample['name'],org.tag) not in [(self.left['pre'],self.left['tag']),(self.right['pre'],self.right['tag'])] :
                 org.drop(sample['name'])

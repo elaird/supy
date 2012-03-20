@@ -240,17 +240,18 @@ class analysis(object) :
 
     def manageSecondaries(self,update) :
         def manage(conf,secondary) :
-            org = self.organizer(conf)
+            doUpdate = update==True or type(update)==str and secondary.name in update.split(',')
+            if self.__nocheck and not doUpdate : return
+            org = organizer(conf['tag'], [ss for ss in self.sampleSpecs(conf['tag'])
+                                          if ss['name'] in secondary.baseSamples() or not secondary.baseSamples()])
             index = next(org.indicesOfStep(secondary.name,secondary.moreNames), next(org.indicesOfStep(secondary.name),None))
             if index==None :
                 print " !! Not found: %s    %s"%(secondary.name,secondary.moreNames)
                 return
             org.dropSteps( allButIndices = [index])
-            if update==True or (type(update)==str and secondary.name in update.split(',')) :
-                secondary.doCache(org)
+            if doUpdate : secondary.doCache(org)
             else : secondary.checkCache(org)
 
-        if self.__nocheck : return
         confLoopers = [(conf,self.listsOfLoopers[conf['tag']][0]) for conf in self.readyConfs]
         for _,looper in confLoopers : looper.setupSteps(minimal = True, withBook = False)
         args = sum([[(conf,secondary) for secondary in filter(self.isSecondary, looper.steps)] for conf,looper in confLoopers],[])
