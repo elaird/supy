@@ -16,6 +16,8 @@ def opts() :
     parser.add_option("--sample",  dest = "sample",  default = None,                          help = "specific sample")
     parser.add_option("--update",  dest = "update",  default = None,  action = "store_true",  help = "update all secondary calculables")
     parser.add_option("--updates", dest = "update",  default = None,  metavar = "sc1,sc2,..", help = "update specified secondary calculables")
+    parser.add_option("--report",  dest = "report",  default = None,  action = "store_true",  help = "report all secondary calculables")
+    parser.add_option("--reports", dest = "report",  default = None,  metavar = "sc1,sc2,..", help = "report specified secondary calculables")
     parser.add_option("--jobid",   dest = "jobId",   default = None,  metavar = "id",         help = "[for internal use only]")
     parser.add_option("--site",    dest = "site",    default = None,  metavar = "prefix",     help = "[for internal use only]")
     parser.add_option("--tags",    dest = "tags",    default = None,  action = "callback", callback = argOrTrue, help = "run specified tags only, or list tags")
@@ -130,8 +132,8 @@ elif options.loop!=None : #loop over the events
 if options.jobId==None and not options.batch :
     try:
         someInstance.mergeAllOutput()
-        someInstance.manageSecondaries(options.update)
-        if options.update==None :
+        someInstance.manageSecondaries(options.update,options.report)
+        if options.update==None and options.report==None:
             someInstance.concludeAll()
     except AssertionError as foo:
         print
