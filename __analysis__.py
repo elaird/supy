@@ -229,7 +229,6 @@ class analysis(object) :
     def mergeAllOutput(self) :
         args = sum([[(conf['tag'],looper) for looper in self.listsOfLoopers[conf['tag']]] for conf in self.configurations],[])
         utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(self.mergeOutput), args, False)
-        #for arg in args : self.mergeOutput(*arg)
     
     def mergeOutput(self,tag,looper) :
         if not os.path.exists(self.jobsFile(tag,looper.name)) : return
@@ -238,10 +237,12 @@ class analysis(object) :
 
 ############
 
-    def manageSecondaries(self,update) :
+    def manageSecondaries(self,updates,reports) :
+        def doUpdate(name) : return updates==True or type(updates)==str and name in updates.split(',')
+        def doReport(name) : return reports==True or type(reports)==str and name in reports.split(',')
+
         def manage(conf,secondary) :
-            doUpdate = update==True or type(update)==str and secondary.name in update.split(',')
-            if self.__nocheck and not doUpdate : return
+            if self.__nocheck and not doUpdate(secondary.name) : return
             org = organizer(conf['tag'], [ss for ss in self.sampleSpecs(conf['tag'])
                                           if ss['name'] in secondary.baseSamples() or not secondary.baseSamples()])
             index = next(org.indicesOfStep(secondary.name,secondary.moreNames), next(org.indicesOfStep(secondary.name),None))
@@ -249,12 +250,16 @@ class analysis(object) :
                 print " !! Not found: %s    %s"%(secondary.name,secondary.moreNames)
                 return
             org.dropSteps( allButIndices = [index])
-            if doUpdate : secondary.doCache(org)
+            if doUpdate(secondary.name) : secondary.doCache(org)
             else : secondary.checkCache(org)
 
+        def report(conf,secondary) :
+            if doReport(secondary.name) : secondary.reportCache()
+            
         confLoopers = [(conf,self.listsOfLoopers[conf['tag']][0]) for conf in self.readyConfs]
         for _,looper in confLoopers : looper.setupSteps(minimal = True, withBook = False)
         args = sum([[(conf,secondary) for secondary in filter(self.isSecondary, looper.steps)] for conf,looper in confLoopers],[])
         utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(manage), args)
+        utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(report), args)
 
     def isSecondary(self,step) : return issubclass(type(step),calculables.secondary)

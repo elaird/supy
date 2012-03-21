@@ -155,14 +155,16 @@ class Discriminant(secondary) :
     def onlySamples(self) : return [self.left['pre'],self.right['pre']]
     def baseSamples(self) : return set(self.left['samples']+self.right['samples']) if self.left['samples'] and self.right['samples'] else []
 
-    def setup(self,*_) :
-        left = self.fromCache( [self.left['pre']], self.dists.keys(), tag = self.left['tag'])[self.left['pre']]
-        right = self.fromCache( [self.right['pre']], self.dists.keys(), tag = self.right['tag'])[self.right['pre']]
+    def leftRight(self) :
+        left = self.fromCache( [self.left['pre']], self.dists.keys()+[self.name], tag = self.left['tag'])[self.left['pre']]
+        right = self.fromCache( [self.right['pre']], self.dists.keys()+[self.name], tag = self.right['tag'])[self.right['pre']]
         for h in filter(None,left.values()+right.values()) :
             integral = h.Integral(0,h.GetNbinsX()+1)
             if h : h.Scale(1./integral if integral else 1.)
+        return left,right
 
-        self.printDilutions(left,right)
+    def setup(self,*_) :
+        left,right = self.leftRight()
         for key in self.dists :
             if not left[key]: print "%s (left) : cannot find %s"%(self.name,key)
             if not right[key]: print "%s (right) : cannot find %s"%(self.name,key)
@@ -170,16 +172,40 @@ class Discriminant(secondary) :
             else: left[key] = None
         self.likelihoodRatios = left
 
-    def printDilutions(self,L,R) :
-        with open(self.outputFileName, "w") as file :
+    def reportCache(self) :
+        L,R = self.leftRight()
+        fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name])
+        optstat = r.gStyle.GetOptStat()
+        r.gStyle.SetOptStat(0)
+        c = r.TCanvas()
+        c.Print(fileName+'.pdf[')
+        with open(fileName+'.txt', "w") as file :
             print >> file, "L:", self.left
             print >> file, "R:", self.right
             print >> file
-            for key in set.intersection(set(L),set(R)) :
+            for dilution,key in sorted([(round(utils.dilution(utils.binValues(L[key]),utils.binValues(R[key])),3),key)
+                                        for key in set.intersection(set(L),set(R))], reverse=True) :
                 if not (L[key] and R[key]) : continue
                 if issubclass(type(L[key]),r.TH2) : continue
-                print >> file, key, "\t", round(utils.dilution(utils.binValues(L[key]),utils.binValues(R[key])),3)
-        print "Wrote file: %s"%self.outputFileName
+                print >> file, key, "\t", dilution
+                h = 1.1*max(L[key].GetMaximum(),R[key].GetMaximum())
+                L[key].SetLineColor(r.kRed);
+                L[key].SetMaximum(h) ; L[key].SetMinimum(0)
+                R[key].SetMaximum(h) ; R[key].SetMinimum(0)
+                L[key].GetYaxis().SetTitle("pdf")
+                R[key].GetYaxis().SetTitle("pdf")
+                L[key].Draw("hist")
+                R[key].Draw("histsame")
+                l = r.TLegend(0.75,0.85,0.91,0.95)
+                l.SetHeader("Dilution :  %.3f"%dilution)
+                l.AddEntry(L[key], self.left['pre'],'l')
+                l.AddEntry(R[key], self.right['pre'], 'l')
+                l.Draw()
+                c.Print(fileName+'.pdf')
+        c.Print(fileName+'.pdf]')
+        r.gStyle.SetOptStat(optstat)
+        print "Wrote file: %s.txt"%fileName
+        print "Wrote file: %s.pdf"%fileName
 
     def uponAcceptance(self,ev) :
         for key,val in self.dists.iteritems() : self.book.fill(ev[key], key, *val, title = ";%s;events / bin"%key)
