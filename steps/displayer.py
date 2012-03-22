@@ -1,10 +1,26 @@
-import os,ROOT as r
-#####################################
+import os, ROOT as r
+from supy import utils,analysisStep
+
 class displayer(analysisStep) :
     
-    def outputSuffix(self) :
-        return "_displays.root"
-    
+    def display(self, eventVars) :
+        """Implement drawing etc. in self.display.
+        It may be necessary to return ROOT objects to prevent them from getting garbage-collected.
+        """
+        return locals()
+
+    def uponAcceptance(self, eventVars) :
+        self.canvas.Clear()
+        stuff = self.display(eventVars)
+        self.writeCanvas()
+
+    def writeCanvas(self) :
+        someDir = r.gDirectory
+        self.outputFile.cd()
+        self.canvas.Write("canvas_%d"%self.canvasIndex)
+        self.canvasIndex+=1
+        someDir.cd()
+
     def setup(self, chain, fileDir) :
         someDir = r.gDirectory
         self.outputFile = r.TFile(self.outputFileName, "RECREATE")
@@ -19,23 +35,8 @@ class displayer(analysisStep) :
         self.outputFile.Close()
         del self.canvas
 
-    def uponAcceptance(self, eventVars) :
-        self.canvas.Clear()
-        stuff = self.display(eventVars)
-        self.writeCanvas()
-
-    def display(self) :
-        """Implement drawing etc. in self.display.
-        It may be necessary to return ROOT objects to prevent them from going out of scope.
-        """
-        return locals()
-
-    def writeCanvas(self) :
-        someDir = r.gDirectory
-        self.outputFile.cd()
-        self.canvas.Write("canvas_%d"%self.canvasIndex)
-        self.canvasIndex+=1
-        someDir.cd()
+    def outputSuffix(self) :
+        return "_displays.root"
 
     def mergeFunc(self, products) :
         def psFromRoot(listOfInFileNames, outFileName) :
