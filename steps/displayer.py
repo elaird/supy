@@ -1,0 +1,62 @@
+import os,ROOT as r
+#####################################
+class displayer(analysisStep) :
+    
+    def outputSuffix(self) :
+        return "_displays.root"
+    
+    def setup(self, chain, fileDir) :
+        someDir = r.gDirectory
+        self.outputFile = r.TFile(self.outputFileName, "RECREATE")
+        someDir.cd()
+
+        self.canvas = utils.canvas("canvas")
+        self.canvas.SetFixedAspectRatio()
+        self.canvasIndex = 0
+
+    def endFunc(self, chains) :
+        self.outputFile.Write()
+        self.outputFile.Close()
+        del self.canvas
+
+    def uponAcceptance(self, eventVars) :
+        self.canvas.Clear()
+        stuff = self.display(eventVars)
+        self.writeCanvas()
+
+    def display(self) :
+        """Implement drawing etc. in self.display.
+        It may be necessary to return ROOT objects to prevent them from going out of scope.
+        """
+        return locals()
+
+    def writeCanvas(self) :
+        someDir = r.gDirectory
+        self.outputFile.cd()
+        self.canvas.Write("canvas_%d"%self.canvasIndex)
+        self.canvasIndex+=1
+        someDir.cd()
+
+    def mergeFunc(self, products) :
+        def psFromRoot(listOfInFileNames, outFileName) :
+            if not len(listOfInFileNames) : return
+            options = ""
+            dummyCanvas = utils.canvas("display")
+            dummyCanvas.Print(outFileName+"[", options)
+            for inFileName in listOfInFileNames :
+                inFile = r.TFile(inFileName)
+                keys = inFile.GetListOfKeys()
+                for key in keys :
+                    someObject = inFile.Get(key.GetName())
+                    if someObject.ClassName()!="TCanvas" : print "Warning: found an object which is not a TCanvas in the display root file"
+                    someObject.Print(outFileName, options)
+                inFile.Close()
+                os.remove(inFileName)                    
+            dummyCanvas.Print(outFileName+"]", options)
+            pdfFileName = outFileName.replace(".ps",".pdf")
+            os.system("ps2pdf "+outFileName+" "+pdfFileName)
+            os.system("gzip -f "+outFileName)
+            print "The display file \""+pdfFileName+"\" has been written."    
+        
+        psFromRoot(products["outputFileName"], self.outputFileName.replace(".root", ".ps"))
+        print utils.hyphens
