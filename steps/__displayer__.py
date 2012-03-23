@@ -3,10 +3,8 @@ from supy import utils,analysisStep
 
 class displayer(analysisStep) :
 
-    @property
-    def stuffToClear(self) :
-        '''List of strings referring to class members for which the function "Clear" is to be called at beginning of every event.'''
-        return ["canvas"]
+    def reset(self) :
+        self.canvas.Clear()
     
     def display(self, eventVars) :
         """Implement drawing etc. in self.display.
@@ -15,7 +13,7 @@ class displayer(analysisStep) :
         return locals()
 
     def uponAcceptance(self, eventVars) :
-        for item in self.stuffToClear : getattr(self,item).Clear()
+        self.reset()
         stuff = self.display(eventVars)
         self.writeCanvas()
 
