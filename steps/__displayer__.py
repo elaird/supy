@@ -2,6 +2,9 @@ import os, ROOT as r
 from supy import utils,analysisStep
 
 class displayer(analysisStep) :
+
+    def reset(self) :
+        self.canvas.Clear()
     
     def display(self, eventVars) :
         """Implement drawing etc. in self.display.
@@ -10,7 +13,7 @@ class displayer(analysisStep) :
         return locals()
 
     def uponAcceptance(self, eventVars) :
-        self.canvas.Clear()
+        self.reset()
         stuff = self.display(eventVars)
         self.writeCanvas()
 
