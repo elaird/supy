@@ -42,9 +42,9 @@ class displayer(analysisStep) :
         return "_displays.root"
 
     def mergeFunc(self, products) :
-        def psFromRoot(listOfInFileNames, outFileName) :
+        def pdfFromRoot(listOfInFileNames, outFileName) :
             if not len(listOfInFileNames) : return
-            options = ""
+            options = "pdf"
             dummyCanvas = utils.canvas("display")
             dummyCanvas.Print(outFileName+"[", options)
             for inFileName in listOfInFileNames :
@@ -57,10 +57,7 @@ class displayer(analysisStep) :
                 inFile.Close()
                 os.remove(inFileName)                    
             dummyCanvas.Print(outFileName+"]", options)
-            pdfFileName = outFileName.replace(".ps",".pdf")
-            os.system("ps2pdf "+outFileName+" "+pdfFileName)
-            os.system("gzip -f "+outFileName)
-            print "The display file \""+pdfFileName+"\" has been written."    
+            print "The display file \""+outFileName+"\" has been written."    
         
-        psFromRoot(products["outputFileName"], self.outputFileName.replace(".root", ".ps"))
+        pdfFromRoot(products["outputFileName"], self.outputFileName.replace(".root", ".pdf"))
         print utils.hyphens
