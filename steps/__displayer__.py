@@ -34,6 +34,7 @@ class displayer(analysisStep) :
         self.canvasIndex = 0
 
     def endFunc(self, chains) :
+        self.reset()
         self.outputFile.Write()
         self.outputFile.Close()
         del self.canvas
