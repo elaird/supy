@@ -3,6 +3,7 @@ import os,socket
 def prefix() :
     d = {"hep.ph.ic.ac.uk":"ic",
          "sesame1":"pu",
+         "brown.edu":"bn",
          "cern.ch":"cern",
          "fnal.gov":"fnal",
          }
@@ -34,6 +35,15 @@ def specs() :
                 "srmPrefix"      : "",
                 "queueHeaders"   : ["Job id","Name","User","Time Use","S","Queue"],
                 "queueVars"      : {"queueName":"hep", "queue": "Queue", "user":"User", "state":"S", "run":"R", "summary":"qstat", "sample": "qstat -u %s | head"%user},
+                "CMSSW_lumi"     : None,
+                },
+        "bn"  :{"localOutputDir" : os.environ["_CONDOR_SCRATCH_DIR"] if "_CONDOR_SCRATCH_DIR" in os.environ else "/tmp/%s"%user,
+                "globalOutputDir": "%s/supyOutput/"%os.environ["HOME"],
+                "dCachePrefix"   : "",
+                "dCacheTrim"     : "",
+                "srmPrefix"      : "",
+                "queueHeaders"   : ["ID", "OWNER", "SUBMITTED1", "SUBMITTED2", "RUN_TIME", "ST", "PRI", "SIZE", "CMD"],
+                "queueVars"      : {"user":"OWNER", "state":"ST", "run":"R", "summary":"condor_q -global", "sample": "condor_q -global -submitter %s | head"%user},
                 "CMSSW_lumi"     : None,
                 },
         "cern":{"localOutputDir" : "/tmp/%s"%user,
