@@ -11,12 +11,14 @@ def stats(l) :
     wait = collections.defaultdict(int)
 
     for line in l[2:] :
+        if len(line.split()) < len(sites.info(key = "queueHeaders")) : continue
         d = dict(zip(sites.info(key = "queueHeaders"), line.split()))
         if vars["state"] not in d : continue
         if "queueName" in vars and not vars["queueName"] in d[vars["queue"]] : continue
         
         if d[vars["state"]]==vars["run"] :
-            run[d[vars["user"]]][d[vars['queue']][:7]]+=1
+            queue = d[vars['queue']] if 'queue' in vars else ""
+            run[d[vars["user"]]][queue[:7]]+=1
         else :
             wait[d[vars["user"]]]+=1
     return run,wait
