@@ -10,9 +10,10 @@ def stats(l) :
     run  = collections.defaultdict(lambda : collections.defaultdict(int))
     wait = collections.defaultdict(int)
 
-    for line in l[2:] :
-        if len(line.split()) < len(sites.info(key = "queueHeaders")) : continue
+    blackList = vars["userBlackList"] if "userBlackList" in vars else []
+    for line in l :
         d = dict(zip(sites.info(key = "queueHeaders"), line.split()))
+        if vars["user"] in d and d[vars["user"]] in blackList : continue
         if vars["state"] not in d : continue
         if "queueName" in vars and not vars["queueName"] in d[vars["queue"]] : continue
         
@@ -32,7 +33,7 @@ def summary(run, wait) :
 
     queues = sorted(set(sum([user.keys() for user in run.values()],[])))
 
-    print '(%s)'%', '.join(queues)
+    if any(queues) : print '(%s)'%', '.join(queues)
     print "+------------------%s---------------+"%(len(queues)*"----")
     print "|      user        %sr  other  total|"%(len(queues)*"    ")
     print "|------------------%s---------------|"%(len(queues)*"----")
