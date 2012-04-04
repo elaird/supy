@@ -1,4 +1,5 @@
 import sys,os,subprocess,cPickle
+import configuration
 #####################################
 def mkdir(path) :
     try:
@@ -112,6 +113,36 @@ def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
         if acceptFile : fileList.append("rfio:///"+location+"/"+fileName)
             
     if pruneList :   fileList=pruneCrabDuplicates(fileList,size)
+    return fileList
+#####################################
+def fileListFromEos(location,itemsToSkip=[],sizeThreshold=0) :
+    eos = configuration.eosExecutable()
+    xrootdRedirector = configuration.xrootdRedirector()
+
+    fileList=[]
+    sizes=[]
+
+    cmd= eos+" ls -l "+location
+    output = getCommandOutput(cmd)
+    out = output["stdout"]
+    err = output["stderr"]
+    if output["returncode"] or 'command not found' in err :
+        print '\n'.join([out, err])
+        return fileList
+    for line in out.split("\n") :
+        if ".root" not in line : continue
+        acceptFile=True
+        fields=line.split()
+        size=float(fields[-5])
+        fileName=fields[-1]
+
+        if size<=sizeThreshold : acceptFile=False
+        for item in itemsToSkip :
+            if item in fileName : acceptFile=False
+        if acceptFile :
+            fileList.append(xrootdRedirector+location+"/"+fileName)
+            sizes.append(size)
+    print fileList
     return fileList
 #####################################
 def fileListFromDisk(location, isDirectory = True, itemsToSkip = [], sizeThreshold = 0) :

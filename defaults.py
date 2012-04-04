@@ -68,3 +68,11 @@ def initializeROOT(r, cppFiles = []) :
 
 def haddErrorsToIgnore() :
     return ["", "Exception in thread QueueFeederThread (most likely raised during interpreter shutdown):",]
+
+def eosExecutable() :
+    "Location of the eos main. See https://twiki.cern.ch/twiki/bin/view/EOS."
+    return "/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select"
+
+def xrootdRedirector() :
+    "The one to be used by eos."
+    return "root://eosatlas.cern.ch/"
