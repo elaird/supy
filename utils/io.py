@@ -95,8 +95,9 @@ def fileListFromSrmLs(dCachePrefix = None, dCacheTrim = None, location = None, i
     if pruneList :   fileList=pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)
     return fileList
 #####################################    
-def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
+def fileListFromCastor(location, itemsToSkip = [], sizeThreshold = 0, pruneList = True, alwaysUseLastAttempt = False) :
     fileList=[]
+    sizes = []
     cmd="nsls -l "+location
     #print cmd
     output = getCommandOutput(cmd)["stdout"]
@@ -110,9 +111,11 @@ def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
         if size<=sizeThreshold : acceptFile=False
         for item in itemsToSkip :
             if item in fileName : acceptFile=False
-        if acceptFile : fileList.append("rfio:///"+location+"/"+fileName)
+        if acceptFile :
+            fileList.append("rfio:///"+location+"/"+fileName)
+            sizes.append(size)
             
-    if pruneList :   fileList=pruneCrabDuplicates(fileList,size)
+    if pruneList :   fileList=pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)
     return fileList
 #####################################
 def fileListFromEos(location,itemsToSkip=[],sizeThreshold=0) :
