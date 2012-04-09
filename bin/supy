@@ -63,8 +63,10 @@ def importedClass(module) :
 ############################################
 def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
     jobScriptFileName = "%(base)s/%(tag)s/%(sample)s/job%(iSlice)d.sh"%indexDict
-
+    jobScriptDir = jobScriptFileName[:jobScriptFileName.rfind('/')]
+    if not os.path.isdir(jobScriptDir): os.system("mkdir -p %s"%jobScriptDir)
     os.system("cp -p "+jobScript+" "+jobScriptFileName)
+    os.system("chmod +x "+jobScriptFileName)
     with open(jobScriptFileName,"a") as file :
         print >>file
         for item in ["PYTHONPATH", "LD_LIBRARY_PATH"] :
@@ -78,7 +80,6 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
         arg = condorFileName
     else :
         arg = jobScriptFileName
-
     subCmd = "%s %s"%(subScript, arg)
     os.system(subCmd)
 ############################################
@@ -92,7 +93,7 @@ def doBatch(someInstance) :
 
     site = supy.sites.prefix()
 
-    scriptDir = someInstance.globalStem
+    scriptDir = "%s/batch/"%supy.whereami()
     os.system("mkdir -p "+scriptDir)
 
     args = []
