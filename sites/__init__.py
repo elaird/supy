@@ -47,7 +47,7 @@ def specs() :
                       "eos"            : "/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select", #See https://twiki.cern.ch/twiki/bin/view/EOS.
                       "eosPrefix"      : "root://eosatlas.cern.ch/",
                       "queueHeaders"   : ["JOBID", "USER", "STAT", "QUEUE", "FROM_HOST", "EXEC_HOST", "JOB_NAME", "SUBMIT_TIME"],
-                      "queueVars"      : {"queueName":"8nm", "queue":"QUEUE", "user":"USER", "state":"STAT", "run":"RUN", "summary":"bjobs -u all", "sample": "bjobs | head"},
+                      "queueVars"      : {"queueName":"8nh", "queue":"QUEUE", "user":"USER", "state":"STAT", "run":"RUN", "summary":"bjobs -u all", "sample": "bjobs | head"},
                       "CMSSW_lumi"     : None,
                       },
         "fnal_cms":{"localOutputDir" : os.environ["_CONDOR_SCRATCH_DIR"] if "_CONDOR_SCRATCH_DIR" in os.environ else "/tmp/%s"%user,
