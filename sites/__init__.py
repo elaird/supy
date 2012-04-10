@@ -50,9 +50,8 @@ def specs() :
                 },
         "cern":{"localOutputDir" : "/tmp/%s"%user,
                 "globalOutputDir": "/tmp/%s"%user,
-                "dCachePrefix"   : "",
-                "dCacheTrim"     : "",
-                "srmPrefix"      : "",
+                "eos"            : "/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select", #See https://twiki.cern.ch/twiki/bin/view/EOS.
+                "eosPrefix"      : "root://eosatlas.cern.ch/",
                 "queueHeaders"   : ["JOBID", "USER", "STAT", "QUEUE", "FROM_HOST", "EXEC_HOST", "JOB_NAME", "SUBMIT_TIME"],
                 "queueVars"      : {"queueName":"8nm", "queue":"QUEUE", "user":"USER", "state":"STAT", "run":"RUN", "summary":"bjobs -u all", "sample": "bjobs | head"},
                 "CMSSW_lumi"     : None,
@@ -100,8 +99,10 @@ def mvCommand(site = None, src = None, dest = None) :
     assert site in d, "site %s does not have a mvCommand defined"%site
     return d[site]
 
-def srmFunc() :
+def srm() :
     return 'utils.fileListFromSrmLs(dCachePrefix = "%s", dCacheTrim = "%s", location="%s'%(info(key = "dCachePrefix"),
                                                                                            info(key = "dCacheTrim"),
                                                                                            info(key = "srmPrefix"))
-srm = srmFunc()
+
+def eos() :
+    return 'utils.fileListFromEos(eos = "%s", xrootdRedirector = "%s", location="'%(info(key = "eos"), info(key = "eosPrefix"))
