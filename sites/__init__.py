@@ -43,7 +43,7 @@ def specs() :
                     "CMSSW_lumi"     : None,
                     },
         "cern_atlas":{"localOutputDir" : "/tmp/%s"%user,
-                      "globalOutputDir": "/afs/cern.ch/work/%s/%s/tmp/"%(userd[0],user),
+                      "globalOutputDir": "/afs/cern.ch/work/%s/%s/tmp/"%(user[0],user),
                       "eos"            : "/afs/cern.ch/project/eos/installation/0.1.0-22d/bin/eos.select", #See https://twiki.cern.ch/twiki/bin/view/EOS.
                       "eosPrefix"      : "root://eosatlas.cern.ch/",
                       "queueHeaders"   : ["JOBID", "USER", "STAT", "QUEUE", "FROM_HOST", "EXEC_HOST", "JOB_NAME", "SUBMIT_TIME"],
