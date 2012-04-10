@@ -118,10 +118,7 @@ def fileListFromCastor(location, itemsToSkip = [], sizeThreshold = 0, pruneList 
     if pruneList :   fileList=pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)
     return fileList
 #####################################
-def fileListFromEos(location,itemsToSkip=[],sizeThreshold=0) :
-    eos = configuration.eosExecutable()
-    xrootdRedirector = configuration.xrootdRedirector()
-
+def fileListFromEos(location, itemsToSkip = [], sizeThreshold=0, eos = "", xrootdRedirector = "") :
     fileList=[]
     sizes=[]
 
