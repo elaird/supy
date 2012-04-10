@@ -26,7 +26,7 @@ def stats(l) :
 
 def summary(run, wait) :
     def printLine(user, rsd, w) :
-        on,off = ('\033[91m','\033[0m') if user==os.environ["USER"] else ('','')
+        on,off = ('\033[91m','\033[0m') if os.environ["USER"].startswith(user) else ('','')
         rs = [ rsd[queue] for queue in queues ]
         formRs = '(%s)'%','.join(str(r).rjust(3) for r in rs)
         print "|%s%17s %s %6d %6d%s|"%(on, user, formRs, w, sum(rs)+w, off)
