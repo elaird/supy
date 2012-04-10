@@ -103,7 +103,8 @@ class analysisLooper :
         os.system("rm -r %s"%self.tmpDir)
         
     def setupChains(self) :
-        self.chains = dict( [(item,r.TChain("%s/%s"%(item[0], item[1]))) for item in [self.mainTree]+self.otherTreesToKeepWhenSkimming])
+        assert self.mainTree not in self.otherTreesToKeepWhenSkimming
+        self.chains = dict( [(item,r.TChain("%s/%s"%item)) for item in [self.mainTree]+self.otherTreesToKeepWhenSkimming])
         for (dirName,treeName),chain in self.chains.iteritems() :
             for infile in self.inputFiles : chain.Add(infile)
             r.SetOwnership(chain, False)
