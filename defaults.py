@@ -1,3 +1,7 @@
+def experiment() :
+    '''Used by specifications in sites/__init__.py'''
+    return ""
+
 def mainTree() :
     return ("/","tree")
 
