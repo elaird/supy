@@ -16,6 +16,10 @@ def prefix() :
     exp = configuration.experiment()
     return site()+("_%s"%exp if exp else "")
 
+def optionalKeys() :
+    '''these keys are not required to be defined at a given site'''
+    return ["dCachePrefix", "dCacheTrim", "srmPrefix", "eosPrefix"]
+
 def specs() :
     user = os.environ["USER"]
     return {
@@ -84,29 +88,27 @@ def info(site = None, key = None) :
     if site==None : site = prefix()
     ss = specs()
     assert site in ss, "site %s does not appear in specs()"%site
-    assert key in ss[site], "site %s does not have key %s"%(site, key)
-    return ss[site][key]
+    if key not in optionalKeys() :
+        assert key in ss[site], "site %s does not have key %s"%(site, key)
+        return ss[site][key]
+    else :
+        return ""
 
 def batchScripts() :
     p = "sites/"+prefix()
     return ("%sSub.sh"%p, "%sJob.sh"%p, "%sTemplate.condor"%p)
 
 def mvCommand(site = None, src = None, dest = None) :
-    d = {"ic_cms":"mv %s %s"%(src, dest),
-         "pu_cms":"mv %s %s"%(src, dest),
-         "cern_atlas":"mv %s %s"%(src, dest),
-         "fnal_cms":"mv %s %s"%(src, dest),
-         #"fnal_cms":"srmcp file:///%s %s/%s"%(src, srmPrefix("fnal"), dest.replace("/pnfs/cms/WAX/","/")),
-         "other_cms":"mv %s %s"%(src, dest),
-         "other_atlas":"mv %s %s"%(src, dest),
+    d = {#"fnal_cms":"srmcp file:///%s %s/%s"%(src, srmPrefix("fnal"), dest.replace("/pnfs/cms/WAX/","/")),
         }
-    assert site in d, "site %s does not have a mvCommand defined"%site
-    return d[site]
+    return "mv %s %s"%(src, dest) if site not in d else d[site]
 
-def srm() :
+def srmFunc() :
     return 'utils.fileListFromSrmLs(dCachePrefix = "%s", dCacheTrim = "%s", location="%s'%(info(key = "dCachePrefix"),
                                                                                            info(key = "dCacheTrim"),
                                                                                            info(key = "srmPrefix"))
 
 def eos() :
     return 'utils.fileListFromEos(eos = "%s", xrootdRedirector = "%s", location="'%(info(key = "eos"), info(key = "eosPrefix"))
+
+srm = srmFunc()
