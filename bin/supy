@@ -93,7 +93,7 @@ def doBatch(someInstance) :
 
     site = supy.sites.prefix()
 
-    scriptDir = "%s/batch/"%supy.whereami()
+    scriptDir = someInstance.globalStem
     os.system("mkdir -p "+scriptDir)
 
     args = []
