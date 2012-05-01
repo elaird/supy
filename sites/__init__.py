@@ -62,7 +62,8 @@ def specs() :
                     "dCachePrefix"   : "dcap://cmsgridftp.fnal.gov:24125/pnfs/fnal.gov/usr/cms/WAX/",
                     "srmPrefix"      : "srm://cmssrm.fnal.gov:8443/",
                     "queueHeaders"   : ["ID", "OWNER", "SUBMITTED1", "SUBMITTED2", "RUN_TIME", "ST", "PRI", "SIZE", "CMD"],
-                    "queueVars"      : {"user":"OWNER", "state":"ST", "run":"R", "summary":"condor_q -global", "sample": "condor_q -global -submitter %s | head"%user},
+                    "queueVars"      : {"user":"OWNER", "state":"ST", "run":"R", "userBlackList":["OWNER", "jobs;"],
+                                        "summary":"condor_q -global", "sample": "condor_q -global -submitter %s | head"%user},
                     },
         }
 
