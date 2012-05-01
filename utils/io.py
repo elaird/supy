@@ -1,5 +1,4 @@
 import sys,os,subprocess,cPickle
-import configuration
 #####################################
 def mkdir(path) :
     try:
