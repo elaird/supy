@@ -63,7 +63,7 @@ def specs() :
                     "dCacheTrim"     : "/pnfs/cms/WAX/",
                     "dCachePrefix"   : "dcap://cmsgridftp.fnal.gov:24125/pnfs/fnal.gov/usr/cms/WAX/",
                     #"srmPrefix"      : "srm://cmssrm.fnal.gov:8443/pnfs/cms/WAX/11/store/user/lpcsusyra1",
-                    "lsPrefix"       : "/pnfs/cms/WAX/11/store/user/lpcsusyra1",
+                    "lsPrefix"       : "/pnfs/cms/WAX/11/store/user/lpcsusyra1/",
                     "queueHeaders"   : ["ID", "OWNER", "SUBMITTED1", "SUBMITTED2", "RUN_TIME", "ST", "PRI", "SIZE", "CMD"],
                     "queueVars"      : {"user":"OWNER", "state":"ST", "run":"R", "userBlackList":["OWNER", "jobs;"],
                                         "summary":"condor_q -global", "sample": "condor_q -global -submitter %s | head"%user},
@@ -95,7 +95,8 @@ def eos() :
     return 'utils.fileListFromEos(eos = "%s", xrootdRedirector = "%s", location="'%(info(key = "eos"), info(key = "eosPrefix"))
 
 def pnfs() :
-    return 'utils.fileListFromPnfs(lsPrefix = "%s", dCacheTrim = "%s", location="'%(info(key = "lsPrefix"),
-                                                                                    info(key = "dCacheTrim"))
+    return 'utils.fileListFromPnfs(lsPrefix = "%s", dCachePrefix = "%s", dCacheTrim = "%s", location="'%(info(key = "lsPrefix"),
+                                                                                                         info(key = "dCachePrefix"),
+                                                                                                         info(key = "dCacheTrim"))
 
 srm = srmFunc()
