@@ -93,6 +93,28 @@ def fileListFromSrmLs(dCachePrefix = None, dCacheTrim = None, location = None, i
 
     if pruneList :   fileList=pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)
     return fileList
+#####################################
+def fileListFromPnfs(lsPrefix = None, dCacheTrim = None, location = None, itemsToSkip = [], sizeThreshold = -1, pruneList = True, alwaysUseLastAttempt = True) :
+    fileList=[]
+    sizes=[]
+    offset = 0
+    cmd = "ls %s/%s"%(lsPrefix, location)
+    output = getCommandOutput(cmd)["stdout"].split('\n')
+    for line in output :
+        print line
+        if ".root" not in line : continue
+        acceptFile = True
+        fields = line.split()
+        fileName = fields[0]
+
+        for item in itemsToSkip :
+            if item in fileName : acceptFile = False
+        if acceptFile :
+            fileList.append( (lsPrefix+fileName) if not dCacheTrim else (lsPrefix+fileName).replace(dCacheTrim, "") )
+            sizes.append(0.0)
+
+    if pruneList :   fileList = pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)
+    return fileList
 #####################################    
 def fileListFromCastor(location, itemsToSkip = [], sizeThreshold = 0, pruneList = True, alwaysUseLastAttempt = False) :
     fileList=[]
