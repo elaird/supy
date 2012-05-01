@@ -25,6 +25,7 @@ def specs() :
                     "dCacheTrim":"",
                     "srmPrefix":"",
                     "eosPrefix":"",
+                    "lsPrefix":"",
                     "queueHeaders":[],
                     "queueVars":{},
                     "CMSSW_lumi":None,
@@ -59,8 +60,10 @@ def specs() :
         "fnal_cms":{"localOutputDir" : os.environ["_CONDOR_SCRATCH_DIR"] if "_CONDOR_SCRATCH_DIR" in os.environ else "/tmp/%s"%user,
                     "globalOutputDir": "%s/supyOutput/"%os.environ["HOME"],
                     #"globalOutputDir":"/pnfs/cms/WAX/resilient/%s/tmp/"%user,
+                    "dCacheTrim"     : "/pnfs/cms/WAX/",
                     "dCachePrefix"   : "dcap://cmsgridftp.fnal.gov:24125/pnfs/fnal.gov/usr/cms/WAX/",
-                    "srmPrefix"      : "srm://cmssrm.fnal.gov:8443/",
+                    #"srmPrefix"      : "srm://cmssrm.fnal.gov:8443/pnfs/cms/WAX/11/store/user/lpcsusyra1",
+                    "lsPrefix"       : "/pnfs/cms/WAX/11/store/user/lpcsusyra1",
                     "queueHeaders"   : ["ID", "OWNER", "SUBMITTED1", "SUBMITTED2", "RUN_TIME", "ST", "PRI", "SIZE", "CMD"],
                     "queueVars"      : {"user":"OWNER", "state":"ST", "run":"R", "userBlackList":["OWNER", "jobs;"],
                                         "summary":"condor_q -global", "sample": "condor_q -global -submitter %s | head"%user},
@@ -90,5 +93,9 @@ def srmFunc() :
 
 def eos() :
     return 'utils.fileListFromEos(eos = "%s", xrootdRedirector = "%s", location="'%(info(key = "eos"), info(key = "eosPrefix"))
+
+def pnfs() :
+    return 'utils.fileListFromPnfs(lsPrefix = "%s", dCacheTrim = "%s", location="'%(info(key = "lsPrefix"),
+                                                                                    info(key = "dCacheTrim"))
 
 srm = srmFunc()
