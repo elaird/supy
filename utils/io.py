@@ -94,14 +94,14 @@ def fileListFromSrmLs(dCachePrefix = None, dCacheTrim = None, location = None, i
     if pruneList :   fileList=pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)
     return fileList
 #####################################
-def fileListFromPnfs(lsPrefix = None, dCacheTrim = None, location = None, itemsToSkip = [], sizeThreshold = -1, pruneList = True, alwaysUseLastAttempt = True) :
+def fileListFromPnfs(lsPrefix = None, dCachePrefix = None, dCacheTrim = None, location = None, itemsToSkip = [], sizeThreshold = -1, pruneList = True, alwaysUseLastAttempt = True) :
     fileList=[]
     sizes=[]
     offset = 0
-    cmd = "ls %s/%s"%(lsPrefix, location)
-    output = getCommandOutput(cmd)["stdout"].split('\n')
+    if lsPrefix :
+        location = lsPrefix+"/"+location
+    output = getCommandOutput("ls %s"%location)["stdout"].split('\n')
     for line in output :
-        print line
         if ".root" not in line : continue
         acceptFile = True
         fields = line.split()
@@ -110,7 +110,10 @@ def fileListFromPnfs(lsPrefix = None, dCacheTrim = None, location = None, itemsT
         for item in itemsToSkip :
             if item in fileName : acceptFile = False
         if acceptFile :
-            fileList.append( (lsPrefix+fileName) if not dCacheTrim else (lsPrefix+fileName).replace(dCacheTrim, "") )
+            toAppend = "%s/%s/%s"%(dCachePrefix,location,fileName)
+            if dCacheTrim :
+                toAppend = toAppend.replace(dCacheTrim, "")
+            fileList.append(toAppend)
             sizes.append(0.0)
 
     if pruneList :   fileList = pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)
