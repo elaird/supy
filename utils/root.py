@@ -5,6 +5,9 @@ except:
     pass
 
 #####################################
+def gDirectory() :
+    return r.gDirectory if type(r.gDirectory)==r.TDirectoryFile else r.gDirectory.CurrentDirectory()
+#####################################
 def generateDictionaries(inList, dir = None) :
     '''http://root.cern.ch/drupal/content/how-generate-dictionary'''
     wd = os.getcwd()
