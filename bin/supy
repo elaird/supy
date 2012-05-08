@@ -107,7 +107,7 @@ def doBatch(someInstance) :
                                  "iSlice":iSlice,
                                  "site":site}
                 args.append( (baseCmd + " --site %(site)s --jobid %(iSlice)d --tag '%(tag)s' --sample %(sample)s"%listOfIndices,
-                              listOfIndices, supy.whereami()+'/'+subScript, supy.whereami()+'/'+jobScript, condorTemplate) )
+                              listOfIndices, supy.whereami()+'/'+subScript, supy.whereami()+'/'+jobScript, supy.whereami()+'/'+condorTemplate) )
     supy.utils.operateOnListUsingQueue(configuration.nCoresDefault(), supy.utils.qWorker(submitBatchJob), args)
 ############################################
         
