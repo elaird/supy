@@ -1,10 +1,22 @@
-universe = globus
-globusscheduler = cmsosgce.fnal.gov/jobmanager-condor
+#http://www.uscms.org/uscms_at_work/computing/setup/batch_systems.shtml
+
+#universe = globus
+#globusscheduler = cmsosgce.fnal.gov/jobmanager-condor
+universe = vanilla
+
 Executable = JOBFLAG
-Requirements = Memory >= 199 &&OpSys == "LINUX"&& (Arch != "DUMMY" )&& Disk > 1000000
+Requirements = Memory >= 199 && OpSys == "LINUX" && (Arch != "DUMMY")
+
 Should_Transfer_Files = NO
+#Should_Transfer_Files = YES
+#WhenToTransferOutput = ON_EXIT
+
 Output = JOBFLAG_$(Cluster)_$(Process).stdout
 Error = JOBFLAG_$(Cluster)_$(Process).stderr
 Log = JOBFLAG_$(Cluster)_$(Process).log
 notify_user = ${LOGNAME}@FNAL.GOV
+
+#+LENGTH="SHORT"
+
 Queue
+
