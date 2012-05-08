@@ -58,7 +58,7 @@ def specs() :
                       "queueVars"      : {"queueName":"8nh", "queue":"QUEUE", "user":"USER", "state":"STAT", "run":"RUN", "summary":"bjobs -u all", "sample": "bjobs | head"},
                       },
         "fnal_cms":{"localOutputDir" : os.environ["_CONDOR_SCRATCH_DIR"] if "_CONDOR_SCRATCH_DIR" in os.environ else "/tmp/%s"%user,
-                    "globalOutputDir": "%s/supyOutput/"%os.environ["HOME"],
+                    "globalOutputDir": "%s/output-supy/"%os.environ["HOME"],
                     #"globalOutputDir":"/pnfs/cms/WAX/resilient/%s/tmp/"%user,
                     "dCacheTrim"     : "/pnfs/cms/WAX/",
                     "dCachePrefix"   : "dcap://cmsgridftp.fnal.gov:24125/pnfs/fnal.gov/usr/cms/WAX/",
