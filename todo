@@ -36,17 +36,12 @@
 (ongoing)
 * profile
 
-(ntupler)
-* xs by event
-
 (low priority)
 * fnalbatch
-* lxbatch
 * store inputFileList in root file?
 * move ratio marker
 * 2D ratios
 * logfiles
-* organize files in cvs
 * named arguments everywhere
 * update example ntuples
 * non-linear cutflow
