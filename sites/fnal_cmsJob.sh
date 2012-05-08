@@ -1,4 +1,5 @@
 #!/bin/bash
 
 source /uscmst1/prod/sw/cms/shrc prod
-cd /uscmst1/prod/sw/cms/slc5_ia32_gcc434/cms/cmssw/CMSSW_3_8_5/src && eval `scram runtime -sh` && cd - >& /dev/null
+export SCRAM_ARCH=slc5_amd64_gcc462
+cd /uscmst1/prod/sw/cms/slc5_amd64_gcc462/cms/cmssw-patch/CMSSW_5_2_4_patch1/src && eval \`scram runtime -sh\` && cd - >& /dev/null
