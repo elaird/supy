@@ -32,6 +32,7 @@
 * support string
 * wrap the return when there is an unknown type
 * understand trace limitation with chain access
+* improve environment hack (for fnal batch) in bin/supy
 
 (ongoing)
 * profile
