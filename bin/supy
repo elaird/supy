@@ -70,7 +70,9 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
     with open(jobScriptFileName,"a") as file :
         print >>file
         for item in ["PYTHONPATH", "LD_LIBRARY_PATH"] :
-            print >>file, "export %s=%s"%(item, os.environ[item])
+            value = os.environ[item]
+            value = value.replace('";','"') # hack for fnal batch; perhaps there is a more elegant solution
+            print >>file, "export %s=%s"%(item, value)
         print >>file, "cd "+os.environ["PWD"]
         print >>file, jobCmd
 
@@ -107,7 +109,7 @@ def doBatch(someInstance) :
                                  "iSlice":iSlice,
                                  "site":site}
                 args.append( (baseCmd + " --site %(site)s --jobid %(iSlice)d --tag '%(tag)s' --sample %(sample)s"%listOfIndices,
-                              listOfIndices, supy.whereami()+'/'+subScript, supy.whereami()+'/'+jobScript, condorTemplate) )
+                              listOfIndices, supy.whereami()+'/'+subScript, supy.whereami()+'/'+jobScript, supy.whereami()+'/'+condorTemplate) )
     supy.utils.operateOnListUsingQueue(configuration.nCoresDefault(), supy.utils.qWorker(submitBatchJob), args)
 ############################################
         

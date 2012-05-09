@@ -32,21 +32,17 @@
 * support string
 * wrap the return when there is an unknown type
 * understand trace limitation with chain access
+* improve environment hack (for fnal batch) in bin/supy
 
 (ongoing)
 * profile
 
-(ntupler)
-* xs by event
-
 (low priority)
 * fnalbatch
-* lxbatch
 * store inputFileList in root file?
 * move ratio marker
 * 2D ratios
 * logfiles
-* organize files in cvs
 * named arguments everywhere
 * update example ntuples
 * non-linear cutflow
