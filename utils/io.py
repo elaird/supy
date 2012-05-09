@@ -93,9 +93,35 @@ def fileListFromSrmLs(dCachePrefix = None, dCacheTrim = None, location = None, i
 
     if pruneList :   fileList=pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)
     return fileList
-#####################################    
-def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
+#####################################
+def fileListFromPnfs(lsPrefix = None, dCachePrefix = None, dCacheTrim = None, location = None, itemsToSkip = [], sizeThreshold = -1, pruneList = True, alwaysUseLastAttempt = True) :
     fileList=[]
+    sizes=[]
+    offset = 0
+    if lsPrefix :
+        location = lsPrefix+"/"+location
+    output = getCommandOutput("ls %s"%location)["stdout"].split('\n')
+    for line in output :
+        if ".root" not in line : continue
+        acceptFile = True
+        fields = line.split()
+        fileName = fields[0]
+
+        for item in itemsToSkip :
+            if item in fileName : acceptFile = False
+        if acceptFile :
+            toAppend = "%s/%s/%s"%(dCachePrefix,location,fileName)
+            if dCacheTrim :
+                toAppend = toAppend.replace(dCacheTrim, "")
+            fileList.append(toAppend)
+            sizes.append(0.0)
+
+    if pruneList :   fileList = pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)
+    return fileList
+#####################################    
+def fileListFromCastor(location, itemsToSkip = [], sizeThreshold = 0, pruneList = True, alwaysUseLastAttempt = False) :
+    fileList=[]
+    sizes = []
     cmd="nsls -l "+location
     #print cmd
     output = getCommandOutput(cmd)["stdout"]
@@ -109,9 +135,38 @@ def fileListFromCastor(location,itemsToSkip=[],sizeThreshold=0,pruneList=True) :
         if size<=sizeThreshold : acceptFile=False
         for item in itemsToSkip :
             if item in fileName : acceptFile=False
-        if acceptFile : fileList.append("rfio:///"+location+"/"+fileName)
+        if acceptFile :
+            fileList.append("rfio:///"+location+"/"+fileName)
+            sizes.append(size)
             
-    if pruneList :   fileList=pruneCrabDuplicates(fileList,size)
+    if pruneList :   fileList=pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)
+    return fileList
+#####################################
+def fileListFromEos(location, itemsToSkip = [], sizeThreshold=0, eos = "", xrootdRedirector = "") :
+    fileList=[]
+    sizes=[]
+
+    cmd= eos+" ls -l "+location
+    output = getCommandOutput(cmd)
+    out = output["stdout"]
+    err = output["stderr"]
+    if output["returncode"] or 'command not found' in err :
+        print '\n'.join([out, err])
+        return fileList
+    for line in out.split("\n") :
+        if ".root" not in line : continue
+        acceptFile=True
+        fields=line.split()
+        size=float(fields[-5])
+        fileName=fields[-1]
+
+        if size<=sizeThreshold : acceptFile=False
+        for item in itemsToSkip :
+            if item in fileName : acceptFile=False
+        if acceptFile :
+            fileList.append(xrootdRedirector+location+"/"+fileName)
+            sizes.append(size)
+    print fileList
     return fileList
 #####################################
 def fileListFromDisk(location, isDirectory = True, itemsToSkip = [], sizeThreshold = 0) :

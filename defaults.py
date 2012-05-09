@@ -1,3 +1,7 @@
+def experiment() :
+    '''Used by specifications in sites/__init__.py'''
+    return ""
+
 def mainTree() :
     return ("/","tree")
 
@@ -42,7 +46,7 @@ def fakeString() :
     return ";FAKE"
 
 def hadd() :
-    '''You may wish to use an alternative to hadd, such as run/phaddy'''
+    '''You may wish to use an alternative to hadd, such as bin/phaddy'''
     return "hadd"
 
 def cppROOTDictionariesToGenerate() :

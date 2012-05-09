@@ -50,7 +50,8 @@ class skimmer(analysisStep) :
         if not self.outputTree :                  #in case the chain has 0 entries
             r.gROOT.cd()
             return
-        self.outputTree.SetDirectory(r.gDirectory)#put output tree in correct place
+
+        self.outputTree.SetDirectory(utils.root.gDirectory())#put output tree in correct place
         chain.CopyAddresses(self.outputTree)      #associate branch addresses
 
     def writeOtherChains(self, chains) :
@@ -62,7 +63,7 @@ class skimmer(analysisStep) :
                 outChain = chain.CloneTree()
                 if outChain :
                     outChain.SetName(treeName)
-                    outChain.SetDirectory(r.gDirectory)
+                    outChain.SetDirectory(utils.root.gDirectory())
                     outChain.Write()
 
     def initExtraTree(self) :
@@ -74,7 +75,7 @@ class skimmer(analysisStep) :
             
             extraName=self.outputTree.GetName()+"Extra"
             self.outputTreeExtra=r.TTree(extraName,extraName)
-            self.outputTreeExtra.SetDirectory(r.gDirectory)
+            self.outputTreeExtra.SetDirectory(utils.root.gDirectory())
         r.gROOT.cd()
 
 

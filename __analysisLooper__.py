@@ -103,9 +103,10 @@ class analysisLooper :
         os.system("rm -r %s"%self.tmpDir)
         
     def setupChains(self) :
-        self.chains = dict( [(item,r.TChain("chain%d"%iItem)) for iItem,item in enumerate([self.mainTree]+self.otherTreesToKeepWhenSkimming)])
+        assert self.mainTree not in self.otherTreesToKeepWhenSkimming
+        self.chains = dict( [(item,r.TChain("%s/%s"%item)) for item in [self.mainTree]+self.otherTreesToKeepWhenSkimming])
         for (dirName,treeName),chain in self.chains.iteritems() :
-            for infile in self.inputFiles : chain.Add("%s/%s/%s"%(infile, dirName, treeName))
+            for infile in self.inputFiles : chain.Add(infile)
             r.SetOwnership(chain, False)
 
         if not self.quietMode :
@@ -221,7 +222,7 @@ class analysisLooper :
         for step,stepDict in filter(lambda s: s[0].isSelector, zip(self.steps, products)) :
             step.increment(True, sum(stepDict["nPass"]))
             step.increment(False,sum(stepDict["nFail"]))
-                
+
         self.printStats()
         print utils.hyphens
         for iStep,step,stepDict in zip(range(len(self.steps)),self.steps,products) :
