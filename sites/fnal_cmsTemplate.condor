@@ -2,21 +2,19 @@
 
 #universe = globus
 #globusscheduler = cmsosgce.fnal.gov/jobmanager-condor
+#+LENGTH="SHORT"
+
 universe = vanilla
 
 Executable = JOBFLAG
-Requirements = Memory >= 199 && OpSys == "LINUX" && (Arch != "DUMMY")
+Requirements = target.OpSys == "LINUX"
 
-Should_Transfer_Files = NO
-#Should_Transfer_Files = YES
-#WhenToTransferOutput = ON_EXIT
+Should_Transfer_Files = YES
+WhenToTransferOutput = ON_EXIT
 
 Output = JOBFLAG_$(Cluster)_$(Process).stdout
 Error = JOBFLAG_$(Cluster)_$(Process).stderr
 Log = JOBFLAG_$(Cluster)_$(Process).log
 notify_user = ${LOGNAME}@FNAL.GOV
 
-#+LENGTH="SHORT"
-
 Queue
-
