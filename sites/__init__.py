@@ -92,7 +92,10 @@ def srmFunc() :
 
 def eos() :
     return 'utils.fileListFromEos(eos = "%s", xrootdRedirector = "%s", location="'%(info(key = "eos"), info(key = "eosPrefix"))
-
+def eosPars() :
+    return {'eos': info(key = "eos"),
+            'xrootdRedirector' : info(key = "eosPrefix")
+            }
 def pnfs() :
     return 'utils.fileListFromPnfs(lsPrefix = "%s", dCachePrefix = "%s", dCacheTrim = "%s", location="'%(info(key = "lsPrefix"),
                                                                                                          info(key = "dCachePrefix"),
