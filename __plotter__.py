@@ -106,13 +106,14 @@ class plotter(object) :
                  dependence2D = False,
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
                  blackList = [],
+                 blackListRe = [],
                  whiteList = [],
                  pushLeft = False
                  ) :
         for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
-                     "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
-                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D", "printRatios","pushLeft"] :
+                     "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","blackListRe",
+                     "showStatBox", "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D", "printRatios","pushLeft"] :
             setattr(self,item,eval(item))
 
         self.nLinesMax -= nLinesMax/rowCycle
@@ -160,6 +161,7 @@ class plotter(object) :
             for plotName in sorted(step.keys()) :
                 if self.compactOutput and plotName not in self.whiteList : continue
                 if plotName in self.blackList : continue
+                if len([1 for r in self.blackListRe if r.match(plotName)]) : continue
                 self.onePlotFunction(step[plotName])
 
         self.printCanvas("]")
@@ -200,6 +202,9 @@ class plotter(object) :
         for key in sorted(self.cutDict.keys(), key = string.ascii_letters.index) :
             name,desc = self.cutDict[key]
             if name in blackList :
+                filtered.append(key)
+                continue
+            if len([1 for r in self.blackListRe if r.match(plotName)]) :
                 filtered.append(key)
                 continue
             for item in [name, desc] :
