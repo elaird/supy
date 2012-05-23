@@ -140,8 +140,11 @@ class analysis(object) :
     def makeInputFileLists(self) :
         def makeFileList(name) :
             if os.path.exists(self.inputFilesListFile(name)) and self.useCachedFileLists() : return
-            fileNames = eval(self.sampleDict[name].filesCommand)
-            assert fileNames, "The command '%s' produced an empty list of files"%self.sampleDict[name].filesCommand
+            filesCommand = self.sampleDict[name].filesCommand
+            filenames = None
+            if type(filesCommand)!=tuple : fileNames = eval(filesCommand)
+            else : filenames = filesCommand[0](**filesCommand[1])
+            assert fileNames, "The command '%s' produced an empty list of files"%str(filesCommand)
             tmpDir,localFileName,globalFileName = self.globalToLocal(self.inputFilesListFile(name))
             utils.writePickle(localFileName, fileNames)
             self.localToGlobal(tmpDir, localFileName, globalFileName)
