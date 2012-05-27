@@ -119,14 +119,14 @@ def fileListFromPnfs(lsPrefix = None, dCachePrefix = None, dCacheTrim = None, lo
     if pruneList :   fileList = pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)
     return fileList
 #####################################    
-def fileListFromCastor(location, itemsToSkip = [], sizeThreshold = 0, pruneList = True, alwaysUseLastAttempt = False) :
+def fileListFromCastor(location, itemsToSkip = [], sizeThreshold = 0, pruneList = True, alwaysUseLastAttempt = False, fileExt='.root') :
     fileList=[]
     sizes = []
     cmd="nsls -l "+location
     #print cmd
     output = getCommandOutput(cmd)["stdout"]
     for line in output.split("\n") :
-        if ".root" not in line : continue
+        if fileExt not in line : continue
         acceptFile=True
         fields=line.split()
         size=float(fields[-5])
