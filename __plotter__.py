@@ -160,8 +160,7 @@ class plotter(object) :
             if (step.name, step.title)==self.linYAfter : self.doLog = False
             for plotName in sorted(step.keys()) :
                 if self.compactOutput and plotName not in self.whiteList : continue
-                if plotName in self.blackList : continue
-                if len([1 for r in self.blackListRe if r.match(plotName)]) : continue
+                if plotName in self.blackList or any( r.match(plotName) for r in self.blackListRe ): continue
                 self.onePlotFunction(step[plotName])
 
         self.printCanvas("]")
@@ -201,10 +200,7 @@ class plotter(object) :
         rows = []
         for key in sorted(self.cutDict.keys(), key = string.ascii_letters.index) :
             name,desc = self.cutDict[key]
-            if name in blackList :
-                filtered.append(key)
-                continue
-            if len([1 for r in self.blackListRe if r.match(plotName)]) :
+            if name in blackList or any( r.match(plotName) for r in self.blackListRe ) :
                 filtered.append(key)
                 continue
             for item in [name, desc] :
