@@ -1,5 +1,5 @@
 import ROOT as r
-import os,math,string,itertools
+import os,math,string,itertools,re
 import utils,configuration as conf
 from supy import whereami
 ##############################
@@ -159,7 +159,7 @@ class plotter(object) :
             if (step.name, step.title)==self.linYAfter : self.doLog = False
             for plotName in sorted(step.keys()) :
                 if self.compactOutput and plotName not in self.whiteList : continue
-                if any( r.match(plotName) for r in self.blackList ): continue
+                if any( re.match(pattern,plotName) for pattern in self.blackList ): continue
                 self.onePlotFunction(step[plotName])
 
         self.printCanvas("]")
@@ -199,7 +199,7 @@ class plotter(object) :
         rows = []
         for key in sorted(self.cutDict.keys(), key = string.ascii_letters.index) :
             name,desc = self.cutDict[key]
-            if any( r.match(plotName) for r in self.blackList ) :
+            if any( re.match(pattern,plotName) for pattern in self.blackList ) :
                 filtered.append(key)
                 continue
             for item in [name, desc] :
