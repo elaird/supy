@@ -1,5 +1,5 @@
 import ROOT as r
-import os,math,string,itertools
+import os,math,string,itertools,re
 import utils,configuration as conf
 from supy import whereami
 ##############################
@@ -106,14 +106,13 @@ class plotter(object) :
                  dependence2D = False,
                  dontShiftList = ["lumiHisto","xsHisto","nJobsHisto"],
                  blackList = [],
-                 blackListRe = [],
                  whiteList = [],
                  pushLeft = False
                  ) :
         for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
-                     "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","blackListRe",
-                     "showStatBox", "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D", "printRatios","pushLeft"] :
+                     "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
+                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D", "printRatios","pushLeft"] :
             setattr(self,item,eval(item))
 
         self.nLinesMax -= nLinesMax/rowCycle
@@ -160,7 +159,7 @@ class plotter(object) :
             if (step.name, step.title)==self.linYAfter : self.doLog = False
             for plotName in sorted(step.keys()) :
                 if self.compactOutput and plotName not in self.whiteList : continue
-                if plotName in self.blackList or any( r.match(plotName) for r in self.blackListRe ): continue
+                if any( re.match(pattern+'$',plotName) for pattern in self.blackList ): continue
                 self.onePlotFunction(step[plotName])
 
         self.printCanvas("]")
@@ -200,7 +199,7 @@ class plotter(object) :
         rows = []
         for key in sorted(self.cutDict.keys(), key = string.ascii_letters.index) :
             name,desc = self.cutDict[key]
-            if name in blackList or any( r.match(plotName) for r in self.blackListRe ) :
+            if any( re.match(pattern+'$',plotName) for pattern in self.blackList ) :
                 filtered.append(key)
                 continue
             for item in [name, desc] :
