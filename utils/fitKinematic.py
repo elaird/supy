@@ -1,4 +1,4 @@
-import math, __init__ as utils
+import math, __init__ as utils,ROOT as r
 try:
     import scipy.optimize as opt
 except: pass
@@ -94,3 +94,71 @@ class leastsqHadronicTop(object) :
         self.residualsPQBWT = hadResiduals(self.deltaJ)
         self.chi2 = self.residualsPQBWT.dot(self.residualsPQBWT)
 ###########################
+class leastsqLeptonicTop2(object) :
+    '''Fit jet, lepton, and missing energy to the hypothesis t-->blv.'''
+
+    def __init__(self, b, bResolution, mu, nuXY, nuErr, 
+                 massT = 172.0, massW = 80.4) :
+
+        Wm2 = massW**2
+
+        x0 = Wm2 / (2*mu.P())
+        A_munu = np.array([[  0, 0,              -x0],
+                           [  0, 1,                0],
+                           [-x0, 0, Wm2 - x0**2]])
+        
+        c = r.Math.VectorUtil.CosTheta(mu,b)
+        s = math.sqrt(1-c*c)
+        R = np.array([[c, -s, 0],
+                      [s,  c, 0],
+                      [0,  0, 1]])
+
+        b_m2 = b.M2()
+        b_e2 = b_m2 + b.P2()
+        b_p = b.P()
+        Q = 0.5 * (massT**2 - Wm2 - b_m2)
+
+        A_b = R.dot(np.array([[  b_m2/b_e2, 0,          -Q*b_p/b_e2],
+                              [          0, 1,                    0],
+                              [-Q*b_p/b_e2, 0, Wm2 - Q**2/b_e2]])).dot(R.transpose())
+
+
+        self.evals,v = np.linalg.eig( np.linalg.inv(A_munu).dot(A_b) )
+
+        #self.valid = any(e.imag for e in self.evals) 
+        #if not self.valid : return
+
+        degenerate = np.array([[b_m2/b_p**2 +s**2,  -c*s],
+                               [             -c*s, -s**2]])
+        _,rot = np.linalg.eig(degenerate)
+        diag = rot.transpose().dot(degenerate).dot(rot)
+        print rot
+        print diag/diag[1,1]
+        print
+
+        base = math.atan2(rot[1,0],rot[0,0])
+        pm = math.atan(math.sqrt(-diag[0,0]/diag[1,1]))
+        slopes = [math.tan(ang) for ang in [base+pm, base-pm, -base+pm, -base-pm, base+1/pm, base-1/pm, -base+1/pm, -base-1/pm]]
+
+        x1 = x0
+        y1= ( Q/b_p - x1*c ) / s
+
+        #T = np.array([[1,0,-x0],[0,1,(c*x0 - Q/b_p)/s],[0,0,1]])
+        #print T.transpose().dot(A_b-A_munu).dot(T)
+        #print degenerate
+        
+        print "point: (%.2f,%.2f)"%(x1,y1)
+        #print "slopes: [ %.2f  %.2f]"%slopes
+
+        def coord_pm(m) :
+            def coord(y) : return np.array([0.5*(y*y + Wm2) / x0 - 0.5*x0, y, 1]).transpose()
+            disc = math.sqrt( 1 -2*m*y1/x0 +  m**2 * (2*x1/x0 +1 - massW**2/x0**2 ) )
+            return tuple( coord(y) for y in  x0/m*np.array([1+disc,1-disc]) )
+
+        for slope in slopes :
+            try :
+                for coord in coord_pm(slope) :
+                    #print coord.transpose().dot(A_munu).dot(coord)
+                    print coord.transpose().dot(A_b).dot(coord)
+            except ValueError :
+                print "Invalid"
