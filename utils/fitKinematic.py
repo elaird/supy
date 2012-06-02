@@ -101,21 +101,19 @@ class leastsqLeptonicTop2(object) :
                  massT = 172.0, massW = 80.4) :
 
         Wm2 = massW**2
-
-        x0 = Wm2 / (2*mu.P())
-        A_munu = np.array([[  0, 0,              -x0],
+        x0 = -Wm2 / (2*mu.P())
+        A_munu = np.array([[  0, 0,               x0],
                            [  0, 1,                0],
-                           [-x0, 0, Wm2 - x0**2]])
+                           [ x0, 0, Wm2 - x0**2]])
         
         c = r.Math.VectorUtil.CosTheta(mu,b)
         s = math.sqrt(1-c*c)
         R = np.array([[c, -s, 0],
                       [s,  c, 0],
                       [0,  0, 1]])
-
         b_m2 = b.M2()
-        b_e2 = b_m2 + b.P2()
         b_p = b.P()
+        b_e2 = b_m2 + b_p**2
         Q = 0.5 * (massT**2 - Wm2 - b_m2)
 
         A_b = R.dot(np.array([[  b_m2/b_e2, 0,          -Q*b_p/b_e2],
@@ -128,37 +126,22 @@ class leastsqLeptonicTop2(object) :
         #self.valid = any(e.imag for e in self.evals) 
         #if not self.valid : return
 
-        degenerate = np.array([[b_m2/b_p**2 +s**2,  -c*s],
-                               [             -c*s, -s**2]])
-        _,rot = np.linalg.eig(degenerate)
-        diag = rot.transpose().dot(degenerate).dot(rot)
-        print rot
-        print diag/diag[1,1]
-        print
+        y0 = -( x0*c + Q/b_p ) / s
+        self.x0,self.y0 = x0,y0
 
-        base = math.atan2(rot[1,0],rot[0,0])
-        pm = math.atan(math.sqrt(-diag[0,0]/diag[1,1]))
-        slopes = [math.tan(ang) for ang in [base+pm, base-pm, -base+pm, -base-pm, base+1/pm, base-1/pm, -base+1/pm, -base-1/pm]]
+        b_e = math.sqrt(b_e2)
+        denom = b_e - c*b_p
+        y1 = - s*x0*b_p / denom
+        x1 = (x0*b_e + Q) / denom
+        disc = math.sqrt(y1**2 +x0**2 - Wm2 - 2*x0*x1)
 
-        x1 = x0
-        y1= ( Q/b_p - x1*c ) / s
+        coords = [np.array([ x1 - (y1/x0)*(y1+disc), y1+disc, 1]).transpose(),
+                  np.array([ x1 - (y1/x0)*(y1-disc), y1-disc, 1]).transpose()]
 
-        #T = np.array([[1,0,-x0],[0,1,(c*x0 - Q/b_p)/s],[0,0,1]])
-        #print T.transpose().dot(A_b-A_munu).dot(T)
-        #print degenerate
-        
-        print "point: (%.2f,%.2f)"%(x1,y1)
-        #print "slopes: [ %.2f  %.2f]"%slopes
+        for coord in coords :
+            print "( %.1f, %.1f )"%tuple(coord[:2]),
+            print coord.transpose().dot(A_munu).dot(coord),
+            print coord.transpose().dot(A_b).dot(coord)
 
-        def coord_pm(m) :
-            def coord(y) : return np.array([0.5*(y*y + Wm2) / x0 - 0.5*x0, y, 1]).transpose()
-            disc = math.sqrt( 1 -2*m*y1/x0 +  m**2 * (2*x1/x0 +1 - massW**2/x0**2 ) )
-            return tuple( coord(y) for y in  x0/m*np.array([1+disc,1-disc]) )
-
-        for slope in slopes :
-            try :
-                for coord in coord_pm(slope) :
-                    #print coord.transpose().dot(A_munu).dot(coord)
-                    print coord.transpose().dot(A_b).dot(coord)
-            except ValueError :
-                print "Invalid"
+        self.A_munu = A_munu
+        self.A_b = A_b
