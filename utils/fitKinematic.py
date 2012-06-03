@@ -94,6 +94,48 @@ class leastsqHadronicTop(object) :
         self.residualsPQBWT = hadResiduals(self.deltaJ)
         self.chi2 = self.residualsPQBWT.dot(self.residualsPQBWT)
 ###########################
+class leastsqHadronicTop2(object) :
+    '''Fit three jets to the hypothesis t-->bqq.
+
+    Index 2 is the b-jet.
+    Resolutions are expected in units of sigma(pT)/pT.'''
+
+    def __init__(self, jetP4s, jetResolutions, massT = 172.0, massW = 80.4) :
+        self.Wm2,self.Tm2 = massW**2,massT**2
+        self.rawJ = jetP4s;
+        self.invJ = 1./np.array(jetResolutions)
+        self.fit()
+        _,self.fitW,self.fitT = np.cumsum(self.fitJ)
+        _,self.rawW,self.rawT = np.cumsum(self.rawJ)
+
+    @staticmethod
+    def deltas(P, givenQ, motherMass) :
+        p_m2 = P.M2()
+        dot = P.Dot(givenQ)
+        dmass = motherMass**2 - givenQ.M2()
+        if not p_m2 : return 0.5 * dmass / dot - 1
+        disc = math.sqrt(dot**2 + dmass - p_m2 - 2*dot*p_m2)
+        return  ((-dot+disc)/p_m2,
+                 (-dot-disc)/p_m2)
+
+    def fit(self) :
+        def hadResiduals(d0) :
+            j0 = self.rawJ[0]*(1+d0[0])
+            self.deltaJ,residuals = min( [ (deltaJ, deltaJ*self.invJ)
+                                           for deltaJ in [ np.array([d0[0],d1,d2])
+                                                           for d1 in self.deltas( self.rawJ[1], j0                      , self.Wm2)
+                                                           for d2 in self.deltas( self.rawJ[2], j0 + self.rawJ[1]*(1+d1), self.Tm2)
+                                                           if d1>-1 and d2>-1] ],
+                                         key = lambda x: x[1].dot[x[1]])
+            return residuals
+
+        opt.leastsq(hadResiduals,[0],epsfcn=0.01, ftol=1e-3)
+        self.residualsPQB = hadResiduals(self.deltaJ)
+        self.chi2 = self.residualsPQB.dot(self.residualsPQB)
+        self.fitJ = self.rawJ * (1+self.deltaJ)
+###########################
+
+
 class leastsqLeptonicTop2(object) :
     '''Fit jet, lepton, and missing energy to the hypothesis t-->blv.'''
 
@@ -121,18 +163,18 @@ class leastsqLeptonicTop2(object) :
                               [-Q*b_p/b_e2, 0, Wm2 - Q**2/b_e2]])).dot(R.transpose())
 
 
-        self.evals,v = np.linalg.eig( np.linalg.inv(A_munu).dot(A_b) )
-
-        #self.valid = any(e.imag for e in self.evals) 
-        #if not self.valid : return
-
         y0 = -( x0*c + Q/b_p ) / s
-        self.x0,self.y0 = x0,y0
+        self.x0, self.y0 = x0, y0
+        self.A_munu, self.A_b = A_munu, A_b
+        self.evals,v = np.linalg.eig( np.linalg.inv(A_munu).dot(A_b) )
+        self.valid = any(e.imag for e in self.evals)
 
         b_e = math.sqrt(b_e2)
         denom = b_e - c*b_p
         y1 = - s*x0*b_p / denom
         x1 = (x0*b_e + Q) / denom
+        print "( %.1f, %.1f )"%( x1 - y1**2/x0, y1 )
+        if not self.valid : return
         disc = math.sqrt(y1**2 +x0**2 - Wm2 - 2*x0*x1)
 
         coords = [np.array([ x1 - (y1/x0)*(y1+disc), y1+disc, 1]).transpose(),
@@ -143,5 +185,3 @@ class leastsqLeptonicTop2(object) :
             print coord.transpose().dot(A_munu).dot(coord),
             print coord.transpose().dot(A_b).dot(coord)
 
-        self.A_munu = A_munu
-        self.A_b = A_b
