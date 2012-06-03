@@ -111,7 +111,7 @@ class leastsqHadronicTop2(object) :
     @staticmethod
     def deltas(P, givenQ, motherMass) :
         p_m2 = P.M2()
-        dot = P.Dot(givenQ)
+        dot = P.E() * givenQ.E() - P.P() * givenQ.P() * r.Math.VectorUtil.CosTheta(P,givenQ) # PtEtaPhiM coordinate LVs fail to implement ::Dot()
         dmass = motherMass**2 - givenQ.M2()
         if not p_m2 : return 0.5 * dmass / dot - 1
         disc = math.sqrt(dot**2 + dmass - p_m2 - 2*dot*p_m2)
