@@ -109,12 +109,12 @@ class leastsqHadronicTop2(object) :
         _,self.rawW,self.rawT = np.cumsum(self.rawJ)
 
     @staticmethod
-    def deltas(P, givenQ, motherMass) :
+    def deltas(P, givenQ, motherMass2) :
         p_m2 = P.M2()
         dot = P.E() * givenQ.E() - P.P() * givenQ.P() * r.Math.VectorUtil.CosTheta(P,givenQ) # PtEtaPhiM coordinate LVs fail to implement ::Dot()
-        dmass = motherMass**2 - givenQ.M2()
-        if not p_m2 : return 0.5 * dmass / dot - 1
-        disc = math.sqrt(dot**2 + dmass - p_m2 - 2*dot*p_m2)
+        dmass = motherMass2 - givenQ.M2()
+        if not p_m2 : return  (0.5 * dmass / dot - 1,)
+        disc = math.sqrt(dot**2 - p_m2*(2*dot + p_m2 - dmass))
         return  ((-dot+disc)/p_m2,
                  (-dot-disc)/p_m2)
 
@@ -126,7 +126,7 @@ class leastsqHadronicTop2(object) :
                                                            for d1 in self.deltas( self.rawJ[1], j0                      , self.Wm2)
                                                            for d2 in self.deltas( self.rawJ[2], j0 + self.rawJ[1]*(1+d1), self.Tm2)
                                                            if d1>-1 and d2>-1] ],
-                                         key = lambda x: x[1].dot[x[1]])
+                                         key = lambda x: x[1].dot(x[1]))
             return residuals
 
         opt.leastsq(hadResiduals,[0],epsfcn=0.01, ftol=1e-3)
