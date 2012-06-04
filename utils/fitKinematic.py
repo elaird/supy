@@ -142,46 +142,81 @@ class leastsqLeptonicTop2(object) :
     def __init__(self, b, bResolution, mu, nuXY, nuErr, 
                  massT = 172.0, massW = 80.4) :
 
-        Wm2 = massW**2
-        x0 = -Wm2 / (2*mu.P())
-        A_munu = np.array([[  0, 0,               x0],
-                           [  0, 1,                0],
-                           [ x0, 0, Wm2 - x0**2]])
-        
         c = r.Math.VectorUtil.CosTheta(mu,b)
         s = math.sqrt(1-c*c)
-        R = np.array([[c, -s, 0],
-                      [s,  c, 0],
-                      [0,  0, 1]])
-        b_m2 = b.M2()
+
+        Wm2 = massW**2
+        mu_p = mu.P()
         b_p = b.P()
-        b_e2 = b_m2 + b_p**2
+        b_e = b.E()
+        b_m2 = b.M2()
+        #b_e2 = b_m2 + b_p**2
+        #b_e = math.sqrt(b_e2)
         Q = 0.5 * (massT**2 - Wm2 - b_m2)
 
-        A_b = R.dot(np.array([[  b_m2/b_e2, 0,          -Q*b_p/b_e2],
-                              [          0, 1,                    0],
-                              [-Q*b_p/b_e2, 0, Wm2 - Q**2/b_e2]])).dot(R.transpose())
+        #A_munu = np.array([[  0, 0,               x0],
+        #                   [  0, 1,                0],
+        #                   [ x0, 0, Wm2 - x0**2]])
+        #R = np.array([[c, -s, 0],
+        #              [s,  c, 0],
+        #              [0,  0, 1]])
+        #A_b = R.dot(np.array([[  b_m2/b_e2, 0,          -Q*b_p/b_e2],
+        #                      [          0, 1,                    0],
+        #                      [-Q*b_p/b_e2, 0, Wm2 - Q**2/b_e2]])).dot(R.transpose())
 
+        x0 = -Wm2 / (2*mu_p)
+        #y0 = -( x0*c + Q/b_p ) / s
+        #self.x0, self.y0 = x0, y0
+        #self.A_munu, self.A_b = A_munu, A_b
+        #self.evals,v = np.linalg.eig( np.linalg.inv(A_munu).dot(A_b) )
+        #self.valid = any(e.imag for e in self.evals)
 
-        y0 = -( x0*c + Q/b_p ) / s
-        self.x0, self.y0 = x0, y0
-        self.A_munu, self.A_b = A_munu, A_b
-        self.evals,v = np.linalg.eig( np.linalg.inv(A_munu).dot(A_b) )
-        self.valid = any(e.imag for e in self.evals)
-
-        b_e = math.sqrt(b_e2)
         denom = b_e - c*b_p
         y1 = - s*x0*b_p / denom
-        x1 = (x0*b_e + Q) / denom
-        print "( %.1f, %.1f )"%( x1 - y1**2/x0, y1 )
-        if not self.valid : return
-        disc = math.sqrt(y1**2 +x0**2 - Wm2 - 2*x0*x1)
+        x1 = (x0*b_e + Q) / denom - y1**2/x0
+        #print "( %.1f, %.1f )"%( x1, y1 )
+        #if not self.valid : return
+        Z2 = x0**2 - Wm2 - 2*x0*x1 - y1**2
+        if Z2 < 0 : return
+        Z = math.sqrt( Z2 )
 
-        coords = [np.array([ x1 - (y1/x0)*(y1+disc), y1+disc, 1]).transpose(),
-                  np.array([ x1 - (y1/x0)*(y1-disc), y1-disc, 1]).transpose()]
+        #coords = [np.array([ x1 - (y1/x0)*(Z), y1+Z, 1]).transpose(),
+        #          np.array([ x1 + (y1/x0)*(Z), y1-Z, 1]).transpose()]
+        #
+        #for coord in coords :
+        #    print "( %.1f, %.1f )"%tuple(coord[:2]),
+        #    print coord.transpose().dot(A_munu).dot(coord),
+        #    print coord.transpose().dot(A_b).dot(coord)
 
-        for coord in coords :
-            print "( %.1f, %.1f )"%tuple(coord[:2]),
-            print coord.transpose().dot(A_munu).dot(coord),
-            print coord.transpose().dot(A_b).dot(coord)
+        def R(axis, angle) :
+            '''axis 0,1,2 correspond to x,y,z; angle in radians'''
+            c,s = math.cos(angle),math.sin(angle)
+            R = c * np.eye(3)
+            for i in [-1,0,1] : R[ (axis-i)%3, (axis+i)%3 ] = i*s + (1 - i*i)
+            return R
 
+        b_theta = b.theta()
+
+        R_z = R(2, -mu.phi() )
+        R_y = R(1,  0.5*math.pi - mu.theta() )
+        sinB__ = R_y[2,0] * math.cos(b_theta) * math.cos(b.phi() - mu.phi())  + R_y[0,0] * math.sin(b_theta)
+        cosB__ = math.sqrt(1-sinB__**2)
+        R_x = np.array([[1,      0,       0],
+                        [0, sinB__, -cosB__],
+                        [0, cosB__,  sinB__]])
+
+        R_T = np.dot( R_z.transpose(), np.dot( R_y.transpose(), R_x.transpose() ) )
+
+
+        def nu(t) :
+            c = math.cos(t)
+            return R_T.dot( np.array([ x1 - mu_p - Z*c*y1/x0,
+                                       y1 + Z*c,
+                                       Z * math.sin(t) ]).transpose())
+
+        fitNu = utils.LorentzV()
+        for i in range (1000) :
+            x,y,z = nu(i*math.pi*2/1000)
+            fitNu.SetPxPyPzE(x,y,z,0); fitNu.SetM(0)
+            _,W,T = np.cumsum([fitNu,mu,b])
+            print (6*"%.2f\t")%(x,y,z,fitNu.M(),W.M(), T.M())
