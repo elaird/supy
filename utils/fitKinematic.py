@@ -137,92 +137,84 @@ class leastsqHadronicTop2(object) :
 
 
 class leastsqLeptonicTop2(object) :
-    '''Fit jet, lepton, and missing energy to the hypothesis t-->blv.'''
+    '''Fit jet, lepton, and missing energy to the hypothesis t-->blv with exact mass constraints.
 
-    def __init__(self, b, bResolution, mu, nuXY, nuErr, 
+    A_munu = np.array([[  0, 0,               x0],
+                       [  0, 1,                0],
+                       [ x0, 0, Wm2 - x0**2]])
+    R = np.array([[c, -s, 0],
+                  [s,  c, 0],
+                  [0,  0, 1]])
+    A_b = R.dot(np.array([[  b_m2/b_e2, 0,          -Q*b_p/b_e2],
+                          [          0, 1,                    0],
+                          [-Q*b_p/b_e2, 0, Wm2 - Q**2/b_e2]])).dot(R.transpose())
+    '''
+
+    @staticmethod
+    def R(axis, angle) :
+        c,s = math.cos(angle),math.sin(angle)
+        R = c * np.eye(3)
+        for i in [-1,0,1] : R[ (axis-i)%3, (axis+i)%3 ] = i*s + (1 - i*i)
+        return R
+
+    def __init__(self, b, bResolution, mu, nuXY, nuErr2, 
                  massT = 172.0, massW = 80.4) :
 
-        invNuErr =  next(np.dot( v,
-                                 np.dot( np.array([[1./e[0], 0],[0, 1./e[1]]]),
-                                         np.linalg.inv(v) ) ) for e,v in [np.linalg.eig(nuErr)] )
+        invResB = 1./bResolution
+        invErr2Nu = (lambda e,v: np.dot( v, np.dot( [[ 1./e[0],       0],
+                                                     [       0, 1./e[1]]], np.linalg.inv(v) ) ) )(*np.linalg.eig(nuErr2))
+        Bm2, Wm2, Tm2 = b.M2(), massW**2, massT**2
+
+        R_z = self.R(2, -mu.phi() )
+        R_y = self.R(1,  0.5*math.pi - mu.theta() )
+        R_x = next( self.R(0,-math.atan2(z,y)) for x,y,z in (R_y.dot( R_z.dot( [b.x(),b.y(),b.z()]) ),))
+        R_T = np.dot( R_z.transpose(), np.dot( R_y.transpose(), R_x.transpose() ) )
 
         c = r.Math.VectorUtil.CosTheta(mu,b)
         s = math.sqrt(1-c*c)
+        b_p, b_e = b.P(), b.E()
 
-        Wm2 = massW**2
         mu_p = mu.P()
-        b_p = b.P()
-        b_e = b.E()
-        b_m2 = b.M2()
-        #b_e2 = b_m2 + b_p**2
-        #b_e = math.sqrt(b_e2)
-        Q = 0.5 * (massT**2 - Wm2 - b_m2)
-
-        #A_munu = np.array([[  0, 0,               x0],
-        #                   [  0, 1,                0],
-        #                   [ x0, 0, Wm2 - x0**2]])
-        #R = np.array([[c, -s, 0],
-        #              [s,  c, 0],
-        #              [0,  0, 1]])
-        #A_b = R.dot(np.array([[  b_m2/b_e2, 0,          -Q*b_p/b_e2],
-        #                      [          0, 1,                    0],
-        #                      [-Q*b_p/b_e2, 0, Wm2 - Q**2/b_e2]])).dot(R.transpose())
-
         x0 = -Wm2 / (2*mu_p)
-        #y0 = -( x0*c + Q/b_p ) / s
-        #self.x0, self.y0 = x0, y0
-        #self.A_munu, self.A_b = A_munu, A_b
-        #self.evals,v = np.linalg.eig( np.linalg.inv(A_munu).dot(A_b) )
-        #self.valid = any(e.imag for e in self.evals)
-
         denom = b_e - c*b_p
         y1 = - s*x0*b_p / denom
-        x1 = (x0*b_e + Q) / denom - y1**2/x0
-        #print "( %.1f, %.1f )"%( x1, y1 )
-        #if not self.valid : return
-        Z2 = x0**2 - Wm2 - 2*x0*x1 - y1**2
-        if Z2 < 0 : return
-        Z = math.sqrt( Z2 )
+        x1_0 = x0*b_e / denom - y1**2/x0
 
-        #coords = [np.array([ x1 - (y1/x0)*(Z), y1+Z, 1]).transpose(),
-        #          np.array([ x1 + (y1/x0)*(Z), y1-Z, 1]).transpose()]
-        #
-        #for coord in coords :
-        #    print "( %.1f, %.1f )"%tuple(coord[:2]),
-        #    print coord.transpose().dot(A_munu).dot(coord),
-        #    print coord.transpose().dot(A_b).dot(coord)
+        rawB = b
+        for item in ['rawB','mu','nuXY',
+                     'Bm2','Wm2','Tm2',
+                     'invResB','invErr2Nu','R_T',
+                     'x0','y1','x1_0','mu_p','denom'
+                     ] : setattr(self,item,eval(item))
+        self.residualsBN_ = self.fit()
+        self.chi2 = np.dot( self.residualsBN_, self.residualsBN_ )
+        _,self.fitW,self.fitT = np.cumsum([mu,self.fitNu,self.fitB])
+        _,self.rawW,self.rawT = np.cumsum([mu,self.rawNu,self.rawB])
 
+    def fit(self) :
 
-        def R(axis, angle) :
-            '''axis 0,1,2 correspond to x,y,z; angle in radians'''
-            c,s = math.cos(angle),math.sin(angle)
-            R = c * np.eye(3)
-            for i in [-1,0,1] : R[ (axis-i)%3, (axis+i)%3 ] = i*s + (1 - i*i)
-            return R
+        def nuResidual(nu) :
+            deltaXY = self.nuXY - nu[:2]
+            return math.sqrt(np.dot( deltaXY, np.dot(self.invErr2Nu, deltaXY) ))
 
-        b_theta = b.theta()
+        def residuals(params) :
+            deltaB,tau = params
+            x1 = self.x1_0 + 0.5*(self.Tm2 - self.Wm2 - self.Bm2*(1+deltaB)**2) / (self.denom*(1+deltaB))
+            Z2 = self.x0**2 - self.Wm2 - 2*self.x0*x1 - self.y1**2
+            if Z2 < 0 :
+                self.nu = self.R_T.dot( [x1-self.mu_p, self.y1, 0] )
+                return np.array([deltaB * self.invResB, nuResidual(self.nu), 10*math.sqrt(-Z2)])
+            Z = math.sqrt( Z2 )
+            c = math.cos(tau)
+            self.nu = self.R_T.dot( np.array([ x1 - self.mu_p - Z*c*self.y1/self.x0,
+                                               self.y1 + Z*c,
+                                               Z*math.sin(tau) ]))
+            return np.array([deltaB * self.invResB, nuResidual(self.nu), 0])
 
-        R_z = R(2, -mu.phi() )
-        R_y = R(1,  0.5*math.pi - mu.theta() )
-        sinB__ = R_y[2,0] * math.cos(b_theta) * math.cos(b.phi() - mu.phi())  + R_y[0,0] * math.sin(b_theta)
-        cosB__ = math.sqrt(1-sinB__**2)
-        R_x = np.array([[1,      0,       0],
-                        [0, sinB__, -cosB__],
-                        [0, cosB__,  sinB__]])
-
-        R_T = np.dot( R_z.transpose(), np.dot( R_y.transpose(), R_x.transpose() ) )
-
-
-        def nu(t) :
-            c = math.cos(t)
-            return R_T.dot( np.array([ x1 - mu_p - Z*c*y1/x0,
-                                       y1 + Z*c,
-                                       Z * math.sin(t) ]).transpose())
-
-        fitNu = utils.LorentzV()
-        for i in range (100) :
-            x,y,z = nu(i*math.pi*2/100)
-            fitNu.SetPxPyPzE(x,y,z,0); fitNu.SetM(0)
-            _,W,T = np.cumsum([fitNu,mu,b])
-            deltaXY = nuXY - np.array([x,y])
-            print (6*"%.2f\t")%(x,y,z,fitNu.M(),W.M(), T.M()), deltaXY, np.dot(deltaXY, np.dot( invNuErr, deltaXY ) )
+        params,_ = opt.leastsq(residuals,[0,0],epsfcn=0.01, ftol=1e-3)
+        res = residuals(params)
+        x,y,z = self.nu
+        self.fitB = self.rawB*(1+params[0])
+        self.fitNu = utils.LorentzV(); self.fitNu.SetPxPyPzE(x,y,z,0); self.fitNu.SetM(0)
+        self.rawNu = utils.LorentzV(); self.rawNu.SetPxPyPzE(self.nuXY[0],self.nuXY[1],0,0); self.rawNu.SetM(0)
+        return res
