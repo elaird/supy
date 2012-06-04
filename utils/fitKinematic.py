@@ -142,6 +142,10 @@ class leastsqLeptonicTop2(object) :
     def __init__(self, b, bResolution, mu, nuXY, nuErr, 
                  massT = 172.0, massW = 80.4) :
 
+        invNuErr =  next(np.dot( v,
+                                 np.dot( np.array([[1./e[0], 0],[0, 1./e[1]]]),
+                                         np.linalg.inv(v) ) ) for e,v in [np.linalg.eig(nuErr)] )
+
         c = r.Math.VectorUtil.CosTheta(mu,b)
         s = math.sqrt(1-c*c)
 
@@ -188,6 +192,7 @@ class leastsqLeptonicTop2(object) :
         #    print coord.transpose().dot(A_munu).dot(coord),
         #    print coord.transpose().dot(A_b).dot(coord)
 
+
         def R(axis, angle) :
             '''axis 0,1,2 correspond to x,y,z; angle in radians'''
             c,s = math.cos(angle),math.sin(angle)
@@ -215,8 +220,9 @@ class leastsqLeptonicTop2(object) :
                                        Z * math.sin(t) ]).transpose())
 
         fitNu = utils.LorentzV()
-        for i in range (1000) :
-            x,y,z = nu(i*math.pi*2/1000)
+        for i in range (100) :
+            x,y,z = nu(i*math.pi*2/100)
             fitNu.SetPxPyPzE(x,y,z,0); fitNu.SetM(0)
             _,W,T = np.cumsum([fitNu,mu,b])
-            print (6*"%.2f\t")%(x,y,z,fitNu.M(),W.M(), T.M())
+            deltaXY = nuXY - np.array([x,y])
+            print (6*"%.2f\t")%(x,y,z,fitNu.M(),W.M(), T.M()), deltaXY, np.dot(deltaXY, np.dot( invNuErr, deltaXY ) )
