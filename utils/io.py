@@ -166,7 +166,6 @@ def fileListFromEos(location, itemsToSkip = [], sizeThreshold=0, eos = "", xroot
         if acceptFile :
             fileList.append(xrootdRedirector+location+"/"+fileName)
             sizes.append(size)
-    print fileList
     return fileList
 #####################################
 def fileListFromDisk(location, isDirectory = True, itemsToSkip = [], sizeThreshold = 0) :
