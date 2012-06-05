@@ -160,34 +160,31 @@ class leastsqLeptonicTop2(object) :
     def __init__(self, b, bResolution, mu, nuXY, nuErr2, 
                  massT = 172.0, massW = 80.4) :
 
-        eig,self.Rinv = np.linalg.eig(nuErr2)
-        self.R_ = self.Rinv.transpose()
-        self.inv = 1./np.append([bResolution],np.sqrt(np.maximum(1,eig)))
+        self.R_,self.inv = next( (Rinv.transpose(),
+                                  1./np.append([bResolution],np.sqrt(np.maximum(1,eig)))) 
+                                 for eig,Rinv in [np.linalg.eig(nuErr2)])
 
-        Bm2, Wm2, Tm2 = b.M2(), massW**2, massT**2
+        self.Bm2, self.Wm2, self.Tm2 = b.M2(), massW**2, massT**2
 
         R_z = self.R(2, -mu.phi() )
         R_y = self.R(1,  0.5*math.pi - mu.theta() )
         R_x = next( self.R(0,-math.atan2(z,y)) for x,y,z in (R_y.dot( R_z.dot( [b.x(),b.y(),b.z()]) ),))
-        R_T = np.dot( R_z.transpose(), np.dot( R_y.transpose(), R_x.transpose() ) )
+        self.R_T = np.dot( R_z.transpose(), np.dot( R_y.transpose(), R_x.transpose() ) )
 
         c = r.Math.VectorUtil.CosTheta(mu,b)
         s = math.sqrt(1-c*c)
         b_p, b_e = b.P(), b.E()
 
-        mu_p = mu.P()
-        x0 = -Wm2 / (2*mu_p)
-        denom = b_e - c*b_p
-        y1 = - s*x0*b_p / denom
-        x1_0 = x0*b_e / denom - y1**2/x0
+        self.mu_p = mu.P()
+        self.x0 = -self.Wm2 / (2*self.mu_p)
+        self.denom = b_e - c*b_p
+        self.y1 = - s*self.x0*b_p / self.denom
+        self.x1_0 = self.x0*b_e / self.denom - self.y1**2/self.x0
 
-        rawB = b
-        bXY = np.array([b.x(), b.y()])
-        for item in ['bXY','rawB','mu','nuXY',
-                     'Bm2','Wm2','Tm2',
-                     'R_T',
-                     'x0','y1','x1_0','mu_p','denom'
-                     ] : setattr(self,item,eval(item))
+        self.nuXY = nuXY
+        self.rawB = b
+        self.bXY = np.array([b.x(), b.y()])
+
         self.residualsBSL = self.fit()
         self.chi2 = np.dot( self.residualsBSL, self.residualsBSL )
         _,self.fitW,self.fitT = np.cumsum([mu,self.fitNu,self.fitB])
@@ -195,23 +192,25 @@ class leastsqLeptonicTop2(object) :
 
     def fit(self) :
 
+        Z2_0 = self.x0**2 - self.Wm2 - self.y1**2
+
         def nuResiduals(deltaB) : return self.R_.dot( self.nuXY - deltaB*self.bXY - self.nu[:2] )
 
         def residuals(params) :
             deltaB,tau = params
             x1 = self.x1_0 + 0.5*(self.Tm2 - self.Wm2 - self.Bm2*(1+deltaB)**2) / (self.denom*(1+deltaB))
-            Z2 = self.x0**2 - self.Wm2 - 2*self.x0*x1 - self.y1**2
+            Z2 = Z2_0 - 2*self.x0*x1
             if Z2 < 0 :
                 self.nu = self.R_T.dot( [x1-self.mu_p, self.y1, 0] )
                 return self.inv * np.append([deltaB], nuResiduals(deltaB)) * (1-Z2)
             Z = math.sqrt( Z2 )
             c = math.cos(tau)
-            self.nu = self.R_T.dot( np.array([ x1 - self.mu_p - Z*c*self.y1/self.x0,
-                                               self.y1 + Z*c,
-                                               Z*math.sin(tau) ]))
+            self.nu = self.R_T.dot( [ x1 - self.mu_p - Z*c*self.y1/self.x0,
+                                      self.y1 + Z*c,
+                                      Z*math.sin(tau) ])
             return self.inv * np.append([deltaB],nuResiduals(deltaB))
 
-        tau_init = min([(t, residuals([0,t])) for t in np.arange(-math.pi,math.pi,math.pi/3)], key = lambda x: x[1].dot(x[1]))[0]
+        tau_init = min([(t, residuals([0,t])) for t in np.arange(0,1.8*math.pi,math.pi/3)], key = lambda x: x[1].dot(x[1]))[0]
         params,_ = opt.leastsq(residuals,[0,tau_init], ftol=1e-2, factor = 1, diag = [0.1,0.2], epsfcn=0.01)
         res = residuals(params)
         x,y,z = self.nu
