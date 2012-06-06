@@ -109,25 +109,22 @@ class leastsqHadronicTop2(object) :
         _,self.rawW,self.rawT = np.cumsum(self.rawJ)
 
     @staticmethod
-    def deltas(P, givenQ, motherMass2) :
+    def delta(P, givenQ, motherMass2) :
         p_m2 = P.M2()
         dot = P.E() * givenQ.E() - P.P() * givenQ.P() * r.Math.VectorUtil.CosTheta(P,givenQ) # PtEtaPhiM coordinate LVs fail to implement ::Dot()
         dmass = motherMass2 - givenQ.M2()
-        if not p_m2 : return  (0.5 * dmass / dot - 1,)
+        if not p_m2 : return  0.5 * dmass / dot - 1
         disc = math.sqrt(dot**2 - p_m2*(2*dot + p_m2 - dmass))
-        return  ((-dot+disc)/p_m2,
-                 (-dot-disc)/p_m2)
+        return  min((-dot+disc)/p_m2,
+                    (-dot-disc)/p_m2, key = lambda x: abs(x))
 
     def fit(self) :
         def hadResiduals(d0) :
             j0 = self.rawJ[0]*(1+d0[0])
-            self.deltaJ,residuals = min( [ (deltaJ, deltaJ*self.invJ)
-                                           for deltaJ in [ np.array([d0[0],d1,d2])
-                                                           for d1 in self.deltas( self.rawJ[1], j0                      , self.Wm2)
-                                                           for d2 in self.deltas( self.rawJ[2], j0 + self.rawJ[1]*(1+d1), self.Tm2)
-                                                           if d1>-1 and d2>-1] ],
-                                         key = lambda x: x[1].dot(x[1]))
-            return residuals
+            d1 = self.delta(self.rawJ[1], j0,                       self.Wm2)
+            d2 = self.delta(self.rawJ[2], j0 + self.rawJ[1]*(1+d1), self.Tm2)
+            self.deltaJ = np.array( [d0[0], d1, d2])
+            return self.invJ * self.deltaJ
 
         opt.leastsq(hadResiduals,[0],epsfcn=0.01, ftol=1e-3)
         self.residualsPQBWT = np.append( hadResiduals(self.deltaJ), [0.,0.] )
