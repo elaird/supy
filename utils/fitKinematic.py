@@ -126,7 +126,7 @@ class leastsqHadronicTop2(object) :
             self.deltaJ = np.array( [d0[0], d1, d2])
             return self.invJ * self.deltaJ
 
-        opt.leastsq(hadResiduals,[0],epsfcn=0.01, ftol=1e-3)
+        opt.leastsq(hadResiduals,[0],epsfcn=0.01, ftol=1e-3, factor = 10)
         self.residualsPQBWT = np.append( hadResiduals(self.deltaJ), [0.,0.] )
         self.chi2 = self.residualsPQBWT.dot(self.residualsPQBWT)
         self.fitJ = self.rawJ * (1+self.deltaJ)
