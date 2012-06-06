@@ -130,8 +130,8 @@ class leastsqHadronicTop2(object) :
             return residuals
 
         opt.leastsq(hadResiduals,[0],epsfcn=0.01, ftol=1e-3)
-        self.residualsPQB = hadResiduals(self.deltaJ)
-        self.chi2 = self.residualsPQB.dot(self.residualsPQB)
+        self.residualsPQBWT = np.append( hadResiduals(self.deltaJ), [0.,0.] )
+        self.chi2 = self.residualsPQBWT.dot(self.residualsPQBWT)
         self.fitJ = self.rawJ * (1+self.deltaJ)
 ###########################
 
@@ -184,11 +184,13 @@ class leastsqLeptonicTop2(object) :
         self.nuXY = nuXY
         self.rawB = b
         self.bXY = np.array([b.x(), b.y()])
+        self.mu = mu
 
-        self.residualsBSL = self.fit()
-        self.chi2 = np.dot( self.residualsBSL, self.residualsBSL )
+        self.residualsBSLT = np.append( self.fit(), [0])
+        self.chi2 = np.dot( self.residualsBSLT, self.residualsBSLT )
         _,self.fitW,self.fitT = np.cumsum([mu,self.fitNu,self.fitB])
         _,self.rawW,self.rawT = np.cumsum([mu,self.rawNu,self.rawB])
+        self.bound = True
 
     def fit(self) :
 
