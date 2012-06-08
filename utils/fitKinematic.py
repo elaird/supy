@@ -114,9 +114,9 @@ class leastsqHadronicTop2(object) :
         dot = P.E() * givenQ.E() - P.P() * givenQ.P() * r.Math.VectorUtil.CosTheta(P,givenQ) # PtEtaPhiM coordinate LVs fail to implement ::Dot()
         dmass = motherMass2 - givenQ.M2()
         if not p_m2 : return  0.5 * dmass / dot - 1
-        disc = math.sqrt(dot**2 - p_m2*(2*dot + p_m2 - dmass))
-        return  min((-dot+disc)/p_m2,
-                    (-dot-disc)/p_m2, key = abs )
+        disc = math.sqrt(dot**2 + p_m2*dmass)
+        return  min((+disc-dot-p_m2)/p_m2,
+                    (-disc-dot-p_m2)/p_m2, key = abs )
 
     def fit(self) :
         def hadResiduals(d0) :
