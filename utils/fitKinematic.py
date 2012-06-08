@@ -292,7 +292,6 @@ class leastsqCombinedTop(object) :
         Z2_0 = self.x0**2 - self.Wm2 - self.y1**2
 
         def residuals(pars) :
-            print '.',
             d0,deltaB,tau = pars
 
             j0 = self.rawJ[0]*(1+d0)
