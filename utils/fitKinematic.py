@@ -201,7 +201,7 @@ class leastsqLeptonicTop2(object) :
             Z2 = Z2_0 - 2*self.x0*x1
             if Z2 < 0 :
                 self.nu = self.R_T.dot( [x1-self.mu_p, self.y1, 0] )
-                return self.inv * np.append([deltaB], nuResiduals(deltaB)) * (1-Z2)
+                return self.inv * np.append([deltaB + (0.01 if deltaB>0 else -0.01)], nuResiduals(deltaB)) * (1-Z2)**3
             Z = math.sqrt( Z2 )
             c = math.cos(tau)
             self.nu = self.R_T.dot( [ x1 - self.mu_p - Z*c*self.y1/self.x0,
