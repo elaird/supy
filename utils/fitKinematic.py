@@ -182,6 +182,7 @@ class leastsqLeptonicTop2(object) :
         self.rawB = b
         self.bXY = np.array([b.x(), b.y()])
         self.mu = mu
+        self.Z2_0 = self.x0**2 - self.Wm2 - self.y1**2
 
         self.residualsBSLT = np.append( self.fit(), [0])
         self.chi2 = np.dot( self.residualsBSLT, self.residualsBSLT )
@@ -189,35 +190,48 @@ class leastsqLeptonicTop2(object) :
         _,self.rawW,self.rawT = np.cumsum([mu,self.rawNu,self.rawB])
         self.bound = True
 
-    def fit(self) :
-
-        Z2_0 = self.x0**2 - self.Wm2 - self.y1**2
-
+    def residuals(self,params) :
         def nuResiduals(deltaB) : return self.E.dot( self.nuXY - deltaB*self.bXY - self.nu[:2] )
+        deltaB,tau = params
+        x1 = self.x1_0 + 0.5*(self.Tm2 - self.Wm2 - self.Bm2*(1+deltaB)**2) / (self.denom*(1+deltaB))
+        Z2 = self.Z2_0 - 2*self.x0*x1
+        if Z2 < 0 :
+            self.nu = self.R_T.dot( [x1-self.mu_p, self.y1, 0] )
+            return self.inv * np.append([deltaB + (0.01 if deltaB>0 else -0.01)], nuResiduals(deltaB)) * (1-Z2)**3
+        Z = math.sqrt( Z2 )
+        c = math.cos(tau)
+        self.nu = self.R_T.dot( [ x1 - self.mu_p - Z*c*self.y1/self.x0,
+                                  self.y1 + Z*c,
+                                  Z*math.sin(tau) ])
+        return self.inv * np.append([deltaB],nuResiduals(deltaB))
 
-        def residuals(params) :
-            deltaB,tau = params
-            x1 = self.x1_0 + 0.5*(self.Tm2 - self.Wm2 - self.Bm2*(1+deltaB)**2) / (self.denom*(1+deltaB))
-            Z2 = Z2_0 - 2*self.x0*x1
-            if Z2 < 0 :
-                self.nu = self.R_T.dot( [x1-self.mu_p, self.y1, 0] )
-                return self.inv * np.append([deltaB + (0.01 if deltaB>0 else -0.01)], nuResiduals(deltaB)) * (1-Z2)**3
-            Z = math.sqrt( Z2 )
-            c = math.cos(tau)
-            self.nu = self.R_T.dot( [ x1 - self.mu_p - Z*c*self.y1/self.x0,
-                                      self.y1 + Z*c,
-                                      Z*math.sin(tau) ])
-            return self.inv * np.append([deltaB],nuResiduals(deltaB))
-
-        tau_init = min([(t, residuals([0,t])) for t in np.arange(0,1.8*math.pi,math.pi/3)], key = lambda x: x[1].dot(x[1]))[0]
-        params,_ = opt.leastsq(residuals,[0,tau_init], ftol=1e-2, factor = 1, diag = [0.1,0.2], epsfcn=0.01)
-        res = residuals(params)
+    def fit(self) :
+        tau_init = min([(t, self.residuals([0,t])) for t in np.arange(0,1.8*math.pi,math.pi/3)], key = lambda x: x[1].dot(x[1]))[0]
+        params,_ = opt.leastsq(self.residuals,[0,tau_init], ftol=1e-2, factor = 1, diag = [0.1,0.2], epsfcn=0.01)
+        self.deltaB,self.tau = params
+        self.fitB = self.rawB*(1+self.deltaB)
+        res = self.residuals(params)
         x,y,z = self.nu
-        self.fitB = self.rawB*(1+params[0])
         self.fitNu = utils.LorentzV(); self.fitNu.SetPxPyPzE(x,y,z,0); self.fitNu.SetM(0)
         self.rawNu = utils.LorentzV(); self.rawNu.SetPxPyPzE(self.nuXY[0],self.nuXY[1],0,0); self.rawNu.SetM(0)
         return res
 
+    def signExpectation(self,  had, hadIsTop = False, nSamples = 16, qDirFunc = lambda H,L : 0) :
+        nu = utils.LorentzV()
+        samples = []
+        had_y = had.Rapidity()
+        bmu = self.mu + self.fitB
+
+        for tau in np.arange(self.tau, self.tau + 2*math.pi, 2*math.pi/nSamples)[::-1] :
+            res = residuals([self.deltaB,tau])
+            chi2 = np.dot(res,res)
+            x,y,z = self.nu;
+            nu.SetPxPyPzE(x,y,z,0); nu.SetM(0)
+            lep = bmu + nu
+            samples.append( (math.exp(-0.5*chi2),
+                             qDirFunc(had,lep) * (-1)**hadIsTop * ( 1 if lep.Rapidity() > had_y else -1 ) ) )
+
+        self.sign = sum(p*sdy for p,sdy in samples) / sum(p for p,sdy in samples)
 
 
 class leastsqCombinedTop(object) :
