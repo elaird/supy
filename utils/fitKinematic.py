@@ -23,8 +23,8 @@ class leastsqLeptonicTop(object) :
 
         self.bXY = np.array([b.x(),b.y()])
 
-        eig,self.Rinv = np.linalg.eig(nuErr)
-        self.R = self.Rinv.transpose()
+        eig,self.Einv = np.linalg.eig(nuErr)
+        self.E = self.Einv.T
         self.inv = 1./np.append([bResolution],np.sqrt(np.maximum(1,eig)))
 
         self.setFittedNu(nuXY)
@@ -48,7 +48,7 @@ class leastsqLeptonicTop(object) :
     def fit(self) :
         def lepResiduals(d) : # deltaB, dS, dL
             self.fitB = self.rawB * (1+d[0])
-            self.setFittedNu(self.nuXY - d[0]*self.bXY + self.Rinv.dot(d[1:]))
+            self.setFittedNu(self.nuXY - d[0]*self.bXY + self.Einv.dot(d[1:]))
             return np.append( self.inv * d,
                               self.invT * (self.massT - (self.mu + self.fitNu + self.fitB ).M()) )
         
@@ -56,7 +56,7 @@ class leastsqLeptonicTop(object) :
             self.fitB = self.rawB * (1+x[0])
             self.setBoundaryFittedNu(x[1])
             nuXY = [self.fitNu.x(),self.fitNu.y()]
-            dS,dL = self.R.dot(nuXY - self.nuXY + x[0]*self.bXY)
+            dS,dL = self.E.dot(nuXY - self.nuXY + x[0]*self.bXY)
             return np.append( self.inv * [x[0],dS,dL],
                               self.invT * (self.massT - (self.mu + self.fitNu + self.fitB).M()) )
 
@@ -157,7 +157,7 @@ class leastsqLeptonicTop2(object) :
     def __init__(self, b, bResolution, mu, nuXY, nuErr2, 
                  massT = 172.0, massW = 80.4) :
 
-        self.R_,self.inv = next( (Rinv.transpose(),
+        self.E,self.inv = next( (Rinv.T,
                                   1./np.append([bResolution],np.sqrt(np.maximum(1,eig)))) 
                                  for eig,Rinv in [np.linalg.eig(nuErr2)])
 
@@ -166,7 +166,7 @@ class leastsqLeptonicTop2(object) :
         R_z = self.R(2, -mu.phi() )
         R_y = self.R(1,  0.5*math.pi - mu.theta() )
         R_x = next( self.R(0,-math.atan2(z,y)) for x,y,z in (R_y.dot( R_z.dot( [b.x(),b.y(),b.z()]) ),))
-        self.R_T = np.dot( R_z.transpose(), np.dot( R_y.transpose(), R_x.transpose() ) )
+        self.R_T = np.dot( R_z.T, np.dot( R_y.T, R_x.T ) )
 
         c = r.Math.VectorUtil.CosTheta(mu,b)
         s = math.sqrt(1-c*c)
@@ -193,7 +193,7 @@ class leastsqLeptonicTop2(object) :
 
         Z2_0 = self.x0**2 - self.Wm2 - self.y1**2
 
-        def nuResiduals(deltaB) : return self.R_.dot( self.nuXY - deltaB*self.bXY - self.nu[:2] )
+        def nuResiduals(deltaB) : return self.E.dot( self.nuXY - deltaB*self.bXY - self.nu[:2] )
 
         def residuals(params) :
             deltaB,tau = params
@@ -243,14 +243,14 @@ class leastsqCombinedTop(object) :
         self.rawJ = jetP4s;
         self.gluons = gluons
 
-        self.R_nuE,self.inv = next( (Rinv.transpose(),
+        self.R_nuE,self.inv = next( (Rinv.T,
                                      1./np.append( jetResolutions ,np.sqrt(np.maximum(1,eig)))) 
                                     for eig,Rinv in [np.linalg.eig(nuErr2)])
 
         R_z = self.R(2, -mu.phi() )
         R_y = self.R(1,  0.5*math.pi - mu.theta() )
         R_x = next( self.R(0,-math.atan2(z,y)) for x,y,z in (R_y.dot( R_z.dot( [b.x(),b.y(),b.z()]) ),))
-        self.R_T = np.dot( R_z.transpose(), np.dot( R_y.transpose(), R_x.transpose() ) )
+        self.R_T = np.dot( R_z.T, np.dot( R_y.T, R_x.T ) )
 
         c = r.Math.VectorUtil.CosTheta(mu,b)
         s = math.sqrt(1-c*c)
