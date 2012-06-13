@@ -223,7 +223,7 @@ class leastsqLeptonicTop2(object) :
         bmu = self.mu + self.fitB
 
         for tau in np.arange(self.tau, self.tau + 2*math.pi, 2*math.pi/nSamples)[::-1] :
-            res = residuals([self.deltaB,tau])
+            res = self.residuals([self.deltaB,tau])
             chi2 = np.dot(res,res)
             x,y,z = self.nu;
             nu.SetPxPyPzE(x,y,z,0); nu.SetM(0)
@@ -231,7 +231,9 @@ class leastsqLeptonicTop2(object) :
             samples.append( (math.exp(-0.5*chi2),
                              qDirFunc(had,lep) * (-1)**hadIsTop * ( 1 if lep.Rapidity() > had_y else -1 ) ) )
 
-        self.sign = sum(p*sdy for p,sdy in samples) / sum(p for p,sdy in samples)
+        xw = sum(p*sdy for p,sdy in samples)
+        w = sum(p for p,sdy in samples)
+        return xw / w if w else 0
 
 
 class leastsqCombinedTop(object) :
