@@ -7,12 +7,13 @@ class secondary(wrappedChain.calculable,analysisStep) :
     def organize(self,org) : pass
     def onlySamples(self) : return [] # declaration of which samples _not_ to ignore, [] ignores none
     def baseSamples(self) : return [] # declaration of with which samples to build organizer, [] uses all
-    def reportCache(self) : pass 
+    def reportCache(self) : print "No report for " + self.name
     
     '''
     Functions an inheritor may wish to redefine :
     * calculable.update(self,_)
     * analysisStep.setup()
+    * analysisStep.uponAcceptance()
     * analysisStep.endFunc()
     * analysisStep.mergeFunc()
     * analysisStep.varsToPickle()
