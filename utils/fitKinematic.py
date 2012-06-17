@@ -161,6 +161,8 @@ class leastsqLeptonicTop2(object) :
                                   1./np.append([bResolution],np.sqrt(np.maximum(1,eig)))) 
                                  for eig,Rinv in [np.linalg.eig(nuErr2)])
 
+        self.invSig2nu = np.vstack( [np.vstack( [np.linalg.inv(nuErr2), [0,0]] ).T, [0,0,0]])
+
         self.Bm2, self.Wm2, self.Tm2 = b.M2(), massW**2, massT**2
 
         R_z = self.R(2, -mu.phi() )
@@ -199,10 +201,10 @@ class leastsqLeptonicTop2(object) :
             self.nu = self.R_T.dot( [x1-self.mu_p, self.y1, 0] )
             return self.inv * np.append([deltaB + (0.01 if deltaB>0 else -0.01)], nuResiduals(deltaB)) * (1-Z2)**3
         Z = math.sqrt( Z2 )
-        c = math.cos(tau)
-        self.nu = self.R_T.dot( [ x1 - self.mu_p - Z*c*self.y1/self.x0,
-                                  self.y1 + Z*c,
-                                  Z*math.sin(tau) ])
+        self.nu = self.R_T.dot( np.dot( [[-Z*self.y1/self.x0,  0,  x1 - self.mu_p ],
+                                         [ Z,                  0,         self.y1 ],
+                                         [ 0,                  Z,               0 ]],
+                                        [ math.cos(tau), math.sin(tau),         1 ]))
         return self.inv * np.append([deltaB],nuResiduals(deltaB))
 
     def fit(self) :
