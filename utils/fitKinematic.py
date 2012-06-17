@@ -193,6 +193,22 @@ class leastsqLeptonicTop2(object) :
         self.bound = True
 
     def residuals(self,params) :
+        S = self.invSig2nu
+        E = np.dot( sef.R_T, [[-Z*self.y1/self.x0,  0,  x1 - self.mu_p ],
+                              [ Z,                  0,         self.y1 ],
+                              [ 0,                  Z,               0 ]] )
+        V = [[ 0, 0, self.nu[0]],
+             [ 0, 0, self.nu[1]],
+             [ 0, 0, 0]]
+        M = np.dot( (V-E).T, np.dot(S, V-E ) )
+        Q = [[ 0,-1, 0],
+             [ 1, 0, 0],
+             [ 0, 0, 0]]
+        P = np.dot(Q.T,M) + np.dot(M,Q)
+        U = np.diag([1,1,-1])
+
+        e,v = np.linalg.eig(np.dot(U,P))
+
         def nuResiduals(deltaB) : return self.E.dot( self.nuXY - deltaB*self.bXY - self.nu[:2] )
         deltaB,tau = params
         x1 = self.x1_0 + 0.5*(self.Tm2 - self.Wm2 - self.Bm2*(1+deltaB)**2) / (self.denom*(1+deltaB))
