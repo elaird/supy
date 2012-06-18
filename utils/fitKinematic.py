@@ -216,23 +216,17 @@ class leastsqLeptonicTop2(object) :
         x1 = self.x1_0 + 0.5*(self.Tm2 - self.Wm2 - self.Bm2*(1+deltaB)**2) / (self.denom*(1+deltaB))
         Z2 = self.Z2_0 - 2*self.x0*x1
         Z = 0 if Z2 < 0 else math.sqrt( Z2 )
-        def Ellipse() : return self.R_T.dot( [[-Z*self.y1/self.x0,  0,  x1 - self.mu_p ],
-                                              [ Z,                  0,         self.y1 ],
-                                              [ 0,                  Z,               0 ]] )
-        self.Ellipse = Ellipse()
-        def DeltaNu() : return self.Nu - deltaB*self.B - self.Ellipse
-        DeltaNu = DeltaNu()
-        def M() : return DeltaNu.T.dot( self.invSig2nu.dot( DeltaNu ) )
-        self.M = M()
+        self.Ellipse = self.R_T.dot( [[-Z*self.y1/self.x0,  0,  x1 - self.mu_p ],
+                                      [ Z,                  0,         self.y1 ],
+                                      [ 0,                  Z,               0 ]] )
+        DeltaNu = self.Nu - deltaB*self.B - self.Ellipse
+        self.M = DeltaNu.T.dot( self.invSig2nu.dot( DeltaNu ) )
 
         def solutions() :
             sols = []
-            def P() : return next( N.T + N for N in [ self.M.dot( self.Q ) ] )
-            P = P()
-            def eig() : return next( e.real for e in LA.eigvals(self.Unit.dot(P),overwrite_a=True) if not e.imag)
-            eig = eig()
-            def D() : return P - eig*self.Unit
-            D = D()
+            P = next( N.T + N for N in [ self.M.dot( self.Q ) ] )
+            eig = next( e.real for e in LA.eigvals(self.Unit.dot(P),overwrite_a=True) if not e.imag)
+            D =  P - eig*self.Unit
             c22 = self.cofactor(D,(2,2))
             x0_,y0_ = self.cofactor(D,(0,2)) / c22 , self.cofactor(D,(1,2)) / c22
             sqrtNc22 = math.sqrt(-c22)
@@ -248,10 +242,7 @@ class leastsqLeptonicTop2(object) :
             return sorted(sols, key = chi2 )
 
         self.solutions = solutions() if Z else [np.array([0,0,1])]
-        def nuResiduals() : return self.E.dot( DeltaNu.dot(self.solutions[0])[:2] )
-        nuRes = nuResiduals()
-        def returnVal() : return self.inv * ([deltaB * (1 if Z2>0 else (1-Z2)**3)] + list(nuRes))
-        return returnVal()
+        return self.inv * ([deltaB * (1 if Z2>0 else (1-Z2)**3)] + list(self.E.dot( DeltaNu.dot(self.solutions[0])[:2] )))
 
     def fit(self) :
         (self.deltaB,),_ = opt.leastsq(self.residuals,[0], ftol=1e-2, factor = 1, diag = [0.1], epsfcn=0.01)
