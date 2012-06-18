@@ -1,6 +1,7 @@
 import math, __init__ as utils,ROOT as r
 try:
     import scipy.optimize as opt
+    import scipy.linalg as LA
 except: pass
 try:
     import numpy as np
@@ -163,13 +164,13 @@ class leastsqLeptonicTop2(object) :
     def __init__(self, b, bResolution, mu, nuXY, nuErr2, 
                  massT = 172.0, massW = 80.4) :
 
-        nuErr2 = next( rot.dot(np.diag(np.maximum(1,E)).dot(rot.T)) for E,rot in [np.linalg.eig(nuErr2)])
+        nuErr2 = next( rot.dot(np.diag(np.maximum(1,E)).dot(rot.T)) for E,rot in [LA.eigh(nuErr2)])
 
         self.E,self.inv = next( (Rinv.T,
-                                  1./np.append([bResolution],np.sqrt(np.maximum(1,eig)))) 
-                                 for eig,Rinv in [np.linalg.eig(nuErr2)])
+                                 1./np.append([bResolution],np.sqrt(eig))) 
+                                for eig,Rinv in [LA.eigh(nuErr2)] )
 
-        self.invSig2nu = np.vstack( [np.vstack( [np.linalg.inv(nuErr2), [0,0]] ).T, [0,0,0]])
+        self.invSig2nu = np.vstack( [np.vstack( [LA.inv(nuErr2), [0,0]] ).T, [0,0,0]])
 
         self.Bm2, self.Wm2, self.Tm2 = b.M2(), massW**2, massT**2
 
@@ -188,11 +189,14 @@ class leastsqLeptonicTop2(object) :
         self.y1 = - s*self.x0*b_p / self.denom
         self.x1_0 = self.x0*b_e / self.denom - self.y1**2/self.x0
 
+        self.Q = np.array([[0,-1, 0],
+                           [1, 0, 0],
+                           [0, 0, 0]])
         self.Unit = np.diag([1,1,-1])
         self.nuXY = nuXY
-        self.Nu = [[ 0, 0, nuXY[0]],
-                   [ 0, 0, nuXY[1]],
-                   [ 0, 0, 0]]
+        self.Nu = np.array([[ 0, 0, nuXY[0]],
+                            [ 0, 0, nuXY[1]],
+                            [ 0, 0, 0]])
         self.rawB = b
         self.bXY = np.array([b.x(), b.y()])
         self.B = np.array([[0,0, self.bXY[0]],
@@ -208,45 +212,52 @@ class leastsqLeptonicTop2(object) :
         self.bound = True
 
     def residuals(self,params) :
-        def nuResiduals(deltaB) : return self.E.dot( self.nuXY - deltaB*self.bXY - self.nu[:2] )
         deltaB, = params
         x1 = self.x1_0 + 0.5*(self.Tm2 - self.Wm2 - self.Bm2*(1+deltaB)**2) / (self.denom*(1+deltaB))
         Z2 = self.Z2_0 - 2*self.x0*x1
         Z = 0 if Z2 < 0 else math.sqrt( Z2 )
-        self.Ellipse = self.R_T.dot( [[-Z*self.y1/self.x0,  0,  x1 - self.mu_p ],
-                                      [ Z,                  0,         self.y1 ],
-                                      [ 0,                  Z,               0 ]] )
-
-        DeltaNu = self.Nu - deltaB*self.B - self.Ellipse
-        self.M = DeltaNu.T.dot( self.invSig2nu.dot( DeltaNu ) )
+        def Ellipse() : return self.R_T.dot( [[-Z*self.y1/self.x0,  0,  x1 - self.mu_p ],
+                                              [ Z,                  0,         self.y1 ],
+                                              [ 0,                  Z,               0 ]] )
+        self.Ellipse = Ellipse()
+        def DeltaNu() : return self.Nu - deltaB*self.B - self.Ellipse
+        DeltaNu = DeltaNu()
+        def M() : return DeltaNu.T.dot( self.invSig2nu.dot( DeltaNu ) )
+        self.M = M()
 
         def solutions() :
             sols = []
-            P = next( N.T + N for N in [ self.M.dot( [[ 0,-1, 0 ],
-                                                      [ 1, 0, 0 ],
-                                                      [ 0, 0, 0 ]] ) ] )
-            eig = next( e.real for e in next(es for es,_ in [np.linalg.eig(self.Unit.dot(P))]) if not e.imag)
-            D = P - eig*self.Unit
+            def P() : return next( N.T + N for N in [ self.M.dot( self.Q ) ] )
+            P = P()
+            def eig() : return next( e.real for e in LA.eigvals(self.Unit.dot(P),overwrite_a=True) if not e.imag)
+            eig = eig()
+            def D() : return P - eig*self.Unit
+            D = D()
             c22 = self.cofactor(D,(2,2))
-            x0_,y0_ = np.array([self.cofactor(D,(0,2)),self.cofactor(D,(1,2))]) / c22
-            for slope in [ (-D[0,1]+pm)/D[1,1] for pm in math.sqrt(-c22)*np.array([-1,1])] :
+            x0_,y0_ = self.cofactor(D,(0,2)) / c22 , self.cofactor(D,(1,2)) / c22
+            sqrtNc22 = math.sqrt(-c22)
+            for slope in [ (-D[0,1]+pm)/D[1,1] for pm in [-sqrtNc22,sqrtNc22] ] :
                 x0s = x0_*slope
                 disc = 1 + slope**2 - (x0s-y0_)**2
                 if disc<=0 : continue
-                x_ = [(slope*(x0s-y0_) + pm)/(1+slope**2) for pm in math.sqrt(disc)*np.array([-1,1])]
+                sqrtDisc = math.sqrt(disc)
+                x_ = [(slope*(x0s-y0_) + pm)/(1+slope**2) for pm in [-sqrtDisc,sqrtDisc]]
                 y_ = [(x-x0_)*slope + y0_ for x in x_]
                 sols += [np.array([x,y,1]) for x,y in zip(x_,y_)]
-            return sorted(sols, key = lambda x : x.T.dot( self.M.dot(x) ) )
+            def chi2(x) : return x.T.dot(self.M.dot(x))
+            return sorted(sols, key = chi2 )
 
         self.solutions = solutions() if Z else [np.array([0,0,1])]
-        self.nu = self.Ellipse.dot(self.solutions[0])
-        return self.inv * np.append([deltaB], nuResiduals(deltaB)) * (1 if Z2>0 else (1-Z2)**3)
+        def nuResiduals() : return self.E.dot( DeltaNu.dot(self.solutions[0])[:2] )
+        nuRes = nuResiduals()
+        def returnVal() : return self.inv * ([deltaB * (1 if Z2>0 else (1-Z2)**3)] + list(nuRes))
+        return returnVal()
 
     def fit(self) :
         (self.deltaB,),_ = opt.leastsq(self.residuals,[0], ftol=1e-2, factor = 1, diag = [0.1], epsfcn=0.01)
         self.fitB = self.rawB*(1+self.deltaB)
         res = self.residuals([self.deltaB])
-        x,y,z = self.nu
+        x,y,z = self.Ellipse.dot(self.solutions[0])
         self.fitNu = utils.LorentzV(); self.fitNu.SetPxPyPzE(x,y,z,0); self.fitNu.SetM(0)
         self.rawNu = utils.LorentzV(); self.rawNu.SetPxPyPzE(self.nuXY[0],self.nuXY[1],0,0); self.rawNu.SetM(0)
         return res
