@@ -188,7 +188,11 @@ class leastsqLeptonicTop2(object) :
         self.y1 = - s*self.x0*b_p / self.denom
         self.x1_0 = self.x0*b_e / self.denom - self.y1**2/self.x0
 
+        self.Unit = np.diag([1,1,-1])
         self.nuXY = nuXY
+        self.Nu = [[ 0, 0, self.nuXY[0]],
+                   [ 0, 0, self.nuXY[1]],
+                   [ 0, 0, 0]]
         self.rawB = b
         self.bXY = np.array([b.x(), b.y()])
         self.mu = mu
@@ -202,32 +206,27 @@ class leastsqLeptonicTop2(object) :
 
     def residuals(self,params) :
         def nuResiduals(deltaB) : return self.E.dot( self.nuXY - deltaB*self.bXY - self.nu[:2] )
-        deltaB,tau = params
+        deltaB, = params
         x1 = self.x1_0 + 0.5*(self.Tm2 - self.Wm2 - self.Bm2*(1+deltaB)**2) / (self.denom*(1+deltaB))
         Z2 = self.Z2_0 - 2*self.x0*x1
         Z = 0 if Z2 < 0 else math.sqrt( Z2 )
 
-        S = self.invSig2nu
-        E = np.dot( self.R_T, [[-Z*self.y1/self.x0,  0,  x1 - self.mu_p ],
-                               [ Z,                  0,         self.y1 ],
-                               [ 0,                  Z,               0 ]] )
-        V = [[ 0, 0, self.nuXY[0]],
-             [ 0, 0, self.nuXY[1]],
-             [ 0, 0, 0]]
+        self.Ellipse = self.R_T.dot( [[-Z*self.y1/self.x0,  0,  x1 - self.mu_p ],
+                                      [ Z,                  0,         self.y1 ],
+                                      [ 0,                  Z,               0 ]] )
 
-        self.M = (V-E).T.dot( self.invSig2nu.dot( V-E ) )
+        self.M = (self.Nu-self.Ellipse).T.dot( self.invSig2nu.dot( self.Nu-self.Ellipse ) )
         P = next( N.T + N for N in [ self.M.dot( [[ 0,-1, 0 ],
                                                   [ 1, 0, 0 ],
                                                   [ 0, 0, 0 ]] ) ] )
-        U = np.diag([1,1,-1])
-        eig = next( e.real for e in next(es for es,_ in [np.linalg.eig(U.dot(P))]) if not e.imag)
-        D = P - eig*U
+        eig = next( e.real for e in next(es for es,_ in [np.linalg.eig(self.Unit.dot(P))]) if not e.imag)
+        D = P - eig*self.Unit
 
-        self.solutions = []
+        self.solutions = [] if Z else [np.array([0,0,1])]
         if Z :
-            m22 = self.cofactor(D,(2,2))
-            x0_,y0_ = np.array([self.cofactor(D,(0,2)),self.cofactor(D,(1,2))]) / m22
-            slopes = [ (-D[0,1]+i*math.sqrt(-m22))/D[1,1] for i in [-1,1]]
+            c22 = self.cofactor(D,(2,2))
+            x0_,y0_ = np.array([self.cofactor(D,(0,2)),self.cofactor(D,(1,2))]) / c22
+            slopes = [ (-D[0,1]+i*math.sqrt(-c22))/D[1,1] for i in [-1,1]]
             for s in slopes :
                 x0s = x0_*s
                 b = s*(x0s-y0_)
@@ -238,27 +237,18 @@ class leastsqLeptonicTop2(object) :
                 self.solutions += [np.array([x,y,1]) for x,y in zip(x_,y_)]
             self.solutions.sort(key = lambda x : np.dot( x.T, self.M.dot(x) ) )
 
-        self.nu = E.dot([math.cos(tau),
-                         math.sin(tau),
-                         1])
+        self.nu = self.Ellipse.dot(self.solutions[0])
         if Z2 < 0 :
             return self.inv * np.append([deltaB + (0.01 if deltaB>0 else -0.01)], nuResiduals(deltaB)) * (1-Z2)**3
         return self.inv * np.append([deltaB],nuResiduals(deltaB))
 
     def fit(self) :
-        tau_init = min([(t, self.residuals([0,t])) for t in np.arange(0,1.8*math.pi,math.pi/3)], key = lambda x: x[1].dot(x[1]))[0]
-        params,_ = opt.leastsq(self.residuals,[0,tau_init], ftol=1e-2, factor = 1, diag = [0.1,0.2], epsfcn=0.01)
-        self.deltaB,self.tau = params
+        (self.deltaB,),_ = opt.leastsq(self.residuals,[0], ftol=1e-2, factor = 1, diag = [0.1], epsfcn=0.01)
         self.fitB = self.rawB*(1+self.deltaB)
-        res = self.residuals(params)
+        res = self.residuals([self.deltaB])
         x,y,z = self.nu
         self.fitNu = utils.LorentzV(); self.fitNu.SetPxPyPzE(x,y,z,0); self.fitNu.SetM(0)
         self.rawNu = utils.LorentzV(); self.rawNu.SetPxPyPzE(self.nuXY[0],self.nuXY[1],0,0); self.rawNu.SetM(0)
-
-        print
-        if self.solutions :
-            for x in [np.array([math.cos(self.tau),math.sin(self.tau),1])]+self.solutions :
-                print x.T.dot( self.M.dot(x) )
         return res
 
     def signExpectation(self,  had, hadIsTop = False, nSamples = 16, qDirFunc = lambda H,L : 0) :
@@ -267,10 +257,9 @@ class leastsqLeptonicTop2(object) :
         had_y = had.Rapidity()
         bmu = self.mu + self.fitB
 
-        for tau in np.arange(self.tau, self.tau + 2*math.pi, 2*math.pi/nSamples)[::-1] :
-            res = self.residuals([self.deltaB,tau])
-            chi2 = np.dot(res,res)
-            x,y,z = self.nu;
+        for sol in self.solutions :
+            chi2 = sol.T.dot(self.M.dot(sol))
+            x,y,z = self.Ellipse.dot(sol)
             nu.SetPxPyPzE(x,y,z,0); nu.SetM(0)
             lep = bmu + nu
             samples.append( (math.exp(-0.5*chi2),
