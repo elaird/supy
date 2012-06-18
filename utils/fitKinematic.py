@@ -226,16 +226,15 @@ class leastsqLeptonicTop2(object) :
         if Z :
             c22 = self.cofactor(D,(2,2))
             x0_,y0_ = np.array([self.cofactor(D,(0,2)),self.cofactor(D,(1,2))]) / c22
-            slopes = [ (-D[0,1]+i*math.sqrt(-c22))/D[1,1] for i in [-1,1]]
-            for s in slopes :
-                x0s = x0_*s
-                b = s*(x0s-y0_)
-                disc = b**2 - (1+s*s)*(y0_**2 + x0s**2 - 2*y0_*x0s-1)
+
+            for slope in [ (-D[0,1]+pm)/D[1,1] for pm in math.sqrt(-c22)*np.array([-1,1])] :
+                x0s = x0_*slope
+                disc = 1 + slope**2 - (x0s-y0_)**2
                 if disc<=0 : continue
-                x_ = [(s*(x0s-y0_) + i*math.sqrt(disc))/(1+s*s) for i in [-1,1]]
-                y_ = [(x-x0_)*s + y0_ for x in x_]
+                x_ = [(slope*(x0s-y0_) + pm)/(1+slope**2) for pm in math.sqrt(disc)*np.array([-1,1])]
+                y_ = [(x-x0_)*slope + y0_ for x in x_]
                 self.solutions += [np.array([x,y,1]) for x,y in zip(x_,y_)]
-            self.solutions.sort(key = lambda x : np.dot( x.T, self.M.dot(x) ) )
+            self.solutions.sort(key = lambda x : x.T.dot( self.M.dot(x) ) )
 
         self.nu = self.Ellipse.dot(self.solutions[0])
         if Z2 < 0 :
