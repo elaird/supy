@@ -156,9 +156,9 @@ class leastsqLeptonicTop2(object) :
 
     @staticmethod
     def cofactor(A,(i,j)) :
-        return (-1)**(i+j) * np.linalg.det(
-            A[np.array([_ for _ in range(A.shape[0]) if _!=i])[:,np.newaxis],
-              np.array([_ for _ in range(A.shape[1]) if _!=j])] )
+        a = A[[[_] for _ in [0,1,2] if _!=i],
+              [ _  for _ in [0,1,2] if _!=j]]
+        return (-1)**(i+j) * (a[0,0]*a[1,1] - a[1,0]*a[0,1])
 
     def __init__(self, b, bResolution, mu, nuXY, nuErr2, 
                  massT = 172.0, massW = 80.4) :
