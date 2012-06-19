@@ -157,8 +157,8 @@ class leastsqLeptonicTop2(object) :
 
     @staticmethod
     def cofactor(A,(i,j)) :
-        a = A[[[_] for _ in [0,1,2] if _!=i],
-              [ _  for _ in [0,1,2] if _!=j]]
+        a = A[not i:2 if i==2 else None:2 if i==1 else 1,
+              not j:2 if j==2 else None:2 if j==1 else 1]
         return (-1)**(i+j) * (a[0,0]*a[1,1] - a[1,0]*a[0,1])
 
     #static matrices
