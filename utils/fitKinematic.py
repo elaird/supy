@@ -273,7 +273,7 @@ class leastsqLeptonicTop2(object) :
         bmu = self.mu + self.fitB
 
         c,s = self.solutions[0][:2]
-        if not s and not c : return 1 if self.fitT.Rapidity() > had_y else -1
+        if not (s or c) : return 1 if self.fitT.Rapidity() > had_y else -1
         tau_0 = math.atan2(s,c)
         for tau in np.arange(tau_0, tau_0 + 2*math.pi, 2*math.pi/nSamples)[::-1] :
             sol = np.array([math.cos(tau),math.sin(tau),1])
@@ -282,7 +282,7 @@ class leastsqLeptonicTop2(object) :
             nu.SetPxPyPzE(x,y,z,0); nu.SetM(0)
             lep = bmu + nu
             samples.append( (math.exp(-0.5*chi2),
-                             qDirFunc(had,lep) * (-1)**hadIsTop * ( 1 if lep.Rapidity() > had_y else -1 ) ) )
+                             qDirFunc(had,lep) * (-1)**(hadIsTop^( lep.Rapidity() < had_y ) ) ) )
 
         xw = sum(p*sdy for p,sdy in samples)
         w = sum(p for p,sdy in samples)
