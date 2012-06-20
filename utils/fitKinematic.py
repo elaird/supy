@@ -165,43 +165,51 @@ class leastsqLeptonicTop2(object) :
     Q = np.reshape([0,-1,0,1]+5*[0],(3,3))
     Unit = np.diag([1,1,-1])
 
-    def __init__(self, b, bResolution, mu, nuXY, nuErr2, 
+    def __init__(self, b, bResolution, mu, nuXY, nuErr2,
                  massT = 172.0, massW = 80.4) :
-
-        nuErr2 = next( rot.dot(np.diag(np.maximum(1,E)).dot(rot.T)) for E,rot in [LA.eigh(nuErr2)])
-        self.invSig2nu = np.vstack( [np.vstack( [LA.inv(nuErr2), [0,0]] ).T, [0,0,0]])
-        self.nuinv = next( Rinv.T * np.vstack(2*[1./np.sqrt(eig)]).T for eig,Rinv in [LA.eigh(nuErr2)])
-        self.binv = 1./bResolution
+        self.eig = 0
+        def doInv() :
+            eig,R_ = next( ((np.maximum(1,e),rot) for e,rot in [ LA.eigh(nuErr2) ]) )
+            self.invSig2nu = np.vstack( [np.vstack( [LA.inv(R_.dot(np.diag(eig).dot(R_.T))), [0,0]] ).T, [0,0,0]])
+            self.nuinv = R_.T * np.vstack(2*[1./np.sqrt(eig)]).T
+            self.binv = 1./bResolution
+        doInv()
 
         self.Bm2, self.Wm2, self.Tm2 = b.M2(), massW**2, massT**2
 
-        bXYZ = [b.x(),b.y(),b.z()]
-        R_z = self.R(2, -mu.phi() )
-        R_y = self.R(1,  0.5*math.pi - mu.theta() )
-        R_x = next( self.R(0,-math.atan2(z,y)) for x,y,z in (R_y.dot( R_z.dot( bXYZ ) ),))
-        self.R_T = np.dot( R_z.T, np.dot( R_y.T, R_x.T ) )
-        self.Nu = np.outer([nuXY[0],nuXY[1],0],[0,0,1])
-        self.B = np.outer( bXYZ, [0,0,1])
+        def doMatrices() :
+            bXYZ = [b.x(),b.y(),b.z()]
+            R_z = self.R(2, -mu.phi() )
+            R_y = self.R(1,  0.5*math.pi - mu.theta() )
+            R_x = next( self.R(0,-math.atan2(z,y)) for x,y,z in (R_y.dot( R_z.dot( bXYZ ) ),))
+            self.R_T = np.dot( R_z.T, np.dot( R_y.T, R_x.T ) )
+            self.Nu = np.outer([nuXY[0],nuXY[1],0],[0,0,1])
+            self.B = np.outer( bXYZ, [0,0,1])
+        doMatrices()
 
-        c = r.Math.VectorUtil.CosTheta(mu,b)
-        s = math.sqrt(1-c*c)
-        b_p, b_e = b.P(), b.E()
+        def doConstants() :
+            c = r.Math.VectorUtil.CosTheta(mu,b)
+            s = math.sqrt(1-c*c)
+            b_p, b_e = b.P(), b.E()
 
-        self.mu_p = mu.P()
-        self.x0 = -self.Wm2 / (2*self.mu_p)
-        self.denom = b_e - c*b_p
-        self.y1 = - s*self.x0*b_p / self.denom
-        self.x1_0 = self.x0*b_e / self.denom - self.y1**2/self.x0
-        self.Z2_0 = self.x0**2 - self.Wm2 - self.y1**2
+            self.mu_p = mu.P()
+            self.x0 = -self.Wm2 / (2*self.mu_p)
+            self.denom = b_e - c*b_p
+            self.y1 = - s*self.x0*b_p / self.denom
+            self.x1_0 = self.x0*b_e / self.denom - self.y1**2/self.x0
+            self.Z2_0 = self.x0**2 - self.Wm2 - self.y1**2
+        doConstants()
 
         self.rawB = b
         self.mu = mu
 
         self.residualsBSLT = np.append( self.fit(), [0])
-        self.chi2 = np.dot( self.residualsBSLT, self.residualsBSLT )
-        _,self.fitW,self.fitT = np.cumsum([mu,self.fitNu,self.fitB])
-        _,self.rawW,self.rawT = np.cumsum([mu,self.rawNu,self.rawB])
-        self.bound = True
+        def doFinish() :
+            self.chi2 = np.dot( self.residualsBSLT, self.residualsBSLT )
+            _,self.fitW,self.fitT = np.cumsum([mu,self.fitNu,self.fitB])
+            _,self.rawW,self.rawT = np.cumsum([mu,self.rawNu,self.rawB])
+            self.bound = True
+        doFinish()
 
     def residuals(self,params) :
         deltaB, = params
@@ -214,11 +222,20 @@ class leastsqLeptonicTop2(object) :
         DeltaNu = self.Nu - deltaB*self.B - self.Ellipse
         self.M = DeltaNu.T.dot( self.invSig2nu.dot( DeltaNu ) )
 
+        def chi2(x) : return x.T.dot(self.M.dot(x))
+        def doEig(P) :
+            (a,b,d),e = P[0],P[1,2]
+            p1, p0 = (a*a+b*b-d*d-e*e), -2*b*d*e + a*( e*e - d*d )
+            def func(lamb) : return -lamb**3 + lamb*p1 + p0
+            feig = func(self.eig)
+            B = self.eig + (1 if feig>0 else -1) * 0.4 * abs(self.eig)
+            self.eig = ( next( e.real for e in LA.eigvals(self.Unit.dot(P),overwrite_a=True) if not e.imag) #doEig is 35% faster than calling LA.eigvals every time.
+                         if feig*func(B)>0 else opt.brentq(func,self.eig,B) )
         def solutions() :
             sols = []
             P = next( N.T + N for N in [ self.M.dot( self.Q ) ] )
-            eig = next( e.real for e in LA.eigvals(self.Unit.dot(P),overwrite_a=True) if not e.imag)
-            D =  P - eig*self.Unit
+            doEig(P)
+            D =  P - self.eig*self.Unit
             c22 = self.cofactor(D,(2,2))
             x0_,y0_ = self.cofactor(D,(0,2)) / c22 , self.cofactor(D,(1,2)) / c22
             sqrtNc22 = math.sqrt(-c22)
@@ -230,7 +247,6 @@ class leastsqLeptonicTop2(object) :
                 x_ = [(slope*(x0s-y0_) + pm)/(1+slope**2) for pm in [-sqrtDisc,sqrtDisc]]
                 y_ = [(x-x0_)*slope + y0_ for x in x_]
                 sols += [np.array([x,y,1]) for x,y in zip(x_,y_)]
-            def chi2(x) : return x.T.dot(self.M.dot(x))
             return sorted(sols, key = chi2 )
 
         self.solutions = solutions() if Z else [np.array([0,0,1])]
