@@ -272,29 +272,6 @@ class leastsqLeptonicTop2(object) :
 
         return res
 
-    def signExpectation(self,  had, hadIsTop = False, nSamples = 16, qDirFunc = lambda H,L : 0) :
-        nu = utils.LorentzV()
-        samples = []
-        had_y = had.Rapidity()
-        bmu = self.mu + self.fitB
-
-        c,s = self.solutions[0][:2]
-        if not (s or c) : return qDirFunc(had,self.fitT) * (-1)**(hadIsTop^( self.fitT.Rapidity() < had_y))
-        tau_0 = math.atan2(s,c)
-        for tau in np.arange(tau_0, tau_0 + 2*math.pi, 2*math.pi/nSamples)[::-1] :
-            sol = np.array([math.cos(tau),math.sin(tau),1])
-            chi2 = sol.T.dot(self.M.dot(sol))
-            x,y,z = self.Ellipse.dot(sol)
-            nu.SetPxPyPzE(x,y,z,0); nu.SetM(0)
-            lep = bmu + nu
-            samples.append( (math.exp(-0.5*chi2),
-                             qDirFunc(had,lep) * (-1)**(hadIsTop^( lep.Rapidity() < had_y ) ) ) )
-
-        xw = sum(p*sdy for p,sdy in samples)
-        w = sum(p for p,sdy in samples)
-        return xw / w if w else 0
-
-
 class leastsqCombinedTop(object) :
     '''Fit four jets, lepton, MET, and gluons to the hypothesis xtt-->xbqqblv using the three parameters [delta0,delta3,tau].
 
