@@ -203,11 +203,12 @@ class leastsqLeptonicTop2(object) :
         self.rawB = b
         self.mu = mu
 
-        self.residualsBSLT = np.append( self.fit(), [0])
+        self.residualsBSLT = self.fit()
         def doFinish() :
-            self.chi2 = np.dot( self.residualsBSLT, self.residualsBSLT )
             _,self.fitW,self.fitT = np.cumsum([mu,self.fitNu,self.fitB])
             _,self.rawW,self.rawT = np.cumsum([mu,self.rawNu,self.rawB])
+            self.residualsBSLT.append( massT - self.fitT.M() )
+            self.chi2 = np.dot( self.residualsBSLT, self.residualsBSLT )
             self.bound = True
         doFinish()
 
@@ -223,20 +224,25 @@ class leastsqLeptonicTop2(object) :
         self.M = DeltaNu.T.dot( self.invSig2nu.dot( DeltaNu ) )
 
         def chi2(x) : return x.T.dot(self.M.dot(x))
-        def doEig(P) :
+        def doEig(P) : self.eig = next( e.real for e in LA.eigvals(self.Unit.dot(P),overwrite_a=True) if not e.imag)
+        def doEigFaster(P) : #this is about %35 faster than just doEig()
             (a,b,d),e = P[0],P[1,2]
             p1, p0 = (a*a+b*b-d*d-e*e), -2*b*d*e + a*( e*e - d*d )
             def func(lamb) : return -lamb**3 + lamb*p1 + p0
             feig = func(self.eig)
             B = self.eig + (1 if feig>0 else -1) * 0.4 * abs(self.eig)
-            self.eig = ( next( e.real for e in LA.eigvals(self.Unit.dot(P),overwrite_a=True) if not e.imag) #doEig is 35% faster than calling LA.eigvals every time.
-                         if feig*func(B)>0 else opt.brentq(func,self.eig,B) )
+            if feig*func(B)<0 : self.eig = opt.brentq(func,self.eig,B)
+            else : doEig(P)
         def solutions() :
             sols = []
             P = next( N.T + N for N in [ self.M.dot( self.Q ) ] )
-            doEig(P)
+            doEigFaster(P)
             D =  P - self.eig*self.Unit
             c22 = self.cofactor(D,(2,2))
+            if c22>0 : # we got the wrong eigenvalue (parallel lines) from brentq (tiny prob)
+                doEig(P)
+                D =  P - self.eig*self.Unit
+                c22 = self.cofactor(D,(2,2))
             x0_,y0_ = self.cofactor(D,(0,2)) / c22 , self.cofactor(D,(1,2)) / c22
             sqrtNc22 = math.sqrt(-c22)
             for slope in [ (-D[0,1]+pm)/D[1,1] for pm in [-sqrtNc22,sqrtNc22] ] :
@@ -253,7 +259,7 @@ class leastsqLeptonicTop2(object) :
         return [deltaB * self.binv] + list(self.nuinv.dot( DeltaNu.dot(self.solutions[0])[:2]))
 
     def fit(self) :
-        (self.deltaB,),_ = opt.leastsq(self.residuals,[0], ftol=1e-2, factor = 1, diag = [0.1], epsfcn=0.01)
+        (self.deltaB,),_ = opt.leastsq(self.residuals,[0], ftol=5e-2, factor = 1, diag = [0.1], epsfcn=0.01)
         self.fitB = self.rawB*(1+self.deltaB)
 
         self.residuals([0])
