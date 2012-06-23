@@ -67,18 +67,19 @@ def edgesRebinned( hist, targetUncRel, pivot = 0, offset = 0 ) :
     edges = [hist.GetBinLowEdge(i) for i in range(1,nBins+2)]
     vals  = [hist.GetBinContent(i) for i in range(1,nBins+2)]
     errs2 = [hist.GetBinError(i)**2 for i in range(1,nBins+2)]
-    iPivot = edges.index(pivot)
+    iPivot_L = edges.index(pivot) if pivot in edges else edges.index(max([e for e in edges if e<pivot]))
+    iPivot_R = iPivot_L if pivot in edges else iPivot_L+1
 
-    R = zip(vals,errs2)[iPivot:]
-    L = zip(vals,errs2)[:iPivot][::-1]
+    R = zip(vals,errs2)[iPivot_R:]
+    L = zip(vals,errs2)[:iPivot_L][::-1]
     RL = [max(el,ar, key = uncRel) for el,ar in itertools.izip_longest(L,R)]
 
     blockLens = [offset] + [len(b) for b in blocks(RL[offset:])]
     blockShifts = [sum(blockLens[:i+1]) for i in range(len(blockLens))]
 
     iEdges = sorted( set( [0,len(edges)-1] + 
-                          [min(len(edges)-1, iPivot + i) for i in blockShifts[:len(R)]] +
-                          [max(0,            iPivot - i) for i in blockShifts[:len(L)]] ))
+                          [min(len(edges)-1, iPivot_R + i) for i in blockShifts[:len(R)]] +
+                          [max(0,            iPivot_L - i) for i in blockShifts[:len(L)]] ))
 
     return array.array('d',[edges[i] for i in iEdges])
 #####################################
