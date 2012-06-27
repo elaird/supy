@@ -1,4 +1,5 @@
 import array,math,itertools,operator
+from itertools import groupby
 try:
     import numpy as np
 except:
@@ -92,3 +93,17 @@ def dilution( A, B, N = None) :
     p = A / np.maximum(1e-50, A+B)
     D = (1-2*p)**2
     return N.dot(D)
+#####################################
+def longestPrefix(strings) :
+    return ( "" if not (len(strings[0]) and
+                        all (len(s) and
+                             strings[0][0]==s[0] for s in strings[1:])) else
+             (strings[0][0] + longestPrefix([s[1:] for s in strings])))
+
+def contract(strings) :
+    lpfx = longestPrefix(strings)
+    tails = [s[len(lpfx):] for s in strings]
+    return lpfx + ( '' if len(tails)==1 else
+                    "{%s}"%(','.join([ contract(list(ctails))
+                                       for c,ctails in groupby( tails,
+                                                                key = lambda s: next(iter(s),''))])))
