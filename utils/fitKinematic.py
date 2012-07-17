@@ -1,6 +1,7 @@
 import math, __init__ as utils,ROOT as r
 try:
     import scipy.optimize as opt
+    import scipy.linalg as LA
 except: pass
 try:
     import numpy as np
@@ -23,8 +24,8 @@ class leastsqLeptonicTop(object) :
 
         self.bXY = np.array([b.x(),b.y()])
 
-        eig,self.Rinv = np.linalg.eig(nuErr)
-        self.R = self.Rinv.transpose()
+        eig,self.Einv = np.linalg.eig(nuErr)
+        self.E = self.Einv.T
         self.inv = 1./np.append([bResolution],np.sqrt(np.maximum(1,eig)))
 
         self.setFittedNu(nuXY)
@@ -48,7 +49,7 @@ class leastsqLeptonicTop(object) :
     def fit(self) :
         def lepResiduals(d) : # deltaB, dS, dL
             self.fitB = self.rawB * (1+d[0])
-            self.setFittedNu(self.nuXY - d[0]*self.bXY + self.Rinv.dot(d[1:]))
+            self.setFittedNu(self.nuXY - d[0]*self.bXY + self.Einv.dot(d[1:]))
             return np.append( self.inv * d,
                               self.invT * (self.massT - (self.mu + self.fitNu + self.fitB ).M()) )
         
@@ -56,7 +57,7 @@ class leastsqLeptonicTop(object) :
             self.fitB = self.rawB * (1+x[0])
             self.setBoundaryFittedNu(x[1])
             nuXY = [self.fitNu.x(),self.fitNu.y()]
-            dS,dL = self.R.dot(nuXY - self.nuXY + x[0]*self.bXY)
+            dS,dL = self.E.dot(nuXY - self.nuXY + x[0]*self.bXY)
             return np.append( self.inv * [x[0],dS,dL],
                               self.invT * (self.massT - (self.mu + self.fitNu + self.fitB).M()) )
 
@@ -154,71 +155,122 @@ class leastsqLeptonicTop2(object) :
         for i in [-1,0,1] : R[ (axis-i)%3, (axis+i)%3 ] = i*s + (1 - i*i)
         return R
 
-    def __init__(self, b, bResolution, mu, nuXY, nuErr2, 
-                 massT = 172.0, massW = 80.4) :
+    @staticmethod
+    def cofactor(A,(i,j)) :
+        a = A[not i:2 if i==2 else None:2 if i==1 else 1,
+              not j:2 if j==2 else None:2 if j==1 else 1]
+        return (-1)**(i+j) * (a[0,0]*a[1,1] - a[1,0]*a[0,1])
 
-        self.R_,self.inv = next( (Rinv.transpose(),
-                                  1./np.append([bResolution],np.sqrt(np.maximum(1,eig)))) 
-                                 for eig,Rinv in [np.linalg.eig(nuErr2)])
+    #static matrices
+    Q = np.reshape([0,-1,0,1]+5*[0],(3,3))
+    Unit = np.diag([1,1,-1])
+
+    def __init__(self, b, bResolution, mu, nuXY, nuErr2,
+                 massT = 172.0, massW = 80.4) :
+        self.eig = 0
+        def doInv() :
+            eig,R_ = next( ((np.maximum(1,e),rot) for e,rot in [ LA.eigh(nuErr2) ]) )
+            self.invSig2nu = np.vstack( [np.vstack( [LA.inv(R_.dot(np.diag(eig).dot(R_.T))), [0,0]] ).T, [0,0,0]])
+            self.nuinv = R_.T * np.vstack(2*[1./np.sqrt(eig)]).T
+            self.binv = 1./bResolution
+        doInv()
 
         self.Bm2, self.Wm2, self.Tm2 = b.M2(), massW**2, massT**2
 
-        R_z = self.R(2, -mu.phi() )
-        R_y = self.R(1,  0.5*math.pi - mu.theta() )
-        R_x = next( self.R(0,-math.atan2(z,y)) for x,y,z in (R_y.dot( R_z.dot( [b.x(),b.y(),b.z()]) ),))
-        self.R_T = np.dot( R_z.transpose(), np.dot( R_y.transpose(), R_x.transpose() ) )
+        def doMatrices() :
+            bXYZ = [b.x(),b.y(),b.z()]
+            R_z = self.R(2, -mu.phi() )
+            R_y = self.R(1,  0.5*math.pi - mu.theta() )
+            R_x = next( self.R(0,-math.atan2(z,y)) for x,y,z in (R_y.dot( R_z.dot( bXYZ ) ),))
+            self.R_T = np.dot( R_z.T, np.dot( R_y.T, R_x.T ) )
+            self.Nu = np.outer([nuXY[0],nuXY[1],0],[0,0,1])
+            self.B = np.outer( bXYZ, [0,0,1])
+        doMatrices()
 
-        c = r.Math.VectorUtil.CosTheta(mu,b)
-        s = math.sqrt(1-c*c)
-        b_p, b_e = b.P(), b.E()
+        def doConstants() :
+            c = r.Math.VectorUtil.CosTheta(mu,b)
+            s = math.sqrt(1-c*c)
+            b_p, b_e = b.P(), b.E()
 
-        self.mu_p = mu.P()
-        self.x0 = -self.Wm2 / (2*self.mu_p)
-        self.denom = b_e - c*b_p
-        self.y1 = - s*self.x0*b_p / self.denom
-        self.x1_0 = self.x0*b_e / self.denom - self.y1**2/self.x0
+            self.mu_p = mu.P()
+            self.x0 = -self.Wm2 / (2*self.mu_p)
+            self.denom = b_e - c*b_p
+            self.y1 = - s*self.x0*b_p / self.denom
+            self.x1_0 = self.x0*b_e / self.denom - self.y1**2/self.x0
+            self.Z2_0 = self.x0**2 - self.Wm2 - self.y1**2
+        doConstants()
 
-        self.nuXY = nuXY
         self.rawB = b
-        self.bXY = np.array([b.x(), b.y()])
         self.mu = mu
 
-        self.residualsBSLT = np.append( self.fit(), [0])
-        self.chi2 = np.dot( self.residualsBSLT, self.residualsBSLT )
-        _,self.fitW,self.fitT = np.cumsum([mu,self.fitNu,self.fitB])
-        _,self.rawW,self.rawT = np.cumsum([mu,self.rawNu,self.rawB])
-        self.bound = True
+        self.residualsBSLT = self.fit()
+        def doFinish() :
+            _,self.fitW,self.fitT = np.cumsum([mu,self.fitNu,self.fitB])
+            _,self.rawW,self.rawT = np.cumsum([mu,self.rawNu,self.rawB])
+            self.residualsBSLT.append( massT - self.fitT.M() )
+            self.chi2 = np.dot( self.residualsBSLT, self.residualsBSLT )
+            self.bound = True
+        doFinish()
+
+    def residuals(self,params) :
+        deltaB, = params
+        x1 = self.x1_0 + 0.5*(self.Tm2 - self.Wm2 - self.Bm2*(1+deltaB)**2) / (self.denom*(1+deltaB))
+        Z2 = self.Z2_0 - 2*self.x0*x1
+        Z = 0 if Z2 < 0 else math.sqrt( Z2 )
+        self.Ellipse = self.R_T.dot( [[-Z*self.y1/self.x0,  0,  x1 - self.mu_p ],
+                                      [ Z,                  0,         self.y1 ],
+                                      [ 0,                  Z,               0 ]] )
+        DeltaNu = self.Nu - deltaB*self.B - self.Ellipse
+        self.M = DeltaNu.T.dot( self.invSig2nu.dot( DeltaNu ) )
+
+        def chi2(x) : return x.T.dot(self.M.dot(x))
+        def doEig(P) : self.eig = next( e.real for e in LA.eigvals(self.Unit.dot(P),overwrite_a=True) if not e.imag)
+        def doEigFaster(P) : #this is about %35 faster than just doEig()
+            (a,b,d),e = P[0],P[1,2]
+            p1, p0 = (a*a+b*b-d*d-e*e), -2*b*d*e + a*( e*e - d*d )
+            def func(lamb) : return -lamb**3 + lamb*p1 + p0
+            feig = func(self.eig)
+            B = self.eig + (1 if feig>0 else -1) * 0.4 * abs(self.eig)
+            if feig*func(B)<0 : self.eig = opt.brentq(func,self.eig,B)
+            else : doEig(P)
+        def solutions() :
+            sols = []
+            P = next( N.T + N for N in [ self.M.dot( self.Q ) ] )
+            doEigFaster(P)
+            D =  P - self.eig*self.Unit
+            c22 = self.cofactor(D,(2,2))
+            if c22>0 : # we got the wrong eigenvalue (parallel lines) from brentq (tiny prob)
+                doEig(P)
+                D =  P - self.eig*self.Unit
+                c22 = self.cofactor(D,(2,2))
+            x0_,y0_ = self.cofactor(D,(0,2)) / c22 , self.cofactor(D,(1,2)) / c22
+            sqrtNc22 = math.sqrt(-c22)
+            for slope in [ (-D[0,1]+pm)/D[1,1] for pm in [-sqrtNc22,sqrtNc22] ] :
+                x0s = x0_*slope
+                disc = 1 + slope**2 - (x0s-y0_)**2
+                if disc<=0 : continue
+                sqrtDisc = math.sqrt(disc)
+                x_ = [(slope*(x0s-y0_) + pm)/(1+slope**2) for pm in [-sqrtDisc,sqrtDisc]]
+                y_ = [(x-x0_)*slope + y0_ for x in x_]
+                sols += [np.array([x,y,1]) for x,y in zip(x_,y_)]
+            return sorted(sols, key = chi2 )
+
+        self.solutions = solutions() if Z else [np.array([0,0,1])]
+        return [deltaB * self.binv] + list(self.nuinv.dot( DeltaNu.dot(self.solutions[0])[:2]))
 
     def fit(self) :
+        (self.deltaB,),_ = opt.leastsq(self.residuals,[0], ftol=5e-2, factor = 1, diag = [0.1], epsfcn=0.01)
+        self.fitB = self.rawB*(1+self.deltaB)
 
-        Z2_0 = self.x0**2 - self.Wm2 - self.y1**2
+        self.residuals([0])
+        x,y,z = self.Ellipse.dot(self.solutions[0])
+        self.rawNu = utils.LorentzV(); self.rawNu.SetPxPyPzE(x,y,z,0); self.rawNu.SetM(0)
 
-        def nuResiduals(deltaB) : return self.R_.dot( self.nuXY - deltaB*self.bXY - self.nu[:2] )
-
-        def residuals(params) :
-            deltaB,tau = params
-            x1 = self.x1_0 + 0.5*(self.Tm2 - self.Wm2 - self.Bm2*(1+deltaB)**2) / (self.denom*(1+deltaB))
-            Z2 = Z2_0 - 2*self.x0*x1
-            if Z2 < 0 :
-                self.nu = self.R_T.dot( [x1-self.mu_p, self.y1, 0] )
-                return self.inv * np.append([deltaB + (0.01 if deltaB>0 else -0.01)], nuResiduals(deltaB)) * (1-Z2)**3
-            Z = math.sqrt( Z2 )
-            c = math.cos(tau)
-            self.nu = self.R_T.dot( [ x1 - self.mu_p - Z*c*self.y1/self.x0,
-                                      self.y1 + Z*c,
-                                      Z*math.sin(tau) ])
-            return self.inv * np.append([deltaB],nuResiduals(deltaB))
-
-        tau_init = min([(t, residuals([0,t])) for t in np.arange(0,1.8*math.pi,math.pi/3)], key = lambda x: x[1].dot(x[1]))[0]
-        params,_ = opt.leastsq(residuals,[0,tau_init], ftol=1e-2, factor = 1, diag = [0.1,0.2], epsfcn=0.01)
-        res = residuals(params)
-        x,y,z = self.nu
-        self.fitB = self.rawB*(1+params[0])
+        res = self.residuals([self.deltaB])
+        x,y,z = self.Ellipse.dot(self.solutions[0])
         self.fitNu = utils.LorentzV(); self.fitNu.SetPxPyPzE(x,y,z,0); self.fitNu.SetM(0)
-        self.rawNu = utils.LorentzV(); self.rawNu.SetPxPyPzE(self.nuXY[0],self.nuXY[1],0,0); self.rawNu.SetM(0)
+
         return res
-
-
 
 class leastsqCombinedTop(object) :
     '''Fit four jets, lepton, MET, and gluons to the hypothesis xtt-->xbqqblv using the three parameters [delta0,delta3,tau].
@@ -243,14 +295,14 @@ class leastsqCombinedTop(object) :
         self.rawJ = jetP4s;
         self.gluons = gluons
 
-        self.R_nuE,self.inv = next( (Rinv.transpose(),
+        self.R_nuE,self.inv = next( (Rinv.T,
                                      1./np.append( jetResolutions ,np.sqrt(np.maximum(1,eig)))) 
                                     for eig,Rinv in [np.linalg.eig(nuErr2)])
 
         R_z = self.R(2, -mu.phi() )
         R_y = self.R(1,  0.5*math.pi - mu.theta() )
         R_x = next( self.R(0,-math.atan2(z,y)) for x,y,z in (R_y.dot( R_z.dot( [b.x(),b.y(),b.z()]) ),))
-        self.R_T = np.dot( R_z.transpose(), np.dot( R_y.transpose(), R_x.transpose() ) )
+        self.R_T = np.dot( R_z.T, np.dot( R_y.T, R_x.T ) )
 
         c = r.Math.VectorUtil.CosTheta(mu,b)
         s = math.sqrt(1-c*c)
