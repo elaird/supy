@@ -1,4 +1,5 @@
 import array,math,itertools,operator
+from itertools import groupby
 try:
     import numpy as np
 except:
@@ -67,18 +68,19 @@ def edgesRebinned( hist, targetUncRel, pivot = 0, offset = 0 ) :
     edges = [hist.GetBinLowEdge(i) for i in range(1,nBins+2)]
     vals  = [hist.GetBinContent(i) for i in range(1,nBins+2)]
     errs2 = [hist.GetBinError(i)**2 for i in range(1,nBins+2)]
-    iPivot = edges.index(pivot)
+    iPivot_L = edges.index(pivot) if pivot in edges else edges.index(max([e for e in edges if e<pivot]))
+    iPivot_R = iPivot_L if pivot in edges else iPivot_L+1
 
-    R = zip(vals,errs2)[iPivot:]
-    L = zip(vals,errs2)[:iPivot][::-1]
+    R = zip(vals,errs2)[iPivot_R:]
+    L = zip(vals,errs2)[:iPivot_L][::-1]
     RL = [max(el,ar, key = uncRel) for el,ar in itertools.izip_longest(L,R)]
 
     blockLens = [offset] + [len(b) for b in blocks(RL[offset:])]
     blockShifts = [sum(blockLens[:i+1]) for i in range(len(blockLens))]
 
     iEdges = sorted( set( [0,len(edges)-1] + 
-                          [min(len(edges)-1, iPivot + i) for i in blockShifts[:len(R)]] +
-                          [max(0,            iPivot - i) for i in blockShifts[:len(L)]] ))
+                          [min(len(edges)-1, iPivot_R + i) for i in blockShifts[:len(R)]] +
+                          [max(0,            iPivot_L - i) for i in blockShifts[:len(L)]] ))
 
     return array.array('d',[edges[i] for i in iEdges])
 #####################################
@@ -91,3 +93,17 @@ def dilution( A, B, N = None) :
     p = A / np.maximum(1e-50, A+B)
     D = (1-2*p)**2
     return N.dot(D)
+#####################################
+def longestPrefix(strings) :
+    return ( "" if not (len(strings[0]) and
+                        all (len(s) and
+                             strings[0][0]==s[0] for s in strings[1:])) else
+             (strings[0][0] + longestPrefix([s[1:] for s in strings])))
+
+def contract(strings) :
+    lpfx = longestPrefix(strings)
+    tails = [s[len(lpfx):] for s in strings]
+    return lpfx + ( '' if len(tails)==1 else
+                    "{%s}"%(','.join([ contract(list(ctails))
+                                       for c,ctails in groupby( tails,
+                                                                key = lambda s: next(iter(s),''))])))
