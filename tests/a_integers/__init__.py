@@ -1,4 +1,5 @@
 import supy,configuration
+from supy import tests
 
 #hack
 configuration.hadd = lambda :"hadd"
@@ -48,4 +49,4 @@ class integers(supy.analysis) :
         assert max(lst)==4,fail
         assert min(lst)==3,fail
 
-supy.tests.run(analysis = integers, options = {"loop": 1})
+tests.run(analysis = integers, options = {"loop": 1})
