@@ -1,3 +1,5 @@
+import os
+
 class defaultOptions(object) :
     "in normal usage, these are given to supy as options"
 
@@ -17,7 +19,6 @@ class defaultOptions(object) :
     omit = ""
     nocheck = False
 
-
 def run(analysis = None, options = {}) :
     "see supy/bin/supy"
 
@@ -34,3 +35,8 @@ def run(analysis = None, options = {}) :
     a.manageSecondaries(opts.update, opts.report)
     if opts.update==None and opts.report==None :
         a.concludeAll()
+
+def runAll(lst = ["a_integers"]) :
+    for item in lst :
+        print "Testing %s..."%item
+        os.system("cd %s; python __init__.py"%item)
