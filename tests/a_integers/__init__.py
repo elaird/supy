@@ -16,6 +16,9 @@ class integers(supy.analysis) :
     def mainTree(self) :
         return ("djtuple", "tree")
 
+    def useCachedFileLists(self) :
+        return False
+
     def listOfSteps(self,config) :
         return [supy.steps.printer.progressPrinter(),
                 supy.steps.histos.value('njets',18,-2,15),
