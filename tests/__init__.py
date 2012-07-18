@@ -1,4 +1,4 @@
-import os
+import os,supy
 
 class defaultOptions(object) :
     "in normal usage, these are given to supy as options"
@@ -38,5 +38,6 @@ def run(analysis = None, options = {}) :
 
 def runAll(lst = ["a_integers"]) :
     for item in lst :
-        print "Testing %s..."%item
-        os.system("cd %s; python __init__.py"%item)
+        cmd = "cd %s/tests/%s && python __init__.py"%(supy.whereami(), item)
+        print cmd
+        os.system(cmd)
