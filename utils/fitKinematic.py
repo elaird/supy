@@ -162,8 +162,11 @@ class leastsqLeptonicTop2(object) :
         return (-1)**(i+j) * (a[0,0]*a[1,1] - a[1,0]*a[0,1])
 
     #static matrices
-    Q = np.reshape([0,-1,0,1]+5*[0],(3,3))
-    Unit = np.diag([1,1,-1])
+    try:
+        Q = np.reshape([0,-1,0,1]+5*[0],(3,3))
+        Unit = np.diag([1,1,-1])
+    except:
+        pass
 
     def __init__(self, b, bResolution, mu, nuXY, nuErr2,
                  massT = 172.0, massW = 80.4) :
