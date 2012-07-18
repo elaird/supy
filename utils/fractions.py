@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-import bisect, numpy as np
+import bisect
+try:
+    import numpy as np
+except:
+    pass
 
 class cached(object):
     def __init__(self, func): self.__func = func
