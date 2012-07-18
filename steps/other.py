@@ -22,6 +22,12 @@ class collector(analysisStep) :
         s = set([]).union(*products["collection"])
         print sorted(list(s))
 #####################################
+class noSetBranchAddress(analysisStep) :
+    def requiresNoSetBranchAddress(self) :
+        return True
+    def uponAcceptance(self, _) :
+        pass
+#####################################
 class skimmer(analysisStep) :
     
     def __init__(self) :
