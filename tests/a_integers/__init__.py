@@ -1,4 +1,8 @@
-import supy
+import supy,configuration
+
+#hack
+configuration.hadd = lambda :"hadd"
+configuration.nCoresDefault = lambda :1
 
 def dump(orgs = []) :
     out = "\n"
