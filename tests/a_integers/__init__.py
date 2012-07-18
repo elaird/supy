@@ -27,7 +27,7 @@ class integers(supy.analysis) :
     def listOfSteps(self,config) :
         return [supy.steps.printer.progressPrinter(),
                 supy.steps.histos.value('njets',18,-2,15),
-                ] + [supy.steps.other.noSetBranchAddress()] if not config["setBranchAddress"] else []
+                ] + ([supy.steps.other.noSetBranchAddress()] if not config["setBranchAddress"] else [])
     
     def listOfCalculables(self,config) :
         return supy.calculables.zeroArgs(supy.calculables)
@@ -46,7 +46,8 @@ class integers(supy.analysis) :
         assert len(orgs)==2,fail
 
         lst = [len(org.steps) for org in orgs]
-        assert max(lst)==4,fail
-        assert min(lst)==3,fail
+        #master added at beginning and end
+        assert max(lst)==5,fail
+        assert min(lst)==4,fail
 
 tests.run(analysis = integers, options = {"loop": 1})
