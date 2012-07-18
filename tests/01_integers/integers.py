@@ -3,7 +3,7 @@ import supy
 def dump(orgs = []) :
     out = "\n"
     for org in orgs :
-        out += org.tag+": "+str(org)+"\n"
+        out += " ".join([org.tag, ":", str(org), "\n"])
         for s in org.steps :
             out += " ".join([s.name,s.title,"\n"])
         out += "\n"
