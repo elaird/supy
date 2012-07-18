@@ -69,6 +69,9 @@ class eta(value) :
 class absEta(value) :
     def wrapName(self) : return ".absEta"
     def wrap(self,val) : return abs(val.eta())
+class mass(value) :
+    def wrapName(self) : return ".mass"
+    def wrap(self,val) : return val.M()
 #####################################
 class OR(analysisStep) :
     def __init__(self, listOfSelectorSteps = []) :
