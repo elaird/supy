@@ -212,7 +212,6 @@ class leastsqLeptonicTop2(object) :
         doFinish()
 
     def residuals(self,params) :
-        print '.',
         deltaB, = params
         x1 = self.x1_0 + 0.5*(self.Tm2 - self.Wm2 - self.Bm2*(1+deltaB)**2) / (self.denom*(1+deltaB))
         Z2 = self.Z2_0 - 2*self.x0*x1
@@ -242,7 +241,6 @@ class leastsqLeptonicTop2(object) :
         return [deltaB * self.binv] + list(self.nuinv.dot( DeltaNu.dot(self.solutions[0])[:2]))
 
     def fit(self) :
-        print '|',
         res = self.residuals([0])
         x,y,z = self.Ellipse.dot(self.solutions[0])
         self.rawNu = utils.LorentzV(); self.rawNu.SetPxPyPzE(x,y,z,0); self.rawNu.SetM(0)
@@ -257,6 +255,5 @@ class leastsqLeptonicTop2(object) :
             self.fitNu = utils.LorentzV(); self.fitNu.SetPxPyPzE(x,y,z,0); self.fitNu.SetM(0)
 
         self.fitB = self.rawB*(1+self.deltaB)
-        print
         return res
 
