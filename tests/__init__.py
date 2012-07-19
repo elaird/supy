@@ -1,13 +1,6 @@
-import os
-
-def whereami() :
-    return max('/'.join(__file__.split('/')[:-1]), '.')
-
-def runAll(modules = ["integers"]) :
-    for item in modules :
-        cmd = "python %s/%s/__init__.py"%(whereami(), item)
-        print cmd
-        os.system(cmd)
+import unittest
 
 if __name__ == "__main__" :
-    runAll()
+    for mod in ["integers"] :
+        suite = unittest.TestLoader().loadTestsFromName(mod)
+        unittest.TextTestRunner(verbosity=2).run(suite)

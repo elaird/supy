@@ -1,7 +1,10 @@
-import supy,configuration,unittest
-
 def whereami() :
     return max('/'.join(__file__.split('/')[:-1]), '.')
+
+import sys
+sys.path.insert(0,whereami()) # hack to find the local supy configuration
+import supy,configuration,unittest
+sys.path = sys.path[1:]
 
 class integers(supy.analysis) :
     def parameters(self) :
