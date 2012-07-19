@@ -163,7 +163,7 @@ class leastsqLeptonicTop2(object) :
 
     def __init__(self, b, bResolution, mu, nuXY, nuErr2,
                  massT = 172.0, massW = 80.4) :
-        self.eig = 0
+
         def doInv() :
             eig,R_ = next( ((np.maximum(1,e),rot) for e,rot in [ LA.eigh(nuErr2) ]) )
             self.invSig2nu = np.vstack( [np.vstack( [LA.inv(R_.dot(np.diag(eig).dot(R_.T))), [0,0]] ).T, [0,0,0]])
@@ -212,6 +212,7 @@ class leastsqLeptonicTop2(object) :
         doFinish()
 
     def residuals(self,params) :
+        print '.',
         deltaB, = params
         x1 = self.x1_0 + 0.5*(self.Tm2 - self.Wm2 - self.Bm2*(1+deltaB)**2) / (self.denom*(1+deltaB))
         Z2 = self.Z2_0 - 2*self.x0*x1
@@ -224,25 +225,12 @@ class leastsqLeptonicTop2(object) :
 
         def chi2(t) : return t.T.dot(self.X.dot(t))
         def sqrt(s) : return [] if s<=0 else (lambda r: [-r,r])(math.sqrt(s))
-        def doEig(M) : self.eig = next( e.real for e in LA.eigvals(self.Unit.dot(M),overwrite_a=True) if not e.imag)
-        def doEigFaster(M) : #this is about %35 faster than just doEig()
-            (a,b,d),e = M[0],M[1,2]
-            p1, p0 = (a*a+b*b-d*d-e*e), -2*b*d*e + a*( e*e - d*d )
-            def func(lamb) : return -lamb**3 + lamb*p1 + p0
-            feig = func(self.eig)
-            B = self.eig + (1 if feig>0 else -1) * 0.4 * abs(self.eig)
-            if feig*func(B)<0 : self.eig = opt.brentq(func,self.eig,B)
-            else : doEig(M)
         def solutions() :
             sols = []
             M = next( N.T + N for N in [ self.X.dot( self.D ) ] )
-            def Y_c22(funcs) :
-                for doE in funcs :
-                    doE(M)
-                    Y = M - self.eig*self.Unit
-                    c22 = self.cofactor(Y,(2,2))
-                    if c22<0 : yield (Y,c22)
-            Y,c22 = next( Y_c22([doEigFaster,doEig]) )
+            eig = next( e.real for e in LA.eigvals(self.Unit.dot(M),overwrite_a=True) if not e.imag)
+            Y = M - eig*self.Unit
+            c22 = self.cofactor(Y,(2,2))
             x0_,y0_ = self.cofactor(Y,(0,2)) / c22 , self.cofactor(Y,(1,2)) / c22
             for S in [ (-Y[0,1]+pm)/Y[1,1] for pm in sqrt(-c22) ] :
                 y1_ = y0_ - S*x0_
@@ -254,16 +242,21 @@ class leastsqLeptonicTop2(object) :
         return [deltaB * self.binv] + list(self.nuinv.dot( DeltaNu.dot(self.solutions[0])[:2]))
 
     def fit(self) :
-        (self.deltaB,),_ = opt.leastsq(self.residuals,[0], ftol=5e-2, factor = 1, diag = [0.1], epsfcn=0.01)
-        self.fitB = self.rawB*(1+self.deltaB)
-
-        self.residuals([0])
+        print '|',
+        res = self.residuals([0])
         x,y,z = self.Ellipse.dot(self.solutions[0])
         self.rawNu = utils.LorentzV(); self.rawNu.SetPxPyPzE(x,y,z,0); self.rawNu.SetM(0)
+        
+        if not (self.solutions[0][0] or self.solutions[0][1]) :
+            self.deltaB = 0
+            self.fitNu = self.rawNu
+        else:
+            (self.deltaB,),_ = opt.leastsq(self.residuals,[0], ftol=5e-2, factor = 1, diag = [0.1], epsfcn=0.01)
+            res = self.residuals([self.deltaB])
+            x,y,z = self.Ellipse.dot(self.solutions[0])
+            self.fitNu = utils.LorentzV(); self.fitNu.SetPxPyPzE(x,y,z,0); self.fitNu.SetM(0)
 
-        res = self.residuals([self.deltaB])
-        x,y,z = self.Ellipse.dot(self.solutions[0])
-        self.fitNu = utils.LorentzV(); self.fitNu.SetPxPyPzE(x,y,z,0); self.fitNu.SetM(0)
-
+        self.fitB = self.rawB*(1+self.deltaB)
+        print
         return res
 
