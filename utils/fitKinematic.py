@@ -241,19 +241,16 @@ class leastsqLeptonicTop2(object) :
         return [deltaB * self.binv] + list(self.nuinv.dot( DeltaNu.dot(self.solutions[0])[:2]))
 
     def fit(self) :
-        res = self.residuals([0])
+        (self.deltaB,),_ = opt.leastsq(self.residuals,[0], ftol=5e-2, factor = 1, diag = [0.1], epsfcn=0.01)
+        self.fitB = self.rawB*(1+self.deltaB)
+
+        self.residuals([0])
         x,y,z = self.Ellipse.dot(self.solutions[0])
         self.rawNu = utils.LorentzV(); self.rawNu.SetPxPyPzE(x,y,z,0); self.rawNu.SetM(0)
-        
-        if not (self.solutions[0][0] or self.solutions[0][1]) :
-            self.deltaB = 0
-            self.fitNu = self.rawNu
-        else:
-            (self.deltaB,),_ = opt.leastsq(self.residuals,[0], ftol=5e-2, factor = 1, diag = [0.1], epsfcn=0.01)
-            res = self.residuals([self.deltaB])
-            x,y,z = self.Ellipse.dot(self.solutions[0])
-            self.fitNu = utils.LorentzV(); self.fitNu.SetPxPyPzE(x,y,z,0); self.fitNu.SetM(0)
 
-        self.fitB = self.rawB*(1+self.deltaB)
+        res = self.residuals([self.deltaB])
+        x,y,z = self.Ellipse.dot(self.solutions[0])
+        self.fitNu = utils.LorentzV(); self.fitNu.SetPxPyPzE(x,y,z,0); self.fitNu.SetM(0)
+
         return res
 
