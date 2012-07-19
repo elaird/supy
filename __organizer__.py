@@ -61,6 +61,12 @@ class organizer(object) :
         new.__steps = copy.deepcopy(self.__steps, memo)
         return new
 
+    def __str__(self) :
+        out = "organizer (tag=%s):"%self.tag
+        for s in self.steps :
+            out += " ".join(["\n", s.name, s.title])
+        return out
+
     @classmethod
     def meld(cls, tagprefix = "melded", organizers = [], lastStep = None ) :
         ordering = utils.topologicalSort([tuple(org.tag.split("_")) for org in organizers])            
