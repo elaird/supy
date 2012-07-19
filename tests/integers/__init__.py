@@ -10,15 +10,15 @@ class integers(supy.analysis) :
                                                }) }
     def listOfSteps(self,config) :
         return config["setBranchAddress"]+[supy.steps.histos.value('njets',18,-2,15)]
-    
+
     def listOfCalculables(self,config) :
         return supy.calculables.zeroArgs(supy.calculables)
-    
+
     def listOfSampleDictionaries(self) :
         exampleDict = supy.samples.SampleHolder()
 	exampleDict.add('integers','["%s/integers.root"]'%whereami(),lumi=0.009)
         return [exampleDict]
-    
+
     def listOfSamples(self,config) :
         return supy.samples.specify(names = "integers")
 
@@ -50,7 +50,7 @@ class testSequence(unittest.TestCase) :
                             h.GetNbinsX(),
                             h.GetXaxis().GetXmin(),
                             h.GetXaxis().GetXmax())
-    @staticmethod    
+    @staticmethod
     def contents(h) : return [h.GetBinContent(i) for i in range(2+h.GetNbinsX())]
 
 if __name__ == '__main__':
