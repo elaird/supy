@@ -2,17 +2,9 @@ import supy,configuration
 from supy import tests
 
 #hack
+print "WARNING: hack in tests/integers/__init__.py"
 configuration.hadd = lambda :"hadd"
 configuration.nCoresDefault = lambda :1
-
-def dump(orgs = []) :
-    out = "\n"
-    for org in orgs :
-        out += " ".join([org.tag, ":", str(org), "\n"])
-        for s in org.steps :
-            out += " ".join([s.name,s.title,"\n"])
-        out += "\n"
-    return out
 
 class integers(supy.analysis) :
     def parameters(self) :
@@ -42,7 +34,7 @@ class integers(supy.analysis) :
 
     def concludeAll(self) :
         orgs = map(lambda x:self.organizer(x), self.readyConfs)
-        fail = dump(orgs)
+        fail = "\n\n".join([str(x) for x in orgs])
         assert len(orgs)==2,fail
 
         lst = [len(org.steps) for org in orgs]
