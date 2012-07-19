@@ -1,11 +1,6 @@
 import supy,configuration
 from supy import tests
 
-#hack
-print "WARNING: hack in tests/integers/__init__.py"
-configuration.hadd = lambda :"hadd"
-configuration.nCoresDefault = lambda :1
-
 def histoMatch(h1, h2, tolerance = 1.0e-6) :
     funcs = [lambda x:x.ClassName(),
              lambda x:x.GetNbinsX(),
@@ -24,12 +19,6 @@ class integers(supy.analysis) :
     def parameters(self) :
         return {"setBranchAddress": self.vary({"sba":True, "no-sba":False}), }
     
-    def mainTree(self) :
-        return ("djtuple", "tree")
-
-    def useCachedFileLists(self) :
-        return False
-
     def listOfSteps(self,config) :
         return [supy.steps.printer.progressPrinter(),
                 supy.steps.histos.value('njets',18,-2,15),
