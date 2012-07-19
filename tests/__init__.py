@@ -36,7 +36,7 @@ def run(analysis = None, options = {}) :
     if opts.update==None and opts.report==None :
         a.concludeAll()
 
-def runAll(lst = ["a_integers"]) :
+def runAll(lst = ["integers"]) :
     for item in lst :
         cmd = "cd %s/tests/%s && python __init__.py"%(supy.whereami(), item)
         print cmd
