@@ -223,6 +223,7 @@ class leastsqLeptonicTop2(object) :
         self.X = DeltaNu.T.dot( self.invSig2nu.dot( DeltaNu ) )
 
         def chi2(t) : return t.T.dot(self.X.dot(t))
+        def sqrt(s) : return [] if s<=0 else (lambda r: [-r,r])(math.sqrt(s))
         def doEig(M) : self.eig = next( e.real for e in LA.eigvals(self.Unit.dot(M),overwrite_a=True) if not e.imag)
         def doEigFaster(M) : #this is about %35 faster than just doEig()
             (a,b,d),e = M[0],M[1,2]
@@ -235,23 +236,18 @@ class leastsqLeptonicTop2(object) :
         def solutions() :
             sols = []
             M = next( N.T + N for N in [ self.X.dot( self.D ) ] )
-            doEigFaster(M)
-            Y =  M - self.eig*self.Unit
-            c22 = self.cofactor(Y,(2,2))
-            if c22>0 : # we got the wrong eigenvalue (parallel lines) from brentq (tiny prob)
-                doEig(M)
-                Y =  M - self.eig*self.Unit
-                c22 = self.cofactor(Y,(2,2))
+            def Y_c22(funcs) :
+                for doE in funcs :
+                    doE(M)
+                    Y = M - self.eig*self.Unit
+                    c22 = self.cofactor(Y,(2,2))
+                    if c22<0 : yield (Y,c22)
+            Y,c22 = next( Y_c22([doEigFaster,doEig]) )
             x0_,y0_ = self.cofactor(Y,(0,2)) / c22 , self.cofactor(Y,(1,2)) / c22
-            sqrtNc22 = math.sqrt(-c22)
-            for slope in [ (-Y[0,1]+pm)/Y[1,1] for pm in [-sqrtNc22,sqrtNc22] ] :
-                x0s = x0_*slope
-                disc = 1 + slope**2 - (x0s-y0_)**2
-                if disc<=0 : continue
-                sqrtDisc = math.sqrt(disc)
-                x_ = [(slope*(x0s-y0_) + pm)/(1+slope**2) for pm in [-sqrtDisc,sqrtDisc]]
-                y_ = [(x-x0_)*slope + y0_ for x in x_]
-                sols += [np.array([x,y,1]) for x,y in zip(x_,y_)]
+            for S in [ (-Y[0,1]+pm)/Y[1,1] for pm in sqrt(-c22) ] :
+                y1_ = y0_ - S*x0_
+                x_ = [ ( pm_ - S*y1_ ) / ( 1+S**2 ) for pm_ in sqrt( 1 + S**2 - y1_**2 ) ]
+                sols += [np.array([ x, y1_+x*S, 1]) for x in x_]
             return sorted(sols, key = chi2 )
 
         self.solutions = solutions() if Z else [np.array([0,0,1])]
