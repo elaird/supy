@@ -1,5 +1,3 @@
 #!/usr/bin/env python
-
-from supy import tests
-
-tests.runAll()
+import os
+os.system("python %s"%'/'.join(__file__.split('/')[:-2] + ['tests','__init__.py']))
