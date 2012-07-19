@@ -1,4 +1,4 @@
-import os,supy
+import os,supy,unittest
 
 class defaultOptions(object) :
     "in normal usage, these are given to supy as options"
@@ -35,6 +35,7 @@ def run(analysis = None, options = {}) :
     a.manageSecondaries(opts.update, opts.report)
     if opts.update==None and opts.report==None :
         a.concludeAll()
+    return a
 
 def runAll(lst = ["integers"]) :
     for item in lst :

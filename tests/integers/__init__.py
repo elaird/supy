@@ -1,19 +1,5 @@
-import supy,configuration
+import supy,configuration,unittest
 from supy import tests
-
-def histoMatch(h1, h2, tolerance = 1.0e-6) :
-    funcs = [lambda x:x.ClassName(),
-             lambda x:x.GetNbinsX(),
-             lambda x:x.GetXaxis().GetXmin(),
-             lambda x:x.GetXaxis().GetXmax(),
-             ]
-    for f in funcs :
-        assert f(h1)==f(h2)
-    for iBinX in range(2+h1.GetNbinsX()) :
-        x = h1.GetBinCenter(iBinX)
-        c1 = h1.GetBinContent(iBinX)
-        c2 = h2.GetBinContent(iBinX)
-        assert abs(c1-c2)<tolerance,"MISMATCH in bin %d (x=%g): %g != %g"%(iBinX, x, c1, c2)
 
 class integers(supy.analysis) :
     def parameters(self) :
@@ -22,7 +8,8 @@ class integers(supy.analysis) :
     def listOfSteps(self,config) :
         return [supy.steps.printer.progressPrinter(),
                 supy.steps.histos.value('njets',18,-2,15),
-                ] + ([supy.steps.other.noSetBranchAddress()] if not config["setBranchAddress"] else [])
+                ] + ([supy.steps.other.noSetBranchAddress()] if not config["setBranchAddress"]
+                     else [])
     
     def listOfCalculables(self,config) :
         return supy.calculables.zeroArgs(supy.calculables)
@@ -35,17 +22,32 @@ class integers(supy.analysis) :
     def listOfSamples(self,config) :
         return supy.samples.specify(names = "integers")
 
-    def concludeAll(self) :
-        orgs = map(lambda x:self.organizer(x), self.readyConfs)
-        fail = "\n\n".join([str(x) for x in orgs])
-        assert len(orgs)==2,fail
+class integersTestSequence(unittest.TestCase) :
 
-        lst = [len(org.steps) for org in orgs]
-        #master added at beginning and end
-        assert max(lst)==5,fail
-        assert min(lst)==4,fail
+    def setUp(self) :
+        an = tests.run( analysis = integers, options = {"loop": 1} )
+        self.orgs = [an.organizer(rc) for rc in an.readyConfs]
 
-        histos = tuple([org.steps[2]["njets"][0] for org in orgs])
-        histoMatch(*histos)
+    def runTest(self) :
+        self.assertEqual( 2, len(self.orgs) )
+        self.assertEqual( 5, max(len(org.steps) for org in self.orgs) )
+        self.assertEqual( 4, min(len(org.steps) for org in self.orgs) )
 
-tests.run(analysis = integers, options = {"loop": 1})
+        h1,h2 = tuple([org.steps[2]["njets"][0] for org in self.orgs])
+        self.assertEqual( self.specs(h1), self.specs(h2) )
+
+        error = "MISMATCH in bin %d (x=%g): %g != %g"
+        for i,(c1,c2) in enumerate( zip( self.contents(h1), self.contents(h2) ) ) :
+            self.assertAlmostEqual( c1, c2, places = 7,
+                                    msg = error%(i,h1.GetBinCenter(i),c1,c2) )
+
+    @staticmethod
+    def specs(h) : return ( h.ClassName(),
+                            h.GetNbinsX(),
+                            h.GetXaxis().GetXmin(),
+                            h.GetXaxis().GetXmax())
+    @staticmethod    
+    def contents(h) : return [h.GetBinContent(i) for i in range(2+h.GetNbinsX())]
+
+if __name__ == '__main__':
+    unittest.main()
