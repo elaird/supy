@@ -1,5 +1,7 @@
 import supy,configuration,unittest
-from supy import tests
+
+def whereami() :
+    return max('/'.join(__file__.split('/')[:-1]), '.')
 
 class integers(supy.analysis) :
     def parameters(self) :
@@ -14,14 +16,14 @@ class integers(supy.analysis) :
     
     def listOfSampleDictionaries(self) :
         exampleDict = supy.samples.SampleHolder()
-	exampleDict.add('integers','["integers.root"]',lumi=0.009)
+	exampleDict.add('integers','["%s/integers.root"]'%whereami(),lumi=0.009)
         return [exampleDict]
     
     def listOfSamples(self,config) :
         return supy.samples.specify(names = "integers")
 
 
-class integersTestSequence(unittest.TestCase) :
+class testSequence(unittest.TestCase) :
 
     def setUp(self) :
         a = integers(supy.options.default("--loop 1".split()))
