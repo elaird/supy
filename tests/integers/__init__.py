@@ -6,6 +6,20 @@ print "WARNING: hack in tests/integers/__init__.py"
 configuration.hadd = lambda :"hadd"
 configuration.nCoresDefault = lambda :1
 
+def histoMatch(h1, h2, tolerance = 1.0e-6) :
+    funcs = [lambda x:x.ClassName(),
+             lambda x:x.GetNbinsX(),
+             lambda x:x.GetXaxis().GetXmin(),
+             lambda x:x.GetXaxis().GetXmax(),
+             ]
+    for f in funcs :
+        assert f(h1)==f(h2)
+    for iBinX in range(2+h1.GetNbinsX()) :
+        x = h1.GetBinCenter(iBinX)
+        c1 = h1.GetBinContent(iBinX)
+        c2 = h2.GetBinContent(iBinX)
+        assert abs(c1-c2)<tolerance,"MISMATCH in bin %d (x=%g): %g != %g"%(iBinX, x, c1, c2)
+
 class integers(supy.analysis) :
     def parameters(self) :
         return {"setBranchAddress": self.vary({"sba":True, "no-sba":False}), }
@@ -41,5 +55,8 @@ class integers(supy.analysis) :
         #master added at beginning and end
         assert max(lst)==5,fail
         assert min(lst)==4,fail
+
+        histos = tuple([org.steps[2]["njets"][0] for org in orgs])
+        histoMatch(*histos)
 
 tests.run(analysis = integers, options = {"loop": 1})
