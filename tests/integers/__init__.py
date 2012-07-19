@@ -3,13 +3,11 @@ from supy import tests
 
 class integers(supy.analysis) :
     def parameters(self) :
-        return {"setBranchAddress": self.vary({"sba":True, "no-sba":False}), }
-    
+        return {"setBranchAddress": self.vary({"sba":[],
+                                               "no-sba":[supy.steps.other.noSetBranchAddress()]
+                                               }) }
     def listOfSteps(self,config) :
-        return [supy.steps.printer.progressPrinter(),
-                supy.steps.histos.value('njets',18,-2,15),
-                ] + ([supy.steps.other.noSetBranchAddress()] if not config["setBranchAddress"]
-                     else [])
+        return config["setBranchAddress"]+[supy.steps.histos.value('njets',18,-2,15)]
     
     def listOfCalculables(self,config) :
         return supy.calculables.zeroArgs(supy.calculables)
@@ -22,18 +20,22 @@ class integers(supy.analysis) :
     def listOfSamples(self,config) :
         return supy.samples.specify(names = "integers")
 
+
 class integersTestSequence(unittest.TestCase) :
 
     def setUp(self) :
-        an = tests.run( analysis = integers, options = {"loop": 1} )
-        self.orgs = [an.organizer(rc) for rc in an.readyConfs]
+        a = integers(supy.options.default("--loop 1".split()))
+        a.loop()
+        a.mergeAllOutput()
+        self.orgs = [a.organizer(rc) for rc in a.readyConfs]
 
     def runTest(self) :
         self.assertEqual( 2, len(self.orgs) )
-        self.assertEqual( 5, max(len(org.steps) for org in self.orgs) )
-        self.assertEqual( 4, min(len(org.steps) for org in self.orgs) )
+        self.assertEqual( 3, min(len(org.steps) for org in self.orgs) )
+        self.assertEqual( 4, max(len(org.steps) for org in self.orgs) )
 
-        h1,h2 = tuple([org.steps[2]["njets"][0] for org in self.orgs])
+        h1,h2 = tuple([org.steps[next(org.indicesOfStepsWithKey("njets"))]["njets"][0]
+                       for org in self.orgs])
         self.assertEqual( self.specs(h1), self.specs(h2) )
 
         error = "MISMATCH in bin %d (x=%g): %g != %g"
