@@ -33,7 +33,7 @@ class testEdgesRebinned(unittest.TestCase) :
     def test(self) :
         '''supy.utils.algos.edgesRebinned'''
         self.fail("test not implemented")
-        
+
 class testLongestPrefix(unittest.TestCase) :
     def test(self) :
         '''supy.utils.algos.longestPrefix'''
@@ -49,3 +49,6 @@ class testcContract(unittest.TestCase) :
         self.assertEqual("{,su{py,sycaf}}", algos.contract(["","supy","susycaf"]))
         self.assertEqual("su{py,sycaf}", algos.contract(["supy","susycaf"]))
         self.assertEqual( "Joe{seph{ Stalk,ine Winkler}, Biden}", algos.contract(["Joeseph Stalk","Joesephine Winkler","Joe Biden"]))
+
+if __name__ == "__main__" :
+    unittest.main()
