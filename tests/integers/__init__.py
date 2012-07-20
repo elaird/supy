@@ -14,10 +14,11 @@ class test1LocalConfiguration(unittest.TestCase) :
 
 class test2Integers(unittest.TestCase) :
     def setUp(self) :
-        import ROOT as r
+        import maketree,ROOT as r
+        maketree.writeTree()
         def tchain(name) :
             chain = r.TChain(name)
-            chain.Add("%s/%s/integers.root/%s/%s"%( ( supy.whereami(),
+            chain.Add("%s/%s/typetree.root/%s/%s"%( ( supy.whereami(),
                                                       configuration.localpath() )
                                                     + configuration.mainTree() ) )
             return chain
@@ -25,21 +26,16 @@ class test2Integers(unittest.TestCase) :
         self.sbaF = supy.wrappedChain(tchain("sbaF"), useSetBranchAddress = False)
         self.sbaT = supy.wrappedChain(tchain("sbaT"), useSetBranchAddress = True)
 
-    def testAllButNegative(self) :
-        '''Check equivalence of wrappedChain, useSetBranchAddress = {True,False}, except negative values.'''
-        self.loop(omit = [-1])
+    def testInt(self) : self.loop( var = 'int' )
+    def testUint(self) : self.loop( var = 'uint' )
+    def testLong(self) : self.loop( var = 'long' )
+    def testUlong(self) : self.loop( var = 'ulong' )
 
-    def testAll(self) :
-        '''Check equivalence of wrappedChain, useSetBranchAddress = {True,False}'''
-        self.loop()
-
-    def loop(self, omit = []) :
+    def loop(self, N = 100, var = "") :
         from itertools import izip
-        N = 100
-        error = "MISMATCH in event %d: sbaF['njets'] = %d != %d = sbaT['njets']"
+        error = "MISMATCH in event %d: sbaF['"+var+"'] = %d != %d = sbaT['"+var+"']"
         for i,sbaF,sbaT in izip(xrange(N),self.sbaF.entries(N),self.sbaT.entries(N)) :
-            if sbaF['njets'] in omit : continue
-            self.assertEqual(sbaF['njets'],sbaT['njets'],  msg = error%(i,sbaF["njets"],sbaT["njets"]))
+            self.assertEqual(sbaF[var],sbaT[var],  msg = error%(i,sbaF[var],sbaT[var]))
 
 class test3Integers(unittest.TestCase) :
 
