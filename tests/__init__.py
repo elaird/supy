@@ -19,6 +19,7 @@ if __name__ == "__main__" :
             print msg.join(2*'\n').join( 2 * [len(msg)*"="] )
             suite = unittest.TestLoader().loadTestsFromName(mod)
             unittest.TextTestRunner(verbosity=2).run(suite)
+            sys.path = sys.path[1:]
             print
         print
     print
