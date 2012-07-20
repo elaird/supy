@@ -22,9 +22,10 @@ class test2Integers(unittest.TestCase) :
 
     def test(self) :
         '''Check that setBranchAddress has no effect on results.'''
-        self.assertEqual( 2, len(self.orgs) )
-        self.assertEqual( 3, min(len(org.steps) for org in self.orgs) )
-        self.assertEqual( 4, max(len(org.steps) for org in self.orgs) )
+        nSteps = [len(org.steps) for org in self.orgs]
+        self.assertEqual( 2, len(nSteps) )
+        self.assertEqual( 3, min(nSteps) )
+        self.assertEqual( 4, max(nSteps) )
 
         h1,h2 = tuple([org.steps[next(org.indicesOfStepsWithKey("njets"))]["njets"][0]
                        for org in self.orgs])
