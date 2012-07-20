@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import os,sys,inspect,supy,configuration
+import sys,os
+sys.path.insert(0,os.environ["PWD"]+ "/" + '/'.join( sys.argv[1].split('/')[:-1] ) )
+import inspect,supy,configuration
 ############################################
 def setupROOT() :
     sys.argv.append("-b")
@@ -8,9 +10,8 @@ def setupROOT() :
     sys.argv.pop()
 ############################################
 def moduleName(arg) :
-    sys.path.extend([os.environ["PWD"], os.environ["PWD"]+"/analyses"])
     while "//" in arg : arg = arg.replace("//","/")
-    module = arg.replace("analyses/","").replace(".py","")
+    module = arg.split('/')[-1].replace(".py",'')
     return module
 ############################################
 def importedClass(module) :
@@ -89,21 +90,20 @@ setupROOT()
 supy.utils.generateDictionaries(inList = configuration.cppROOTDictionariesToGenerate(), dir = supy.whereami())
 
 # construct the analysis
-someClass = importedClass(moduleName(arg))
-someInstance = someClass(options)
+anInstance = importedClass(moduleName(arg))(options)
 
 if options.batch : #make one script per job and submit them to the queue
-    doBatch(someInstance)
+    doBatch(anInstance)
 elif options.loop!=None : #loop over the events
-    someInstance.loop()
+    anInstance.loop()
 
 # merge output and conclude
 if options.jobId==None and not options.batch :
     try:
-        someInstance.mergeAllOutput()
-        someInstance.manageSecondaries(options.update,options.report)
+        anInstance.mergeAllOutput()
+        anInstance.manageSecondaries(options.update,options.report)
         if options.update==None and options.report==None:
-            someInstance.concludeAll()
+            anInstance.concludeAll()
     except AssertionError as foo:
         print
         print foo
