@@ -8,7 +8,7 @@ class temporaryImports(set) :
 
 
 if __name__ == "__main__" :
-    for mod in ["algos","integers"] :
+    for mod in ["algos","integers","arguments"] :
         with temporaryImports() as _ :
             msg = "|| %s ||"%mod
             size = len(msg)
