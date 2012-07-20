@@ -1,4 +1,4 @@
-import unittest,os,supy
+import unittest,supy
 
 class test1SupyNoArgs(unittest.TestCase) :
     def test(self) :
