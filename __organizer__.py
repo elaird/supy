@@ -26,6 +26,8 @@ class organizer(object) :
                 else: [ hist.Scale(sample["xs"]/sample['nEvents']) for hist,sample in zip(self[key],samples)
                         if hist and sample['nEvents'] and "xs" in sample ]
 
+        def __str__(self) : return "%s: %s"%self.nameTitle
+
         @property
         def yields(self) : return ( tuple([(h.GetBinContent(2),h.GetBinError(2)) if h else None for h in self["counts"] ]) \
                                     if "counts" in self else tuple(self.N*[None]) )
@@ -60,6 +62,8 @@ class organizer(object) :
         new.samples = copy.copy(self.samples)
         new.__steps = copy.deepcopy(self.__steps, memo)
         return new
+
+    def __str__(self) : return "organizer (tag=%s):\n%s"%(self.tag,'\n '.join('%s'%s for s in self.steps))
 
     @classmethod
     def meld(cls, tagprefix = "melded", organizers = [], lastStep = None ) :

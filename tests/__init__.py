@@ -1,43 +1,26 @@
-import os,supy
+import unittest,sys,os
 
-class defaultOptions(object) :
-    "in normal usage, these are given to supy as options"
+class temporaryImports(set) :
+    '''All modules imported under "with" expression are unloaded upon exit.'''
+    def __enter__(self) : self.update(sys.modules)
+    def __exit__(self,type,value,traceback) :
+        for name in set(sys.modules)-self : del sys.modules[name]
 
-    #defaults
-    loop = None
-    slices = None
-    profile = False
-    batch = False
-    tag = ""
-    sample = None
-    update = None
-    report = None
-    jobId = None
-    site = None
-    tags = None
-    samples = None
-    omit = ""
-    nocheck = False
 
-def run(analysis = None, options = {}) :
-    "see supy/bin/supy"
+def whereami() : return max('/'.join(__file__.split('/')[:-1]), '.')
 
-    opts = defaultOptions()
-    for key,value in options.iteritems() :
-        setattr(opts, key, value)
-
-    assert opts.jobId==None
-    assert not opts.batch
-
-    a = analysis(opts)
-    a.loop()
-    a.mergeAllOutput()
-    a.manageSecondaries(opts.update, opts.report)
-    if opts.update==None and opts.report==None :
-        a.concludeAll()
-
-def runAll(lst = ["a_integers"]) :
-    for item in lst :
-        cmd = "cd %s/tests/%s && python __init__.py"%(supy.whereami(), item)
-        print cmd
-        os.system(cmd)
+if __name__ == "__main__" :
+    for mod in ["algos","arguments","integers"] :
+        sys.path.insert(0,whereami())
+        with temporaryImports() as _ :
+            path = "%s/%s"%(whereami(),mod)
+            sys.path.insert(1,path)
+            os.chdir(path)
+            msg = "|| %s ||"%mod
+            print msg.join(2*'\n').join( 2 * [len(msg)*"="] )
+            suite = unittest.TestLoader().loadTestsFromName(mod)
+            unittest.TextTestRunner(verbosity=2).run(suite)
+            sys.path = sys.path[:1] + sys.path[2:]
+            print
+        print
+    print

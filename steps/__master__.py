@@ -26,6 +26,7 @@ class master(supy.analysisStep) :
     
     def mergeFunc(self, products) :
         def printComment(lines) :
+            if self.quietMode : return
             skip = ['Source file','Target path','Found subdirectory']
             line = next(L for L in lines.split('\n') if not any(item in L for item in skip))
             print line.replace("Target","The output") + " has been written."
