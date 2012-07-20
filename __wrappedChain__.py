@@ -99,7 +99,8 @@ class wrappedChain(dict) :
                 if not useSetBranchAddress : return None
                 leaf = getattr(chain, nameL)
 
-                if type(leaf)==int or type(leaf)==long : return array.array('l',[0])
+                if type(leaf)==int : return array.array('i',[0])
+                if type(leaf)==long : return array.array('l',[0])
                 elif type(leaf)==float :
                     leafClassName = className(nameL, nameB, chain)
                     if leafClassName=="TLeafF" : return array.array('f',[0.0])

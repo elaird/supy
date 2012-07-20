@@ -136,6 +136,7 @@ class analysisLooper :
             step.setInputFileStem(self.inputFileStem)
             step.priorFilters = set(priorFilters)
             if step.isSelector and step.name not in ['master','label'] : priorFilters.append((step.name,step.moreNames))
+            if self.quietMode : step.makeQuiet()
 
             if withBook : 
                 current = current.mkdir(step.name)
@@ -144,7 +145,6 @@ class analysisLooper :
 
             if minimal : continue
             step.tracer = keyTracer(None) if self.trace and (step.isSelector or issubclass(type(step),wrappedChain.calculable)) else None
-            if self.quietMode : step.makeQuiet()
             assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.name
             step.setup(self.chains[self.mainTree], self.mainTree[0])
 
@@ -224,7 +224,6 @@ class analysisLooper :
             step.increment(False,sum(stepDict["nFail"]))
 
         self.printStats()
-        print utils.hyphens
         for iStep,step,stepDict in zip(range(len(self.steps)),self.steps,products) :
             if iStep : rootFile.cd('/'.join(step.name for step in self.steps[:iStep+1] ))
             step.mergeFunc(stepDict)
@@ -233,6 +232,7 @@ class analysisLooper :
         for dirName in cleanUpList : os.system("rm -fr %s"%dirName)
 
     def printStats(self) :
+        if self.quietMode : return
         print utils.hyphens
         print self.name
         
@@ -255,6 +255,7 @@ class analysisLooper :
         print "Steps:%s" % ("nPass ".rjust(width) + "(nFail)".rjust(width+2)).rjust(len(utils.hyphens)-len("Steps:"))
         for step in self.steps :
             step.printStatistics()
+        print utils.hyphens
         print utils.hyphens
 
 #####################################

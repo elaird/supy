@@ -1,5 +1,5 @@
 from __wrappedChain__ import keyTracer
-import defaults
+import defaults,options
 
 def whereami() :
     return max('/'.join(__file__.split('/')[:-1]), '.')

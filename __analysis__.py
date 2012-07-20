@@ -37,6 +37,7 @@ class analysis(object) :
         self.__samples = options.samples.split(',') if type(options.samples)==str else options.samples
         self.__omit    = options.omit.split(',')
         self.__nocheck = options.nocheck
+        self.__quiet   = options.quiet
 
         self.localStem  = "%s/%s"%(sites.info(site = self.__site, key = "localOutputDir" ), self.name)
         self.globalStem = "%s/%s"%(sites.info(site = self.__site, key = "globalOutputDir"), self.name)
@@ -221,7 +222,7 @@ class analysis(object) :
                                    steps = adjustedSteps,        calculables = allCalculables( self.listOfCalculables(pars), spec.weights, adjustedSteps ),
                                    inputFiles = inputFiles,      name = pars["sample"],
                                    localStem  = self.localStem,  subDir = "%(tag)s"%conf,
-                                   globalStem = self.globalStem, quietMode = self.__loop>1 )
+                                   globalStem = self.globalStem, quietMode = self.__loop>1 or self.__quiet )
         sampleNames = set()
         return [ looper(sampleSpec) for sampleSpec in self.filteredSamples(conf) ]
     

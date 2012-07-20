@@ -1,51 +1,67 @@
-import supy,configuration
-from supy import tests
+import supy,configuration,unittest
 
-def histoMatch(h1, h2, tolerance = 1.0e-6) :
-    funcs = [lambda x:x.ClassName(),
-             lambda x:x.GetNbinsX(),
-             lambda x:x.GetXaxis().GetXmin(),
-             lambda x:x.GetXaxis().GetXmax(),
-             ]
-    for f in funcs :
-        assert f(h1)==f(h2)
-    for iBinX in range(2+h1.GetNbinsX()) :
-        x = h1.GetBinCenter(iBinX)
-        c1 = h1.GetBinContent(iBinX)
-        c2 = h2.GetBinContent(iBinX)
-        assert abs(c1-c2)<tolerance,"MISMATCH in bin %d (x=%g): %g != %g"%(iBinX, x, c1, c2)
+class test1LocalConfiguration(unittest.TestCase) :
+    def test(self) :
+        '''Check that we load the local configuration.py'''
+        self.assertEqual( ("djtuple","tree"), configuration.mainTree())
+        self.assertTrue( hasattr(supy.__analysis__.configuration, "localpath"))
+        self.assertEqual( "tests/integers", supy.__analysis__.configuration.localpath() )
 
-class integers(supy.analysis) :
-    def parameters(self) :
-        return {"setBranchAddress": self.vary({"sba":True, "no-sba":False}), }
-    
-    def listOfSteps(self,config) :
-        return [supy.steps.printer.progressPrinter(),
-                supy.steps.histos.value('njets',18,-2,15),
-                ] + ([supy.steps.other.noSetBranchAddress()] if not config["setBranchAddress"] else [])
-    
-    def listOfCalculables(self,config) :
-        return supy.calculables.zeroArgs(supy.calculables)
-    
-    def listOfSampleDictionaries(self) :
-        exampleDict = supy.samples.SampleHolder()
-	exampleDict.add('integers','["integers.root"]',lumi=0.009)
-        return [exampleDict]
-    
-    def listOfSamples(self,config) :
-        return supy.samples.specify(names = "integers")
+class test2Integers(unittest.TestCase) :
+    def setUp(self) :
+        import maketree,ROOT as r
+        maketree.writeTree()
+        def tchain(name) :
+            chain = r.TChain(name)
+            chain.Add("%s/%s/%s"%( (maketree.filePath(),) + configuration.mainTree() ) )
+            return chain
 
-    def concludeAll(self) :
-        orgs = map(lambda x:self.organizer(x), self.readyConfs)
-        fail = "\n\n".join([str(x) for x in orgs])
-        assert len(orgs)==2,fail
+        self.sbaF = supy.wrappedChain(tchain("sbaF"), useSetBranchAddress = False)
+        self.sbaT = supy.wrappedChain(tchain("sbaT"), useSetBranchAddress = True)
 
-        lst = [len(org.steps) for org in orgs]
-        #master added at beginning and end
-        assert max(lst)==5,fail
-        assert min(lst)==4,fail
+    def testInt(self) : self.loop( var = 'int' )
+    def testUint(self) : self.loop( var = 'uint' )
+    def testLong(self) : self.loop( var = 'long' )
+    def testUlong(self) : self.loop( var = 'ulong' )
 
-        histos = tuple([org.steps[2]["njets"][0] for org in orgs])
-        histoMatch(*histos)
+    def loop(self, N = 100, var = "") :
+        from itertools import izip
+        error = "MISMATCH in event %d: sbaF['"+var+"'] = %d != %d = sbaT['"+var+"']"
+        for i,sbaF,sbaT in izip(xrange(N),self.sbaF.entries(N),self.sbaT.entries(N)) :
+            self.assertEqual(sbaF[var],sbaT[var],  msg = error%(i,sbaF[var],sbaT[var]))
 
-tests.run(analysis = integers, options = {"loop": 1})
+class test3Integers(unittest.TestCase) :
+
+    def setUp(self) :
+        import integers
+        a = integers.integers(supy.options.default("--loop 1 --quiet".split()))
+        a.loop()
+        a.mergeAllOutput()
+        self.orgs = [a.organizer(rc) for rc in a.readyConfs]
+
+    def test(self) :
+        '''Check that setBranchAddress has no effect on analysis results.'''
+        nSteps = [len(org.steps) for org in self.orgs]
+        self.assertEqual( 2, len(nSteps) )
+        self.assertEqual( 3, min(nSteps) )
+        self.assertEqual( 4, max(nSteps) )
+
+        h1,h2 = tuple([org.steps[next(org.indicesOfStepsWithKey("njets"))]["njets"][0]
+                       for org in self.orgs])
+        self.assertEqual( self.specs(h1), self.specs(h2) )
+
+        error = "MISMATCH in bin %d (x=%g): %g != %g"
+        for i,(c1,c2) in enumerate( zip( self.contents(h1), self.contents(h2) ) ) :
+            self.assertAlmostEqual( c1, c2, places = 7,
+                                    msg = error%(i,h1.GetBinCenter(i),c1,c2) )
+
+    @staticmethod
+    def specs(h) : return ( h.ClassName(),
+                            h.GetNbinsX(),
+                            h.GetXaxis().GetXmin(),
+                            h.GetXaxis().GetXmax())
+    @staticmethod
+    def contents(h) : return [h.GetBinContent(i) for i in range(2+h.GetNbinsX())]
+
+if __name__ == '__main__':
+    unittest.main()
