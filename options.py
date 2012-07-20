@@ -25,7 +25,7 @@ parser.add_option("--quiet",   dest = "quiet",   default = False, action = "stor
 def opts() :
     options,args = parser.parse_args()
 
-    if len(args)!=1 :
+    if len(args)!=1 or ".py" not in args[0]:
         parser.print_help()
         exit()
 

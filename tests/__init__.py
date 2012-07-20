@@ -11,8 +11,9 @@ if __name__ == "__main__" :
     for mod in ["algos","arguments","integers"] :
         with temporaryImports() as _ :
             msg = "|| %s ||"%mod
-            size = len(msg)
-            print '\n'.join(['','',size*"=",msg,size*"=",''])
+            print msg.join(2*'\n').join( 2 * [len(msg)*"="] )
             suite = unittest.TestLoader().loadTestsFromName(mod)
             unittest.TextTestRunner(verbosity=2).run(suite)
-            print "\n\n"
+            print
+        print
+    print
