@@ -27,7 +27,16 @@ class testDilution(unittest.TestCase) :
     def test(self) :
         '''supy.utils.algos.dilution'''
         self.assertTrue(hasattr(algos, "np"), msg = "System lacks numpy")
-        self.fail(msg = "test not completely written")
+        self.assertEqual( 1.0, algos.dilution([1,0],[0,1]) )
+        self.assertEqual( 1.0, algos.dilution([1,1,0],[0,0,1]) )
+        self.assertEqual( 1.0, algos.dilution([1,0,0],[0,0,1]) )
+        self.assertEqual( 0.0, algos.dilution([1],[1]) )
+        self.assertEqual( 0.0, algos.dilution([1,1],[1,1]) )
+        self.assertEqual( 0.5, algos.dilution([1,1,0],[0,1,1]))
+        self.assertEqual( 0.5, algos.dilution([1,0,1],[0,1,1]))
+        self.assertAlmostEqual( 1./3, algos.dilution([1,1],[0,1]), places = 9 )
+        self.assertAlmostEqual( algos.dilution([1,0],[1,1]),
+                                algos.dilution([1,1],[1,0]), places = 9 )
 
 class testEdgesRebinned(unittest.TestCase) :
     def test(self) :
