@@ -2,7 +2,7 @@ def whereami() : return max('/'.join(__file__.split('/')[:-1]), '.')
 
 import sys
 sys.path.insert(0,whereami()) # hack to force the local supy configuration
-import supy,configuration,unittest,integers
+import supy,configuration,unittest
 sys.path = sys.path[1:]
 
 class test1LocalConfiguration(unittest.TestCase) :
@@ -13,15 +13,45 @@ class test1LocalConfiguration(unittest.TestCase) :
         self.assertEqual( "tests/integers", supy.__analysis__.configuration.localpath() )
 
 class test2Integers(unittest.TestCase) :
+    def setUp(self) :
+        import ROOT as r
+        def tchain(name) :
+            chain = r.TChain(name)
+            chain.Add("%s/%s/integers.root/%s/%s"%( ( supy.whereami(),
+                                                      configuration.localpath() )
+                                                    + configuration.mainTree() ) )
+            return chain
+
+        self.sbaF = supy.wrappedChain(tchain("sbaF"), useSetBranchAddress = False)
+        self.sbaT = supy.wrappedChain(tchain("sbaT"), useSetBranchAddress = True)
+
+    def testAllButNegative(self) :
+        '''Check equivalence of wrappedChain, useSetBranchAddress = {True,False}, except negative values.'''
+        self.loop(omit = [-1])
+
+    def testAll(self) :
+        '''Check equivalence of wrappedChain, useSetBranchAddress = {True,False}'''
+        self.loop()
+
+    def loop(self, omit = []) :
+        from itertools import izip
+        N = 100
+        error = "MISMATCH in event %d: sbaF['njets'] = %d != %d = sbaT['njets']"
+        for i,sbaF,sbaT in izip(xrange(N),self.sbaF.entries(N),self.sbaT.entries(N)) :
+            if sbaF['njets'] in omit : continue
+            self.assertEqual(sbaF['njets'],sbaT['njets'],  msg = error%(i,sbaF["njets"],sbaT["njets"]))
+
+class test3Integers(unittest.TestCase) :
 
     def setUp(self) :
+        import integers
         a = integers.integers(supy.options.default("--loop 1 --quiet".split()))
         a.loop()
         a.mergeAllOutput()
         self.orgs = [a.organizer(rc) for rc in a.readyConfs]
 
     def test(self) :
-        '''Check that setBranchAddress has no effect on results.'''
+        '''Check that setBranchAddress has no effect on analysis results.'''
         nSteps = [len(org.steps) for org in self.orgs]
         self.assertEqual( 2, len(nSteps) )
         self.assertEqual( 3, min(nSteps) )
