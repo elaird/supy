@@ -1,9 +1,4 @@
-def whereami() : return max('/'.join(__file__.split('/')[:-1]), '.')
-
-import sys
-sys.path.insert(0,whereami()) # hack to force the local supy configuration
 import supy,configuration,unittest
-sys.path = sys.path[1:]
 
 class test1LocalConfiguration(unittest.TestCase) :
     def test(self) :
