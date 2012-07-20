@@ -5,3 +5,6 @@ def mainTree() :
 
 def nCoresDefault() :
     return 1
+
+def uniqueIdentifier() :
+    return "supy/tests/integers/"

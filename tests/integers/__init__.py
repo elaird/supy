@@ -5,7 +5,14 @@ sys.path.insert(0,whereami()) # hack to force the local supy configuration
 import supy,configuration,unittest,integers
 sys.path = sys.path[1:]
 
-class testIntegers(unittest.TestCase) :
+class test1LocalConfiguration(unittest.TestCase) :
+    def test(self) :
+        '''Check that we load the local configuration.py'''
+        self.assertEqual( ("djtuple","tree"), configuration.mainTree())
+        self.assertTrue( hasattr(supy.__analysis__.configuration, "uniqueIdentifier"))
+        self.assertEqual( "supy/tests/integers/", supy.__analysis__.configuration.uniqueIdentifier() )
+
+class test2Integers(unittest.TestCase) :
 
     def setUp(self) :
         a = integers.integers(supy.options.default("--loop 1 --quiet".split()))
@@ -13,7 +20,8 @@ class testIntegers(unittest.TestCase) :
         a.mergeAllOutput()
         self.orgs = [a.organizer(rc) for rc in a.readyConfs]
 
-    def runTest(self) :
+    def test(self) :
+        '''Check that setBranchAddress has no effect on results.'''
         self.assertEqual( 2, len(self.orgs) )
         self.assertEqual( 3, min(len(org.steps) for org in self.orgs) )
         self.assertEqual( 4, max(len(org.steps) for org in self.orgs) )
