@@ -1,5 +1,5 @@
 from optparse import OptionParser
-parser = OptionParser("usage: %prog analysis-file [options]")
+parser = OptionParser("usage: %prog analysis-file.py [options]")
 def argOrTrue(option, opt, value, parser) :
     peek = next(iter(parser.rargs),None)
     if peek and peek[0]!='-' : del parser.rargs[0]
