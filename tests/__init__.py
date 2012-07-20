@@ -8,7 +8,11 @@ class temporaryImports(set) :
 
 
 if __name__ == "__main__" :
-    for mod in ["integers"] :
+    for mod in ["algos","integers"] :
         with temporaryImports() as _ :
+            msg = "|| %s ||"%mod
+            size = len(msg)
+            print '\n'.join(['','',size*"=",msg,size*"=",''])
             suite = unittest.TestLoader().loadTestsFromName(mod)
             unittest.TextTestRunner(verbosity=2).run(suite)
+            print "\n\n"
