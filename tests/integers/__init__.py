@@ -2,33 +2,13 @@ def whereami() : return max('/'.join(__file__.split('/')[:-1]), '.')
 
 import sys
 sys.path.insert(0,whereami()) # hack to force the local supy configuration
-import supy,configuration,unittest
+import supy,configuration,unittest,integers
 sys.path = sys.path[1:]
-
-class integers(supy.analysis) :
-    def parameters(self) :
-        return {"setBranchAddress": self.vary({"sba":[],
-                                               "no-sba":[supy.steps.other.noSetBranchAddress()]
-                                               }) }
-    def listOfSteps(self,config) :
-        return config["setBranchAddress"]+[supy.steps.histos.value('njets',18,-2,15)]
-
-    def listOfCalculables(self,config) :
-        return supy.calculables.zeroArgs(supy.calculables)
-
-    def listOfSampleDictionaries(self) :
-        exampleDict = supy.samples.SampleHolder()
-	exampleDict.add('integers','["%s/integers.root"]'%whereami(),lumi=0.009)
-        return [exampleDict]
-
-    def listOfSamples(self,config) :
-        return supy.samples.specify(names = "integers")
-
 
 class testIntegers(unittest.TestCase) :
 
     def setUp(self) :
-        a = integers(supy.options.default("--loop 1 --quiet".split()))
+        a = integers.integers(supy.options.default("--loop 1 --quiet".split()))
         a.loop()
         a.mergeAllOutput()
         self.orgs = [a.organizer(rc) for rc in a.readyConfs]
