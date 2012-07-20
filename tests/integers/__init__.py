@@ -13,16 +13,24 @@ class test2Integers(unittest.TestCase) :
         maketree.writeTree()
         def tchain(name) :
             chain = r.TChain(name)
-            chain.Add("%s/%s/%s"%( (maketree.filePath(),) + configuration.mainTree() ) )
+            chain.Add("/".join( (maketree.filePath(),) + configuration.mainTree() ) )
             return chain
 
         self.sbaF = supy.wrappedChain(tchain("sbaF"), useSetBranchAddress = False)
-        self.sbaT = supy.wrappedChain(tchain("sbaT"), useSetBranchAddress = True)
+        self.sbaT = supy.wrappedChain(tchain("sbaT"), useSetBranchAddress = True,
+                                      leavesToBlackList = ["byte","ubyte"])
 
+    def testBool(self) : self.loop( var = 'bool' )
+    def testByte(self) : self.loop( var = 'byte' )
+    def testUbyte(self) : self.loop( var = 'ubyte' )
+    def testShort(self) : self.loop( var = 'short' )
+    def testUshort(self) : self.loop( var = 'ushort' )
     def testInt(self) : self.loop( var = 'int' )
     def testUint(self) : self.loop( var = 'uint' )
     def testLong(self) : self.loop( var = 'long' )
     def testUlong(self) : self.loop( var = 'ulong' )
+    def testFloat(self) : self.loop( var = 'float' )
+    def testDouble(self) : self.loop( var = 'double' )
 
     def loop(self, N = 100, var = "") :
         from itertools import izip
