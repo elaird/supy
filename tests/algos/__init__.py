@@ -41,7 +41,29 @@ class testDilution(unittest.TestCase) :
 class testEdgesRebinned(unittest.TestCase) :
     def test(self) :
         '''supy.utils.algos.edgesRebinned'''
-        self.fail("test not implemented")
+        import ROOT as r
+        h = r.TH1D("h","h",10,0,10)
+        for i in range(12):
+            h.SetBinContent(i,i)
+            h.SetBinError(i,0.01)
+
+        self.assertEqual([float(i) for i in range(11)],
+                         list(algos.edgesRebinned(h, targetUncRel = 0.1 )) )
+
+        self.assertEqual([float(i) for i in range(11)],
+                         list(algos.edgesRebinned(h, targetUncRel = 0.1, pivot = 3 )))
+
+        self.assertEqual([0.0,10.0],
+                         list(algos.edgesRebinned(h, targetUncRel = 0.0000001)))
+
+        self.assertEqual([float(i) for i in range(11)],
+                         list(algos.edgesRebinned(h, targetUncRel = 0.1, pivot = 3.5 )))
+
+        self.assertEqual([0.0, 3.0, 4.0, 7.0, 10.0],
+                         list(algos.edgesRebinned(h, targetUncRel = 0.0000001, pivot = 3.5 )))
+
+        self.assertEqual([0.0,3.0,6.0,10.0],
+                         list(algos.edgesRebinned(h, targetUncRel = 0.0000001, pivot = 3)))
 
 class testLongestPrefix(unittest.TestCase) :
     def test(self) :
