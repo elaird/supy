@@ -20,6 +20,7 @@ parser.add_option("--tags",    dest = "tags",    default = None,  action = "call
 parser.add_option("--samples", dest = "samples", default = None,  action = "callback", callback = argOrTrue, help = "run specified samples only, or list samples")
 parser.add_option("--omit",    dest = "omit",    default = "",    metavar = "sample1,...", help = "omit specified samples")
 parser.add_option("--nocheck", dest = "nocheck", default = False, action = "store_true",   help = "skip the cache check of secondary calcs")
+parser.add_option("--quiet",   dest = "quiet",   default = False, action = "store_true",   help = "force quiet mode")
 
 def opts() :
     options,args = parser.parse_args()
