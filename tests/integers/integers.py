@@ -14,7 +14,7 @@ class integers(supy.analysis) :
     def listOfSampleDictionaries(self) :
         localDict = supy.samples.SampleHolder()
         filePath = "%s/%s/integers.root"%(supy.whereami(),configuration.localpath())
-	localDict.add('integers','[""]'%filePath, lumi=0.009)
+	localDict.add('integers','["%s"]'%filePath, lumi=0.009)
         return [localDict]
 
     def listOfSamples(self,config) :
