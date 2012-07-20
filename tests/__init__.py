@@ -11,15 +11,16 @@ def whereami() : return max('/'.join(__file__.split('/')[:-1]), '.')
 
 if __name__ == "__main__" :
     for mod in ["algos","arguments","integers"] :
+        sys.path.insert(0,whereami())
         with temporaryImports() as _ :
             path = "%s/%s"%(whereami(),mod)
-            sys.path.insert(0,path)
+            sys.path.insert(1,path)
             os.chdir(path)
             msg = "|| %s ||"%mod
             print msg.join(2*'\n').join( 2 * [len(msg)*"="] )
             suite = unittest.TestLoader().loadTestsFromName(mod)
             unittest.TextTestRunner(verbosity=2).run(suite)
-            sys.path = sys.path[1:]
+            sys.path = sys.path[:1] + sys.path[2:]
             print
         print
     print
