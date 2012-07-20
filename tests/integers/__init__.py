@@ -9,8 +9,8 @@ class test1LocalConfiguration(unittest.TestCase) :
     def test(self) :
         '''Check that we load the local configuration.py'''
         self.assertEqual( ("djtuple","tree"), configuration.mainTree())
-        self.assertTrue( hasattr(supy.__analysis__.configuration, "uniqueIdentifier"))
-        self.assertEqual( "supy/tests/integers/", supy.__analysis__.configuration.uniqueIdentifier() )
+        self.assertTrue( hasattr(supy.__analysis__.configuration, "localpath"))
+        self.assertEqual( "tests/integers", supy.__analysis__.configuration.localpath() )
 
 class test2Integers(unittest.TestCase) :
 

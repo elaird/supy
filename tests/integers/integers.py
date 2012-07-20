@@ -1,7 +1,5 @@
 import supy,configuration
 
-def whereami() : return max('/'.join(__file__.split('/')[:-1]), '.')
-
 class integers(supy.analysis) :
     def parameters(self) :
         return {"setBranchAddress": self.vary({"sba":[],
@@ -14,9 +12,10 @@ class integers(supy.analysis) :
         return supy.calculables.zeroArgs(supy.calculables)
 
     def listOfSampleDictionaries(self) :
-        exampleDict = supy.samples.SampleHolder()
-	exampleDict.add('integers','["%s/integers.root"]'%whereami(),lumi=0.009)
-        return [exampleDict]
+        localDict = supy.samples.SampleHolder()
+        filePath = "%s/%s/integers.root"%(supy.whereami(),configuration.localpath())
+	localDict.add('integers','[""]'%filePath, lumi=0.009)
+        return [localDict]
 
     def listOfSamples(self,config) :
         return supy.samples.specify(names = "integers")
