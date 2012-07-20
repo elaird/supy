@@ -13,9 +13,7 @@ class test2Integers(unittest.TestCase) :
         maketree.writeTree()
         def tchain(name) :
             chain = r.TChain(name)
-            chain.Add("%s/%s/typetree.root/%s/%s"%( ( supy.whereami(),
-                                                      configuration.localpath() )
-                                                    + configuration.mainTree() ) )
+            chain.Add("%s/%s/%s"%( (maketree.filePath(),) + configuration.mainTree() ) )
             return chain
 
         self.sbaF = supy.wrappedChain(tchain("sbaF"), useSetBranchAddress = False)
