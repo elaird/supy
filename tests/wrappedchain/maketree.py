@@ -18,8 +18,8 @@ def writeTree() :
              ("ulong", "L", "l"),
              ("float", "f", "F"),
              ("double","d", "D"),
-             ("byte",  "b", "B"),
-             ("ubyte", "B", "b"),
+             ("char",  "b", "B"),
+             ("uchar", "B", "b"),
              ("bool",  "B", "O"),
              ("short", "h", "S"),
              ("ushort","H", "s"),
@@ -31,15 +31,36 @@ def writeTree() :
         addresses[name] = array.array(ar,[0])
         tree.Branch(name, addresses[name], "%s/%s"%(name,ro))
 
-    upper = {"byte": 127, "short": 32767, "int": 2147483647, "long":9223372036854775807}
+        vname = "v_"+name
+        addresses[vname] = r.std.vector(name if name[0]!='u' else "unsigned %s"%name[1:])()
+        tree.Branch(vname, addresses[vname])
+
+    upper = {"char": 2**7-1, "short": 2**15-1, "int": 2**31-1, "long":2**63-1}
 
     for iEntry in range(10) :
-        for var in ["byte","short","int","long"] :
+        for var in ["char","short","int","long"] :
             addresses[var][0]     = iEntry if iEntry<5 else -iEntry
             addresses["u"+var][0] = iEntry if iEntry<5 else upper[var] + iEntry
 
-        for var in ["float","double"] : addresses[var][0] = iEntry + 0.5
+            vvar = "v_"+var
+            addresses[vvar].clear()
+            for i in range(iEntry) : addresses[vvar].push_back(-i if i<5 else upper[var]-i )
+
+            if var=="long" : continue # c++ crashes on unsigned long above upper in std.vector
+            vvar = "v_u"+var
+            addresses[vvar].clear()
+            for i in range(iEntry) : addresses[vvar].push_back(i if i<5 else upper[var]+i )
+
+        for var in ["float","double"] :
+            addresses[var][0] = iEntry + 0.5
+            vvar = "v_"+var
+            addresses[vvar].clear()
+            for i in range(iEntry) : addresses[vvar].push_back(i)
+
         addresses["bool"][0] = bool(iEntry%2)
+        addresses["v_bool"].clear()
+        for i in range(iEntry+3) : addresses["v_bool"].push_back(bool(i%2))
+
         tree.Fill()
     
     tree.Write()

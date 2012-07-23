@@ -105,7 +105,7 @@ class wrappedChain(dict) :
                                  'Float_t' :'f', 'Double_t' :'d'
                                  }
                     typename = chain.GetBranch(nameB).GetLeaf(nameL).GetTypeName()
-                    if typename not in typenames : 
+                    if typename not in typenames :
                         assert False,"leaf %s %s %s %s is not supported"%(nameB, nameL, str(type(leaf)), leafClassName)
                     return array.array(typenames[typename],[0])
 
