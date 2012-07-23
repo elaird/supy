@@ -7,7 +7,8 @@ class temporaryImports(set) :
         for name in set(sys.modules)-self : del sys.modules[name]
 
 
-def whereami() : return max('/'.join(__file__.split('/')[:-1]), '.')
+abspath = __file__ if __file__[0]!='.' else os.getcwd() + __file__[1:]
+def whereami() : return '/'.join(abspath.split('/')[:-1])
 
 if __name__ == "__main__" :
     for mod in ["algos","arguments","integers"] :
