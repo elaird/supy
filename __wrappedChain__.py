@@ -109,7 +109,9 @@ class wrappedChain(dict) :
                         assert False,"leaf %s %s %s %s is not supported"%(nameB, nameL, str(type(leaf)), leafClassName)
                     return array.array(typenames[typename],[0])
 
-                elif str(type(leaf))=="<type 'ROOT.PyUIntBuffer'>"   : return array.array('i',[0]*maxArrayLength)
+                elif str(type(leaf))=="<type 'ROOT.PyIntBuffer'>"    : return array.array('i',[0]*maxArrayLength)
+                elif str(type(leaf))=="<type 'ROOT.PyShortBuffer'>"  : return array.array('h',[0]*maxArrayLength)
+                elif str(type(leaf))=="<type 'ROOT.PyUIntBuffer'>"   : return array.array('I',[0]*maxArrayLength)
                 elif str(type(leaf))=="<type 'ROOT.PyDoubleBuffer'>" : return array.array('d',[0]*maxArrayLength)
                 elif str(type(leaf))=="<type 'ROOT.PyFloatBuffer'>"  : return array.array('f',[0]*maxArrayLength)
                 else :
