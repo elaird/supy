@@ -6,8 +6,7 @@ class temporaryImports(set) :
     def __exit__(self,type,value,traceback) :
         for name in set(sys.modules)-self : del sys.modules[name]
 
-
-abspath = __file__ if __file__[0]!='.' else os.getcwd() + __file__[1:]
+abspath = __file__ if __file__[0]=='/' else os.getcwd() +"/"+ __file__
 def whereami() : return '/'.join(abspath.split('/')[:-1])
 
 if __name__ == "__main__" :
@@ -20,7 +19,7 @@ if __name__ == "__main__" :
             msg = "|| %s ||"%mod
             print msg.join(2*'\n').join( 2 * [len(msg)*"="] )
             suite = unittest.TestLoader().loadTestsFromName(mod)
-            unittest.TextTestRunner(verbosity=1).run(suite)
+            unittest.TextTestRunner(verbosity= 2 if "-v" in sys.argv else 1).run(suite)
             sys.path = sys.path[:1] + sys.path[2:]
             print
         print

@@ -1,3 +1,3 @@
 #!/usr/bin/env python
-import os
-os.system("python %s"%'/'.join(__file__.split('/')[:-2] + ['tests','__init__.py']))
+import os,sys
+os.system("python %s"%'/'.join(__file__.split('/')[:-2] + ['tests','__init__.py']) + " ".join(sys.argv[1:]))
