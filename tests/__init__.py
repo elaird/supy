@@ -11,7 +11,7 @@ abspath = __file__ if __file__[0]!='.' else os.getcwd() + __file__[1:]
 def whereami() : return '/'.join(abspath.split('/')[:-1])
 
 if __name__ == "__main__" :
-    for mod in ["algos","arguments","integers"] :
+    for mod in ["supy-bin","algos","wrappedchain"] :
         sys.path.insert(0,whereami())
         with temporaryImports() as _ :
             path = "%s/%s"%(whereami(),mod)
