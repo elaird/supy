@@ -42,28 +42,40 @@ class testEdgesRebinned(unittest.TestCase) :
     def test(self) :
         '''supy.utils.algos.edgesRebinned'''
         import ROOT as r
-        h = r.TH1D("h","h",10,0,10)
+        h = r.TH1D("h","h",10,0,20)
         for i in range(12):
             h.SetBinContent(i,i)
-            h.SetBinError(i,0.01)
+            h.SetBinError(i,0.01*i)
 
-        self.assertEqual([float(i) for i in range(11)],
-                         list(algos.edgesRebinned(h, targetUncRel = 0.1 )) )
+        for uncpow in range(6) :
+            for pivot in range(4,9) :
+                self.onetest( h, unc = 10.**(-uncpow), pivot = pivot )
 
-        self.assertEqual([float(i) for i in range(11)],
-                         list(algos.edgesRebinned(h, targetUncRel = 0.1, pivot = 3 )))
+    def onetest(self, h, unc, pivot) :
+        xbins = algos.edgesRebinned( h, targetUncRel = unc, pivot = pivot )
+        left = [pivot - xbin for xbin in xbins if xbin < pivot][::-1]
+        right = [xbin - pivot for xbin in xbins if xbin > pivot]
+        s = max(0, min(len(left),len(right)) - 1 )
+        self.assertEqual(left[:s],right[:s])
 
-        self.assertEqual([0.0,10.0],
-                         list(algos.edgesRebinned(h, targetUncRel = 0.0000001)))
+        k = h.Rebin(2, "k", xbins )
+        leftUnc = [ k.GetBinError(i)/k.GetBinContent(i) if k.GetBinContent(i) else 0 
+                    for i in range(1,1+k.GetNbinsX()) if k.GetBinCenter(i) < pivot]
 
-        self.assertEqual([float(i) for i in range(11)],
-                         list(algos.edgesRebinned(h, targetUncRel = 0.1, pivot = 3.5 )))
+        rightUnc = [ k.GetBinError(i)/k.GetBinContent(i) if k.GetBinContent(i) else 0 
+                     for i in range(1,1+k.GetNbinsX()) if k.GetBinCenter(i) > pivot]
 
-        self.assertEqual([0.0, 3.0, 4.0, 7.0, 10.0],
-                         list(algos.edgesRebinned(h, targetUncRel = 0.0000001, pivot = 3.5 )))
+        msg = '\n\t'.join(["",
+                           "pivot: %f"%pivot,
+                           "unc: %f"%unc,
+                           "leftUnc: %s"%str(leftUnc),
+                           "rightUnc: %s"%str(rightUnc),
+                           ])
 
-        self.assertEqual([0.0,3.0,6.0,10.0],
-                         list(algos.edgesRebinned(h, targetUncRel = 0.0000001, pivot = 3)))
+        if len(leftUnc)>1 : self.assertEqual([L<=unc for L in leftUnc], 
+                                              [True]*len(leftUnc), msg = msg)
+        if len(rightUnc)>1 : self.assertEqual([R<=unc for R in rightUnc], 
+                                               [True]*len(rightUnc), msg = msg)
 
 class testLongestPrefix(unittest.TestCase) :
     def test(self) :
