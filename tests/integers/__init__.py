@@ -17,8 +17,7 @@ class test2Integers(unittest.TestCase) :
             return chain
 
         self.sbaF = supy.wrappedChain(tchain("sbaF"), useSetBranchAddress = False)
-        self.sbaT = supy.wrappedChain(tchain("sbaT"), useSetBranchAddress = True,
-                                      leavesToBlackList = ["byte","ubyte"])
+        self.sbaT = supy.wrappedChain(tchain("sbaT"), useSetBranchAddress = True)
 
     def testBool(self) : self.loop( var = 'bool' )
     def testByte(self) : self.loop( var = 'byte' )
@@ -34,9 +33,9 @@ class test2Integers(unittest.TestCase) :
 
     def loop(self, N = 100, var = "") :
         from itertools import izip
-        error = "MISMATCH in event %d: sbaF['"+var+"'] = %d != %d = sbaT['"+var+"']"
+        error = "MISMATCH in event %d: sbaF['"+var+"'] = %s != %s = sbaT['"+var+"']"
         for i,sbaF,sbaT in izip(xrange(N),self.sbaF.entries(N),self.sbaT.entries(N)) :
-            self.assertEqual(sbaF[var],sbaT[var],  msg = error%(i,sbaF[var],sbaT[var]))
+            self.assertEqual(sbaF[var],sbaT[var],  msg = error%(i,str(sbaF[var]),str(sbaT[var])))
 
 class test3Integers(unittest.TestCase) :
 
