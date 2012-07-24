@@ -85,13 +85,26 @@ class testLongestPrefix(unittest.TestCase) :
         self.assertEqual( "su", algos.longestPrefix(["supy","susycaf"]) )
         self.assertEqual( "Joe", algos.longestPrefix(["Joeseph Stalk","Joesephine Winkler","Joe Biden"]))
 
-class testcContract(unittest.TestCase) :
+class testContract(unittest.TestCase) :
     def test(self) :
         '''supy.utils.algos.contract'''
         self.assertEqual("", algos.contract([""]))
         self.assertEqual("{,su{py,sycaf}}", algos.contract(["","supy","susycaf"]))
         self.assertEqual("su{py,sycaf}", algos.contract(["supy","susycaf"]))
         self.assertEqual( "Joe{seph{ Stalk,ine Winkler}, Biden}", algos.contract(["Joeseph Stalk","Joesephine Winkler","Joe Biden"]))
+
+class testRootDot(unittest.TestCase) :
+    def test(self) :
+        '''supy.utils.root.Dot'''
+        from supy.utils.root import Dot
+        import random,ROOT as r
+        LV = r.Math.LorentzVector(r.Math.PxPyPzM4D('double'))
+        random.seed(201207241726)
+        for i in range(1,30) :
+            a_,b_ = zip(*[( i**2*random.random(),i**2*random.random()) for _ in range(4)])
+            A = LV(*a_)
+            B = LV(*b_)
+            self.assertAlmostEqual( A.Dot(B), Dot(A,B) , places = 9)
 
 if __name__ == "__main__" :
     unittest.main()
