@@ -92,21 +92,26 @@ class wrappedChain(dict) :
     class __branchNode(object) :
         """Internal wrapper for branch nodes."""
         def __init__(self, nameL, nameB, chain, useSetBranchAddress, maxArrayLength) :
-            def className(nameL, nameB, chain) :
-                return chain.GetBranch(nameB).GetLeaf(nameL).Class().GetName()
-
             def address(nameL, nameB, chain, useSetBranchAddress, maxArrayLength) :
                 if not useSetBranchAddress : return None
                 leaf = getattr(chain, nameL)
 
-                if type(leaf)==int : return array.array('i',[0])
-                if type(leaf)==long : return array.array('l',[0])
-                elif type(leaf)==float :
-                    leafClassName = className(nameL, nameB, chain)
-                    if leafClassName=="TLeafF" : return array.array('f',[0.0])
-                    if leafClassName=="TLeafD" : return array.array('d',[0.0])
-                    assert False,"leaf %s %s %s %s is not supported"%(nameB, nameL, str(type(leaf)), leafClassName)
-                elif str(type(leaf))=="<type 'ROOT.PyUIntBuffer'>"   : return array.array('i',[0]*maxArrayLength)
+                if type(leaf) in [int,float,long,str] :
+                    typenames = {'Bool_t'  :'B',
+                                 'Char_t'  :'b', 'UChar_t'  :'B',
+                                 'Short_t' :'h', 'UShort_t' :'H',
+                                 'Int_t'   :'i', 'UInt_t'   :'I',
+                                 'Long64_t':'l', 'ULong64_t':'L',
+                                 'Float_t' :'f', 'Double_t' :'d'
+                                 }
+                    typename = chain.GetBranch(nameB).GetLeaf(nameL).GetTypeName()
+                    if typename not in typenames :
+                        assert False,"leaf %s %s %s %s is not supported"%(nameB, nameL, str(type(leaf)), leafClassName)
+                    return array.array(typenames[typename],[0])
+
+                elif str(type(leaf))=="<type 'ROOT.PyIntBuffer'>"    : return array.array('i',[0]*maxArrayLength)
+                elif str(type(leaf))=="<type 'ROOT.PyShortBuffer'>"  : return array.array('h',[0]*maxArrayLength)
+                elif str(type(leaf))=="<type 'ROOT.PyUIntBuffer'>"   : return array.array('I',[0]*maxArrayLength)
                 elif str(type(leaf))=="<type 'ROOT.PyDoubleBuffer'>" : return array.array('d',[0]*maxArrayLength)
                 elif str(type(leaf))=="<type 'ROOT.PyFloatBuffer'>"  : return array.array('f',[0]*maxArrayLength)
                 else :

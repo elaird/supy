@@ -47,8 +47,8 @@ def quadraticInterpolation(fZ, fX, fY) :
     return a[0]+fZ*(a[1]+fZ*a[2])
 #####################################
 def edgesRebinned( hist, targetUncRel, pivot = 0, offset = 0 ) :
-    '''Find a rebinning symmetric around the pivot, such that every
-    bin has a minimum relative uncertainty.  '''
+    '''Symmetric rebinning around the pivot, such that every bin has a
+    minimum relative uncertainty.'''
 
     def uncRel(x) : return (-1 if not x else
                              1e6 if not x[0] else
@@ -60,7 +60,7 @@ def edgesRebinned( hist, targetUncRel, pivot = 0, offset = 0 ) :
     def blocks(x) :
         for leftmost in range(1,len(x)) :
             if sumUncRel(x[:leftmost]) >  targetUncRel :  continue
-            if sumUncRel(x[leftmost+1:]) >  targetUncRel :  return (x,)
+            if sumUncRel(x[leftmost:]) >  targetUncRel :  return (x,)
             return (x[:leftmost],) + blocks(x[leftmost:])
         return (x,)
 
@@ -75,13 +75,11 @@ def edgesRebinned( hist, targetUncRel, pivot = 0, offset = 0 ) :
     L = zip(vals,errs2)[:iPivot_L][::-1]
     RL = [max(el,ar, key = uncRel) for el,ar in itertools.izip_longest(L,R)]
 
-    blockLens = [offset] + [len(b) for b in blocks(RL[offset:])]
+    blockLens = [offset] + [len(b) for b in blocks(RL[offset:-1])]
     blockShifts = [sum(blockLens[:i+1]) for i in range(len(blockLens))]
-
     iEdges = sorted( set( [0,len(edges)-1] + 
                           [min(len(edges)-1, iPivot_R + i) for i in blockShifts[:len(R)]] +
                           [max(0,            iPivot_L - i) for i in blockShifts[:len(L)]] ))
-
     return array.array('d',[edges[i] for i in iEdges])
 #####################################
 def dilution( A, B, N = None) :
