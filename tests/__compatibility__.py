@@ -1,6 +1,8 @@
 import unittest,sys
 
-if not hasattr(unittest,'skip') :
+if hasattr(unittest,'skip') :
+    from unittest import skip,skipIf,skipUnless,expectedFailure
+else:
     print "skip* and expectedFailure compatibility mode!"
     sys.stdout.flush()
 
@@ -24,6 +26,3 @@ if not hasattr(unittest,'skip') :
 
     def skip(reason) : return skipIf(True, reason)
     def skipUnless(condition, reason) : return( not condition, reason )
-
-else :
-    from unittest import skip,skipIf,skipUnless,expectedFailure
