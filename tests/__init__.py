@@ -9,6 +9,8 @@ class temporaryImports(set) :
 abspath = __file__ if __file__[0]=='/' else os.getcwd() +"/"+ __file__
 def whereami() : return '/'.join(abspath.split('/')[:-1])
 
+from __compatibility__ import skip,skipIf,skipUnless,expectedFailure
+
 if __name__ == "__main__" :
     for mod in ["supy-bin","algos","wrappedchain"] :
         sys.path.insert(0,whereami())

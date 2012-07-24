@@ -6,7 +6,8 @@ def filePath() :
 def writeTree() :
     file = r.TFile.Open(filePath(), "RECREATE")
     dir,name = configuration.mainTree()
-    file.mkdir(dir)
+    file.cd('/')
+    file.mkdir(dir.strip('/'))
     file.cd(dir)
 
 

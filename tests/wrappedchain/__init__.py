@@ -1,5 +1,5 @@
 import supy,configuration,unittest
-from unittest import skip,expectedFailure
+from supy.tests import skip,expectedFailure
 
 class testLeaves(unittest.TestCase) :
     def setUp(self) :
@@ -46,7 +46,7 @@ class testLeaves(unittest.TestCase) :
     def testV_Float(self)  : self.loop( var = 'v_float' )
     def testV_Double(self) : self.loop( var = 'v_double' )
 
-    @unittest.skip("vector<ulong> (assignment fails in maketree)")
+    @skip("vector<ulong> (assignment fails in maketree)")
     def testV_Ulong(self)  : self.loop( var = 'v_ulong' )
 
 
@@ -56,22 +56,22 @@ class testLeaves(unittest.TestCase) :
     def testA_Float(self)  : self.loop( var = 'a_float' )
     def testA_Double(self) : self.loop( var = 'a_double' )
 
-    @unittest.expectedFailure
+    @expectedFailure
     def testA_Long(self) :
         '''long[] not identified by sbaF, no hope for sbaT.'''
         self.loop( var = 'a_uint' )
 
-    @unittest.skip("bool[] (maketree fail)")
+    @skip("bool[] (maketree fail)")
     def testA_Bool(self)   : self.loop( var = 'v_bool' )
-    @unittest.skip("char[] (maketree fail)")
+    @skip("char[] (maketree fail)")
     def testA_Byte(self)   : self.loop( var = 'v_char' )
-    @unittest.skip("uchar[] (maketree fail)")
+    @skip("uchar[] (maketree fail)")
     def testA_Ubyte(self)  : self.loop( var = 'v_uchar' )
-    @unittest.skip("ushort[] (maketree fail)")
+    @skip("ushort[] (maketree fail)")
     def testA_Ushort(self)  : self.loop( var = 'a_ushort' )
-    @unittest.skip("uint[] (maketree fail)")
+    @skip("uint[] (maketree fail)")
     def testA_Uint(self)    : self.loop( var = 'a_uint' )
-    @unittest.skip("ulong[] (maketree fail)")
+    @skip("ulong[] (maketree fail)")
     def testA_Ulong(self)    : self.loop( var = 'a_uint' )
 
 
