@@ -1,7 +1,7 @@
 import math,unittest,supy,ROOT as r
 from supy.tests import skip,skipIf
 try: import numpy as np
-except: np==None
+except: np=None
 
 class test_leastsqHadronicTop2(unittest.TestCase) :
     def setUp(self) : pass
