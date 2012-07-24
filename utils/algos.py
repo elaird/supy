@@ -1,9 +1,7 @@
 import array,math,itertools,operator
 from itertools import groupby
-try:
-    import numpy as np
-except:
-    pass
+try: import numpy as np
+except: pass
 #####################################
 def unionProbability(indPs) :
     indPs = filter(None, indPs)

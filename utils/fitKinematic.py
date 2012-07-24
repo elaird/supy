@@ -2,11 +2,8 @@ import math, __init__ as utils,ROOT as r
 try:
     import scipy.optimize as opt
     import scipy.linalg as LA
-except: pass
-try:
     import numpy as np
-except:
-    pass
+except: pass
 
 widthTop = 13.1/2
 ###########################
@@ -162,7 +159,7 @@ class leastsqLeptonicTop2(object) :
         return (-1)**(i+j) * (a[0,0]*a[1,1] - a[1,0]*a[0,1])
 
     def __init__(self, b, bResolution, mu, nuXY, nuErr2,
-                 massT = 172.0, massW = 80.4) :
+                 massT = 172.0, massW = 80.4, lv = utils.LorentzV ) :
 
         def doInv() :
             eig,R_ = next( ((np.maximum(1,e),rot) for e,rot in [ LA.eigh(nuErr2) ]) )
@@ -171,6 +168,7 @@ class leastsqLeptonicTop2(object) :
             self.binv = 1./bResolution
         doInv()
 
+        self.LorentzV = lv
         self.Bm2, self.Wm2, self.Tm2 = b.M2(), massW**2, massT**2
 
         def doMatrices() :
@@ -182,7 +180,7 @@ class leastsqLeptonicTop2(object) :
             self.Nu = np.outer([nuXY[0],nuXY[1],0],[0,0,1])
             self.B = np.outer( bXYZ, [0,0,1])
 
-            self.D = np.reshape([0,-1,0,1]+5*[0],(3,3))
+            self.D = np.diag([1,-1,0])[(1,0,2),]
             self.Unit = np.diag([1,1,-1])
         doMatrices()
 
@@ -246,11 +244,11 @@ class leastsqLeptonicTop2(object) :
 
         self.residuals([0])
         x,y,z = self.Ellipse.dot(self.solutions[0])
-        self.rawNu = utils.LorentzV(); self.rawNu.SetPxPyPzE(x,y,z,0); self.rawNu.SetM(0)
+        self.rawNu = self.LorentzV(); self.rawNu.SetPxPyPzE(x,y,z,0); self.rawNu.SetM(0)
 
         res = self.residuals([self.deltaB])
         x,y,z = self.Ellipse.dot(self.solutions[0])
-        self.fitNu = utils.LorentzV(); self.fitNu.SetPxPyPzE(x,y,z,0); self.fitNu.SetM(0)
+        self.fitNu = self.LorentzV(); self.fitNu.SetPxPyPzE(x,y,z,0); self.fitNu.SetM(0)
 
         return res
 

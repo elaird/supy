@@ -3,7 +3,7 @@ from supy import utils
 try: import numpy as np
 except: pass
 
-def reindex(y,tup) : return y[tup,].T[tup,].T
+def reindex(y,tup) : return y[tup,][:,tup]
 
 def twiceDots(p, diag=False) :
     '''Matrix of twice the 4-vector dot products.'''
@@ -14,9 +14,9 @@ def twiceDots(p, diag=False) :
     return y.T + y
 
 class Asymm_hard(object) :
-
+    '''See reference: Kuhn&Rodrigo98, arXiv:hep-ph/9807420v1'''
     @staticmethod
-    def kernel() : assert False, "Redefine this method."
+    def kernel() : assert False, "Define this method in child."
 
     @staticmethod
     def constant(alpha_s = 1.1, d2abc = 40./3, Nc = 3.) :
@@ -39,6 +39,7 @@ class Asymm_hard(object) :
         kernels = [ self.kernel( reindex(Y,I), self.M22 ) for I in self.indices ]
         self.anti = np.dot(kernels, [(-1)**((I[0]==0)^(I[2]==2)) for I in self.indices])
         self.symm = sum(kernels)
+        return self
 
 class Asymm_qqbar_hard(Asymm_hard) :
     '''q(0) + qbar(1) ==> Q(2) + Qbar(3) + g(4)'''
