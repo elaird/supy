@@ -24,3 +24,6 @@ if not hasattr(unittest,'skip') :
 
     def skip(reason) : return skipIf(True, reason)
     def skipUnless(condition, reason) : return( not condition, reason )
+
+else :
+    from unittest import skip,skipIf,skipUnless,expectedFailure
