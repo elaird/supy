@@ -15,8 +15,16 @@ git clone git://github.com/elaird/supy.git
 git clone git://github.com/your_username/supy.git
 cd supy
 
-3) Run the example (the example input files are located on AFS):
-./bin/supy example_analysis.py --loop 1
+3) Add the directory containing supy/ to your PYTHONPATH; optionally
+# add the supy/bin directory to your PATH:
+PYTHONPATH=$PYTHONPATH:`pwd`/..
+PATH=$PATH:`pwd`/bin
+
+4) Run the tests and/or example :
+./bin/supy-test
+./bin/supy examples/one.py --loop 1
+
+5) Write your own configuration.py and analysis.
 
 ---------------------
 | Brief Description |
@@ -43,7 +51,7 @@ this: https://github.com/elaird/ra1stats/blob/master/env.sh
   TChain member functions
 
 - Creating a Lorentz vector every event is slow.  As a workaround, use
-  core.utils.LorentzV (see calculables.Jet.SumP4 for an example).
+  utils.LorentzV (see calculables.Jet.SumP4 for an example).
 
 - Iterating through a std::map<string, bool> is slow.  Consider using
   a cache (see steps.Trigger.Counts for an example).
