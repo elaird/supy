@@ -63,7 +63,8 @@ class organizer(object) :
         new.__steps = copy.deepcopy(self.__steps, memo)
         return new
 
-    def __str__(self) : return "organizer (tag=%s):\n%s"%(self.tag,'\n '.join('%s'%s for s in self.steps))
+    def __str__(self) : return "\n".join(["organizer (tag=%s):"%self.tag, " samples:", "  %s"%str(self.samples),
+                                          " steps:"]+['  %s'%s for s in self.steps])
 
     @classmethod
     def meld(cls, tagprefix = "melded", organizers = [], lastStep = None ) :
