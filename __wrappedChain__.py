@@ -106,7 +106,7 @@ class wrappedChain(dict) :
                                  }
                     typename = chain.GetBranch(nameB).GetLeaf(nameL).GetTypeName()
                     if typename not in typenames :
-                        assert False,"leaf %s %s %s %s is not supported"%(nameB, nameL, str(type(leaf)), leafClassName)
+                        assert False,"leaf %s %s %s %s is not supported"%(nameB, nameL, str(type(leaf)), typename)
                     return array.array(typenames[typename],[0])
 
                 elif str(type(leaf))=="<type 'ROOT.PyIntBuffer'>"    : return array.array('i',[0]*maxArrayLength)
