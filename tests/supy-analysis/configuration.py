@@ -7,4 +7,4 @@ def nCoresDefault() :
     return 1
 
 def localpath() :
-    return "tests/integers"
+    return "tests/supy-analysis"
