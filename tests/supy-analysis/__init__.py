@@ -1,8 +1,9 @@
+import unittest
 
 class test3Integers(unittest.TestCase) :
 
     def setUp(self) :
-        import integers
+        import integers,supy
         a = integers.integers(supy.options.default("--loop 1 --quiet".split()))
         a.loop()
         a.mergeAllOutput()
