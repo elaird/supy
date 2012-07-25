@@ -169,7 +169,7 @@ class analysis(object) :
         else :
             import cProfile
             self.listOfLoopersForProf = wl
-            cProfile.run("someInstance.profileLoop()","resultProfile.out")
+            cProfile.run("anInstance.profileLoop()","resultProfile.out")
 
     def profileLoop(self) :
         for looper,iSlice in self.listOfLoopersForProf :

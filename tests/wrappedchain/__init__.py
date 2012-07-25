@@ -45,9 +45,10 @@ class testLeaves(unittest.TestCase) :
     def testV_Long(self)   : self.loop( var = 'v_long' )
     def testV_Float(self)  : self.loop( var = 'v_float' )
     def testV_Double(self) : self.loop( var = 'v_double' )
-
-    @skip("vector<ulong> (assignment fails in maketree)")
-    def testV_Ulong(self)  : self.loop( var = 'v_ulong' )
+    @expectedFailure
+    def testV_Ulong(self)  : 
+        '''vector<ulong> (maketree fail: bad test)'''
+        self.loop( var = 'v_ulong' )
 
 
     #number[] leaves
@@ -55,26 +56,32 @@ class testLeaves(unittest.TestCase) :
     def testA_Int(self)    : self.loop( var = 'a_int' )
     def testA_Float(self)  : self.loop( var = 'a_float' )
     def testA_Double(self) : self.loop( var = 'a_double' )
+    def testA_Uint(self)    : self.loop( var = 'a_uint' )
 
     @expectedFailure
     def testA_Long(self) :
         '''long[] not identified by sbaF, no hope for sbaT.'''
-        self.loop( var = 'a_uint' )
-
-    @skip("bool[] (maketree fail)")
-    def testA_Bool(self)   : self.loop( var = 'v_bool' )
-    @skip("char[] (maketree fail)")
-    def testA_Byte(self)   : self.loop( var = 'v_char' )
-    @skip("uchar[] (maketree fail)")
-    def testA_Ubyte(self)  : self.loop( var = 'v_uchar' )
-    @skip("ushort[] (maketree fail)")
-    def testA_Ushort(self)  : self.loop( var = 'a_ushort' )
-    @skip("uint[] (maketree fail)")
-    def testA_Uint(self)    : self.loop( var = 'a_uint' )
-    @skip("ulong[] (maketree fail)")
-    def testA_Ulong(self)    : self.loop( var = 'a_uint' )
-
-
+        self.loop( var = 'a_long' )
+    @expectedFailure
+    def testA_Bool(self)   :
+        '''bool[] (maketree fail)'''
+        self.loop( var = 'a_bool' )
+    @expectedFailure
+    def testA_Byte(self)   : 
+        '''char[] (maketree fail)'''
+        self.loop( var = 'a_char' )
+    @expectedFailure
+    def testA_Ubyte(self)  : 
+        '''uchar[] (maketree fail)'''
+        self.loop( var = 'a_uchar' )
+    @expectedFailure
+    def testA_Ushort(self)  : 
+        '''ushort[] (maketree fail)'''
+        self.loop( var = 'a_ushort' )
+    @expectedFailure
+    def testA_Ulong(self)    : 
+        '''ulong[] (maketree fail)'''
+        self.loop( var = 'a_ulong' )
 
     def loop(self, N = 100, var = "") :
         from itertools import izip

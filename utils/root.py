@@ -21,6 +21,9 @@ def LorentzV(*args) :
     if lvClass is None : lvClass = r.Math.LorentzVector(r.Math.PtEtaPhiM4D('float'))
     return lvClass(*args)
 #####################################
+def Dot(lvA,lvB) :
+    return lvA.E()*lvB.E() - lvA.P()*lvB.P()*r.Math.VectorUtil.CosTheta(lvA,lvB)
+#####################################
 def delete(thing) :
     #free up memory (http://wlav.web.cern.ch/wlav/pyroot/memory.html)
     thing.IsA().Destructor(thing)

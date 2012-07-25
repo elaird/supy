@@ -185,3 +185,6 @@ def optimizationContours(signals, backgds, left = True, right = True, var = "") 
     r.gStyle.SetOptStat(stat)
     return [c,eff,pur,signalb,ssqrtb,contour]
 #####################################
+def isSusy(pdgId) :
+    reducedPdgId = abs(pdgId)/1000000 # integer division
+    return reducedPdgId==1 or reducedPdgId==2 or (pdgId in [25,32,33,34,35,36,37])

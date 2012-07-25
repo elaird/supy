@@ -2,11 +2,8 @@ import math, __init__ as utils,ROOT as r
 try:
     import scipy.optimize as opt
     import scipy.linalg as LA
-except: pass
-try:
     import numpy as np
-except:
-    pass
+except: pass
 
 widthTop = 13.1/2
 ###########################
@@ -161,16 +158,9 @@ class leastsqLeptonicTop2(object) :
               not j:2 if j==2 else None:2 if j==1 else 1]
         return (-1)**(i+j) * (a[0,0]*a[1,1] - a[1,0]*a[0,1])
 
-    #static matrices
-    try:
-        Q = np.reshape([0,-1,0,1]+5*[0],(3,3))
-        Unit = np.diag([1,1,-1])
-    except:
-        pass
-
     def __init__(self, b, bResolution, mu, nuXY, nuErr2,
-                 massT = 172.0, massW = 80.4) :
-        self.eig = 0
+                 massT = 172.0, massW = 80.4, lv = utils.LorentzV ) :
+
         def doInv() :
             eig,R_ = next( ((np.maximum(1,e),rot) for e,rot in [ LA.eigh(nuErr2) ]) )
             self.invSig2nu = np.vstack( [np.vstack( [LA.inv(R_.dot(np.diag(eig).dot(R_.T))), [0,0]] ).T, [0,0,0]])
@@ -178,6 +168,7 @@ class leastsqLeptonicTop2(object) :
             self.binv = 1./bResolution
         doInv()
 
+        self.LorentzV = lv
         self.Bm2, self.Wm2, self.Tm2 = b.M2(), massW**2, massT**2
 
         def doMatrices() :
@@ -188,6 +179,9 @@ class leastsqLeptonicTop2(object) :
             self.R_T = np.dot( R_z.T, np.dot( R_y.T, R_x.T ) )
             self.Nu = np.outer([nuXY[0],nuXY[1],0],[0,0,1])
             self.B = np.outer( bXYZ, [0,0,1])
+
+            self.D = np.diag([1,-1,0])[(1,0,2),]
+            self.Unit = np.diag([1,1,-1])
         doMatrices()
 
         def doConstants() :
@@ -206,12 +200,12 @@ class leastsqLeptonicTop2(object) :
         self.rawB = b
         self.mu = mu
 
-        self.residualsBSLT = self.fit()
+        self.residualsBSLWT = self.fit()
         def doFinish() :
             _,self.fitW,self.fitT = np.cumsum([mu,self.fitNu,self.fitB])
             _,self.rawW,self.rawT = np.cumsum([mu,self.rawNu,self.rawB])
-            self.residualsBSLT.append( massT - self.fitT.M() )
-            self.chi2 = np.dot( self.residualsBSLT, self.residualsBSLT )
+            self.residualsBSLWT += [(massW - self.fitW.M())/0.01, (massT - self.fitT.M())/0.01 ]
+            self.chi2 = np.dot( self.residualsBSLWT, self.residualsBSLWT )
             self.bound = True
         doFinish()
 
@@ -224,38 +218,21 @@ class leastsqLeptonicTop2(object) :
                                       [ Z,                  0,         self.y1 ],
                                       [ 0,                  Z,               0 ]] )
         DeltaNu = self.Nu - deltaB*self.B - self.Ellipse
-        self.M = DeltaNu.T.dot( self.invSig2nu.dot( DeltaNu ) )
+        self.X = DeltaNu.T.dot( self.invSig2nu.dot( DeltaNu ) )
 
-        def chi2(x) : return x.T.dot(self.M.dot(x))
-        def doEig(P) : self.eig = next( e.real for e in LA.eigvals(self.Unit.dot(P),overwrite_a=True) if not e.imag)
-        def doEigFaster(P) : #this is about %35 faster than just doEig()
-            (a,b,d),e = P[0],P[1,2]
-            p1, p0 = (a*a+b*b-d*d-e*e), -2*b*d*e + a*( e*e - d*d )
-            def func(lamb) : return -lamb**3 + lamb*p1 + p0
-            feig = func(self.eig)
-            B = self.eig + (1 if feig>0 else -1) * 0.4 * abs(self.eig)
-            if feig*func(B)<0 : self.eig = opt.brentq(func,self.eig,B)
-            else : doEig(P)
+        def chi2(t) : return t.T.dot(self.X.dot(t))
+        def sqrt(s) : return [] if s<=0 else (lambda r: [-r,r])(math.sqrt(s))
         def solutions() :
             sols = []
-            P = next( N.T + N for N in [ self.M.dot( self.Q ) ] )
-            doEigFaster(P)
-            D =  P - self.eig*self.Unit
-            c22 = self.cofactor(D,(2,2))
-            if c22>0 : # we got the wrong eigenvalue (parallel lines) from brentq (tiny prob)
-                doEig(P)
-                D =  P - self.eig*self.Unit
-                c22 = self.cofactor(D,(2,2))
-            x0_,y0_ = self.cofactor(D,(0,2)) / c22 , self.cofactor(D,(1,2)) / c22
-            sqrtNc22 = math.sqrt(-c22)
-            for slope in [ (-D[0,1]+pm)/D[1,1] for pm in [-sqrtNc22,sqrtNc22] ] :
-                x0s = x0_*slope
-                disc = 1 + slope**2 - (x0s-y0_)**2
-                if disc<=0 : continue
-                sqrtDisc = math.sqrt(disc)
-                x_ = [(slope*(x0s-y0_) + pm)/(1+slope**2) for pm in [-sqrtDisc,sqrtDisc]]
-                y_ = [(x-x0_)*slope + y0_ for x in x_]
-                sols += [np.array([x,y,1]) for x,y in zip(x_,y_)]
+            M = next( N.T + N for N in [ self.X.dot( self.D ) ] )
+            eig = next( e.real for e in LA.eigvals(self.Unit.dot(M),overwrite_a=True) if not e.imag)
+            Y = M - eig*self.Unit
+            c22 = self.cofactor(Y,(2,2))
+            x0_,y0_ = self.cofactor(Y,(0,2)) / c22 , self.cofactor(Y,(1,2)) / c22
+            for S in [ (-Y[0,1]+pm)/Y[1,1] for pm in sqrt(-c22) ] :
+                y1_ = y0_ - S*x0_
+                x_ = [ ( pm_ - S*y1_ ) / ( 1+S**2 ) for pm_ in sqrt( 1 + S**2 - y1_**2 ) ]
+                sols += [np.array([ x, y1_+x*S, 1]) for x in x_]
             return sorted(sols, key = chi2 )
 
         self.solutions = solutions() if Z else [np.array([0,0,1])]
@@ -267,123 +244,11 @@ class leastsqLeptonicTop2(object) :
 
         self.residuals([0])
         x,y,z = self.Ellipse.dot(self.solutions[0])
-        self.rawNu = utils.LorentzV(); self.rawNu.SetPxPyPzE(x,y,z,0); self.rawNu.SetM(0)
+        self.rawNu = self.LorentzV(); self.rawNu.SetPxPyPzE(x,y,z,0); self.rawNu.SetM(0)
 
         res = self.residuals([self.deltaB])
         x,y,z = self.Ellipse.dot(self.solutions[0])
-        self.fitNu = utils.LorentzV(); self.fitNu.SetPxPyPzE(x,y,z,0); self.fitNu.SetM(0)
+        self.fitNu = self.LorentzV(); self.fitNu.SetPxPyPzE(x,y,z,0); self.fitNu.SetM(0)
 
         return res
 
-class leastsqCombinedTop(object) :
-    '''Fit four jets, lepton, MET, and gluons to the hypothesis xtt-->xbqqblv using the three parameters [delta0,delta3,tau].
-
-    Indices [0,1] are the light jets.
-    Index 2 is the hadronic b-jet.
-    Index 3 is the leptonic b-jet.
-    Resolutions are expected in units of sigma(pT)/pT.'''
-
-    @staticmethod
-    def R(axis, angle) :
-        c,s = math.cos(angle),math.sin(angle)
-        R = c * np.eye(3)
-        for i in [-1,0,1] : R[ (axis-i)%3, (axis+i)%3 ] = i*s + (1 - i*i)
-        return R
-
-    def __init__(self, jetP4s, jetResolutions, mu, nuXY, nuErr2,
-                 gluons = [], massT = 172.0, massW = 80.4) :
-        b = jetP4s[3]
-        self.Wm2,self.Tm2 = massW**2,massT**2
-        self.Bm2, self.Wm2, self.Tm2 = b.M2(), massW**2, massT**2
-        self.rawJ = jetP4s;
-        self.gluons = gluons
-
-        self.R_nuE,self.inv = next( (Rinv.T,
-                                     1./np.append( jetResolutions ,np.sqrt(np.maximum(1,eig)))) 
-                                    for eig,Rinv in [np.linalg.eig(nuErr2)])
-
-        R_z = self.R(2, -mu.phi() )
-        R_y = self.R(1,  0.5*math.pi - mu.theta() )
-        R_x = next( self.R(0,-math.atan2(z,y)) for x,y,z in (R_y.dot( R_z.dot( [b.x(),b.y(),b.z()]) ),))
-        self.R_T = np.dot( R_z.T, np.dot( R_y.T, R_x.T ) )
-
-        c = r.Math.VectorUtil.CosTheta(mu,b)
-        s = math.sqrt(1-c*c)
-        b_p, b_e = b.P(), b.E()
-
-        self.mu_p = mu.P()
-        self.x0 = -self.Wm2 / (2*self.mu_p)
-        self.denom = b_e - c*b_p
-        self.y1 = - s*self.x0*b_p / self.denom
-        self.x1_0 = self.x0*b_e / self.denom - self.y1**2/self.x0
-
-        self.jetXY = np.array([[j.x(), j.y()] for j in self.rawJ])
-        self.mu = mu
-        self.nuXY = nuXY
-        self.rawNu = utils.LorentzV(); self.rawNu.SetPxPyPzE(self.nuXY[0],self.nuXY[1],0,0); self.rawNu.SetM(0)
-        self.fitNu = utils.LorentzV();
-        self.residuals = self.fit()
-        self.chi2 = np.dot( self.residuals, self.residuals )
-
-        _,self.fitHadW,self.fitHadT = np.cumsum(self.fitJ[:3])
-        _,self.rawHadW,self.rawHadT = np.cumsum(self.rawJ[:3])
-        _,self.fitLepW,self.fitLepT = np.cumsum([mu,self.fitNu,self.fitJ[3]])
-        _,self.rawLepW,self.rawLepT = np.cumsum([mu,self.rawNu,self.rawJ[3]])
-
-    @staticmethod
-    def delta(P, givenQ, motherMass2) :
-        p_m2 = P.M2()
-        dot = P.E() * givenQ.E() - P.P() * givenQ.P() * r.Math.VectorUtil.CosTheta(P,givenQ) # PtEtaPhiM coordinate LVs fail to implement ::Dot()
-        dmass = motherMass2 - givenQ.M2()
-        if not p_m2 : return  0.5 * dmass / dot - 1
-        disc = math.sqrt(dot**2 - p_m2*(2*dot + p_m2 - dmass))
-        return  min((-dot+disc)/p_m2,
-                    (-dot-disc)/p_m2, key = abs )
-
-    def nuDeltaXY(self) : return self.R_nuE.dot( self.nuXY - np.dot(self.deltaJ, self.jetXY) - self.nu[:2] )
-
-    def fit(self) :
-
-        Z2_0 = self.x0**2 - self.Wm2 - self.y1**2
-
-        def residuals(pars) :
-            d0,deltaB,tau = pars
-
-            j0 = self.rawJ[0]*(1+d0)
-            d1 = self.delta(self.rawJ[1], j0,                       self.Wm2)
-            d2 = self.delta(self.rawJ[2], j0 + self.rawJ[1]*(1+d1), self.Tm2)
-            self.deltaJ = np.array( [d0, d1, d2, deltaB])
-
-            x1 = self.x1_0 + 0.5*(self.Tm2 - self.Wm2 - self.Bm2*(1+deltaB)**2) / (self.denom*(1+deltaB))
-            Z2 = Z2_0 - 2*self.x0*x1
-            if Z2 < 0 :
-                Zpenalty = math.sqrt(-Z2)
-                self.nu = self.R_T.dot( [x1-self.mu_p, self.y1, 0] )
-            else :
-                Zpenalty = 0
-                Z = math.sqrt( Z2 )
-                c = math.cos(tau)
-                self.nu = self.R_T.dot( [ x1 - self.mu_p - Z*c*self.y1/self.x0,
-                                          self.y1 + Z*c,
-                                          Z*math.sin(tau) ])
-
-            x,y,z = self.nu
-            self.fitNu.SetPxPyPzE(x,y,z,0); self.fitNu.SetM(0)
-            self.fitJ = self.rawJ * (1+self.deltaJ)
-            lepT = np.sum([self.fitNu,self.mu,self.fitJ[3]])
-            hadT = np.sum(self.fitJ[:3])
-
-            self.ttx = sum(self.gluons, lepT + hadT)
-            sqrtSumPX = math.sqrt(sum([abs(g.x()) for g in self.gluons], abs(lepT.x()) + abs(hadT.x())))
-            sqrtSumPY = math.sqrt(sum([abs(g.y()) for g in self.gluons], abs(lepT.y()) + abs(hadT.y())))
-
-            return np.append( self.inv * np.append( self.deltaJ, self.nuDeltaXY() ),
-                              [self.ttx.x()/sqrtSumPX,
-                               self.ttx.y()/sqrtSumPY,
-                               min( (self.ttx.M() - abs(self.ttx.z())) / math.sqrt(self.ttx.M()) , 0),
-                               Zpenalty])
-
-
-        tau_init = min([(t, residuals([0,0,t])) for t in np.arange(0,1.9*math.pi,math.pi/4)], key = lambda x: x[1].dot(x[1]))[0]
-        params,_ = opt.leastsq(residuals,[0,0,tau_init], ftol=1e-3, factor = 1, diag = [10,0.1,0.2], epsfcn=0.01)
-        return residuals(params)
