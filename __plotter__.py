@@ -266,15 +266,15 @@ class plotter(object) :
                 if item not in spec : return
 
             histoList = []
-            nMasters = [step.name for step in self.someOrganizer.steps].count("Master")
-            if nMasters!=1 : print "I have %d Master step(s)."%nMasters
+            nMasters = [step.name for step in self.someOrganizer.steps].count("master")
+            if nMasters!=2 : print "I have %d master step(s)."%nMasters
             
             for step in self.someOrganizer.steps :
                 if (step.name, step.title) != (spec["stepName"], spec["stepDesc"]) : continue
                 if spec["plotName"] not in step : continue
                 histoList.append(step[spec["plotName"]])
 
-            assert histoList,str(spec)
+            assert histoList,"Failed %s"%str(spec)
             histos = histoList[spec["index"] if "index" in spec else 0]
             if "sampleWhiteList" not in spec :
                 return histos,None
@@ -319,7 +319,7 @@ class plotter(object) :
         for spec in plotSpecs :
             histos,ignoreHistos = goods(spec)
             if histos==None : continue
-            
+
             if onlyDumpToFile(histos, spec) : continue
             rebin(histos, spec)
             setRanges(histos, spec)
@@ -329,7 +329,9 @@ class plotter(object) :
             individual = {"legendCoords": (0.55, 0.55, 0.85, 0.85),
                           "reverseLegend": False,
                           "stampCoords": (0.75, 0.5),
-                          "ignoreHistos": ignoreHistos
+                          "ignoreHistos": ignoreHistos,
+                          "newSampleNames" : newSampleNames,
+                          "legendTitle" : ""
                           }
             for key in spec :
                 if key in individual :
@@ -610,6 +612,7 @@ class plotter(object) :
     def plotEachHisto(self, dimension, histos, opts) :
         stuffToKeep = []
         legend = r.TLegend(*opts["legendCoords"])
+        legend.SetHeader(opts["legendTitle"])
         stuffToKeep.append(legend)
         legendEntries = []
         if self.anMode :
@@ -700,6 +703,7 @@ class plotter(object) :
                    "legendCoords": (0.86, 0.60, 1.00, 0.10),
                    "reverseLegend": False,
                    "ignoreHistos": [],
+                   "legendTitle" : ""
                    }
         options.update(individual)
         if not options["ignoreHistos"] : options["ignoreHistos"] = [False]*len(histos)
