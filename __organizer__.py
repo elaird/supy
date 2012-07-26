@@ -70,7 +70,7 @@ class organizer(object) :
     def meld(cls, tagprefix = "melded", organizers = [], lastStep = None ) :
         ordering = utils.topologicalSort([tuple(org.tag.split("_")) for org in organizers])            
         subTags = filter(lambda st: all(org.tag.split('_').count(st)==1 for org in organizers), ordering)
-        for org in organizers : org.tag = '_'.join(filter(lambda st: st not in subTags, org.tag.split('_')))
+        for org in organizers : org.filteredTag = '_'.join(filter(lambda st: st not in subTags, org.tag.split('_')))
         tag = '_'.join([tagprefix]+sorted(subTags, key = lambda x:ordering.index(x)))
 
         if len(set(org.lumi for org in organizers if org.lumi)) > 1 :
@@ -81,12 +81,12 @@ class organizer(object) :
         instance = cls(tag)
         instance.scaled = any(org.scaled for org in organizers)
         instance.lumi = max(org.lumi for org in organizers)
-        instance.samples = sum( tuple( tuple( dict(list(s.iteritems())+[("name",org.tag +'.'+ s["name"])]) for s in org.samples) for org in organizers),())
+        instance.samples = sum( tuple( tuple( dict(list(s.iteritems())+[("name",org.filteredTag +'.'+ s["name"])]) for s in org.samples) for org in organizers),())
         
         shared = sorted( set.intersection(*tuple(set(s.nameTitle for s in org.steps if s.isSelector) for org in organizers)),
                          key = lambda s: next(next(iter(organizers)).indicesOfStep(*s)) )
 
-        instance.__steps = [cls.step.melded((tagprefix,', '.join(org.tag for org in organizers)), sizes)]
+        instance.__steps = [cls.step.melded((tagprefix,', '.join(org.filteredTag for org in organizers)), sizes)]
         for start,stop in zip(shared,shared[1:]+[None]) :
             if lastStep and start == lastStep : break
             slices = [org.steps[next(org.indicesOfStep(*start)):
