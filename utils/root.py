@@ -45,12 +45,10 @@ def rHist(name,bins,edges,poissonErrors=False) :
 #####################################
 def binValues(hist) : return [hist.GetBinContent(i) for i in range(0,hist.GetNbinsX()+2)]
 #####################################
-def tCanvasPrintPdf(canvas, fileName, verbose = True) :
+def tCanvasPrintPdf(canvas, fileName, verbose = True, option = '' ) :
     illegal = [':','[',']','(',')']
     for ill in illegal : fileName = fileName.replace(ill,"_")
-    canvas.Print("%s.eps"%fileName)
-    os.system("epstopdf %s.eps"%fileName)
-    os.system("rm %s.eps"%fileName)
+    canvas.Print(fileName+".pdf" + option,"pdf")
     if verbose : print "Output file: %s.pdf"%fileName
 #####################################
 def ratioHistogram( num, den, relErrMax=0.25) :

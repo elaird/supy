@@ -266,15 +266,15 @@ class plotter(object) :
                 if item not in spec : return
 
             histoList = []
-            nMasters = [step.name for step in self.someOrganizer.steps].count("Master")
-            if nMasters!=1 : print "I have %d Master step(s)."%nMasters
+            nMasters = [step.name for step in self.someOrganizer.steps].count("master")
+            if nMasters!=2 : print "I have %d master step(s)."%nMasters
             
             for step in self.someOrganizer.steps :
-                if (step.name, step.title) != (spec["stepName"], spec["stepDesc"]) : continue
+                if (spec["stepName"], spec["stepDesc"]) not in [(step.name, step.title), (step.name,None)] : continue
                 if spec["plotName"] not in step : continue
                 histoList.append(step[spec["plotName"]])
 
-            assert histoList,str(spec)
+            assert histoList,"Failed %s"%str(spec)
             histos = histoList[spec["index"] if "index" in spec else 0]
             if "sampleWhiteList" not in spec :
                 return histos,None
@@ -319,7 +319,7 @@ class plotter(object) :
         for spec in plotSpecs :
             histos,ignoreHistos = goods(spec)
             if histos==None : continue
-            
+
             if onlyDumpToFile(histos, spec) : continue
             rebin(histos, spec)
             setRanges(histos, spec)
@@ -329,10 +329,12 @@ class plotter(object) :
             individual = {"legendCoords": (0.55, 0.55, 0.85, 0.85),
                           "reverseLegend": False,
                           "stampCoords": (0.75, 0.5),
-                          "ignoreHistos": ignoreHistos
+                          "ignoreHistos": ignoreHistos,
+                          "newSampleNames" : newSampleNames,
+                          "legendTitle" : ""
                           }
             for key in spec :
-                if key in individual :
+                if key in individual.keys()+["order"] :
                     individual[key] = spec[key]
 
             stuff,pads = self.onePlotFunction(histos, individual = individual)
@@ -610,6 +612,7 @@ class plotter(object) :
     def plotEachHisto(self, dimension, histos, opts) :
         stuffToKeep = []
         legend = r.TLegend(*opts["legendCoords"])
+        legend.SetHeader(opts["legendTitle"])
         stuffToKeep.append(legend)
         legendEntries = []
         if self.anMode :
@@ -618,7 +621,7 @@ class plotter(object) :
 
         count = 0
         pads = {}
-        for sample,histo,ignore in zip(self.someOrganizer.samples, histos, opts["ignoreHistos"]) :
+        for sample,histo,ignore in sorted( zip(self.someOrganizer.samples, histos, opts["ignoreHistos"]), key = lambda x: opts["order"].index(x[0]["name"]) ) :
             if ignore or (not histo) or (not histo.GetEntries()) : continue
 
             if "color" in sample :
@@ -629,7 +632,7 @@ class plotter(object) :
                 if item in sample : getattr(histo, "Set"+item.capitalize()[0]+item[1:])(sample[item])
 
             sampleName = inDict(opts["newSampleNames"], sample["name"], sample["name"])
-            legendEntries.append( (histo, sampleName, inDict(sample, "legendOpt", "lp")) )
+            legendEntries.append( (histo, sampleName, inDict(sample, "legendOpt", "lpf")) )
             if dimension==1 :
                 stuffToKeep += self.plot1D(histo, count,
                                            goptions = inDict(sample, "goptions", ""),
@@ -700,6 +703,8 @@ class plotter(object) :
                    "legendCoords": (0.86, 0.60, 1.00, 0.10),
                    "reverseLegend": False,
                    "ignoreHistos": [],
+                   "order" : [ss["name"] for ss in self.someOrganizer.samples],
+                   "legendTitle" : ""
                    }
         options.update(individual)
         if not options["ignoreHistos"] : options["ignoreHistos"] = [False]*len(histos)
