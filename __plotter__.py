@@ -2,19 +2,7 @@ import ROOT as r
 import os,math,string,itertools,re
 import utils,configuration as conf
 from supy import whereami
-##############################
-def setupStyle() :
-    r.gROOT.SetStyle("Plain")
-    r.gStyle.SetPalette(1)
-    r.gStyle.SetOptStat(1111111)
-##############################
-def setupTdrStyle() :
-    r.gROOT.ProcessLine(".L %s/cpp/tdrstyle.C"%whereami())
-    r.setTDRStyle()
-    #tweaks
-    r.tdrStyle.SetPadRightMargin(0.06)
-    r.tdrStyle.SetErrorX(r.TStyle().GetErrorX())
-    r.gStyle.SetPalette(1)
+
 ##############################
 def combineBinContentAndError(histo, binToContainCombo, binToBeKilled) :
     xflows     = histo.GetBinContent(binToBeKilled)
@@ -30,53 +18,79 @@ def combineBinContentAndError(histo, binToContainCombo, binToBeKilled) :
     
     histo.SetBinError(binToBeKilled, 0.0)
     histo.SetBinError(binToContainCombo, math.sqrt(xflowError**2+currentError**2))
-##############################
-def shiftUnderAndOverflows(dimension, histos, dontShiftList = []) :
-    if dimension!=1 : return
-    for histo in histos:
-        if not histo : continue
-        if histo.GetName() in dontShiftList : continue
-        bins = histo.GetNbinsX()
-        entries = histo.GetEntries()
-        combineBinContentAndError(histo, binToContainCombo = 1   , binToBeKilled = 0     )
-        combineBinContentAndError(histo, binToContainCombo = bins, binToBeKilled = bins+1)
-        histo.SetEntries(entries)
-##############################
-def dimensionOfHisto(histos) :
-    def D(h) : return 2 if issubclass(type(h),r.TH2) else 1 if issubclass(type(h),r.TH1) else 0
-    dimensions = set([D(h) for h in histos if h])
-    assert len(dimensions)==1,"inconsistent histogram dimensions\n{%s}"%','.join(h.GetName() for h in histos if h)
-    return next(iter(dimensions))
-##############################        
-def metFit(histo) :
-    funcName="func"
-    func=r.TF1(funcName,"[0]*x*exp( -(x-[1])**2 / (2.0*[2])**2 )/[2]",0.5,30.0)
-    func.SetParameters(1.0,5.0,3.0)
-    histo.Fit(funcName,"lrq","sames")
-    histo.GetFunction(funcName).SetLineWidth(1)
-    histo.GetFunction(funcName).SetLineColor(histo.GetLineColor())
-    return func
-##############################
-def makeAlphaTFunc(alphaTValue) :
-    alphaTFunc=r.TF1("alphaTCurve"+str(alphaTValue),
-                     "1.0-2.0*("+str(alphaTValue)+")*sqrt(1.0-x*x)",
-                     0.0,1.0)
-    alphaTFunc.SetLineColor(r.kBlack)
-    alphaTFunc.SetLineWidth(1)
-    alphaTFunc.SetNpx(300)
-    return alphaTFunc
-##############################
-def adjustPad(pad, anMode = False, pushLeft = False) :
-    if not anMode :
-        r.gPad.SetRightMargin(0.15)
-        r.gPad.SetTicky()
-        r.gPad.SetTickx()
-        if pushLeft : r.gPad.SetLeftMargin(0.4)
-##############################
-def inDict(d, key, default) :
-    return d[key] if key in d else default
-##############################
+
 class plotter(object) :
+    ##############################
+    @staticmethod
+    def setupStyle() :
+        r.gROOT.SetStyle("Plain")
+        r.gStyle.SetPalette(1)
+        r.gStyle.SetOptStat(1111111)
+    ##############################
+    @staticmethod
+    def setupTdrStyle() :
+        r.gROOT.ProcessLine(".L %s/cpp/tdrstyle.C"%whereami())
+        r.setTDRStyle()
+        #tweaks
+        r.tdrStyle.SetPadRightMargin(0.06)
+        r.tdrStyle.SetErrorX(r.TStyle().GetErrorX())
+        r.gStyle.SetPalette(1)
+    ##############################
+    @staticmethod
+    def canvas(anMode = False) :
+        return r.TCanvas("canvas", "canvas", 500, 500) if anMode else r.TCanvas()
+    ##############################
+    @staticmethod
+    def shiftUnderAndOverflows(dimension, histos, dontShiftList = []) :
+        if dimension!=1 : return
+        for histo in histos:
+            if not histo : continue
+            if histo.GetName() in dontShiftList : continue
+            bins = histo.GetNbinsX()
+            entries = histo.GetEntries()
+            combineBinContentAndError(histo, binToContainCombo = 1   , binToBeKilled = 0     )
+            combineBinContentAndError(histo, binToContainCombo = bins, binToBeKilled = bins+1)
+            histo.SetEntries(entries)
+    ##############################
+    @staticmethod
+    def dimensionOfHisto(histos) :
+        def D(h) : return 2 if issubclass(type(h),r.TH2) else 1 if issubclass(type(h),r.TH1) else 0
+        dimensions = set([D(h) for h in histos if h])
+        assert len(dimensions)==1,"inconsistent histogram dimensions\n{%s}"%','.join(h.GetName() for h in histos if h)
+        return next(iter(dimensions))
+    ##############################        
+    @staticmethod
+    def metFit(histo) :
+        funcName="func"
+        func=r.TF1(funcName,"[0]*x*exp( -(x-[1])**2 / (2.0*[2])**2 )/[2]",0.5,30.0)
+        func.SetParameters(1.0,5.0,3.0)
+        histo.Fit(funcName,"lrq","sames")
+        histo.GetFunction(funcName).SetLineWidth(1)
+        histo.GetFunction(funcName).SetLineColor(histo.GetLineColor())
+        return func
+    ##############################
+    @staticmethod
+    def makeAlphaTFunc(alphaTValue) :
+        alphaTFunc=r.TF1("alphaTCurve"+str(alphaTValue),
+                         "1.0-2.0*("+str(alphaTValue)+")*sqrt(1.0-x*x)",
+                         0.0,1.0)
+        alphaTFunc.SetLineColor(r.kBlack)
+        alphaTFunc.SetLineWidth(1)
+        alphaTFunc.SetNpx(300)
+        return alphaTFunc
+    ##############################
+    @staticmethod
+    def adjustPad(pad, anMode = False, pushLeft = False) :
+        if not anMode :
+            r.gPad.SetRightMargin(0.15)
+            r.gPad.SetTicky()
+            r.gPad.SetTickx()
+            if pushLeft : r.gPad.SetLeftMargin(0.4)
+    ##############################
+    @staticmethod
+    def inDict(d, key, default) :
+        return d[key] if key in d else default
+    ##############################
     def __init__(self,
                  someOrganizer,
                  pdfFileName = "out.pdf",
@@ -118,7 +132,7 @@ class plotter(object) :
         self.nLinesMax -= nLinesMax/rowCycle
         if "counts" not in self.whiteList : self.blackList.append("counts")
         self.plotRatios = self.samplesForRatios!=("","")
-        self.canvas = r.TCanvas("canvas", "canvas", 500, 500) if self.anMode else r.TCanvas()
+        self.canvas = self.canvas(self.anMode)
         self.formerMaxAbsI = -1
         self.pageNumber = -1
         self.pdfOptions = ''
@@ -131,7 +145,7 @@ class plotter(object) :
 
     def plotAll(self) :
         print utils.hyphens
-        setupStyle()
+        self.setupStyle()
 
         self.printCanvas("[")
         text1 = self.printTimeStamp()
@@ -314,7 +328,7 @@ class plotter(object) :
                     getattr(histo, method)().SetRangeUser(*spec[item])
 
         print utils.hyphens
-        if tdrStyle : setupTdrStyle()
+        if tdrStyle : self.setupTdrStyle()
 
         for spec in plotSpecs :
             histos,ignoreHistos = goods(spec)
@@ -631,12 +645,12 @@ class plotter(object) :
                          "markerStyle", "markerColor", "fillStyle", "fillColor"] :
                 if item in sample : getattr(histo, "Set"+item.capitalize()[0]+item[1:])(sample[item])
 
-            sampleName = inDict(opts["newSampleNames"], sample["name"], sample["name"])
-            legendEntries.append( (histo, sampleName, inDict(sample, "legendOpt", "lpf")) )
+            sampleName = self.inDict(opts["newSampleNames"], sample["name"], sample["name"])
+            legendEntries.append( (histo, sampleName, self.inDict(sample, "legendOpt", "lpf")) )
             if dimension==1 :
                 stuffToKeep += self.plot1D(histo, count,
-                                           goptions = inDict(sample, "goptions", ""),
-                                           double = inDict(sample, "double", ""))
+                                           goptions = self.inDict(sample, "goptions", ""),
+                                           double = self.inDict(sample, "double", ""))
             elif dimension==2 and self.omit2D : continue
             elif dimension==2 :
                 self.plot2D(histo, count, sampleName, stuffToKeep)
@@ -674,7 +688,7 @@ class plotter(object) :
                 ratio.SetMaximum(2.0)
                 ratio.GetYaxis().SetTitle(numLabel+"/"+denomLabel)
                 self.canvas.cd(2)
-                adjustPad(r.gPad, self.anMode)
+                self.adjustPad(r.gPad, self.anMode)
                 r.gPad.SetGridy()
                 ratio.SetStats(False)
                 ratio.GetXaxis().SetLabelSize(0.0)
@@ -696,7 +710,7 @@ class plotter(object) :
         return ratios
 
     def onePlotFunction(self, histos, individual = {}) :
-        dimension = dimensionOfHisto(histos)
+        dimension = self.dimensionOfHisto(histos)
         self.prepareCanvas(histos, dimension)
 
         options = {"newSampleNames": {},
@@ -709,7 +723,7 @@ class plotter(object) :
         options.update(individual)
         if not options["ignoreHistos"] : options["ignoreHistos"] = [False]*len(histos)
         
-        if self.shiftUnderOverFlows : shiftUnderAndOverflows(dimension, histos, self.dontShiftList)
+        if self.shiftUnderOverFlows : self.shiftUnderAndOverflows(dimension, histos, self.dontShiftList)
         self.setRanges(histos, *self.getExtremes(dimension, histos, options["ignoreHistos"]))
 
         count,stuffToKeep,pads = self.plotEachHisto(dimension, histos, options)
@@ -730,7 +744,7 @@ class plotter(object) :
 
     def plot1D(self, histo, count, goptions = "", double = False) :
         keep = []
-        adjustPad(r.gPad, self.anMode)
+        self.adjustPad(r.gPad, self.anMode)
 
         if count==0 :
             if not self.anMode : histo.GetYaxis().SetTitleOffset(1.25)
@@ -750,7 +764,7 @@ class plotter(object) :
         r.gStyle.SetOptFit(0)
         if self.doMetFit and "met" in histo.GetName() :
             r.gStyle.SetOptFit(1111)
-            func=metFit(histo)
+            func=self.metFit(histo)
             keep.append(func)
 
             r.gPad.Update()
@@ -797,7 +811,7 @@ class plotter(object) :
     	yx.SetNpx(300)
     	
     	self.canvas.cd(count+1)
-        adjustPad(r.gPad, pushLeft = self.pushLeft )
+        self.adjustPad(r.gPad, pushLeft = self.pushLeft )
         
     	histo.GetYaxis().SetTitleOffset(1.2)
     	oldTitle=histo.GetTitle()
@@ -814,9 +828,9 @@ class plotter(object) :
                or "deltaHtOverHt_vs_metOverHt" in histo.GetName() :
             histo.GetYaxis().SetRangeUser(0.0,0.7)
             funcs=[
-                makeAlphaTFunc(0.55),
-                makeAlphaTFunc(0.50),
-                makeAlphaTFunc(0.45)
+                self.makeAlphaTFunc(0.55),
+                self.makeAlphaTFunc(0.50),
+                self.makeAlphaTFunc(0.45)
                 ]
             for func in funcs : func.Draw("same")
             stuffToKeep.extend(funcs)
