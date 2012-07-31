@@ -41,7 +41,7 @@ class plotter(object) :
         return r.TCanvas("canvas", "canvas", 500, 500) if anMode else r.TCanvas()
     ##############################
     @staticmethod
-    def shiftUnderAndOverflows(dimension, histos, dontShiftList = []) :
+    def doShiftUnderAndOverflows(dimension, histos, dontShiftList = []) :
         if dimension!=1 : return
         for histo in histos:
             if not histo : continue
@@ -723,7 +723,7 @@ class plotter(object) :
         options.update(individual)
         if not options["ignoreHistos"] : options["ignoreHistos"] = [False]*len(histos)
         
-        if self.shiftUnderOverFlows : self.shiftUnderAndOverflows(dimension, histos, self.dontShiftList)
+        if self.shiftUnderOverFlows : self.doShiftUnderAndOverflows(dimension, histos, self.dontShiftList)
         self.setRanges(histos, *self.getExtremes(dimension, histos, options["ignoreHistos"]))
 
         count,stuffToKeep,pads = self.plotEachHisto(dimension, histos, options)
