@@ -168,3 +168,4 @@ class wrappedChain(dict) :
                 assert not hasattr(self,leaf), "%s already has attribute %s"%(Name,leaf)
                 setattr(self,leaf,("%s"+leaf+"%s")%(fixes if fixes else self.fixes))
 
+        def __str__(self) : return "%s\t%s"%(self.name[:39].ljust(40),self.moreName)

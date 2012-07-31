@@ -79,8 +79,19 @@ class multiplicity(analysisStep) :
     def uponAcceptance(self,eventVars) :
         self.book.fill(len(eventVars[self.var]), self.moreName, self.max, -0.5, self.max-0.5, title = self.title)
 #####################################
+class weighted(analysisStep) :
+    def __init__(self, var, N,low,up, baseWeight = "", weights = [], pred = "one") :
+        for item in ['var','N','low','up','baseWeight','weights','pred'] : setattr(self,item,eval(item))
+        self.moreName = "%s (%d); bW:%s; w:%s"%(var,N,baseWeight,utils.contract(weights))
 
-
+    def uponAcceptance(self,ev) :
+        bW = ev[self.baseWeight] if self.baseWeight else 1
+        var = ev[self.var]
+        for iW,w in enumerate([1]+([] if not ev[self.pred] else [ev[w] for w in self.weights])) :
+            if not w : continue
+            self.book.fill( var, "%02d%s"%(iW,self.var), self.N, self.low, self.up, title = ";%s;events / bin"%self.var,
+                            w = bW * w )
+#####################################
 
 
 ## Deprecated

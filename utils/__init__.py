@@ -132,7 +132,7 @@ def justNameTitle(tkey) :
              (name[:-L],title) if name[-L:] == title else
              (name,title) )
 #####################################
-def optimizationContours(signals, backgds, left = True, right = True, var = "") :
+def optimizationContours(signals, backgds, left = True, right = True, var = "", canvas = None) :
     stat = r.gStyle.GetOptStat()
     r.gStyle.SetOptStat(0)
     nBins = signals[0].GetNbinsX()
@@ -152,7 +152,7 @@ def optimizationContours(signals, backgds, left = True, right = True, var = "") 
             g.SetLineColor(col)
             g.SetMinimum(0)
             g.SetMaximum(1)
-        c = r.TCanvas()
+        c = canvas if canvas else r.TCanvas()
         c.SetGrid()
         gEff.Draw("AL")
         gPur.Draw("L")
