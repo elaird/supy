@@ -37,7 +37,7 @@ class plotter(object) :
         r.gStyle.SetPalette(1)
     ##############################
     @staticmethod
-    def canvas(anMode = False) :
+    def tcanvas(anMode = False) :
         return r.TCanvas("canvas", "canvas", 500, 500) if anMode else r.TCanvas()
     ##############################
     @staticmethod
@@ -132,7 +132,7 @@ class plotter(object) :
         self.nLinesMax -= nLinesMax/rowCycle
         if "counts" not in self.whiteList : self.blackList.append("counts")
         self.plotRatios = self.samplesForRatios!=("","")
-        self.canvas = self.canvas(self.anMode)
+        self.canvas = self.tcanvas(self.anMode)
         self.formerMaxAbsI = -1
         self.pageNumber = -1
         self.pdfOptions = ''

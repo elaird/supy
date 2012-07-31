@@ -88,6 +88,7 @@ class weighted(analysisStep) :
         bW = ev[self.baseWeight] if self.baseWeight else 1
         var = ev[self.var]
         for iW,w in enumerate([1]+([] if not ev[self.pred] else [ev[w] for w in self.weights])) :
+            if not w : continue
             self.book.fill( var, "%02d%s"%(iW,self.var), self.N, self.low, self.up, title = ";%s;events / bin"%self.var,
                             w = bW * w )
 #####################################
