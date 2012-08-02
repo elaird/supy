@@ -1,1 +1,1 @@
-from supy.defaults import *
+def experiment() : return ""
