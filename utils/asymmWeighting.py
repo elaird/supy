@@ -1,5 +1,5 @@
 import math
-from supy import utils
+from root import Dot
 try: import numpy as np
 except: pass
 
@@ -8,7 +8,7 @@ def reindex(y,tup) : return y[tup,][:,tup]
 def twiceDots(p, diag=False) :
     '''Matrix of twice the 4-vector dot products.'''
     indices = range(len(p))
-    y = np.array( [ [ 2 * utils.Dot(p[i],p[j]) if i<j else
+    y = np.array( [ [ 2 * Dot(p[i],p[j]) if i<j else
                       p[i].M2()                if i==j and diag else
                       0         for j in indices] for i in indices])
     return y.T + y

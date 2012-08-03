@@ -1,12 +1,10 @@
 from multiprocessing import Process,JoinableQueue
 import traceback,sys,itertools, ROOT as r
-try:
-    import numpy as np
-except:
-    pass
+try: import numpy as np
+except: pass
 
 for module in ['algos','cms','io','root'] : exec("from %s import *"%module)
-for module in ['fitKinematic','luminosity','fractions','templateFit','minuit'] : exec("import %s"%module)
+for module in ['fitKinematic','luminosity','fractions','templateFit','minuit','asymmWeighting'] : exec("import %s"%module)
 
 #####################################
 hyphens="-"*115
