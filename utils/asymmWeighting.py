@@ -18,13 +18,9 @@ class Asymm_hard(object) :
         return (self.symm + self.anti * targetAsymmetry) /\
                (self.symm + self.anti * nominalAsymmetry)
 
-    def __init__(self, massQ = 172.5 , momenta = [] ) :
-        self.M22 = 2*massQ**2
-        if momenta : self.setMomenta(momenta)
-
     def setMomenta(self,p, check = False) :
         '''p is [LorentzV]'''
-        a = A( self.reindexed(twiceDots(p)), self.M22, check)
+        a = A( self.reindexed(twiceDots(p)), (p[2].M2()+p[3].M2()), check)
         self.symm = a.symm
         self.anti = a.anti
         return self
