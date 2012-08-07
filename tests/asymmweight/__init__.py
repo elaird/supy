@@ -63,6 +63,26 @@ class asymm_hard(unittest.TestCase) :
         self.assertAlmostEqual(symm, asym.symm)
         self.assertAlmostEqual(anti, -asym.anti)
 
+        q = LV(4.42,-4.08,-0.89,0)
+        qbar = LV(5.28,+4.56,+0.33,0)
+        Q = LV(89.45,+0.45,-2.26,170.28)
+        Qbar = LV(61.41,+0.70,+1.14,109.12)
+        g = LV(40.69,+0.74,+0.28,0)
+        qqbarQQbarg = [q,qbar,Q,Qbar,g]
+
+        asym = Asymm_qqbar_hard()
+        asym.setMomenta(qqbarQQbarg,check=True)
+        symm,anti = asym.symm,asym.anti
+        asym.setMomenta([qbar,q,Q,Qbar,g], check=True)
+        self.assertAlmostEqual(symm, asym.symm)
+        self.assertAlmostEqual(anti, -asym.anti)
+        asym.setMomenta([qbar,q,Qbar,Q,g], check=True)
+        self.assertAlmostEqual(symm, asym.symm)
+        self.assertAlmostEqual(anti, asym.anti)
+        asym.setMomenta([q,qbar,Qbar,Q,g], check=True)
+        self.assertAlmostEqual(symm, asym.symm)
+        self.assertAlmostEqual(anti, -asym.anti)
+
     @skipIf(np==None,"System lacks numpy")
     def testReindexQQbar(self) :
         '''supy.utils.asymmWeighting.Asymm_qqbar_hard.reindexed'''
