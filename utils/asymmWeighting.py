@@ -58,7 +58,7 @@ class A(object) :
         self.symm = sum(self.__symm__(y_) for y_ in ys)
         self.anti = sum(self.__anti__(y_)*i for y_,i in zip(ys,[1,-1,-1,1]))
 
-        if check : self.check()
+        if check : self.check(y)
 
     def __anti__(self,y) :
         return ( self.N**2 - 4 ) / y[0,4] * ( self.csf * y[0,2] / y[2,4]
@@ -82,9 +82,9 @@ class A(object) :
                               ])
                  )
 
-    def check(self) :
-        a = self.explicit(y,m22)
-        aswap = self.explicit(reindex(y,(1,0,2,3,4)),m22)
+    def check(self,y) :
+        a = self.explicit(y,self.m22)
+        aswap = self.explicit(reindex(y,(1,0,2,3,4)),self.m22)
         def almostEqual(a,b) : return abs(a-b) / (a+b) < 1e-11
         assert almostEqual(self.cf * self.symm,0.5*(a+aswap))
         assert almostEqual(self.cf * self.anti,0.5*(a-aswap))
