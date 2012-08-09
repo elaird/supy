@@ -11,7 +11,7 @@ class example_analysis(supy.analysis) :
             ]
     
     def listOfCalculables(self,config) :
-        return ( supy.calculables.zeroArgs() +
+        return ( supy.calculables.zeroArgs(supy.calculables) +
                  [supy.calculables.other.fixedValue('Two',2) ]
                  )
     
