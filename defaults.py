@@ -3,7 +3,7 @@ def experiment() :
     return ""
 
 def mainTree() :
-    return ("susyTree/","tree")
+    return ("/","tree")
 
 def otherTreesToKeepWhenSkimming() :
     return []
