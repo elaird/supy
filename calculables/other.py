@@ -235,3 +235,50 @@ class Discriminant(secondary) :
             if not example : continue
             if issubclass(type(example),r.TH2) : del org.steps[0][key]
 #####################################
+class SymmAnti(secondary) :
+    def __init__(self, thisSample, var, varMax, nbins=80) :
+        for item in ['thisSample','var','varMax','nbins'] : setattr(self,item,eval(item))
+        self.fixes = (var,'')
+        self.moreName = "%s: %.2f"%(var,varMax)
+
+    def uponAcceptance(self, ev) :
+        self.book.fill(ev[self.var], self.var, self.nbins, -self.varMax, self.varMax, title = ';%s;events / bin'%self.var)
+
+    def update(self,_) :
+        self.value = ()
+        if not (self.__symm and self.__anti) : return
+        val = self.source[self.var]
+        bin = self.__symm.FindFixBin(val)
+        self.value = (self.__symm.GetBinContent(bin),self.__anti.GetBinContent(bin))
+
+    def setup(self,*_) :
+        self.__symm, self.__anti = None,None
+        var = self.fromCache([self.thisSample], [self.var])[self.thisSample][self.var]
+        if not var : print "cannot find cache:", self.name ; return
+        if self.nbins != var.GetNbinsX() : print "inconsistent binning: %s, %s"%(self.name,self.thisSample)
+        var.Scale(1.0/var.Integral(0,self.nbins+1))
+        self.__symm,self.__anti = utils.symmAnti(var)
+
+    def reportCache(self) :
+        r.gStyle.SetOptStat(0)
+        fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name]) + '.pdf'
+        vars = dict([(sample,hists[self.var]) for sample,hists in self.fromCache(self.allSamples, [self.var]).items()])
+        for val in vars.values() : val.Scale(1./val.Integral(0,val.GetNbinsX()+1),'width')
+        leg = r.TLegend(0.5,0.7,0.7,0.9)
+        symms,antis = zip(*[utils.symmAnti(var) for s,var in sorted(vars.items())])
+        limit_up = max([val.GetMaximum() for val in symms+antis])
+        limit_dn = min([val.GetMinimum() for val in symms+antis])
+        delta = max([abs(0.1*limit_up),abs(0.1*limit_dn)])
+        canvas = r.TCanvas()
+        for i,(sample,symm,anti) in enumerate(zip(sorted(vars),symms,antis)) :
+            symm.SetMaximum(limit_up+delta); symm.SetMinimum(limit_dn-delta)
+            anti.SetMaximum(limit_up+delta); anti.SetMinimum(limit_dn-delta)
+            symm.SetLineColor(i+1); anti.SetLineColor(i+1); anti.SetLineStyle(2)
+            symm.SetMarkerColor(i+1); anti.SetMarkerColor(i+1)
+            leg.AddEntry(symm,sample,'l')
+            symm.Draw('hist' if not i else 'hist same')
+            anti.Draw('hist same')
+        leg.Draw()
+        canvas.Print(fileName)
+        print "Wrote : ", fileName
+#####################################

@@ -103,3 +103,15 @@ def contract(strings) :
                     "{%s}"%(','.join([ contract(list(ctails))
                                        for c,ctails in groupby( tails,
                                                                 key = lambda s: next(iter(s),''))])))
+#####################################
+def symmAnti(hist) :
+    nbins = hist.GetNbinsX()
+    symm = hist.Clone(hist.GetName()+'_symm')
+    anti = hist.Clone(hist.GetName()+'_anti')
+    for i in range(2+nbins) :
+        a,b = hist.GetBinContent(i), hist.GetBinContent(1+nbins-i)
+        e = math.sqrt( hist.GetBinError(i)**2 + hist.GetBinError(1+nbins-i)**2)
+        symm.SetBinContent(i,0.5*(a+b)) ; symm.SetBinError(i,e)
+        anti.SetBinContent(i,0.5*(a-b)) ; anti.SetBinError(i,e)
+    return symm,anti
+
