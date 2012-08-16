@@ -255,6 +255,7 @@ class analysis(object) :
             else : secondary.checkCache(org)
 
         def report(conf,secondary) :
+            secondary.allSamples = [ss.weightedName for ss in self.filteredSamples(conf)]
             if doReport(secondary.name) : secondary.reportCache()
             
         confLoopers = [(conf,self.listsOfLoopers[conf['tag']][0]) for conf in self.readyConfs]

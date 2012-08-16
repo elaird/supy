@@ -39,8 +39,8 @@ class maximum(analysisStep) :
     
 #####################################
 class value(analysisStep) :
-    def __init__(self, var, min = None, max = None, indices = "", index = None) :
-        for item in ["var","min","max","indices","index"] : setattr(self,item,eval(item))
+    def __init__(self, var, min = None, max = None, indices = "", index = None, allowNone = False) :
+        for item in ["var","min","max","indices","index","allowNone"] : setattr(self,item,eval(item))
         self.moreName = ( ("%.2f<="%min if min is not None else "") + var +
                           ("[i[%s]]" % str(index) if index is not None else "") + self.wrapName() + 
                           ("<=%.2f"%max if max is not None else "") +
@@ -50,7 +50,7 @@ class value(analysisStep) :
         val = eventVars[self.var] if self.index==None else \
               eventVars[self.var][self.index] if not self.indices else \
               eventVars[self.var][eventVars[self.indices][self.index]] if self.index<len(eventVars[self.indices]) else None
-        if val is None : return False
+        if val is None and not self.allowNone  : return False
         val = self.wrap(val)
         return self.min <= val and ((self.max is None) or val <= self.max)
 
