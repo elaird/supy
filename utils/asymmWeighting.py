@@ -31,11 +31,17 @@ class Asymm_qqbar_hard(Asymm_hard) :
     def reindexed(Y) :
         return reindex(Y, (3,2,1,0,4)) * [1,1,-1,-1,1] * [[1],[1],[-1],[-1],[1]]
 
-class Asymm_qg_hard(Asymm_hard) :
-    '''q(0) + g(1) ==> Q(2) + Qbar(3) + q(4)'''
+class Asymm_gq_hard(Asymm_hard) :
+    '''g(0) + q(1) ==> Q(2) + Qbar(3) + q(4)'''
     @staticmethod
     def reindexed(Y) :
         return reindex(Y, (3,2,4,1,0)) * [1,1,1,-1,-1] * [[1],[1],[1],[-1],[-1]]
+
+class Asymm_gqbar_hard(Asymm_hard) :
+    '''g(0) + qbar(1) ==> Q(2) + Qbar(3) + qbar(4)'''
+    @staticmethod
+    def reindexed(Y) :
+        return reindex(Y, (3,2,1,4,0)) * [1,1,-1,1,-1] * [[1],[1],[-1],[1],[-1]]
 
 class A(object) :
     '''Formula 10 from "Explicit formulae for heavy flavour production", R.K. Ellis and J.C. Sexton.
@@ -46,7 +52,7 @@ class A(object) :
         N = 3.
         V = N*N-1
         S = m22+y[0,1]
-        self.cf = (N*N-1)/(N*S*y[2,3]) # common factor / common subfactor
+        self.cf = V/(N*S*y[2,3]) # common factor / common subfactor
         self.csf = m22*(y[0,1]+y[2,3]) + np.dot(*2*([m22]+[y[i,j] for i,j in [(0,2),(1,2),(0,3),(1,3)]],))
         for item in ['N','S','V','m22'] : setattr(self,item,eval(item))
 
