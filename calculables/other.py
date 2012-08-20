@@ -236,49 +236,72 @@ class Discriminant(secondary) :
             if issubclass(type(example),r.TH2) : del org.steps[0][key]
 #####################################
 class SymmAnti(secondary) :
-    def __init__(self, thisSample, var, varMax, nbins=80) :
-        for item in ['thisSample','var','varMax','nbins'] : setattr(self,item,eval(item))
+    def __init__(self, thisSample, var, varMax, nbins=80, inspect = False) :
+        for item in ['thisSample','var','varMax','nbins','inspect'] : setattr(self,item,eval(item))
         self.fixes = (var,'')
         self.moreName = "%s: %.2f"%(var,varMax)
 
     def uponAcceptance(self, ev) :
         self.book.fill(ev[self.var], self.var, self.nbins, -self.varMax, self.varMax, title = ';%s;events / bin'%self.var)
+        if not self.inspect : return
+        symmanti = ev[self.name]
+        if not symmanti : return
+        sumsymmanti = sum(symmanti)
+        symm,anti = symmanti
+        self.book.fill(ev[self.var], self.var+'_symm', self.nbins, -self.varMax, self.varMax, w = ev['weight'] * symm / sumsymmanti, title = ';(symm) %s;events / bin'%self.var)
+        self.book.fill(ev[self.var], self.var+'_anti', self.nbins, -self.varMax, self.varMax, w = ev['weight'] * anti / sumsymmanti, title = ';(anti) %s;events / bin'%self.var)
+        self.book.fill(ev[self.var], self.var+'_flat', self.nbins, -self.varMax, self.varMax, w = ev['weight'] * 0.5  / sumsymmanti / self.varMax, title = ';(flat) %s;events / bin'%self.var)
 
     def update(self,_) :
         self.value = ()
         if not (self.__symm and self.__anti) : return
         val = self.source[self.var]
-        bin = self.__symm.FindFixBin(val)
-        self.value = (self.__symm.GetBinContent(bin),self.__anti.GetBinContent(bin))
+        self.value = (self.__symm.Eval(val), self.__anti.Eval(val))
+
+    @staticmethod
+    def prep(var,odd=[1,3,5,7],even=[0,2,4,6,8]) :
+        var.Scale(1./var.Integral(0,1+var.GetNbinsX()),'width')
+        symm,anti = utils.symmAnti(var)
+        low = symm.GetBinLowEdge(1)
+        up = symm.GetBinLowEdge(1+symm.GetNbinsX())
+        op = "Q"
+        gop = ""
+        anti.Fit('++'.join("x**%d"%d for d in  odd),op,gop,low,up)
+        symm.Fit('++'.join("x**%d"%d for d in even),op,gop,low,up)
+        return symm,anti
 
     def setup(self,*_) :
         self.__symm, self.__anti = None,None
         var = self.fromCache([self.thisSample], [self.var])[self.thisSample][self.var]
         if not var : print "cannot find cache:", self.name ; return
         if self.nbins != var.GetNbinsX() : print "inconsistent binning: %s, %s"%(self.name,self.thisSample)
-        var.Scale(1.0/var.Integral(0,self.nbins+1))
-        self.__symm,self.__anti = utils.symmAnti(var)
+        self.__symmanti = self.prep(var)
+        self.__symm,self.__anti = [next(iter(h.GetListOfFunctions())) for h in self.__symmanti]
 
     def reportCache(self) :
         r.gStyle.SetOptStat(0)
-        fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name]) + '.pdf'
+        fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name])
         vars = dict([(sample,hists[self.var]) for sample,hists in self.fromCache(self.allSamples, [self.var]).items()])
-        for val in vars.values() : val.Scale(1./val.Integral(0,val.GetNbinsX()+1),'width')
-        leg = r.TLegend(0.5,0.7,0.7,0.9)
-        symms,antis = zip(*[utils.symmAnti(var) for s,var in sorted(vars.items())])
-        limit_up = max([val.GetMaximum() for val in symms+antis])
-        limit_dn = min([val.GetMinimum() for val in symms+antis])
-        delta = max([abs(0.1*limit_up),abs(0.1*limit_dn)])
+
+        symmantis = dict([(s,self.prep(var)) for s,var in vars.items()])
         canvas = r.TCanvas()
-        for i,(sample,symm,anti) in enumerate(zip(sorted(vars),symms,antis)) :
-            symm.SetMaximum(limit_up+delta); symm.SetMinimum(limit_dn-delta)
-            anti.SetMaximum(limit_up+delta); anti.SetMinimum(limit_dn-delta)
-            symm.SetLineColor(i+1); anti.SetLineColor(i+1); anti.SetLineStyle(2)
-            symm.SetMarkerColor(i+1); anti.SetMarkerColor(i+1)
-            leg.AddEntry(symm,sample,'l')
-            symm.Draw('hist' if not i else 'hist same')
-            anti.Draw('hist same')
-        leg.Draw()
-        canvas.Print(fileName)
-        print "Wrote : ", fileName
+        for j,label in enumerate(['Symmetric','Antisymmetric']) :
+            leg = r.TLegend(0.85,0.85,0.98,0.98)
+            limit_up = max([val[j].GetMaximum() for val in symmantis.values()] )
+            limit_dn = min([val[j].GetMinimum() for val in symmantis.values()] + [0] )
+            for i,(sample,val) in enumerate(sorted(symmantis.items())) :
+                val[j].SetMaximum(limit_up * 1.1)
+                val[j].SetMinimum(limit_dn * 1.1)
+                val[j].SetLineColor(i+1)
+                val[j].SetMarkerColor(i+1)
+                val[j].SetTitle("%s;%s;p.d.f"%(label,self.var))
+                leg.AddEntry(val[j],sample,'l')
+                val[j].Draw('hist' if not i else 'hist same')
+                f = next(iter(val[j].GetListOfFunctions()))
+                f.SetLineColor(i+1)
+                f.SetLineStyle(2)
+                f.SetLineWidth(1)
+                f.Draw('same')
+            leg.Draw()
+            utils.tCanvasPrintPdf(canvas,fileName, verbose = j, option = ['(',')'][j])
 #####################################

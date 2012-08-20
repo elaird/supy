@@ -110,7 +110,7 @@ def symmAnti(hist) :
     anti = hist.Clone(hist.GetName()+'_anti')
     for i in range(2+nbins) :
         a,b = hist.GetBinContent(i), hist.GetBinContent(1+nbins-i)
-        e = math.sqrt( hist.GetBinError(i)**2 + hist.GetBinError(1+nbins-i)**2)
+        e = math.sqrt( 0.5*(hist.GetBinError(i)**2 + hist.GetBinError(1+nbins-i)**2) )
         symm.SetBinContent(i,0.5*(a+b)) ; symm.SetBinError(i,e)
         anti.SetBinContent(i,0.5*(a-b)) ; anti.SetBinError(i,e)
     return symm,anti
