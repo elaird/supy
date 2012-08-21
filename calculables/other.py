@@ -236,8 +236,8 @@ class Discriminant(secondary) :
             if issubclass(type(example),r.TH2) : del org.steps[0][key]
 #####################################
 class SymmAnti(secondary) :
-    def __init__(self, thisSample, var, varMax, nbins=80, inspect = False) :
-        for item in ['thisSample','var','varMax','nbins','inspect'] : setattr(self,item,eval(item))
+    def __init__(self, thisSample, var, varMax, nbins=80, inspect = False, func = "pol8") :
+        for item in ['thisSample','var','varMax','nbins','inspect','func'] : setattr(self,item,eval(item))
         self.fixes = (var,'')
         self.moreName = "%s: %.2f"%(var,varMax)
 
@@ -254,41 +254,44 @@ class SymmAnti(secondary) :
 
     def update(self,_) :
         self.value = ()
-        if not (self.__symm and self.__anti) : return
+        if not self.__func :  return
         val = self.source[self.var]
-        self.value = (self.__symm.Eval(val), self.__anti.Eval(val))
+        a = 0.5*self.__func.Eval(val)
+        b = 0.5*self.__func.Eval(-val)
+        self.value = (a+b, a-b)
 
     @staticmethod
-    def prep(var,odd=[1,3,5,7],even=[0,2,4,6,8]) :
+    def prep(var,func = "pol8") :
         var.Scale(1./var.Integral(0,1+var.GetNbinsX()),'width')
         symm,anti = utils.symmAnti(var)
         low = symm.GetBinLowEdge(1)
         up = symm.GetBinLowEdge(1+symm.GetNbinsX())
-        op = "Q"
+        op = "QM"
         gop = ""
-        anti.Fit('++'.join("x**%d"%d for d in  odd),op,gop,low,up)
-        symm.Fit('++'.join("x**%d"%d for d in even),op,gop,low,up)
-        return symm,anti
+        var.Fit(func, op, gop, low, up)
+        return symm,anti,next(iter(var.GetListOfFunctions()),None)
 
     def setup(self,*_) :
         self.__symm, self.__anti = None,None
         var = self.fromCache([self.thisSample], [self.var])[self.thisSample][self.var]
         if not var : print "cannot find cache:", self.name ; return
         if self.nbins != var.GetNbinsX() : print "inconsistent binning: %s, %s"%(self.name,self.thisSample)
-        self.__symmanti = self.prep(var)
-        self.__symm,self.__anti = [next(iter(h.GetListOfFunctions())) for h in self.__symmanti]
+        self.__symm,self.__anti,self.__func = self.prep(var,self.func)
+        self.__stashedvar = var
 
     def reportCache(self) :
         r.gStyle.SetOptStat(0)
         fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name])
         vars = dict([(sample,hists[self.var]) for sample,hists in self.fromCache(self.allSamples, [self.var]).items()])
 
-        symmantis = dict([(s,self.prep(var)) for s,var in vars.items()])
+        symmantis = dict([(s,(var,)+self.prep(var,self.func)) for s,var in vars.items()])
         canvas = r.TCanvas()
-        for j,label in enumerate(['Symmetric','Antisymmetric']) :
+        def funcFactory(f,j) : return lambda *x : 0.5*(f.Eval(x[0][0]) + (-1)**(j+1) * f.Eval(-x[0][0]))
+        for j,label in enumerate(['','Symmetric','Antisymmetric']) :
             leg = r.TLegend(0.85,0.85,0.98,0.98)
             limit_up = max([val[j].GetMaximum() for val in symmantis.values()] )
             limit_dn = min([val[j].GetMinimum() for val in symmantis.values()] + [0] )
+            funcs = []
             for i,(sample,val) in enumerate(sorted(symmantis.items())) :
                 val[j].SetMaximum(limit_up * 1.1)
                 val[j].SetMinimum(limit_dn * 1.1)
@@ -297,11 +300,13 @@ class SymmAnti(secondary) :
                 val[j].SetTitle("%s;%s;p.d.f"%(label,self.var))
                 leg.AddEntry(val[j],sample,'l')
                 val[j].Draw('hist' if not i else 'hist same')
-                f = next(iter(val[j].GetListOfFunctions()))
-                f.SetLineColor(i+1)
-                f.SetLineStyle(2)
-                f.SetLineWidth(1)
-                f.Draw('same')
+                low,up = r.Double(0.1),r.Double(0.1)
+                val[-1].GetRange(low,up)
+                funcs.append( r.TF1('f'+self.name+str(j)+sample, funcFactory(val[-1],j),low,up) if j else val[-1] )
+                funcs[-1].SetLineColor(i+1)
+                funcs[-1].SetLineStyle(2)
+                funcs[-1].SetLineWidth(1)
+                funcs[-1].Draw("same")
             leg.Draw()
-            utils.tCanvasPrintPdf(canvas,fileName, verbose = j, option = ['(',')'][j])
+            utils.tCanvasPrintPdf(canvas,fileName, verbose = j==2, option = ['(','',')'][j])
 #####################################
