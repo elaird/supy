@@ -146,6 +146,7 @@ class analysisLooper :
             if minimal : continue
             step.tracer = keyTracer(None) if self.trace and (step.isSelector or issubclass(type(step),wrappedChain.calculable)) else None
             assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.name
+            if step.disabled : continue
             step.setup(self.chains[self.mainTree], self.mainTree[0])
 
     def endSteps(self) : [ step.endFunc(self.chains) for step in self.steps ]

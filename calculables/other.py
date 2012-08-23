@@ -236,23 +236,24 @@ class Discriminant(secondary) :
             if issubclass(type(example),r.TH2) : del org.steps[0][key]
 #####################################
 class SymmAnti(secondary) :
-    def __init__(self, thisSample, var, varMax, nbins=100, inspect = False,
+    def __init__(self, thisSample, var, varMax, nbins=100, inspect = False, weights = ['weight'],
                  funcEven = "pol8",
                  funcOdd = "pol8") :
-        for item in ['thisSample','var','varMax','nbins','inspect','funcEven','funcOdd'] : setattr(self,item,eval(item))
+        for item in ['thisSample','var','varMax','nbins','inspect','weights','funcEven','funcOdd'] : setattr(self,item,eval(item))
         self.fixes = (var,'')
         self.moreName = "%s: %.2f"%(var,varMax)
 
     def uponAcceptance(self, ev) :
-        self.book.fill(ev[self.var], self.var, self.nbins, -self.varMax, self.varMax, title = ';%s;events / bin'%self.var)
+        w = reduce(operator.mul, [ev[W] for W in self.weights])
+        self.book.fill(ev[self.var], self.var, self.nbins, -self.varMax, self.varMax, title = ';%s;events / bin'%self.var, w = w)
         if not self.inspect : return
         symmanti = ev[self.name]
         if not symmanti : return
         sumsymmanti = sum(symmanti)
         symm,anti = symmanti
-        self.book.fill(ev[self.var], self.var+'_symm', self.nbins, -self.varMax, self.varMax, w = ev['weight'] * symm / sumsymmanti, title = ';(symm) %s;events / bin'%self.var)
-        self.book.fill(ev[self.var], self.var+'_anti', self.nbins, -self.varMax, self.varMax, w = ev['weight'] * anti / sumsymmanti, title = ';(anti) %s;events / bin'%self.var)
-        self.book.fill(ev[self.var], self.var+'_flat', self.nbins, -self.varMax, self.varMax, w = ev['weight'] * 0.5  / sumsymmanti / self.varMax, title = ';(flat) %s;events / bin'%self.var)
+        self.book.fill(ev[self.var], self.var+'_symm', self.nbins, -self.varMax, self.varMax, w = w * symm / sumsymmanti, title = ';(symm) %s;events / bin'%self.var)
+        self.book.fill(ev[self.var], self.var+'_anti', self.nbins, -self.varMax, self.varMax, w = w * anti / sumsymmanti, title = ';(anti) %s;events / bin'%self.var)
+        self.book.fill(ev[self.var], self.var+'_flat', self.nbins, -self.varMax, self.varMax, w = w * 0.5  / sumsymmanti / self.varMax, title = ';(flat) %s;events / bin'%self.var)
 
     def update(self,_) :
         self.value = ()
