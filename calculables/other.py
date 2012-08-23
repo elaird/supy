@@ -242,6 +242,7 @@ class SymmAnti(secondary) :
         for item in ['thisSample','var','varMax','nbins','inspect','weights','funcEven','funcOdd'] : setattr(self,item,eval(item))
         self.fixes = (var,'')
         self.moreName = "%s: %.2f"%(var,varMax)
+        self.__symm, self.__anti = None,None
 
     def uponAcceptance(self, ev) :
         w = reduce(operator.mul, [ev[W] for W in self.weights])
@@ -280,7 +281,6 @@ class SymmAnti(secondary) :
         return symm,anti
 
     def setup(self,*_) :
-        self.__symm, self.__anti = None,None
         var = self.fromCache([self.thisSample], [self.var])[self.thisSample][self.var]
         if not var : print "cannot find cache:", self.name ; return
         if self.nbins != var.GetNbinsX() : print "inconsistent binning: %s, %s"%(self.name,self.thisSample)
@@ -292,7 +292,7 @@ class SymmAnti(secondary) :
         fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name])
         vars = dict([(sample,hists[self.var]) for sample,hists in self.fromCache(self.allSamples, [self.var]).items()])
 
-        symmantis = dict([(s,(var,)+self.prep(var,self.funcEven,self.funcOdd)) for s,var in vars.items()])
+        symmantis = dict([(s,(var,)+self.prep(var,self.funcEven,self.funcOdd)) for s,var in vars.items() if var])
         canvas = r.TCanvas()
         textlines = []
         for j,label in enumerate(['','Symmetric','Antisymmetric']) :
