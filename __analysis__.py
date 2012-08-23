@@ -238,9 +238,9 @@ class analysis(object) :
 
 ############
 
-    def manageSecondaries(self,updates,reports) :
+    def manageSecondaries(self,updates,report,reports) :
         def doUpdate(name) : return updates==True or type(updates)==str and name in updates.split(',')
-        def doReport(name) : return reports==True or type(reports)==str and name in reports.split(',')
+        def doReport(name) : return report==True or type(reports)==str and name in reports.split(',')
 
         def manage(conf,secondary) :
             if self.__nocheck and not doUpdate(secondary.name) : return
@@ -261,6 +261,9 @@ class analysis(object) :
         confLoopers = [(conf,self.listsOfLoopers[conf['tag']][0]) for conf in self.readyConfs]
         for _,looper in confLoopers : looper.setupSteps(minimal = True, withBook = False)
         args = sum([[(conf,secondary) for secondary in filter(self.isSecondary, looper.steps)] for conf,looper in confLoopers],[])
+        if reports==True :
+            print '\n'.join(set(s.name for c,s in args))
+            sys.exit(0)
         utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(manage), args)
         utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(report), args)
 
