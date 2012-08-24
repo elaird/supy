@@ -235,3 +235,88 @@ class Discriminant(secondary) :
             if not example : continue
             if issubclass(type(example),r.TH2) : del org.steps[0][key]
 #####################################
+class SymmAnti(secondary) :
+    def __init__(self, thisSample, var, varMax, nbins=100, inspect = False, weights = ['weight'],
+                 funcEven = "pol8",
+                 funcOdd = "pol8") :
+        for item in ['thisSample','var','varMax','nbins','inspect','weights','funcEven','funcOdd'] : setattr(self,item,eval(item))
+        self.fixes = (var,'')
+        self.moreName = "%s: %.2f"%(var,varMax)
+        self.__symm, self.__anti = None,None
+
+    def uponAcceptance(self, ev) :
+        w = reduce(operator.mul, [ev[W] for W in self.weights])
+        self.book.fill(ev[self.var], self.var, self.nbins, -self.varMax, self.varMax, title = ';%s;events / bin'%self.var, w = w)
+        if not self.inspect : return
+        symmanti = ev[self.name]
+        if not symmanti : return
+        sumsymmanti = sum(symmanti)
+        symm,anti = symmanti
+        self.book.fill(ev[self.var], self.var+'_symm', self.nbins, -self.varMax, self.varMax, w = w * symm / sumsymmanti, title = ';(symm) %s;events / bin'%self.var)
+        self.book.fill(ev[self.var], self.var+'_anti', self.nbins, -self.varMax, self.varMax, w = w * anti / sumsymmanti, title = ';(anti) %s;events / bin'%self.var)
+        self.book.fill(ev[self.var], self.var+'_flat', self.nbins, -self.varMax, self.varMax, w = w * 0.5  / sumsymmanti / self.varMax, title = ';(flat) %s;events / bin'%self.var)
+
+    def update(self,_) :
+        self.value = ()
+        if not self.__symm : return
+        val = self.source[self.var]
+        anti = self.__anti.Eval(val)
+        symm = max(self.__symm.Eval(val), 1.5*abs(anti))
+        self.value = (symm,anti)
+
+    @staticmethod
+    def prep(var,funcEven,funcOdd) :
+        var.Scale(1./var.Integral(0,1+var.GetNbinsX()),'width')
+        symm,anti = utils.symmAnti(var)
+        low = symm.GetBinLowEdge(1)
+        op = "QMI"
+        gop = ""
+        trunc = 0.992
+        if type(funcEven)==r.TF1 :
+            for i in range(funcEven.GetNpar()) : funcEven.SetParameter(i,0)
+        symm.Fit(funcEven, op, gop, trunc*low, 0)
+        if type(funcOdd)==r.TF1 :
+            for i in range(funcOdd.GetNpar()) : funcOdd.SetParameter(i,0)
+        anti.Fit(funcOdd, op, gop, trunc*low, 0)
+        return symm,anti
+
+    def setup(self,*_) :
+        var = self.fromCache([self.thisSample], [self.var])[self.thisSample][self.var]
+        if not var : print "cannot find cache:", self.name ; return
+        if self.nbins != var.GetNbinsX() : print "inconsistent binning: %s, %s"%(self.name,self.thisSample)
+        self.__stashsymmanti = self.prep(var,self.funcEven,self.funcOdd)
+        self.__symm,self.__anti = [next(iter(h.GetListOfFunctions())) for h in self.__stashsymmanti]
+
+    def reportCache(self) :
+        r.gStyle.SetOptStat(0)
+        fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name])
+        vars = dict([(sample,hists[self.var]) for sample,hists in self.fromCache(self.allSamples, [self.var]).items()])
+
+        symmantis = dict([(s,(var,)+self.prep(var,self.funcEven,self.funcOdd)) for s,var in vars.items() if var])
+        canvas = r.TCanvas()
+        textlines = []
+        for j,label in enumerate(['','Symmetric','Antisymmetric']) :
+            leg = r.TLegend(0.85,0.85,0.98,0.98)
+            limit_up = max([val[j].GetMaximum() for val in symmantis.values()] )
+            limit_dn = min([val[j].GetMinimum() for val in symmantis.values()] + [0] )
+            funcs = []
+            for i,(sample,val) in enumerate(sorted(symmantis.items())) :
+                val[j].SetMaximum(limit_up * 1.1)
+                val[j].SetMinimum(limit_dn * 1.1)
+                val[j].SetLineColor(i+1)
+                val[j].SetMarkerColor(i+1)
+                val[j].SetTitle("%s;%s;p.d.f"%(label,self.var))
+                leg.AddEntry(val[j],sample,'l')
+                val[j].Draw('hist' if not i else 'hist same')
+                if not j : continue
+                f = next(iter(val[j].GetListOfFunctions()))
+                f.SetLineColor(i+1)
+                f.SetLineStyle(2)
+                f.SetLineWidth(1)
+                f.Draw("same")
+                textlines+=["%s : %s"%(sample,label)] + (['%+.4f\t%s'%(f.GetParameter(m),part) for m,part in enumerate(f.GetName().split('++'))] if '++' in f.GetName() else
+                                                         ['[%d]\t%+.8f'%(m,f.GetParameter(m)) for m in range(f.GetNpar())]) + ['']
+            leg.Draw()
+            utils.tCanvasPrintPdf(canvas,fileName, verbose = j==2, option = ['(','',')'][j])
+        with open(fileName+'.txt','w') as txtfile : print >> txtfile, '\n'.join(textlines)
+#####################################

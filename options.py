@@ -13,7 +13,7 @@ parser.add_option("--sample",  dest = "sample",  default = None,                
 parser.add_option("--update",  dest = "update",  default = None,  action = "store_true",  help = "update all secondary calculables")
 parser.add_option("--updates", dest = "update",  default = None,  metavar = "sc1,sc2,..", help = "update specified secondary calculables")
 parser.add_option("--report",  dest = "report",  default = None,  action = "store_true",  help = "report all secondary calculables")
-parser.add_option("--reports", dest = "report",  default = None,  metavar = "sc1,sc2,..", help = "report specified secondary calculables")
+parser.add_option("--reports", dest = "reports", default = None,  action = "callback", callback = argOrTrue, metavar = "sc1,sc2,..", help = "report specified secondary calculables")
 parser.add_option("--jobid",   dest = "jobId",   default = None,  metavar = "id",         help = "[for internal use only]")
 parser.add_option("--site",    dest = "site",    default = None,  metavar = "prefix",     help = "[for internal use only]")
 parser.add_option("--tags",    dest = "tags",    default = None,  action = "callback", callback = argOrTrue, help = "run specified tags only, or list tags")

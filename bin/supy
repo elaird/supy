@@ -103,8 +103,8 @@ elif options.loop!=None : #loop over the events
 if options.jobId==None and not options.batch :
     try:
         anInstance.mergeAllOutput()
-        anInstance.manageSecondaries(options.update,options.report)
-        if options.update==None and options.report==None:
+        anInstance.manageSecondaries(options.update,options.report,options.reports)
+        if options.update==None and options.report==None and options.reports==None:
             anInstance.concludeAll()
     except AssertionError as foo:
         print

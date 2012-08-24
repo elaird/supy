@@ -51,32 +51,55 @@ class asymm_hard(unittest.TestCase) :
         qqbarQQbarg = [q,qbar,Q,Qbar,g]
 
         asym = Asymm_qqbar_hard()
-        asym.setMomenta(qqbarQQbarg)
+        asym.setMomenta(qqbarQQbarg,check=True)
         symm,anti = asym.symm,asym.anti
-        asym.setMomenta([qbar,q,Q,Qbar,g])
+        asym.setMomenta([qbar,q,Q,Qbar,g], check=True)
         self.assertAlmostEqual(symm, asym.symm)
         self.assertAlmostEqual(anti, -asym.anti)
-        asym.setMomenta([qbar,q,Qbar,Q,g])
+        asym.setMomenta([qbar,q,Qbar,Q,g], check=True)
         self.assertAlmostEqual(symm, asym.symm)
         self.assertAlmostEqual(anti, asym.anti)
-        asym.setMomenta([q,qbar,Qbar,Q,g])
+        asym.setMomenta([q,qbar,Qbar,Q,g], check=True)
         self.assertAlmostEqual(symm, asym.symm)
         self.assertAlmostEqual(anti, -asym.anti)
 
-    def testConstant(self) :
-        self.assertEqual(1.1**3 *10 / (432*math.pi),
-                         supy.utils.asymmWeighting.Asymm_hard.constant())
+        q = LV(4.42,-4.08,-0.89,0)
+        qbar = LV(5.28,+4.56,+0.33,0)
+        Q = LV(89.45,+0.45,-2.26,170.28)
+        Qbar = LV(61.41,+0.70,+1.14,109.12)
+        g = LV(40.69,+0.74,+0.28,0)
+        qqbarQQbarg = [q,qbar,Q,Qbar,g]
+
+        asym = Asymm_qqbar_hard()
+        asym.setMomenta(qqbarQQbarg,check=True)
+        symm,anti = asym.symm,asym.anti
+        asym.setMomenta([qbar,q,Q,Qbar,g], check=True)
+        self.assertAlmostEqual(symm, asym.symm)
+        self.assertAlmostEqual(anti, -asym.anti)
+        asym.setMomenta([qbar,q,Qbar,Q,g], check=True)
+        self.assertAlmostEqual(symm, asym.symm)
+        self.assertAlmostEqual(anti, asym.anti)
+        asym.setMomenta([q,qbar,Qbar,Q,g], check=True)
+        self.assertAlmostEqual(symm, asym.symm)
+        self.assertAlmostEqual(anti, -asym.anti)
 
     @skipIf(np==None,"System lacks numpy")
-    def testKernelQQbar(self) :
-        '''supy.utils.asymmWeighting.Asymm_qqbar_hard.kernel'''
+    def testReindexQQbar(self) :
+        '''supy.utils.asymmWeighting.Asymm_qqbar_hard.reindexed'''
         Y = np.ones(25).reshape((5,5))
-        k = supy.utils.asymmWeighting.Asymm_qqbar_hard.kernel(Y,1)
-        self.assertEqual(k, 9./2)
+        Y = Y + np.diag(range(-1,4))
+        y = supy.utils.asymmWeighting.Asymm_qqbar_hard.reindexed(Y)
+        self.assertEqual(list(np.diag(y)),[3,2,1,0,4])
+        self.assertEqual(list(y[0]), [3,1,-1,-1,1])
+        self.assertEqual(list(y.T[0]),[3,1,-1,-1,1])
 
     @skipIf(np==None,"System lacks numpy")
-    def testKernelQg(self) :
-        '''supy.utils.asymmWeighting.Asymm_qg_hard.kernel'''
+    def testReindexQg(self) :
+        '''supy.utils.asymmWeighting.Asymm_qg_hard.reindexed'''
         Y = np.ones(25).reshape((5,5))
-        k = supy.utils.asymmWeighting.Asymm_qg_hard.kernel(Y,1)
-        self.assertEqual(k, 2)
+        Y = Y + np.diag(range(-1,4))
+        y = supy.utils.asymmWeighting.Asymm_qg_hard.reindexed(Y)
+        self.assertEqual(list(np.diag(y)),[3,2,4,1,0])
+        self.assertEqual(list(y[0]), [3,1,1,-1,-1])
+        self.assertEqual(list(y.T[0]),[3,1,1,-1,-1])
+
