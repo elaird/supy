@@ -11,7 +11,7 @@ class example_analysis(supy.analysis) :
             ]
     
     def listOfCalculables(self,config) :
-        return ( supy.calculables.zeroArgs() +
+        return ( supy.calculables.zeroArgs(supy.calculables) +
                  [supy.calculables.other.fixedValue('Two',2) ]
                  )
     
@@ -30,7 +30,7 @@ class example_analysis(supy.analysis) :
         org = self.organizer(pars)
         org.scale()
         supy.plotter( org,
-                      psFileName = self.psFileName(org.tag),
+                      pdfFileName = self.pdfFileName(org.tag),
                       samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
                       sampleLabelsForRatios = ("data","sim"),
                       ).plotAll()
