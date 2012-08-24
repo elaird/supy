@@ -1,1 +1,0 @@
-from supy.defaults import *
