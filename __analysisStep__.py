@@ -28,7 +28,7 @@ class analysisStep(object) :
             return passed
         except Exception as e:
             traceback.print_tb(sys.exc_info()[2], limit=20, file=sys.stdout)
-            print e.__class__.__name__,":", e, "\nProblem with %s\n%s\n"%(type(self),self.moreName)
+            print e.__class__.__name__,":", e, "\nProblem with %s\n%s\nin entry number %d"%(type(self),self.moreName,eventVars.entry)
             sys.exit(0)
 
     @property
