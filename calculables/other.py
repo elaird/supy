@@ -141,6 +141,66 @@ class Target(Ratio) :
             print "Ratio did not find the group for %s."%self.thisGroup
             self.weights = None
 #####################################
+class Tridiscriminant(secondary) :
+    def __init__(self, fixes = ("",""),
+                 zero = {"pre":"", "samples":[], "tag":""},
+                 pi23 = {"pre":"", "samples":[], "tag":""},
+                 pi43 = {"pre":"", "samples":[], "tag":""},
+                 dists = {}, # key = calc or leaf name : val = (bins,min,max)
+                 bins = 60,
+                 correlations = False
+                 ) :
+        for item in ['fixes','zero','pi23','pi43','dists','correlations','bins'] : setattr(self,item,eval(item))
+        self.moreName = "zero:"+zero['pre'] +"; pi23:"+pi23['pre']+"; pi43:"+pi43['pre']
+        self.populations = [self.zero,self.pi23,self.pi43]
+        self.sqrt3 = math.sqrt(3)
+
+    def onlySamples(self) : return [item['pre'] for item in self.populations]
+    def baseSamples(self) :
+        samples = [item['samples'] for item in self.populations]
+        return set(sum(samples,[])) if all(samples) else []
+
+    def likelihoods(self) :
+        likes = [ self.fromCache([item['pre']], self.dists.keys()+[self.name], tag = item['tag'])[item['pre']]
+                  for item in self.populations]
+        for h in filter(None,sum([item.values() for item in likes],[])) :
+            integral = h.Integral(0,h.GetNbinsX()+1)
+            if h : h.Scale(1./integral if integral else 1., 'width')
+        return likes
+
+    def setup(self,*_) : self.likes = self.likelihoods()
+
+    def uponAcceptance(self,ev) :
+        for key,val in self.dists.iteritems() : self.book.fill(ev[key], key, *val, title = ";%s;events / bin"%key)
+        self.book.fill(ev[self.name], self.name, self.bins, -1, 1, title = ";%s;events / bin"%self.name)
+        if self.correlations :
+            for (key1,val1),(key2,val2) in itertools.combinations(self.dists.iteritems(),2) :
+                self.book.fill( ( max( val1[1], min( val1[2]-1e-6, ev[key1] )),
+                                  max( val2[1], min( val2[2]-1e-6, ev[key2] ))),"_cov_%s_%s"%(key1,key2), *zip(val1,val2), title = ';%s;%s;events / bin'%(key1,key2))
+
+    def likelihood(self,hist,val) :
+        return 0.5 if not hist else hist.Interpolate(val)
+
+    def update(self,_) :
+        L,R,X = [ reduce( operator.mul,
+                          [item[key].Interpolate(self.source[key]) for key in self.dists if item[key]],
+                          1 )
+                  for item in self.likes]
+        self.value = math.atan2( (R-X)*self.sqrt3,
+                                 2*L - (R+X) ) / math.pi # [-1,1] with zero peaking at zero, +/- pi23 peaking at +/- 0.666
+
+    def organize(self,org) :
+        [ org.mergeSamples( targetSpec = {'name':item['pre']}, sources = item['samples'], scaleFactors = item['sf'] if 'sf' in item else [], force = True) if item['samples'] else
+          org.mergeSamples( targetSpec = {'name':item['pre']}, allWithPrefix = item['pre'])
+          for item in self.populations if org.tag == item['tag']]
+        for sample in list(org.samples) :
+            if (sample['name'],org.tag) not in [(item['pre'],item['tag']) for item in self.populations] :
+                org.drop(sample['name'])
+        for key,hists in list(org.steps[0].iteritems()) :
+            example = next(iter(hists),None)
+            if not example : continue
+            if issubclass(type(example),r.TH2) : del org.steps[0][key]
+#####################################
 class Discriminant(secondary) :
     def __init__(self, fixes = ("",""),
                  left = {"pre":"","samples":[],"tag":""},
@@ -217,7 +277,7 @@ class Discriminant(secondary) :
 
     def likelihoodRatio(self,key) :
         hist = self.likelihoodRatios[key]
-        return 0.5 if not hist else hist.GetBinContent(hist.FindFixBin(self.source[key]))
+        return 1 if not hist else hist.Interpolate(self.source[key])
 
     def update(self,_) :
         likelihoodRatios = [self.likelihoodRatio(key) for key in self.dists]
