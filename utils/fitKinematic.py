@@ -162,7 +162,7 @@ class leastsqLeptonicTop2(object) :
                  massT = 172.0, massW = 80.4, lv = utils.LorentzV ) :
 
         def doInv() :
-            eig,R_ = next( ((np.maximum(1,e),rot) for e,rot in [ LA.eigh(nuErr2) ]) )
+            eig,R_ = next( (np.minimum(1e6,np.maximum(1,e)),rot) for e,rot in [ LA.eigh(nuErr2) ] )
             self.invSig2nu = np.vstack( [np.vstack( [LA.inv(R_.dot(np.diag(eig).dot(R_.T))), [0,0]] ).T, [0,0,0]])
             self.nuinv = R_.T * np.vstack(2*[1./np.sqrt(eig)]).T
             self.binv = 1./bResolution
@@ -233,7 +233,7 @@ class leastsqLeptonicTop2(object) :
                 y1_ = y0_ - S*x0_
                 x_ = [ ( pm_ - S*y1_ ) / ( 1+S**2 ) for pm_ in sqrt( 1 + S**2 - y1_**2 ) ]
                 sols += [np.array([ x, y1_+x*S, 1]) for x in x_]
-            return sorted(sols, key = chi2 )
+            return max(sorted(sols, key = chi2 ), [np.array([0,0,1])], key=len)
 
         self.solutions = solutions() if Z else [np.array([0,0,1])]
         return [deltaB * self.binv] + list(self.nuinv.dot( DeltaNu.dot(self.solutions[0])[:2]))

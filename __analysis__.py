@@ -38,6 +38,7 @@ class analysis(object) :
         self.__omit    = options.omit.split(',')
         self.__nocheck = options.nocheck
         self.__quiet   = options.quiet
+        self.__skip    = options.skip
 
         self.localStem  = "%s/%s"%(sites.info(site = self.__site, key = "localOutputDir" ), self.name)
         self.globalStem = "%s/%s"%(sites.info(site = self.__site, key = "globalOutputDir"), self.name)
@@ -222,7 +223,8 @@ class analysis(object) :
                                    steps = adjustedSteps,        calculables = allCalculables( self.listOfCalculables(pars), spec.weights, adjustedSteps ),
                                    inputFiles = inputFiles,      name = pars["sample"],
                                    localStem  = self.localStem,  subDir = "%(tag)s"%conf,
-                                   globalStem = self.globalStem, quietMode = self.__loop>1 or self.__quiet )
+                                   globalStem = self.globalStem, quietMode = self.__loop>1 or self.__quiet,
+                                   skip = self.__skip )
         sampleNames = set()
         return [ looper(sampleSpec) for sampleSpec in self.filteredSamples(conf) ]
     
@@ -238,9 +240,9 @@ class analysis(object) :
 
 ############
 
-    def manageSecondaries(self,updates,report,reports) :
+    def manageSecondaries(self,updates,reportAll,reports) :
         def doUpdate(name) : return updates==True or type(updates)==str and name in updates.split(',')
-        def doReport(name) : return report==True or type(reports)==str and name in reports.split(',')
+        def doReport(name) : return reportAll==True or type(reports)==str and name in reports.split(',')
 
         def manage(conf,secondary) :
             if self.__nocheck and not doUpdate(secondary.name) : return
