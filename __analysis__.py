@@ -240,9 +240,9 @@ class analysis(object) :
 
 ############
 
-    def manageSecondaries(self,updates,report,reports) :
+    def manageSecondaries(self,updates,reportAll,reports) :
         def doUpdate(name) : return updates==True or type(updates)==str and name in updates.split(',')
-        def doReport(name) : return report==True or type(reports)==str and name in reports.split(',')
+        def doReport(name) : return reportAll==True or type(reports)==str and name in reports.split(',')
 
         def manage(conf,secondary) :
             if self.__nocheck and not doUpdate(secondary.name) : return
