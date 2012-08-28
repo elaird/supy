@@ -179,7 +179,7 @@ class Tridiscriminant(secondary) :
                                   max( val2[1], min( val2[2]-1e-6, ev[key2] ))),"_cov_%s_%s"%(key1,key2), *zip(val1,val2), title = ';%s;%s;events / bin'%(key1,key2))
 
     def likelihood(self,hist,val) :
-        return 0.5 if not hist else hist.Interpolate(val)
+        return 1 if not hist else hist.Interpolate(val)
 
     def update(self,_) :
         L,R,X = [ reduce( operator.mul,
@@ -200,6 +200,37 @@ class Tridiscriminant(secondary) :
             example = next(iter(hists),None)
             if not example : continue
             if issubclass(type(example),r.TH2) : del org.steps[0][key]
+
+    def reportCache(self) :
+        likes = self.likelihoods()
+        fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name])
+        optstat = r.gStyle.GetOptStat()
+        r.gStyle.SetOptStat(0)
+        c = r.TCanvas()
+        utils.tCanvasPrintPdf(c, fileName, False, '[')
+        with open(fileName+'.txt', "w") as file :
+            print >> file, '\n'.join(str(d) for d in self.populations)
+            print >> file
+            for key in (set(likes[0]) & set(likes[1]) & set(likes[2])) :
+                if not all(item[key] for item in likes) : continue
+                if issubclass(type(likes[0][key]),r.TH2) : continue
+                dilutions = [utils.dilution(bins1,bins2) for bins1,bins2 in itertools.combinations([utils.binValues(item[key]) for item in likes],2)]
+                print >> file, "\t".join([key.ljust(25)]+["%.4f"%d for d in dilutions])
+                h = 1.1*max(item[key].GetMaximum() for item in likes)
+                l = r.TLegend(0.75,0.85,0.91,0.95)
+                l.SetHeader("Dilutions :  %.3f  %.3f  %.3f"%tuple(dilutions))
+                for i,(item,color,pop) in enumerate(zip(likes,[r.kBlack,r.kRed,r.kBlue],self.populations)) :
+                    item[key].SetLineColor(color)
+                    item[key].SetMaximum(h)
+                    item[key].SetMinimum(0)
+                    item[key].GetYaxis().SetTitle("pdf")
+                    item[key].Draw("hist" + ('same' if i else ''))
+                    l.AddEntry(item[key], pop['pre'],'l')
+                l.Draw()
+                utils.tCanvasPrintPdf(c, fileName, False)
+        utils.tCanvasPrintPdf(c, fileName, True, ']')
+        r.gStyle.SetOptStat(optstat)
+
 #####################################
 class Discriminant(secondary) :
     def __init__(self, fixes = ("",""),
