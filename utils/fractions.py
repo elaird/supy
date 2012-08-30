@@ -23,11 +23,12 @@ class componentSolver(object) :
         self.observed = np.array(observed)
         self.base = np.array(base if base!=None else len(observed)*[0])
         self.__comps = np.array(components) * float(sum(observed)) / zip(np.add.reduce(components,axis=1))
-        M = self.__comps.dot(self.__comps.transpose())
-        b = (self.observed - self.base).dot(self.__comps.transpose())
+        dotter = (self.__comps/(1+self.observed)).T
+        M = self.__comps.dot(dotter)
+        b = (self.observed - self.base).dot(dotter)
         self.fractions = np.linalg.solve(M,b)
         self.expected = np.maximum(zero, self.base + self.fractions.dot(self.__comps))
-        self.covariance = np.linalg.inv( (self.__comps * self.observed / self.expected**2).dot(self.__comps.transpose()))
+        self.covariance = np.linalg.inv( (self.__comps * self.observed / self.expected**2).dot(self.__comps.T))
         self.errors = np.sqrt(np.diagonal(self.covariance))
         self.__ensembleSize = ensembleSize
 
@@ -88,7 +89,7 @@ def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], ) 
     nll = nlls.Clone('-logL') ; nll.Reset(); nll.SetBinContent(nll.FindFixBin(-cs.logL), nlls.GetMaximum()); 
     nll.SetFillColor(r.kBlue); nlls.SetTitle("p-value in ensemble: %0.4f;-logL of pseudo-experiment;pseudo-experiments"%cs.p_value)
     pulls = [ utils.rHist( templateNames[i] if templateNames else "relative residuals %d"%i, 
-                           *np.histogram(pull,100,(-5,5))) for i,pull in enumerate(cs.relResiduals.transpose())]
+                           *np.histogram(pull,100,(-5,5))) for i,pull in enumerate(cs.relResiduals.T)]
 
     [dist.SetTitleSize(0.05,j) for dist in (rTemplates+pulls+[rObs,nll,nlls]) for j in ['X','Y'] ]
 
