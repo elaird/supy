@@ -171,7 +171,7 @@ class Tridiscriminant(secondary) :
     def setup(self,*_) : self.likes = self.likelihoods()
 
     def uponAcceptance(self,ev) :
-        for key,val in self.dists.iteritems() : self.book.fill(ev[key], key, *val, title = ";%s;events / bin"%key)
+        for key,val in self.dists.iteritems() : self.book.fill(max( val[1], min(val[2]-1e-6, ev[key])), key, *val, title = ";%s;events / bin"%key)
         self.book.fill(ev[self.name], self.name, self.bins, -1, 1, title = ";%s;events / bin"%self.name)
         if self.correlations :
             for (key1,val1),(key2,val2) in itertools.combinations(self.dists.iteritems(),2) :
@@ -179,11 +179,11 @@ class Tridiscriminant(secondary) :
                                   max( val2[1], min( val2[2]-1e-6, ev[key2] ))),"_cov_%s_%s"%(key1,key2), *zip(val1,val2), title = ';%s;%s;events / bin'%(key1,key2))
 
     def likelihood(self,hist,val) :
-        return 1 if not hist else hist.Interpolate(val)
+        return hist.Interpolate(val)
 
     def update(self,_) :
         L,R,X = [ reduce( operator.mul,
-                          [item[key].Interpolate(self.source[key]) for key in self.dists if item[key]],
+                          [self.likelihood(item[key],self.source[key]) for key in self.dists if item[key]],
                           1 )
                   for item in self.likes]
         self.value = math.atan2( (R-X)*self.sqrt3,
@@ -196,10 +196,6 @@ class Tridiscriminant(secondary) :
         for sample in list(org.samples) :
             if (sample['name'],org.tag) not in [(item['pre'],item['tag']) for item in self.populations] :
                 org.drop(sample['name'])
-        for key,hists in list(org.steps[0].iteritems()) :
-            example = next(iter(hists),None)
-            if not example : continue
-            if issubclass(type(example),r.TH2) : del org.steps[0][key]
 
     def reportCache(self) :
         likes = self.likelihoods()
@@ -211,13 +207,12 @@ class Tridiscriminant(secondary) :
         with open(fileName+'.txt', "w") as file :
             print >> file, '\n'.join(str(d) for d in self.populations)
             print >> file
-            for key in (set(likes[0]) & set(likes[1]) & set(likes[2])) :
+            for key in sorted((set(likes[0]) & set(likes[1]) & set(likes[2])), key = lambda k: -1 if self.name==k else k) :
                 if not all(item[key] for item in likes) : continue
-                if issubclass(type(likes[0][key]),r.TH2) : continue
                 dilutions = [utils.dilution(bins1,bins2) for bins1,bins2 in itertools.combinations([utils.binValues(item[key]) for item in likes],2)]
                 print >> file, "\t".join([key.ljust(25)]+["%.4f"%d for d in dilutions])
                 h = 1.1*max(item[key].GetMaximum() for item in likes)
-                l = r.TLegend(0.75,0.85,0.91,0.95)
+                l = r.TLegend(0.75,0.85,0.98,0.98)
                 l.SetHeader("Dilutions :  %.3f  %.3f  %.3f"%tuple(dilutions))
                 for i,(item,color,pop) in enumerate(zip(likes,[r.kBlack,r.kRed,r.kBlue],self.populations)) :
                     item[key].SetLineColor(color)
@@ -228,6 +223,18 @@ class Tridiscriminant(secondary) :
                     l.AddEntry(item[key], pop['pre'],'l')
                 l.Draw()
                 utils.tCanvasPrintPdf(c, fileName, False)
+        c.Clear()
+        c.Divide(3,2)
+        covs = [self.fromCache([item['pre']], ["_cov_%s_%s"%pair for pair in itertools.combinations(self.dists.keys(),2)], tag = item['tag'])[item['pre']] for item in self.populations]
+        for key in (set(covs[0]) & set(covs[1]) & set(covs[2])) :
+            if not all(item[key] for item in covs) : continue
+            hists = [item[key] for item in covs]
+            deps = [utils.dependence(h,limit=1,inSigma=False) for h in hists]
+            for i,(h,d,pop) in enumerate(zip(hists,deps,self.populations)) :
+                d.SetTitle(pop['pre'])
+                c.cd(i+1); h.Draw('colz')
+                c.cd(i+4); d.Draw('colz')
+            utils.tCanvasPrintPdf(c, fileName, False)
         utils.tCanvasPrintPdf(c, fileName, True, ']')
         r.gStyle.SetOptStat(optstat)
 
