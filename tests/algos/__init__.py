@@ -122,8 +122,8 @@ class testQuadraticInterpolation(unittest.TestCase) :
 
 class testPairs(unittest.TestCase) :
     def test(self) :
-        '''supy.utils.algos.pairs'''
-        from supy.utils.algos import pairs
+        import itertools
+        def pairs(l) : return itertools.combinations(l, 2)
         self.assertEqual( set(pairs([])),        set([]) )
         self.assertEqual( set(pairs([1])),       set([]) )
         self.assertEqual( set(pairs([1,2])),     set([(1,2)]) )
