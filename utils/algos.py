@@ -103,6 +103,3 @@ def contract(strings) :
                     "{%s}"%(','.join([ contract(list(ctails))
                                        for c,ctails in groupby( tails,
                                                                 key = lambda s: next(iter(s),''))])))
-
-def pairs(l = []) :
-    return itertools.combinations(l,2)
