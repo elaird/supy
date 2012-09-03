@@ -105,8 +105,4 @@ def contract(strings) :
                                                                 key = lambda s: next(iter(s),''))])))
 
 def pairs(l = []) :
-    out = []
-    for i,left in enumerate(l[:-1]) :
-        for right in l[1+i:] :
-            out.append( (left,right) )
-    return out
+    return itertools.combinations(l,2)
