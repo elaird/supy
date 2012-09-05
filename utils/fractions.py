@@ -16,13 +16,13 @@ class componentSolver(object) :
 
     @classmethod
     def ensembleOf(cls, nToys, expected, components, base) :
-        return [cls(toy, components, 0, base) for toy in np.array([np.random.poisson(L, nToys) for L in expected]).transpose()]
+        return [cls(toy, components, 0, base, normalize = False) for toy in np.array([np.random.poisson(L, nToys) for L in expected]).transpose()]
     
-    def __init__(self, observed = (), components = [()], ensembleSize = 1e2, base = None) :
+    def __init__(self, observed = (), components = [()], ensembleSize = 1e2, base = None, normalize = True) :
         zero = 1e-6
         self.observed = np.array(observed)
         self.base = np.array(base if base!=None else len(observed)*[0])
-        self.__comps = np.array(components) * float(sum(observed)) / zip(np.add.reduce(components,axis=1))
+        self.__comps = np.array(components) * ((float(sum(observed)) / np.array(zip(np.add.reduce(components,axis=1)))) if normalize else 1)
         dotter = (self.__comps/(1+self.observed)).T
         M = self.__comps.dot(dotter)
         b = (self.observed - self.base).dot(dotter)
@@ -69,7 +69,7 @@ class componentSolver(object) :
 
 import sys, itertools, ROOT as r
 import __init__ as utils
-def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], ) :
+def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], showDifference = False ) :
     oldStyle = r.gStyle.GetOptStat()
     r.gStyle.SetOptStat(1101)
     if not canvas : canvas = r.TCanvas()
@@ -82,6 +82,7 @@ def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], ) 
     base = utils.rHist("base",cs.base,range(len(cs.base)+1)); base.SetFillColor(r.kGray)
     rTemplates = [utils.rHist("template%d"%i,d,range(len(d)+1)) for i,d in enumerate(cs.components)]
     rObs = utils.rHist("observed",cs.observed,range(len(d)+1),True)
+    if showDifference : rObs.Add(base,-1)
     rObs.SetTitle("%s;bin # ;events"%(distName if distName else provisionalTitle))
     rObs.SetMarkerStyle(20)
 
@@ -132,7 +133,7 @@ def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], ) 
     leg.Draw()
 
     canvas.cd(1)
-    rTemplates = sorted(rTemplates,key=lambda t: -t.Integral()) + [base]
+    rTemplates = sorted(rTemplates,key=lambda t: -t.Integral()) + ([] if showDifference else [base])
     for t,h in reversed(zip(rTemplates[:-1],rTemplates[1:])) : t.Add(h)
     rObs.Draw("e")
     for t in rTemplates : t.Draw("histsame")
