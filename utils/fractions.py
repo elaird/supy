@@ -77,7 +77,7 @@ def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], sh
     canvas.cd(0)
     canvas.Divide(2,2)
 
-    provisionalTitle = "ML fractions:   "+", ".join(utils.roundString(f,e,noSci=True) for f,e in zip(cs.fractions,cs.errors) )
+    provisionalTitle = "ML factors:   "+", ".join(utils.roundString(f,e,noSci=True) for f,e in zip(cs.fractions,cs.errors) )
 
     base = utils.rHist("base",cs.base,range(len(cs.base)+1)); base.SetFillColor(r.kGray)
     rTemplates = [utils.rHist("template%d"%i,d,range(len(d)+1)) for i,d in enumerate(cs.components)]
