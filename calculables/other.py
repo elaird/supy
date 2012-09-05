@@ -343,7 +343,7 @@ class SymmAnti(secondary) :
         self.__symm, self.__anti = None,None
 
     def uponAcceptance(self, ev) :
-        w = reduce(operator.mul, [ev[W] for W in self.weights])
+        w = reduce(operator.mul, [ev[W] for W in self.weights], 1)
         self.book.fill(ev[self.var], self.var, self.nbins, -self.varMax, self.varMax, title = ';%s;events / bin'%self.var, w = w)
         if not self.inspect : return
         symmanti = ev[self.name]
