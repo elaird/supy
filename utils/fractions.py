@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 import bisect
-try:
-    import numpy as np
-except:
-    pass
+try: import numpy as np
+except: pass
 
 class cached(object):
     def __init__(self, func): self.__func = func
@@ -68,7 +66,8 @@ class componentSolver(object) :
 
 
 import sys, itertools, ROOT as r
-import __init__ as utils
+from root import rHist
+from algos import roundString
 def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], showDifference = False ) :
     oldStyle = r.gStyle.GetOptStat()
     r.gStyle.SetOptStat(1101)
@@ -77,19 +76,19 @@ def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], sh
     canvas.cd(0)
     canvas.Divide(2,2)
 
-    provisionalTitle = "ML factors:   "+", ".join(utils.roundString(f,e,noSci=True) for f,e in zip(cs.fractions,cs.errors) )
+    provisionalTitle = "ML factors:   "+", ".join(roundString(f,e,noSci=True) for f,e in zip(cs.fractions,cs.errors) )
 
-    base = utils.rHist("base",cs.base,range(len(cs.base)+1)); base.SetFillColor(r.kGray)
-    rTemplates = [utils.rHist("template%d"%i,d,range(len(d)+1)) for i,d in enumerate(cs.components)]
-    rObs = utils.rHist("observed",cs.observed,range(len(d)+1),True)
+    base = rHist("base",cs.base,range(len(cs.base)+1)); base.SetFillColor(r.kGray)
+    rTemplates = [rHist("template%d"%i,d,range(len(d)+1)) for i,d in enumerate(cs.components)]
+    rObs = rHist("observed",cs.observed,range(len(d)+1),True)
     if showDifference : rObs.Add(base,-1)
     rObs.SetTitle("%s;bin # ;events"%(distName if distName else provisionalTitle))
     rObs.SetMarkerStyle(20)
 
-    nlls = utils.rHist("-logLs", *np.histogram([-toy.logL for toy in cs.ensemble], 100) )
+    nlls = rHist("-logLs", *np.histogram([-toy.logL for toy in cs.ensemble], 100) )
     nll = nlls.Clone('-logL') ; nll.Reset(); nll.SetBinContent(nll.FindFixBin(-cs.logL), nlls.GetMaximum()); 
     nll.SetFillColor(r.kBlue); nlls.SetTitle("p-value in ensemble: %0.4f;-logL of pseudo-experiment;pseudo-experiments"%cs.p_value)
-    pulls = [ utils.rHist( templateNames[i] if templateNames else "relative residuals %d"%i, 
+    pulls = [ rHist( templateNames[i] if templateNames else "relative residuals %d"%i, 
                            *np.histogram(pull,100,(-5,5))) for i,pull in enumerate(cs.relResiduals.T)]
 
     [dist.SetTitleSize(0.05,j) for dist in (rTemplates+pulls+[rObs,nll,nlls]) for j in ['X','Y'] ]
@@ -121,7 +120,7 @@ def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], sh
     leg.SetTextFont(102)
     labels = ["sample"]+(templateNames+len(rTemplates)*[""])[:len(rTemplates)]+["fixed","observed"]
     countLabels = [label.replace("#bar{","").replace("}","") for label in labels]
-    fractions = ["fraction"]+[utils.roundString(f,e,noSci=True) for f,e in zip(cs.fractions,cs.errors)] + ["%.3f"%(float(sum(cs.base))/sum(cs.observed)),"1.0"]
+    fractions = ["factor"]+[roundString(f,e,noSci=True) for f,e in zip(cs.fractions,cs.errors)] + ["%.3f"%(float(sum(cs.base))/sum(cs.observed)),"1.0"]
     events = ["events"] + [str(int(sum(comp))) for comp in cs.components] + [str(int(sum(cs.base))),str(int(sum(cs.observed)))]
     objects = [0]+rTemplates + [base,rObs]
 
