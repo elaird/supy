@@ -92,6 +92,20 @@ class weighted(analysisStep) :
             self.book.fill( var, "%02d%s"%(iW,self.var), self.N, self.low, self.up, title = ";%s;events / bin"%self.var,
                             w = bW * w )
 #####################################
+class symmAnti(analysisStep) :
+    def __init__(self, weightVar, var, N, low, up) :
+        for item in ['weightVar','var','N','low','up'] : setattr(self,item,eval(item))
+        self.moreName = "%s in (anti)symm parts of %s"%(var,weightVar)
+    def uponAcceptance(self,ev) :
+        var = ev[self.var]
+        self.book.fill(var, self.var, self.N, self.low, self.up, title = ";%s;events / bin"%self.var)
+        symmanti = ev[self.weightVar + "SymmAnti"]
+        if not symmanti : return
+        sumsymmanti = sum(symmanti)
+        self.book.fill(var, self.var+'_symm', self.N, self.low, self.up, title = ";%s;events / bin"%self.var, w = ev['weight'] *symmanti[0]/sumsymmanti )
+        self.book.fill(var, self.var+'_anti', self.N, self.low, self.up, title = ";%s;events / bin"%self.var, w = ev['weight'] *symmanti[1]/sumsymmanti )
+        self.book.fill(var, self.var+'_flat', self.N, self.low, self.up, title = ";%s;events / bin"%self.var, w = ev['weight'] / sumsymmanti / (self.up-self.low) )
+#####################################
 
 
 ## Deprecated

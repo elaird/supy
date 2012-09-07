@@ -8,10 +8,10 @@ class analysisLooper :
 
     def __init__(self, mainTree = None, otherTreesToKeepWhenSkimming = None, leavesToBlackList = None,
                  localStem = None, globalStem = None, subDir = None, steps = None, calculables = None, inputFiles = None, name = None,
-                 nEventsMax = None, quietMode = None) :
+                 nEventsMax = None, quietMode = None, skip = None ) :
 
         for arg in ["mainTree", "otherTreesToKeepWhenSkimming", "leavesToBlackList", "steps", "calculables",
-                    "localStem", "globalStem", "subDir", "inputFiles", "name", "nEventsMax", "quietMode"] :
+                    "localStem", "globalStem", "subDir", "inputFiles", "name", "nEventsMax", "quietMode", "skip"] :
             setattr(self, arg, eval(arg))
 
         self.trace = configuration.trace() and not any([step.requiresNoTrace() for step in self.steps])
@@ -76,7 +76,7 @@ class analysisLooper :
                 step.tracer = step.source
                 step.source.tracedKeys |= step.priorFilters
 
-            [ all(step(eventVars) for step in self.steps) for eventVars in chainWrapper.entries(self.nEventsMax) ]
+            [ all(step(eventVars) for step in self.steps) for eventVars in chainWrapper.entries(self.nEventsMax, self.skip) ]
 
             for step in filter(lambda s: s.tracer and s.name in s.tracer.tracedKeys, self.steps) : step.tracer.tracedKeys.remove(step.name)
             self.recordLeavesAndCalcsUsed( chainWrapper.activeKeys(), chainWrapper.calcDependencies() )
@@ -116,6 +116,8 @@ class analysisLooper :
             print "The %d \"%s\" input file%s:"%(nFiles, self.name, "s" if nFiles>1 else '')
             print '\n'.join(self.inputFiles[:2]+["..."][:len(self.inputFiles)-1]+self.inputFiles[2:][-2:])
             print "contain%s %s events."%(("s" if nFiles==1 else ""), nEventsString)
+            if self.skip :
+                print "Skipping first %d events"%self.skip
             print utils.hyphens
 
     def deleteChains(self) : #free up memory (http://wlav.web.cern.ch/wlav/pyroot/memory.html)
@@ -146,6 +148,7 @@ class analysisLooper :
             if minimal : continue
             step.tracer = keyTracer(None) if self.trace and (step.isSelector or issubclass(type(step),wrappedChain.calculable)) else None
             assert step.isSelector ^ hasattr(step,"uponAcceptance"), "Step %s must implement 1 and only 1 of {select,uponAcceptance}"%step.name
+            if step.disabled : continue
             step.setup(self.chains[self.mainTree], self.mainTree[0])
 
     def endSteps(self) : [ step.endFunc(self.chains) for step in self.steps ]

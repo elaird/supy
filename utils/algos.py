@@ -103,3 +103,38 @@ def contract(strings) :
                     "{%s}"%(','.join([ contract(list(ctails))
                                        for c,ctails in groupby( tails,
                                                                 key = lambda s: next(iter(s),''))])))
+#####################################
+def symmAnti(hist) :
+    nbins = hist.GetNbinsX()
+    symm = hist.Clone(hist.GetName()+'_symm')
+    anti = hist.Clone(hist.GetName()+'_anti')
+    for i in range(2+nbins) :
+        a,b = hist.GetBinContent(i), hist.GetBinContent(1+nbins-i)
+        e = math.sqrt( 0.5*(hist.GetBinError(i)**2 + hist.GetBinError(1+nbins-i)**2) )
+        symm.SetBinContent(i,0.5*(a+b)) ; symm.SetBinError(i,e)
+        anti.SetBinContent(i,0.5*(a-b)) ; anti.SetBinError(i,e)
+    return symm,anti
+#####################################
+def roundString(val, err, width=None, noSci = False, noErr = False) :
+    err_digit = int(math.floor(math.log(abs(err))/math.log(10))) if err else 0
+    val_digit = int(math.floor(math.log(abs(val))/math.log(10))) if val else 0
+    dsp_digit = max(err_digit,val_digit)
+    sci = (val_digit<-1 or err_digit>0) and not noSci
+
+    precision = val_digit-err_digit if sci else -err_digit
+
+    display_val = val/pow(10.,dsp_digit) if sci else val
+    display_err = str(int(round(err/pow(10,err_digit))))
+
+    while True:
+        display_sci = ("e%+d"%dsp_digit) if sci else ""
+        returnVal = "%.*f(%s)%s"%(precision,display_val,display_err,display_sci) if not noErr else "%.*f%s"%(precision,display_val,display_sci)
+        if (not width) or len(returnVal) <= width or precision < 1: break
+        else:
+            display_err = "-"
+            if not precision :
+                display_val*=10
+                dsp_digit-=1
+            precision-=1
+    return returnVal
+#####################################

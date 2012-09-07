@@ -120,6 +120,29 @@ class testQuadraticInterpolation(unittest.TestCase) :
         '''supy.utils.algos.quadraticInterpolation'''
         from supy.utils.algos import quadraticInterpolation
 
+class testSymmAnti(unittest.TestCase) :
+    def test(self) :
+        '''supy.utils.algos.symmAnti'''
+        from supy.utils.algos import symmAnti
+        import ROOT as r
+        bins = 5
+        line = r.TH1D('line','',bins,-1,1)
+        quad = r.TH1D('quad','',bins,-1,1)
+        for i in range(bins+2) :
+            line.SetBinContent(i,line.GetBinCenter(i))
+            quad.SetBinContent(i,quad.GetBinCenter(i)**2)
+        tmp = line.Clone('tmp')
+        factors = [(f,g) for f in range(-5,5) for g in range(-5,5)]
+        for f,g in factors :
+            tmp.Add(line,quad,f,g)
+            symm,anti = symmAnti(tmp)
+            symmVals = [round(a,12) for a in [symm.GetBinContent(i) for i in range(bins+2)]   ]
+            antiVals = [round(a,12) for a in [anti.GetBinContent(i) for i in range(bins+2)]   ]
+            lineVals = [round(a,12) for a in [f*line.GetBinContent(i) for i in range(bins+2)] ]
+            quadVals = [round(a,12) for a in [g*quad.GetBinContent(i) for i in range(bins+2)] ]
+            self.assertEqual(symmVals,quadVals)
+            self.assertEqual(antiVals,lineVals)
+
 class testPairs(unittest.TestCase) :
     def test(self) :
         import itertools

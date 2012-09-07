@@ -43,7 +43,7 @@ def rHist(name,bins,edges,poissonErrors=False) :
         hist.SetBinError(i+1,math.sqrt(bin) if poissonErrors else 0)
     return hist
 #####################################
-def binValues(hist) : return [hist.GetBinContent(i) for i in range(0,hist.GetNbinsX()+2)]
+def binValues(hist) : return [hist.GetBinContent(i) for i in range(hist.GetNbinsX()+2)]
 #####################################
 def tCanvasPrintPdf(canvas, fileName, verbose = True, option = '' ) :
     illegal = [':','[',']','(',')']

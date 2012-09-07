@@ -1,12 +1,10 @@
 from multiprocessing import Process,JoinableQueue
 import traceback,sys,itertools, ROOT as r
-try:
-    import numpy as np
-except:
-    pass
+try: import numpy as np
+except: pass
 
 for module in ['algos','cms','io','root'] : exec("from %s import *"%module)
-for module in ['fitKinematic','luminosity','fractions','templateFit','minuit'] : exec("import %s"%module)
+for module in ['fitKinematic','luminosity','fractions','templateFit','minuit','asymmWeighting'] : exec("import %s"%module)
 
 #####################################
 hyphens="-"*115
@@ -52,30 +50,7 @@ class qWorker(object) :
                 print e.__class__.__name__,":", e
             q.task_done()
 #####################################        
-def roundString(val, err, width=None, noSci = False, noErr = False) :
-    err_digit = int(math.floor(math.log(abs(err))/math.log(10))) if err else 0
-    val_digit = int(math.floor(math.log(abs(val))/math.log(10))) if val else 0
-    dsp_digit = max(err_digit,val_digit)
-    sci = (val_digit<-1 or err_digit>0) and not noSci
-
-    precision = val_digit-err_digit if sci else -err_digit
-
-    display_val = val/pow(10.,dsp_digit) if sci else val
-    display_err = str(int(round(err/pow(10,err_digit))))
-
-    while True:
-        display_sci = ("e%+d"%dsp_digit) if sci else ""
-        returnVal = "%.*f(%s)%s"%(precision,display_val,display_err,display_sci) if not noErr else "%.*f%s"%(precision,display_val,display_sci)
-        if (not width) or len(returnVal) <= width or precision < 1: break
-        else:
-            display_err = "-"
-            if not precision :
-                display_val*=10
-                dsp_digit-=1
-            precision-=1
-    return returnVal
-#####################################
-def dependence(TH2, name="", minimum=-5, maximum=5, inSigma = True) :
+def dependence(TH2, name="", limit=5, inSigma = True) :
     if not TH2: return None
     if TH2.GetDirectory() : TH2.GetDirectory().cd()
     dep = TH2.Clone(name if name else TH2.GetName()+"_dependence")
@@ -88,17 +63,17 @@ def dependence(TH2, name="", minimum=-5, maximum=5, inSigma = True) :
             X = projX.GetBinContent(iX)
             Y = projY.GetBinContent(iY)
             bin = TH2.GetBin(iX,iY)
-            XY = TH2.GetBinContent(bin)
+            XY = max(0,TH2.GetBinContent(bin))
             dBin = math.log(norm*XY/X/Y) if XY else 0
             eX = projX.GetBinError(iX)
             eY = projX.GetBinError(iY)
             eXY = TH2.GetBinError(bin)
             eBin = math.sqrt((eXY/XY)**2 + (eX/X)**2 + (eY/Y)**2) if XY else 1# faulty assumption of independent errors
             #dep.SetBinContent(bin, min(maximum,max(minimum,math.log(norm*XY/X/Y)/(eBin if eBin and inSigma else 1))) if XY else 0)
-            dep.SetBinContent(bin, min(maximum,max(minimum,dBin/(eBin if eBin and inSigma else 1))) if XY else 0)
+            dep.SetBinContent(bin, min(limit,max(-limit,dBin/(eBin if eBin and inSigma else 1))) if XY else 0)
             dep.SetBinError(bin,0)
-    dep.SetMinimum(minimum)
-    dep.SetMaximum(maximum)
+    dep.SetMinimum(-limit)
+    dep.SetMaximum(limit)
     
     return dep
 #####################################
