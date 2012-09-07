@@ -143,5 +143,15 @@ class testSymmAnti(unittest.TestCase) :
             self.assertEqual(symmVals,quadVals)
             self.assertEqual(antiVals,lineVals)
 
+class testPairs(unittest.TestCase) :
+    def test(self) :
+        import itertools
+        def pairs(l) : return itertools.combinations(l, 2)
+        self.assertEqual( set(pairs([])),        set([]) )
+        self.assertEqual( set(pairs([1])),       set([]) )
+        self.assertEqual( set(pairs([1,2])),     set([(1,2)]) )
+        self.assertEqual( set(pairs([1,2,3])),   set([(1,2), (1,3), (2,3)]) )
+        self.assertEqual( set(pairs([2,4,8,6])), set([(2,4), (2,6), (2,8), (4,6), (4,8), (8,6)]) )
+
 if __name__ == "__main__" :
     unittest.main()
