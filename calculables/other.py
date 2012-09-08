@@ -235,6 +235,27 @@ class Tridiscriminant(secondary) :
                 c.cd(i+1); h.Draw('colz')
                 c.cd(i+4); d.Draw('colz')
             utils.tCanvasPrintPdf(c, fileName, False)
+        c.Clear()
+        for key in sorted((set(likes[0]) & set(likes[1]) & set(likes[2])), key = lambda k: -1 if self.name==k else k) :
+            if not all(item[key] for item in likes) : continue
+            for i,j in itertools.combinations(range(3),2) :
+                k = next(k for k in range(3) if k not in [i,j])
+                templates = [ utils.binValues(likes[ii][key]) for ii in [i,j] ]
+                observed = utils.binValues(likes[k][key])
+                cs = utils.fractions.componentSolver(observed,templates)
+                notK = likes[k][key].Clone('bf_not_'+likes[k][key].GetName())
+                notK.Reset()
+                notK.Add(likes[i][key],likes[j][key],cs.fractions[0],cs.fractions[1])
+                dil = utils.dilution(utils.binValues(likes[k][key]),utils.binValues(notK))
+                l = r.TLegend(0.75,0.85,0.98,0.98)
+                l.SetHeader("Dilution : %.3f"%dil)
+                l.AddEntry(likes[k][key], self.populations[k]['pre'], 'l')
+                l.AddEntry(notK, 'not '+self.populations[k]['pre'], 'l')
+                notK.SetLineStyle(2)
+                likes[k][key].Draw('hist')
+                notK.Draw('hist same')
+                l.Draw()
+                utils.tCanvasPrintPdf(c, fileName, False)
         utils.tCanvasPrintPdf(c, fileName, True, ']')
         r.gStyle.SetOptStat(optstat)
 
