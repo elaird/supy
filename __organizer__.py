@@ -155,8 +155,6 @@ class organizer(object) :
         elif force: pass
         else: raise Exception("Cannot merge data with sim")
 
-        if not scaleFactors : scaleFactors = [1.0]*len(sources)
-        
         def tuplePopInsert(orig, item) :
             val = list(orig)
             if not keepSources : [val.pop(i) for i in reversed(sourceIndices) ]
@@ -169,10 +167,10 @@ class organizer(object) :
         for step in self.steps :
             r.gDirectory.mkdir(*step.nameTitle).cd()
             for key,val in step.iteritems():
-                sources = filter(None, map(val.__getitem__,sourceIndices))
-                hist = sources[0].Clone(key) if len(sources) else None
-                if len(sources) : hist.Scale(scaleFactors[0])
-                for h,sf in zip(sources,scaleFactors)[1:]: hist.Add( h, sf )
+                sourceFactors = [(val[i],sf) for i,sf in zip(sourceIndices,scaleFactors if scaleFactors else [1.0]*len(sources)) if val[i]]
+                hist = sourceFactors[0][0].Clone(key) if len(sourceFactors) else None
+                if hist : hist.Scale(sourceFactors[0][1])
+                for h,sf in sourceFactors[1:] : hist.Add( h, sf )
                 step[key] = tuplePopInsert( val, hist )
             step.rawFailPass = tuplePopInsert( step.rawFailPass, None )
         self.samples = tuplePopInsert( self.samples, target )
