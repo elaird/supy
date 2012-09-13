@@ -229,8 +229,9 @@ class leastsqLeptonicTop2(object) :
             Y = M - eig*self.Unit
             c22 = self.cofactor(Y,(2,2))
             x0_,y0_ = self.cofactor(Y,(0,2)) / c22 , self.cofactor(Y,(1,2)) / c22
-            for S in [ (-Y[0,1]+pm)/Y[1,1] for pm in sqrt(-c22) ] :
-                y1_ = y0_ - S*x0_
+            Sy1 = ( [(S, y0_-S*x0_) for S in [ (-Y[0,1]+pm)/Y[1,1] for pm in sqrt(-c22) ]] if x0_**2+y0_**2<1e10 else # intersection at radius < 100k
+                    [(Y[0,1]/Y[1,1], (Y[1,2 + pm])/Y[1,1]) for pm in sqrt(-self.cofactor(Y,(0,0)))] ) # essentially parallel
+            for S,y1_ in Sy1 :
                 x_ = [ ( pm_ - S*y1_ ) / ( 1+S**2 ) for pm_ in sqrt( 1 + S**2 - y1_**2 ) ]
                 sols += [np.array([ x, y1_+x*S, 1]) for x in x_]
             return max(sorted(sols, key = chi2 ), [np.array([0,0,1])], key=len)
