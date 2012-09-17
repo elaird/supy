@@ -223,16 +223,17 @@ class leastsqLeptonicTop2(object) :
         def chi2(t) : return t.T.dot(self.X.dot(t))
         def sqrt(s) : return [] if s<=0 else (lambda r: [-r,r])(math.sqrt(s))
         def solutions() :
-            sols = []
             M = next( N.T + N for N in [ self.X.dot( self.D ) ] )
             eig = next( e.real for e in LA.eigvals(self.Unit.dot(M),overwrite_a=True) if not e.imag)
             Y = M - eig*self.Unit
+            swapXY = abs(Y[0,0]) > abs(Y[1,1]) # choose denomenator further from zero, ignoring case where both are zero (perp. lines vert+horiz)
+            if swapXY : Y = Y[(1,0,2),][:,(1,0,2)]
             c22 = self.cofactor(Y,(2,2))
-            x0_,y0_ = self.cofactor(Y,(0,2)) / c22 , self.cofactor(Y,(1,2)) / c22
-            for S in [ (-Y[0,1]+pm)/Y[1,1] for pm in sqrt(-c22) ] :
-                y1_ = y0_ - S*x0_
-                x_ = [ ( pm_ - S*y1_ ) / ( 1+S**2 ) for pm_ in sqrt( 1 + S**2 - y1_**2 ) ]
-                sols += [np.array([ x, y1_+x*S, 1]) for x in x_]
+            x0_,y0_ = (self.cofactor(Y,(0,2)) / c22 , self.cofactor(Y,(1,2)) / c22) if c22 else (None,None)
+            sols = [ np.array( (x, y1_+x*S)[::(-1)**swapXY] +  (1,))
+                     for S,y1_ in ( [(Y[0,1]/Y[1,1], (Y[1,2] + pm)/Y[1,1]) for pm in sqrt(-self.cofactor(Y,(0,0)))]    if c22>=0 else # parallel ||
+                                    [(S, y0_-S*x0_) for S in [ (-Y[0,1]+pm)/Y[1,1] for pm in sqrt(-c22) ]] )                      # intersecting /|
+                     for x in [ ( pm_ - S*y1_ ) / ( 1+S**2 ) for pm_ in sqrt( 1 + S**2 - y1_**2 ) ] ]
             return max(sorted(sols, key = chi2 ), [np.array([0,0,1])], key=len)
 
         self.solutions = solutions() if Z else [np.array([0,0,1])]
