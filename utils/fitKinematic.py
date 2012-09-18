@@ -256,7 +256,7 @@ class leastsqLeptonicTop2(object) :
 class ttbarDileptonSolver(object) :
     '''Find valid neutrino solutions under hypothesis 2x(t->bW->blv) using exact mass constraints.'''
 
-    def __init__(self, bb_ = (None,None), mumu_ = (None,Non), met = (None,None), massT2=172.5**2, massW2=80.4**2, lv = utils.LorentzV ) :
+    def __init__(self, bb_ = (None,None), mumu_ = (None,None), met = (None,None), massT2=172.5**2, massW2=80.4**2, lv = utils.LorentzV ) :
         S = np.array([[-1, 0,met[0]],
                       [ 0,-1,met[1]],
                       [ 0, 0, 1]])
