@@ -50,6 +50,7 @@ class wrappedChain(dict) :
         """Generate the access dictionary (self) for each entry in TTree."""
         if not self.__chain: return
         chain = self.__chain
+        nEntries = (lambda x,y : min(x,y) if x>=0 else y)( nEntries, chain.GetEntries() )
         iTreeFirstEntry = 0
         
         for nTree in range(chain.GetNtrees()) :
@@ -65,7 +66,8 @@ class wrappedChain(dict) :
             for iTreeEntry in range( nTreeEntries )  :
                 if (not nTree) and iTreeEntry==100 : tree.StopCacheLearningPhase()
                 self.entry = iTreeFirstEntry + iTreeEntry
-                if nEntries!=None and nEntries <= self.entry : self.entry-=1; return
+                if nEntries <= self.entry : self.entry-=1; return
+                #if nEntries!=None and nEntries <= self.entry : self.entry-=1; return
                 self.__localEntry = iTreeEntry
                 for node in self.__activeNodeList : node.updated = False
                 if skip<=self.entry : yield self
