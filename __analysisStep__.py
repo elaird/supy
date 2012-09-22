@@ -11,6 +11,7 @@ class analysisStep(object) :
     disabled = quietMode = False
     only = ''
     __invert = False
+    __dump = False
     
     def setup(self, inputChain, fileDirectory) : return
     def mergeFunc(self, products) : return
@@ -61,6 +62,19 @@ class analysisStep(object) :
         self.__invert = val
         if val : self.moreName += " [INVERTED]"
         return self
+
+    def dump(self) :
+        self.__dump = True
+        return self
+    @property
+    def toDump(self) : return self.__dump
+    def dumpFlag(self) :
+        #self.increment(10)
+        # the histo is not ready when we need it
+        if 'counts' in self.book : self.book['counts'].SetTitle(self.book['counts'].GetTitle()+';dump')
+        else :
+            self.increment(10)
+            self.book['counts'].SetTitle(self.book['counts'].GetTitle()+';dump')
 
     def onlySim(self) :
         self.only = 'sim'
