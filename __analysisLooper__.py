@@ -158,6 +158,7 @@ class analysisLooper :
             while "/" not in r.gDirectory.GetName() : r.gDirectory.GetMotherDir().cd()
             for step in self.steps :
                 r.gDirectory.mkdir(step.name, step.moreNames).cd()
+                if step.toDump : step.dumpFlag()
                 for hist in [step.book[name] for name in step.book.fillOrder] : hist.Write()
                 if self.trace and step.isSelector :
                     r.gDirectory.mkdir("Calculables").cd()
