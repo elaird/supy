@@ -42,7 +42,7 @@ class fixedValue(wrappedChain.calculable) :
 #####################################
 class value(wrappedChain.calculable) :
     def __init__( self, var, indices = None, index = None, short = None) :
-        self.fixes = ("%s."%var, "%d%s"%(index, short if indices!=None and short!=None else indices) if index else "")
+        self.fixes = ("%s."%var, "%d%s"%(index, short if indices!=None and short!=None else indices) if index!=None else "")
         for item in ['var','indices','index','short'] : setattr(self,item,eval(item))
     def update(self,_) :
         var = self.source[self.var]
