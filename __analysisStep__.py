@@ -68,14 +68,6 @@ class analysisStep(object) :
         return self
     @property
     def toDump(self) : return self.__dump
-    def dumpFlag(self) :
-        #self.increment(10)
-        # the histo is not ready when we need it
-        if 'counts' in self.book : self.book['counts'].SetTitle(self.book['counts'].GetTitle()+';dump')
-        else :
-            self.increment(10)
-            self.book['counts'].SetTitle(self.book['counts'].GetTitle()+';dump')
-
     def onlySim(self) :
         self.only = 'sim'
         return self
