@@ -217,7 +217,7 @@ class analysis(object) :
                                            lumiWarn = lumiWarn(tup.lumi, nEventsMax, spec.nFilesMax) )] +
                              self.listOfSteps(pars) )
             for step in filter(lambda s: s.only not in ['','data' if tup.lumi else 'sim'], adjustedSteps) : step.disabled = True
-            
+            for step in adjustedSteps : print 'step.toDump ',step.toDump
             return analysisLooper( mainTree = self.mainTree(),   otherTreesToKeepWhenSkimming = self.otherTreesToKeepWhenSkimming(),
                                    nEventsMax = nEventsMax,      leavesToBlackList = self.leavesToBlackList(),
                                    steps = adjustedSteps,        calculables = allCalculables( self.listOfCalculables(pars), spec.weights, adjustedSteps ),
@@ -231,6 +231,11 @@ class analysis(object) :
 ############
     def mergeAllOutput(self) :
         args = sum([[(conf['tag'],looper) for looper in self.listsOfLoopers[conf['tag']]] for conf in self.configurations],[])
+        for (c,l) in args :
+            for s in l.steps : print 'l',l.name,'.step.toDump ',s.toDump
+            for s in l.steps :
+                if s.toDump : s.dumpHistos(l.name)
+                print 'l',l.name,'.step.toDump ',s.toDump
         utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(self.mergeOutput), args, False)
     
     def mergeOutput(self,tag,looper) :

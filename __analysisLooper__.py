@@ -229,6 +229,7 @@ class analysisLooper :
         self.printStats()
         for iStep,step,stepDict in zip(range(len(self.steps)),self.steps,products) :
             if iStep : rootFile.cd('/'.join(step.name for step in self.steps[:iStep+1] ))
+            print 'mergeFunc step.toDump ',step.toDump
             step.mergeFunc(stepDict)
             if not iStep: rootFile = r.TFile.Open(self.steps[0].outputFileName, "UPDATE")
         rootFile.Close()

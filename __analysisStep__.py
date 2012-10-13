@@ -68,6 +68,16 @@ class analysisStep(object) :
         return self
     @property
     def toDump(self) : return self.__dump
+    def dumpHistos(self, sampleName) :
+        print 'dir(',self.name,')'
+        print dir(self)
+        return
+        import ROOT as r
+        outFile = r.TFile.Open("%s_%s.root"%(self.name,sampleName), 'recreate')
+        outFile.cd()
+        histosToDump = [h for h in self.book.keys() if h not in ['counts']]
+        for h in histosToDump : h.Write()
+        outFile.Close()
     def onlySim(self) :
         self.only = 'sim'
         return self
