@@ -23,8 +23,8 @@ class generic(analysisStep) :
         self.book.fill( self.func(value), self.hName, self.N, self.low, self.up, title=self.title)
 #####################################
 class value(analysisStep) :
-    def __init__(self, var,N,low,up, indices = "", index = None, xtitle = "") :
-        for item in ["var","N","low","up","indices","index"] :
+    def __init__(self, var,N,low,up, indices = "", index = None, xtitle = "", w = None) :
+        for item in ["var","N","low","up","indices","index",'w'] :
             setattr(self,item,eval(item))
 
         self.moreName = var + self.wrapName() + ("[i[%d]]:%s"%(index,indices) if index!=None else "")
@@ -37,7 +37,7 @@ class value(analysisStep) :
         if val is None : return
 
         if not self.indices: 
-            self.book.fill(self.wrap(val), self.moreName, self.N, self.low, self.up, title=self.title)
+            self.book.fill(self.wrap(val), self.moreName, self.N, self.low, self.up, title=self.title, w = (eventVars[self.w] if self.w else None))
             return
 
         indices = eventVars[self.indices]
