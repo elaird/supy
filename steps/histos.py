@@ -93,18 +93,25 @@ class weighted(analysisStep) :
                             w = bW * w )
 #####################################
 class symmAnti(analysisStep) :
-    def __init__(self, weightVar, var, N, low, up) :
+    def __init__(self, weightVar, var, N, low, up, other = None) :
         for item in ['weightVar','var','N','low','up'] : setattr(self,item,eval(item))
         self.moreName = "%s in (anti)symm parts of %s"%(var,weightVar)
+        self.other = other
     def uponAcceptance(self,ev) :
         var = ev[self.var]
         self.book.fill(var, self.var, self.N, self.low, self.up, title = ";%s;events / bin"%self.var)
+        if self.other :
+            self.book.fill( (var,ev[self.other[0]]), self.var + self.other[0], (self.N,self.other[1]), (self.low,self.other[2]), (self.up,self.other[3]), title = ";%s;%s;events / bin"%(self.var,self.other[0]))
         symmanti = ev[self.weightVar + "SymmAnti"]
         if not symmanti : return
         sumsymmanti = sum(symmanti)
         self.book.fill(var, self.var+'_symm', self.N, self.low, self.up, title = ";%s;events / bin"%self.var, w = ev['weight'] *symmanti[0]/sumsymmanti )
         self.book.fill(var, self.var+'_anti', self.N, self.low, self.up, title = ";%s;events / bin"%self.var, w = ev['weight'] *symmanti[1]/sumsymmanti )
         self.book.fill(var, self.var+'_flat', self.N, self.low, self.up, title = ";%s;events / bin"%self.var, w = ev['weight'] / sumsymmanti / (self.up-self.low) )
+        if self.other :
+            self.book.fill( (var, ev[self.other[0]]), self.var+self.other[0]+'_symm', (self.N,self.other[1]), (self.low,self.other[2]), (self.up,self.other[3]), title = ";%s;%s;events / bin"%(self.var,self.other[0]), w = ev['weight'] *symmanti[0]/sumsymmanti )
+            self.book.fill( (var, ev[self.other[0]]), self.var+self.other[0]+'_anti', (self.N,self.other[1]), (self.low,self.other[2]), (self.up,self.other[3]), title = ";%s;%s;events / bin"%(self.var,self.other[0]), w = ev['weight'] *symmanti[1]/sumsymmanti )
+            self.book.fill( (var, ev[self.other[0]]), self.var+self.other[0]+'_flat', (self.N,self.other[1]), (self.low,self.other[2]), (self.up,self.other[3]), title = ";%s;%s;events / bin"%(self.var,self.other[0]), w = ev['weight'] / sumsymmanti / (self.up-self.low) )
 #####################################
 
 
