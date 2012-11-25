@@ -131,7 +131,6 @@ class analysisLooper :
         r.gROOT.cd()
         current = r.gDirectory
         priorFilters = []
-        self.steps[0].books = []
 
         for step in self.steps :
             step.setOutputFileStem(self.outputFileStem)
@@ -143,7 +142,6 @@ class analysisLooper :
             if withBook : 
                 current = current.mkdir(step.name)
                 step.book = autoBook(current)
-                self.steps[0].books.append(step.book)
 
             if minimal : continue
             step.tracer = keyTracer(None) if self.trace and (step.isSelector or issubclass(type(step),wrappedChain.calculable)) else None

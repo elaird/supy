@@ -20,6 +20,7 @@ class analysisStep(object) :
 
     def __call__(self,eventVars) :
         try:
+            self.book.weight = eventVars["weight"]
             if self.disabled : return True
             tev = self.tracer(eventVars) if self.tracer else eventVars
             if not self.isSelector : return self.uponAcceptance(tev) or True

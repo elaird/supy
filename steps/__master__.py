@@ -6,7 +6,6 @@ class master(supy.analysisStep) :
         
     def select (self, eventVars) :
         weight = eventVars["weight"]
-        for book in self.books: book.weight = weight
         if weight is None : self.book.weight = 1
         else: self.increment(False, 1-weight)
         return weight is not None
