@@ -1,8 +1,6 @@
-import os,math,array, ROOT as r
-try:
-    import numpy as np
-except:
-    pass
+import configuration,os,math,array, ROOT as r
+try:  import numpy as np
+except: np = None
 
 #####################################
 def gDirectory() :
@@ -18,7 +16,9 @@ def generateDictionaries(inList, dir = None) :
 lvClass = None
 def LorentzV(*args) :
     global lvClass
-    if lvClass is None : lvClass = r.Math.LorentzVector(r.Math.PtEtaPhiM4D('float'))
+    if lvClass is None :
+        coord,prec = configuration.LorentzVectorType()
+        lvClass = r.Math.LorentzVector(getattr( r.Math, coord)(prec))
     return lvClass(*args)
 #####################################
 def Dot(lvA,lvB) :
