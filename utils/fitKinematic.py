@@ -223,16 +223,17 @@ class leastsqLeptonicTop2(object) :
         def chi2(t) : return t.T.dot(self.X.dot(t))
         def sqrt(s) : return [] if s<=0 else (lambda r: [-r,r])(math.sqrt(s))
         def solutions() :
-            sols = []
             M = next( N.T + N for N in [ self.X.dot( self.D ) ] )
             eig = next( e.real for e in LA.eigvals(self.Unit.dot(M),overwrite_a=True) if not e.imag)
             Y = M - eig*self.Unit
+            swapXY = abs(Y[0,0]) > abs(Y[1,1]) # choose denomenator further from zero, ignoring case where both are zero (perp. lines vert+horiz)
+            if swapXY : Y = Y[(1,0,2),][:,(1,0,2)]
             c22 = self.cofactor(Y,(2,2))
-            x0_,y0_ = self.cofactor(Y,(0,2)) / c22 , self.cofactor(Y,(1,2)) / c22
-            for S in [ (-Y[0,1]+pm)/Y[1,1] for pm in sqrt(-c22) ] :
-                y1_ = y0_ - S*x0_
-                x_ = [ ( pm_ - S*y1_ ) / ( 1+S**2 ) for pm_ in sqrt( 1 + S**2 - y1_**2 ) ]
-                sols += [np.array([ x, y1_+x*S, 1]) for x in x_]
+            x0_,y0_ = (self.cofactor(Y,(0,2)) / c22 , self.cofactor(Y,(1,2)) / c22) if c22 else (None,None)
+            sols = [ np.array( (x, y1_+x*S)[::(-1)**swapXY] +  (1,))
+                     for S,y1_ in ( [(Y[0,1]/Y[1,1], (Y[1,2] + pm)/Y[1,1]) for pm in sqrt(-self.cofactor(Y,(0,0)))]    if c22>=0 else # parallel ||
+                                    [(S, y0_-S*x0_) for S in [ (-Y[0,1]+pm)/Y[1,1] for pm in sqrt(-c22) ]] )                      # intersecting /|
+                     for x in [ ( pm_ - S*y1_ ) / ( 1+S**2 ) for pm_ in sqrt( 1 + S**2 - y1_**2 ) ] ]
             return max(sorted(sols, key = chi2 ), [np.array([0,0,1])], key=len)
 
         self.solutions = solutions() if Z else [np.array([0,0,1])]
@@ -252,3 +253,115 @@ class leastsqLeptonicTop2(object) :
 
         return res
 
+class ttbarDileptonSolver(object) :
+    '''Find valid neutrino solutions under hypothesis 2x(t->bW->blv) using exact mass constraints.'''
+
+    def __init__(self, bb_ = (None,None), mumu_ = (None,None), met = (None,None), massT2=172.5**2, massW2=80.4**2, lv = utils.LorentzV ) :
+        U = np.diag([1,1,-1])
+        S = np.array([[-1, 0,met[0]],
+                      [ 0,-1,met[1]],
+                      [ 0, 0, 1]])
+
+        nus = utils.vessel()
+        nus.ellipse  = tuple( self.Ellipse(b,mu,massT2,massW2) for b,mu in zip(bb_,mumu_) )
+        if any(e==None for e in nus.ellipse) : self.nunu_s = []; return
+        nus.ellipseT = tuple( np.vstack([e[:2],[0,0,1]]) for e in nus.ellipse )
+        nus.ellipseT_inv = tuple( np.linalg.inv(eT) for eT in nus.ellipseT )
+        nus.nT_inv   = tuple( eT.dot(U.dot(eT.T)) for eT in nus.ellipseT )
+        nus.nT = tuple( np.linalg.inv(nTi) for nTi in nus.nT_inv )
+
+        nT_p = S.T.dot(nus.nT[1]).dot(S)
+        eig = next( e.real for e in LA.eigvals( nus.nT_inv[0].dot(nT_p),overwrite_a=True ) if not e.imag )
+        G = nT_p - eig * nus.nT[0]
+
+        nus.vs = [ ( nus.ellipse[0].dot(nus.ellipseT_inv[0]).dot(nuT),
+                     nus.ellipse[1].dot(nus.ellipseT_inv[1]).dot(S.dot(nuT)))
+                   for nuT in self.intersections( G, nus.nT[0] ) ]
+        if not nus.vs : nus.vs = [self.closestXY(nus.ellipse,met)]
+
+        self.nunu_s = [ (lv(),lv()) for _ in nus.vs ]
+        for (nu,n_),(vu,v_) in zip(self.nunu_s,nus.vs) :
+            nu.SetPxPyPzE(vu[0],vu[1],vu[2],0); nu.SetM(0)
+            n_.SetPxPyPzE(v_[0],v_[1],v_[2],0); n_.SetM(0)
+
+        self.nus = nus
+        self.bb_ = bb_
+        self.mumu_ = mumu_
+        self.met = met
+
+    @staticmethod
+    def cofactor(A,(i,j)) :
+        a = A[not i:2 if i==2 else None:2 if i==1 else 1,
+              not j:2 if j==2 else None:2 if j==1 else 1]
+        return (-1)**(i+j) * (a[0,0]*a[1,1] - a[1,0]*a[0,1])
+
+    @classmethod
+    def intersections(cls, degenerate, ellipse ) :
+        swapXY = degenerate[0,0] > degenerate[1,1]
+        G = degenerate[(1,0,2),][:,(1,0,2)] if swapXY else degenerate
+        E = ellipse[(1,0,2),][:,(1,0,2)] if swapXY else ellipse
+        c22 = cls.cofactor(G,(2,2))
+
+        def sqrt(x) : return [] if x<0 else [0] if x==0 else (lambda r: [-r,r])(math.sqrt(x))
+        def parallel() : return [ (-G[0,1]/G[1,1], (pm - G[1,2])/G[1,1] ) for pm in sqrt(-cls.cofactor(G,(0,0)))]
+        def intersecting() :
+            x0,y0 = cls.cofactor(G,(0,2))/c22, cls.cofactor(G,(1,2))/c22
+            return [ (m, y0-m*x0) for m in [-(G[0,1]+pm)/G[1,1] for pm in sqrt(-c22)]]
+        def xintersect(slope,offset) :
+            m = np.array([1,slope,0])
+            b = np.array([0,offset,1])
+            A = m.T.dot(E.dot(m))
+            B = m.T.dot(E.dot(b)) / A
+            C = b.T.dot(E.dot(b)) / A
+            return [pm-B for pm in sqrt(B**2-C)]
+
+        return [ np.array( (x, slope*x+offset)[::(-1)**swapXY] + (1,))
+                 for slope,offset in ( parallel() if c22>=0 else intersecting() )
+                 for x in xintersect(slope,offset) ]
+
+    @staticmethod
+    def R(axis, angle) :
+        c,s = math.cos(angle),math.sin(angle)
+        R = c * np.eye(3)
+        for i in [-1,0,1] : R[ (axis-i)%3, (axis+i)%3 ] = i*s + (1 - i*i)
+        return R
+
+    @classmethod
+    def R_T(cls,b,mu) :
+        bXYZ = [b.x(),b.y(),b.z()]
+        R_z = cls.R(2, -mu.phi() )
+        R_y = cls.R(1,  0.5*math.pi - mu.theta() )
+        R_x = next( cls.R(0,-math.atan2(z,y)) for x,y,z in (R_y.dot( R_z.dot( bXYZ ) ),))
+        return np.dot( R_z.T, np.dot( R_y.T, R_x.T ) )
+
+    @classmethod
+    def Ellipse(cls,b,mu,massT2,massW2) :
+
+        Q = 0.5 * (massT2 - massW2 - b.M2())
+        c = r.Math.VectorUtil.CosTheta(b,mu)
+        s = math.sqrt(1-c*c)
+        mu_p,b_p = mu.P(), b.P()
+
+        x0 = -0.5 * massW2 / mu_p
+        y0 = - (x0*c + Q/b_p) / s
+        m = (b.E()/b_p -c) / s
+
+        y1 = -x0 / m
+        x1 = x0 + (y1-y0) / m
+        Z2 = y1*(y1 - 2*y0) - x0*x0 - massW2
+
+        if Z2<=0 : return None
+        Z = math.sqrt(Z2)
+        R_T = cls.R_T(b,mu)
+
+        return R_T.dot( np.array([[Z/m, 0, x1-mu_p],
+                                  [ Z,  0,   y1   ],
+                                  [ 0,  Z,   0    ]]) )
+
+    @staticmethod
+    def closestXY(ellipses,(x0,y0)) :
+        met = np.array([-x0,-y0,0])
+        def nus(ts) : return tuple(e.dot([math.cos(t),math.sin(t),1]) for e,t in zip(ellipses,ts))
+        ts,_ = opt.leastsq( lambda params : sum( nus(params), met)[:2],
+                            [0,0], ftol=5e-4, epsfcn=0.01 )
+        return nus(ts)

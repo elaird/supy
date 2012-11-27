@@ -72,3 +72,7 @@ def initializeROOT(r, cppFiles = []) :
 
 def haddErrorsToIgnore() :
     return ["", "Exception in thread QueueFeederThread (most likely raised during interpreter shutdown):",]
+
+
+def LorentzVectorType() :
+    return ('PtEtaPhiM4D','float')

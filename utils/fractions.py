@@ -16,7 +16,7 @@ class componentSolver(object) :
     def ensembleOf(cls, nToys, expected, components, base) :
         return [cls(toy, components, 0, base, normalize = False) for toy in np.array([np.random.poisson(L, nToys) for L in expected]).transpose()]
     
-    def __init__(self, observed = (), components = [()], ensembleSize = 1e2, base = None, normalize = True) :
+    def __init__(self, observed = (), components = [()], ensembleSize = 1e2, base = None, normalize = True, asGiven = False) :
         zero = 1e-6
         self.observed = np.array(observed)
         self.base = np.array(base if base!=None else len(observed)*[0])
@@ -24,7 +24,7 @@ class componentSolver(object) :
         dotter = (self.__comps/(1+self.observed)).T
         M = self.__comps.dot(dotter)
         b = (self.observed - self.base).dot(dotter)
-        self.fractions = np.linalg.solve(M,b)
+        self.fractions = np.linalg.solve(M,b) if not asGiven else np.array(zip(*( np.array(zip(np.add.reduce(components,axis=1))) / (sum(base) + sum(np.add.reduce(components,axis=1))) ))[0])
         self.expected = np.maximum(zero, self.base + self.fractions.dot(self.__comps))
         self.covariance = np.linalg.inv( (self.__comps * self.observed / self.expected**2).dot(self.__comps.T))
         self.errors = np.sqrt(np.diagonal(self.covariance))
