@@ -20,10 +20,18 @@ class analysisStep(object) :
 
     def __call__(self,eventVars) :
         try:
+            self.book.weight = eventVars["weight"]
             if self.disabled : return True
             tev = self.tracer(eventVars) if self.tracer else eventVars
             if not self.isSelector : return self.uponAcceptance(tev) or True
-            passed = bool(self.select(tev)) ^ self.__invert
+            passFactor = self.select(tev)
+            if 0 < passFactor < 1 :
+                if self.__invert : passFactor = 1-passFactor
+                dict.__getitem__(eventVars,"weight").value *= passFactor
+                self.increment(True,  self.book.weight * passFactor)
+                self.increment(False, self.book.weight * (1-passFactor))
+                return True
+            passed = bool(passFactor) ^ self.__invert
             self.increment(passed)
             return passed
         except Exception as e:
