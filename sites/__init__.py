@@ -13,8 +13,8 @@ def site() :
     return "default"
 
 def prefix() :
-    exp = configuration.experiment()
-    return site()+("_%s"%exp if exp else "")
+    tokens = filter(None, [site(), configuration.experiment()])
+    return '_'.join(tokens)
 
 def specs() :
     user = os.environ["USER"]
@@ -28,7 +28,6 @@ def specs() :
                     "lsPrefix":"",
                     "queueHeaders":[],
                     "queueVars":{},
-                    "CMSSW_lumi":None,
             },
         "ic_cms"  :{"localOutputDir" : "/vols/cms04/%s/tmp/"%user,
                     "globalOutputDir": "/vols/cms04/%s/tmp/"%user,
@@ -79,6 +78,9 @@ def info(site = prefix(), key = None) :
 def batchScripts() :
     p = "sites/"+prefix()
     return ("%sSub.sh"%p, "%sJob.sh"%p, "%sTemplate.condor"%p)
+
+def lumiEnvScript() :
+    return "sites/%sLumi.sh"%prefix()
 
 def mvCommand(site = None, src = None, dest = None) :
     d = {#"fnal_cms":"srmcp file:///%s %s/%s"%(src, srmPrefix("fnal"), dest.replace("/pnfs/cms/WAX/","/")),
