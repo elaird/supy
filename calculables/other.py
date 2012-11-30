@@ -1,6 +1,8 @@
 import math,operator,itertools, ROOT as r
 from supy import wrappedChain,utils
 from . import secondary
+try: import numpy as np
+except: np = None
 
 #####################################
 class localEntry(wrappedChain.calculable) :
@@ -148,16 +150,17 @@ class Tridiscriminant(secondary) :
                  pi43 = {"pre":"", "samples":[], "tag":""},
                  dists = {}, # key = calc or leaf name : val = (bins,min,max)
                  bins = 60,
-                 correlations = False
+                 correlations = False,
+                 otherSamplesToKeep = []
                  ) :
-        for item in ['fixes','zero','pi23','pi43','dists','correlations','bins'] : setattr(self,item,eval(item))
+        for item in ['fixes','zero','pi23','pi43','dists','correlations','bins','otherSamplesToKeep'] : setattr(self,item,eval(item))
         self.moreName = "zero:"+zero['pre'] +"; pi23:"+pi23['pre']+"; pi43:"+pi43['pre']
-        self.populations = [self.zero,self.pi23,self.pi43]
+        self.populations = [self.pi43,self.zero,self.pi23]
         self.sqrt3 = math.sqrt(3)
 
     def onlySamples(self) : return [item['pre'] for item in self.populations]
     def baseSamples(self) :
-        samples = [item['samples'] for item in self.populations]
+        samples = [item['samples'] for item in self.populations] + [self.otherSamplesToKeep]
         return set(sum(samples,[])) if all(samples) else []
 
     def likelihoods(self) :
@@ -182,7 +185,7 @@ class Tridiscriminant(secondary) :
         return hist.Interpolate(val)
 
     def update(self,_) :
-        L,R,X = [ reduce( operator.mul,
+        X,L,R = [ reduce( operator.mul,
                           [self.likelihood(item[key],self.source[key]) for key in self.dists if item[key]],
                           1 )
                   for item in self.likes]
@@ -190,6 +193,8 @@ class Tridiscriminant(secondary) :
                                  2*L - (R+X) ) / math.pi # [-1,1] with zero peaking at zero, +/- pi23 peaking at +/- 0.666
 
     def organize(self,org) :
+        org.mergeSamples( targetSpec = {'name':'data'}, sources = [s['name'] for s in org.samples if 'lumi' in s])
+        org.scale(lumiToUseInAbsenceOfData=1)
         [ org.mergeSamples( targetSpec = {'name':item['pre']}, sources = item['samples'], scaleFactors = item['sf'] if 'sf' in item else [], force = True) if item['samples'] else
           org.mergeSamples( targetSpec = {'name':item['pre']}, allWithPrefix = item['pre'])
           for item in self.populations if org.tag == item['tag']]
@@ -242,7 +247,9 @@ class Tridiscriminant(secondary) :
                 k = next(k for k in range(3) if k not in [i,j])
                 templates = [ utils.binValues(likes[ii][key]) for ii in [i,j] ]
                 observed = utils.binValues(likes[k][key])
-                cs = utils.fractions.componentSolver(observed,templates)
+                try:  cs = utils.fractions.componentSolver(observed,templates)
+                except: cs = None
+                if not cs : continue
                 notK = likes[k][key].Clone('bf_not_'+likes[k][key].GetName())
                 notK.Reset()
                 notK.Add(likes[i][key],likes[j][key],cs.fractions[0],cs.fractions[1])
@@ -381,7 +388,7 @@ class SymmAnti(secondary) :
         val = self.source[self.var]
         anti = self.__anti.Eval(val)
         symm = max(self.__symm.Eval(val), 1.5*abs(anti))
-        self.value = (symm,anti)
+        self.value = (symm,anti) if symm else (1,0)
 
     @staticmethod
     def prep(var,funcEven,funcOdd) :
@@ -439,3 +446,52 @@ class SymmAnti(secondary) :
             utils.tCanvasPrintPdf(canvas,fileName, verbose = j==2, option = ['(','',')'][j])
         with open(fileName+'.txt','w') as txtfile : print >> txtfile, '\n'.join(textlines)
 #####################################
+class TwoDChiSquared(secondary) :
+    def __init__(self, var, samples, tag ) :
+        for item in ['var','samples','tag'] : setattr(self,item,eval(item))
+        self.fixes = (var,'')
+        self.stats = ['w','w*X','w*Y','w*X*X','w*X*Y','w*Y*Y']
+        self.labels = ['#sum %s'%s.replace('*','') for s in self.stats]
+        self.N = len(self.stats)
+
+    def onlySamples(self) : return ['merged']
+    def baseSamples(self) : return self.samples
+    def organize(self,org) :
+        if org.tag ==self.tag :
+            org.mergeSamples(targetSpec = {"name":'merged'}, sources = self.samples )
+
+    def uponAcceptance(self,ev) :
+        xy = ev[self.var]
+        if not xy : return
+        X,Y = xy
+        w = ev['weight']
+        for i,stat in enumerate( self.stats ) :
+            self.book.fill(i, "stats", self.N,0,self.N,
+                           w = eval(stat),
+                           title = ";stats for %s;"%self.var,
+                           xAxisLabels = self.labels )
+
+    def update(self,_) :
+        xy = self.source[self.var] + (1,)
+        self.value = np.dot( xy, np.dot( self.matrix, xy) ) if len(xy)>2 else None
+
+    def setup(self,*_) :
+        H = self.fromCache(['merged'],['stats'])['merged']['stats']
+        if not H:
+            self.matrix = np.array(3*[3*[0]])
+            return
+        H.Scale(1./H.GetBinContent(H.FindFixBin(self.stats.index('w'))))
+        stats = dict([(L.replace('w','').replace('*',''),
+                       H.GetBinContent(H.FindFixBin(i)))
+                      for i,L in enumerate(self.stats)])
+
+        inv = np.vstack( [np.vstack( [np.linalg.inv([[stats['XX'],stats['XY']],
+                                                     [stats['XY'],stats['YY']]]),
+                                      2*[0]] ).T,
+                          3*[0]] )
+
+        trans = np.array([[1,0,-stats['X']],
+                          [0,1,-stats['Y']],
+                          [0,0,1]])
+
+        self.matrix = np.dot( trans.T, np.dot( inv, trans ) )
