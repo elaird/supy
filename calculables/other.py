@@ -476,8 +476,9 @@ class TwoDChiSquared(secondary) :
         self.value = np.dot( xy, np.dot( self.matrix, xy) ) if len(xy)>2 else None
 
     def setup(self,*_) :
-        H = self.fromCache(['merged'],['stats'])['merged']['stats']
+        H = self.fromCache(['merged'],['stats'], tag = self.tag)['merged']['stats']
         if not H:
+            print self.name, 'stats histogram not found.'
             self.matrix = np.array(3*[3*[0]])
             return
         H.Scale(1./H.GetBinContent(H.FindFixBin(self.stats.index('w'))))
@@ -495,3 +496,54 @@ class TwoDChiSquared(secondary) :
                           [0,0,1]])
 
         self.matrix = np.dot( trans.T, np.dot( inv, trans ) )
+
+######################################
+
+class CombinationsLR(secondary) :
+    def __init__(self, var, varMax, trueKey, samples, tag) :
+        for item in ['samples','tag','var','varMax','trueKey'] : setattr(self,item,eval(item))
+        self.fixes = (var,'')
+
+    def update(self,_) :
+        var = self.source[self.var]
+        self.value = dict( (i,
+                            self.LR.Interpolate(v) if self.LR else 1)
+                           for i,v in self.source[self.var].items())
+
+    def uponAcceptance(self,ev) :
+        trueKey = self.source[self.trueKey]
+        for key,val in self.source['LTopUnfitSqrtChi2'].items() :
+            self.book.fill(min(val,self.varMax*(1-1e-6)),'%scorrect'%('' if key==trueKey else 'in'), 100,0,self.varMax)
+
+    def setup(self,*_) :
+        hists = self.fromCache(['merged'],['correct','incorrect'], tag = self.tag)['merged']
+        if None in hists.values() :
+            print self.name, ": Histograms not found."
+            self.LR = None
+            return
+        self.LR = hists['correct'].Clone('LR')
+        self.LR.Divide(hists['incorrect'])
+        return hists
+    def onlySamples(self) : return ['merged']
+    def baseSamples(self) : return self.samples
+    def organize(self,org) :
+        if org.tag == self.tag :
+            org.mergeSamples(targetSpec = {"name":'merged'}, sources = self.samples )
+    def reportCache(self) :
+        hists = self.setup()
+        if not hists :
+            print '%s.setup() failed'%self.name
+            return
+        fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name]) + '.pdf'
+        c = r.TCanvas()
+        c.Print(fileName +'[')
+        hists['correct'].SetLineColor(r.kRed)
+        hists['correct'].Draw('hist')
+        hists['incorrect'].Draw('hist same')
+        c.Print(fileName)
+        self.LR.SetTitle("LikelihoodRatio, Correct:Incorrect; %s"%self.var)
+        self.LR.Draw('hist')
+        c.Print(fileName)
+        c.Print(fileName +']')
+        print 'Wrote : %s'%fileName
+######################################
