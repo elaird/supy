@@ -512,8 +512,8 @@ class CombinationsLR(secondary) :
 
     def uponAcceptance(self,ev) :
         trueKey = self.source[self.trueKey]
-        for key,val in self.source['LTopUnfitSqrtChi2'].items() :
-            self.book.fill(min(val,self.varMax*(1-1e-6)),'%scorrect'%('' if key==trueKey else 'in'), 100,0,self.varMax)
+        for key,val in self.source[self.var].items() :
+            self.book.fill(min(val,self.varMax*(1-1e-6)),'%scorrect'%('' if key==trueKey else 'in'), 100,0,self.varMax, title = ';%s'%self.var)
 
     def setup(self,*_) :
         hists = self.fromCache(['merged'],['correct','incorrect'], tag = self.tag)['merged']
@@ -521,6 +521,7 @@ class CombinationsLR(secondary) :
             print self.name, ": Histograms not found."
             self.LR = None
             return
+        for h in hists.values() : h.Scale(1./h.Integral(0,1+h.GetNbinsX()))
         self.LR = hists['correct'].Clone('LR')
         self.LR.Divide(hists['incorrect'])
         return hists
@@ -542,6 +543,7 @@ class CombinationsLR(secondary) :
         hists['incorrect'].Draw('hist same')
         c.Print(fileName)
         self.LR.SetTitle("LikelihoodRatio, Correct:Incorrect; %s"%self.var)
+        self.LR.SetMinimum(0)
         self.LR.Draw('hist')
         c.Print(fileName)
         c.Print(fileName +']')
