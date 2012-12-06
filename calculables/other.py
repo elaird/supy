@@ -167,6 +167,8 @@ class Tridiscriminant(secondary) :
         likes = [ self.fromCache([item['pre']], self.dists.keys()+[self.name], tag = item['tag'])[item['pre']]
                   for item in self.populations]
         for h in filter(None,sum([item.values() for item in likes],[])) :
+            for i in range(2+h.GetNbinsX()) :
+                if h.GetBinContent(i) < 0 : h.SetBinContent(i,0)
             integral = h.Integral(0,h.GetNbinsX()+1)
             if h : h.Scale(1./integral if integral else 1., 'width')
         return likes
