@@ -447,8 +447,8 @@ class SymmAnti(secondary) :
         with open(fileName+'.txt','w') as txtfile : print >> txtfile, '\n'.join(textlines)
 #####################################
 class TwoDChiSquared(secondary) :
-    def __init__(self, var, samples, tag ) :
-        for item in ['var','samples','tag'] : setattr(self,item,eval(item))
+    def __init__(self, var, samples, tag, binningX = (), binningY = (), labelsXY = (), tailSuppression = None ) :
+        for item in ['var','samples','tag','binningX','binningY','labelsXY','tailSuppression'] : setattr(self,item,eval(item))
         self.fixes = (var,'')
         self.stats = ['w','w*X','w*Y','w*X*X','w*X*Y','w*Y*Y']
         self.labels = ['#sum %s'%s.replace('*','') for s in self.stats]
@@ -470,24 +470,48 @@ class TwoDChiSquared(secondary) :
                            w = eval(stat),
                            title = ";stats for %s;"%self.var,
                            xAxisLabels = self.labels )
+        if self.binningX and self.binningY and self.labelsXY :
+            self.book.fill( xy, "xy", *zip(self.binningX,self.binningY), title = ";%s;%s"%self.labelsXY)
 
     def update(self,_) :
         xy = self.source[self.var] + (1,)
         self.value = np.dot( xy, np.dot( self.matrix, xy) ) if len(xy)>2 else None
 
     def setup(self,*_) :
-        H = self.fromCache(['merged'],['stats'], tag = self.tag)['merged']['stats']
+        hists = self.fromCache(['merged'],['stats','xy'], tag = self.tag)['merged']
+        H = hists['stats']
+        self.xy = hists['xy']
         if not H:
             print self.name, 'stats histogram not found.'
             self.matrix = np.array(3*[3*[0]])
             return
-        H.Scale(1./H.GetBinContent(H.FindFixBin(self.stats.index('w'))))
-        stats = dict([(L.replace('w','').replace('*',''),
-                       H.GetBinContent(H.FindFixBin(i)))
-                      for i,L in enumerate(self.stats)])
 
-        inv = np.vstack( [np.vstack( [np.linalg.inv([[stats['XX'],stats['XY']],
-                                                     [stats['XY'],stats['YY']]]),
+        if self.xy and self.tailSuppression :
+            xyDraw = self.xy.Clone('_draw')
+            self.xySup = self.xy.Clone('_suppressed')
+            self.xySup.Reset()
+            self.xySup.SetTitle("Tail suppressed at %.2f"%self.tailSuppression)
+            stats = dict((s,0) for s in self.stats)
+            iX,iY,iZ = [r.Long() for _ in range(3)]
+            while xyDraw.Integral() > self.tailSuppression * self.xy.Integral() :
+                iMax = xyDraw.GetMaximumBin()
+                xyDraw.SetBinContent(iMax,0)
+                w = self.xy.GetBinContent(iMax)
+                self.xySup.SetBinContent(iMax,w)
+                self.xy.GetBinXYZ(iMax,iX,iY,iZ)
+                X = self.xy.GetXaxis().GetBinCenter(iX)
+                Y = self.xy.GetYaxis().GetBinCenter(iY)
+                for item in self.stats : stats[item] += eval(item)
+            stats = dict((key.replace('w','').replace('*',''),
+                          val/stats['w']) for key,val in stats.items())
+        else:
+            H.Scale(1./H.GetBinContent(H.FindFixBin(self.stats.index('w'))))
+            stats = dict([(L.replace('w','').replace('*',''),
+                           H.GetBinContent(H.FindFixBin(i)))
+                          for i,L in enumerate(self.stats)])
+
+        inv = np.vstack( [np.vstack( [np.linalg.inv([[  stats['XX']-stats['X']*stats['X'],  stats['XY']-stats['X']*stats['Y']],
+                                                     [  stats['XY']-stats['X']*stats['Y'],  stats['YY']-stats['Y']*stats['Y']]]),
                                       2*[0]] ).T,
                           3*[0]] )
 
@@ -497,6 +521,35 @@ class TwoDChiSquared(secondary) :
 
         self.matrix = np.dot( trans.T, np.dot( inv, trans ) )
 
+    def reportCache(self) :
+        optstat = r.gStyle.GetOptStat()
+        r.gStyle.SetOptStat(0)
+        self.setup()
+        fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name])
+        sigmas = r.TH2D("sigmas","Contours of Integer Sigma, Gaussian Approximation;%s;%s"%self.labelsXY, *(self.binningX+self.binningY))
+        for iX in range(1,1+sigmas.GetNbinsX()) :
+            for iY in range(1,1+sigmas.GetNbinsY()) :
+                xy = (sigmas.GetXaxis().GetBinCenter(iX),
+                      sigmas.GetYaxis().GetBinCenter(iY),
+                      1)
+                sigmas.SetBinContent(iX, iY, math.sqrt( np.dot(xy, np.dot(self.matrix, xy) ) ) )
+
+        sigmas.SetContour(6, np.array([0.1]+range(1,6),'d'))
+        c = r.TCanvas()
+        c.Print(fileName+'.pdf[')
+        sigmas.Draw("cont3")
+        c.Print(fileName+'.pdf')
+        if self.xy :
+            self.xy.Draw('colzsame')
+            sigmas.Draw('cont3same')
+            c.Print(fileName+'.pdf')
+        if hasattr(self,'xySup') :
+            self.xySup.Draw('colz')
+            sigmas.Draw('cont3same')
+            c.Print(fileName+'.pdf')
+        c.Print(fileName+'.pdf]')
+        print 'Wrote : %s.pdf'%fileName
+        r.gStyle.SetOptStat(optstat)
 ######################################
 
 class CombinationsLR(secondary) :
