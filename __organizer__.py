@@ -20,6 +20,7 @@ class organizer(object) :
             self.rawFailPass = tuple(map(lambda h: (h.GetBinContent(1),h.GetBinContent(2)) if h else None, self["counts"] if "counts" in self else self.N*[None]))
 
             for key in self :
+                if type(next((h for h in self[key] if h),None)) == r.TProfile : continue
                 if key in ["nJobsHisto"] : continue
                 elif key in ["lumiHisto","xsHisto","xsPostWeightsHisto"] :
                     [ hist.Scale(  1.0 / sample['nJobs'] ) for hist,sample in zip(self[key],samples) if hist ]
@@ -188,12 +189,13 @@ class organizer(object) :
             for key,hists in step.iteritems() :
                 if key in self.doNotScale : continue
                 for i,h in enumerate(hists):
+                    if type(h) == r.TProfile : continue
                     if not h: continue
                     if toPdf :
                         integral = h.Integral(0,h.GetNbinsX()+1) if not issubclass(type(h),r.TH2) else h.Integral()
                         h.Scale(1./integral if integral else 1, "width")
                     elif i!=iData : h.Scale(self.lumi)
-                    dim = int(h.ClassName()[2])
+                    dim = int(h.ClassName()[2]) if any(str(i) in h.ClassName() for i in range(1,4)) else None
                     axis = h.GetYaxis() if dim==1 else h.GetZaxis() if dim==2 else None
                     if axis: axis.SetTitle("p.d.f." if toPdf else "%s / %s pb^{-1}"%(axis.GetTitle(),str(self.lumi)))
         self.scaled = True
@@ -203,6 +205,7 @@ class organizer(object) :
             for key,hists in step.iteritems() :
                 if key in self.doNotScale : continue
                 if not hists[index] : continue
+                if type(hists[index]) == r.TProfile : continue
                 hists[index].Scale(factor)
         self.scaled = True                
 

@@ -60,10 +60,10 @@ def dependence(TH2, name="", limit=5, inSigma = True) :
     projY = TH2.ProjectionY()
     for iX in range(1,TH2.GetNbinsX()+1) :
         for iY in range(1,TH2.GetNbinsY()+1) :
-            X = projX.GetBinContent(iX)
-            Y = projY.GetBinContent(iY)
             bin = TH2.GetBin(iX,iY)
             XY = max(0,TH2.GetBinContent(bin))
+            X = max(XY,projX.GetBinContent(iX))
+            Y = max(XY,projY.GetBinContent(iY))
             dBin = math.log(norm*XY/X/Y) if XY else 0
             eX = projX.GetBinError(iX)
             eY = projX.GetBinError(iY)
