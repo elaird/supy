@@ -112,9 +112,22 @@ def symmAnti(hist) :
     anti = hist.Clone(hist.GetName()+'_anti')
     for i in range(2+nbins) :
         a,b = hist.GetBinContent(i), hist.GetBinContent(1+nbins-i)
-        e = math.sqrt( 0.5*(hist.GetBinError(i)**2 + hist.GetBinError(1+nbins-i)**2) )
+        e = 0.5 * math.sqrt( hist.GetBinError(i)**2 + hist.GetBinError(1+nbins-i)**2 )
         symm.SetBinContent(i,0.5*(a+b)) ; symm.SetBinError(i,e)
         anti.SetBinContent(i,0.5*(a-b)) ; anti.SetBinError(i,e)
+    return symm,anti
+#####################################
+def symmAnti2(hist) :
+    nbinsX = hist.GetNbinsX()
+    nbinsY = hist.GetNbinsY()
+    symm = hist.Clone(hist.GetName()+'_symm')
+    anti = hist.Clone(hist.GetName()+'_anti')
+    for i in range(2+nbinsX) :
+        for j in range(2+nbinsY) :
+            a,b = hist.GetBinContent(i,j), hist.GetBinContent(1+nbinsX-i,1+nbinsY-j)
+            e = 0.5 * math.sqrt( hist.GetBinError(i,j)**2 + hist.GetBinError(1+nbinsX-i,1+nbinsY-j)**2 )
+            symm.SetBinContent(i,j,0.5*(a+b)) ; symm.SetBinError(i,j,e)
+            anti.SetBinContent(i,j,0.5*(a-b)) ; anti.SetBinError(i,j,e)
     return symm,anti
 #####################################
 def roundString(val, err, width=None, noSci = False, noErr = False) :
