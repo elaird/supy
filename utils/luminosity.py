@@ -42,7 +42,11 @@ def recordedInvMicrobarnsShotgun(jsons, cores = 2, cacheDir = './' ) :
 if __name__=='__main__' :
     print
     if len(sys.argv)<2 : print 'Pass list of "{json}" and/or filenames as argument'; sys.exit(0)
-    os.system('\n'.join([cvsEnv(),lumiEnv(True)]))
+    if len(sys.argv[-1])==1 and eval(sys.argv[-1]) in [0,1] :
+        init = int(sys.argv[-1])
+        sys.argv.pop()
+    else: init = True
+    os.system('\n'.join([cvsEnv(),lumiEnv(init)]))
     
     def output(arg) :
         json = eval(arg if '{' in arg else open(arg).readline())
