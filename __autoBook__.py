@@ -29,3 +29,16 @@ class autoBook(dict) :
         elif  type(N)!=tuple : self[name].Fill(x[0],x[1],w)
         elif  len(N)==2      : self[name].Fill(x[0],x[1],w)
         else                 : self[name].Fill(x[0],x[1],x[2],w)
+
+    def fillVarBin(self, x, name, B, w =  None, title = "") :
+        if not name in self :
+            import array
+            self.__directory.cd()
+            self.fillOrder.append(name)
+            self[name] = \
+                       r.TH1D( name, title, len(B) - 1, array.array('d', B) )  if type(x)!=tuple else \
+                       r.TProfile( name, title, len(B) - 1, array.array('d', B) ) if type(B)!=tuple else \
+                       r.TH2D( name, title, len(B[0]) - 1, array.array('d', B[0]), len(B[1]) - 1, array.array('d', B[1]) ) if len(B)==2 else \
+                       r.TH3D( name, title, len(B[0]) - 1, array.array('d', B[0]), len(B[1]) - 1, array.array('d', B[1]), len(B[2]) - 1, array.array('d', B[2]) )
+            if not self[name].GetSumw2N() : self[name].Sumw2()
+        self.fill( x, name, B, None, None, w)

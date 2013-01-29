@@ -55,14 +55,14 @@ def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = 
         else: abandoned.append((key,val))
 
     if abandoned or resolved :
-        print "File duplications, unresolved(%d), resolved(%d) %s" % (len(abandoned), resolved, location)
+        print "File duplications, unresolved(%d), resolved(%d) %s" % (len(abandoned), resolved, location[-100:])
         if abandoned : print "Rerun with 'alwaysUseLastAttempt = True' in order to recover the following:"
         for key,val in abandoned : print '\t', key[1], "{ %s }"%'|'.join(str((attempt,size)) for attempt,size,rnd in val)
 
     if numericallyIncrementingKeys :
         keys = set(int(key[1].replace("_","")) for key in versionDict)
         missing = set(range(1,max(keys)+1 if keys else 1)) - keys
-        if missing : print "Possibly missing %d jobs {%s}"%(len(missing),','.join(str(i) for i in sorted(missing)))
+        if missing : print "Possibly missing %d of %d jobs {%s}"%(len(missing),max(keys),','.join(str(i) for i in sorted(missing)))
 
     return outList
 #####################################
