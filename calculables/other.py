@@ -1,4 +1,4 @@
-import math,operator,itertools, ROOT as r
+import math,operator,itertools,random,string, ROOT as r
 from supy import wrappedChain,utils
 from . import secondary
 try: import numpy as np
@@ -604,3 +604,23 @@ class CombinationsLR(secondary) :
         c.Print(fileName +']')
         print 'Wrote : %s'%fileName
 ######################################
+
+class QueuedBin(wrappedChain.calculable) :
+    def __init__(self, N, vars, limits, prefix="") :
+        self.moreName = "%d; %s; %s"%((N,)+vars)
+        self.fixes = (prefix,str(N))
+        self.vars = vars
+        r.gStyle.SetOptStat(0)
+        pad = ''.join(random.choice(string.ascii_uppercase + string.digits) for i in range(6))
+        self.mapping = r.TH2D(self.name+pad,"", N, -limits[0], limits[0], N, -limits[1], limits[1])
+
+        N2 = N*N
+        binsValues = [((1.+2*i-N2)/N2,bins) for i,bins in enumerate([(sB-j,j) if sB%2 else (j,sB-j) for sB in range(N) for j in range(sB+1)])]
+        for val,(binx,biny) in binsValues :
+            if val>0 : continue
+            self.mapping.SetBinContent(1+binx,1+biny,val)
+            self.mapping.SetBinContent(N-binx,N-biny, -val)
+
+    def update(self,_) :
+        self.value = self.mapping.GetBinContent( self.mapping.FindFixBin( self.source[self.vars[0]],
+                                                                          self.source[self.vars[1]]) )
