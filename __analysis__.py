@@ -273,4 +273,4 @@ class analysis(object) :
     @staticmethod
     def isSecondary(step) : return issubclass(type(step),calculables.secondary)
     @staticmethod
-    def indexOfInvertedLabel(loopersteps) : return next((i for i,step in enumerate(loopersteps) if type(step)==steps.filters.label and step.invert),None)
+    def indexOfInvertedLabel(loopersteps) : return next((i for i,step in enumerate(loopersteps) if type(step)==steps.filters.label and step.inverted()),None)
