@@ -92,7 +92,8 @@ class organizer(object) :
             if lastStep and start == lastStep : break
             slices = [org.steps[next(org.indicesOfStep(*start)):
                                 next(org.indicesOfStep(*stop)) if stop else None] for org in organizers]
-            order = utils.topologicalSort([tuple(step.nameTitle for step in slice) for slice in slices])
+            orders = [tuple(step.nameTitle for step in slice) for slice in slices]
+            order = utils.topologicalSort(orders) if len(set(orders))!=1 else orders[0]
             for step in order :
                 steps = [next((s for s in slice if s.nameTitle==step),None) for slice in slices]
                 instance.__steps.append( cls.step.melded(step, sizes, steps ) )
