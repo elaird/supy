@@ -95,7 +95,7 @@ class weighted(analysisStep) :
 class symmAnti(analysisStep) :
     def __init__(self, weightVar, var, N, low, up, other = None) :
         for item in ['weightVar','var','N','low','up'] : setattr(self,item,eval(item))
-        self.moreName = "%s in (anti)symm parts of %s"%(var,weightVar)
+        self.moreName = "%s in (anti)symm parts of %s%s"%(var,weightVar,"; %s"%other[0] if other else "")
         self.other = other
     def uponAcceptance(self,ev) :
         var = ev[self.var]
