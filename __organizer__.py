@@ -20,7 +20,7 @@ class organizer(object) :
             self.rawFailPass = tuple(map(lambda h: (h.GetBinContent(1),h.GetBinContent(2)) if h else None, self["counts"] if "counts" in self else self.N*[None]))
 
             for key in self :
-                if key in ["nJobsHisto"] : continue
+                if key in ["nJobsHisto"] : assert all( hist.GetBinContent(1)==hist.GetEntries() for hist in self[key])
                 elif key in ["lumiHisto","xsHisto","xsPostWeightsHisto"] :
                     [ hist.Scale(  1.0 / sample['nJobs'] ) for hist,sample in zip(self[key],samples) if hist ]
                 else: [ hist.Scale(sample["xs"]/sample['nEvents']) for hist,sample in zip(self[key],samples)
