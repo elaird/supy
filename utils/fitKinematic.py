@@ -165,7 +165,7 @@ class leastsqLeptonicTop2(object) :
             eig,R_ = next( (np.minimum(1e6,np.maximum(1,e)),rot) for e,rot in [ LA.eigh(nuErr2) ] )
             self.invSig2nu = np.vstack( [np.vstack( [LA.inv(R_.dot(np.diag(eig).dot(R_.T))), [0,0]] ).T, [0,0,0]])
             self.nuinv = R_.T * np.vstack(2*[1./np.sqrt(eig)]).T
-            self.binv = 1./bResolution
+            self.binv = 1./bResolution if bResolution else 0
         doInv()
 
         self.LorentzV = lv
@@ -200,7 +200,16 @@ class leastsqLeptonicTop2(object) :
         self.rawB = b
         self.mu = mu
 
-        self.residualsBSLWT = self.fit()
+        def doFit() :
+            self.residualsBSLWT = self.fit() 
+
+        def doUnfit() :
+            self.residualsBSLWT = self.residuals([0])
+            x,y,z = self.Ellipse.dot(self.solutions[0])
+            self.fitNu = self.rawNu = self.LorentzV(); self.rawNu.SetPxPyPzE(x,y,z,0); self.rawNu.SetM(0)
+            self.fitB = self.rawB
+
+        doFit() if bResolution else doUnfit()
         def doFinish() :
             _,self.fitW,self.fitT = np.cumsum([mu,self.fitNu,self.fitB])
             _,self.rawW,self.rawT = np.cumsum([mu,self.rawNu,self.rawB])

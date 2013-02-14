@@ -251,6 +251,7 @@ class analysis(object) :
             index = next(org.indicesOfStep(secondary.name,secondary.moreNames), next(org.indicesOfStep(secondary.name),None))
             if index==None :
                 print " !! Not found: %s    %s"%(secondary.name,secondary.moreNames)
+                print org
                 return
             org.dropSteps( allButIndices = [index])
             if doUpdate(secondary.name) : secondary.doCache(org)
@@ -262,11 +263,14 @@ class analysis(object) :
             
         confLoopers = [(conf,self.listsOfLoopers[conf['tag']][0]) for conf in self.readyConfs]
         for _,looper in confLoopers : looper.setupSteps(minimal = True, withBook = False)
-        args = sum([[(conf,secondary) for secondary in filter(self.isSecondary, looper.steps)] for conf,looper in confLoopers],[])
+        args = sum([[(conf,secondary) for secondary in filter(self.isSecondary, looper.steps[:self.indexOfInvertedLabel(looper.steps)])] for conf,looper in confLoopers],[])
         if reports==True :
-            print '\n'.join(set(s.name for c,s in args))
+            print '\n'.join(sorted(set(s.name for c,s in args)))
             sys.exit(0)
         utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(manage), args)
         utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(report), args)
 
-    def isSecondary(self,step) : return issubclass(type(step),calculables.secondary)
+    @staticmethod
+    def isSecondary(step) : return issubclass(type(step),calculables.secondary)
+    @staticmethod
+    def indexOfInvertedLabel(loopersteps) : return next((i for i,step in enumerate(loopersteps) if type(step)==steps.filters.label and step.inverted()),None)

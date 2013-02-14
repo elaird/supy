@@ -82,7 +82,8 @@ def drawComponentSolver(cs, canvas = None, distName = "", templateNames = [], sh
     rTemplates = [rHist("template%d"%i,d,range(len(d)+1)) for i,d in enumerate(cs.components)]
     rObs = rHist("observed",cs.observed,range(len(d)+1),True)
     if showDifference : rObs.Add(base,-1)
-    rObs.SetTitle("%s;bin # ;events"%(distName if distName else provisionalTitle))
+    rObs.SetTitle("%s;bin # ;%s"%(distName if distName else provisionalTitle,
+                                  'events - fixed' if showDifference else 'events'))
     rObs.SetMarkerStyle(20)
 
     nlls = rHist("-logLs", *np.histogram([-toy.logL for toy in cs.ensemble], 100) )
