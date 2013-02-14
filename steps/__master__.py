@@ -13,8 +13,7 @@ class master(supy.analysisStep) :
     # but is not processed further.  This is useful for sub-sampling and pthat-filtering
 
     def endFunc(self, chains) :
-        self.select({"weight":1.0})
-        self.book.fill(0.0, "nJobsHisto", 1, -0.5, 0.5, title = ";dummy axis;N_{jobs}")        
+        self.book.fill(0.0, "nJobsHisto", 1, -0.5, 0.5, title = ";dummy axis;N_{jobs}", w = 1.0)
         if self.xs   : self.book.fill(0.0, "xsHisto",   1, -0.5, 0.5, title = ";dummy axis;#sigma (pb)", w = self.xs)
         if self.xsPostWeights : self.book.fill(0.0, "xsPostWeightsHisto",   1, -0.5, 0.5, title = ";dummy axis;#sigma (pb)", w = self.xsPostWeights)
         if self.lumi : self.book.fill(0.0, "lumiHisto", 1, -0.5, 0.5, title = "%s;dummy axis;integrated luminosity (pb^{-1})"%\
