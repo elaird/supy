@@ -147,8 +147,8 @@ class testEmptyTree(unittest.TestCase):
 
     def test(self):
         runs = []
-        for iEntry, dct in enumerate(self.wc.entries(nEntries=None)):
-            runs.append(dct[self.varName])
+        for event in self.wc.entries(nEntries=None):
+            runs.append(event[self.varName])
         self.assertEqual(runs, range(7))
 
 if __name__ == '__main__':
