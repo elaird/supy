@@ -51,9 +51,9 @@ class wrappedChain(dict) :
         if not self.__chain: return
         chain = self.__chain
         iTreeFirstEntry = 0
-        
+
         for nTree in range(chain.GetNtrees()) :
-            chain.LoadTree(iTreeFirstEntry)
+            if 0 > chain.LoadTree(iTreeFirstEntry) : return
             for node in self.__activeNodeList : node.setAddress() 
             tree = chain.GetTree()
             if not tree : continue
