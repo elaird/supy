@@ -147,6 +147,7 @@ class testEmptyTree(unittest.TestCase):
 
     def test(self):
         runs = []
+        self.assertEqual( 7, self.wc._wrappedChain__chain.GetEntries() )
         for event in self.wc.entries(nEntries=None):
             runs.append(event[self.varName])
         self.assertEqual(runs, range(7))
