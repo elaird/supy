@@ -1,5 +1,7 @@
-import supy,configuration,unittest
+import supy,configuration
 from supy.tests import skip,expectedFailure
+import array,os,unittest
+import ROOT as r
 
 class testLeaves(unittest.TestCase) :
     def setUp(self) :
@@ -89,6 +91,65 @@ class testLeaves(unittest.TestCase) :
             F = sbaF[var] if not hasattr(sbaF[var],'__len__') else [j for j in sbaF[var] if j]
             T = sbaT[var] if not hasattr(sbaT[var],'__len__') else [j for j in sbaT[var] if j]
             self.assertEqual(F,T)
+
+class testEmptyTree(unittest.TestCase):
+    def fileName(self, index=None):
+        return "/".join([supy.whereami(), configuration.localpath(), "%d.root" % index])
+
+    def writeTFiles(self):
+        for iList, runList in enumerate(self.runs):
+            f = r.TFile(self.fileName(iList), "RECREATE")
+            t = r.TTree(self.treeName, "title")
+            a = array.array('i', [0])
+            t.Branch(self.varName, a, '%s/I'%self.varName)
+            for run in runList:
+                a[0] = run
+                t.Fill()
+            f.Write()
+            f.Close()
+
+    def setUp(self):
+        self.oldErrorIgnoreLevel = r.gErrorIgnoreLevel
+        r.gErrorIgnoreLevel = 9999  # suppress messages about missing/broken
+                                    # files (purposefully created below)
+        self.treeName = "tree"
+        self.varName = "run"
+        self.runs = [[0,1,2,3],
+                     [],
+                     [222],
+                     [],
+                     [444],
+                     [],
+                     [],
+                     [4],
+                     [5,6],
+                     [],
+                     [],
+                     ]
+
+        self.writeTFiles()
+        chain = r.TChain(self.treeName)
+        for iList in range(len(self.runs)):
+            fileName = self.fileName(iList)
+            if iList==2:
+                toRemove = fileName
+            if iList==4:
+                toBreak = fileName
+            chain.Add("/".join([fileName, self.treeName]))
+
+        os.remove(toRemove)  # make a file inaccessible
+        os.system("echo 0 > %s" % toBreak)  # make a file unreadable
+
+        self.wc = supy.wrappedChain(chain)
+
+    def tearDown(self):
+        r.gErrorIgnoreLevel = self.oldErrorIgnoreLevel
+
+    def test(self):
+        runs = []
+        for iEntry, dct in enumerate(self.wc.entries(nEntries=None)):
+            runs.append(dct[self.varName])
+        self.assertEqual(runs, range(7))
 
 if __name__ == '__main__':
     unittest.main()
