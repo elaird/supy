@@ -128,6 +128,11 @@ def symmAnti2(hist) :
             anti.SetBinContent(i,j,0.5*(a-b)) ; anti.SetBinError(i,j,e)
     return symm,anti
 #####################################
+def asymmetry(hist) :
+    bins = [(hist.GetBinCenter(i),hist.GetBinContent(i)) for i in range(hist.GetNbinsX()+2)]
+    bans = [(y2-y1, y2+y1) for (x1,y1),(x2,y2) in zip(bins,bins[::-1]) if x1<x2 and y2+y1]
+    return sum( n for n,_ in bans ) / sum( d for _,d in bans )
+#####################################
 def roundString(val, err, width=None, noSci = False, noErr = False) :
     err_digit = int(math.floor(math.log(abs(err))/math.log(10))) if err else 0
     val_digit = int(math.floor(math.log(abs(val))/math.log(10))) if val else 0
