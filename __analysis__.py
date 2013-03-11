@@ -93,6 +93,8 @@ class analysis(object) :
                     assert len(variations), "Empty <vary> for parameter '%s'"%param
                     self.__configs = sum([[ dict( list(conf.iteritems()) + [ (param,val), ("tag",conf["tag"]+[str(key)]) ] )
                                             for key,val in variations.iteritems()] for conf in self.__configs],[])
+            if 'nullvary' in parameters :
+                self.__configs = [c for c in self.__configs if not any( pair[0] in c['tag'] and pair[1] in c['tag'] for pair in parameters['nullvary']) ]
             for conf in self.__configs : conf['tag'] = '_'.join(conf['tag'])
             if type(self.__tags) is list :
                 for tag in self.__tags :
@@ -115,7 +117,10 @@ class analysis(object) :
         return samples
 ############
     def jobsFile(self,tag,sample) :
-        if self.__loop : os.system("mkdir -p %s/%s/%s"%(self.globalStem,tag,sample))
+        if self.__loop :
+            path = "%s/%s/%s"%(self.globalStem,tag,sample)
+            os.system("rm -fr %s"%path)
+            os.system("mkdir -p %s"%path)
         return "/".join([self.globalStem, tag, sample,"jobs"])
     def pdfFileName(self,tag = "") : return "%s/%s%s.pdf"%(self.globalStem, self.name, "_"+tag if len(tag) else "")
 
