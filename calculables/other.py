@@ -16,7 +16,12 @@ class entry(wrappedChain.calculable) :
 class chain_access(wrappedChain.calculable) :
     @property
     def name(self) : return "chain"
-    def update(self,ignored) : self.value = self.source._wrappedChain__chain
+    def update(self,_) :
+        self.value = self.source._wrappedChain__chain if type(self.source)==wrappedChain else self.source.someDict._wrappedChain__chain
+#####################################
+class treeFileName(wrappedChain.calculable) :
+    def update(self,_) :
+        self.value = self.source['chain'].GetFile().GetName().split('/')[-1]
 #####################################
 class abbreviation(wrappedChain.calculable) :
     @property
