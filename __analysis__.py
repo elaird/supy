@@ -196,16 +196,12 @@ class analysis(object) :
             secondaries = [ s for s in adjustedSteps if self.isSecondary(s) ]
             weightsAlready = [next(c for c in secondaries+calcs if c.name==w) for w in weights if type(w)==str ]
             weightsAdditional = [ w for w in weights if type(w)!=str ]
-            print 'calcs : ',calcs
-            print 'secondaries : ',secondaries
-            print 'weightsAlready : ',weightsAlready
-            print 'weightsAdditional : ',weightsAdditional
             def check(As,Bs) :
                 intersect = set([a.name for a in As]).intersection(set([b.name for b in Bs]))
                 assert not intersect, "Warning: { %s } are already listed in listOfCalculables."%','.join(intersect)
-            if weightsAdditional : check(calcs,weightsAdditional)
-            if secondaries : check(calcs,secondaries)
-            if weightsAdditional and secondaries : check(weightsAdditional,secondaries)
+            check(calcs,weightsAdditional)
+            check(calcs,secondaries)
+            check(weightsAdditional,secondaries)
             return calcs + [calculables.weight(weightsAdditional+weightsAlready)] + weightsAdditional + secondaries
 
         def looper(spec) :
