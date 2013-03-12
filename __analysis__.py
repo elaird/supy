@@ -2,6 +2,7 @@ import os,sys,tempfile,re
 import utils,steps,samples,configuration,calculables,sites
 from __organizer__ import organizer
 from __analysisLooper__ import analysisLooper
+from supy import wrappedChain
 #####################################
 class analysis(object) :
     """base class for an analysis
@@ -197,6 +198,8 @@ class analysis(object) :
             weightsAlready = [next(c for c in secondaries+calcs if c.name==w) for w in weights if type(w)==str ]
             weightsAdditional = [ w for w in weights if type(w)!=str ]
             def check(As,Bs) :
+                nonCalcs = [c for c in As + Bs if not issubclass(c.__class__, wrappedChain.calculable)]
+                assert not nonCalcs, "Warning, these should be calculables: %s\nForgot extra []?"%str(nonCalcs)
                 intersect = set([a.name for a in As]).intersection(set([b.name for b in Bs]))
                 assert not intersect, "Warning: { %s } are already listed in listOfCalculables."%','.join(intersect)
             check(calcs,weightsAdditional)
