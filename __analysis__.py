@@ -63,7 +63,7 @@ class analysis(object) :
             self.listsOfLoopers[conf['tag']] = self.sampleLoopers(conf)
             if self.__jobId==None and self.__loop!=None :
                 for looper in self.listsOfLoopers[conf['tag']] :
-                    utils.writePickle( self.jobsFile(conf['tag'],looper.name), self.__nSlices )
+                    utils.writePickle( self.jobsFile(conf['tag'],looper.name,clean=True), self.__nSlices )
 
 ############
     @property
@@ -116,10 +116,10 @@ class analysis(object) :
         if not samples : print "No such sample: %s"%self.__sample if self.__sample else "No samples!"; sys.exit(0)
         return samples
 ############
-    def jobsFile(self,tag,sample) :
+    def jobsFile(self,tag,sample,clean=False) :
         if self.__loop :
             path = "%s/%s/%s"%(self.globalStem,tag,sample)
-            os.system("rm -fr %s"%path)
+            if clean: os.system("rm -fr %s"%path)
             os.system("mkdir -p %s"%path)
         return "/".join([self.globalStem, tag, sample,"jobs"])
     def pdfFileName(self,tag = "") : return "%s/%s%s.pdf"%(self.globalStem, self.name, "_"+tag if len(tag) else "")
