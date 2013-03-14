@@ -1,6 +1,6 @@
 import unittest,sys,os
 
-testmodules = ["supy-bin","algos","wrappedchain","kinfit","supy-analysis","numpy-dep"]
+testmodules = ["supy-bin","algos","wrappedchain","kinfit","supy-analysis","numpy-dep","cpp"]
 
 abspath = __file__ if __file__[0]=='/' else os.getcwd() +"/"+ __file__
 def whereami() : return '/'.join(abspath.split('/')[:-1])
