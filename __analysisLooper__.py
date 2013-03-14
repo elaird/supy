@@ -7,11 +7,14 @@ class analysisLooper :
     """class to set up and loop over events"""
 
     def __init__(self, mainTree = None, otherTreesToKeepWhenSkimming = None, leavesToBlackList = None,
-                 localStem = None, globalStem = None, subDir = None, steps = None, calculables = None, inputFiles = None, name = None,
+                 moveOutputFiles = None, localStem = None, globalStem = None, subDir = None,
+                 steps = None, calculables = None, inputFiles = None, name = None,
                  nEventsMax = None, quietMode = None, skip = None ) :
 
-        for arg in ["mainTree", "otherTreesToKeepWhenSkimming", "leavesToBlackList", "steps", "calculables",
-                    "localStem", "globalStem", "subDir", "inputFiles", "name", "nEventsMax", "quietMode", "skip"] :
+        for arg in ["mainTree", "otherTreesToKeepWhenSkimming", "leavesToBlackList",
+                    "moveOutputFiles", "localStem", "globalStem", "subDir",
+                     "steps", "calculables", "inputFiles", "name",
+                    "nEventsMax", "quietMode", "skip"] :
             setattr(self, arg, eval(arg))
 
         self.trace = configuration.trace() and not any([step.requiresNoTrace() for step in self.steps])
@@ -57,7 +60,8 @@ class analysisLooper :
         self.writeRoot()
         self.writePickle()
         self.deleteChains()
-        self.moveFiles()
+        if self.moveOutputFiles:
+            self.moveFiles()
         if not self.quietMode : print utils.hyphens
 
     def loop(self) :
