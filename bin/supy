@@ -39,9 +39,7 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
     with open(jobScriptFileName,"a") as file :
         print >>file
         for item in ["PYTHONPATH", "LD_LIBRARY_PATH"] :
-            value = os.environ[item]
-            value = value.replace('";','"') # hack for fnal batch; perhaps there is a more elegant solution
-            print >>file, "export %s=%s"%(item, value)
+            print >>file, "export %s=%s"%(item, os.environ[item])
         print >>file, "cd "+os.environ["PWD"]
         print >>file, jobCmd
 
