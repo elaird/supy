@@ -40,6 +40,7 @@ class analysis(object) :
         self.__quiet   = options.quiet
         self.__skip    = options.skip
 
+        self.moveOutputFiles = (not self.__batch) or sites.info(site = self.__site, key = "moveOutputFilesBatch")
         self.localStem  = "%s/%s"%(sites.info(site = self.__site, key = "localOutputDir" ), self.name)
         self.globalStem = "%s/%s"%(sites.info(site = self.__site, key = "globalOutputDir"), self.name)
     
@@ -222,6 +223,7 @@ class analysis(object) :
                                    nEventsMax = nEventsMax,      leavesToBlackList = self.leavesToBlackList(),
                                    steps = adjustedSteps,        calculables = allCalculables( self.listOfCalculables(pars), spec.weights, adjustedSteps ),
                                    inputFiles = inputFiles,      name = pars["sample"],
+                                   moveOutputFiles = self.moveOutputFiles,
                                    localStem  = self.localStem,  subDir = "%(tag)s"%conf,
                                    globalStem = self.globalStem, quietMode = self.__loop>1 or self.__quiet,
                                    skip = self.__skip )
