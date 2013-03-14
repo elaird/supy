@@ -40,7 +40,7 @@ class analysis(object) :
         self.__quiet   = options.quiet
         self.__skip    = options.skip
 
-        self.moveOutputFiles = (not self.__batch) or sites.info(site = self.__site, key = "moveOutputFilesBatch")
+        self.moveOutputFiles = (self.__jobId is None) or sites.info(site = self.__site, key = "moveOutputFilesBatch")
         self.localStem  = "%s/%s"%(sites.info(site = self.__site, key = "localOutputDir" ), self.name)
         self.globalStem = "%s/%s"%(sites.info(site = self.__site, key = "globalOutputDir"), self.name)
     
