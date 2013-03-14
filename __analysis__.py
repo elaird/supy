@@ -199,7 +199,7 @@ class analysis(object) :
             weightsAdditional = [ w for w in weights if type(w)!=str ]
             def check(As,Bs) :
                 nonCalcs = [c for c in As + Bs if not issubclass(c.__class__, wrappedChain.calculable)]
-                assert not nonCalcs, "Warning, these should be calculables: %s\nForgot extra []?"%str(nonCalcs)
+                assert not nonCalcs, "\n\nWarning, the following items from listOfCalculables() are not calculables:\n"+('\n'.join(' '+str(c) for c in nonCalcs))
                 intersect = set([a.name for a in As]).intersection(set([b.name for b in Bs]))
                 assert not intersect, "Warning: { %s } are already listed in listOfCalculables."%','.join(intersect)
             check(calcs,weightsAdditional)
