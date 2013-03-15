@@ -2,6 +2,8 @@ import os,sys,tempfile,re
 import utils,steps,samples,configuration,calculables,sites
 from __organizer__ import organizer
 from __analysisLooper__ import analysisLooper
+from __analysisStep__ import analysisStep
+from supy import wrappedChain
 #####################################
 class analysis(object) :
     """base class for an analysis
@@ -197,6 +199,8 @@ class analysis(object) :
             weightsAlready = [next(c for c in secondaries+calcs if c.name==w) for w in weights if type(w)==str ]
             weightsAdditional = [ w for w in weights if type(w)!=str ]
             def check(As,Bs) :
+                nonCalcs = [c for c in As + Bs if not issubclass(type(c), wrappedChain.calculable)]
+                assert not nonCalcs, "\n\nWarning, the following items from listOfCalculables() are not calculables:\n"+('\n'.join(' '+str(c) for c in nonCalcs))
                 intersect = set([a.name for a in As]).intersection(set([b.name for b in Bs]))
                 assert not intersect, "Warning: { %s } are already listed in listOfCalculables."%','.join(intersect)
             check(calcs,weightsAdditional)
@@ -216,6 +220,8 @@ class analysis(object) :
                                            lumi = spec.overrideLumi if spec.overrideLumi!=None else tup.lumi,
                                            lumiWarn = lumiWarn(tup.lumi, nEventsMax, spec.nFilesMax) )] +
                              self.listOfSteps(pars) )
+            nonSteps = [s for s in adjustedSteps if not issubclass(type(s), analysisStep)]
+            assert not nonSteps, "\n\nWarning, the following items from listOfSteps() are not analysisSteps:\n"+('\n'.join(' '+str(s) for s in nonSteps))
             for step in filter(lambda s: s.only not in ['','data' if tup.lumi else 'sim'], adjustedSteps) : step.disabled = True
             
             return analysisLooper( mainTree = self.mainTree(),   otherTreesToKeepWhenSkimming = self.otherTreesToKeepWhenSkimming(),
