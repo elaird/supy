@@ -65,7 +65,7 @@ class analysis(object) :
             self.listsOfLoopers[conf['tag']] = self.sampleLoopers(conf)
             if self.__jobId==None and self.__loop!=None :
                 for looper in self.listsOfLoopers[conf['tag']] :
-                    utils.writePickle( self.jobsFile(conf['tag'],looper.name), self.__nSlices )
+                    utils.writePickle( self.jobsFile(conf['tag'],looper.name,clean=True), self.__nSlices )
 
 ############
     @property
@@ -95,6 +95,8 @@ class analysis(object) :
                     assert len(variations), "Empty <vary> for parameter '%s'"%param
                     self.__configs = sum([[ dict( list(conf.iteritems()) + [ (param,val), ("tag",conf["tag"]+[str(key)]) ] )
                                             for key,val in variations.iteritems()] for conf in self.__configs],[])
+            if 'nullvary' in parameters :
+                self.__configs = [c for c in self.__configs if not any( pair[0] in c['tag'] and pair[1] in c['tag'] for pair in parameters['nullvary']) ]
             for conf in self.__configs : conf['tag'] = '_'.join(conf['tag'])
             if type(self.__tags) is list :
                 for tag in self.__tags :
@@ -116,8 +118,11 @@ class analysis(object) :
         if not samples : print "No such sample: %s"%self.__sample if self.__sample else "No samples!"; sys.exit(0)
         return samples
 ############
-    def jobsFile(self,tag,sample) :
-        if self.__loop : os.system("mkdir -p %s/%s/%s"%(self.globalStem,tag,sample))
+    def jobsFile(self,tag,sample,clean=False) :
+        if self.__loop :
+            path = "%s/%s/%s"%(self.globalStem,tag,sample)
+            if clean: os.system("rm -fr %s"%path)
+            os.system("mkdir -p %s"%path)
         return "/".join([self.globalStem, tag, sample,"jobs"])
     def pdfFileName(self,tag = "") : return "%s/%s%s.pdf"%(self.globalStem, self.name, "_"+tag if len(tag) else "")
 
