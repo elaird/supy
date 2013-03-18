@@ -69,7 +69,11 @@ def ratioHistogram( num, den, relErrMax=0.25) :
         iLo,iHi = sorted([iG,iH])
         return regroup(groups[:iLo] + [groups[iLo]+groups[iHi]] + groups[iHi+1:])
 
-    groups = regroup( [(i,) for i in range(1,1+num.GetNbinsX())] )
+    try :
+        groups = regroup( [(i,) for i in range(1,1+num.GetNbinsX())] )
+    except :
+        print 'Ratio failed:', num.GetName()
+        groups = [(i,) for i in range(1,1+num.GetNbinsX()) ]
     ratio = r.TH1D("ratio"+num.GetName()+den.GetName(),"",len(groups), array.array('d', [num.GetBinLowEdge(min(g)) for g in groups ] + [num.GetXaxis().GetBinUpEdge(num.GetNbinsX())]) )
     for i,g in enumerate(groups) :
         ratio.SetBinContent(i+1,groupR(g))
