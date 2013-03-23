@@ -21,6 +21,14 @@ def LorentzV(*args) :
         lvClass = r.Math.LorentzVector(getattr( r.Math, coord)(prec))
     return lvClass(*args)
 #####################################
+pvClass = None
+def PositionV(*args) :
+    global pvClass
+    if pvClass is None :
+        coord,prec = configuration.PositionVectorType()
+        pvClass = r.Math.PositionVector3D(getattr( r.Math, coord)(prec))
+    return pvClass(*args)
+#####################################
 def Dot(lvA,lvB) :
     return lvA.E()*lvB.E() - lvA.P()*lvB.P()*r.Math.VectorUtil.CosTheta(lvA,lvB)
 #####################################
