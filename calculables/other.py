@@ -193,7 +193,7 @@ class Tridiscriminant(secondary) :
 
     def update(self,_) :
         X,L,R = [ reduce( operator.mul,
-                          [self.likelihood(item[key],self.source[key]) for key in self.dists if item[key]],
+                          [self.likelihood(item[key],max( val[1], min(val[2]-1e-6, self.source[key]))) for key,val in self.dists.iteritems() if item[key]],
                           1 )
                   for item in self.likes]
         self.value = math.atan2( (R-X)*self.sqrt3,
