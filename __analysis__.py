@@ -229,15 +229,24 @@ class analysis(object) :
             nonSteps = [s for s in adjustedSteps if not issubclass(type(s), analysisStep)]
             assert not nonSteps, "\n\nWarning, the following items from listOfSteps() are not analysisSteps:\n"+('\n'.join(' '+str(s) for s in nonSteps))
             for step in filter(lambda s: s.only not in ['','data' if tup.lumi else 'sim'], adjustedSteps) : step.disabled = True
-            
-            return analysisLooper( mainTree = self.mainTree(),   otherTreesToKeepWhenSkimming = self.otherTreesToKeepWhenSkimming(),
-                                   nEventsMax = nEventsMax,      leavesToBlackList = self.leavesToBlackList(),
-                                   steps = adjustedSteps,        calculables = allCalculables( self.listOfCalculables(pars), spec.weights, adjustedSteps ),
-                                   inputFiles = inputFiles,      name = pars["sample"],
-                                   moveOutputFiles = self.moveOutputFiles,
-                                   localStem  = self.localStem,  subDir = "%(tag)s"%conf,
-                                   globalStem = self.globalStem, quietMode = self.__loop>1 or self.__quiet,
-                                   skip = self.__skip )
+
+            return analysisLooper(mainTree=self.mainTree(),
+                                  otherTreesToKeepWhenSkimming=self.otherTreesToKeepWhenSkimming(),
+                                  nEventsMax=nEventsMax,
+                                  leavesToBlackList=self.leavesToBlackList(),
+                                  steps=adjustedSteps,
+                                  calculables=allCalculables(self.listOfCalculables(pars),
+                                                             spec.weights,
+                                                             adjustedSteps),
+                                  inputFiles=inputFiles,
+                                  name=pars["sample"],
+                                  moveOutputFiles=self.moveOutputFiles,
+                                  localStem=self.localStem,
+                                  subDir="%(tag)s" % conf,
+                                  globalStem=self.globalStem,
+                                  quietMode=(self.__loop > 1) or self.__quiet,
+                                  skip=self.__skip
+                                  )
         sampleNames = set()
         return [ looper(sampleSpec) for sampleSpec in self.filteredSamples(conf) ]
     
