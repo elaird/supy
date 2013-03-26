@@ -6,15 +6,17 @@ import ROOT as r
 class analysisLooper :
     """class to set up and loop over events"""
 
-    def __init__(self, mainTree = None, otherTreesToKeepWhenSkimming = None, leavesToBlackList = None,
-                 moveOutputFiles = None, localStem = None, globalStem = None, subDir = None,
-                 steps = None, calculables = None, inputFiles = None, name = None,
-                 nEventsMax = None, quietMode = None, skip = None ) :
+    def __init__(self, mainTree=None, otherTreesToKeepWhenSkimming=None,
+                 leavesToBlackList=None, moveOutputFiles=None, localStem=None,
+                 globalStem=None, subDir=None, steps=None, calculables=None,
+                 inputFiles=None, name=None, nEventsMax=None, quietMode=None,
+                 skip=None):
 
-        for arg in ["mainTree", "otherTreesToKeepWhenSkimming", "leavesToBlackList",
-                    "moveOutputFiles", "localStem", "globalStem", "subDir",
-                     "steps", "calculables", "inputFiles", "name",
-                    "nEventsMax", "quietMode", "skip"] :
+        for arg in ["mainTree", "otherTreesToKeepWhenSkimming",
+                    "leavesToBlackList", "moveOutputFiles", "localStem",
+                    "globalStem", "subDir", "steps", "calculables",
+                    "inputFiles", "name", "nEventsMax", "quietMode",
+                    "skip"]:
             setattr(self, arg, eval(arg))
 
         self.trace = configuration.trace() and not any([step.requiresNoTrace() for step in self.steps])
@@ -198,7 +200,9 @@ class analysisLooper :
         for iSlice in range(nSlices) :
             pickleFileBlocks = self.pickleFileName.split('/')
             pickleFileBlocks.insert(-1,self.name)
-            pickleFileBlocks[-1] = pickleFileBlocks[-1].replace(self.name,self.childName(nSlices,iSlice))
+            pickleFileBlocks[-1] = pickleFileBlocks[-1].replace(self.name,
+                                                                self.childName(nSlices,iSlice),
+                                                                1)
             pickleFileName = '/'.join(pickleFileBlocks)
             if not os.path.exists(pickleFileName) :
                 fields = pickleFileName.split('/')
@@ -216,7 +220,9 @@ class analysisLooper :
         for iSlice in range(nSlices) :
             pickleFileBlocks = self.pickleFileName.split('/')
             pickleFileBlocks.insert(-1,self.name)
-            pickleFileBlocks[-1] = pickleFileBlocks[-1].replace(self.name,self.childName(nSlices,iSlice))
+            pickleFileBlocks[-1] = pickleFileBlocks[-1].replace(self.name,
+                                                                self.childName(nSlices,iSlice),
+                                                                1)
             cleanUpList.append( '/'.join(pickleFileBlocks[:-1]) )
             dataByStep,calcsUsed,leavesUsed = utils.readPickle( '/'.join(pickleFileBlocks) )
             self.calculablesUsed |= calcsUsed
