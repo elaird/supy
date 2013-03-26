@@ -1,0 +1,29 @@
+Say that user jdoe runs
+
+supy some_analysis.py --loop 2 --slices 2
+
+on some computer, using the default configuration from
+sites/__init__.py.  Say that there is only one analysis variation, and
+so only one analysis tag.  Say the user runs over one sample
+("TTbar"), which has two input files.  One job will have iSlice=0, and
+the other job iSlice=1.  Say that iSlice=1 begins first.  Then it will
+create the directory
+
+/tmp/jdoe/some_analysis/tag/TTbar/2_1/
+
+and the output files
+
+/tmp/jdoe/some_analysis/tag/TTbar/2_1/TTbar_2_1.pickledData
+/tmp/jdoe/some_analysis/tag/TTbar/2_1/TTbar_2_1_plots.root
+
+and perhaps other output files with similar names in the same
+directory.  When the job with iSlice=1 finishes looping over events,
+it (or condor) will move the output files to
+
+/tmp/jdoe/some_analysis/tag/TTbar/
+
+(e.g., /tmp/jdoe/some_analysis/tag/TTbar/TTbar_2_1.pickledData)
+
+When all jobs are finished, and the user merges the outputs, the files
+
+
