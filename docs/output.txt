@@ -1,0 +1,45 @@
+Say that user jdoe runs
+
+supy some_analysis.py --loop 2 --slices 2
+
+on some computer, using the default configuration from
+sites/__init__.py.  Say that there is exactly one analysis variation
+("tag").  Say the user runs over one sample ("TTbar"), which has two
+input files.
+
+Then two jobs will execute in parallel: one job will have iSlice=0,
+and the other job iSlice=1.  Say that iSlice=1 begins first.  Then it
+will create the directory (first removing it if it exists)
+
+/tmp/jdoe/some_analysis/tag/TTbar_2_1/
+
+, and create the output files
+
+/tmp/jdoe/some_analysis/tag/TTbar_2_1/TTbar_2_1.pickledData
+/tmp/jdoe/some_analysis/tag/TTbar_2_1/TTbar_2_1_plots.root
+
+.  If the analysis has additional steps (other than master) that
+create output files, then those files will appear with similar names
+in the same directory.  When the job with iSlice=1 finishes looping
+over events, it will move its output files to
+
+/tmp/jdoe/some_analysis/tag/TTbar/
+(e.g., /tmp/jdoe/some_analysis/tag/TTbar/TTbar_2_1.pickledData)
+
+When all jobs are finished, the output files from the different slices
+are merged into
+
+/tmp/jdoe/some_analysis/tag/TTbar_plots.root
+
+, and similarly named files for any additional steps that create and
+merge output files.
+
+
+Note.
+If (a) in sites/__init__.py, "moveOutputFilesBatch" is set to False;
+and (b) the user runs with --batch; then supy will not move its output
+files to globalOutputDir.  This prevents failure if the file system
+containing globalOutputDir is mounted read-only on a worker node.  In
+this case, in order to retrieve the output, the batch system must be
+configured to move the output files; see, e.g.,
+sites/fnal_cmsTemplate.condor.
