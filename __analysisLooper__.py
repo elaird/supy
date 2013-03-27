@@ -48,7 +48,7 @@ class analysisLooper :
         assert iSlice < nSlices, "How did you do this?"
         out = copy.deepcopy(self)
         out.inputFiles = out.inputFiles[iSlice::nSlices]
-        out.globalDir = "/".join([out.globalDir, self.name])
+        out.globalDir = "/".join([out.globalDir, out.name])
 
         out.name = out.childName(nSlices, iSlice)
         out.outputDir = "/".join([out.outputDir, out.name])
