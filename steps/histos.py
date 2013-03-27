@@ -31,12 +31,12 @@ class value(analysisStep) :
         iMore = ("[i[%d]]"%index if index!=None else "")
         self.moreName = '; '.join(v+wn+iMore for v,wn in zip(3*var,self.wrapName())) + (('; '+indices) if indices else '')
         iTitle = ("[%s[%d]]"%(indices,index) if indices and index!=None else "")
-        xtitleDef = ';'.join([iTitle.join(vwn) for vwn in zip(3*self.var,self.wrapName())])
+        xtitleDef = ';'.join([iTitle.join(vwn) for vwn in zip(3*var,self.wrapName())])
         self.title = ";%s;%s"%(xtitle if xtitle else xtitleDef,
-                                 "%s / bin"%(indices if indices and index==None else "events"))
+                               "%s / bin"%(indices if indices and index==None else "events"))
 
     def uponAcceptance(self,eventVars) :
-        val = tuple([eventVars[v] for v in self.var])
+        val = tuple(eventVars[v] for v in self.var)
         if any(v is None for v in val) : return
 
         if not self.indices: 
