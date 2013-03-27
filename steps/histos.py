@@ -24,17 +24,20 @@ class generic(analysisStep) :
 #####################################
 class value(analysisStep) :
     def __init__(self, var,N,low,up, indices = "", index = None, xtitle = "", w = None) :
+        if type(var)!=tuple : var = var,
         for item in ["var","N","low","up","indices","index",'w'] :
             setattr(self,item,eval(item))
 
-        self.moreName = var + self.wrapName() + ("[i[%d]]:%s"%(index,indices) if index!=None else "")
-        self.title = ";%s%s;%s"%(xtitle if xtitle else var + ("[%s[%d]]"%(indices,index) if indices and index!=None else ""),
-                                 self.wrapName(),
-                                 "%s / bin"%(indices if indices and index==None else "events"))
+        iMore = ("[i[%d]]"%index if index!=None else "")
+        self.moreName = '; '.join(v+wn+iMore for v,wn in zip(3*var,self.wrapName())) + (('; '+indices) if indices else '')
+        iTitle = ("[%s[%d]]"%(indices,index) if indices and index!=None else "")
+        xtitleDef = ';'.join([iTitle.join(vwn) for vwn in zip(3*var,self.wrapName())])
+        self.title = ";%s;%s"%(xtitle if xtitle else xtitleDef,
+                               "%s / bin"%(indices if indices and index==None else "events"))
 
     def uponAcceptance(self,eventVars) :
-        val = eventVars[self.var]
-        if val is None : return
+        val = tuple(eventVars[v] for v in self.var)
+        if any(v is None for v in val) : return
 
         if not self.indices: 
             self.book.fill(self.wrap(val), self.moreName, self.N, self.low, self.up, title=self.title, w = (eventVars[self.w] if self.w else None))
@@ -43,32 +46,35 @@ class value(analysisStep) :
         indices = eventVars[self.indices]
         if self.index!=None :
             if self.index<len(indices) :
-                self.book.fill(self.wrap(val[indices[self.index]]), self.moreName, self.N, self.low, self.up, title=self.title)
+                self.book.fill(self.wrap(tuple(v[indices[self.index]] for v in val)), self.moreName, self.N, self.low, self.up, title=self.title)
             return
         for i in indices :
-            self.book.fill(self.wrap(val[i]), self.moreName, self.N, self.low, self.up, title=self.title)
+            self.book.fill(self.wrap(tuple(v[i] for v in val)), self.moreName, self.N, self.low, self.up, title=self.title)
 
-    def wrapName(self) : return ""
+    def wrapName(self) : return "",
     def wrap(self,val) : return val
 #####################################
 class pt(value) :
-    def wrapName(self) : return ".pt"
-    def wrap(self,val) : return val.pt()
+    def wrapName(self) : return ".pt",
+    def wrap(self,val) : return val[0].pt()
 class pz(value) :
-    def wrapName(self) : return ".pz"
-    def wrap(self,val) : return val.pz()
+    def wrapName(self) : return ".pz",
+    def wrap(self,val) : return val[0].pz()
 class phi(value) :
-    def wrapName(self) : return ".phi"
-    def wrap(self,val) : return val.phi()
+    def wrapName(self) : return ".phi",
+    def wrap(self,val) : return val[0].phi()
 class eta(value) :
-    def wrapName(self) : return ".eta"
-    def wrap(self,val) : return val.eta()
+    def wrapName(self) : return ".eta",
+    def wrap(self,val) : return val[0].eta()
 class absEta(value) :
-    def wrapName(self) : return ".absEta"
-    def wrap(self,val) : return abs(val.eta())
+    def wrapName(self) : return ".absEta",
+    def wrap(self,val) : return abs(val[0].eta())
 class mass(value) :
-    def wrapName(self) : return ".mass"
-    def wrap(self,val) : return val.M()
+    def wrapName(self) : return ".mass",
+    def wrap(self,val) : return val[0].M()
+class phiVsEta(value):
+    def wrapName(self) : return ('.eta','.phi')
+    def wrap(self, val) : return (val[0].eta(),val[0].phi())
 #####################################
 class multiplicity(analysisStep) :
     def __init__(self,var, max = 10) :
