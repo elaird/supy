@@ -62,7 +62,7 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
         arg = condorFileName
     else :
         arg = jobScriptFileName
-    subCmd = "%s %s"%(subScript, arg)
+    subCmd = "cd %s; %s %s" % (jobScriptDir, subScript, arg)
     os.system(subCmd)
 ############################################
 def doBatch(someInstance) :
