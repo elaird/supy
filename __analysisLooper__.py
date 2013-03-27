@@ -1,4 +1,4 @@
-import copy,os,tempfile,collections
+import copy,os,collections
 import configuration
 from supy import autoBook,wrappedChain,utils,keyTracer
 import ROOT as r
@@ -44,15 +44,16 @@ class analysisLooper :
         if inter: print "Steps and calculables cannot share names { %s }"%', '.join(n for n in inter)
         
     def childName(self, nSlices, iSlice) : return "%s_%d_%d"%(self.name,nSlices,iSlice)
-    def slice(self, nSlices, iSlice) :
-        assert iSlice<nSlices, "How did you do this?"
+    def slice(self, nSlices, iSlice):
+        assert iSlice < nSlices, "How did you do this?"
         out = copy.deepcopy(self)
         out.inputFiles = out.inputFiles[iSlice::nSlices]
-        out.globalDir = "%s/%s"%(self.globalDir,self.name)
-        out.outputDir = "%s/%s"%(self.outputDir,self.name)
-        out.name = self.childName(nSlices,iSlice)
+        out.globalDir = "/".join([out.globalDir, self.name])
+
+        out.name = out.childName(nSlices, iSlice)
+        out.outputDir = "/".join([out.outputDir, out.name])
         return out
-        
+
     def __call__(self) :
         self.prepareOutputDirectory()
         self.setupChains()
@@ -97,17 +98,17 @@ class analysisLooper :
         for key,val in calculableDependencies.iteritems() :
             self.calculableDependencies[key] = set(map(lambda c: c if type(c)==tuple else (c,c),val))
         
-    def prepareOutputDirectory(self) :
+    def prepareOutputDirectory(self):
         utils.mkdir(self.localStem)
-        self.tmpDir = tempfile.mkdtemp(dir = self.localStem)
-        self.outputDir = self.outputDir.replace(self.globalStem, self.tmpDir)
+        self.outputDir = self.outputDir.replace(self.globalStem, self.localStem)
+        os.system("rm -rf %s" % self.outputDir)
         utils.mkdir(self.outputDir)
-        
-    def moveFiles(self) :
+
+    def moveFiles(self):
         utils.mkdir(self.globalDir)
-        os.system("rsync -a %s/ %s/"%(self.outputDir, self.globalDir))
-        os.system("rm -r %s"%self.tmpDir)
-        
+        os.system("mv %s/* %s/" % (self.outputDir, self.globalDir))
+        os.system("rm -rf %s" % self.outputDir)
+
     def setupChains(self) :
         assert self.mainTree not in self.otherTreesToKeepWhenSkimming
         self.chains = dict( [(item,r.TChain("%s/%s"%item)) for item in [self.mainTree]+self.otherTreesToKeepWhenSkimming])
