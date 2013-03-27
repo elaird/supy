@@ -43,9 +43,22 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
         print >>file, "cd "+os.environ["PWD"]
         print >>file, jobCmd
 
-    if os.path.exists(condorTemplate) :
-        condorFileName = jobScriptFileName.replace(".sh",".condor")
-        os.system("cat %s | sed s@JOBFLAG@%s@g > %s"%(condorTemplate, jobScriptFileName, condorFileName))
+    if os.path.exists(condorTemplate):
+        condorFileName = jobScriptFileName.replace(".sh", ".condor")
+        condorOutputSpec = "/".join([".",
+                                     indexDict["analysis"],
+                                     indexDict["tag"],
+                                     "%s_%d_%d" % (indexDict["sample"],
+                                                   indexDict["nSlices"],
+                                                   indexDict["iSlice"],
+                                                   ),
+                                     "",
+                                    ])
+        pipes = " | ".join(["cat %s" % condorTemplate,
+                            "sed s@JOBFLAG@%s@g" % jobScriptFileName,
+                            "sed s@OUTFLAG@%s@g" % condorOutputSpec,
+                            ])
+        os.system(" > ".join([pipes, condorFileName]))
         arg = condorFileName
     else :
         arg = jobScriptFileName
@@ -68,13 +81,17 @@ def doBatch(someInstance) :
     args = []
     for conf in someInstance.configurations :
         for looper in someInstance.listsOfLoopers[conf['tag']] :
-            os.system("mkdir -p %s/%s/%s"%(scriptDir,conf['tag'],looper.name))
-            for iSlice in range(int(options.slices)) :
-                listOfIndices = {"base":scriptDir,
-                                 "tag":conf['tag'],
-                                 "sample":looper.name,
-                                 "iSlice":iSlice,
-                                 "site":site}
+            os.system("mkdir -p %s/%s/%s"%(scriptDir,conf['tag'], looper.name))
+            nSlices = int(options.slices)
+            for iSlice in range(nSlices):
+                listOfIndices = {"base": scriptDir,
+                                 "tag": conf['tag'],
+                                 "analysis": someInstance.name,
+                                 "sample": looper.name,
+                                 "nSlices": nSlices,
+                                 "iSlice": iSlice,
+                                 "site": site,
+                                 }
                 args.append( (baseCmd + " --site %(site)s --jobid %(iSlice)d --tag '%(tag)s' --sample %(sample)s"%listOfIndices,
                               listOfIndices, supy.whereami()+'/'+subScript, supy.whereami()+'/'+jobScript, supy.whereami()+'/'+condorTemplate) )
     supy.utils.operateOnListUsingQueue(configuration.nCoresDefault(), supy.utils.qWorker(submitBatchJob), args)
