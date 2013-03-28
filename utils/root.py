@@ -13,6 +13,11 @@ def generateDictionaries(inList, dir = None) :
     for item in inList : r.gInterpreter.GenerateDictionary(*item)
     r.gSystem.ChangeDirectory(wd)
 #####################################
+def get(d,key) :
+    try: obj = d.GetKey(key).ReadObj()
+    except: obj = None
+    return obj
+#####################################
 lvClass = None
 def LorentzV(*args) :
     global lvClass
