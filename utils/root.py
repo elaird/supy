@@ -13,6 +13,11 @@ def generateDictionaries(inList, dir = None) :
     for item in inList : r.gInterpreter.GenerateDictionary(*item)
     r.gSystem.ChangeDirectory(wd)
 #####################################
+def get(d,key) :
+    try: obj = d.GetKey(key).ReadObj()
+    except: obj = None
+    return obj
+#####################################
 lvClass = None
 def LorentzV(*args) :
     global lvClass
@@ -20,6 +25,14 @@ def LorentzV(*args) :
         coord,prec = configuration.LorentzVectorType()
         lvClass = r.Math.LorentzVector(getattr( r.Math, coord)(prec))
     return lvClass(*args)
+#####################################
+pvClass = None
+def PositionV(*args) :
+    global pvClass
+    if pvClass is None :
+        coord,prec = configuration.PositionVectorType()
+        pvClass = r.Math.PositionVector3D(getattr( r.Math, coord)(prec))
+    return pvClass(*args)
 #####################################
 def Dot(lvA,lvB) :
     return lvA.E()*lvB.E() - lvA.P()*lvB.P()*r.Math.VectorUtil.CosTheta(lvA,lvB)
@@ -80,3 +93,30 @@ def ratioHistogram( num, den, relErrMax=0.25) :
         ratio.SetBinError(i+1,groupErr(g))
     return ratio
 #####################################
+def divideX(hist2D,histX=None,ratherY=False) :
+    '''Divide each slice of 2D histogram in X(or Y) by 1D histogram.'''
+    if not histX :
+        histX = hist2D.ProjectionX() if not ratherY else hist2D.ProjectionY()
+    divX = hist2D.Clone(hist2D.GetName()+'_divide%s_'%('Y' if ratherY else 'X')+histX.GetName())
+    assert (hist2D.GetNbinsX() if not ratherY else hist2D.GetNbinsY())==histX.GetNbinsX()
+    for iX in range(2+histX.GetNbinsX()) :
+        finv = histX.GetBinContent(iX)
+        f = 1./finv if finv else 1.
+        for iY in range(2+(hist2D.GetNbinsY() if not ratherY else hist2D.GetNbinsX())) :
+            args = (iX,iY) if not ratherY else (iY,iX)
+            divX.SetBinContent(*(args+(f*divX.GetBinContent(*args),)))
+            divX.SetBinError(*(args+(f*divX.GetBinError(*args),)))
+    return divX
+#####################################
+def subtractX(hist2D,histX,ratherY=False) :
+    '''Subtract 1D histogram from each slice of of 2D histogram in X(or Y).'''
+    divX = hist2D.Clone(hist2D.GetName()+'_divide%s_'%('Y' if ratherY else 'X')+histX.GetName())
+    assert (hist2D.GetNbinsX() if not ratherY else hist2D.GetNbinsY())==histX.GetNbinsX()
+    for iX in range(2+histX.GetNbinsX()) :
+        f = histX.GetBinContent(iX)
+        ferr = histX.GetBinError(iX)
+        for iY in range(2+(hist2D.GetNbinsY() if not ratherY else hist2D.GetNbinsX())) :
+            args = (iX,iY) if not ratherY else (iY,iX)
+            divX.SetBinContent(*(args+(divX.GetBinContent(*args)-f,)))
+            divX.SetBinError(*(args+(math.sqrt(divX.GetBinError(*args)**2+ferr**2),)))
+    return divX

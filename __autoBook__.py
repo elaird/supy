@@ -15,7 +15,7 @@ class autoBook(dict) :
             self.__directory.cd()
             self.fillOrder.append(name)
             self[name] = \
-                       r.TH1D( name, title, N, low, up)                            if type(x)!=tuple else \
+                       r.TH1D( name, title, N, low, up)                            if type(x)!=tuple or len(x)==1 else \
                        r.TProfile( name, title, N, low, up)                        if type(N)!=tuple else \
                        r.TH2D( name,title, N[0],low[0],up[0],  N[1],low[1],up[1])  if len(N)==2      else \
                        r.TH3D( name,title, N[0],low[0],up[0],  N[1],low[1],up[1],  N[2],low[2],up[2])
@@ -26,6 +26,7 @@ class autoBook(dict) :
                 self[name].GetYaxis().SetBinLabel(i+1, label)
 
         if    type(x)!=tuple : self[name].Fill(x,w)
+        elif  len(x)==1      : self[name].Fill(x[0],w)
         elif  type(N)!=tuple : self[name].Fill(x[0],x[1],w)
         elif  len(N)==2      : self[name].Fill(x[0],x[1],w)
         else                 : self[name].Fill(x[0],x[1],x[2],w)

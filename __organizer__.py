@@ -14,7 +14,7 @@ class organizer(object) :
         def __init__(self,samples,dirs = None,keys = []) :
             if not dirs : dirs = [s['dir'] for s in samples]
             self.N = len(dirs)
-            for key in keys: self[key] = tuple( map(lambda d: d.Get(key), dirs) )
+            for key in keys: self[key] = tuple( map(lambda d: utils.get(d,key), dirs) )
             self.nameTitle = (dirs[0].GetName(),dirs[0].GetTitle()) if dirs else ("","")
             self.name,self.title = self.nameTitle
             self.rawFailPass = tuple(map(lambda h: (h.GetBinContent(1),h.GetBinContent(2)) if h else None, self["counts"] if "counts" in self else self.N*[None]))
@@ -47,9 +47,10 @@ class organizer(object) :
                 instance[key] = sum([s[key] if s and key in s else blank for s,blank in zip(steps,blanks)],())
             return instance
         
-    def __init__(self, tag, sampleSpecs = [], verbose = False ) :
+    def __init__(self, tag, sampleSpecs = [], verbose = False, keepTH2 = True ) :
         r.gROOT.cd()
         self.verbose = verbose
+        self.keepTH2 = keepTH2
         self.scaled = False
         self.doNotScale = ["lumiHisto","xsHisto","xsPostWeightsHisto","nJobsHisto","nEventsHisto"]
         self.lumi = 1.0
@@ -124,7 +125,7 @@ class organizer(object) :
         steps = []
         dirs = [ s['dir'] for s in self.samples]
         while any(dirs) :
-            keysets = [ [key.GetName() for key in dir.GetListOfKeys() if key.GetName()!="Calculables"] for dir in dirs ]
+            keysets = [ [key.GetName() for key in dir.GetListOfKeys() if key.GetName()!="Calculables" and (self.keepTH2 or '2' not in key.GetClassName())] for dir in dirs ]
             keys = set(sum(keysets,[]))
             subdirs = map(lambda d,keys: next((d.Get(k) for k in keys if type(d.Get(k)) is r.TDirectoryFile), None), dirs,keysets)
             if any(subdirs) : keys.remove(next(iter(subdirs)).GetName())

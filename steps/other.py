@@ -1,6 +1,6 @@
 import copy,array,os,collections
 import ROOT as r
-from supy import analysisStep,utils
+from supy import analysisStep,utils,autoBook
 #####################################
 class touchstuff(analysisStep) :
     def __init__(self,stuff) :
@@ -146,4 +146,50 @@ class skimmer(analysisStep) :
         print "( e.g. %s )"%self.modifiedFileName(products["outputFileName"][0])
         print utils.hyphens
 #####################################
-                
+class reweights(analysisStep) :
+    '''Repeat arbitrary analysisStep with different global weights.
+
+    Note that only uponAcceptance() in self.step is supported;
+    setup,endFunc,mergeFunc are not, but perhaps it could be
+    extended.'''
+
+    def __init__(self,step,reweights,N, doAll=True) :
+        self.moreName="%s(%d); %s;%s"%(reweights,N,step.name,step.moreName)
+        for item in ['step','N','reweights','doAll'] : setattr(self,item,eval(item))
+        assert not step.isSelector
+        self.books = []
+
+    def uponAcceptance(self,ev) :
+        '''Perform the analysisStep for the default weight, and for each reweight.'''
+
+        self.step.book = self.book
+        self.step.uponAcceptance(ev)
+        if not self.doAll : return
+
+        weights = ev[self.reweights]
+        assert len(weights)==self.N
+        for weight,book in zip(weights,self.books) :
+            self.step.book = book
+            self.step.book.weight = weight * self.book.weight
+            dict.__getitem__(ev, 'weight').value = weight * self.book.weight
+            self.step.uponAcceptance(ev)
+        dict.__getitem__(ev, 'weight').value = self.book.weight
+
+    def setup(self,*_) :
+        '''Make a new book for each weight'''
+        dir = r.gDirectory.GetDirectory("")
+        self.book._autoBook__directory.cd()
+        for i in range(self.N): self.books.append(autoBook("w%d"%i))
+        dir.cd()
+
+    def endFunc(self,*_) :
+        '''Rename and move the histograms into the main book.'''
+        dir = self.book._autoBook__directory
+        for i,book in enumerate(self.books) :
+            for name,val in book.items() :
+                newname = "%03d_%s"%(i,name)
+                val.SetName(newname)
+                val.SetDirectory(dir)
+                self.book[newname] = val
+                self.book.fillOrder.append(newname)
+#####################################

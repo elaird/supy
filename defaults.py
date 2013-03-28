@@ -76,3 +76,6 @@ def haddErrorsToIgnore() :
 
 def LorentzVectorType() :
     return ('PtEtaPhiM4D','float')
+
+def PositionVectorType() :
+    return ('Cartesian3D','float')
