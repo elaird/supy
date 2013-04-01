@@ -52,6 +52,13 @@ class writeTree(object) :
         tree.Branch('partVec', partVec)
         for i in range(10) :
             part.eta, part.phi = i+2.0, i*1.5
+            partVec.clear()
+            for j in range(3+i) :
+                p = r.Susy.Particle()
+                px, py, pz = r.gRandom.Gaus(0,10), r.gRandom.Gaus(0,10), r.gRandom.Gaus(0,10)
+                p.SetPxPyPzE(px, py, pz, r.TMath.Sqrt(px*px + py*py + pz*pz))
+                partVec.push_back(p)
+            print 'partVec.size() :',partVec.size()
             tree.Fill()
         # tree.SetBranchAddress("TpcWaveform", ROOT.AddressOf(wf))
         # for name,(ar,ro,t) in types.items() :
@@ -66,4 +73,5 @@ class writeTree(object) :
         # return address,arrayAddress
 
 if __name__ == "__main__" :
-    writeTree()
+    wt = writeTree()
+
