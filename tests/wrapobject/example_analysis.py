@@ -5,6 +5,7 @@ class example_analysis(supy.analysis) :
     def listOfSteps(self,config) :
         return [
             supy.steps.printer.progressPrinter(),
+            supy.steps.histos.absEta('particle', 10, 0.0, 10.0),
             ]
     
     def listOfCalculables(self,config) :
