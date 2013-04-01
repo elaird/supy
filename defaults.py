@@ -79,3 +79,6 @@ def LorentzVectorType() :
 
 def PositionVectorType() :
     return ('Cartesian3D','float')
+
+def librariesToLoad() :
+    return []
