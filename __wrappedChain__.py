@@ -28,6 +28,7 @@ class wrappedChain(dict) :
         for branch in chain.GetListOfBranches() :
             nameB = branch.GetName()
             nameL = (lambda nL: nameB if (nL=="_" or nL==nameB+"_") else nL )(branch.GetListOfLeaves().At(0).GetName())
+            print 'nameB %s, nameL %s'%(nameB,nameL)
             if nameL in leavesToBlackList : continue
             dict.__setitem__(self, nameL, self.__branchNode( nameL, nameB, chain, useSetBranchAddress, maxArrayLength) )
 
@@ -95,10 +96,12 @@ class wrappedChain(dict) :
     class __branchNode(object) :
         """Internal wrapper for branch nodes."""
         def __init__(self, nameL, nameB, chain, useSetBranchAddress, maxArrayLength) :
+            print "creating __branchNode for %s %s"%(nameL, nameB)
             def address(nameL, nameB, chain, useSetBranchAddress, maxArrayLength) :
                 if not useSetBranchAddress : return None
                 leaf = getattr(chain, nameL)
-
+                print "type %s : %s"%(nameL, type(leaf))
+                #print " with typename : ",chain.GetBranch(nameB).GetLeaf(nameL).GetTypeName()
                 if type(leaf) in [int,float,long,str] :
                     typenames = {'Bool_t'  :'B',
                                  'Char_t'  :'b', 'UChar_t'  :'B',
@@ -118,6 +121,17 @@ class wrappedChain(dict) :
                 elif str(type(leaf))=="<type 'ROOT.PyDoubleBuffer'>" : return array.array('d',[0]*maxArrayLength)
                 elif str(type(leaf))=="<type 'ROOT.PyFloatBuffer'>"  : return array.array('f',[0]*maxArrayLength)
                 else :
+                    print "fallen in the default case"
+                    typeleaf = str(type(leaf))
+                    typename = chain.GetBranch(nameB).GetLeaf(nameL).GetTypeName() # this crashes for vectors...to be investigated
+                    if 'class' in typeleaf :
+                        print "%s looks like a class"%typename
+                        print "root knows about it?"
+                        rootKnownType = getattr (r, typename)
+                        self.value = rootKnownType()
+                        return r.AddressOf(self.value)
+                    else :
+                        print "%s doesnt look like a class"%typename
                     self.value = copy.deepcopy(leaf)
                     return r.AddressOf(self.value)
 
