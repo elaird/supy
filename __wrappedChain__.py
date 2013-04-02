@@ -123,7 +123,11 @@ class wrappedChain(dict) :
                 else :
                     print "fallen in the default case"
                     typeleaf = str(type(leaf))
-                    typename = chain.GetBranch(nameB).GetLeaf(nameL).GetTypeName() # this crashes for vectors...to be investigated
+                    print 'getbranch : ',chain.GetBranch(nameB)
+                    print 'getleaf : ',chain.GetBranch(nameB).GetLeaf(nameL)
+                    print 'getclassname :',chain.GetBranch(nameB).GetClassName()
+                    #typename = chain.GetBranch(nameB).GetLeaf(nameL).GetTypeName() # this crashes for vectors...to be investigated
+                    typename = chain.GetBranch(nameB).GetClassName()
                     if 'class' in typeleaf :
                         print "%s looks like a class"%typename
                         print "root knows about it?"
