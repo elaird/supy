@@ -153,14 +153,18 @@ class reweights(analysisStep) :
     setup,endFunc,mergeFunc are not, but perhaps it could be
     extended.'''
 
-    def __init__(self,step,reweights,N, doAll=True) :
+    def __init__(self,step,reweights,N, doAll=True, predicate = None) :
         self.moreName="%s(%d); %s;%s"%(reweights,N,step.name,step.moreName)
-        for item in ['step','N','reweights','doAll'] : setattr(self,item,eval(item))
+        if predicate : self.moreName += "; %s;%s"%(predicate.name,predicate.moreName)
+        for item in ['step','N','reweights','doAll','predicate'] : setattr(self,item,eval(item))
         assert not step.isSelector
+        assert not predicate or predicate.isSelector
         self.books = []
 
     def uponAcceptance(self,ev) :
         '''Perform the analysisStep for the default weight, and for each reweight.'''
+
+        if self.predicate and not self.predicate.select(ev) : return
 
         self.step.book = self.book
         self.step.uponAcceptance(ev)
