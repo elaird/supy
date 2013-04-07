@@ -1,42 +1,47 @@
 import supy,os,configuration
-#####################################
+
 class master(supy.analysisStep) :
-    def __init__(self, xs, xsPostWeights, lumi, lumiWarn) :
+    def __init__(self, xs, xsPostWeights, lumi, lumiWarn):
         for item in ["xs", "xsPostWeights", "lumi", "lumiWarn"] : setattr(self, item, eval(item))
         
-    def select (self, eventVars) :
+    def select (self, eventVars):
         weight = eventVars["weight"]
-        if weight is None : self.book.weight = 1
+        if weight is None: self.book.weight = 1
         else: self.increment(False, 1-weight)
         return weight is not None
     # 'None' weight counts toward the total cross section with weight = 1,
     # but is not processed further.  This is useful for sub-sampling and pthat-filtering
 
-    def endFunc(self, chains) :
-        self.book.fill(0.0, "nJobsHisto", 1, -0.5, 0.5, title = ";dummy axis;N_{jobs}", w = 1.0)
-        if self.xs   : self.book.fill(0.0, "xsHisto",   1, -0.5, 0.5, title = ";dummy axis;#sigma (pb)", w = self.xs)
-        if self.xsPostWeights : self.book.fill(0.0, "xsPostWeightsHisto",   1, -0.5, 0.5, title = ";dummy axis;#sigma (pb)", w = self.xsPostWeights)
-        if self.lumi : self.book.fill(0.0, "lumiHisto", 1, -0.5, 0.5, title = "%s;dummy axis;integrated luminosity (pb^{-1})"%\
-                                      ("" if not self.lumiWarn else "WARNING: lumi value is probably wrong!"), w = self.lumi)
+    def endFunc(self, chains):
+        single = (1,-0.5,0.5)
+        sbf = self.book.fill
+
+        if True: sbf(0, "nJobsHisto", *single, title=";dummy axis;N_{jobs}", w=1.0)
+        if self.xs: sbf(0, "xsHisto", *single, title=";dummy axis;#sigma (pb)", w=self.xs)
+        if self.xsPostWeights: sbf(0, "xsPostWeightsHisto", *single, title=";dummy axis;#sigma (pb)", w=self.xsPostWeights)
+        if self.lumi: sbf(0, "lumiHisto", *single, title="%s;dummy axis;integrated luminosity (pb^{-1})"%\
+                              ("" if not self.lumiWarn else "WARNING: lumi value is probably wrong!"), w=self.lumi)
 
     @staticmethod
-    def outputSuffix() : return "_plots.root"
+    def outputSuffix(): return "_plots.root"
     
-    def mergeFunc(self, products) :
-        def printComment(lines) :
-            if self.quietMode : return
+    def mergeFunc(self, products):
+        def printComment(lines):
+            if self.quietMode: return
             skip = ['Source file','Target path','Found subdirectory']
             line = next(L for L in lines.split('\n') if not any(item in L for item in skip))
             print line.replace("Target","The output") + " has been written."
 
-        def cleanUp(stderr, files) :
+        def cleanUp(stderr, files):
             okList = configuration.haddErrorsToIgnore()
             assert (stderr in okList), "hadd had this stderr: '%s'"%stderr
-            if stderr : print stderr
-            for fileName in files : os.remove(fileName)
+            if stderr: print stderr
+            for fileName in files: os.remove(fileName)
 
-        if not all(os.path.exists(fileName) for fileName in products["outputFileName"]) : return
-        hAdd = supy.utils.getCommandOutput("%s -f %s %s"%(configuration.hadd(),self.outputFileName, " ".join(products["outputFileName"])))
+        if not all(os.path.exists(fileName) for fileName in products["outputFileName"]): return
+        hAdd = supy.utils.getCommandOutput("%s -f %s %s"%(configuration.hadd(),
+                                                          self.outputFileName,
+                                                          " ".join(products["outputFileName"])))
 
         printComment(hAdd["stdout"])
         cleanUp(hAdd["stderr"], products["outputFileName"])
