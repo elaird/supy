@@ -51,7 +51,7 @@ class value(analysisStep) :
         for i in indices :
             self.book.fill(self.wrap(tuple(v[i] for v in val)), self.moreName, self.N, self.low, self.up, title=self.title)
 
-    def wrapName(self) : return "",
+    def wrapName(self) : return ("",)*len(self.var)
     def wrap(self,val) : return val
 #####################################
 class pt(value) :
