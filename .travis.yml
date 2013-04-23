@@ -13,9 +13,9 @@ install:
   # Check if we are running Python 2 or 3. This is needed for the apt-get package names
   - if [[ $TRAVIS_PYTHON_VERSION == '3.2' ]]; then export PYTHON_SUFFIX="3"; fi
 
-  # This is needed for the docs
-  - git submodule init
-  - git submodule update
+  # # This is needed for the docs
+  # - git submodule init
+  # - git submodule update
 
   # Use system python, not virtualenv, because building the dependencies from source takes too long
   - deactivate # the virtualenv
@@ -24,15 +24,20 @@ install:
   - time sudo apt-get update -qq
 
   # Install the dependencies we need
-  - time sudo apt-get install -qq python${PYTHON_SUFFIX}-numpy python${PYTHON_SUFFIX}-sphinx python${PYTHON_SUFFIX}-nose
-  # matplotlib and PyTables are not available for Python 3 as packages from the main repo yet.
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then time sudo apt-get install -qq python${PYTHON_SUFFIX}-matplotlib python${PYTHON_SUFFIX}-tables; fi
+  # - time sudo apt-get install -qq python${PYTHON_SUFFIX}-numpy python${PYTHON_SUFFIX}-sphinx python${PYTHON_SUFFIX}-nose
+  - time sudo apt-get install -qq python${PYTHON_SUFFIX}-numpy
+  # # matplotlib and PyTables are not available for Python 3 as packages from the main repo yet.
+  # - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then time sudo apt-get install -qq python${PYTHON_SUFFIX}-matplotlib python${PYTHON_SUFFIX}-tables; fi
 
   # Install a ROOT binary that we custom-built in a 64-bit Ubuntu VM
   # for the correct Python / ROOT version
   - time wget --no-check-certificate https://dl.dropbox.com/u/4923986/rootpy/64/root_v${ROOT}_Python_${TRAVIS_PYTHON_VERSION}.tar.gz
   - time tar zxf root_v${ROOT}_Python_${TRAVIS_PYTHON_VERSION}.tar.gz
   - source root_v${ROOT}_Python_${TRAVIS_PYTHON_VERSION}/bin/thisroot.sh
+
+  # add supy to pythonpath
+  - PYTHONPATH=$PYTHONPATH:`pwd`/..
+  - PATH=$PATH:`pwd`/bin
 
 script:
 
@@ -41,9 +46,9 @@ script:
   - time python -c 'import ROOT; ROOT.TBrowser()'
 
   # Check that rootpy can be imported
-  - time python -c 'import rootpy'
+  - time python -c 'import supy'
   # What if ROOT already been initialized
-  - time python -c "from ROOT import kTRUE; import rootpy"
+  - time python -c "from ROOT import kTRUE; import supy"
 
   # Give user write access to shared memory to make multiprocessing semaphares work 
   # https://github.com/rootpy/rootpy/pull/176#issuecomment-13712313
@@ -52,8 +57,6 @@ script:
   #- sudo chmod a+w /dev/shm
   - ls -la /dev/shm
 
-  # Now run the actual tests (from the installed version, not the local build dir)
-  - make test-code-verbose
-  - make install-user
-  # Docs only build with matplotlib available.
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then make doc; fi
+  # Now run the tests
+  - supy-test
+
