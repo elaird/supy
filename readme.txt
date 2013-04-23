@@ -60,3 +60,5 @@ this: https://github.com/elaird/ra1stats/blob/master/env.sh
 | Bugs |
 --------
 Please report problems at https://github.com/elaird/supy/issues
+
+Dummy line to trigger the first travis build.
