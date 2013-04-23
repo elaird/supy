@@ -1,3 +1,6 @@
+
+"!https://travis-ci.org/davidegerbaudo/supy.png!":https://travis-ci.org/davidegerbaudo/supy
+
 -----------
 | License |
 -----------
