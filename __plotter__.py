@@ -97,6 +97,7 @@ class plotter(object) :
                  samplesForRatios = ("",""),
                  sampleLabelsForRatios = ("",""),
                  printRatios = False,
+                 foms = [],
                  showStatBox = True,
                  doLog = True,
                  pegMinimum = None,
@@ -126,7 +127,7 @@ class plotter(object) :
         for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
-                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D", "printRatios","pushLeft"] :
+                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D","foms","pushLeft"] :
             setattr(self,item,eval(item))
 
         self.nLinesMax -= nLinesMax/rowCycle
@@ -137,6 +138,14 @@ class plotter(object) :
         self.pageNumber = -1
         self.pdfOptions = ''
         if pdfFileName[-3:]==".ps" : self.pdfFileName = self.pdfFileName.replace('.ps','.pdf')
+
+        # backward compatibility
+        if printRatios and (not self.foms):
+            self.foms = [{"value": lambda x, y: x/y,
+                          "unc": lambda x, y, xUnc, yUnc: (x/y)*math.sqrt((xUnc/x)**2 + (yUnc/y)**2),
+                          "label": lambda x, y:"%s/%s" % (x, y),
+                          },
+                         ]
 
         #used for making latex tables
         self.cutDict = {}
@@ -507,7 +516,7 @@ class plotter(object) :
         text.SetTextSize(0.40*text.GetTextSize())
 
         pageWidth = 120
-        nSamples = len(self.someOrganizer.samples) + int(self.printRatios)
+        nSamples = len(self.someOrganizer.samples) + len(self.foms)
         colWidth = min(25, pageWidth/nSamples)
         space = 1
 
@@ -528,15 +537,20 @@ class plotter(object) :
                 if sample["name"] in self.samplesForRatios : ratios[self.samplesForRatios.index(sample["name"])] = k
                 nums.append(s.rjust(colWidth))
 
-            if self.printRatios and len(ratios)==2 :
-                s = "-    "
-                if ratios[0] and ratios[1] and ratios[0][0] and ratios[1][0] :
-                    value = ratios[0][0]/float(ratios[1][0])
-                    error = value*math.sqrt((ratios[0][1]/float(ratios[0][0]))**2 + (ratios[1][1]/float(ratios[1][0]))**2)
-                    ratio = (value, error)
-                    s = utils.roundString(*ratio, width=(colWidth-space))
-                nums.append(s.rjust(colWidth))
-                
+            if len(ratios)==2 and ratios[0] and ratios[1]:
+                num = float(ratios[0][0])
+                den = float(ratios[1][0])
+                numUnc = float(ratios[0][1])
+                denUnc = float(ratios[1][1])
+
+                for fom in self.foms:
+                    s = "-    "
+                    if num and den:
+                        value = fom["value"](num, den)
+                        error = fom["unc"](num, den, numUnc, denUnc)
+                        s = utils.roundString(value, error, width=(colWidth-space))
+                    nums.append(s.rjust(colWidth))
+
             if step.name in ['master','label']: self.pdfOptions = step.title
             if step.name=='label' :
                 text.SetTextColor(r.kBlack)
@@ -559,8 +573,9 @@ class plotter(object) :
 
         self.formerMaxAbsI = absI
         self.sampleList = [s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]
-        if self.printRatios and len(self.samplesForRatios)==2 :
-            self.sampleList += ("%s/%s"%self.sampleLabelsForRatios)[:(colWidth-space)].rjust(colWidth)
+        if len(self.samplesForRatios)==2:
+            for fom in self.foms:
+                self.sampleList += (fom["label"](*self.sampleLabelsForRatios))[:(colWidth-space)].rjust(colWidth)
         text.SetTextColor(r.kBlack)
         text.DrawTextNDC(x, 0.5, "   "+"".join(self.sampleList))
         text.SetTextAlign(13)
