@@ -142,7 +142,7 @@ class plotter(object) :
         # backward compatibility
         if printRatios and (not self.foms):
             self.foms = [{"value": lambda x, y: x/y,
-                          "unc": lambda x, y, xUnc, yUnc: (x/y)*math.sqrt((xUnc/x)**2 + (yUnc/y)**2),
+                          "uncRel": lambda x, y, xUnc, yUnc: math.sqrt((xUnc/x)**2 + (yUnc/y)**2),
                           "label": lambda x, y:"%s/%s" % (x, y),
                           },
                          ]
@@ -547,7 +547,7 @@ class plotter(object) :
                     s = "-    "
                     if num and den:
                         value = fom["value"](num, den)
-                        error = fom["unc"](num, den, numUnc, denUnc)
+                        error = value*fom["uncRel"](num, den, numUnc, denUnc)
                         s = utils.roundString(value, error, width=(colWidth-space))
                     nums.append(s.rjust(colWidth))
 
