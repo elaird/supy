@@ -65,9 +65,9 @@ class IndexMatchMap(wrappedChain.calculable):
         return self.label
 
     def __init__(self, label="", keyP4="", keyIndices="",
-                 valueP4="", valueIndices=""):
+                 valueP4="", valueIndices="", dRThreshold=None):
         for item in ["label", "keyP4", "keyIndices",
-                     "valueP4", "valueIndices"]:
+                     "valueP4", "valueIndices", "dRThreshold"]:
             setattr(self, item, eval(item))
 
     def update(self,_):
@@ -78,8 +78,11 @@ class IndexMatchMap(wrappedChain.calculable):
             dRs = []
             for iValue in self.source[self.valueIndices]:
                 dR = r.Math.VectorUtil.DeltaR(keyP4s.at(iKey), valueP4s.at(iValue))
+                if self.dRThreshold and self.dRThreshold<dR:
+                    continue
                 dRs.append((dR, iValue))
-            self.value[iKey] = min(dRs)[1]
+            if dRs:
+                self.value[iKey] = min(dRs)[1]
 
 
 class SumP4(wrappedChain.calculable):
