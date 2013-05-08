@@ -99,6 +99,7 @@ class plotter(object) :
                  printRatios = False,
                  foms = [],
                  printXs = False,
+                 printImperfectCalcPageIfEmpty=True,
                  showStatBox = True,
                  doLog = True,
                  pegMinimum = None,
@@ -128,7 +129,8 @@ class plotter(object) :
         for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
-                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D","foms","printXs","pushLeft"] :
+                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D","foms","printXs",
+                     "printImperfectCalcPageIfEmpty", "pushLeft"] :
             setattr(self,item,eval(item))
 
         self.nLinesMax -= nLinesMax/rowCycle
@@ -171,7 +173,8 @@ class plotter(object) :
             text3 = self.printCalculables(selectImperfect = False)
             self.flushPage()
             text4 = self.printCalculables(selectImperfect = True)
-            self.flushPage()
+            if text4 or self.printImperfectCalcPageIfEmpty:
+                self.flushPage()
             
         nSelectionsPrinted = 0
         selectionsSoFar=[]
@@ -411,6 +414,8 @@ class plotter(object) :
         calcs = (([("Calculables",'(imperfect)','  '.join(cats)), ('','','')] + max( list(imperfect), [('','NONE','')])) if selectImperfect else \
                  ([("Calculables",'',''),                         ('','','')] + max( list(genuine), [('','NONE','')])) )
 
+        if selectImperfect and (not list(imperfect)) and (not self.printImperfectCalcPageIfEmpty):
+            return
         maxName,maxMore = map(max, zip(*((len(name),len(more)) for name,more,cat in calcs)))
         [text.DrawTextNDC(0.02, 0.98 - 0.4*(iLine+0.5)/self.nLinesMax, line)
          for iLine,line in enumerate("%s   %s   %s"%(name.rjust(maxName+2), more.ljust(maxMore+2), cat)
