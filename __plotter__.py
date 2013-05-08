@@ -98,6 +98,7 @@ class plotter(object) :
                  sampleLabelsForRatios = ("",""),
                  printRatios = False,
                  foms = [],
+                 printXs = False,
                  showStatBox = True,
                  doLog = True,
                  pegMinimum = None,
@@ -127,7 +128,7 @@ class plotter(object) :
         for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
-                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D","foms","pushLeft"] :
+                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D","foms","printXs","pushLeft"] :
             setattr(self,item,eval(item))
 
         self.nLinesMax -= nLinesMax/rowCycle
@@ -445,13 +446,26 @@ class plotter(object) :
                     else :
                         value = sample["nEvents"]/sample["xs"]
             return "%.1f"%value
-            
+
+        def getXs(sample = None, iSource = None) :
+            value = None
+            if sample!=None :
+                if "xs" in sample:
+                    if iSource!=None :
+                        value = sample["xsOfSources"][iSource]
+                    else:
+                        value = sample["xs"]
+            return "%3.2e" % value if value else ""
+
         def loopOneType(mergedSamples = False) :
-            nameEventsLumi = []
+            nameEventsLumiXs = []
             for sample in self.someOrganizer.samples :
                 if "sources" not in sample :
                     if mergedSamples : continue
-                    nameEventsLumi.append((sample["name"],str(int(sample['nEvents'])),getLumi(sample)))
+                    nameEventsLumiXs.append((sample["name"],
+                                             str(int(sample['nEvents'])),
+                                             getLumi(sample),
+                                             getXs(sample)))
                 else :
                     if not mergedSamples : continue
                     localNEL = []
@@ -461,28 +475,35 @@ class plotter(object) :
                         name = sample["sources"][iSource]
                         N    = sample["nEvents"][iSource]
                         if type(N) is list : useThese = False; break
-                        localNEL.append((name,str(int(N)),getLumi(sample,iSource)))
-                    if useThese : nameEventsLumi += localNEL
+                        localNEL.append((name,str(int(N)),getLumi(sample,iSource),getXs(sample,iSource)))
+                    if useThese : nameEventsLumiXs += localNEL
 
-            nameEventsLumi.sort( key = lambda x: (x[0][:5], int(float(x[2])), -int(x[1]), x[0][5:] ))
-            if not nameEventsLumi : return (None,None,None)
-            name,events,lumi = zip(*nameEventsLumi)
+            nameEventsLumiXs.sort( key = lambda x: (x[0][:5], int(float(x[2])), -int(x[1]), x[0][5:] ))
+            if not nameEventsLumiXs : return (None,None,None,None)
+            name,events,lumi,xs = zip(*nameEventsLumiXs)
             return ( ["sample",""]+list(name),
                      ["nEventsIn",""] + list(events),
-                     ["  lumi (/pb)",""] + list(lumi) )
+                     ["  lumi (/pb)",""] + list(lumi),
+                     ["  xs (pb)",""] + list(xs),
+                     )
 
-        def printOneType(x, sampleNames, nEventsIn, lumis) :
+        def printOneType(x, sampleNames, nEventsIn, lumis, xss) :
             if not sampleNames : return
             sLength = max([len(item) for item in sampleNames])
             nLength = max([len(item) for item in nEventsIn]  )
             lLength = max([len(item) for item in lumis]      )
+            xLength = max([len(item) for item in xss]        )
 
             total = sLength + nLength + lLength + 15
+            if self.printXs:
+                total += xLength
             if total>self.nColumnsMax : text.SetTextSize(defSize*self.nColumnsMax/(total+0.0))
                 
-            for j,(name,events,lumi) in enumerate(zip(sampleNames,nEventsIn,lumis)) :
+            for j,(name,events,lumi,xs) in enumerate(zip(sampleNames,nEventsIn,lumis,xss)) :
                 y = 0.9 - 0.55*(j+0.5)/self.nLinesMax
                 out = name.ljust(sLength) + events.rjust(nLength+3) + lumi.rjust(lLength+3)
+                if self.printXs:
+                    out += xs.rjust(xLength+3)
                 text.DrawTextNDC(x, y, out)
 
         printOneType( 0.02, *loopOneType(False) )
