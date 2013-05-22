@@ -97,6 +97,9 @@ class plotter(object) :
                  samplesForRatios = ("",""),
                  sampleLabelsForRatios = ("",""),
                  printRatios = False,
+                 foms = [],
+                 printXs = False,
+                 printImperfectCalcPageIfEmpty=True,
                  showStatBox = True,
                  doLog = True,
                  pegMinimum = None,
@@ -126,7 +129,8 @@ class plotter(object) :
         for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
-                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D", "printRatios","pushLeft"] :
+                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D","foms","printXs",
+                     "printImperfectCalcPageIfEmpty", "pushLeft"] :
             setattr(self,item,eval(item))
 
         self.nLinesMax -= nLinesMax/rowCycle
@@ -137,6 +141,14 @@ class plotter(object) :
         self.pageNumber = -1
         self.pdfOptions = ''
         if pdfFileName[-3:]==".ps" : self.pdfFileName = self.pdfFileName.replace('.ps','.pdf')
+
+        # backward compatibility
+        if printRatios and (not self.foms):
+            self.foms = [{"value": lambda x, y: x/y,
+                          "uncRel": lambda x, y, xUnc, yUnc: math.sqrt((xUnc/x)**2 + (yUnc/y)**2),
+                          "label": lambda x, y:"%s/%s" % (x, y),
+                          },
+                         ]
 
         #used for making latex tables
         self.cutDict = {}
@@ -161,7 +173,8 @@ class plotter(object) :
             text3 = self.printCalculables(selectImperfect = False)
             self.flushPage()
             text4 = self.printCalculables(selectImperfect = True)
-            self.flushPage()
+            if text4 or self.printImperfectCalcPageIfEmpty:
+                self.flushPage()
             
         nSelectionsPrinted = 0
         selectionsSoFar=[]
@@ -401,6 +414,8 @@ class plotter(object) :
         calcs = (([("Calculables",'(imperfect)','  '.join(cats)), ('','','')] + max( list(imperfect), [('','NONE','')])) if selectImperfect else \
                  ([("Calculables",'',''),                         ('','','')] + max( list(genuine), [('','NONE','')])) )
 
+        if selectImperfect and (not list(imperfect)) and (not self.printImperfectCalcPageIfEmpty):
+            return
         maxName,maxMore = map(max, zip(*((len(name),len(more)) for name,more,cat in calcs)))
         [text.DrawTextNDC(0.02, 0.98 - 0.4*(iLine+0.5)/self.nLinesMax, line)
          for iLine,line in enumerate("%s   %s   %s"%(name.rjust(maxName+2), more.ljust(maxMore+2), cat)
@@ -436,13 +451,26 @@ class plotter(object) :
                     else :
                         value = sample["nEvents"]/sample["xs"]
             return "%.1f"%value
-            
+
+        def getXs(sample = None, iSource = None) :
+            value = None
+            if sample!=None :
+                if "xs" in sample:
+                    if iSource!=None :
+                        value = sample["xsOfSources"][iSource]
+                    else:
+                        value = sample["xs"]
+            return "%3.2e" % value if value else ""
+
         def loopOneType(mergedSamples = False) :
-            nameEventsLumi = []
+            nameEventsLumiXs = []
             for sample in self.someOrganizer.samples :
                 if "sources" not in sample :
                     if mergedSamples : continue
-                    nameEventsLumi.append((sample["name"],str(int(sample['nEvents'])),getLumi(sample)))
+                    nameEventsLumiXs.append((sample["name"],
+                                             str(int(sample['nEvents'])),
+                                             getLumi(sample),
+                                             getXs(sample)))
                 else :
                     if not mergedSamples : continue
                     localNEL = []
@@ -452,28 +480,35 @@ class plotter(object) :
                         name = sample["sources"][iSource]
                         N    = sample["nEvents"][iSource]
                         if type(N) is list : useThese = False; break
-                        localNEL.append((name,str(int(N)),getLumi(sample,iSource)))
-                    if useThese : nameEventsLumi += localNEL
+                        localNEL.append((name,str(int(N)),getLumi(sample,iSource),getXs(sample,iSource)))
+                    if useThese : nameEventsLumiXs += localNEL
 
-            nameEventsLumi.sort( key = lambda x: (x[0][:5], int(float(x[2])), -int(x[1]), x[0][5:] ))
-            if not nameEventsLumi : return (None,None,None)
-            name,events,lumi = zip(*nameEventsLumi)
+            nameEventsLumiXs.sort( key = lambda x: (x[0][:5], int(float(x[2])), -int(x[1]), x[0][5:] ))
+            if not nameEventsLumiXs : return (None,None,None,None)
+            name,events,lumi,xs = zip(*nameEventsLumiXs)
             return ( ["sample",""]+list(name),
                      ["nEventsIn",""] + list(events),
-                     ["  lumi (/pb)",""] + list(lumi) )
+                     ["  lumi (/pb)",""] + list(lumi),
+                     ["  xs (pb)",""] + list(xs),
+                     )
 
-        def printOneType(x, sampleNames, nEventsIn, lumis) :
+        def printOneType(x, sampleNames, nEventsIn, lumis, xss) :
             if not sampleNames : return
             sLength = max([len(item) for item in sampleNames])
             nLength = max([len(item) for item in nEventsIn]  )
             lLength = max([len(item) for item in lumis]      )
+            xLength = max([len(item) for item in xss]        )
 
             total = sLength + nLength + lLength + 15
+            if self.printXs:
+                total += xLength
             if total>self.nColumnsMax : text.SetTextSize(defSize*self.nColumnsMax/(total+0.0))
                 
-            for j,(name,events,lumi) in enumerate(zip(sampleNames,nEventsIn,lumis)) :
+            for j,(name,events,lumi,xs) in enumerate(zip(sampleNames,nEventsIn,lumis,xss)) :
                 y = 0.9 - 0.55*(j+0.5)/self.nLinesMax
                 out = name.ljust(sLength) + events.rjust(nLength+3) + lumi.rjust(lLength+3)
+                if self.printXs:
+                    out += xs.rjust(xLength+3)
                 text.DrawTextNDC(x, y, out)
 
         printOneType( 0.02, *loopOneType(False) )
@@ -507,7 +542,7 @@ class plotter(object) :
         text.SetTextSize(0.40*text.GetTextSize())
 
         pageWidth = 120
-        nSamples = len(self.someOrganizer.samples) + int(self.printRatios)
+        nSamples = len(self.someOrganizer.samples) + len(self.foms)
         colWidth = min(25, pageWidth/nSamples)
         space = 1
 
@@ -528,15 +563,20 @@ class plotter(object) :
                 if sample["name"] in self.samplesForRatios : ratios[self.samplesForRatios.index(sample["name"])] = k
                 nums.append(s.rjust(colWidth))
 
-            if self.printRatios and len(ratios)==2 :
-                s = "-    "
-                if ratios[0] and ratios[1] and ratios[0][0] and ratios[1][0] :
-                    value = ratios[0][0]/float(ratios[1][0])
-                    error = value*math.sqrt((ratios[0][1]/float(ratios[0][0]))**2 + (ratios[1][1]/float(ratios[1][0]))**2)
-                    ratio = (value, error)
-                    s = utils.roundString(*ratio, width=(colWidth-space))
-                nums.append(s.rjust(colWidth))
-                
+            if len(ratios)==2 and ratios[0] and ratios[1]:
+                num = float(ratios[0][0])
+                den = float(ratios[1][0])
+                numUnc = float(ratios[0][1])
+                denUnc = float(ratios[1][1])
+
+                for fom in self.foms:
+                    s = "-    "
+                    if num and den:
+                        value = fom["value"](num, den)
+                        error = value*fom["uncRel"](num, den, numUnc, denUnc)
+                        s = utils.roundString(value, error, width=(colWidth-space))
+                    nums.append(s.rjust(colWidth))
+
             if step.name in ['master','label']: self.pdfOptions = step.title
             if step.name=='label' :
                 text.SetTextColor(r.kBlack)
@@ -559,8 +599,9 @@ class plotter(object) :
 
         self.formerMaxAbsI = absI
         self.sampleList = [s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]
-        if self.printRatios and len(self.samplesForRatios)==2 :
-            self.sampleList += ("%s/%s"%self.sampleLabelsForRatios)[:(colWidth-space)].rjust(colWidth)
+        if len(self.samplesForRatios)==2:
+            for fom in self.foms:
+                self.sampleList += (fom["label"](*self.sampleLabelsForRatios))[:(colWidth-space)].rjust(colWidth)
         text.SetTextColor(r.kBlack)
         text.DrawTextNDC(x, 0.5, "   "+"".join(self.sampleList))
         text.SetTextAlign(13)
