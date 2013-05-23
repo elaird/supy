@@ -21,7 +21,10 @@ class secondary(wrappedChain.calculable,analysisStep) :
 
     def cacheFileName(self,tag=None) :
         pieces = filter(None,self.inputFileName.split('/'))
-        return '/'.join(['']+pieces[:-2] + [tag if tag!=None else pieces[-2], "cache_%s.root"%self.name])
+        return '/'.join(['']+pieces[:-2] + [tag if tag!=None else pieces[-2], "cache_%s.root"%self.nameForCache])
+
+    @property
+    def nameForCache(self): return self.name
 
     @staticmethod
     def allDeps(node,graph, depsSoFar = set()) :
