@@ -1,4 +1,5 @@
 import ROOT as r
+r.gROOT.SetBatch(True)
 import copy,re
 import configuration,utils
 

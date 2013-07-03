@@ -1,4 +1,5 @@
 import ROOT as r
+r.gROOT.SetBatch(True)
 import os,math,string,itertools,re
 import utils,configuration as conf
 from supy import whereami

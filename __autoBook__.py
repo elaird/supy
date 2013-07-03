@@ -1,4 +1,5 @@
 import ROOT as r
+r.gROOT.SetBatch(True)
 
 class autoBook(dict) :
     def __init__(self, arg = None) :

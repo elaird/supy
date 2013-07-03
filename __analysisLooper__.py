@@ -2,6 +2,7 @@ import copy,os,collections
 import configuration
 from supy import autoBook,wrappedChain,utils,keyTracer
 import ROOT as r
+r.gROOT.SetBatch(True)
 #####################################
 class analysisLooper :
     """class to set up and loop over events"""

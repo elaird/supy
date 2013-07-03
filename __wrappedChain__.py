@@ -1,5 +1,6 @@
 import copy,array
 import ROOT as r
+r.gROOT.SetBatch(True)
 from collections import defaultdict
 
 class keyTracer(object) :
