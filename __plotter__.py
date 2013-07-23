@@ -54,7 +54,7 @@ class plotter(object) :
     ##############################
     @staticmethod
     def dimensionOfHisto(histos) :
-        def D(h) : return 2 if issubclass(type(h),r.TH2) else 1 if issubclass(type(h),r.TH1) else 0
+        def D(h) : return 3 if issubclass(type(h),r.TH3) else 2 if issubclass(type(h),r.TH2) else 1 if issubclass(type(h),r.TH1) else 0
         dimensions = set([D(h) for h in histos if h])
         assert len(dimensions)==1,"inconsistent histogram dimensions\n{%s}"%','.join(h.GetName() for h in histos if h)
         return next(iter(dimensions))
@@ -651,6 +651,7 @@ class plotter(object) :
                 stuffToKeep += self.plot1D(histo, count,
                                            goptions = self.inDict(sample, "goptions", ""),
                                            double = self.inDict(sample, "double", ""))
+            elif dimension==3 : continue
             elif dimension==2 and self.omit2D : continue
             elif dimension==2 :
                 self.plot2D(histo, count, sampleName, stuffToKeep)
