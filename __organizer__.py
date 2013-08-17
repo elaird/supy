@@ -56,6 +56,7 @@ class organizer(object) :
         self.scaled = False
         self.doNotScale = ["lumiHisto","xsHisto","xsPostWeightsHisto","nJobsHisto","nEventsHisto"]
         self.prefixesNoScale = prefixesNoScale
+        assert type(self.prefixesNoScale) in [list, tuple], type(self.prefixesNoScale)
         self.lumi = 1.0
         self.tag = tag
         self.samples = tuple(copy.deepcopy(sampleSpecs)) # columns
