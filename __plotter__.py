@@ -46,6 +46,7 @@ class plotter(object) :
         for histo in histos:
             if not histo : continue
             if histo.GetName() in dontShiftList : continue
+            if type(histo) is r.TProfile : continue
             bins = histo.GetNbinsX()
             entries = histo.GetEntries()
             combineBinContentAndError(histo, binToContainCombo = 1   , binToBeKilled = 0     )
