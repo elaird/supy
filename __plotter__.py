@@ -62,6 +62,9 @@ class plotter(object) :
     ##############################        
     @staticmethod
     def metFit(histo) :
+        if "met" not in histo.GetName() :
+            return
+        r.gStyle.SetOptFit(1111)
         funcName="func"
         func=r.TF1(funcName,"[0]*x*exp( -(x-[1])**2 / (2.0*[2])**2 )/[2]",0.5,30.0)
         func.SetParameters(1.0,5.0,3.0)
@@ -106,7 +109,7 @@ class plotter(object) :
                  pegMinimum = None,
                  anMode = False,
                  drawYx = False,
-                 doMetFit = False,
+                 fitFunc = None,
                  doColzFor2D = True,
                  compactOutput = False,
                  noSci = False,
@@ -128,7 +131,7 @@ class plotter(object) :
                  pushLeft = False
                  ) :
         for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
-                     "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
+                     "pegMinimum", "anMode","drawYx","fitFunc","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
                      "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D","foms","printXs",
                      "printImperfectCalcPageIfEmpty", "pushLeft"] :
@@ -804,26 +807,9 @@ class plotter(object) :
             keep.append(histo2)
 
         r.gStyle.SetOptFit(0)
-        if self.doMetFit and "met" in histo.GetName() :
-            r.gStyle.SetOptFit(1111)
-            func=self.metFit(histo)
+        if self.fitFunc:
+            func = self.fitFunc(histo)
             keep.append(func)
-
-            r.gPad.Update()
-            tps=histo.FindObject("stats")
-            keep.append(tps)
-            tps.SetLineColor(histo.GetLineColor())
-            tps.SetTextColor(histo.GetLineColor())
-            if iHisto==0 :
-                tps.SetX1NDC(0.75)
-                tps.SetX2NDC(0.95)
-                tps.SetY1NDC(0.75)
-                tps.SetY2NDC(0.95)
-            else :
-                tps.SetX1NDC(0.75)
-                tps.SetX2NDC(0.95)
-                tps.SetY1NDC(0.50)
-                tps.SetY2NDC(0.70)
 
         #move stat box
         r.gPad.Update()
