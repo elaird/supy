@@ -203,7 +203,8 @@ class organizer(object) :
                     elif i!=iData : h.Scale(self.lumi)
                     dim = int(h.ClassName()[2]) if any(str(i) in h.ClassName() for i in range(1,4)) else None
                     axis = h.GetYaxis() if dim==1 else h.GetZaxis() if dim==2 else None
-                    if axis: axis.SetTitle("p.d.f." if toPdf else "%s / %s pb^{-1}"%(axis.GetTitle(),str(self.lumi)))
+                    #if axis: axis.SetTitle("p.d.f." if toPdf else "%s / %s pb^{-1}"%(axis.GetTitle(),str(self.lumi)))
+                    if axis: axis.SetTitle("p.d.f." if toPdf else "%s / %.0f fb^{-1}"%(axis.GetTitle(),self.lumi/1000.))
         self.scaled = True
 
     def scaleOneRaw(self, index, factor) :
