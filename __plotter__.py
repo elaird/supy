@@ -450,7 +450,7 @@ class plotter(object) :
                         value = sample["nEvents"][iSource]/sample["xsOfSources"][iSource]
                     else :
                         value = sample["nEvents"]/sample["xs"]
-            return "%.1f"%value
+            return "%.1f" % (value/1.0e3)
 
         def getXs(sample = None, iSource = None) :
             value = None
@@ -460,7 +460,7 @@ class plotter(object) :
                         value = sample["xsOfSources"][iSource]
                     else:
                         value = sample["xs"]
-            return "%3.2e" % value if value else ""
+            return "%3.2e" % (value*1.0e3) if value else ""
 
         def loopOneType(mergedSamples = False) :
             nameEventsLumiXs = []
@@ -488,8 +488,8 @@ class plotter(object) :
             name,events,lumi,xs = zip(*nameEventsLumiXs)
             return ( ["sample",""]+list(name),
                      ["nEventsIn",""] + list(events),
-                     ["  lumi (/pb)",""] + list(lumi),
-                     ["  xs (pb)",""] + list(xs),
+                     ["  lumi (/fb)",""] + list(lumi),
+                     ["  xs (fb)",""] + list(xs),
                      )
 
         def printOneType(x, sampleNames, nEventsIn, lumis, xss) :
@@ -605,7 +605,7 @@ class plotter(object) :
         text.SetTextColor(r.kBlack)
         text.DrawTextNDC(x, 0.5, "   "+"".join(self.sampleList))
         text.SetTextAlign(13)
-        text.DrawTextNDC(0.05, 0.03, "events / %.3f pb^{-1}"% self.someOrganizer.lumi )
+        text.DrawTextNDC(0.05, 0.03, "events / %.0f fb^{-1}" % (self.someOrganizer.lumi/1.0e3) )
         self.flushPage()
 
     def getExtremes(self, dimension, histos, ignoreHistos) :
