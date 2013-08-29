@@ -226,7 +226,7 @@ class plotter(object) :
         rows = []
         for key in sorted(self.cutDict.keys(), key = string.ascii_letters.index) :
             name,desc = self.cutDict[key]
-            if any( re.match(pattern+'$',plotName) for pattern in self.blackList ) :
+            if any( re.match(pattern+'$', name) for pattern in self.blackList ) :
                 filtered.append(key)
                 continue
             for item in [name, desc] :
