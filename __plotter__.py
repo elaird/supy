@@ -22,10 +22,11 @@ def combineBinContentAndError(histo, binToContainCombo, binToBeKilled) :
 class plotter(object) :
     ##############################
     @staticmethod
-    def setupStyle() :
+    def setupStyle(optStat=None) :
         r.gROOT.SetStyle("Plain")
         r.gStyle.SetPalette(1)
-        r.gStyle.SetOptStat(1111111)
+        if optStat:
+            r.gStyle.SetOptStat(optStat)
     ##############################
     @staticmethod
     def setupTdrStyle() :
@@ -107,6 +108,7 @@ class plotter(object) :
                  showStatBox = True,
                  doLog = True,
                  pegMinimum = None,
+                 optStat = 1111111,
                  anMode = False,
                  drawYx = False,
                  fitFunc = None,
@@ -133,7 +135,7 @@ class plotter(object) :
         for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
                      "pegMinimum", "anMode","drawYx","fitFunc","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
-                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D","foms","printXs",
+                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D","foms","printXs","optStat",
                      "printImperfectCalcPageIfEmpty", "pushLeft"] :
             setattr(self,item,eval(item))
 
@@ -161,7 +163,7 @@ class plotter(object) :
 
     def plotAll(self) :
         print utils.hyphens
-        self.setupStyle()
+        self.setupStyle(self.optStat)
 
         self.printCanvas("[")
         text1 = self.printTimeStamp()
