@@ -66,6 +66,9 @@ class phi(value) :
 class eta(value) :
     def wrapName(self) : return ".eta",
     def wrap(self,val) : return val[0].eta()
+class Rapidity(value) :
+    def wrapName(self) : return ".Rapidity",
+    def wrap(self,val) : return val[0].Rapidity()
 class absEta(value) :
     def wrapName(self) : return ".absEta",
     def wrap(self,val) : return abs(val[0].eta())

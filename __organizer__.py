@@ -11,7 +11,7 @@ class organizer(object) :
     """
     class step(dict) : 
         """Keys are histogram names, values are tuples of histograms, parallel to samples."""
-        def __init__(self,samples,dirs = None,keys = []) :
+        def __init__(self,samples,dirs = None,keys = [], prefixesNoScale=[]) :
             if not dirs : dirs = [s['dir'] for s in samples]
             self.N = len(dirs)
             for key in keys: self[key] = tuple( map(lambda d: utils.get(d,key), dirs) )
@@ -24,6 +24,8 @@ class organizer(object) :
                 if key in ["nJobsHisto"] : assert all( hist.GetBinContent(1)==hist.GetEntries() for hist in self[key])
                 elif key in ["lumiHisto","xsHisto","xsPostWeightsHisto"] :
                     [ hist.Scale(  1.0 / sample['nJobs'] ) for hist,sample in zip(self[key],samples) if hist ]
+                elif any([key.startswith(prefix) for prefix in prefixesNoScale]):
+                    continue
                 else: [ hist.Scale(sample["xs"]/sample['nEvents']) for hist,sample in zip(self[key],samples)
                         if hist and sample['nEvents'] and "xs" in sample ]
 
@@ -47,12 +49,14 @@ class organizer(object) :
                 instance[key] = sum([s[key] if s and key in s else blank for s,blank in zip(steps,blanks)],())
             return instance
         
-    def __init__(self, tag, sampleSpecs = [], verbose = False, keepTH2 = True ) :
+    def __init__(self, tag, sampleSpecs = [], verbose = False, keepTH2 = True, prefixesNoScale=[]) :
         r.gROOT.cd()
         self.verbose = verbose
         self.keepTH2 = keepTH2
         self.scaled = False
         self.doNotScale = ["lumiHisto","xsHisto","xsPostWeightsHisto","nJobsHisto","nEventsHisto"]
+        self.prefixesNoScale = prefixesNoScale
+        assert type(self.prefixesNoScale) in [list, tuple], type(self.prefixesNoScale)
         self.lumi = 1.0
         self.tag = tag
         self.samples = tuple(copy.deepcopy(sampleSpecs)) # columns
@@ -129,7 +133,7 @@ class organizer(object) :
             keys = set(sum(keysets,[]))
             subdirs = map(lambda d,keys: next((d.Get(k) for k in keys if type(d.Get(k)) is r.TDirectoryFile), None), dirs,keysets)
             if any(subdirs) : keys.remove(next(iter(subdirs)).GetName())
-            steps.append( self.step(self.samples,dirs,keys) )
+            steps.append( self.step(self.samples,dirs,keys,self.prefixesNoScale) )
             dirs = subdirs
         self.__steps = tuple(steps + [self.step(self.samples)])
         return self.__steps
@@ -189,7 +193,7 @@ class organizer(object) :
 
         for step in self.steps :
             for key,hists in step.iteritems() :
-                if key in self.doNotScale : continue
+                if key in self.doNotScale or any([key.startswith(prefix) for prefix in self.prefixesNoScale]): continue
                 for i,h in enumerate(hists):
                     if type(h) == r.TProfile : continue
                     if not h: continue
@@ -199,7 +203,8 @@ class organizer(object) :
                     elif i!=iData : h.Scale(self.lumi)
                     dim = int(h.ClassName()[2]) if any(str(i) in h.ClassName() for i in range(1,4)) else None
                     axis = h.GetYaxis() if dim==1 else h.GetZaxis() if dim==2 else None
-                    if axis: axis.SetTitle("p.d.f." if toPdf else "%s / %s pb^{-1}"%(axis.GetTitle(),str(self.lumi)))
+                    #if axis: axis.SetTitle("p.d.f." if toPdf else "%s / %s pb^{-1}"%(axis.GetTitle(),str(self.lumi)))
+                    if axis: axis.SetTitle("p.d.f." if toPdf else "%s / %.0f fb^{-1}"%(axis.GetTitle(),self.lumi/1000.))
         self.scaled = True
 
     def scaleOneRaw(self, index, factor) :

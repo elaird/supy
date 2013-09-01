@@ -22,10 +22,11 @@ def combineBinContentAndError(histo, binToContainCombo, binToBeKilled) :
 class plotter(object) :
     ##############################
     @staticmethod
-    def setupStyle() :
+    def setupStyle(optStat=None) :
         r.gROOT.SetStyle("Plain")
         r.gStyle.SetPalette(1)
-        r.gStyle.SetOptStat(1111111)
+        if optStat:
+            r.gStyle.SetOptStat(optStat)
     ##############################
     @staticmethod
     def setupTdrStyle() :
@@ -46,6 +47,7 @@ class plotter(object) :
         for histo in histos:
             if not histo : continue
             if histo.GetName() in dontShiftList : continue
+            if type(histo) is r.TProfile : continue
             bins = histo.GetNbinsX()
             entries = histo.GetEntries()
             combineBinContentAndError(histo, binToContainCombo = 1   , binToBeKilled = 0     )
@@ -61,6 +63,9 @@ class plotter(object) :
     ##############################        
     @staticmethod
     def metFit(histo) :
+        if "met" not in histo.GetName() :
+            return
+        r.gStyle.SetOptFit(1111)
         funcName="func"
         func=r.TF1(funcName,"[0]*x*exp( -(x-[1])**2 / (2.0*[2])**2 )/[2]",0.5,30.0)
         func.SetParameters(1.0,5.0,3.0)
@@ -103,9 +108,10 @@ class plotter(object) :
                  showStatBox = True,
                  doLog = True,
                  pegMinimum = None,
+                 optStat = 1111111,
                  anMode = False,
                  drawYx = False,
-                 doMetFit = False,
+                 fitFunc = None,
                  doColzFor2D = True,
                  compactOutput = False,
                  noSci = False,
@@ -127,9 +133,9 @@ class plotter(object) :
                  pushLeft = False
                  ) :
         for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
-                     "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
+                     "pegMinimum", "anMode","drawYx","fitFunc","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
-                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D","foms","printXs",
+                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D","foms","printXs","optStat",
                      "printImperfectCalcPageIfEmpty", "pushLeft"] :
             setattr(self,item,eval(item))
 
@@ -157,7 +163,7 @@ class plotter(object) :
 
     def plotAll(self) :
         print utils.hyphens
-        self.setupStyle()
+        self.setupStyle(self.optStat)
 
         self.printCanvas("[")
         text1 = self.printTimeStamp()
@@ -226,7 +232,7 @@ class plotter(object) :
         rows = []
         for key in sorted(self.cutDict.keys(), key = string.ascii_letters.index) :
             name,desc = self.cutDict[key]
-            if any( re.match(pattern+'$',plotName) for pattern in self.blackList ) :
+            if any( re.match(pattern+'$', name) for pattern in self.blackList ) :
                 filtered.append(key)
                 continue
             for item in [name, desc] :
@@ -450,7 +456,7 @@ class plotter(object) :
                         value = sample["nEvents"][iSource]/sample["xsOfSources"][iSource]
                     else :
                         value = sample["nEvents"]/sample["xs"]
-            return "%.1f"%value
+            return "%.1f" % (value/1.0e3)
 
         def getXs(sample = None, iSource = None) :
             value = None
@@ -460,7 +466,7 @@ class plotter(object) :
                         value = sample["xsOfSources"][iSource]
                     else:
                         value = sample["xs"]
-            return "%3.2e" % value if value else ""
+            return "%3.2e" % (value*1.0e3) if value else ""
 
         def loopOneType(mergedSamples = False) :
             nameEventsLumiXs = []
@@ -488,8 +494,8 @@ class plotter(object) :
             name,events,lumi,xs = zip(*nameEventsLumiXs)
             return ( ["sample",""]+list(name),
                      ["nEventsIn",""] + list(events),
-                     ["  lumi (/pb)",""] + list(lumi),
-                     ["  xs (pb)",""] + list(xs),
+                     ["  lumi (/fb)",""] + list(lumi),
+                     ["  xs (fb)",""] + list(xs),
                      )
 
         def printOneType(x, sampleNames, nEventsIn, lumis, xss) :
@@ -605,7 +611,7 @@ class plotter(object) :
         text.SetTextColor(r.kBlack)
         text.DrawTextNDC(x, 0.5, "   "+"".join(self.sampleList))
         text.SetTextAlign(13)
-        text.DrawTextNDC(0.05, 0.03, "events / %.3f pb^{-1}"% self.someOrganizer.lumi )
+        text.DrawTextNDC(0.05, 0.03, "events / %.0f fb^{-1}" % (self.someOrganizer.lumi/1.0e3) )
         self.flushPage()
 
     def getExtremes(self, dimension, histos, ignoreHistos) :
@@ -803,26 +809,9 @@ class plotter(object) :
             keep.append(histo2)
 
         r.gStyle.SetOptFit(0)
-        if self.doMetFit and "met" in histo.GetName() :
-            r.gStyle.SetOptFit(1111)
-            func=self.metFit(histo)
+        if self.fitFunc:
+            func = self.fitFunc(histo)
             keep.append(func)
-
-            r.gPad.Update()
-            tps=histo.FindObject("stats")
-            keep.append(tps)
-            tps.SetLineColor(histo.GetLineColor())
-            tps.SetTextColor(histo.GetLineColor())
-            if iHisto==0 :
-                tps.SetX1NDC(0.75)
-                tps.SetX2NDC(0.95)
-                tps.SetY1NDC(0.75)
-                tps.SetY2NDC(0.95)
-            else :
-                tps.SetX1NDC(0.75)
-                tps.SetX2NDC(0.95)
-                tps.SetY1NDC(0.50)
-                tps.SetY2NDC(0.70)
 
         #move stat box
         r.gPad.Update()
