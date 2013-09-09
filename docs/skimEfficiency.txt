@@ -26,3 +26,6 @@ Imagine one has looped over the skimmed subset.  The event yield at
 equation in the above paragraph, we find that the desired xs_subset^LO
 = (2/11) * 360pb, i.e. the fraction of skimmed events (ignoring
 weights) times the LO cross section of the full sample.
+
+This is tested in supy/tests/supy-analysis/__init__.py
+(test4_skim_eff).
