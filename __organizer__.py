@@ -26,8 +26,8 @@ class organizer(object) :
                     [ hist.Scale(  1.0 / sample['nJobs'] ) for hist,sample in zip(self[key],samples) if hist ]
                 elif any([key.startswith(prefix) for prefix in prefixesNoScale]):
                     continue
-                else: [ hist.Scale(sample["xs"]/sample['nEvents']) for hist,sample in zip(self[key],samples)
-                        if hist and sample['nEvents'] and "xs" in sample ]
+                else: [ hist.Scale(sample["xs"]/sample['nEventsIn']) for hist,sample in zip(self[key],samples)
+                        if hist and sample['nEventsIn'] and "xs" in sample ]
 
         def __str__(self) : return "%s: %s"%self.nameTitle
 
@@ -118,9 +118,9 @@ class organizer(object) :
                 hist = sample['dir'].Get(histName)
                 return hist.GetBinContent(bin) if hist and hist.GetEntries() else 0
             lumiNjobs,xsPreNjobs,xsPostNjobs,sample['nJobs'] = map(extract, ["lumiHisto","xsHisto","xsPostWeightsHisto","nJobsHisto"])
-            sample['nEvents'] = extract('counts',bin=2)
-            nEventsTotal = sample['nEvents'] + extract('counts')
-            xsNjobs = xsPostNjobs if xsPostNjobs else xsPreNjobs *( 1 if not nEventsTotal else sample['nEvents'] / nEventsTotal)
+            sample['weightIn'] = extract('counts', bin=2)
+            sample['nEventsIn'] = sample['weightIn'] + extract('counts')
+            xsNjobs = xsPostNjobs if xsPostNjobs else xsPreNjobs
 
             if xsNjobs : sample["xs"] = xsNjobs / sample['nJobs']
             if lumiNjobs: sample["lumi"] = lumiNjobs / sample['nJobs']
@@ -152,7 +152,8 @@ class organizer(object) :
 
         target = copy.deepcopy(targetSpec)
         target['sources'] = [s["name"] for s in sources]
-        target['nEvents'] = [s['nEvents'] for s in sources]
+        target['nEventsIn'] = [s['nEventsIn'] for s in sources]
+        target['weightIn'] = [s['weightIn'] for s in sources]
         if all(["xs" in s for s in sources]) : 
             target["xsOfSources"] = [s["xs"] for s in sources ]
             target["xs"] = sum(target["xsOfSources"])
