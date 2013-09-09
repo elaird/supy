@@ -1,0 +1,28 @@
+The analysisStep supy.steps.other.skimmer will write the events that
+it processes to a .root file, in the format of the original TTree.
+The function supy.utils.io.printSkimResults() will print the lines
+that one might use to define a sample based on the skim.  The xs of
+the skim is computed by this function as follows.  Consider a ``full''
+sample:
+
+- in which event weights compensate for (a) modified branching
+  fractions during the generation; and also (b) a LO --> NLO
+  ``k-factor'';
+
+- which contains 10 events with weight 1.0, and 1 event with weight 6.0.
+
+Let xs_full^LO = 360pb.  Then the event yield at 1/pb will be 1/pb *
+360pb * (16.0)/11, i.e. multiply by the sum of the weights in the full
+sample divided by the number of events in the full sample.
+
+Consider a skimmed subset containing 1 event with weight 1.0 and 1
+event with weight 6.0.  We desire a value of xs_subset^LO such that
+the event yield at 1/pb will be 1/pb * 360pb * (16.0/11) * (7.0/16.0),
+i.e. the above yield times the fraction of the weight kept during the
+skim.
+
+Imagine one has looped over the skimmed subset.  The event yield at
+1/pb will be 1/pb * xs_subset^LO * (7.0/2).  Combining this with the
+equation in the above paragraph, we find that the desired xs_subset^LO
+= (2/11) * 360pb, i.e. the fraction of skimmed events (ignoring
+weights) times the LO cross section of the full sample.
