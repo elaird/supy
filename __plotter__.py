@@ -443,6 +443,9 @@ class plotter(object) :
         text.SetTextSize(0.38*text.GetTextSize())
         defSize = text.GetTextSize()
         
+        def mcLumi(nEvents=None, w=None, xs=None):
+            return nEvents**2/(w*xs)  # see docs/mcLumi.txt
+
         def getLumi(sample = None, iSource = None) :
             value = 0.0
             if sample!=None :
@@ -453,9 +456,13 @@ class plotter(object) :
                         value = sample["lumi"]                        
                 elif "xs" in sample :
                     if iSource!=None :
-                        value = sample["nEvents"][iSource]/sample["xsOfSources"][iSource]
+                        value = mcLumi(nEvents=sample["nEventsIn"][iSource],
+                                       w=sample["weightIn"][iSource],
+                                       xs=sample["xsOfSources"][iSource])
                     else :
-                        value = sample["nEvents"]/sample["xs"]
+                        value = mcLumi(nEvents=sample["nEventsIn"],
+                                       w=sample["weightIn"],
+                                       xs=sample["xs"])
             return "%.1f" % (value/1.0e3)
 
         def getXs(sample = None, iSource = None) :
@@ -468,51 +475,63 @@ class plotter(object) :
                         value = sample["xs"]
             return "%3.2e" % (value*1.0e3) if value else ""
 
+        def getWeight(w=None):
+            return "%3.2e" % w
+
         def loopOneType(mergedSamples = False) :
-            nameEventsLumiXs = []
+            info = []
             for sample in self.someOrganizer.samples :
                 if "sources" not in sample :
                     if mergedSamples : continue
-                    nameEventsLumiXs.append((sample["name"],
-                                             str(int(sample['nEvents'])),
-                                             getLumi(sample),
-                                             getXs(sample)))
+                    info.append((sample["name"],
+                                 str(int(sample['nEventsIn'])),
+                                 getWeight(sample['weightIn']),
+                                 getLumi(sample),
+                                 getXs(sample)))
                 else :
                     if not mergedSamples : continue
-                    localNEL = []
+                    localInfo = []
                     useThese = True
 
                     for iSource in range(len(sample["sources"])) :
                         name = sample["sources"][iSource]
-                        N    = sample["nEvents"][iSource]
+                        N    = sample["nEventsIn"][iSource]
+                        w    = sample["weightIn"][iSource]
                         if type(N) is list : useThese = False; break
-                        localNEL.append((name,str(int(N)),getLumi(sample,iSource),getXs(sample,iSource)))
-                    if useThese : nameEventsLumiXs += localNEL
+                        localInfo.append((name,
+                                          str(int(N)),
+                                          getWeight(w),
+                                          getLumi(sample, iSource),
+                                          getXs(sample,iSource)))
+                    if useThese:
+                        info += localInfo
 
-            nameEventsLumiXs.sort( key = lambda x: (x[0][:5], int(float(x[2])), -int(x[1]), x[0][5:] ))
-            if not nameEventsLumiXs : return (None,None,None,None)
-            name,events,lumi,xs = zip(*nameEventsLumiXs)
+            info.sort( key = lambda x: (x[0][:5], int(float(x[2])), -int(x[1]), x[0][5:] ))
+            if not info : return (None,None,None,None,None)
+            name,events,weight,lumi,xs = zip(*info)
             return ( ["sample",""]+list(name),
                      ["nEventsIn",""] + list(events),
+                     ["weightIn",""] + list(weight),
                      ["  lumi (/fb)",""] + list(lumi),
                      ["  xs (fb)",""] + list(xs),
                      )
 
-        def printOneType(x, sampleNames, nEventsIn, lumis, xss) :
+        def printOneType(x, sampleNames, nEventsIn, weightIn, lumis, xss) :
             if not sampleNames : return
             sLength = max([len(item) for item in sampleNames])
             nLength = max([len(item) for item in nEventsIn]  )
+            wLength = max([len(item) for item in weightIn]   )
             lLength = max([len(item) for item in lumis]      )
             xLength = max([len(item) for item in xss]        )
 
-            total = sLength + nLength + lLength + 15
+            total = sLength + nLength + wLength + lLength + 15
             if self.printXs:
                 total += xLength
             if total>self.nColumnsMax : text.SetTextSize(defSize*self.nColumnsMax/(total+0.0))
                 
-            for j,(name,events,lumi,xs) in enumerate(zip(sampleNames,nEventsIn,lumis,xss)) :
+            for j,(name,events,weight,lumi,xs) in enumerate(zip(sampleNames,nEventsIn,weightIn,lumis,xss)) :
                 y = 0.9 - 0.55*(j+0.5)/self.nLinesMax
-                out = name.ljust(sLength) + events.rjust(nLength+3) + lumi.rjust(lLength+3)
+                out = name.ljust(sLength) + events.rjust(nLength+3) + weight.rjust(wLength+3) + lumi.rjust(lLength+3)
                 if self.printXs:
                     out += xs.rjust(xLength+3)
                 text.DrawTextNDC(x, y, out)
