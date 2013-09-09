@@ -444,6 +444,8 @@ class plotter(object) :
         defSize = text.GetTextSize()
         
         def mcLumi(nEvents=None, w=None, xs=None):
+            if not w*xs:
+                return 0.0
             return nEvents**2/(w*xs)  # see docs/mcLumi.txt
 
         def getLumi(sample = None, iSource = None) :
