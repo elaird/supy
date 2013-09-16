@@ -29,3 +29,13 @@ weights) times the LO cross section of the full sample.
 
 This is tested in supy/tests/supy-analysis/__init__.py
 (test4_skim_eff).
+
+`printSkimResults` should be called in the `conclude` function of your
+analysis:
+
+```
+def conclude(self, pars):
+    org = self.organizer(pars)
+    supy.utils.io.printSkimResults(org)
+
+```
