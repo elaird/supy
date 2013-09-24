@@ -1,5 +1,4 @@
-
-[![Build Status](https://travis-ci.org/davidegerbaudo/supy.png)](https://travis-ci.org/davidegerbaudo/supy)
+[![Build Status](https://travis-ci.org/gerbaudo/supy.png)](https://travis-ci.org/gerbaudo/supy)
 
 
  License
