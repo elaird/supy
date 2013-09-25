@@ -196,8 +196,8 @@ class analysisLooper :
         utils.writePickle( self.pickleFileName,
                            [ [pickleJar(step) for step in self.steps], self.calculablesUsed, self.leavesUsed] )
 
-    def readyMerge(self, nSlices) :
-        foundAll = True
+    def incompleteSlices(self, nSlices) :
+        out = []
         for iSlice in range(nSlices) :
             pickleFileBlocks = self.pickleFileName.split('/')
             pickleFileBlocks.insert(-1,self.name)
@@ -207,9 +207,9 @@ class analysisLooper :
             pickleFileName = '/'.join(pickleFileBlocks)
             if not os.path.exists(pickleFileName) :
                 fields = pickleFileName.split('/')
-                print '/'.join(fields[:-1] + ["job%s.sh"%fields[-1].replace('.pickledData','').split('_')[-1]])
-                foundAll = False
-        return foundAll
+                script = '/'.join(fields[:-1] + ["job%s.sh"%fields[-1].replace('.pickledData','').split('_')[-1]])
+                out.append(script)
+        return out
 
     def mergeFunc(self, nSlices) :
         cleanUpList = []
