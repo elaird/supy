@@ -43,10 +43,58 @@ class fixedValue(wrappedChain.calculable) :
         self.value = value
     def update(self, ignored) :
         pass
-#####################################
 
 
-#####################################
+class IndicesFiltered(wrappedChain.calculable):
+    @property
+    def name(self):
+        return self.label
+
+    def __init__(self, label="", accept="", reject=""):
+        for item in ["label", "accept", "reject"]:
+            setattr(self, item, eval(item))
+
+    def update(self,_):
+        self.value = filter(lambda x:x not in self.source[self.reject],
+                            self.source[self.accept])
+
+
+class IndexMatchMap(wrappedChain.calculable):
+    @property
+    def name(self):
+        return self.label
+
+    def __init__(self, label="", keyP4="", keyIndices="",
+                 valueP4="", valueIndices="", maxDR=None):
+        for item in ["label", "keyP4", "keyIndices",
+                     "valueP4", "valueIndices", "maxDR"]:
+            setattr(self, item, eval(item))
+
+    def update(self,_):
+        self.value = {}
+        keyP4s = self.source[self.keyP4]
+        valueP4s = self.source[self.valueP4]
+        for iKey in self.source[self.keyIndices]:
+            dRs = []
+            for iValue in self.source[self.valueIndices]:
+                dR = r.Math.VectorUtil.DeltaR(keyP4s.at(iKey), valueP4s.at(iValue))
+                if self.maxDR and self.maxDR < dR:
+                    continue
+                dRs.append((dR, iValue))
+            if dRs:
+                self.value[iKey] = min(dRs)[1]
+
+
+class SumP4(wrappedChain.calculable):
+    def __init__(self, collection="", indices=""):
+        self.fixes = (collection, indices)
+
+    def update(self,_):
+        self.value = utils.LorentzV()
+        for i in self.source[self.fixes[1]]:
+            self.value += self.source[self.fixes[0]].at(i)
+
+
 class value(wrappedChain.calculable) :
     def __init__( self, var, indices = None, index = None, short = None) :
         self.fixes = ("%s."%var, "%d%s"%(index, short if indices!=None and short!=None else indices) if index!=None else "")
@@ -70,7 +118,17 @@ class eta(value) :
 class size(value) :
     @staticmethod
     def function(x) : return len(x)
-#####################################
+
+
+class keys(value) :
+    @staticmethod
+    def function(x) : return x.keys()
+
+
+class values(value) :
+    @staticmethod
+    def function(x) : return x.values()
+
 
 
 
