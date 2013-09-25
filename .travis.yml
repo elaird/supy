@@ -1,3 +1,4 @@
+# from https://github.com/rootpy/rootpy/blob/master/.travis.yml
 # travis-ci.org build & test configuration
 language: python
 
