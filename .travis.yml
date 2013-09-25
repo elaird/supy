@@ -1,3 +1,4 @@
+# from https://github.com/rootpy/rootpy/blob/master/.travis.yml
 # travis-ci.org build & test configuration
 language: python
 
@@ -7,7 +8,7 @@ python:
 
 env:
   - ROOT=5.34.05
-  - ROOT=5.32.04
+# - ROOT=5.27.06
 
 install:
   # Check if we are running Python 2 or 3. This is needed for the apt-get package names
@@ -26,6 +27,7 @@ install:
   # Install the dependencies we need
   # - time sudo apt-get install -qq python${PYTHON_SUFFIX}-numpy python${PYTHON_SUFFIX}-sphinx python${PYTHON_SUFFIX}-nose
   - time sudo apt-get install -qq python${PYTHON_SUFFIX}-numpy
+  - time sudo apt-get install -qq python${PYTHON_SUFFIX}-scipy
   # # matplotlib and PyTables are not available for Python 3 as packages from the main repo yet.
   # - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then time sudo apt-get install -qq python${PYTHON_SUFFIX}-matplotlib python${PYTHON_SUFFIX}-tables; fi
 
@@ -35,9 +37,13 @@ install:
   - time tar zxf root_v${ROOT}_Python_${TRAVIS_PYTHON_VERSION}.tar.gz
   - source root_v${ROOT}_Python_${TRAVIS_PYTHON_VERSION}/bin/thisroot.sh
 
-  # add supy to pythonpath
-  - PYTHONPATH=$PYTHONPATH:`pwd`/..
-  - PATH=$PATH:`pwd`/bin
+  # adjust environment
+  - cd ..
+  - export PYTHONPATH=$PYTHONPATH:`pwd`
+  - export PATH=$PATH:`pwd`/supy/bin
+
+  # add a configuration
+  - ln -s supy/defaults.py configuration.py
 
 script:
 
@@ -45,7 +51,7 @@ script:
   - time root -l -q
   - time python -c 'import ROOT; ROOT.TBrowser()'
 
-  # Check that rootpy can be imported
+  # Check that supy can be imported
   - time python -c 'import supy'
   # What if ROOT already been initialized
   - time python -c "from ROOT import kTRUE; import supy"
