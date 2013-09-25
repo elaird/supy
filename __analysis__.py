@@ -29,6 +29,7 @@ class analysis(object) :
 ############
     def __init__(self, options) :
         self.__batch   = options.batch
+        self.__resubmit= options.resubmit
         self.__loop    = int(options.loop)   if options.loop!=None else None
         self.__nSlices = int(options.slices) if options.slices!=None else 1
         self.__profile = options.profile
@@ -262,8 +263,11 @@ class analysis(object) :
         nSlices = utils.readPickle(self.jobsFile(tag,looper.name))
         incompleteSlices = looper.incompleteSlices(nSlices)
         if incompleteSlices:
-            for item in incompleteSlices:
-                print item
+            if self.__resubmit:
+                pass
+            else:
+                for item in incompleteSlices:
+                    print item
         else:
             looper.mergeFunc(nSlices)
 
