@@ -250,18 +250,23 @@ class analysis(object) :
                                   )
         sampleNames = set()
         return [ looper(sampleSpec) for sampleSpec in self.filteredSamples(conf) ]
-    
-############
+
+
     def mergeAllOutput(self) :
         args = sum([[(conf['tag'],looper) for looper in self.listsOfLoopers[conf['tag']]] for conf in self.configurations],[])
         utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(self.mergeOutput), args, False)
-    
+
+
     def mergeOutput(self,tag,looper) :
         if not os.path.exists(self.jobsFile(tag,looper.name)) : return
         nSlices = utils.readPickle(self.jobsFile(tag,looper.name))
-        if looper.readyMerge(nSlices) : looper.mergeFunc(nSlices)
+        incompleteSlices = looper.incompleteSlices(nSlices)
+        if incompleteSlices:
+            for item in incompleteSlices:
+                print item
+        else:
+            looper.mergeFunc(nSlices)
 
-############
 
     def manageSecondaries(self,updates,reportAll,reports) :
         def doUpdate(name) : return updates==True or type(updates)==str and name in updates.split(',')
