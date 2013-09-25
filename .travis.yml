@@ -28,6 +28,7 @@ install:
   # Install the dependencies we need
   # - time sudo apt-get install -qq python${PYTHON_SUFFIX}-numpy python${PYTHON_SUFFIX}-sphinx python${PYTHON_SUFFIX}-nose
   - time sudo apt-get install -qq python${PYTHON_SUFFIX}-numpy
+  - time sudo apt-get install -qq python${PYTHON_SUFFIX}-scipy
   # # matplotlib and PyTables are not available for Python 3 as packages from the main repo yet.
   # - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then time sudo apt-get install -qq python${PYTHON_SUFFIX}-matplotlib python${PYTHON_SUFFIX}-tables; fi
 
