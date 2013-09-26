@@ -1,7 +1,6 @@
 from __wrappedChain__ import keyTracer
 import defaults
 import options
-import batch
 
 
 def whereami() :
