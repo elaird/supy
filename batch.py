@@ -1,11 +1,27 @@
 import os
+from supy import batchScripts
 
 
-def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
-    jobScriptFileName = "%(base)s/%(tag)s/%(sample)s/job%(iSlice)d.sh"%indexDict
-    jobScriptDir = jobScriptFileName[:jobScriptFileName.rfind('/')]
+scripts = batchScripts()
+
+
+def baseDir(fileName=""):
+    return fileName[:fileName.rfind('/')]
+
+
+def condored(script):
+    return script.replace(".sh", ".condor") if os.path.exists(scripts["condorTemplate"]) else script
+
+
+def jobScriptFull(base="", tag="", sample="", iSlice=None, **_):
+    return "/".join([base, tag, sample, "job%d.sh" % iSlice])
+
+
+def prepareJob(jobCmd, indexDict):
+    jobScriptFileName = jobScriptFull(**indexDict)
+    jobScriptDir = baseDir(jobScriptFileName)
     if not os.path.isdir(jobScriptDir): os.system("mkdir -p %s"%jobScriptDir)
-    os.system("cp -p "+jobScript+" "+jobScriptFileName)
+    os.system("cp -p "+scripts["jobTemplate"]+" "+jobScriptFileName)
     os.system("chmod +x "+jobScriptFileName)
     with open(jobScriptFileName,"a") as file :
         print >>file
@@ -14,8 +30,8 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
         print >>file, "cd "+os.environ["PWD"]
         print >>file, jobCmd
 
-    if os.path.exists(condorTemplate):
-        condorFileName = jobScriptFileName.replace(".sh", ".condor")
+    condorFileName = condored(jobScriptFileName)
+    if condorFileName != jobScriptFileName:
         condorOutputSpec = "/".join([".",
                                      indexDict["analysis"],
                                      indexDict["tag"],
@@ -25,13 +41,15 @@ def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
                                                    ),
                                      "",
                                     ])
-        pipes = " | ".join(["cat %s" % condorTemplate,
+        pipes = " | ".join(["cat %s" % scripts["condorTemplate"],
                             "sed s@JOBFLAG@%s@g" % jobScriptFileName,
                             "sed s@OUTFLAG@%s@g" % condorOutputSpec,
                             ])
         os.system(" > ".join([pipes, condorFileName]))
-        arg = condorFileName
-    else :
-        arg = jobScriptFileName
-    subCmd = "cd %s; %s %s" % (jobScriptDir, subScript, arg)
+
+
+def submitJob(jobScript=""):
+    subCmd = "; ".join(["cd %s" % baseDir(jobScript),
+                        "%s %s" % (scripts["submission"], condored(jobScript)),
+                        ])
     os.system(subCmd)
