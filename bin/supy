@@ -35,7 +35,7 @@ def doBatch(someInstance) :
     argsAndOptions.remove("--batch")
     baseCmd = supy.whereami()+"/bin/supy "+" ".join(argsAndOptions)
 
-    os.system("chmod +x %s" % supy.batchScripts()["submission"])
+    os.system("chmod +x %s" % supy.batch.subScript())
 
     site = supy.sites.prefix()
 
