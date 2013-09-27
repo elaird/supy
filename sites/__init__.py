@@ -84,10 +84,6 @@ def info(site = prefix(), key = None) :
         dct.update(ss[site])
     return dct[key]
 
-def batchScripts() :
-    p = "sites/"+prefix()
-    return ("%sSub.sh"%p, "%sJob.sh"%p, "%sTemplate.condor"%p)
-
 def lumiEnvScript() :
     return "sites/%sLumi.sh"%prefix()
 
