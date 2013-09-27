@@ -1,8 +1,20 @@
 import os
-from supy import batchScripts
+from supy import sites, whereami
 
 
-scripts = batchScripts()
+__prefix = "%s/sites/%s" % (whereami(), sites.prefix())
+
+
+def subScript():
+    return "%sSub.sh" % __prefix
+
+
+def jobTemplate():
+    return "%sJob.sh" % __prefix
+
+
+def condorTemplate():
+    return  "%sTemplate.condor" % __prefix
 
 
 def baseDir(fileName=""):
@@ -10,7 +22,7 @@ def baseDir(fileName=""):
 
 
 def condored(script):
-    return script.replace(".sh", ".condor") if os.path.exists(scripts["condorTemplate"]) else script
+    return script.replace(".sh", ".condor") if os.path.exists(condorTemplate()) else script
 
 
 def jobScriptFull(base="", tag="", sample="", iSlice=None, **_):
@@ -21,7 +33,7 @@ def prepareJob(jobCmd, indexDict):
     jobScriptFileName = jobScriptFull(**indexDict)
     jobScriptDir = baseDir(jobScriptFileName)
     if not os.path.isdir(jobScriptDir): os.system("mkdir -p %s"%jobScriptDir)
-    os.system("cp -p "+scripts["jobTemplate"]+" "+jobScriptFileName)
+    os.system("cp -p %s %s" % (jobTemplate(), jobScriptFileName))
     os.system("chmod +x "+jobScriptFileName)
     with open(jobScriptFileName,"a") as file :
         print >>file
@@ -41,7 +53,7 @@ def prepareJob(jobCmd, indexDict):
                                                    ),
                                      "",
                                     ])
-        pipes = " | ".join(["cat %s" % scripts["condorTemplate"],
+        pipes = " | ".join(["cat %s" % condorTemplate(),
                             "sed s@JOBFLAG@%s@g" % jobScriptFileName,
                             "sed s@OUTFLAG@%s@g" % condorOutputSpec,
                             ])
@@ -50,6 +62,6 @@ def prepareJob(jobCmd, indexDict):
 
 def submitJob(jobScript=""):
     subCmd = "; ".join(["cd %s" % baseDir(jobScript),
-                        "%s %s" % (scripts["submission"], condored(jobScript)),
+                        "%s %s" % (subScript(), condored(jobScript)),
                         ])
     os.system(subCmd)
