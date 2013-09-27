@@ -4,7 +4,6 @@ sys.path.append( os.getcwd() )
 if len(sys.argv)>1 and ".py" in sys.argv[1]:
     sys.path.insert(0,os.getcwd()+ "/" + '/'.join( sys.argv[1].split('/')[:-1] ) )
 import inspect,supy,configuration
-import supy.batch
 ############################################
 def setupROOT() :
     sys.argv.append("-b")
