@@ -1,5 +1,5 @@
 import os,sys,tempfile,re
-import utils,steps,samples,configuration,calculables,sites
+import utils,steps,samples,configuration,calculables,sites,batch
 from __organizer__ import organizer
 from __analysisLooper__ import analysisLooper
 from __analysisStep__ import analysisStep
@@ -263,10 +263,10 @@ class analysis(object) :
         nSlices = utils.readPickle(self.jobsFile(tag,looper.name))
         incompleteSlices = looper.incompleteSlices(nSlices)
         if incompleteSlices:
-            if self.__resubmit:
-                pass
-            else:
-                for item in incompleteSlices:
+            for item in incompleteSlices:
+                if self.__resubmit:
+                    batch.submitJob(item)
+                else:
                     print item
         else:
             looper.mergeFunc(nSlices)
