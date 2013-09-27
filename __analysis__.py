@@ -262,14 +262,15 @@ class analysis(object) :
         if not os.path.exists(self.jobsFile(tag,looper.name)) : return
         nSlices = utils.readPickle(self.jobsFile(tag,looper.name))
         incompleteSlices = looper.incompleteSlices(nSlices)
-        if incompleteSlices:
-            for item in incompleteSlices:
-                if self.__resubmit:
-                    batch.submitJob(item)
-                else:
-                    print item
-        else:
+
+        if not incompleteSlices:
             looper.mergeFunc(nSlices)
+
+        for item in incompleteSlices:
+            if self.__resubmit:
+                batch.submitJob(item)
+            else:
+                print item
 
 
     def manageSecondaries(self,updates,reportAll,reports) :
