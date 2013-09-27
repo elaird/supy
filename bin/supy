@@ -4,6 +4,7 @@ sys.path.append( os.getcwd() )
 if len(sys.argv)>1 and ".py" in sys.argv[1]:
     sys.path.insert(0,os.getcwd()+ "/" + '/'.join( sys.argv[1].split('/')[:-1] ) )
 import inspect,supy,configuration
+import supy.batch
 ############################################
 def setupROOT() :
     sys.argv.append("-b")
@@ -35,8 +36,7 @@ def doBatch(someInstance) :
     argsAndOptions.remove("--batch")
     baseCmd = supy.whereami()+"/bin/supy "+" ".join(argsAndOptions)
 
-    subScript,jobScript,condorTemplate = supy.sites.batchScripts()
-    os.system("chmod +x %s/%s"%(supy.whereami(),subScript))
+    os.system("chmod +x %s" % supy.batchScripts()["submission"])
 
     site = supy.sites.prefix()
 
@@ -58,8 +58,14 @@ def doBatch(someInstance) :
                                  "site": site,
                                  }
                 args.append( (baseCmd + " --site %(site)s --jobid %(iSlice)d --tag '%(tag)s' --sample %(sample)s"%listOfIndices,
-                              listOfIndices, supy.whereami()+'/'+subScript, supy.whereami()+'/'+jobScript, supy.whereami()+'/'+condorTemplate) )
-    supy.utils.operateOnListUsingQueue(configuration.nCoresDefault(), supy.utils.qWorker(supy.batch.submitBatchJob), args)
+                              listOfIndices) )
+    supy.utils.operateOnListUsingQueue(configuration.nCoresDefault(),
+                                       supy.utils.qWorker(supy.batch.prepareJob), args)
+
+    indices = [a[1] for a in args]
+    scripts = [(supy.batch.jobScriptFull(**dct),) for dct in indices]
+    supy.utils.operateOnListUsingQueue(configuration.nCoresDefault(),
+                                       supy.utils.qWorker(supy.batch.submitJob), scripts)
 ############################################
         
 # get options
