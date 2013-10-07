@@ -7,7 +7,7 @@ def site() :
          "cern.ch":"cern",
          "fnal.gov":"fnal",
          }
-    hostName = socket.gethostname()
+    hostName = socket.getfqdn()
     for match,prefix in d.iteritems() :
         if match in hostName : return prefix
     return "default"
