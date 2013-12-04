@@ -61,6 +61,8 @@ def specs() :
                     "moveOutputFilesBatch": False,
                     "dCacheTrim"     : "/pnfs/cms/WAX/",
                     "dCachePrefix"   : "dcap://cmsgridftp.fnal.gov:24125/pnfs/fnal.gov/usr/cms/WAX/",
+                    "eos"            : "/eos/uscms/store/user/lpcsusyra1/",
+                    "eosPrefix"      : "file://",
                     #"globalOutputDir":"/pnfs/cms/WAX/resilient/%s/tmp/"%user,
                     #"srmPrefix"      : "srm://cmssrm.fnal.gov:8443/pnfs/cms/WAX/11/store/user/lpcsusyra1",
                     "lsPrefix"       : "/pnfs/cms/WAX/11/store/user/lpcsusyra1/",
