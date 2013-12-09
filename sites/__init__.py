@@ -7,7 +7,7 @@ def site() :
          "cern.ch":"cern",
          "fnal.gov":"fnal",
          }
-    hostName = socket.gethostname()
+    hostName = socket.getfqdn()
     for match,prefix in d.iteritems() :
         if match in hostName : return prefix
     return "default"
@@ -83,10 +83,6 @@ def info(site = prefix(), key = None) :
     if site in ss :
         dct.update(ss[site])
     return dct[key]
-
-def batchScripts() :
-    p = "sites/"+prefix()
-    return ("%sSub.sh"%p, "%sJob.sh"%p, "%sTemplate.condor"%p)
 
 def lumiEnvScript() :
     return "sites/%sLumi.sh"%prefix()
