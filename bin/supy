@@ -3,13 +3,12 @@ import sys,os
 sys.path.append( os.getcwd() )
 if len(sys.argv)>1 and ".py" in sys.argv[1]:
     sys.path.insert(0,os.getcwd()+ "/" + '/'.join( sys.argv[1].split('/')[:-1] ) )
-import inspect,supy,configuration
-############################################
-def setupROOT() :
-    sys.argv.append("-b")
-    import ROOT as r
-    configuration.initializeROOT(r, configuration.cppFiles())
-    sys.argv.pop()
+import inspect
+import ROOT
+ROOT.gROOT.SetBatch(True)
+import supy
+import configuration
+configuration.initializeROOT(ROOT, configuration.cppFiles())
 ############################################
 def moduleName(arg) :
     while "//" in arg : arg = arg.replace("//","/")
@@ -99,9 +98,6 @@ def doBatch(someInstance) :
         
 # get options
 options,arg = supy.options.opts()
-
-# set up ROOT
-setupROOT()
 
 # generate dictionaries
 supy.utils.generateDictionaries(inList = configuration.cppROOTDictionariesToGenerate(), dir = supy.whereami())
