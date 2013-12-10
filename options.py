@@ -8,6 +8,7 @@ parser.add_option("--loop",    dest = "loop",    default = None,  metavar = "N",
 parser.add_option("--slices",  dest = "slices",  default = None,  metavar = "S",          help = "split each sample into S slices (S>0)")
 parser.add_option("--profile", dest = "profile", default = False, action  = "store_true", help = "profile the code")
 parser.add_option("--batch",   dest = "batch",   default = False, action  = "store_true", help = "submit to batch queue")
+parser.add_option("--resubmit",dest = "resubmit",default = False, action  = "store_true", help = "resubmit non-completed jobs")
 parser.add_option("--tag",     dest = "tag",     default = "",    metavar = "PAR_PAR_PAR",help = "specific combo of multiparameters")
 parser.add_option("--sample",  dest = "sample",  default = None,                          help = "specific sample")
 parser.add_option("--update",  dest = "update",  default = None,  action = "store_true",  help = "update all secondary calculables")

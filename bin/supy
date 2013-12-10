@@ -29,48 +29,12 @@ def importedClass(module) :
     assert module==theClass.__name__,"module name %s != class name %s"%(module, theClass.__name__)
     return theClass
 ############################################
-def submitBatchJob(jobCmd, indexDict, subScript, jobScript, condorTemplate) :
-    jobScriptFileName = "%(base)s/%(tag)s/%(sample)s/job%(iSlice)d.sh"%indexDict
-    jobScriptDir = jobScriptFileName[:jobScriptFileName.rfind('/')]
-    if not os.path.isdir(jobScriptDir): os.system("mkdir -p %s"%jobScriptDir)
-    os.system("cp -p "+jobScript+" "+jobScriptFileName)
-    os.system("chmod +x "+jobScriptFileName)
-    with open(jobScriptFileName,"a") as file :
-        print >>file
-        for item in ["PYTHONPATH", "LD_LIBRARY_PATH"] :
-            print >>file, "export %s=%s"%(item, os.environ[item])
-        print >>file, "cd "+os.environ["PWD"]
-        print >>file, jobCmd
-
-    if os.path.exists(condorTemplate):
-        condorFileName = jobScriptFileName.replace(".sh", ".condor")
-        condorOutputSpec = "/".join([".",
-                                     indexDict["analysis"],
-                                     indexDict["tag"],
-                                     "%s_%d_%d" % (indexDict["sample"],
-                                                   indexDict["nSlices"],
-                                                   indexDict["iSlice"],
-                                                   ),
-                                     "",
-                                    ])
-        pipes = " | ".join(["cat %s" % condorTemplate,
-                            "sed s@JOBFLAG@%s@g" % jobScriptFileName,
-                            "sed s@OUTFLAG@%s@g" % condorOutputSpec,
-                            ])
-        os.system(" > ".join([pipes, condorFileName]))
-        arg = condorFileName
-    else :
-        arg = jobScriptFileName
-    subCmd = "cd %s; %s %s" % (jobScriptDir, subScript, arg)
-    os.system(subCmd)
-############################################
 def doBatch(someInstance) :
     argsAndOptions = sys.argv[1:]
     argsAndOptions.remove("--batch")
     baseCmd = supy.whereami()+"/bin/supy "+" ".join(argsAndOptions)
 
-    subScript,jobScript,condorTemplate = supy.sites.batchScripts()
-    os.system("chmod +x %s/%s"%(supy.whereami(),subScript))
+    os.system("chmod +x %s" % supy.batch.subScript())
 
     site = supy.sites.prefix()
 
@@ -92,8 +56,14 @@ def doBatch(someInstance) :
                                  "site": site,
                                  }
                 args.append( (baseCmd + " --site %(site)s --jobid %(iSlice)d --tag '%(tag)s' --sample %(sample)s"%listOfIndices,
-                              listOfIndices, supy.whereami()+'/'+subScript, supy.whereami()+'/'+jobScript, supy.whereami()+'/'+condorTemplate) )
-    supy.utils.operateOnListUsingQueue(configuration.nCoresDefault(), supy.utils.qWorker(submitBatchJob), args)
+                              listOfIndices) )
+    supy.utils.operateOnListUsingQueue(configuration.nCoresDefault(),
+                                       supy.utils.qWorker(supy.batch.prepareJob), args)
+
+    indices = [a[1] for a in args]
+    scripts = [(supy.batch.jobScriptFull(**dct),) for dct in indices]
+    supy.utils.operateOnListUsingQueue(configuration.nCoresDefault(),
+                                       supy.utils.qWorker(supy.batch.submitJob), scripts)
 ############################################
         
 # get options
