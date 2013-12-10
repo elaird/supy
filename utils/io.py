@@ -192,24 +192,35 @@ def fileListFromTextFile(fileName = None) :
     out = [line.replace("\n","") for line in f]
     f.close()
     return out
-#####################################
-def printSkimResults(org) :
-    for iSkimmer,skimmer in filter(lambda tup: tup[1].name=="skimmer", enumerate(org.steps) ) :
+
+
+def printSkimResults(org):
+    # see docs/skimEfficiency.txt
+
+    def oneList(step):
+        out = []
+        for failPass in step.rawFailPass:
+            nEventsIn = sum(failPass) if failPass is not None else 0.0
+            out.append(nEventsIn)
+        return out
+
+    names = [sample["name"] for sample in org.samples]
+    denom = oneList(org.steps[0])
+    for iSkimmer, skimmer in filter(lambda tup: tup[1].name=="skimmer", enumerate(org.steps)):
         print org.tag
-        print "efficiencies for skimmer with index",iSkimmer
+        print "efficiencies for skimmer with index", iSkimmer
         print "-"*40
-        names = tuple([sample["name"] for sample in org.samples])
-        denom = tuple([failPass[1] for failPass in org.steps[0].rawFailPass])
-        numer = tuple([failPass[1] for failPass in org.steps[iSkimmer].rawFailPass])
-        effic = tuple([num/float(den) for num,den in zip(numer,denom)])
-        lumis =  tuple([sample["lumi"] if "lumi" in sample else None for sample in org.samples])
-        xss  =   tuple([sample["xs"] if "xs" in sample else None for sample in org.samples])
+
+        numer = oneList(skimmer)
+        effic = tuple([num/float(den) if den else 0.0 for num, den in zip(numer,denom)])
+        lumis = tuple([sample["lumi"] if "lumi" in sample else None for sample in org.samples])
+        xss  =  tuple([sample["xs"] if "xs" in sample else None for sample in org.samples])
 
         assert all([lumi or xs for lumi,xs in zip(lumis,xss)]), "Failed to find either xs or lumi"
 
         nameStrings = ['foo.add("%s_skim", '%name for name in names]
-        dirStrings = ['\'utils.fileListFromDisk(location = "%s/'+name+'_*_skim.root", isDirectory = False)\'%dir,' for name in names]
-        effStrings = [(' lumi = %e)'%lumi if lumi else ' xs = %e * %e)'%(eff,xs)) for eff,lumi,xs in zip(effic,lumis,xss)]
+        dirStrings = ['\'utils.fileListFromDisk(location="%s/'+name+'_*_skim.root", isDirectory=False)\'%dir,' for name in names]
+        effStrings = [(' lumi=%e)'%lumi if lumi else ' xs=%e * %e)'%(eff,xs)) for eff,lumi,xs in zip(effic,lumis,xss)]
         
         def maxLength(l) : return max([len(s) for s in l])
         nameLength = maxLength(nameStrings)
@@ -218,4 +229,4 @@ def printSkimResults(org) :
         for name,dir,eff in zip(nameStrings, dirStrings, effStrings) :
             print name.ljust(nameLength) + dir.ljust(dirLength) + eff.ljust(effLength)
         print
-#####################################
+
