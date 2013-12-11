@@ -7,7 +7,7 @@ def site() :
          "cern.ch":"cern",
          "fnal.gov":"fnal",
          }
-    hostName = socket.gethostname()
+    hostName = socket.getfqdn()
     for match,prefix in d.iteritems() :
         if match in hostName : return prefix
     return "default"
@@ -56,6 +56,13 @@ def specs() :
                       "queueHeaders"   : ["JOBID", "USER", "STAT", "QUEUE", "FROM_HOST", "EXEC_HOST", "JOB_NAME", "SUBMIT_TIME"],
                       "queueVars"      : {"queueName":"8nh", "queue":"QUEUE", "user":"USER", "state":"STAT", "run":"RUN", "summary":"bjobs -u all", "sample": "bjobs | head"},
                       },
+        "cern_cms":{"localOutputDir" : "/tmp/%s"%user,
+                    "globalOutputDir": "/afs/cern.ch/work/%s/%s/tmp/"%(user[0],user),
+                    "eos"            : "/afs/cern.ch/project/eos/installation/0.2.31/bin/eos.select",
+                    "eosPrefix"      : "root://eoscms.cern.ch/",
+                    "queueHeaders"   : ["JOBID", "USER", "STAT", "QUEUE", "FROM_HOST", "EXEC_HOST", "JOB_NAME", "SUBMIT_TIME"],
+                    "queueVars"      : {"queueName":"8nh", "queue":"QUEUE", "user":"USER", "state":"STAT", "run":"RUN", "summary":"bjobs -u all", "sample": "bjobs | head"},
+                    },
         "fnal_cms":{"localOutputDir" : os.environ["_CONDOR_SCRATCH_DIR"] if "_CONDOR_SCRATCH_DIR" in os.environ else "/tmp/%s"%user,
                     "globalOutputDir": "/uscms_data/d2/%s/supy-output/"%os.environ["USER"],
                     "moveOutputFilesBatch": False,
@@ -76,10 +83,6 @@ def info(site = prefix(), key = None) :
     if site in ss :
         dct.update(ss[site])
     return dct[key]
-
-def batchScripts() :
-    p = "sites/"+prefix()
-    return ("%sSub.sh"%p, "%sJob.sh"%p, "%sTemplate.condor"%p)
 
 def lumiEnvScript() :
     return "sites/%sLumi.sh"%prefix()

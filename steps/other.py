@@ -88,16 +88,18 @@ class skimmer(analysisStep) :
     def select(self,eventVars) :
         #read all the data for this event
         if eventVars["chain"].GetEntry(eventVars["entry"],1)<=0 :
-            return False #skip this event in case of i/o error
+            assert False, "skimmer failed to write TChain entry "+str(eventVars["entry"])
         #fill the skim tree
         self.outputTree.Fill()
-        
+
         #optionally fill an extra tree
         if self.alsoWriteExtraTree :
             if not self.outputTreeExtraIsSetup : self.setupExtraTree(eventVars)
             self.fillExtraVariables(eventVars)
             self.outputTreeExtra.Fill()
-            
+
+        # use of weight/self.increment follows supy.steps.master
+        self.increment(False, 1.0 - eventVars["weight"])
         return True
 
     def setupExtraTree(self,eventVars) :

@@ -1,0 +1,6 @@
+For MC samples, the plotter prints an ``equivalent lumi''.  Consider a
+sample which has a leading-order xs of 1.0pb, which contains 300
+events, whose weights sum to 900.  Then the ``effective xs'' is 3.0pb,
+so the luminosity is 300/(3.0pb)=100/pb, or in general,
+nEvents^2/(xs*weightSum).
+

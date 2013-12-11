@@ -1,5 +1,5 @@
 import os,sys,tempfile,re
-import utils,steps,samples,configuration,calculables,sites
+import utils,steps,samples,configuration,calculables,sites,batch
 from __organizer__ import organizer
 from __analysisLooper__ import analysisLooper
 from __analysisStep__ import analysisStep
@@ -23,11 +23,13 @@ class analysis(object) :
     def parameters(self) : return {}
     def conclude(self, config) : return
     def concludeAll(self) : utils.operateOnListUsingQueue( configuration.nCoresDefault(), utils.qWorker(self.conclude), zip(self.readyConfs) )
-    def organizer(self, config, verbose = False) : return organizer(config['tag'], self.sampleSpecs(config['tag']), verbose = verbose)
+    def organizer(self, config, verbose = False, prefixesNoScale=[]) :
+        return organizer(config['tag'], self.sampleSpecs(config['tag']), verbose=verbose, prefixesNoScale=prefixesNoScale)
 
 ############
     def __init__(self, options) :
         self.__batch   = options.batch
+        self.__resubmit= options.resubmit
         self.__loop    = int(options.loop)   if options.loop!=None else None
         self.__nSlices = int(options.slices) if options.slices!=None else 1
         self.__profile = options.profile
@@ -249,18 +251,27 @@ class analysis(object) :
                                   )
         sampleNames = set()
         return [ looper(sampleSpec) for sampleSpec in self.filteredSamples(conf) ]
-    
-############
+
+
     def mergeAllOutput(self) :
         args = sum([[(conf['tag'],looper) for looper in self.listsOfLoopers[conf['tag']]] for conf in self.configurations],[])
         utils.operateOnListUsingQueue(configuration.nCoresDefault(), utils.qWorker(self.mergeOutput), args, False)
-    
+
+
     def mergeOutput(self,tag,looper) :
         if not os.path.exists(self.jobsFile(tag,looper.name)) : return
         nSlices = utils.readPickle(self.jobsFile(tag,looper.name))
-        if looper.readyMerge(nSlices) : looper.mergeFunc(nSlices)
+        incompleteSlices = looper.incompleteSlices(nSlices)
 
-############
+        if not incompleteSlices:
+            looper.mergeFunc(nSlices)
+
+        for item in incompleteSlices:
+            if self.__resubmit:
+                batch.submitJob(item)
+            else:
+                print item
+
 
     def manageSecondaries(self,updates,reportAll,reports) :
         def doUpdate(name) : return updates==True or type(updates)==str and name in updates.split(',')

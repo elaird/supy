@@ -22,10 +22,11 @@ def combineBinContentAndError(histo, binToContainCombo, binToBeKilled) :
 class plotter(object) :
     ##############################
     @staticmethod
-    def setupStyle() :
+    def setupStyle(optStat=None) :
         r.gROOT.SetStyle("Plain")
         r.gStyle.SetPalette(1)
-        r.gStyle.SetOptStat(1111111)
+        if optStat:
+            r.gStyle.SetOptStat(optStat)
     ##############################
     @staticmethod
     def setupTdrStyle() :
@@ -46,6 +47,7 @@ class plotter(object) :
         for histo in histos:
             if not histo : continue
             if histo.GetName() in dontShiftList : continue
+            if type(histo) is r.TProfile : continue
             bins = histo.GetNbinsX()
             entries = histo.GetEntries()
             combineBinContentAndError(histo, binToContainCombo = 1   , binToBeKilled = 0     )
@@ -61,6 +63,9 @@ class plotter(object) :
     ##############################        
     @staticmethod
     def metFit(histo) :
+        if "met" not in histo.GetName() :
+            return
+        r.gStyle.SetOptFit(1111)
         funcName="func"
         func=r.TF1(funcName,"[0]*x*exp( -(x-[1])**2 / (2.0*[2])**2 )/[2]",0.5,30.0)
         func.SetParameters(1.0,5.0,3.0)
@@ -97,12 +102,16 @@ class plotter(object) :
                  samplesForRatios = ("",""),
                  sampleLabelsForRatios = ("",""),
                  printRatios = False,
+                 foms = [],
+                 printXs = False,
+                 printImperfectCalcPageIfEmpty=True,
                  showStatBox = True,
                  doLog = True,
                  pegMinimum = None,
+                 optStat = 1111111,
                  anMode = False,
                  drawYx = False,
-                 doMetFit = False,
+                 fitFunc = None,
                  doColzFor2D = True,
                  compactOutput = False,
                  noSci = False,
@@ -124,9 +133,10 @@ class plotter(object) :
                  pushLeft = False
                  ) :
         for item in ["someOrganizer","pdfFileName","samplesForRatios","sampleLabelsForRatios","doLog","linYAfter","latexYieldTable",
-                     "pegMinimum", "anMode","drawYx","doMetFit","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
+                     "pegMinimum", "anMode","drawYx","fitFunc","doColzFor2D","nLinesMax","nColumnsMax","compactOutput","pageNumbers",
                      "noSci", "showErrorsOnDataYields", "shiftUnderOverFlows","dontShiftList","whiteList","blackList","showStatBox",
-                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D", "printRatios","pushLeft"] :
+                     "detailedCalculables", "rowColors","rowCycle","omit2D","dependence2D","foms","printXs","optStat",
+                     "printImperfectCalcPageIfEmpty", "pushLeft"] :
             setattr(self,item,eval(item))
 
         self.nLinesMax -= nLinesMax/rowCycle
@@ -138,6 +148,14 @@ class plotter(object) :
         self.pdfOptions = ''
         if pdfFileName[-3:]==".ps" : self.pdfFileName = self.pdfFileName.replace('.ps','.pdf')
 
+        # backward compatibility
+        if printRatios and (not self.foms):
+            self.foms = [{"value": lambda x, y: x/y,
+                          "uncRel": lambda x, y, xUnc, yUnc: math.sqrt((xUnc/x)**2 + (yUnc/y)**2),
+                          "label": lambda x, y:"%s/%s" % (x, y),
+                          },
+                         ]
+
         #used for making latex tables
         self.cutDict = {}
         self.yieldDict = {}
@@ -145,7 +163,7 @@ class plotter(object) :
 
     def plotAll(self) :
         print utils.hyphens
-        self.setupStyle()
+        self.setupStyle(self.optStat)
 
         self.printCanvas("[")
         text1 = self.printTimeStamp()
@@ -161,7 +179,8 @@ class plotter(object) :
             text3 = self.printCalculables(selectImperfect = False)
             self.flushPage()
             text4 = self.printCalculables(selectImperfect = True)
-            self.flushPage()
+            if text4 or self.printImperfectCalcPageIfEmpty:
+                self.flushPage()
             
         nSelectionsPrinted = 0
         selectionsSoFar=[]
@@ -213,7 +232,7 @@ class plotter(object) :
         rows = []
         for key in sorted(self.cutDict.keys(), key = string.ascii_letters.index) :
             name,desc = self.cutDict[key]
-            if any( re.match(pattern+'$',plotName) for pattern in self.blackList ) :
+            if any( re.match(pattern+'$', name) for pattern in self.blackList ) :
                 filtered.append(key)
                 continue
             for item in [name, desc] :
@@ -401,6 +420,8 @@ class plotter(object) :
         calcs = (([("Calculables",'(imperfect)','  '.join(cats)), ('','','')] + max( list(imperfect), [('','NONE','')])) if selectImperfect else \
                  ([("Calculables",'',''),                         ('','','')] + max( list(genuine), [('','NONE','')])) )
 
+        if selectImperfect and (not list(imperfect)) and (not self.printImperfectCalcPageIfEmpty):
+            return
         maxName,maxMore = map(max, zip(*((len(name),len(more)) for name,more,cat in calcs)))
         [text.DrawTextNDC(0.02, 0.98 - 0.4*(iLine+0.5)/self.nLinesMax, line)
          for iLine,line in enumerate("%s   %s   %s"%(name.rjust(maxName+2), more.ljust(maxMore+2), cat)
@@ -422,6 +443,11 @@ class plotter(object) :
         text.SetTextSize(0.38*text.GetTextSize())
         defSize = text.GetTextSize()
         
+        def mcLumi(nEvents=None, w=None, xs=None):
+            if not w*xs:
+                return 0.0
+            return nEvents**2/(w*xs)  # see docs/mcLumi.txt
+
         def getLumi(sample = None, iSource = None) :
             value = 0.0
             if sample!=None :
@@ -432,48 +458,84 @@ class plotter(object) :
                         value = sample["lumi"]                        
                 elif "xs" in sample :
                     if iSource!=None :
-                        value = sample["nEvents"][iSource]/sample["xsOfSources"][iSource]
+                        value = mcLumi(nEvents=sample["nEventsIn"][iSource],
+                                       w=sample["weightIn"][iSource],
+                                       xs=sample["xsOfSources"][iSource])
                     else :
-                        value = sample["nEvents"]/sample["xs"]
-            return "%.1f"%value
-            
+                        value = mcLumi(nEvents=sample["nEventsIn"],
+                                       w=sample["weightIn"],
+                                       xs=sample["xs"])
+            return "%.1f" % (value/1.0e3)
+
+        def getXs(sample = None, iSource = None) :
+            value = None
+            if sample!=None :
+                if "xs" in sample:
+                    if iSource!=None :
+                        value = sample["xsOfSources"][iSource]
+                    else:
+                        value = sample["xs"]
+            return "%3.2e" % (value*1.0e3) if value else ""
+
+        def getWeight(w=None):
+            return "%3.2e" % w
+
         def loopOneType(mergedSamples = False) :
-            nameEventsLumi = []
+            info = []
             for sample in self.someOrganizer.samples :
                 if "sources" not in sample :
                     if mergedSamples : continue
-                    nameEventsLumi.append((sample["name"],str(int(sample['nEvents'])),getLumi(sample)))
+                    info.append((sample["name"],
+                                 str(int(sample['nEventsIn'])),
+                                 getWeight(sample['weightIn']),
+                                 getLumi(sample),
+                                 getXs(sample)))
                 else :
                     if not mergedSamples : continue
-                    localNEL = []
+                    localInfo = []
                     useThese = True
 
                     for iSource in range(len(sample["sources"])) :
                         name = sample["sources"][iSource]
-                        N    = sample["nEvents"][iSource]
+                        N    = sample["nEventsIn"][iSource]
+                        w    = sample["weightIn"][iSource]
                         if type(N) is list : useThese = False; break
-                        localNEL.append((name,str(int(N)),getLumi(sample,iSource)))
-                    if useThese : nameEventsLumi += localNEL
+                        localInfo.append((name,
+                                          str(int(N)),
+                                          getWeight(w),
+                                          getLumi(sample, iSource),
+                                          getXs(sample,iSource)))
+                    if useThese:
+                        info += localInfo
 
-            nameEventsLumi.sort( key = lambda x: (x[0][:5], int(float(x[2])), -int(x[1]), x[0][5:] ))
-            if not nameEventsLumi : return (None,None,None)
-            name,events,lumi = zip(*nameEventsLumi)
+            info.sort( key = lambda x: (x[0][:5], int(float(x[2])), -int(x[1]), x[0][5:] ))
+            if not info : return (None,None,None,None,None)
+            name,events,weight,lumi,xs = zip(*info)
             return ( ["sample",""]+list(name),
                      ["nEventsIn",""] + list(events),
-                     ["  lumi (/pb)",""] + list(lumi) )
+                     ["weightIn",""] + list(weight),
+                     ["  lumi (/fb)",""] + list(lumi),
+                     ["  xs (fb)",""] + list(xs),
+                     )
 
-        def printOneType(x, sampleNames, nEventsIn, lumis) :
+        def printOneType(x, sampleNames, nEventsIn, weightIn, lumis, xss) :
             if not sampleNames : return
             sLength = max([len(item) for item in sampleNames])
             nLength = max([len(item) for item in nEventsIn]  )
+            wLength = max([len(item) for item in weightIn]   )
             lLength = max([len(item) for item in lumis]      )
+            xLength = max([len(item) for item in xss]        )
 
-            total = sLength + nLength + lLength + 15
+            total = sLength + nLength + wLength + lLength + 15
+            if self.printXs:
+                total += xLength
             if total>self.nColumnsMax : text.SetTextSize(defSize*self.nColumnsMax/(total+0.0))
                 
-            for j,(name,events,lumi) in enumerate(zip(sampleNames,nEventsIn,lumis)) :
+            for j,(name,events,weight,lumi,xs) in enumerate(zip(sampleNames,nEventsIn,weightIn,lumis,xss)) :
                 y = 0.9 - 0.55*(j+0.5)/self.nLinesMax
-                out = name.ljust(sLength) + events.rjust(nLength+3) + lumi.rjust(lLength+3)
+                out = name.ljust(sLength) + events.rjust(nLength+3) + weight.rjust(wLength+3) + lumi.rjust(lLength+3)
+                if self.printXs:
+                    out += xs.rjust(xLength+3)
                 text.DrawTextNDC(x, y, out)
 
         printOneType( 0.02, *loopOneType(False) )
@@ -507,7 +569,7 @@ class plotter(object) :
         text.SetTextSize(0.40*text.GetTextSize())
 
         pageWidth = 120
-        nSamples = len(self.someOrganizer.samples) + int(self.printRatios)
+        nSamples = len(self.someOrganizer.samples) + len(self.foms)
         colWidth = min(25, pageWidth/nSamples)
         space = 1
 
@@ -528,15 +590,20 @@ class plotter(object) :
                 if sample["name"] in self.samplesForRatios : ratios[self.samplesForRatios.index(sample["name"])] = k
                 nums.append(s.rjust(colWidth))
 
-            if self.printRatios and len(ratios)==2 :
-                s = "-    "
-                if ratios[0] and ratios[1] and ratios[0][0] and ratios[1][0] :
-                    value = ratios[0][0]/float(ratios[1][0])
-                    error = value*math.sqrt((ratios[0][1]/float(ratios[0][0]))**2 + (ratios[1][1]/float(ratios[1][0]))**2)
-                    ratio = (value, error)
-                    s = utils.roundString(*ratio, width=(colWidth-space))
-                nums.append(s.rjust(colWidth))
-                
+            if len(ratios)==2 and ratios[0] and ratios[1]:
+                num = float(ratios[0][0])
+                den = float(ratios[1][0])
+                numUnc = float(ratios[0][1])
+                denUnc = float(ratios[1][1])
+
+                for fom in self.foms:
+                    s = "-    "
+                    if num and den:
+                        value = fom["value"](num, den)
+                        error = value*fom["uncRel"](num, den, numUnc, denUnc)
+                        s = utils.roundString(value, error, width=(colWidth-space))
+                    nums.append(s.rjust(colWidth))
+
             if step.name in ['master','label']: self.pdfOptions = step.title
             if step.name=='label' :
                 text.SetTextColor(r.kBlack)
@@ -559,12 +626,13 @@ class plotter(object) :
 
         self.formerMaxAbsI = absI
         self.sampleList = [s["name"][:(colWidth-space)].rjust(colWidth) for s in self.someOrganizer.samples]
-        if self.printRatios and len(self.samplesForRatios)==2 :
-            self.sampleList += ("%s/%s"%self.sampleLabelsForRatios)[:(colWidth-space)].rjust(colWidth)
+        if len(self.samplesForRatios)==2:
+            for fom in self.foms:
+                self.sampleList += (fom["label"](*self.sampleLabelsForRatios))[:(colWidth-space)].rjust(colWidth)
         text.SetTextColor(r.kBlack)
         text.DrawTextNDC(x, 0.5, "   "+"".join(self.sampleList))
         text.SetTextAlign(13)
-        text.DrawTextNDC(0.05, 0.03, "events / %.3f pb^{-1}"% self.someOrganizer.lumi )
+        text.DrawTextNDC(0.05, 0.03, "events / %.0f fb^{-1}" % (self.someOrganizer.lumi/1.0e3) )
         self.flushPage()
 
     def getExtremes(self, dimension, histos, ignoreHistos) :
@@ -763,26 +831,9 @@ class plotter(object) :
             keep.append(histo2)
 
         r.gStyle.SetOptFit(0)
-        if self.doMetFit and "met" in histo.GetName() :
-            r.gStyle.SetOptFit(1111)
-            func=self.metFit(histo)
+        if self.fitFunc:
+            func = self.fitFunc(histo)
             keep.append(func)
-
-            r.gPad.Update()
-            tps=histo.FindObject("stats")
-            keep.append(tps)
-            tps.SetLineColor(histo.GetLineColor())
-            tps.SetTextColor(histo.GetLineColor())
-            if iHisto==0 :
-                tps.SetX1NDC(0.75)
-                tps.SetX2NDC(0.95)
-                tps.SetY1NDC(0.75)
-                tps.SetY2NDC(0.95)
-            else :
-                tps.SetX1NDC(0.75)
-                tps.SetX2NDC(0.95)
-                tps.SetY1NDC(0.50)
-                tps.SetY2NDC(0.70)
 
         #move stat box
         r.gPad.Update()
