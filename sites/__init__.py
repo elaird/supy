@@ -25,6 +25,7 @@ def specs() :
                     "dCacheTrim":"",
                     "srmPrefix":"",
                     "eosPrefix":"",
+                    "eosTrim":"",
                     "lsPrefix":"",
                     "queueHeaders":[],
                     "queueVars":{},
@@ -61,8 +62,9 @@ def specs() :
                     "moveOutputFilesBatch": False,
                     "dCacheTrim"     : "/pnfs/cms/WAX/",
                     "dCachePrefix"   : "dcap://cmsgridftp.fnal.gov:24125/pnfs/fnal.gov/usr/cms/WAX/",
-                    "eos"            : "/eos/uscms/store/user/lpcsusyra1/",
+                    "eos"            : "",
                     "eosPrefix"      : "file://",
+                    "eosTrim"        : "/eos/uscms/store/user/lpcsusyra1/",
                     #"globalOutputDir":"/pnfs/cms/WAX/resilient/%s/tmp/"%user,
                     #"srmPrefix"      : "srm://cmssrm.fnal.gov:8443/pnfs/cms/WAX/11/store/user/lpcsusyra1",
                     "lsPrefix"       : "/pnfs/cms/WAX/11/store/user/lpcsusyra1/",
@@ -97,8 +99,9 @@ def srmFunc() :
                                                                                            info(key = "srmPrefix"))
 
 def eos() :
-    return 'utils.fileListFromEos(eos = "%s", xrootdRedirector = "%s", location="'%(info(key = "eos"), info(key = "eosPrefix"))
-
+    return 'utils.fileListFromEos(eos = "%s", xrootdRedirector = "%s", location="%s'%(info(key = "eos"),
+                                                                                      info(key = "eosPrefix"),
+                                                                                      info(key = "eosTrim"))
 def pnfs() :
     return 'utils.fileListFromPnfs(lsPrefix = "%s", dCachePrefix = "%s", dCacheTrim = "%s", location="'%(info(key = "lsPrefix"),
                                                                                                          info(key = "dCachePrefix"),
