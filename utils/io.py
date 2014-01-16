@@ -146,7 +146,7 @@ def fileListFromEos(location, itemsToSkip = [], sizeThreshold=0, eos = "", xroot
     fileList=[]
     sizes=[]
 
-    cmd= eos+" ls -l " +location
+    cmd= eos+" ls -l "+location
     output = getCommandOutput(cmd)
     out = output["stdout"]
     err = output["stderr"]
