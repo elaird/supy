@@ -145,10 +145,8 @@ def fileListFromCastor(location, itemsToSkip = [], sizeThreshold = 0, pruneList 
 def fileListFromEos(location, itemsToSkip = [], sizeThreshold=0, eos = "", xrootdRedirector = "") :
     fileList=[]
     sizes=[]
-    if "project" in eos:
-        cmd= eos+" ls -l " +location
-    else:
-        cmd="ls -l "+eos+location
+
+    cmd= eos+" ls -l " +location
     output = getCommandOutput(cmd)
     out = output["stdout"]
     err = output["stderr"]
@@ -166,10 +164,7 @@ def fileListFromEos(location, itemsToSkip = [], sizeThreshold=0, eos = "", xroot
         for item in itemsToSkip :
             if item in fileName : acceptFile=False
         if acceptFile :
-            if "project" in eos:
-                fileList.append(xrootdRedirector+location+"/"+fileName)
-            else:
-                fileList.append(xrootdRedirector+eos+location+"/"+fileName)
+            fileList.append(xrootdRedirector+location+"/"+fileName)
             sizes.append(size)
     return fileList
 #####################################
