@@ -27,127 +27,133 @@ class noSetBranchAddress(analysisStep) :
         return True
     def uponAcceptance(self, _) :
         pass
-#####################################
-class skimmer(analysisStep) :
-    
-    def __init__(self) :
-        self.outputTree=0
-        self.moreName="(see below)"
-        self.alsoWriteExtraTree=False #hard-code until this functionality is fixed
-        self.outputTreeExtraIsSetup=False
 
-    def requiresNoSetBranchAddress(self) :
-        return True
 
-    def requiresNoTrace(self) :
-        return True
+class skimmer(analysisStep):
+    """
+    This step writes all events to a TFile.  The options:
 
-    def setup(self, chain, fileDir) :
-        self.fileDir = fileDir
+    mainChain controls whether the chain being looper over (defined in
+    configuration.py) is stored.
+
+    otherChains controls whether 'spectator' chains (also defined in
+    configuration.py) are stored.
+
+    extraVars is a list of calculable names to add as branches to the
+    mainChain.  See self.setupExtraVars() for supported types.  If the
+    mainChain has zero events, then the extra branches will not be
+    created.
+    """
+
+    def __init__(self, mainChain=True, otherChains=True, extraVars=[]):
+        assert mainChain or extraVars
+        self.outputTree = None
+        self.moreName = "(see below)"
+        for var in ["mainChain", "otherChains", "extraVars"]:
+            setattr(self, var, eval(var))
+        self.addresses = None
+
+    def requiresNoSetBranchAddress(self):
+        return True  # check
+
+    def requiresNoTrace(self):
+        return True  # check
+
+    def setup(self, chain, fileDir):
         self.outputFile = r.TFile(self.outputFileName, "RECREATE")
-        self.setupMainChain(chain)
-        self.initExtraTree()
-
-    def setupMainChain(self, chain) :
+        self.fileDir = fileDir
         self.outputFile.mkdir(self.fileDir)
         self.outputFile.cd(self.fileDir)
-        if chain and chain.GetEntry(0)>0 :
-            self.outputTree = chain.CloneTree(0)  #clone structure of tree (but no entries)
-        if not self.outputTree :                  #in case the chain has 0 entries
-            r.gROOT.cd()
-            return
 
-        self.outputTree.SetDirectory(utils.root.gDirectory())#put output tree in correct place
-        chain.CopyAddresses(self.outputTree)      #associate branch addresses
+        if self.mainChain:
+            if chain and chain.GetEntry(0) > 0:
+                # clone structure of tree (but no entries)
+                self.outputTree = chain.CloneTree(0)
+            if self.outputTree:
+                self.outputTree.SetDirectory(utils.root.gDirectory())
+                chain.CopyAddresses(self.outputTree)
+        elif self.extraVars:
+            if chain:
+                dirAndName = chain.GetName()
+                name = dirAndName.split("/")[-1]
+                self.outputTree = r.TTree(name, chain.GetTitle())
+        else:
+            assert False, "mainChain or extraVars"
 
-    def writeOtherChains(self, chains) :
-        for (dirName,treeName),chain in chains.iteritems() :
-            if dirName==self.fileDir and self.outputTree and treeName==self.outputTree.GetName() : continue
-            self.outputFile.mkdir(dirName)
+        r.gROOT.cd()
+
+    def writeOtherChains(self, chains):
+        for (dirName, treeName), chain in chains.iteritems():
+            if dirName == self.fileDir:
+                if self.outputTree and treeName == self.outputTree.GetName():
+                    continue
+            else:
+                self.outputFile.mkdir(dirName)
+
             self.outputFile.cd(dirName)
-            if chain and chain.GetEntry(0)>0 :
+            if chain and chain.GetEntry(0) > 0:
                 outChain = chain.CloneTree()
-                if outChain :
+                if outChain:
                     outChain.SetName(treeName)
                     outChain.SetDirectory(utils.root.gDirectory())
                     outChain.Write()
 
-    def initExtraTree(self) :
-        if self.alsoWriteExtraTree :
-            raise Exception("at the moment, adding the extra tree with the skimmer is broken")
-            self.arrayDictionary={}
-            self.supportedBuiltInTypes=[type(True),type(0),type(0L),type(0.0)]
-            self.supportedOtherTypes=[type(utils.LorentzV())]
-            
-            extraName=self.outputTree.GetName()+"Extra"
-            self.outputTreeExtra=r.TTree(extraName,extraName)
-            self.outputTreeExtra.SetDirectory(utils.root.gDirectory())
-        r.gROOT.cd()
+    def select(self, eventVars):
+        # read all the data for this event
+        if eventVars["chain"].GetEntry(eventVars["entry"], 1) <= 0:
+            msg = "skimmer failed to read TChain entry %s" % eventVars["entry"]
+            assert False, msg
 
+        if self.extraVars:
+            if self.addresses is None:
+                self.setupExtraVars(eventVars)
+            # assign values at relevant addresses
+            for key in self.addresses:
+                self.addresses[key][0] = eventVars[key]
 
-    def select(self,eventVars) :
-        #read all the data for this event
-        if eventVars["chain"].GetEntry(eventVars["entry"],1)<=0 :
-            assert False, "skimmer failed to write TChain entry "+str(eventVars["entry"])
-        #fill the skim tree
         self.outputTree.Fill()
-
-        #optionally fill an extra tree
-        if self.alsoWriteExtraTree :
-            if not self.outputTreeExtraIsSetup : self.setupExtraTree(eventVars)
-            self.fillExtraVariables(eventVars)
-            self.outputTreeExtra.Fill()
 
         # use of weight/self.increment follows supy.steps.master
         self.increment(False, 1.0 - eventVars["weight"])
         return True
 
-    def setupExtraTree(self,eventVars) :
-        crockCopy=copy.deepcopy(eventVars["crock"])
-        branchNameList=dir(crockCopy)
-        skipList=['__doc__','__init__','__module__']
+    def setupExtraVars(self, eventVars):
+        self.addresses = {}
+        for var in self.extraVars:
+            t = type(eventVars[var])
+            if t in [bool, int, long, float]:
+                self.addresses[var] = array.array('d', [0.0])
+                self.outputTree.Branch(var, self.addresses[var], var+"/D")
+            elif t is type(utils.lvClass):
+                self.outputTree.Branch(var, eventVars[var])
+            else:
+                msg = "Variable '%s' has type '%s'" % (var, str(t))
+                assert False, "%s and cannot be stored." % msg
 
-        #set up remaining suitable branches as doubles
-        for branchName in branchNameList :
-            if (branchName in skipList) : continue
-
-            thisType=type(eventVars["crock"][branchName])
-            if (thisType in self.supportedBuiltInTypes) :
-                self.arrayDictionary[branchName]=array.array('d',[0.0])
-                self.outputTreeExtra.Branch(branchName,self.arrayDictionary[branchName],branchName+"/D")
-            elif (thisType in self.supportedOtherTypes) :
-                self.outputTreeExtra.Branch(branchName,eventVars["crock"][branchName])
-            else :
-                #print "The variable \""+branchName+"\" has been rejected from the extra tree."
-                continue
-            
-        self.outputTreeExtraIsSetup=True
-
-    def fillExtraVariables(self,eventVars) :
-        for key in self.arrayDictionary :
-            self.arrayDictionary[key][0]=eventVars["crock"][key]
-        
-    def endFunc(self, chains) :
-        self.outputFile.cd(self.fileDir)                          #cd to file
-        if self.outputTree :         self.outputTree.Write()      #write main tree
-        if self.alsoWriteExtraTree : self.outputTreeExtra.Write() #write a tree with "extra" variables
-        self.writeOtherChains(chains)
+    def endFunc(self, chains):
+        self.outputFile.cd(self.fileDir)
+        if self.outputTree:
+            self.outputTree.Write()
+        if self.otherChains:
+            self.writeOtherChains(chains)
         self.outputFile.Close()
 
-    def outputSuffix(self) :
+    def outputSuffix(self):
         return "_skim.root"
-    
-    def modifiedFileName(self, s) :
+
+    def modifiedFileName(self, s):
         l = s.split("/")
         return "/".join(l[:-2]+l[-1:])
 
-    def mergeFunc(self, products) :
-        print "The %d skim files have been written."%len(products["outputFileName"])
-        for fileName in products["outputFileName"] :
-            os.system("mv %s %s"%(fileName, self.modifiedFileName(fileName)))
-        print "( e.g. %s )"%self.modifiedFileName(products["outputFileName"][0])
-        print utils.hyphens
-#####################################
+    def mergeFunc(self, products):
+        for fileName in products["outputFileName"]:
+            os.system("mv %s %s" % (fileName, self.modifiedFileName(fileName)))
+        if not self.quietMode:
+            print "The %d skim files have been written." % len(products["outputFileName"])
+            print "( e.g. %s )" % self.modifiedFileName(products["outputFileName"][0])
+            print utils.hyphens
+
+
 class reweights(analysisStep) :
     '''Repeat arbitrary analysisStep with different global weights.
 
