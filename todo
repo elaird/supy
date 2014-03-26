@@ -22,7 +22,6 @@
 (from commissioning with Davide)
 * python version check
 * investigate possibility of adding a remote upstream
-* fix the extra tree in skimmer
 * types of steps
 * rip out hbheNoiseFilter
 * document parameters behaviour
