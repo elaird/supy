@@ -87,3 +87,84 @@ class test4_skim_eff(unittest.TestCase):
             v1 = uncs[i-1]
             v2 = uncs[i]
             self.assertAlmostEqual(v1, v2, places=7, msg="uncs (%d):  %g != %g" % (i, v1, v2))
+
+
+class test5_skimmer_options(unittest.TestCase):
+    import skimOptions
+
+    def writeTFile(self):
+        import array
+        import ROOT as r
+
+        var = skimOptions.var()
+        f = r.TFile(skimOptions.fileName(), "RECREATE")
+        dirName, treeName = configuration.mainTree()
+        pairs = [configuration.mainTree()] + configuration.otherTreesToKeepWhenSkimming()
+        for i, (dirName, treeName) in enumerate(pairs):
+            f.mkdir(dirName)
+            f.cd(dirName)
+            t = r.TTree(treeName, "title")
+            a = array.array('i', [0])
+            t.Branch(var, a, '%s/I' % var)
+            for run in range(i, i + 100):
+                a[0] = run
+                t.Fill()
+            f.Write()
+        f.Close()
+
+    def setUp(self):
+        self.writeTFile()
+
+        import supy
+        opts = supy.options.default("--loop 1 --quiet".split())
+        a = skimOptions.skimOptions(opts)
+        a.loop()
+        a.mergeAllOutput()
+        self.orgs = [a.organizer(rc) for rc in a.readyConfs]
+
+    def tearDown(self):
+        import os
+        os.remove(skimOptions.fileName())
+
+    def checkOneTree(self, f, tag, dirName, treeName, checkN=True,
+                     varNames=[], antiVarNames=[]):
+        coords = "%s:%s/%s" % (f.GetName(), dirName, treeName)
+        msg = "%s: %s" % (tag, coords)
+
+        self.assertTrue(f.cd(dirName), msg=msg)
+        tree = f.Get(coords)
+        self.assertTrue(tree, msg=msg)
+
+        if checkN:
+            n = tree.GetEntries()
+            if tag.endswith("all"):
+                self.assertTrue(n, msg=msg)
+            elif tag.endswith("zero"):
+                self.assertEqual(n, 0, msg=msg)
+
+        for var in varNames:
+            self.assertTrue(tree.GetBranch(var), msg=msg)
+
+        for var in antiVarNames:
+            self.assertFalse(tree.GetBranch(var), msg=msg)
+
+    def test(self):
+        '''Run the skimmer with a variety of options; check resulting skims.'''
+
+        import ROOT as r
+
+        for org in self.orgs:
+            fileName = org.samples[0]["outputFileName"].replace("_plots.root", "_1_0_skim.root")
+            f = r.TFile(fileName)
+            self.assertTrue(f, msg=fileName)
+            if org.tag[0] == "m":
+                self.checkOneTree(f, org.tag, *configuration.mainTree(), varNames=["run"])
+            if org.tag[1] == "o":
+                for (dirName, treeName) in configuration.otherTreesToKeepWhenSkimming():
+                    self.checkOneTree(f, org.tag, dirName, treeName, checkN=False)
+            if org.tag[2] == "e":
+                varNames = [] if org.tag.endswith("zero") else ["run2"]
+                antiVarNames = [] if org.tag[0] == "m" else ["run"]
+                self.checkOneTree(f, org.tag, *configuration.mainTree(),
+                                  varNames=varNames, antiVarNames=antiVarNames)
+            f.Close()
