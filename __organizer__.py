@@ -138,30 +138,49 @@ class organizer(object) :
         self.__steps = tuple(steps + [self.step(self.samples)])
         return self.__steps
 
-    def mergeSamples(self,sources = [], targetSpec = {}, keepSources = False, allWithPrefix = None, force = False, scaleFactors = [] ) :
+    def mergeSamples(self, sources=[], targetSpec={}, keepSources=False, allWithPrefix=None, force=False, scaleFactors=[]):
         assert force or not self.scaled, "Merge must be called before calling scale."
 
-        if not sources and allWithPrefix: sources = [s["name"] for s in self.samples if re.match(allWithPrefix,s["name"])]
-        sourceIndices = [i for i in range(len(self.samples)) if self.samples[i]["name"] in sources]
-        sources = [s for s in self.samples if s["name"] in sources]
-        if not len(sourceIndices) :
-            if self.verbose : print "None of the samples you want merged are specified, no action taken : %s"%targetSpec['name']
+        for name in sources:
+            assert type(name) is str, name
+            if self.verbose and self.indexOfSampleWithName(name) is None:
+                print "You have requested to merge unspecified sample %s" % name
+
+        assert "name" in targetSpec, targetSpec
+        if self.indexOfSampleWithName(targetSpec["name"]) is not None:
+            if self.verbose:
+                print "target name %s is already in samples." % targetSpec["name"]
             return
-        elif self.verbose: print ''.join("You have requested to merge unspecified sample %s\n"%src["name"]
-                                         for src in sources if src not in self.samples),
+
+        sourceIndices = []
+        sourceSamples = []
+        for iSample, sample in enumerate(self.samples):
+            cond1 = (not sources) and allWithPrefix and re.match(allWithPrefix, sample["name"])
+            cond2 = sample["name"] in sources
+            if cond1 or cond2:
+                sourceIndices.append(iSample)
+                sourceSamples.append(sample)
+
+        if not sourceSamples:
+            if self.verbose:
+                print "None of the samples you want merged are specified; no action taken: %s" % targetSpec['name']
+            return
 
         target = copy.deepcopy(targetSpec)
-        target['sources'] = [s["name"] for s in sources]
-        target['nEventsIn'] = [s['nEventsIn'] for s in sources]
-        target['weightIn'] = [s['weightIn'] for s in sources]
-        if all(["xs" in s for s in sources]) : 
-            target["xsOfSources"] = [s["xs"] for s in sources ]
-            target["xs"] = sum(target["xsOfSources"])
-        elif all(["lumi" in s for s in sources]):
-            target["lumiOfSources"] = [s["lumi"] for s in sources ]
-            target["lumi"] = sum(target['lumiOfSources'])
-        elif force: pass
-        else: raise Exception("Cannot merge data with sim")
+        target['sources'] = sourceSamples
+        keys = ["nEventsIn", "weightIn"]
+        if all(["xs" in s for s in sourceSamples]):
+            keys.append("xs")
+        elif all(["lumi" in s for s in sourceSamples]):
+            keys.append("lumi")
+        elif force:
+            pass
+        else:
+            raise Exception("Cannot merge data with sim")
+
+        for key in keys:
+            target[key] = sum([s[key] for s in sourceSamples])
+
 
         def tuplePopInsert(orig, item) :
             val = list(orig)
@@ -175,7 +194,7 @@ class organizer(object) :
         for step in self.steps :
             r.gDirectory.mkdir(*step.nameTitle).cd()
             for key,val in step.iteritems():
-                sourceFactors = [(val[i],sf) for i,sf in zip(sourceIndices,scaleFactors if scaleFactors else [1.0]*len(sources)) if val[i]]
+                sourceFactors = [(val[i],sf) for i,sf in zip(sourceIndices,scaleFactors if scaleFactors else [1.0]*len(sourceIndices)) if val[i]]
                 hist = sourceFactors[0][0].Clone(key) if len(sourceFactors) else None
                 if hist : hist.Scale(sourceFactors[0][1])
                 for h,sf in sourceFactors[1:] : hist.Add( h, sf )
