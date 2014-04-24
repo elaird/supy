@@ -203,6 +203,22 @@ class organizer(object) :
         self.samples = tuplePopInsert( self.samples, target )
         return
 
+    def samplesBeforeAndAfterMerging(self, samples=[]):
+        if not samples:
+            samples = self.samples
+
+        before = []
+        merged = []
+        for sample in samples:
+            if 2 <= len(sample.get("sources", [])):
+                merged.append(sample)
+                for sourceSample in sample["sources"]:
+                    before.append(sourceSample)
+            else:
+                before.append(sample)
+
+        return before, merged
+
     def scale(self, lumiToUseInAbsenceOfData = None, toPdf = False) :
         dataIndices = [i for i,sample in enumerate(self.samples) if "lumi" in sample and not toPdf ]
         iData = next( iter(dataIndices), None)
