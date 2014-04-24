@@ -465,7 +465,7 @@ class plotter(object) :
                         value = mcLumi(nEvents=sample["nEventsIn"],
                                        w=sample["weightIn"],
                                        xs=sample["xs"])
-            return "%.1f" % (value/1.0e3)
+            return "%3.2e" % (value/1.0e3)
 
         def getXs(sample = None, iSource = None) :
             value = None
@@ -514,8 +514,8 @@ class plotter(object) :
             return ( ["sample",""]+list(name),
                      ["nEventsIn",""] + list(events),
                      ["weightIn",""] + list(weight),
-                     ["  lumi (/fb)",""] + list(lumi),
-                     ["  xs (fb)",""] + list(xs),
+                     ["lumi(/fb)",""] + list(lumi),
+                     ["xs(fb)",""] + list(xs),
                      )
 
         def printOneType(x, sampleNames, nEventsIn, weightIn, lumis, xss) :
@@ -529,11 +529,12 @@ class plotter(object) :
             total = sLength + nLength + wLength + lLength + 15
             if self.printXs:
                 total += xLength
-            if total>self.nColumnsMax : text.SetTextSize(defSize*self.nColumnsMax/(total+0.0))
+            if total > self.nColumnsMax:
+                text.SetTextSize(defSize*self.nColumnsMax/(total+0.0))
                 
             for j,(name,events,weight,lumi,xs) in enumerate(zip(sampleNames,nEventsIn,weightIn,lumis,xss)) :
                 y = 0.9 - 0.55*(j+0.5)/self.nLinesMax
-                out = name.ljust(sLength) + events.rjust(nLength+3) + weight.rjust(wLength+3) + lumi.rjust(lLength+3)
+                out = name.ljust(sLength) + events.rjust(nLength+2) + weight.rjust(wLength+3) + lumi.rjust(lLength+2)
                 if self.printXs:
                     out += xs.rjust(xLength+3)
                 text.DrawTextNDC(x, y, out)
