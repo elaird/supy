@@ -6,6 +6,7 @@ def site() :
          "brown.edu":"bn",
          "cern.ch":"cern",
          "fnal.gov":"fnal",
+         "wisc.edu":"uw",
          }
     hostName = socket.getfqdn()
     for match,prefix in d.iteritems() :
@@ -75,6 +76,9 @@ def specs() :
                     "queueVars"      : {"user":"OWNER", "state":"ST", "run":"R", "userBlackList":["OWNER", "jobs;"],
                                         "summary":"condor_q -global", "sample": "condor_q -global -submitter %s | head"%user},
                     },
+        "uw_cms" :{"localOutputDir" : "/nfs_scratch/%s"%user,
+                   "globalOutputDir": "/nfs_scratch/%s"%user,
+                   },
         }
 
 def info(site = prefix(), key = None) :
