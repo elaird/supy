@@ -650,7 +650,11 @@ class plotter(object) :
         text.SetTextColor(r.kBlack)
         text.DrawTextNDC(x, 0.5, "   "+"".join(self.sampleList))
         text.SetTextAlign(13)
-        text.DrawTextNDC(0.05, 0.03, "events / %.0f fb^{-1}" % (self.someOrganizer.lumi/1.0e3) )
+        if self.someOrganizer.lumi is None:
+            lumi = "(MC @ 1/pb; data not scaled)"
+        else:
+            lumi = "events / %.0f fb^{-1}" % (self.someOrganizer.lumi/1.0e3)
+        text.DrawTextNDC(0.05, 0.03, lumi)
         self.flushPage()
 
     def getExtremes(self, dimension, histos, ignoreHistos) :
