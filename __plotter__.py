@@ -706,7 +706,8 @@ class plotter(object) :
     def plotEachHisto(self, dimension, histos, opts) :
         stuffToKeep = []
         legend = r.TLegend(*opts["legendCoords"])
-        legend.SetHeader(opts["legendTitle"])
+        if opts["legendTitle"]:
+            legend.SetHeader(opts["legendTitle"])
         stuffToKeep.append(legend)
         legendEntries = []
         if self.anMode :
