@@ -84,7 +84,7 @@ def sampleRows(samples=[]):
         used += subset
         out += [tuple([suffix] + [""]*4)]
         out += sampleInfo(subset, trim=suffix)
-    return [("sample", "nEventsIn", "weightIn", "lumi(/fb)", "xs(fb)")] + out
+    return [("name", "nEventsIn", "weightIn", "lumi(/fb)", "xs(fb)")] + out
 
 
 class plotter(object) :
@@ -501,7 +501,7 @@ class plotter(object) :
         text.DrawText(0.1,0.1,dateString+tdt.AsString())
         return text
 
-    def printSampleList(self, x, rows=[]):
+    def printSampleList(self, x, rows=[], header=""):
         text = r.TText()
         text.SetNDC()
         text.SetTextFont(102)
@@ -527,6 +527,7 @@ class plotter(object) :
 
         y = 0.9
         dy = 0.55 / self.nLinesMax
+        text.DrawTextNDC(x, y+dy, header)
         for row in rows:
             name, events, weight, lumi, xs = row
             out = ""
@@ -544,11 +545,14 @@ class plotter(object) :
         return text
 
     def printNEventsIn(self):
-        before, after = self.someOrganizer.individualAndMergedSamples()
-        gcruft = []
-        for x, samples in [(0.02, before), (0.52, after)]:
-            gcruft += [self.printSampleList(x, sampleRows(samples))]
-        return gcruft
+        before, merged = self.someOrganizer.individualAndMergedSamples()
+        b = self.printSampleList(0.02,
+                                 sampleRows(before),
+                                 header="individual samples")
+        m = self.printSampleList(0.52,
+                                 sampleRows(merged),
+                                 header="samples merged from at least 2 sources")
+        return [b, m]  # gcruft
 
     def flushPage(self) :
         self.printCanvas()
