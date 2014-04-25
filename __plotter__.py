@@ -84,7 +84,7 @@ def sampleRows(samples=[]):
         used += subset
         out += [tuple([suffix] + [""]*4)]
         out += sampleInfo(subset, trim=suffix)
-    return [("name", "nEventsIn", "weightIn", "lumi(/fb)", "xs(fb)")] + out
+    return out
 
 
 class plotter(object) :
@@ -501,13 +501,14 @@ class plotter(object) :
         text.DrawText(0.1,0.1,dateString+tdt.AsString())
         return text
 
-    def printSampleList(self, x, rows=[], header=""):
-        text = r.TText()
+    def printSampleList(self, x, rows=[], header="", sigma=None):
+        text = r.TLatex()
         text.SetNDC()
         text.SetTextFont(102)
         text.SetTextSize(0.38*text.GetTextSize())
         defSize = text.GetTextSize()
 
+        rows = [("name", "nEventsIn", "weightIn", "lumi(/fb)", "xs(fb)")] + rows
         realRows = filter(lambda x: len(x[1]), rows)
         if len(realRows) == 1:
             return
@@ -517,30 +518,33 @@ class plotter(object) :
             lengths.append([])
 
         for row in realRows:
-            for i in range(len(lengths)):
-                lengths[i].append(len(row[i]))
+            for iColumn in range(len(lengths)):
+                width = len(row[iColumn])
+                lengths[iColumn].append(width)
 
-        lengths = [max(lengths[i]) for i in range(len(lengths))]
-        total = 15 + sum(lengths[:-1]) + (lengths[-1] if self.printXs else 0)
+        for i in range(len(lengths)):
+            lengths[i] = max(lengths[i])
+
+        total = 5 + sum(lengths[:-1]) + (lengths[-1] if self.printXs else 0)
         if self.nColumnsMax < total:
             text.SetTextSize(defSize * self.nColumnsMax/(total + 0.0))
 
         y = 0.9
         dy = 0.55 / self.nLinesMax
-        text.DrawTextNDC(x, y+dy, header)
-        for row in rows:
-            name, events, weight, lumi, xs = row
-            out = ""
-            out += name.ljust(lengths[0])
-            out += events.rjust(2 + lengths[1])
-            out += weight.rjust(3 + lengths[2])
-            out += lumi.rjust(2 + lengths[3])
-            if self.printXs:
-                out += xs.rjust(3 + lengths[4])
+        text.DrawLatex(x, y+dy, header)
+        for iRow, row in enumerate(rows):
+            fields = []
+            for iColumn in range(len(row) - (0 if self.printXs else 1)):
+                s = getattr(row[iColumn], "rjust" if iColumn else "ljust")(lengths[iColumn])
+                fields.append(s)
+
+            c = "  %s" % ("#kern[0.3]{#Sigma}" if (sigma and not iRow) else " ")
+            line = c.join(fields)
+
             if row not in realRows:
                 y -= dy
-            if out.strip():
-                text.DrawTextNDC(x, y, out)
+            if line.strip():
+                text.DrawLatex(x, y, line)
                 y -= dy
         return text
 
@@ -548,10 +552,12 @@ class plotter(object) :
         before, merged = self.someOrganizer.individualAndMergedSamples()
         b = self.printSampleList(0.02,
                                  sampleRows(before),
-                                 header="individual samples")
+                                 header="individual samples",
+                                 )
         m = self.printSampleList(0.52,
                                  sampleRows(merged),
-                                 header="samples merged from at least 2 sources")
+                                 header="samples merged from at least 2 sources",
+                                 sigma=True)
         return [b, m]  # gcruft
 
     def flushPage(self) :
