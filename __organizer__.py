@@ -2,6 +2,7 @@ import ROOT as r
 import copy,re
 import configuration,utils
 
+
 class organizer(object) :
     """Organize step and histograms.
 
@@ -168,6 +169,7 @@ class organizer(object) :
 
         target = copy.deepcopy(targetSpec)
         target['sources'] = sourceSamples
+        target['keptSources'] = keepSources
         keys = ["nEventsIn", "weightIn"]
         if all(["xs" in s for s in sourceSamples]):
             keys.append("xs")
@@ -203,19 +205,18 @@ class organizer(object) :
         self.samples = tuplePopInsert( self.samples, target )
         return
 
-    def samplesBeforeAndAfterMerging(self, samples=[]):
-        if not samples:
-            samples = self.samples
-
-        before = []
+    def individualAndMergedSamples(self, iMax=4):
+        before = self.samples
         merged = []
-        for sample in samples:
-            if 2 <= len(sample.get("sources", [])):
-                merged.append(sample)
-                for sourceSample in sample["sources"]:
-                    before.append(sourceSample)
-            else:
-                before.append(sample)
+
+        i = 0
+        while any([s.get("sources") for s in before]):
+            if self.verbose and iMax <= i:
+                print "breaking loop after %d iterations" % i
+                break
+            before, merged1 = _beforeAfterMerging(before)
+            merged += merged1
+            i += 1
 
         return before, merged
 
@@ -415,3 +416,17 @@ class organizer(object) :
             for line in block : print "%s%s  %s"%(line[0],line[1].ljust(maxLenName),line[2])
 
         
+def _beforeAfterMerging(samples=[]):
+    before = []
+    merged = []
+    for sample in samples:
+        sources = sample.get("sources", [])
+        if sources:
+            if not sample["keptSources"]:
+                for source in sources:
+                    before.append(source)
+            if 2 <= len(sources):  # len=1 is a "rename"
+                merged.append(sample)
+        else:
+            before.append(sample)
+    return before, merged
