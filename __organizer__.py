@@ -224,7 +224,6 @@ class organizer(object) :
         dataIndices = [i for i,sample in enumerate(self.samples) if "lumi" in sample and not toPdf ]
         iData = next( iter(dataIndices), None)
         self.lumi = self.samples[iData]["lumi"] if iData!=None else 0.0 if toPdf else lumiToUseInAbsenceOfData
-        if type(self.lumi) is list : self.lumi = sum(self.lumi)
         assert len(dataIndices)<2, "What should I do with more than one data sample?"
         assert self.lumi or toPdf, "You need to have a data sample or specify the lumi to use."
 
