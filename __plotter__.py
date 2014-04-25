@@ -544,7 +544,7 @@ class plotter(object) :
         return text
 
     def printNEventsIn(self):
-        before, after = self.someOrganizer.samplesBeforeAndAfterMerging()
+        before, after = self.someOrganizer.individualAndMergedSamples()
         gcruft = []
         for x, samples in [(0.02, before), (0.52, after)]:
             gcruft += [self.printSampleList(x, sampleRows(samples))]
