@@ -159,10 +159,6 @@ class plotter(object) :
             r.gPad.SetTicky()
             r.gPad.SetTickx()
             if pushLeft : r.gPad.SetLeftMargin(0.4)
-    ##############################
-    @staticmethod
-    def inDict(d, key, default) :
-        return d[key] if key in d else default
 
 
     def __init__(self,
@@ -725,12 +721,12 @@ class plotter(object) :
                          "markerStyle", "markerColor", "fillStyle", "fillColor"] :
                 if item in sample : getattr(histo, "Set"+item.capitalize()[0]+item[1:])(sample[item])
 
-            sampleName = self.inDict(opts["newSampleNames"], sample["name"], sample["name"])
-            legendEntries.append( (histo, sampleName, self.inDict(sample, "legendOpt", "lpf")) )
+            sampleName = opts["newSampleNames"].get(sample["name"], sample["name"])
+            legendEntries.append( (histo, sampleName, sample.get("legendOpt", "lpf")) )
             if dimension==1 :
                 stuffToKeep += self.plot1D(histo, count,
-                                           goptions = self.inDict(sample, "goptions", ""),
-                                           double = self.inDict(sample, "double", ""))
+                                           goptions = sample.get("goptions", ""),
+                                           double = sample.get("double", ""))
             elif dimension==2 and self.omit2D : continue
             elif dimension==2 :
                 self.plot2D(histo, count, sampleName, stuffToKeep)
