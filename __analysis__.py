@@ -23,7 +23,7 @@ class analysis(object) :
     def parameters(self) : return {}
     def conclude(self, config) : return
     def concludeAll(self) : utils.operateOnListUsingQueue( configuration.nCoresDefault(), utils.qWorker(self.conclude), zip(self.readyConfs) )
-    def organizer(self, config, verbose = False, prefixesNoScale=[]) :
+    def organizer(self, config, verbose = True, prefixesNoScale=[]) :
         return organizer(config['tag'], self.sampleSpecs(config['tag']), verbose=verbose, prefixesNoScale=prefixesNoScale)
 
 ############

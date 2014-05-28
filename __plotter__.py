@@ -3,7 +3,7 @@ import os,math,string,itertools,re
 import utils,configuration as conf
 from supy import whereami
 
-##############################
+
 def combineBinContentAndError(histo, binToContainCombo, binToBeKilled) :
     xflows     = histo.GetBinContent(binToBeKilled)
     xflowError = histo.GetBinError(binToBeKilled)
@@ -18,6 +18,74 @@ def combineBinContentAndError(histo, binToContainCombo, binToBeKilled) :
     
     histo.SetBinError(binToBeKilled, 0.0)
     histo.SetBinError(binToContainCombo, math.sqrt(xflowError**2+currentError**2))
+
+
+def mcLumi(nEvents=None, w=None, xs=None):
+    """see docs/mcLumi.txt"""
+    if not w*xs:
+        return 0.0
+    return nEvents**2/(w*xs)
+
+
+def sampleName(sample):
+    if len(sample.get("sources", [])) == 1:
+        return sample["sources"][0]["name"]
+    else:
+        return sample["name"]
+
+
+def sampleInfo(samples, trim=""):
+    out = []
+    for sample in samples:
+        if "xs" in sample:
+            xs = sample["xs"]
+            lumi = mcLumi(nEvents=sample["nEventsIn"],
+                          w=sample["weightIn"],
+                          xs=sample["xs"])
+        elif "lumi" in sample:
+            xs = None
+            lumi = sample["lumi"]
+        else:
+            assert False, sample
+
+        name = sampleName(sample)
+        if trim:
+            name = name.replace(trim, "")
+        out.append((name,
+                    "%d" % sample['nEventsIn'],
+                    "%3.2e" % sample['weightIn'],
+                    "%3.2e" % (lumi/1.0e3),
+                    "%3.2e" % (xs*1.0e3) if xs is not None else "",
+                    ))
+    return out
+
+
+def suffixes(samples=[]):
+    out = [""]
+    for sample in samples:
+        name = sampleName(sample)
+        iDot = name.find(".")
+        if 0 <= iDot:
+            out.append(name[iDot:])
+    return set(out)
+
+
+def sampleRows(samples=[]):
+    out = []
+    used = []
+    for suffix in sorted(suffixes(samples), key=lambda x: -len(x)):
+        remaining = filter(lambda x: x not in used, samples)
+        #remaining.sort(key=lambda x: (x[0][:5], int(float(x[2])), -int(x[1]), x[0][5:]))
+
+        subset = []
+        for sample in remaining:
+            if sampleName(sample).endswith(suffix):
+                subset.append(sample)
+        used += subset
+        out += [tuple([suffix] + [""]*4)]
+        out += sampleInfo(subset, trim=suffix)
+    return out
+
 
 class plotter(object) :
     ##############################
@@ -91,11 +159,8 @@ class plotter(object) :
             r.gPad.SetTicky()
             r.gPad.SetTickx()
             if pushLeft : r.gPad.SetLeftMargin(0.4)
-    ##############################
-    @staticmethod
-    def inDict(d, key, default) :
-        return d[key] if key in d else default
-    ##############################
+
+
     def __init__(self,
                  someOrganizer,
                  pdfFileName = "out.pdf",
@@ -103,8 +168,8 @@ class plotter(object) :
                  sampleLabelsForRatios = ("",""),
                  printRatios = False,
                  foms = [],
-                 printXs = False,
-                 printImperfectCalcPageIfEmpty=True,
+                 printXs = True,
+                 printImperfectCalcPageIfEmpty=False,
                  showStatBox = True,
                  doLog = True,
                  pegMinimum = None,
@@ -436,112 +501,65 @@ class plotter(object) :
         text.DrawText(0.1,0.1,dateString+tdt.AsString())
         return text
 
-    def printNEventsIn(self) :
-        text = r.TText()
+    def printSampleList(self, x, rows=[], header="", sigma=None):
+        text = r.TLatex()
         text.SetNDC()
         text.SetTextFont(102)
         text.SetTextSize(0.38*text.GetTextSize())
         defSize = text.GetTextSize()
-        
-        def mcLumi(nEvents=None, w=None, xs=None):
-            if not w*xs:
-                return 0.0
-            return nEvents**2/(w*xs)  # see docs/mcLumi.txt
 
-        def getLumi(sample = None, iSource = None) :
-            value = 0.0
-            if sample!=None :
-                if "lumi" in sample :
-                    if iSource!=None :
-                        value = sample["lumiOfSources"][iSource]
-                    else :
-                        value = sample["lumi"]                        
-                elif "xs" in sample :
-                    if iSource!=None :
-                        value = mcLumi(nEvents=sample["nEventsIn"][iSource],
-                                       w=sample["weightIn"][iSource],
-                                       xs=sample["xsOfSources"][iSource])
-                    else :
-                        value = mcLumi(nEvents=sample["nEventsIn"],
-                                       w=sample["weightIn"],
-                                       xs=sample["xs"])
-            return "%.1f" % (value/1.0e3)
+        rows = [("name", "nEventsIn", "weightIn", "lumi(/fb)", "xs(fb)")] + rows
+        realRows = filter(lambda x: len(x[1]), rows)
+        if len(realRows) == 1:
+            return
 
-        def getXs(sample = None, iSource = None) :
-            value = None
-            if sample!=None :
-                if "xs" in sample:
-                    if iSource!=None :
-                        value = sample["xsOfSources"][iSource]
-                    else:
-                        value = sample["xs"]
-            return "%3.2e" % (value*1.0e3) if value else ""
+        lengths = []
+        for iColumn in realRows[0]:
+            lengths.append([])
 
-        def getWeight(w=None):
-            return "%3.2e" % w
+        for row in realRows:
+            for iColumn in range(len(lengths)):
+                width = len(row[iColumn])
+                lengths[iColumn].append(width)
 
-        def loopOneType(mergedSamples = False) :
-            info = []
-            for sample in self.someOrganizer.samples :
-                if "sources" not in sample :
-                    if mergedSamples : continue
-                    info.append((sample["name"],
-                                 str(int(sample['nEventsIn'])),
-                                 getWeight(sample['weightIn']),
-                                 getLumi(sample),
-                                 getXs(sample)))
-                else :
-                    if not mergedSamples : continue
-                    localInfo = []
-                    useThese = True
+        for i in range(len(lengths)):
+            lengths[i] = max(lengths[i])
 
-                    for iSource in range(len(sample["sources"])) :
-                        name = sample["sources"][iSource]
-                        N    = sample["nEventsIn"][iSource]
-                        w    = sample["weightIn"][iSource]
-                        if type(N) is list : useThese = False; break
-                        localInfo.append((name,
-                                          str(int(N)),
-                                          getWeight(w),
-                                          getLumi(sample, iSource),
-                                          getXs(sample,iSource)))
-                    if useThese:
-                        info += localInfo
+        total = 5 + sum(lengths[:-1]) + (lengths[-1] if self.printXs else 0)
+        if self.nColumnsMax < total:
+            text.SetTextSize(defSize * self.nColumnsMax/(total + 0.0))
 
-            info.sort( key = lambda x: (x[0][:5], int(float(x[2])), -int(x[1]), x[0][5:] ))
-            if not info : return (None,None,None,None,None)
-            name,events,weight,lumi,xs = zip(*info)
-            return ( ["sample",""]+list(name),
-                     ["nEventsIn",""] + list(events),
-                     ["weightIn",""] + list(weight),
-                     ["  lumi (/fb)",""] + list(lumi),
-                     ["  xs (fb)",""] + list(xs),
-                     )
+        y = 0.9
+        dy = 0.55 / self.nLinesMax
+        text.DrawLatex(x, y+dy, header)
+        for iRow, row in enumerate(rows):
+            fields = []
+            for iColumn in range(len(row) - (0 if self.printXs else 1)):
+                s = getattr(row[iColumn], "rjust" if iColumn else "ljust")(lengths[iColumn])
+                fields.append(s)
 
-        def printOneType(x, sampleNames, nEventsIn, weightIn, lumis, xss) :
-            if not sampleNames : return
-            sLength = max([len(item) for item in sampleNames])
-            nLength = max([len(item) for item in nEventsIn]  )
-            wLength = max([len(item) for item in weightIn]   )
-            lLength = max([len(item) for item in lumis]      )
-            xLength = max([len(item) for item in xss]        )
+            c = "  %s" % ("#kern[0.3]{#Sigma}" if (sigma and not iRow) else " ")
+            line = c.join(fields)
 
-            total = sLength + nLength + wLength + lLength + 15
-            if self.printXs:
-                total += xLength
-            if total>self.nColumnsMax : text.SetTextSize(defSize*self.nColumnsMax/(total+0.0))
-                
-            for j,(name,events,weight,lumi,xs) in enumerate(zip(sampleNames,nEventsIn,weightIn,lumis,xss)) :
-                y = 0.9 - 0.55*(j+0.5)/self.nLinesMax
-                out = name.ljust(sLength) + events.rjust(nLength+3) + weight.rjust(wLength+3) + lumi.rjust(lLength+3)
-                if self.printXs:
-                    out += xs.rjust(xLength+3)
-                text.DrawTextNDC(x, y, out)
-
-        printOneType( 0.02, *loopOneType(False) )
-        printOneType( 0.52, *loopOneType(True)  )
+            if row not in realRows:
+                y -= dy
+            if line.strip():
+                text.DrawLatex(x, y, line)
+                y -= dy
         return text
-    
+
+    def printNEventsIn(self):
+        before, merged = self.someOrganizer.individualAndMergedSamples()
+        b = self.printSampleList(0.02,
+                                 sampleRows(before),
+                                 header="individual samples",
+                                 )
+        m = self.printSampleList(0.52,
+                                 sampleRows(merged),
+                                 header="samples merged from at least 2 sources",
+                                 sigma=True)
+        return [b, m]  # gcruft
+
     def flushPage(self) :
         self.printCanvas()
         self.canvas.Clear()
@@ -632,7 +650,11 @@ class plotter(object) :
         text.SetTextColor(r.kBlack)
         text.DrawTextNDC(x, 0.5, "   "+"".join(self.sampleList))
         text.SetTextAlign(13)
-        text.DrawTextNDC(0.05, 0.03, "events / %.0f fb^{-1}" % (self.someOrganizer.lumi/1.0e3) )
+        if self.someOrganizer.lumi is None:
+            lumi = "(MC @ 1/pb; data not scaled)"
+        else:
+            lumi = "events / %.0f fb^{-1}" % (self.someOrganizer.lumi/1.0e3)
+        text.DrawTextNDC(0.05, 0.03, lumi)
         self.flushPage()
 
     def getExtremes(self, dimension, histos, ignoreHistos) :
@@ -694,7 +716,8 @@ class plotter(object) :
     def plotEachHisto(self, dimension, histos, opts) :
         stuffToKeep = []
         legend = r.TLegend(*opts["legendCoords"])
-        legend.SetHeader(opts["legendTitle"])
+        if opts["legendTitle"]:
+            legend.SetHeader(opts["legendTitle"])
         stuffToKeep.append(legend)
         legendEntries = []
         if self.anMode :
@@ -713,12 +736,12 @@ class plotter(object) :
                          "markerStyle", "markerColor", "fillStyle", "fillColor"] :
                 if item in sample : getattr(histo, "Set"+item.capitalize()[0]+item[1:])(sample[item])
 
-            sampleName = self.inDict(opts["newSampleNames"], sample["name"], sample["name"])
-            legendEntries.append( (histo, sampleName, self.inDict(sample, "legendOpt", "lpf")) )
+            sampleName = opts["newSampleNames"].get(sample["name"], sample["name"])
+            legendEntries.append( (histo, sampleName, sample.get("legendOpt", "lpf")) )
             if dimension==1 :
                 stuffToKeep += self.plot1D(histo, count,
-                                           goptions = self.inDict(sample, "goptions", ""),
-                                           double = self.inDict(sample, "double", ""))
+                                           goptions = sample.get("goptions", ""),
+                                           double = sample.get("double", ""))
             elif dimension==2 and self.omit2D : continue
             elif dimension==2 :
                 self.plot2D(histo, count, sampleName, stuffToKeep)
