@@ -31,11 +31,10 @@ install:
   # # matplotlib and PyTables are not available for Python 3 as packages from the main repo yet.
   # - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then time sudo apt-get install -qq python${PYTHON_SUFFIX}-matplotlib python${PYTHON_SUFFIX}-tables; fi
 
-  # Install a ROOT binary that we custom-built in a 64-bit Ubuntu VM
-  # for the correct Python / ROOT version
-  - time wget --no-check-certificate https://dl.dropbox.com/u/4923986/rootpy/64/root_v${ROOT}_Python_${TRAVIS_PYTHON_VERSION}.tar.gz
-  - time tar zxf root_v${ROOT}_Python_${TRAVIS_PYTHON_VERSION}.tar.gz
-  - source root_v${ROOT}_Python_${TRAVIS_PYTHON_VERSION}/bin/thisroot.sh
+  # Install a ROOT binary that we custom-built in a 64-bit Ubuntu VM (see gerbaudo/SusyNtuple/scripts/build_root.sh)
+  - time wget --tries=2 --no-check-certificate https://copy.com/GArqtEGYzIKV -O root_v5.34.18.tgz
+  - tar xzf root_v5.34.18.tgz
+  - source root_v5.34.18/bin/thisroot.sh
 
   # adjust environment
   - cd ..
