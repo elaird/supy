@@ -39,11 +39,13 @@ def prepareJob(jobCmd, indexDict):
         print >>file
         for item in ["PYTHONPATH", "LD_LIBRARY_PATH"] :
             print >>file, "export %s=%s"%(item, os.environ[item])
-        print >>file, "cd "+os.environ["PWD"]
-        print >>file, jobCmd
+        print >>file, sites.info(key="extractCommand")
+        print >>file, "cd " + sites.info(key="workingDir")
+        print >>file, jobCmd.replace(os.environ["PWD"],sites.info(key="workingDir"))
 
     condorFileName = condored(jobScriptFileName)
     if condorFileName != jobScriptFileName:
+        condorInputSpec = ",".join([os.environ["PWD"]+".tar",])
         condorOutputSpec = "/".join([".",
                                      indexDict["analysis"],
                                      indexDict["tag"],
@@ -55,10 +57,10 @@ def prepareJob(jobCmd, indexDict):
                                     ])
         pipes = " | ".join(["cat %s" % condorTemplate(),
                             "sed s@JOBFLAG@%s@g" % jobScriptFileName,
+                            "sed s@INFLAG@%s@g" % condorInputSpec,
                             "sed s@OUTFLAG@%s@g" % condorOutputSpec,
                             ])
         os.system(" > ".join([pipes, condorFileName]))
-
 
 def submitJob(jobScript=""):
     subCmd = "; ".join(["cd %s" % baseDir(jobScript),
