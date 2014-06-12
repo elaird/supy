@@ -9,6 +9,7 @@ universe = vanilla
 Executable = JOBFLAG
 Requirements = target.OpSys == "LINUX"
 
+transfer_input_files = INFLAG
 transfer_output_files = OUTFLAG
 Should_Transfer_Files = YES
 WhenToTransferOutput = ON_EXIT
