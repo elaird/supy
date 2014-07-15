@@ -156,3 +156,8 @@ def roundString(val, err, width=None, noSci = False, noErr = False) :
             precision-=1
     return returnVal
 #####################################
+def binomial_error(k,n):
+    '''http://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval'''
+    assert k<n
+    p = float(k)/n
+    return math.sqrt(p*(1-p)/n)

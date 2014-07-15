@@ -1,5 +1,5 @@
 import math,operator,itertools,random,string, ROOT as r
-from supy import wrappedChain,utils
+from supy import wrappedChain,utils,whereami
 from . import secondary
 try: import numpy as np
 except: np = None
@@ -229,6 +229,9 @@ class Tridiscriminant(secondary) :
     def likelihoods(self) :
         likes = [ self.fromCache([item['pre']], self.dists.keys()+[self.name], tag = item['tag'])[item['pre']]
                   for item in self.populations]
+        missing = sum([[key for key,val in item.items() if val==None] for item in likes],[])
+        if missing:
+            print self.name, ': missing ',','.join(missing)
         for h in filter(None,sum([item.values() for item in likes],[])) :
             for i in range(2+h.GetNbinsX()) :
                 if h.GetBinContent(i) < 0 : h.SetBinContent(i,0)
@@ -268,10 +271,15 @@ class Tridiscriminant(secondary) :
                 org.drop(sample['name'])
 
     def reportCache(self) :
+        useTDR = True
         likes = self.likelihoods()
         fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name])
         optstat = r.gStyle.GetOptStat()
+        if useTDR:
+            r.gROOT.ProcessLine(".L %s/cpp/tdrstyle.C"%whereami())
+            r.setTDRStyle()
         r.gStyle.SetOptStat(0)
+        r.gStyle.SetPalette(1)
         c = r.TCanvas()
         utils.tCanvasPrintPdf(c, fileName, False, '[')
         with open(fileName+'.txt', "w") as file :
@@ -285,13 +293,26 @@ class Tridiscriminant(secondary) :
                 l = r.TLegend(0.75,0.85,0.98,0.98)
                 l.SetHeader("Dilutions :  %.3f  %.3f  %.3f"%tuple(dilutions))
                 for i,(item,color,pop) in enumerate(zip(likes,[r.kBlack,r.kRed,r.kBlue],self.populations)) :
+                    names = {'TridiscriminantWTopQCD':'#Delta',
+                             'ProbabilityHTopMasses':'P_{MSD}',
+                             'TopRatherThanWProbability':'P_{CSV}',
+                             'muMetMt':'M_{T} (GeV)',
+                             'elMetMt':'M_{T} (GeV)'
+                             }
+                    if useTDR:
+                        item[key].SetTitle(';%s;probability / bin'%names[key])
+                        I = item[key].Integral()
+                        item[key].Scale(1./I)
+                    else: I = 1
+                    item[key].UseCurrentStyle()
                     item[key].SetLineColor(color)
-                    item[key].SetMaximum(h)
+                    item[key].SetLineWidth(2)
+                    item[key].SetMaximum(h/I)
                     item[key].SetMinimum(0)
-                    item[key].GetYaxis().SetTitle("pdf")
+                    if not useTDR: item[key].GetYaxis().SetTitle("pdf")
                     item[key].Draw("hist" + ('same' if i else ''))
                     l.AddEntry(item[key], pop['pre'],'l')
-                l.Draw()
+                if not useTDR: l.Draw()
                 utils.tCanvasPrintPdf(c, fileName, False)
         c.Clear()
         c.Divide(3,2)
@@ -552,6 +573,7 @@ class TwoDChiSquared(secondary) :
             return
 
         if self.xy and self.tailSuppression :
+            self.xy.SetTitle(';%s;%s'%self.labelsXY)
             xyDraw = self.xy.Clone('_draw')
             self.xySup = self.xy.Clone('_suppressed')
             self.xySup.Reset()
@@ -589,6 +611,10 @@ class TwoDChiSquared(secondary) :
     def reportCache(self) :
         optstat = r.gStyle.GetOptStat()
         r.gStyle.SetOptStat(0)
+        r.gROOT.ProcessLine(".L %s/cpp/tdrstyle.C"%whereami())
+        r.setTDRStyle()
+        r.tdrStyle.SetPadRightMargin(0.2)
+        r.gStyle.SetPalette(1)
         self.setup()
         fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name])
         sigmas = r.TH2D("sigmas","Contours of Integer Sigma, Gaussian Approximation;%s;%s"%self.labelsXY, *(self.binningX+self.binningY))
@@ -605,10 +631,12 @@ class TwoDChiSquared(secondary) :
         sigmas.Draw("cont3")
         c.Print(fileName+'.pdf')
         if self.xy :
+            self.xy.UseCurrentStyle()
             self.xy.Draw('colzsame')
             sigmas.Draw('cont3same')
             c.Print(fileName+'.pdf')
         if hasattr(self,'xySup') :
+            self.xySup.UseCurrentStyle()
             self.xySup.Draw('colz')
             sigmas.Draw('cont3same')
             c.Print(fileName+'.pdf')
@@ -618,8 +646,9 @@ class TwoDChiSquared(secondary) :
 ######################################
 
 class CombinationsLR(secondary) :
-    def __init__(self, var, varMax, trueKey, samples, tag) :
-        for item in ['samples','tag','var','varMax','trueKey'] : setattr(self,item,eval(item))
+    def __init__(self, var, varMax, trueKey, samples, tag, label="") :
+        if not label: label = var
+        for item in ['samples','tag','var','varMax','trueKey','label'] : setattr(self,item,eval(item))
         self.fixes = (var,'')
 
     def update(self,_) :
@@ -631,7 +660,7 @@ class CombinationsLR(secondary) :
     def uponAcceptance(self,ev) :
         trueKey = self.source[self.trueKey]
         for key,val in self.source[self.var].items() :
-            self.book.fill(min(val,self.varMax*(1-1e-6)),'%scorrect'%('' if key==trueKey else 'in'), 100,0,self.varMax, title = ';%s'%self.var)
+            self.book.fill(min(val,self.varMax*(1-1e-6)),'%scorrect'%('' if key==trueKey else 'in'), 100,0,self.varMax, title = ';%s'%self.label)
 
     def setup(self,*_) :
         hists = self.fromCache(['merged'],['correct','incorrect'], tag = self.tag)['merged']
@@ -649,6 +678,9 @@ class CombinationsLR(secondary) :
         if org.tag == self.tag :
             org.mergeSamples(targetSpec = {"name":'merged'}, sources = self.samples )
     def reportCache(self) :
+        r.gROOT.ProcessLine(".L %s/cpp/tdrstyle.C"%whereami())
+        r.setTDRStyle()
+        r.gStyle.SetPalette(1)
         hists = self.setup()
         if not hists :
             print '%s.setup() failed'%self.name
@@ -656,11 +688,15 @@ class CombinationsLR(secondary) :
         fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name]) + '.pdf'
         c = r.TCanvas()
         c.Print(fileName +'[')
+        for h in hists.values() + [self.LR]:
+            h.UseCurrentStyle()
+            h.SetTitle(';'+self.label)
+            h.SetLineWidth(2)
         hists['correct'].SetLineColor(r.kRed)
         hists['correct'].Draw('hist')
         hists['incorrect'].Draw('hist same')
         c.Print(fileName)
-        self.LR.SetTitle("LikelihoodRatio, Correct:Incorrect; %s"%self.var)
+        self.LR.SetTitle(";%s;Likelihood Ratio, Correct:Incorrect"%self.label)
         self.LR.SetMinimum(0)
         self.LR.Draw('hist')
         c.Print(fileName)

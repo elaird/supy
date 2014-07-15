@@ -11,6 +11,7 @@ class autoBook(dict) :
     
     def fill(self, x, name, N, low, up, w = None, title = "", xAxisLabels = [], yAxisLabels = []) :
         if w is None : w = self.weight
+        if type(name) in [tuple,list]: name = '_'.join(name)
         if not name in self :
             self.__directory.cd()
             self.fillOrder.append(name)
@@ -32,6 +33,7 @@ class autoBook(dict) :
         else                 : self[name].Fill(x[0],x[1],x[2],w)
 
     def fillVarBin(self, x, name, B, w =  None, title = "") :
+        if type(name) in [tuple,list]: name = '_'.join(name)
         if not name in self :
             import array
             self.__directory.cd()
