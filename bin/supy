@@ -40,6 +40,7 @@ def doBatch(someInstance) :
 
     scriptDir = someInstance.globalStem
     os.system("mkdir -p "+scriptDir)
+    os.system(supy.sites.info(key="tarCommand"))
 
     args = []
     for conf in someInstance.configurations :
