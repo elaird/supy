@@ -78,7 +78,7 @@ def specs() :
                     "queueHeaders"   : ["ID", "OWNER", "SUBMITTED1", "SUBMITTED2", "RUN_TIME", "ST", "PRI", "SIZE", "CMD"],
                     "queueVars"      : {"user":"OWNER", "state":"ST", "run":"R", "userBlackList":["OWNER", "jobs;"],
                                         "summary":"condor_q -global", "sample": "condor_q -global -submitter %s | head"%user},
-                    "tarCommand"     : "cd ..; tar -cf %s.tar %s/; cd %s" % tuple((os.path.basename(os.environ["PWD"]),)*3),
+                    "tarCommand"     : "cd ..; tar -chf %s.tar %s/; cd %s" % tuple((os.path.basename(os.environ["PWD"]),)*3),
                     "extractCommand" : "tar -xf %s.tar" % os.path.basename(os.environ["PWD"]),
                     "workingDir"     : "${_CONDOR_JOB_IWD}/"+os.path.basename(os.environ["PWD"]),
                     },
