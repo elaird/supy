@@ -33,15 +33,17 @@ def prepareJob(jobCmd, indexDict):
     jobScriptFileName = jobScriptFull(**indexDict)
     jobScriptDir = baseDir(jobScriptFileName)
     if not os.path.isdir(jobScriptDir): os.system("mkdir -p %s"%jobScriptDir)
-    os.system("cp -p %s %s" % (jobTemplate(), jobScriptFileName))
+    with open(jobTemplate()) as template:
+        with open(jobScriptFileName, 'w') as script:
+            for line in template.readlines():
+                if "INSERT_BATCH_SETUP" in line:
+                    for item in ["PYTHONPATH", "LD_LIBRARY_PATH"] :
+                        print >>script, "export %s=%s"%(item, os.environ[item])
+                    print >>script, sites.info(key="extractCommand")
+                    print >>script, "cd " + sites.info(key="workingDir")
+                else: print >>script, line,
+            print >>script, jobCmd.replace(os.environ["PWD"],sites.info(key="workingDir"))
     os.system("chmod +x "+jobScriptFileName)
-    with open(jobScriptFileName,"a") as file :
-        print >>file
-        for item in ["PYTHONPATH", "LD_LIBRARY_PATH"] :
-            print >>file, "export %s=%s"%(item, os.environ[item])
-        print >>file, sites.info(key="extractCommand")
-        print >>file, "cd " + sites.info(key="workingDir")
-        print >>file, jobCmd.replace(os.environ["PWD"],sites.info(key="workingDir"))
 
     condorFileName = condored(jobScriptFileName)
     if condorFileName != jobScriptFileName:
