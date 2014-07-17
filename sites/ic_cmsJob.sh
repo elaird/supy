@@ -6,3 +6,5 @@ export LD_PRELOAD=""
 #cd /home/hep/bbetchar/work/CMSSW_5_0_1_patch3/src && eval `scram runtime -sh` && cd - >& /dev/null # vanilla + HEAD of RecoLuminosity/LumiDB (Sun Feb 26 19:29:00 EST 2012) for pixel lumi
 cd /home/hep/bbetchar/work/CMSSW_4_4_3_patch1/src && eval `scram runtime -sh` && cd - >& /dev/null # vanilla + HEAD of RecoLuminosity/LumiDB (Mon Mar 5 13:50:00 EST 2012) for pixel lumi
 export FRONTIER_FORCERELOAD=long # part of pixel lumi
+
+#INSERT_BATCH_SETUP
