@@ -33,7 +33,7 @@ def pruneCrabDuplicates(inList, sizes, alwaysUseLastAttempt = False, location = 
     # CRAB old : filepathWithName_JOB_ATTEMPT.root
     # CRAB new : filepathWithName_JOB_ATTEMPT_RANDOMSTRING.root
     pattern  =  r"(_\d+_)(\d+)(_?\w*)(\.root$)"
-    recombine = "%s%s%d%s.root"
+    recombine = "/%s%s%d%s.root"
 
     versionDict = defaultdict(list)
     for inFile,size in zip(inList,sizes) :
@@ -142,7 +142,7 @@ def fileListFromCastor(location, itemsToSkip = [], sizeThreshold = 0, pruneList 
     if pruneList :   fileList=pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)
     return fileList
 #####################################
-def fileListFromEos(location, itemsToSkip = [], sizeThreshold=0, eos = "", xrootdRedirector = "") :
+def fileListFromEos(location, itemsToSkip = [], sizeThreshold=0, eos = "", xrootdRedirector = "", pruneList = True, alwaysUseLastAttempt = False) :
     fileList=[]
     sizes=[]
 
@@ -166,10 +166,12 @@ def fileListFromEos(location, itemsToSkip = [], sizeThreshold=0, eos = "", xroot
         if acceptFile :
             fileList.append(xrootdRedirector+location+"/"+fileName)
             sizes.append(size)
+    if pruneList :   fileList=pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)
     return fileList
 #####################################
-def fileListFromDisk(location, isDirectory = True, itemsToSkip = [], sizeThreshold = 0) :
+def fileListFromDisk(location, isDirectory = True, itemsToSkip = [], sizeThreshold = 0, pruneList = True, alwaysUseLastAttempt = False,) :
     fileList=[]
+    sizes=[]
     cmd="ls -l "+location
     #print cmd
     output = getCommandOutput(cmd)["stdout"]
@@ -183,8 +185,11 @@ def fileListFromDisk(location, isDirectory = True, itemsToSkip = [], sizeThresho
         if size<=sizeThreshold : acceptFile=False
         for item in itemsToSkip :
             if item in fileName : acceptFile=False
-        if acceptFile : fileList.append(fileName if not isDirectory else location+"/"+fileName)
+        if acceptFile :
+            fileList.append(fileName if not isDirectory else location+"/"+fileName)
+            sizes.append(size)
 
+    if pruneList :   fileList=pruneCrabDuplicates(fileList, sizes, alwaysUseLastAttempt, location)
     return fileList
 #####################################
 def fileListFromTextFile(fileName = None) :
