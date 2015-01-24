@@ -135,7 +135,7 @@ class analysis(object) :
             looper.setupSteps(minimal = True)
             sampleSpec = next( s for s in confSamples if s.weightedName == looper.name ) 
             return {"name":looper.name, "outputFileName":looper.steps[0].outputFileName,
-                    "color":sampleSpec.color, "markerStyle":sampleSpec.markerStyle }
+                    "color":sampleSpec.color, "markerStyle":sampleSpec.markerStyle, "nCheck":self.sampleDict[sampleSpec.name].nCheck }
         return [ sampleSpecDict(looper) for looper in self.listsOfLoopers[tag] ]
 ############
     def inputFilesListFile(self, sampleName) : return "%s/%s.inputFiles"%(self.globalStem, sampleName)

@@ -1,5 +1,14 @@
 import collections, copy
 from supy import utils
+import ROOT as r
+
+def printNumberEvents(sampleHolder, treeName='tree'):
+    for name,ss in sorted(sampleHolder.items()):
+        files = eval(ss.filesCommand)
+        chain = r.TChain()
+        for fname in files:
+            chain.Add('/'.join([fname,treeName]))
+        print name, chain.GetEntries()
 
 def test(sampleHolder) :
     return [(name,len(eval(ss.filesCommand))) for name,ss in sorted(sampleHolder.items())]
@@ -13,7 +22,7 @@ def specify(names = [], overrideLumi = None, xsPostWeights = None, effectiveLumi
     return [samplespec(name,'.'.join([name]+weightNames),overrideLumi,xsPostWeights,effectiveLumi,nFilesMax,nEventsMax,weights,color,markerStyle) for name in names]
     
 class SampleHolder(dict) :
-    sample = collections.namedtuple("sample", "filesCommand xs lumi ptHatMin")
+    sample = collections.namedtuple("sample", "filesCommand xs lumi ptHatMin nCheck")
     def __init__(self) : self.inclusiveGroups = []
 
     @property
@@ -25,11 +34,11 @@ class SampleHolder(dict) :
         dict.update(self,other)
         for group in other.inclusiveGroups : self.addInclusiveGroup(group)
 
-    def add(self, name, filesCommand = None, xs = None, lumi = None, ptHatMin = None) :
+    def add(self, name, filesCommand = None, xs = None, lumi = None, ptHatMin = None, nCheck = None) :
         assert name not in self,  "%s already specified" % name
         assert lumi or xs,                      "Underspecified sample: %s"%name
         assert not (lumi and (xs or ptHatMin)), "Overspecified sample: %s"%name
-        self[name] = self.sample(filesCommand, xs, lumi, ptHatMin)
+        self[name] = self.sample(filesCommand, xs, lumi, ptHatMin, nCheck)
 
     def addInclusiveGroup( self, samplesGroup) :
         for sample in samplesGroup :

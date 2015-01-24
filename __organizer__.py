@@ -121,6 +121,8 @@ class organizer(object) :
             lumiNjobs,xsPreNjobs,xsPostNjobs,sample['nJobs'] = map(extract, ["lumiHisto","xsHisto","xsPostWeightsHisto","nJobsHisto"])
             sample['weightIn'] = extract('counts', bin=2)
             sample['nEventsIn'] = sample['weightIn'] + extract('counts')
+            if sample['nCheck'] is not None:
+                assert sample['nEventsIn'] == sample['nCheck'], "%s: Found %d events, expected %d"%(sample['name'],sample['nEventsIn'],sample['nCheck'])
             xsNjobs = xsPostNjobs if xsPostNjobs else xsPreNjobs
 
             if xsNjobs : sample["xs"] = xsNjobs / sample['nJobs']
