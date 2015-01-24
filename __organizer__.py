@@ -122,7 +122,7 @@ class organizer(object) :
             sample['weightIn'] = extract('counts', bin=2)
             sample['nEventsIn'] = sample['weightIn'] + extract('counts')
             if sample['nCheck'] is not None:
-                assert sample['nEventsIn'] == sample['nCheck'], "%s: Found %d events, expected %d"%(sample['name'],sample['nEventsIn'],sample['nCheck'])
+                assert abs(sample['nEventsIn'] - sample['nCheck']) < 1, "%s: Found %d events, expected %d"%(sample['name'],sample['nEventsIn'],sample['nCheck'])
             xsNjobs = xsPostNjobs if xsPostNjobs else xsPreNjobs
 
             if xsNjobs : sample["xs"] = xsNjobs / sample['nJobs']
