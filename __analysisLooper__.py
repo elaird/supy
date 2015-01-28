@@ -109,20 +109,32 @@ class analysisLooper :
         os.system("mv %s/* %s/" % (self.outputDir, self.globalDir))
         os.system("rm -rf %s" % self.outputDir)
 
+    @property
+    def nExpect(self):
+        if not configuration.computeEntriesAtMakeFileList(): return None
+        if not len(self.inputFiles): return 0
+        nExpect = sum(zip(*self.inputFiles)[1])
+        return nExpect if self.nEventsMax==None else min(nExpect, nEventsMax)
+
     def setupChains(self) :
         assert self.mainTree not in self.otherTreesToKeepWhenSkimming
         self.chains = dict( [(item,r.TChain("%s/%s"%item)) for item in [self.mainTree]+self.otherTreesToKeepWhenSkimming])
         for (dirName,treeName),chain in self.chains.iteritems() :
-            for infile in self.inputFiles : chain.Add(infile)
+            for infile in self.inputFiles : chain.Add(infile[0])
             r.SetOwnership(chain, False)
 
         if not self.quietMode :
             nFiles = len(self.inputFiles)
-            nEventsString = str(self.chains[self.mainTree].GetEntries()) if configuration.computeEntriesForReport() else "(number not computed)"
+            nEventsString = ( str(self.chains[self.mainTree].GetEntries()) if configuration.computeEntriesForReport() else
+                              "%d (expected)"%self.nExpect if configuration.computeEntriesAtMakeFileList() else
+                              "(number not computed)" )
+            filesLines = ( '\n'.join(zip(*self.inputFiles)[0]) if len(self.inputFiles) < 5 else
+                           '\n'.join(zip(*self.inputFiles[:2])[0]+("...",)[:len(self.inputFiles)-1]+zip(*self.inputFiles[2:][-2:])[0]) )
+            plural = nFiles>1
             print utils.hyphens
-            print "The %d \"%s\" input file%s:"%(nFiles, self.name, "s" if nFiles>1 else '')
-            print '\n'.join(self.inputFiles[:2]+["..."][:len(self.inputFiles)-1]+self.inputFiles[2:][-2:])
-            print "contain%s %s events."%(("s" if nFiles==1 else ""), nEventsString)
+            print "The %d \"%s\" input file%s:"%(nFiles, self.name, ['','s'][plural])
+            print filesLines
+            print "contain%s %s events."%(['s',''][plural], nEventsString)
             if self.skip :
                 print "Skipping first %d events"%self.skip
             print utils.hyphens
@@ -188,8 +200,11 @@ class analysisLooper :
 
     def writePickle(self) :
         def pickleJar(step) :
+            if step.name=='master' and configuration.computeEntriesAtMakeFileList():
+                msg = "Expect: %d, Actual: %d"%(self.nExpect,step.nPass+step.nFail)
+                assert abs(step.nPass + step.nFail - self.nExpect) < 1 , msg
             inter = set(step.varsToPickle()).intersection(set(['nPass','nFail','outputFileName']))
-            assert not inter, "%s is trying to pickle %s, which %s reserved for use by analysisStep."%(step.name, str(inter), "is" if len(inter)==1 else "are")
+            assert not inter, "%s is trying to pickle %s, which %s reserved for use by analysisStep."%(step.name, str(inter), ["is","are"][len(inter)>1])
             return dict([ (item, getattr(step,item)) for item in step.varsToPickle()+['nPass','nFail']] +
                         [('outputFileName', getattr(step,'outputFileName').replace(self.outputDir, self.globalDir))])
 
