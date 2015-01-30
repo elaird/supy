@@ -150,12 +150,15 @@ class analysis(object) :
         os.system("rm -r %s"%tmpDir)
 
     def makeInputFileLists(self) :
+        def nEventsFile(fileName):
+            if not configuration.computeEntriesAtMakeFileList(): return None
+            return utils.nEventsFile(fileName,'/'.join(self.mainTree()))
         def makeFileList(name) :
             if os.path.exists(self.inputFilesListFile(name)) and self.useCachedFileLists() : return
             fileNames = eval(self.sampleDict[name].filesCommand)
             assert fileNames, "The command '%s' produced an empty list of files"%self.sampleDict[name].filesCommand
             tmpDir,localFileName,globalFileName = self.globalToLocal(self.inputFilesListFile(name))
-            utils.writePickle(localFileName, fileNames)
+            utils.writePickle(localFileName, zip(fileNames,map(nEventsFile, fileNames)))
             self.localToGlobal(tmpDir, localFileName, globalFileName)
 
         sampleNames = set(sum([[sampleSpec.name for sampleSpec in self.filteredSamples(conf)] for conf in self.configurations],[]))

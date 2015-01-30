@@ -120,3 +120,10 @@ def subtractX(hist2D,histX,ratherY=False) :
             divX.SetBinContent(*(args+(divX.GetBinContent(*args)-f,)))
             divX.SetBinError(*(args+(math.sqrt(divX.GetBinError(*args)**2+ferr**2),)))
     return divX
+#####################################
+def nEventsFile(fileName,treeName):
+    tfile = r.TFile.Open(fileName)
+    tree = tfile.Get(treeName)
+    nEntries = tree.GetEntries()
+    tfile.Close()
+    return nEntries

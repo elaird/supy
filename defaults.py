@@ -37,6 +37,10 @@ def computeEntriesForReport() :
     '''WARNING: If set to True, all files in chain must be read before looping, which may be slow.'''
     return False
 
+def computeEntriesAtMakeFileList():
+    '''WARNING: If set to True, all files in sample must be read before file list is cached, which may be slow.'''
+    return False
+
 def printNodesUsed() :
     '''Dumps nodes accessed from wrappedChain to stdout at end of job: useful for debugging.'''
     return False
