@@ -63,6 +63,8 @@ def cppFiles() :
     '''List of strings specifying cpp files to compile and load into ROOT namespace.'''
     return []
 
+def overrideROOT(_): pass
+
 def initializeROOT(r, cppFiles = []) :
     r.gROOT.SetStyle("Plain")
     r.gStyle.SetPalette(1)

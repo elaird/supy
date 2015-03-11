@@ -9,6 +9,7 @@ ROOT.gROOT.SetBatch(True)
 import supy
 import configuration
 configuration.initializeROOT(ROOT, configuration.cppFiles())
+configuration.overrideROOT(ROOT)
 ############################################
 def moduleName(arg) :
     while "//" in arg : arg = arg.replace("//","/")

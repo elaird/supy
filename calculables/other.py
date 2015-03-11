@@ -690,7 +690,7 @@ class CombinationsLR(secondary) :
         c.Print(fileName +'[')
         for h in hists.values() + [self.LR]:
             h.UseCurrentStyle()
-            h.SetTitle(';'+self.label)
+            h.SetTitle(";%s;Probability / %.2f"%(self.label, self.varMax / 100.0))
             h.SetLineWidth(2)
         hists['correct'].SetLineColor(r.kRed)
         hists['correct'].Draw('hist')
