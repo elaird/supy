@@ -614,7 +614,8 @@ class TwoDChiSquared(secondary) :
         r.gROOT.ProcessLine(".L %s/cpp/tdrstyle.C"%whereami())
         r.setTDRStyle()
         r.tdrStyle.SetPadRightMargin(0.2)
-        r.gStyle.SetPalette(1)
+        #r.gStyle.SetPalette(56) # works in ROOT 5.34 but not 5.32
+        utils.invertedDarkBodyRadiatorPalette() # implemented manually
         self.setup()
         fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name])
         sigmas = r.TH2D("sigmas","Contours of Integer Sigma, Gaussian Approximation;%s;%s"%self.labelsXY, *(self.binningX+self.binningY))
@@ -631,11 +632,15 @@ class TwoDChiSquared(secondary) :
         sigmas.Draw("cont3")
         c.Print(fileName+'.pdf')
         if self.xy :
+            self.xy.GetZaxis().SetTitle("Probability / bin")
+            self.xy.SetContour(200)
             self.xy.UseCurrentStyle()
             self.xy.Draw('colzsame')
             sigmas.Draw('cont3same')
             c.Print(fileName+'.pdf')
         if hasattr(self,'xySup') :
+            self.xySup.GetZaxis().SetTitle("Probability / bin")
+            self.xySup.SetContour(200)
             self.xySup.UseCurrentStyle()
             self.xySup.Draw('colz')
             sigmas.Draw('cont3same')

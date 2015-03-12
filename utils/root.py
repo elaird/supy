@@ -127,3 +127,12 @@ def nEventsFile(fileName,treeName):
     nEntries = tree.GetEntries()
     tfile.Close()
     return nEntries
+####################################
+def invertedDarkBodyRadiatorPalette():
+    '''Same as r.gStyle.SetPalette(56) in ROOT v > 5.34'''
+    nRGBs = 5;
+    stops = array.array('d', [0.00, 0.25, 0.50, 0.75, 1.00])
+    red   = array.array('d', [1.00, 1.00, 1.00, 0.50, 0.00])
+    green = array.array('d', [1.00, 1.00, 0.55, 0.00, 0.00])
+    blue  = array.array('d', [1.00, 0.00, 0.00, 0.00, 0.00])
+    r.TColor.CreateGradientColorTable(nRGBs, stops, red, green, blue, 255) # alpha default
