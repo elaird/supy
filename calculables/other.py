@@ -614,6 +614,18 @@ class TwoDChiSquared(secondary) :
 
         self.matrix = np.dot( trans.T, np.dot( inv, trans ) )
 
+    def hzoom(self,h):
+        def newbins(N,low,high):
+            N_ = int(N/2)
+            low_ = low
+            high_ = N_ * (high-low)/N
+            return (N_, low_, high_)
+        h_ = r.TH2D(h.GetName()+"_zoom",h.GetTitle(), *(newbins(*self.binningX)+newbins(*self.binningY)))
+        for iX in range(1,h_.GetNbinsX()):
+            for iY in range(1,h_.GetNbinsY()):
+                h_.SetBinContent(iX,iY, h.GetBinContent(iX,iY))
+        return h_
+
     def reportCache(self) :
         optstat = r.gStyle.GetOptStat()
         r.gStyle.SetOptStat(0)
@@ -631,7 +643,11 @@ class TwoDChiSquared(secondary) :
                       sigmas.GetYaxis().GetBinCenter(iY),
                       1)
                 sigmas.SetBinContent(iX, iY, math.sqrt( np.dot(xy, np.dot(self.matrix, xy) ) ) )
+        sigmasz = self.hzoom(sigmas)
+        xyz = self.hzoom(self.xy)
+        xyz.SetTitle(';%s;%s'%self.labelsXY)
 
+        sigmasz.SetContour(6, np.array([0.1]+range(1,6),'d'))
         sigmas.SetContour(6, np.array([0.1]+range(1,6),'d'))
         c = r.TCanvas()
         c.Print(fileName+'.pdf[')
@@ -643,6 +659,13 @@ class TwoDChiSquared(secondary) :
             self.xy.UseCurrentStyle()
             self.xy.Draw('colzsame')
             sigmas.Draw('cont3same')
+            c.Print(fileName+'.pdf')
+
+            xyz.GetZaxis().SetTitle("Probability / bin")
+            xyz.SetContour(200)
+            xyz.UseCurrentStyle()
+            xyz.Draw('colz')
+            sigmasz.Draw('cont3same')
             c.Print(fileName+'.pdf')
         if hasattr(self,'xySup') :
             self.xySup.GetZaxis().SetTitle("Probability / bin")
