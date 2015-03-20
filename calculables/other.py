@@ -290,15 +290,19 @@ class Tridiscriminant(secondary) :
                 dilutions = [utils.dilution(bins1,bins2) for bins1,bins2 in itertools.combinations([utils.binValues(item[key]) for item in likes],2)]
                 print >> file, "\t".join([key.ljust(25)]+["%.4f"%d for d in dilutions])
                 h = 1.1*max(item[key].GetMaximum() for item in likes)
-                l = r.TLegend(0.75,0.85,0.98,0.98)
-                l.SetHeader("Dilutions :  %.3f  %.3f  %.3f"%tuple(dilutions))
-                for i,(item,color,pop) in enumerate(zip(likes,[r.kBlack,r.kRed,r.kBlue],self.populations)) :
+                l = r.TLegend(0.75,0.7,0.9,0.9)
+                l.SetBorderSize(0)
+                l.SetFillColor(r.kWhite)
+                l.SetTextFont(42)
+                if not useTDR: l.SetHeader("Dilutions :  %.3f  %.3f  %.3f"%tuple(dilutions))
+                for i,(item,color,style,lw,pop) in enumerate(zip(likes,[r.kBlack,r.kRed,r.kBlue],[1,1,7],[1,3,2],self.populations)) :
                     names = {'TridiscriminantWTopQCD':'#Delta',
                              'ProbabilityHTopMasses':'P_{MSD}',
                              'TopRatherThanWProbability':'P_{CSV}',
                              'muMetMt':'M_{T} (GeV)',
                              'elMetMt':'M_{T} (GeV)'
                              }
+                    labels = {'wj':"Wj",'ttj_ph':"t#bar{t}","Multijet":"mj"}
                     if useTDR:
                         item[key].SetTitle(';%s;probability / bin'%names[key])
                         I = item[key].Integral()
@@ -306,13 +310,15 @@ class Tridiscriminant(secondary) :
                     else: I = 1
                     item[key].UseCurrentStyle()
                     item[key].SetLineColor(color)
-                    item[key].SetLineWidth(2)
+                    item[key].SetLineStyle(style)
+                    item[key].SetLineWidth(lw)
                     item[key].SetMaximum(h/I)
                     item[key].SetMinimum(0)
                     if not useTDR: item[key].GetYaxis().SetTitle("pdf")
                     item[key].Draw("hist" + ('same' if i else ''))
-                    l.AddEntry(item[key], pop['pre'],'l')
-                if not useTDR: l.Draw()
+                    l.AddEntry(item[key], labels[pop['pre']] if pop['pre'] in labels else pop['pre'],'l')
+                l.Draw()
+                r.gPad.RedrawAxis()
                 utils.tCanvasPrintPdf(c, fileName, False)
         c.Clear()
         c.Divide(3,2)
