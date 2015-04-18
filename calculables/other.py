@@ -616,7 +616,7 @@ class TwoDChiSquared(secondary) :
 
     def hzoom(self,h):
         def newbins(N,low,high):
-            N_ = int(N/2)
+            N_ = int(N/3)
             low_ = low
             high_ = N_ * (high-low)/N
             return (N_, low_, high_)
@@ -625,6 +625,15 @@ class TwoDChiSquared(secondary) :
             for iY in range(1,h_.GetNbinsY()):
                 h_.SetBinContent(iX,iY, h.GetBinContent(iX,iY))
         return h_
+
+    def fillsigmas(self, emptyhist):
+        for iX in range(1,1+emptyhist.GetNbinsX()) :
+            for iY in range(1,1+emptyhist.GetNbinsY()) :
+                xy = (emptyhist.GetXaxis().GetBinCenter(iX),
+                      emptyhist.GetYaxis().GetBinCenter(iY),
+                      1)
+                emptyhist.SetBinContent(iX, iY, math.sqrt( np.dot(xy, np.dot(self.matrix, xy) ) ) )
+        return emptyhist
 
     def reportCache(self) :
         optstat = r.gStyle.GetOptStat()
@@ -636,16 +645,11 @@ class TwoDChiSquared(secondary) :
         utils.invertedDarkBodyRadiatorPalette() # implemented manually
         self.setup()
         fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name])
-        sigmas = r.TH2D("sigmas","Contours of Integer Sigma, Gaussian Approximation;%s;%s"%self.labelsXY, *(self.binningX+self.binningY))
-        for iX in range(1,1+sigmas.GetNbinsX()) :
-            for iY in range(1,1+sigmas.GetNbinsY()) :
-                xy = (sigmas.GetXaxis().GetBinCenter(iX),
-                      sigmas.GetYaxis().GetBinCenter(iY),
-                      1)
-                sigmas.SetBinContent(iX, iY, math.sqrt( np.dot(xy, np.dot(self.matrix, xy) ) ) )
-        sigmasz = self.hzoom(sigmas)
+        sigmas = self.fillsigmas( r.TH2D("sigmas","Contours of Integer Sigma, Gaussian Approximation;%s;%s"%self.labelsXY, *(self.binningX+self.binningY)) )
+
         xyz = self.hzoom(self.xy)
         xyz.SetTitle(';%s;%s'%self.labelsXY)
+        sigmasz = self.fillsigmas(xyz.Clone("sigmasz"))
 
         sigmasz.SetContour(6, np.array([0.1]+range(1,6),'d'))
         sigmas.SetContour(6, np.array([0.1]+range(1,6),'d'))
@@ -664,8 +668,13 @@ class TwoDChiSquared(secondary) :
             xyz.GetZaxis().SetTitle("probability / bin")
             xyz.SetContour(200)
             xyz.UseCurrentStyle()
+            xyz.GetXaxis().SetNdivisions(4,4,0,False)
             xyz.Draw('colz')
             sigmasz.Draw('cont3same')
+            cmsstamp = r.TText(0.2, 0.87, "CMS Simulation")
+            cmsstamp.SetNDC()
+            cmsstamp.SetTextSize(0.9 * cmsstamp.GetTextSize())
+            cmsstamp.Draw()
             c.Print(fileName+'.pdf')
         if hasattr(self,'xySup') :
             self.xySup.GetZaxis().SetTitle("probability / bin")
@@ -726,7 +735,7 @@ class CombinationsLR(secondary) :
             h.UseCurrentStyle()
             h.SetTitle(";%s;probability / %.2f"%(self.label, self.varMax / 100.0))
             h.SetLineWidth(2)
-        leg = r.TLegend(0.7,0.75,0.9,0.9)
+        leg = r.TLegend(0.65,0.7,0.9,0.85)
         leg.SetBorderSize(0)
         leg.SetFillColor(r.kWhite)
         leg.SetTextFont(42)
@@ -737,10 +746,18 @@ class CombinationsLR(secondary) :
         leg.AddEntry(hists['correct'], 'Correct', 'l')
         leg.AddEntry(hists['incorrect'], 'Incorrect', 'l')
         leg.Draw()
+
+        cmsstamp = r.TText(0.65, 0.87, "CMS Simulation")
+        cmsstamp.SetNDC()
+        cmsstamp.SetTextSize(0.9 * cmsstamp.GetTextSize())
+        cmsstamp.Draw()
+
         c.Print(fileName)
         self.LR.SetTitle(";%s;Likelihood Ratio, Correct:Incorrect"%self.label)
         self.LR.SetMinimum(0)
         self.LR.Draw('hist')
+        #cmsstamp.Draw()
+
         c.Print(fileName)
         c.Print(fileName +']')
         print 'Wrote : %s'%fileName
