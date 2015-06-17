@@ -764,6 +764,7 @@ class CombinationsLR(secondary) :
         hists['correct'].SetLineColor(r.kRed)
         hists['correct'].SetLineWidth(3)
         hists['correct'].Draw('hist')
+        hists['incorrect'].SetLineWidth(1)
         hists['incorrect'].Draw('hist same')
         leg.AddEntry(hists['correct'], 'Correct', 'l')
         leg.AddEntry(hists['incorrect'], 'Incorrect', 'l')
