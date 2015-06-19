@@ -285,7 +285,7 @@ class Tridiscriminant(secondary) :
             #stamp.SetTextFont(52)
             #stamp.DrawTextNDC(0.27, 0.96, "Simulation")
             stamp.SetTextFont(42)
-            stamp.DrawTextNDC(0.88, 0.96, "(8TeV)")
+            stamp.DrawTextNDC(0.86, 0.96, "(8 TeV)")
 
         optstat = r.gStyle.GetOptStat()
         if useTDR:
@@ -303,7 +303,7 @@ class Tridiscriminant(secondary) :
                 dilutions = [utils.dilution(bins1,bins2) for bins1,bins2 in itertools.combinations([utils.binValues(item[key]) for item in likes],2)]
                 print >> file, "\t".join([key.ljust(25)]+["%.4f"%d for d in dilutions])
                 h = 1.1*max(item[key].GetMaximum() for item in likes)
-                l = r.TLegend(0.75,0.7,0.9,0.9)
+                l = r.TLegend(0.73,0.67,0.93,0.9)
                 l.SetBorderSize(0)
                 l.SetFillColor(r.kWhite)
                 l.SetTextFont(42)
@@ -315,9 +315,9 @@ class Tridiscriminant(secondary) :
                              'muMetMt':'M_{T} (GeV)',
                              'elMetMt':'M_{T} (GeV)'
                              }
-                    labels = {'wj':"Wj",'ttj_ph':"t#bar{t}","Multijet":"mj"}
+                    labels = {'wj':"Wj",'ttj_ph':"t#bar{t}","Multijet":"Mj"}
                     if useTDR:
-                        item[key].SetTitle(';%s;probability / bin'%names[key])
+                        item[key].SetTitle(';%s;Probability / bin'%names[key])
                         I = item[key].Integral()
                         item[key].Scale(1./I)
                     else: I = 1
