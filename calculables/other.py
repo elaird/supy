@@ -672,14 +672,14 @@ class TwoDChiSquared(secondary) :
         sigmas.Draw("cont3")
         c.Print(fileName+'.pdf')
         if self.xy :
-            self.xy.GetZaxis().SetTitle("probability / bin")
+            self.xy.GetZaxis().SetTitle("Probability / bin")
             self.xy.SetContour(200)
             self.xy.UseCurrentStyle()
             self.xy.Draw('colzsame')
             sigmas.Draw('cont3same')
             c.Print(fileName+'.pdf')
 
-            xyz.GetZaxis().SetTitle("probability / bin")
+            xyz.GetZaxis().SetTitle("Probability / bin")
             xyz.SetContour(200)
             xyz.UseCurrentStyle()
             xyz.GetXaxis().SetNdivisions(4,4,0,False)
@@ -695,11 +695,11 @@ class TwoDChiSquared(secondary) :
             stamp.SetTextSize(0.8 * ssize)
             stamp.DrawTextNDC(0.27, 0.96, "Simulation")
             stamp.SetTextFont(42)
-            stamp.DrawTextNDC(0.69, 0.96, "(8TeV)")
+            stamp.DrawTextNDC(0.67, 0.96, "(8 TeV)")
 
             c.Print(fileName+'.pdf')
         if hasattr(self,'xySup') :
-            self.xySup.GetZaxis().SetTitle("probability / bin")
+            self.xySup.GetZaxis().SetTitle("Probability / bin")
             self.xySup.SetContour(200)
             self.xySup.UseCurrentStyle()
             self.xySup.Draw('colz')
