@@ -694,13 +694,20 @@ class TwoDChiSquared(secondary) :
             ssize = stamp.GetTextSize()
             stamp.SetTextFont(62)
             stamp.SetTextSize(1.1*ssize)
-            stamp.DrawTextNDC(0.16 ,0.96,"CMS")
+            stamp.DrawTextNDC(0.20 ,0.88,"CMS")
             stamp.SetTextFont(52)
             stamp.SetTextSize(0.8 * ssize)
-            stamp.DrawTextNDC(0.28, 0.96, "Simulation")
+            stamp.DrawTextNDC(0.20, 0.83, "Simulation")
             stamp.SetTextFont(42)
             stamp.SetTextSize(ssize)
             stamp.DrawTextNDC(0.65, 0.96, "(8 TeV)")
+            stamp.SetTextSize(0.7*ssize)
+            stamp.DrawTextNDC(0.5505, 0.805, "MSD = 5")
+            stamp.DrawTextNDC(0.61, 0.74, "4")
+            stamp.DrawTextNDC(0.56, 0.68, "3")
+            stamp.DrawTextNDC(0.5105, 0.617, "2")
+            stamp.DrawTextNDC(0.47, 0.557, "1")
+            
 
             c.Print(fileName+'.pdf')
         if hasattr(self,'xySup') :
