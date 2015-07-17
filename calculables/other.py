@@ -283,7 +283,7 @@ class Tridiscriminant(secondary) :
         def doStamp():
             stamp.SetTextFont(62)
             stamp.SetTextSize(ssize)
-            stamp.DrawTextNDC(0.16 ,0.96,"CMS")
+            stamp.DrawTextNDC(0.2 ,0.88,"CMS")
             stamp.SetTextSize(0.8 * ssize)
             #stamp.SetTextFont(52)
             #stamp.DrawTextNDC(0.27, 0.96, "Simulation")
@@ -311,7 +311,7 @@ class Tridiscriminant(secondary) :
                 l.SetFillColor(r.kWhite)
                 l.SetTextFont(42)
                 if not useTDR: l.SetHeader("Dilutions :  %.3f  %.3f  %.3f"%tuple(dilutions))
-                for i,(item,color,style,lw,pop) in enumerate(zip(likes,[r.kBlack,r.kRed,r.kBlue],[1,1,7],[1,3,2],self.populations)) :
+                for i,(item,color,style,lw,pop) in enumerate(zip(likes,[r.kBlack,r.kRed,r.kBlue],[9,1,7],[1,5,3],self.populations)) :
                     names = {'TridiscriminantWTopQCD':'#Delta',
                              'ProbabilityHTopMasses':'P_{MSD}',
                              'TopRatherThanWProbability':'P_{CSV}',
