@@ -275,11 +275,17 @@ class Tridiscriminant(secondary) :
         likes = self.likelihoods()
         fileName = '/'.join(self.outputFileName.split('/')[:-1]+[self.name])
 
+        stamp = r.TText()
+        ssize = stamp.GetTextSize()
+
+        channelstamp = r.TLatex(0.32, 0.88, "%s+jets"%("e" if "_el_" in self.outputFileName else r"\mu"))
+        channelstamp.SetTextFont(52)
+        channelstamp.SetNDC()
+        channelstamp.SetTextSize(0.8*ssize)
+
         lumistamp = r.TLatex(0.65, 0.96, "19.6 fb^{-1} (8 TeV)")
         lumistamp.SetTextFont(42)
         lumistamp.SetNDC()
-        stamp = r.TText()
-        ssize = stamp.GetTextSize()
         def doStamp():
             stamp.SetTextFont(62)
             stamp.SetTextSize(ssize)
@@ -289,6 +295,7 @@ class Tridiscriminant(secondary) :
             #stamp.DrawTextNDC(0.27, 0.96, "Simulation")
             stamp.SetTextFont(42)
             lumistamp.Draw()
+            channelstamp.Draw()
 
         optstat = r.gStyle.GetOptStat()
         if useTDR:
