@@ -61,6 +61,7 @@ def prepareJob(jobCmd, indexDict):
                             "sed s@JOBFLAG@%s@g" % jobScriptFileName,
                             "sed s@INFLAG@%s@g" % condorInputSpec,
                             "sed s@OUTFLAG@%s@g" % condorOutputSpec,
+                            "sed s@USERFLAG@%s@g" % os.environ["USER"],
                             ])
         os.system(" > ".join([pipes, condorFileName]))
 

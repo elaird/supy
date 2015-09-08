@@ -1,5 +1,4 @@
-# copied from fnal_cmsTemplate.condor (some lines removed)
-
+environment = "USER=USERFLAG"
 Executable = JOBFLAG
 
 transfer_input_files = INFLAG
