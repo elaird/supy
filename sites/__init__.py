@@ -120,4 +120,6 @@ def pnfs() :
                                                                                                          info(key = "dCachePrefix"),
                                                                                                          info(key = "dCacheTrim"))
 
-srm = srmFunc()  # FIXME: remove this line (adapt susycaf)
+# FIXME: adapt susycaf and remove this
+if "susycaf" in os.environ["PWD"]:
+    srm = srmFunc()
