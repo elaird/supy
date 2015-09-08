@@ -1,0 +1,14 @@
+# copied from fnal_cmsTemplate.condor (some lines removed)
+
+Executable = JOBFLAG
+
+transfer_input_files = INFLAG
+transfer_output_files = OUTFLAG
+Should_Transfer_Files = YES
+WhenToTransferOutput = ON_EXIT
+
+Output = JOBFLAG_$(Cluster)_$(Process).stdout
+Error = JOBFLAG_$(Cluster)_$(Process).stderr
+Log = JOBFLAG_$(Cluster)_$(Process).log
+
+Queue
