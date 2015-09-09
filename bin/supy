@@ -54,13 +54,12 @@ def doBatch(someInstance) :
     for conf in someInstance.configurations :
         for looper in someInstance.listsOfLoopers[conf['tag']] :
             os.system("mkdir -p %s/%s/%s"%(scriptDir,conf['tag'], looper.name))
-            nSlices = int(options.slices)
-            for iSlice in range(nSlices):
+            for iSlice in range(options.slices):
                 listOfIndices = {"base": scriptDir,
                                  "tag": conf['tag'],
                                  "analysis": someInstance.name,
                                  "sample": looper.name,
-                                 "nSlices": nSlices,
+                                 "nSlices": options.slices,
                                  "iSlice": iSlice,
                                  "site": site,
                                  }
@@ -86,7 +85,7 @@ anInstance = importedClass(moduleName(arg))(options)
 
 if options.batch : #make one script per job and submit them to the queue
     doBatch(anInstance)
-elif options.loop!=None : #loop over the events
+elif options.loop : #loop over the events
     anInstance.loop()
 
 # merge output and conclude

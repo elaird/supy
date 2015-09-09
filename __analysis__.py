@@ -30,8 +30,8 @@ class analysis(object) :
     def __init__(self, options) :
         self.__batch   = options.batch
         self.__resubmit= options.resubmit
-        self.__loop    = int(options.loop)   if options.loop!=None else None
-        self.__nSlices = int(options.slices) if options.slices!=None else 1
+        self.__loop    = options.loop
+        self.__nSlices = options.slices
         self.__profile = options.profile
         self.__jobId   = options.jobId
         self.__tag     = options.tag
@@ -58,7 +58,7 @@ class analysis(object) :
                     print '\n'.join('  '+sample.weightedName for sample in self.filteredSamples(conf))
             sys.exit(0)
                 
-        if self.__loop!=None :
+        if self.__loop:
             os.system("mkdir -p %s"%self.localStem)
             if self.__jobId==None :
                 os.system("mkdir -p %s"%self.globalStem)
@@ -66,7 +66,7 @@ class analysis(object) :
 
         for conf in self.configurations :
             self.listsOfLoopers[conf['tag']] = self.sampleLoopers(conf)
-            if self.__jobId==None and self.__loop!=None :
+            if self.__jobId==None and self.__loop:
                 for looper in self.listsOfLoopers[conf['tag']] :
                     utils.writePickle( self.jobsFile(conf['tag'],looper.name,clean=True), self.__nSlices )
 
