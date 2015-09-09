@@ -10,18 +10,20 @@ class analysisLooper :
                  leavesToBlackList=None, moveOutputFiles=None, localStem=None,
                  globalStem=None, subDir=None, steps=None, calculables=None,
                  inputFiles=None, name=None, nEventsMax=None, quietMode=None,
-                 skip=None):
+                 skip=None, sliceByEvents=None):
 
         for arg in ["mainTree", "otherTreesToKeepWhenSkimming",
                     "leavesToBlackList", "moveOutputFiles", "localStem",
                     "globalStem", "subDir", "steps", "calculables",
                     "inputFiles", "name", "nEventsMax", "quietMode",
-                    "skip"]:
+                    "skip", "sliceByEvents"]:
             setattr(self, arg, eval(arg))
 
         self.trace = configuration.trace() and not any([step.requiresNoTrace() for step in self.steps])
         self.outputDir = self.globalDir #the value will be modified in self.prepareOutputDirectory()
         self.inputDir = self.globalDir 
+        self.divisor = None
+        self.remainder = None
         self.checkSteps()
 
     @property
@@ -47,7 +49,13 @@ class analysisLooper :
     def slice(self, nSlices, iSlice):
         assert iSlice < nSlices, "How did you do this?"
         out = copy.deepcopy(self)
-        out.inputFiles = out.inputFiles[iSlice::nSlices]
+
+        if self.sliceByEvents:
+            out.divisor = nSlices
+            out.remainder = iSlice
+        else:
+            out.inputFiles = out.inputFiles[iSlice::nSlices]
+
         out.globalDir = "/".join([out.globalDir, out.name])
 
         out.name = out.childName(nSlices, iSlice)
@@ -83,7 +91,7 @@ class analysisLooper :
                 step.tracer = step.source
                 step.source.tracedKeys |= step.priorFilters
 
-            [ all(step(eventVars) for step in self.steps) for eventVars in chainWrapper.entries(self.nEventsMax, self.skip) ]
+            [ all(step(eventVars) for step in self.steps) for eventVars in chainWrapper.entries(self.nEventsMax, self.skip, self.divisor, self.remainder) ]
 
             for step in filter(lambda s: s.tracer and s.name in s.tracer.tracedKeys, self.steps) : step.tracer.tracedKeys.remove(step.name)
             self.recordLeavesAndCalcsUsed( chainWrapper.activeKeys(), chainWrapper.calcDependencies() )
