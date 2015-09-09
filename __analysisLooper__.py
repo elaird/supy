@@ -10,13 +10,13 @@ class analysisLooper :
                  leavesToBlackList=None, moveOutputFiles=None, localStem=None,
                  globalStem=None, subDir=None, steps=None, calculables=None,
                  inputFiles=None, name=None, nEventsMax=None, quietMode=None,
-                 skip=None, sliceByEvents=None):
+                 skip=None):
 
         for arg in ["mainTree", "otherTreesToKeepWhenSkimming",
                     "leavesToBlackList", "moveOutputFiles", "localStem",
                     "globalStem", "subDir", "steps", "calculables",
                     "inputFiles", "name", "nEventsMax", "quietMode",
-                    "skip", "sliceByEvents"]:
+                    "skip"]:
             setattr(self, arg, eval(arg))
 
         self.trace = configuration.trace() and not any([step.requiresNoTrace() for step in self.steps])
@@ -46,11 +46,11 @@ class analysisLooper :
         if inter: print "Steps and calculables cannot share names { %s }"%', '.join(n for n in inter)
         
     def childName(self, nSlices, iSlice) : return "%s_%d_%d"%(self.name,nSlices,iSlice)
-    def slice(self, nSlices, iSlice):
+    def slice(self, nSlices, iSlice, byEvents):
         assert iSlice < nSlices, "How did you do this?"
         out = copy.deepcopy(self)
 
-        if self.sliceByEvents:
+        if byEvents:
             out.divisor = nSlices
             out.remainder = iSlice
         else:

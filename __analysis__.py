@@ -174,7 +174,7 @@ class analysis(object) :
         return out
 ############
     def func(self, looper, iSlice) :
-        looper.slice(self.__nSlices, iSlice)()
+        looper.slice(self.__nSlices, iSlice, self.__byEvents)()
 ############
     def loop(self) :
         wl = self.workList()
@@ -252,7 +252,6 @@ class analysis(object) :
                                   globalStem=self.globalStem,
                                   quietMode=(self.__loop > 1) or self.__quiet,
                                   skip=self.__skip,
-                                  sliceByEvents=self.__byEvents,
                                   )
         sampleNames = set()
         return [ looper(sampleSpec) for sampleSpec in self.filteredSamples(conf) ]
