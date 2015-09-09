@@ -131,7 +131,7 @@ class analysisLooper :
             for infile in self.inputFiles : chain.Add(infile[0])
             r.SetOwnership(chain, False)
 
-        if not self.quietMode :
+        if self.inputFiles and not self.quietMode:
             nFiles = len(self.inputFiles)
             nEventsString = ( str(self.chains[self.mainTree].GetEntries()) if configuration.computeEntriesForReport() else
                               "%d (expected)"%self.nExpect if configuration.computeEntriesAtMakeFileList() else
