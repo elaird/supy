@@ -32,6 +32,7 @@ class analysis(object) :
         self.__resubmit= options.resubmit
         self.__loop    = options.loop
         self.__nSlices = options.slices
+        self.__byEvents= options.byEvents
         self.__profile = options.profile
         self.__jobId   = options.jobId
         self.__tag     = options.tag
@@ -250,7 +251,8 @@ class analysis(object) :
                                   subDir="%(tag)s" % conf,
                                   globalStem=self.globalStem,
                                   quietMode=(self.__loop > 1) or self.__quiet,
-                                  skip=self.__skip
+                                  skip=self.__skip,
+                                  sliceByEvents=self.__byEvents,
                                   )
         sampleNames = set()
         return [ looper(sampleSpec) for sampleSpec in self.filteredSamples(conf) ]
