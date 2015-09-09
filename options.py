@@ -5,7 +5,8 @@ def argOrTrue(option, opt, value, parser) :
     if peek and peek[0]!='-' : del parser.rargs[0]
     setattr(parser.values, option.dest, peek if peek and peek[0]!='-' else True)
 parser.add_option("--loop",    dest = "loop",    default = 0,     type="int", metavar="N",help = "loop over events using N cores (0 means do not loop)")
-parser.add_option("--slices",  dest = "slices",  default = 1,     type="int", metavar="S",help = "split each sample into S slices (by files)")
+parser.add_option("--slices",  dest = "slices",  default = 1,     type="int", metavar="S",help = "split each sample into S slices")
+parser.add_option("--by-events",dest="byEvents", default = False, action  = "store_true", help = "--slices by events rather than by files")
 parser.add_option("--profile", dest = "profile", default = False, action  = "store_true", help = "profile the code")
 parser.add_option("--batch",   dest = "batch",   default = False, action  = "store_true", help = "submit to batch queue")
 parser.add_option("--resubmit",dest = "resubmit",default = False, action  = "store_true", help = "resubmit non-completed jobs")
