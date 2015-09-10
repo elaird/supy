@@ -4,8 +4,9 @@ def argOrTrue(option, opt, value, parser) :
     peek = next(iter(parser.rargs),None)
     if peek and peek[0]!='-' : del parser.rargs[0]
     setattr(parser.values, option.dest, peek if peek and peek[0]!='-' else True)
-parser.add_option("--loop",    dest = "loop",    default = None,  metavar = "N",          help = "loop over events using N cores (N>0)")
-parser.add_option("--slices",  dest = "slices",  default = None,  metavar = "S",          help = "split each sample into S slices (S>0)")
+parser.add_option("--loop",    dest = "loop",    default = 0,     type="int", metavar="N",help = "loop over events using N cores (0 means do not loop)")
+parser.add_option("--slices",  dest = "slices",  default = 1,     type="int", metavar="S",help = "split each sample into S slices")
+parser.add_option("--by-events",dest="byEvents", default = False, action  = "store_true", help = "--slices by events rather than by files")
 parser.add_option("--profile", dest = "profile", default = False, action  = "store_true", help = "profile the code")
 parser.add_option("--batch",   dest = "batch",   default = False, action  = "store_true", help = "submit to batch queue")
 parser.add_option("--resubmit",dest = "resubmit",default = False, action  = "store_true", help = "resubmit non-completed jobs")
@@ -22,7 +23,7 @@ parser.add_option("--samples", dest = "samples", default = None,  action = "call
 parser.add_option("--omit",    dest = "omit",    default = "",    metavar = "sample1,...", help = "omit specified samples")
 parser.add_option("--nocheck", dest = "nocheck", default = False, action = "store_true",   help = "skip the cache check of secondary calcs")
 parser.add_option("--quiet",   dest = "quiet",   default = False, action = "store_true",   help = "force quiet mode")
-parser.add_option("--skip",    dest = "skip",    default = 0,     type = "int",            help = "number of events to skip before looping")
+parser.add_option("--skip",    dest = "skip",    default = 0,     type="int",              help = "number of events to skip before looping")
 
 def opts() :
     options,args = parser.parse_args()
@@ -31,10 +32,12 @@ def opts() :
         parser.print_help()
         exit()
 
+    assert 0 <= options.loop
+    assert 1 <= options.slices
     assert (options.jobId==None or options.batch==False), "options jobid and batch cannot be used simultaneously"
-    if options.batch :
-        assert (options.loop!=None and options.slices!=None), "when using --batch, use also --loop and --slices"
-    return options,args[0]
+    if options.batch:
+        assert options.loop, "--batch requires --loop"
+    return options, args[0]
 
 def default(options = []) :
     options,args = parser.parse_args(options)

@@ -46,7 +46,7 @@ class wrappedChain(dict) :
     def activeKeys(self) : return [( key, node.isLeaf(), str(type(node.value)).split("'")[1].replace("wrappedChain.","") ) for key,node in self.__activeNodes.iteritems()]
     def calcDependencies(self) : return defaultdict(set,[(node.name,node.source.tracedKeys) for node in self.__activeNodes.values() if hasattr(node,"source") and hasattr(node.source,"tracedKeys")])
 
-    def entries(self, nEntries = None, skip = 0 ) :
+    def entries(self, nEntries = None, skip = 0, divisor = None, remainder = None) :
         """Generate the access dictionary (self) for each entry in TTree."""
         if not self.__chain: return
         chain = self.__chain
@@ -68,7 +68,10 @@ class wrappedChain(dict) :
                 if nEntries!=None and nEntries <= self.entry : self.entry-=1; return
                 self.__localEntry = iTreeEntry
                 for node in self.__activeNodeList : node.updated = False
+                if divisor is not None and (self.entry % divisor != remainder):
+                    continue
                 if skip<=self.entry : yield self
+
             #tree.PrintCacheStats()
             iTreeFirstEntry += nTreeEntries
             

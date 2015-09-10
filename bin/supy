@@ -1,11 +1,15 @@
 #!/usr/bin/env python
-import sys,os
+
+import inspect, os, sys
+
 sys.path.append( os.getcwd() )
 if len(sys.argv)>1 and ".py" in sys.argv[1]:
     sys.path.insert(0,os.getcwd()+ "/" + '/'.join( sys.argv[1].split('/')[:-1] ) )
-import inspect
+
 import ROOT
 ROOT.gROOT.SetBatch(True)
+ROOT.PyConfig.IgnoreCommandLineOptions = True
+
 import supy
 import configuration
 configuration.initializeROOT(ROOT, configuration.cppFiles())
@@ -17,6 +21,10 @@ def moduleName(arg) :
 ############################################
 def importedClass(module) :
     exec("import "+module)
+    py = module + ".py"
+    if not os.path.exists(py):  # apparently only .pyc exists
+        print "WARNING: file %s does not exist" % py
+
     count = 0
     theClass = None
     for itemName in dir(eval(module)) :
@@ -46,13 +54,12 @@ def doBatch(someInstance) :
     for conf in someInstance.configurations :
         for looper in someInstance.listsOfLoopers[conf['tag']] :
             os.system("mkdir -p %s/%s/%s"%(scriptDir,conf['tag'], looper.name))
-            nSlices = int(options.slices)
-            for iSlice in range(nSlices):
+            for iSlice in range(options.slices):
                 listOfIndices = {"base": scriptDir,
                                  "tag": conf['tag'],
                                  "analysis": someInstance.name,
                                  "sample": looper.name,
-                                 "nSlices": nSlices,
+                                 "nSlices": options.slices,
                                  "iSlice": iSlice,
                                  "site": site,
                                  }
@@ -78,7 +85,7 @@ anInstance = importedClass(moduleName(arg))(options)
 
 if options.batch : #make one script per job and submit them to the queue
     doBatch(anInstance)
-elif options.loop!=None : #loop over the events
+elif options.loop : #loop over the events
     anInstance.loop()
 
 # merge output and conclude

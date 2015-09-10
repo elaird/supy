@@ -48,6 +48,9 @@ Gotchas
 -----------
 - TTrees with multiple leaves per branch are not yet supported.
 
+- TTrees with a leaf "weight" will have that weight applied
+  automatically.
+
 - pyROOT does not support leaves whose names collide with the names of
   TChain member functions
 

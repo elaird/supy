@@ -48,10 +48,15 @@ def specs() :
                     "queueHeaders"   : ["Job id","Name","User","Time Use","S","Queue"],
                     "queueVars"      : {"queueName":"hep", "queue": "Queue", "user":"User", "state":"S", "run":"R", "summary":"qstat", "sample": "qstat -u %s | head"%user},
                     },
-        "bn_cms"  :{"localOutputDir" : os.environ["_CONDOR_SCRATCH_DIR"] if "_CONDOR_SCRATCH_DIR" in os.environ else "/tmp/%s"%user,
-                    "queueHeaders"   : ["ID", "OWNER", "SUBMITTED1", "SUBMITTED2", "RUN_TIME", "ST", "PRI", "SIZE", "CMD"],
-                    "queueVars"      : {"user":"OWNER", "state":"ST", "run":"R", "userBlackList":["OWNER", "jobs;"],
-                                        "summary":"condor_q -global", "sample": "condor_q -global -submitter %s | head"%user},
+        "bn_cms": {"localOutputDir" : os.environ["_CONDOR_SCRATCH_DIR"] if "_CONDOR_SCRATCH_DIR" in os.environ else "/tmp/%s" % user,
+                   "globalOutputDir": "/user_data/%s/supy-output/" % os.environ["USER"],
+                   "moveOutputFilesBatch": False,
+                   "queueHeaders"   : ["ID", "OWNER", "SUBMITTED1", "SUBMITTED2", "RUN_TIME", "ST", "PRI", "SIZE", "CMD"],
+                   "queueVars"      : {"user":"OWNER", "state":"ST", "run":"R", "userBlackList":["OWNER", "jobs;"],
+                                       "summary":"condor_q -global", "sample": "condor_q -global -submitter %s | head"%user},
+                   "tarCommand"     : "cd ..; tar -chf %s.tar %s/; cd %s" % tuple((os.path.basename(os.environ["PWD"]),)*3),
+                   "extractCommand" : "tar -xf %s.tar" % os.path.basename(os.environ["PWD"]),
+                   "workingDir"     : "${_CONDOR_JOB_IWD}/" + os.path.basename(os.environ["PWD"]),
                     },
         "cern_atlas":{"localOutputDir" : "/tmp/%s"%user,
                       "globalOutputDir": "/afs/cern.ch/work/%s/%s/tmp/"%(user[0],user),
@@ -115,4 +120,6 @@ def pnfs() :
                                                                                                          info(key = "dCachePrefix"),
                                                                                                          info(key = "dCacheTrim"))
 
-srm = srmFunc()
+# FIXME: adapt susycaf and remove this
+if "susycaf" in os.environ["PWD"]:
+    srm = srmFunc()
