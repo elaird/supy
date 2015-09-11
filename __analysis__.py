@@ -3,7 +3,7 @@ import utils,steps,samples,configuration,calculables,sites,batch
 from __organizer__ import organizer
 from __analysisLooper__ import analysisLooper
 from __analysisStep__ import analysisStep
-from supy import wrappedChain
+from supy import wrappedChain, whereami
 #####################################
 class analysis(object) :
     """base class for an analysis
@@ -139,28 +139,20 @@ class analysis(object) :
                     "color":sampleSpec.color, "markerStyle":sampleSpec.markerStyle, "nCheck":self.sampleDict[sampleSpec.name].nCheck }
         return [ sampleSpecDict(looper) for looper in self.listsOfLoopers[tag] ]
 ############
-    def inputFilesListFile(self, sampleName) : return "%s/%s.inputFiles"%(self.globalStem, sampleName)
-
-    def globalToLocal(self, globalFileName) :
-        tmpDir = tempfile.mkdtemp(dir = self.localStem)
-        localFileName = globalFileName.replace(self.globalStem, tmpDir)
-        return tmpDir,localFileName,globalFileName
-
-    def localToGlobal(self, tmpDir, localFileName, globalFileName) :
-        os.system(sites.mvCommand(site = self.__site, src = localFileName, dest = globalFileName))
-        os.system("rm -r %s"%tmpDir)
+    def inputFilesListFile(self, sampleName):
+        return "%s/inputFileLists/%s/%s.inputFiles" % (whereami(), self.name, sampleName)
 
     def makeInputFileLists(self) :
         def nEventsFile(fileName):
             if not configuration.computeEntriesAtMakeFileList(): return None
             return utils.nEventsFile(fileName,'/'.join(self.mainTree()))
         def makeFileList(name) :
-            if os.path.exists(self.inputFilesListFile(name)) and self.useCachedFileLists() : return
+            fName = self.inputFilesListFile(name)
+            if os.path.exists(fName) and self.useCachedFileLists() : return
             fileNames = eval(self.sampleDict[name].filesCommand)
             assert fileNames, "The command '%s' produced an empty list of files"%self.sampleDict[name].filesCommand
-            tmpDir,localFileName,globalFileName = self.globalToLocal(self.inputFilesListFile(name))
-            utils.writePickle(localFileName, zip(fileNames,map(nEventsFile, fileNames)))
-            self.localToGlobal(tmpDir, localFileName, globalFileName)
+            utils.mkdir(os.path.dirname(fName))
+            utils.writePickle(fName, zip(fileNames,map(nEventsFile, fileNames)))
 
         sampleNames = set(sum([[sampleSpec.name for sampleSpec in self.filteredSamples(conf)] for conf in self.configurations],[]))
         utils.operateOnListUsingQueue(self.__loop, utils.qWorker(makeFileList), [(name,) for name in sampleNames] )

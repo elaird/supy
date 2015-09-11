@@ -110,11 +110,6 @@ def info(site = prefix(), key = None) :
 def lumiEnvScript() :
     return "sites/%sLumi.sh"%prefix()
 
-def mvCommand(site = None, src = None, dest = None) :
-    d = {#"fnal_cms":"srmcp file:///%s %s/%s"%(src, srmPrefix("fnal"), dest.replace("/pnfs/cms/WAX/","/")),
-        }
-    return "mv %s %s"%(src, dest) if site not in d else d[site]
-
 def srmFunc() :
     return 'utils.fileListFromSrmLs(dCachePrefix = "%s", dCacheTrim = "%s", location="%s'%(info(key = "dCachePrefix"),
                                                                                            info(key = "dCacheTrim"),
