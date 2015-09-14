@@ -119,7 +119,7 @@ class analysis(object) :
                                                  self.__sample==None and ( type(self.__samples)!=list or 
                                                                            name in self.__samples ) )
         samples = filter(use, self.listOfSamples(conf))
-        if not samples : print "No such sample: %s"%self.__sample if self.__sample else "No samples!"; sys.exit(0)
+        if not samples : print "No such sample: %s"%self.__sample if self.__sample else "Warning: no samples for tag '%s'" % conf["tag"]
         return samples
 ############
     def jobsFile(self,tag,sample,clean=False) :
@@ -290,7 +290,11 @@ class analysis(object) :
             secondary.allSamples = [ss.weightedName for ss in self.filteredSamples(conf)]
             if doReport(secondary.name) : secondary.reportCache()
             
-        confLoopers = [(conf,self.listsOfLoopers[conf['tag']][0]) for conf in self.readyConfs]
+        confLoopers = []
+        for conf in self.readyConfs:
+            ll = self.listsOfLoopers[conf['tag']]
+            if ll:
+                confLoopers.append((conf, ll[0]))
         for _,looper in confLoopers : looper.setupSteps(minimal = True, withBook = False)
         args = sum([[(conf,secondary) for secondary in filter(self.isSecondary, looper.steps[:self.indexOfInvertedLabel(looper.steps)])] for conf,looper in confLoopers],[])
         if reports==True :
