@@ -72,7 +72,7 @@ class wrappedChain(dict) :
                     continue
                 if skip<=self.entry : yield self
 
-            #tree.PrintCacheStats()
+            #if tree: tree.PrintCacheStats()
             iTreeFirstEntry += nTreeEntries
             
     def node(self,key) : return dict.__getitem__(self,key)
