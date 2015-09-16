@@ -1,4 +1,4 @@
-import copy,os,collections
+import copy,os,collections,math
 import configuration
 from supy import autoBook,wrappedChain,utils,keyTracer
 import ROOT as r
@@ -10,14 +10,24 @@ class analysisLooper :
                  leavesToBlackList=None, moveOutputFiles=None, localStem=None,
                  globalStem=None, subDir=None, steps=None, calculables=None,
                  inputFiles=None, name=None, nEventsMax=None, quietMode=None,
-                 skip=None):
+                 skip=None, nSlicesFixed=None, nEventsPerSlice=None, byEvents=None):
 
         for arg in ["mainTree", "otherTreesToKeepWhenSkimming",
                     "leavesToBlackList", "moveOutputFiles", "localStem",
                     "globalStem", "subDir", "steps", "calculables",
                     "inputFiles", "name", "nEventsMax", "quietMode",
-                    "skip"]:
+                    "skip", "byEvents"]:
             setattr(self, arg, eval(arg))
+
+        if nSlicesFixed is not None:
+            assert nEventsPerSlice is None
+            self.nSlices = nSlicesFixed
+        if nEventsPerSlice is not None:
+            assert nSlicesFixed is None
+            self.byEvents = True  # until "by chunks" is implemented
+            assert 1 <= nEventsPerSlice
+            assert configuration.computeEntriesAtMakeFileList()
+            self.nSlices = int(math.ceil((self.nExpect + 0.0) / nEventsPerSlice))
 
         self.trace = configuration.trace() and not any([step.requiresNoTrace() for step in self.steps])
         self.outputDir = self.globalDir #the value will be modified in self.prepareOutputDirectory()
@@ -45,12 +55,13 @@ class analysisLooper :
         inter = set(s.name for s in self.steps if not issubclass(type(s),wrappedChain.calculable)).intersection(set(c.name for c in self.calculables))
         if inter: print "Steps and calculables cannot share names { %s }"%', '.join(n for n in inter)
         
-    def childName(self, nSlices, iSlice) : return "%s_%d_%d"%(self.name,nSlices,iSlice)
-    def slice(self, nSlices, iSlice, byEvents):
-        assert iSlice < nSlices, "How did you do this?"
+    def childName(self, iSlice) : return "%s_%d_%d"%(self.name, self.nSlices, iSlice)
+    def slice(self, iSlice):
+        nSlices = self.nSlices
+        assert 0 <= iSlice < nSlices, "How did you do this?"
         out = copy.deepcopy(self)
 
-        if byEvents:
+        if self.byEvents:
             out.divisor = nSlices
             out.remainder = iSlice
         else:
@@ -58,7 +69,7 @@ class analysisLooper :
 
         out.globalDir = "/".join([out.globalDir, out.name])
 
-        out.name = out.childName(nSlices, iSlice)
+        out.name = out.childName(iSlice)
         out.outputDir = "/".join([out.outputDir, out.name])
         return out
 
@@ -122,7 +133,7 @@ class analysisLooper :
         if not configuration.computeEntriesAtMakeFileList(): return None
         if not len(self.inputFiles): return 0
         nExpect = sum(zip(*self.inputFiles)[1])
-        return nExpect if self.nEventsMax==None else min(nExpect, nEventsMax)
+        return nExpect if self.nEventsMax==None else min(nExpect, self.nEventsMax)
 
     def setupChains(self) :
         assert self.mainTree not in self.otherTreesToKeepWhenSkimming
@@ -208,7 +219,7 @@ class analysisLooper :
 
     def writePickle(self) :
         def pickleJar(step) :
-            if step.name=='master' and configuration.computeEntriesAtMakeFileList():
+            if step.name=='master' and configuration.computeEntriesAtMakeFileList() and not self.byEvents:
                 msg = "Expect: %d, Actual: %d"%(self.nExpect,step.nPass+step.nFail)
                 assert abs(step.nPass + step.nFail - self.nExpect) < 1 , msg
             inter = set(step.varsToPickle()).intersection(set(['nPass','nFail','outputFileName']))
@@ -219,13 +230,13 @@ class analysisLooper :
         utils.writePickle( self.pickleFileName,
                            [ [pickleJar(step) for step in self.steps], self.calculablesUsed, self.leavesUsed] )
 
-    def incompleteSlices(self, nSlices) :
+    def incompleteSlices(self):
         out = []
-        for iSlice in range(nSlices) :
+        for iSlice in range(self.nSlices):
             pickleFileBlocks = self.pickleFileName.split('/')
             pickleFileBlocks.insert(-1,self.name)
             pickleFileBlocks[-1] = pickleFileBlocks[-1].replace(self.name,
-                                                                self.childName(nSlices,iSlice),
+                                                                self.childName(iSlice),
                                                                 1)
             pickleFileName = '/'.join(pickleFileBlocks)
             if not os.path.exists(pickleFileName) :
@@ -234,18 +245,18 @@ class analysisLooper :
                 out.append(script)
         return out
 
-    def mergeFunc(self, nSlices) :
+    def mergeFunc(self):
         cleanUpList = []
         self.setupSteps(minimal = True)
         self.calculablesUsed = set()
         self.leavesUsed = set()
         products = [collections.defaultdict(list) for step in self.steps]
         
-        for iSlice in range(nSlices) :
+        for iSlice in range(self.nSlices):
             pickleFileBlocks = self.pickleFileName.split('/')
             pickleFileBlocks.insert(-1,self.name)
             pickleFileBlocks[-1] = pickleFileBlocks[-1].replace(self.name,
-                                                                self.childName(nSlices,iSlice),
+                                                                self.childName(iSlice),
                                                                 1)
             cleanUpList.append( '/'.join(pickleFileBlocks[:-1]) )
             dataByStep,calcsUsed,leavesUsed = utils.readPickle( '/'.join(pickleFileBlocks) )
