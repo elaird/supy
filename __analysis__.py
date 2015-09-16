@@ -265,10 +265,11 @@ class analysis(object) :
 
     def mergeOutput(self,tag,looper) :
         if not os.path.exists(self.jobsFile(tag,looper.name)) : return
+        nSlices = utils.readPickle(self.jobsFile(tag,looper.name))  # number of slices used when --batch was passed
 
-        incompleteSlices = looper.incompleteSlices()
+        incompleteSlices = looper.incompleteSlices(nSlices)
         if not incompleteSlices:
-            looper.mergeFunc()
+            looper.mergeFunc(nSlices)
 
         for item in incompleteSlices:
             if self.__resubmit:
