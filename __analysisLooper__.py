@@ -55,7 +55,8 @@ class analysisLooper :
         inter = set(s.name for s in self.steps if not issubclass(type(s),wrappedChain.calculable)).intersection(set(c.name for c in self.calculables))
         if inter: print "Steps and calculables cannot share names { %s }"%', '.join(n for n in inter)
         
-    def childName(self, iSlice) : return "%s_%d_%d"%(self.name, self.nSlices, iSlice)
+    def childName(self, nSlices, iSlice) : return "%s_%d_%d"%(self.name,nSlices,iSlice)
+
     def slice(self, iSlice):
         nSlices = self.nSlices
         assert 0 <= iSlice < nSlices, "How did you do this?"
@@ -69,7 +70,7 @@ class analysisLooper :
 
         out.globalDir = "/".join([out.globalDir, out.name])
 
-        out.name = out.childName(iSlice)
+        out.name = out.childName(nSlices, iSlice)
         out.outputDir = "/".join([out.outputDir, out.name])
         return out
 
@@ -230,13 +231,13 @@ class analysisLooper :
         utils.writePickle( self.pickleFileName,
                            [ [pickleJar(step) for step in self.steps], self.calculablesUsed, self.leavesUsed] )
 
-    def incompleteSlices(self):
+    def incompleteSlices(self, nSlices):
         out = []
-        for iSlice in range(self.nSlices):
+        for iSlice in range(nSlices):
             pickleFileBlocks = self.pickleFileName.split('/')
             pickleFileBlocks.insert(-1,self.name)
             pickleFileBlocks[-1] = pickleFileBlocks[-1].replace(self.name,
-                                                                self.childName(iSlice),
+                                                                self.childName(nSlices, iSlice),
                                                                 1)
             pickleFileName = '/'.join(pickleFileBlocks)
             if not os.path.exists(pickleFileName) :
@@ -245,7 +246,7 @@ class analysisLooper :
                 out.append(script)
         return out
 
-    def mergeFunc(self):
+    def mergeFunc(self, nSlices):
         cleanUpList = []
         self.setupSteps(minimal = True)
         self.calculablesUsed = set()
@@ -256,7 +257,7 @@ class analysisLooper :
             pickleFileBlocks = self.pickleFileName.split('/')
             pickleFileBlocks.insert(-1,self.name)
             pickleFileBlocks[-1] = pickleFileBlocks[-1].replace(self.name,
-                                                                self.childName(iSlice),
+                                                                self.childName(nSlices, iSlice),
                                                                 1)
             cleanUpList.append( '/'.join(pickleFileBlocks[:-1]) )
             dataByStep,calcsUsed,leavesUsed = utils.readPickle( '/'.join(pickleFileBlocks) )
