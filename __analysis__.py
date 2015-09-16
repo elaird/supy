@@ -15,6 +15,7 @@ class analysis(object) :
     def listOfCalculables(self,config) : raise Exception("NotImplemented", "Implement a member function %s"%"listOfCalculables(self,config)")
     def listOfSampleDictionaries(self) : raise Exception("NotImplemented", "Implement a member function %s"%"sampleDict(self)")
     def listOfSamples(self,config) :     raise Exception("NotImplemented", "Implement a member function %s"%"listOfSamples(self,config)")
+
     def mainTree(self) : return configuration.mainTree()
     def otherTreesToKeepWhenSkimming(self) : return configuration.otherTreesToKeepWhenSkimming()
     def useCachedFileLists(self) : return configuration.useCachedFileLists()
@@ -266,6 +267,7 @@ class analysis(object) :
     def mergeOutput(self,tag,looper) :
         if not os.path.exists(self.jobsFile(tag,looper.name)) : return
         nSlices = utils.readPickle(self.jobsFile(tag,looper.name))  # number of slices used when --loop was passed
+
         incompleteSlices = looper.incompleteSlices(nSlices)
         if not incompleteSlices:
             looper.mergeFunc(nSlices)
