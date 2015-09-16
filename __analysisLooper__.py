@@ -231,13 +231,13 @@ class analysisLooper :
         utils.writePickle( self.pickleFileName,
                            [ [pickleJar(step) for step in self.steps], self.calculablesUsed, self.leavesUsed] )
 
-    def incompleteSlices(self, nSlices):
+    def incompleteSlices(self, nSlices) :
         out = []
-        for iSlice in range(nSlices):
+        for iSlice in range(nSlices) :
             pickleFileBlocks = self.pickleFileName.split('/')
             pickleFileBlocks.insert(-1,self.name)
             pickleFileBlocks[-1] = pickleFileBlocks[-1].replace(self.name,
-                                                                self.childName(nSlices, iSlice),
+                                                                self.childName(nSlices,iSlice),
                                                                 1)
             pickleFileName = '/'.join(pickleFileBlocks)
             if not os.path.exists(pickleFileName) :
@@ -246,18 +246,18 @@ class analysisLooper :
                 out.append(script)
         return out
 
-    def mergeFunc(self, nSlices):
+    def mergeFunc(self, nSlices) :
         cleanUpList = []
         self.setupSteps(minimal = True)
         self.calculablesUsed = set()
         self.leavesUsed = set()
         products = [collections.defaultdict(list) for step in self.steps]
         
-        for iSlice in range(self.nSlices):
+        for iSlice in range(nSlices) :
             pickleFileBlocks = self.pickleFileName.split('/')
             pickleFileBlocks.insert(-1,self.name)
             pickleFileBlocks[-1] = pickleFileBlocks[-1].replace(self.name,
-                                                                self.childName(nSlices, iSlice),
+                                                                self.childName(nSlices,iSlice),
                                                                 1)
             cleanUpList.append( '/'.join(pickleFileBlocks[:-1]) )
             dataByStep,calcsUsed,leavesUsed = utils.readPickle( '/'.join(pickleFileBlocks) )
