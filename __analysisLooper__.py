@@ -27,7 +27,10 @@ class analysisLooper :
             self.byEvents = True  # until "by chunks" is implemented
             assert 1 <= nEventsPerSlice
             assert configuration.computeEntriesAtMakeFileList()
-            self.nSlices = int(math.ceil((self.nExpect + 0.0) / nEventsPerSlice))
+            num = self.nExpect + 0.0
+            self.nSlices = int(math.ceil(num / nEventsPerSlice)) if num else 1
+        assert hasattr(self, "nSlices")
+        assert 1 <= self.nSlices
 
         self.trace = configuration.trace() and not any([step.requiresNoTrace() for step in self.steps])
         self.outputDir = self.globalDir #the value will be modified in self.prepareOutputDirectory()
