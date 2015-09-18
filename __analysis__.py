@@ -16,7 +16,7 @@ class analysis(object) :
     def listOfSampleDictionaries(self) : raise Exception("NotImplemented", "Implement a member function %s"%"sampleDict(self)")
     def listOfSamples(self,config) :     raise Exception("NotImplemented", "Implement a member function %s"%"listOfSamples(self,config)")
 
-    def mainTree(self) : return configuration.mainTree()
+    def mainTree(self, *_) : return configuration.mainTree()  # hack to ignore tag by default
     def otherTreesToKeepWhenSkimming(self) : return configuration.otherTreesToKeepWhenSkimming()
     def useCachedFileLists(self) : return configuration.useCachedFileLists()
     def leavesToBlackList(self) : return configuration.leavesToBlackList()
@@ -237,7 +237,7 @@ class analysis(object) :
             assert not nonSteps, "\n\nWarning, the following items from listOfSteps() are not analysisSteps:\n"+('\n'.join(' '+str(s) for s in nonSteps))
             for step in filter(lambda s: s.only not in ['','data' if tup.lumi else 'sim'], adjustedSteps) : step.disabled = True
 
-            return analysisLooper(mainTree=self.mainTree(),
+            return analysisLooper(mainTree=self.mainTree(conf["tag"]),  # hack (see def mainTree() above)
                                   otherTreesToKeepWhenSkimming=self.otherTreesToKeepWhenSkimming(),
                                   nEventsMax=nEventsMax,
                                   leavesToBlackList=self.leavesToBlackList(),
