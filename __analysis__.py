@@ -175,7 +175,9 @@ class analysis(object) :
     def loop(self) :
         wl = self.workList()
         
-        if self.__jobId!=None : self.func(*(wl[0]))
+        if self.__jobId is not None:
+            assert wl
+            self.func(*(wl[0]))
         elif not self.__profile : utils.operateOnListUsingQueue(self.__loop, utils.qWorker(self.func), wl)
         else :
             import cProfile
