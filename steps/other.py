@@ -46,7 +46,7 @@ class skimmer(analysisStep):
     created.
     """
 
-    def __init__(self, mainChain=True, otherChains=True, extraVars=[], haddOutput=False):
+    def __init__(self, mainChain=True, otherChains=True, extraVars=[], haddOutput=False, suffix="skim"):
         assert mainChain or extraVars
         self.outputTree = None
         self.moreName = "(see below)"
@@ -54,6 +54,7 @@ class skimmer(analysisStep):
             setattr(self, var, eval(var))
         self.addresses = None
         self.haddOutput = haddOutput
+        self.suffix = suffix
 
     def requiresNoSetBranchAddress(self):
         return True  # check
@@ -141,7 +142,7 @@ class skimmer(analysisStep):
         self.outputFile.Close()
 
     def outputSuffix(self):
-        return "_skim.root"
+        return "_%s.root" % self.suffix
 
     def modifiedFileName(self, s):
         l = s.split("/")
