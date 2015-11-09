@@ -6,6 +6,8 @@ transfer_output_files = OUTFLAG
 Should_Transfer_Files = YES
 WhenToTransferOutput = ON_EXIT
 
+Requirements = HAS_CMS_HDFS
+
 Output = JOBFLAG_$(Cluster)_$(Process).stdout
 Error = JOBFLAG_$(Cluster)_$(Process).stderr
 Log = JOBFLAG_$(Cluster)_$(Process).log
