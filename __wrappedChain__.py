@@ -63,7 +63,7 @@ class wrappedChain(dict) :
                 continue
 
             for iTreeEntry in range( nTreeEntries )  :
-                if (not nTree) and iTreeEntry==100 : tree.StopCacheLearningPhase()
+                if (not nTree) and iTreeEntry==100 and tree : tree.StopCacheLearningPhase()
                 self.entry = iTreeFirstEntry + iTreeEntry
                 if nEntries!=None and nEntries <= self.entry : self.entry-=1; return
                 self.__localEntry = iTreeEntry
@@ -72,7 +72,7 @@ class wrappedChain(dict) :
                     continue
                 if skip<=self.entry : yield self
 
-            #tree.PrintCacheStats()
+            #if tree: tree.PrintCacheStats()
             iTreeFirstEntry += nTreeEntries
             
     def node(self,key) : return dict.__getitem__(self,key)
