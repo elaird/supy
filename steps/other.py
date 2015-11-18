@@ -1,6 +1,7 @@
 import copy,array,os,collections
 import ROOT as r
 from supy import analysisStep,utils,autoBook
+import configuration
 #####################################
 class touchstuff(analysisStep) :
     def __init__(self,stuff) :
@@ -45,13 +46,14 @@ class skimmer(analysisStep):
     created.
     """
 
-    def __init__(self, mainChain=True, otherChains=True, extraVars=[]):
+    def __init__(self, mainChain=True, otherChains=True, extraVars=[], haddOutput=False):
         assert mainChain or extraVars
         self.outputTree = None
         self.moreName = "(see below)"
         for var in ["mainChain", "otherChains", "extraVars"]:
             setattr(self, var, eval(var))
         self.addresses = None
+        self.haddOutput = haddOutput
 
     def requiresNoSetBranchAddress(self):
         return True  # check
@@ -146,6 +148,30 @@ class skimmer(analysisStep):
         return "/".join(l[:-2]+l[-1:])
 
     def mergeFunc(self, products):
+        if self.haddOutput:
+            self.mergeFuncHadd(products)
+        else:
+            self.mergeFuncMv(products)
+
+    # copied from supy.steps.master
+    def mergeFuncHadd(self, products):
+        def printComment(lines) :
+            if self.quietMode : return
+            skip = ['Source file','Target path','Found subdirectory']
+            line = next(L for L in lines.split('\n') if not any(item in L for item in skip))
+            print line.replace("Target","The output") + " has been written."
+
+        def cleanUp(stderr, files) :
+            okList = configuration.haddErrorsToIgnore()
+            assert (stderr in okList), "hadd had this stderr: '%s'"%stderr
+            if stderr : print stderr
+            for fileName in files : os.remove(fileName)
+
+        hAdd = utils.getCommandOutput("%s -f %s %s"%(configuration.hadd(),self.outputFileName, " ".join(products["outputFileName"])))
+        printComment(hAdd["stdout"])
+        cleanUp(hAdd["stderr"], products["outputFileName"])
+
+    def mergeFuncMv(self, products):
         for fileName in products["outputFileName"]:
             os.system("mv %s %s" % (fileName, self.modifiedFileName(fileName)))
         if not self.quietMode:
