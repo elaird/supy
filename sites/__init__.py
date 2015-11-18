@@ -87,9 +87,17 @@ def specs() :
                     "extractCommand" : "tar -xf %s.tar" % os.path.basename(os.environ["PWD"]),
                     "workingDir"     : "${_CONDOR_JOB_IWD}/"+os.path.basename(os.environ["PWD"]),
                     },
-        "uw_cms" :{"localOutputDir" : "/nfs_scratch/%s"%user,
-                   "globalOutputDir": "/nfs_scratch/%s"%user,
-                   },
+        "uw_cms": {"localOutputDir" : os.environ["_CONDOR_SCRATCH_DIR"] if "_CONDOR_SCRATCH_DIR" in os.environ else "/nfs_scratch/%s/supy-tmp/" % user,
+                   "globalOutputDir": "/nfs_scratch/%s/supy-output/" % os.environ["USER"],
+                   "moveOutputFilesBatch": False,
+                   "queueHeaders"   : ["ID", "OWNER", "SUBMITTED1", "SUBMITTED2", "RUN_TIME", "ST", "PRI", "SIZE", "CMD"],
+                   "queueVars"      : {"user":"OWNER", "state":"ST", "run":"R", "userBlackList":["OWNER", "jobs;"],
+                                       "summary":"condor_q -global", "sample": "condor_q -global -submitter %s | head"%user},
+                   "tarCommand"     : "cd ..; tar -chf %s.tar %s/; cd %s" % tuple((os.path.basename(os.environ["PWD"]),)*3),
+                   "extractCommand" : "tar -xf %s.tar" % os.path.basename(os.environ["PWD"]),
+                   "workingDir"     : "${_CONDOR_JOB_IWD}/" + os.path.basename(os.environ["PWD"]),
+                    },
+
         }
 
 def info(site = prefix(), key = None) :
@@ -101,11 +109,6 @@ def info(site = prefix(), key = None) :
 
 def lumiEnvScript() :
     return "sites/%sLumi.sh"%prefix()
-
-def mvCommand(site = None, src = None, dest = None) :
-    d = {#"fnal_cms":"srmcp file:///%s %s/%s"%(src, srmPrefix("fnal"), dest.replace("/pnfs/cms/WAX/","/")),
-        }
-    return "mv %s %s"%(src, dest) if site not in d else d[site]
 
 def srmFunc() :
     return 'utils.fileListFromSrmLs(dCachePrefix = "%s", dCacheTrim = "%s", location="%s'%(info(key = "dCachePrefix"),
