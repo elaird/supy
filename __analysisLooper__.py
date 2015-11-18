@@ -223,9 +223,12 @@ class analysisLooper :
 
     def writePickle(self) :
         def pickleJar(step) :
-            if step.name=='master' and configuration.computeEntriesAtMakeFileList() and not self.byEvents:
-                msg = "Expect: %d, Actual: %d"%(self.nExpect,step.nPass+step.nFail)
-                assert abs(step.nPass + step.nFail - self.nExpect) < 1 , msg
+            if step.name=='master' and configuration.computeEntriesAtMakeFileList():
+                if self.byEvents:
+                    print "WARNING! Skipping check that correct number of events was processed."
+                else:
+                    msg = "Expect: %d, Actual: %d"%(self.nExpect,step.nPass+step.nFail)
+                    assert abs(step.nPass + step.nFail - self.nExpect) < 1 , msg
             inter = set(step.varsToPickle()).intersection(set(['nPass','nFail','outputFileName']))
             assert not inter, "%s is trying to pickle %s, which %s reserved for use by analysisStep."%(step.name, str(inter), ["is","are"][len(inter)>1])
             return dict([ (item, getattr(step,item)) for item in step.varsToPickle()+['nPass','nFail']] +
