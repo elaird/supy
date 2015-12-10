@@ -17,6 +17,11 @@ def specify(names=[], overrideLumi=None, xsPostWeights=None, effectiveLumi=None,
     assert not (overrideLumi and type(names)==list)
     if type(names) != list : names = [names]
     if type(weights) != list : weights = [weights]
+    if not nInDivide:  # all events are required for correct normalization
+        assert nFilesMax is None
+        assert nEventsMax is None
+        assert effectiveLumi is None
+
     samplespec = collections.namedtuple("samplespec", "name weightedName overrideLumi xsPostWeights effectiveLumi nFilesMax nEventsMax weights nInDivide color markerStyle")
     weightNames = [w if type(w)==str else w.name for w in weights]
     return [samplespec(name, '.'.join([name]+weightNames), overrideLumi, xsPostWeights, effectiveLumi, nFilesMax, nEventsMax, weights, nInDivide, color, markerStyle) for name in names]
