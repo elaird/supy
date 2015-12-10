@@ -170,7 +170,7 @@ class analysis(object) :
         return out
 ############
     def func(self, looper, iSlice) :
-        looper.slice(iSlice)()
+        looper.slice(iSlice)(iSlice)
 ############
     def loop(self) :
         wl = self.workList()

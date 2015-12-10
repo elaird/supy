@@ -77,14 +77,14 @@ class analysisLooper :
         out.outputDir = "/".join([out.outputDir, out.name])
         return out
 
-    def __call__(self) :
+    def __call__(self, iSlice):
         self.prepareOutputDirectory()
         self.setupChains()
         self.setupSteps()
         self.loop()
         self.endSteps()
         self.writeRoot()
-        self.writePickle()
+        self.writePickle(iSlice)
         self.deleteChains()
         if self.moveOutputFiles:
             self.moveFiles()
@@ -221,14 +221,18 @@ class analysisLooper :
         writeFromSteps()
         outputFile.Close()
 
-    def writePickle(self) :
-        def pickleJar(step) :
+    def writePickle(self, iSlice):
+        def pickleJar(step):
             if step.name=='master' and configuration.computeEntriesAtMakeFileList():
                 if self.byEvents:
-                    print "WARNING! Skipping check that correct number of events was processed."
+                    nExpect = self.nExpect / self.nSlices
+                    if iSlice < (self.nExpect % self.nSlices):
+                        nExpect += 1
                 else:
-                    msg = "Expect: %d, Actual: %d"%(self.nExpect,step.nPass+step.nFail)
-                    assert abs(step.nPass + step.nFail - self.nExpect) < 1 , msg
+                    nExpect = self.nExpect
+
+                msg = "iSlice: %d, Expect: %d, Actual: %d" % (iSlice, nExpect, step.nPass + step.nFail)
+                assert abs(step.nPass + step.nFail - nExpect) < 1 , msg
             inter = set(step.varsToPickle()).intersection(set(['nPass','nFail','outputFileName']))
             assert not inter, "%s is trying to pickle %s, which %s reserved for use by analysisStep."%(step.name, str(inter), ["is","are"][len(inter)>1])
             return dict([ (item, getattr(step,item)) for item in step.varsToPickle()+['nPass','nFail']] +
