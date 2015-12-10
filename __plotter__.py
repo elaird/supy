@@ -20,11 +20,14 @@ def combineBinContentAndError(histo, binToContainCombo, binToBeKilled) :
     histo.SetBinError(binToContainCombo, math.sqrt(xflowError**2+currentError**2))
 
 
-def mcLumi(nEvents=None, w=None, xs=None):
+def mcLumi(nEvents=None, w=None, xs=None, nInDivide=None):
     """see docs/mcLumi.txt"""
     if not w*xs:
         return 0.0
-    return nEvents**2/(w*xs)
+    if nInDivide:
+        return nEvents**2/(w*xs)
+    else:
+        return nEvents/(w*xs)
 
 
 def sampleName(sample):
@@ -38,10 +41,15 @@ def sampleInfo(samples, trim=""):
     out = []
     for sample in samples:
         if "xs" in sample:
-            xs = sample["xs"]
+            if sample["nInDivide"]:
+                xs = sample["xs"]
+            else:
+                xs = sample["xs"] * sample["weightIn"]
             lumi = mcLumi(nEvents=sample["nEventsIn"],
                           w=sample["weightIn"],
-                          xs=sample["xs"])
+                          xs=sample["xs"],
+                          nInDivide=sample["nInDivide"],
+                          )
         elif "lumi" in sample:
             xs = None
             lumi = sample["lumi"]
@@ -51,11 +59,12 @@ def sampleInfo(samples, trim=""):
         name = sampleName(sample)
         if trim:
             name = name.replace(trim, "")
+
         out.append((name,
                     "%d" % sample['nEventsIn'],
                     "%3.2e" % sample['weightIn'],
                     "%3.2e" % (lumi/1.0e3),
-                    "%3.2e" % (xs*1.0e3) if xs is not None else "",
+                    "%3.2e%s" % (xs*1.0e3, " " if sample["nInDivide"] else "*") if xs is not None else "",
                     ))
     return out
 
