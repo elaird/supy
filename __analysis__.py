@@ -139,7 +139,7 @@ class analysis(object) :
         def sampleSpecDict(looper) :
             looper.setupSteps(minimal = True)
             sampleSpec = next( s for s in confSamples if s.weightedName == looper.name ) 
-            return {"name":looper.name, "outputFileName":looper.steps[0].outputFileName,
+            return {"name":looper.name, "outputFileName":looper.steps[0].outputFileName, "nInDivide": sampleSpec.nInDivide,
                     "color":sampleSpec.color, "markerStyle":sampleSpec.markerStyle, "nCheck":self.sampleDict[sampleSpec.name].nCheck }
         return [ sampleSpecDict(looper) for looper in self.listsOfLoopers[tag] ]
 ############
