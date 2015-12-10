@@ -13,14 +13,14 @@ def printNumberEvents(sampleHolder, treeName='tree'):
 def test(sampleHolder) :
     return [(name,len(eval(ss.filesCommand))) for name,ss in sorted(sampleHolder.items())]
 
-def specify(names = [], overrideLumi = None, xsPostWeights = None, effectiveLumi = None, nFilesMax = None, nEventsMax = None, weights = [], color = 1, markerStyle = 1 , weightedName = None) :
+def specify(names=[], overrideLumi=None, xsPostWeights=None, effectiveLumi=None, nFilesMax=None, nEventsMax=None, weights=[], nInDivide=True, color=1, markerStyle=1 , weightedName=None):
     assert not (overrideLumi and type(names)==list)
     if type(names) != list : names = [names]
     if type(weights) != list : weights = [weights]
-    samplespec = collections.namedtuple("samplespec", "name weightedName overrideLumi xsPostWeights effectiveLumi nFilesMax nEventsMax weights color markerStyle")
+    samplespec = collections.namedtuple("samplespec", "name weightedName overrideLumi xsPostWeights effectiveLumi nFilesMax nEventsMax weights nInDivide color markerStyle")
     weightNames = [w if type(w)==str else w.name for w in weights]
-    return [samplespec(name,'.'.join([name]+weightNames),overrideLumi,xsPostWeights,effectiveLumi,nFilesMax,nEventsMax,weights,color,markerStyle) for name in names]
-    
+    return [samplespec(name, '.'.join([name]+weightNames), overrideLumi, xsPostWeights, effectiveLumi, nFilesMax, nEventsMax, weights, nInDivide, color, markerStyle) for name in names]
+
 class SampleHolder(dict) :
     sample = collections.namedtuple("sample", "filesCommand xs lumi ptHatMin nCheck")
     def __init__(self) : self.inclusiveGroups = []
