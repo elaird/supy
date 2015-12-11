@@ -169,8 +169,8 @@ class analysis(object) :
                 out.append( (looper, iSlice) )
         return out
 ############
-    def func(self, looper, iSlice) :
-        looper.slice(iSlice)(iSlice)
+    def func(self, looper, iSlice):
+        looper(iSlice)
 ############
     def loop(self) :
         wl = self.workList()
