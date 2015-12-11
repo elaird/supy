@@ -60,7 +60,7 @@ class analysisLooper :
         
     def childName(self, nSlices, iSlice) : return "%s_%d_%d"%(self.name,nSlices,iSlice)
 
-    def slice(self, iSlice):
+    def _slice(self, iSlice):
         nSlices = self.nSlices
         assert 0 <= iSlice < nSlices, "How did you do this?"
         out = copy.deepcopy(self)
@@ -78,17 +78,20 @@ class analysisLooper :
         return out
 
     def __call__(self, iSlice):
-        self.prepareOutputDirectory()
-        self.setupChains()
-        self.setupSteps()
-        self.loop()
-        self.endSteps()
-        self.writeRoot()
-        self.writePickle(iSlice)
-        self.deleteChains()
-        if self.moveOutputFiles:
-            self.moveFiles()
-        if not self.quietMode : print utils.hyphens
+        l = self._slice(iSlice)
+
+        l.prepareOutputDirectory()
+        l.setupChains()
+        l.setupSteps()
+        l.loop()
+        l.endSteps()
+        l.writeRoot()
+        l.writePickle(iSlice)
+        l.deleteChains()
+        if l.moveOutputFiles:
+            l.moveFiles()
+        if not l.quietMode:
+            print utils.hyphens
 
     def loop(self) :
         if self.nEventsMax!=0 :
