@@ -27,8 +27,12 @@ class organizer(object) :
                     [ hist.Scale(  1.0 / sample['nJobs'] ) for hist,sample in zip(self[key],samples) if hist ]
                 elif any([key.startswith(prefix) for prefix in prefixesNoScale]):
                     continue
-                else: [ hist.Scale(sample["xs"]/sample['nEventsIn']) for hist,sample in zip(self[key],samples)
-                        if hist and sample['nEventsIn'] and "xs" in sample ]
+                else:
+                    for hist, sample in zip(self[key], samples):
+                        if hist and "xs" in sample:
+                            hist.Scale(sample["xs"])
+                            if sample['nEventsIn'] and sample["nInDivide"]:
+                                hist.Scale(1.0 / sample['nEventsIn'])
 
         def __str__(self) : return "%s: %s"%self.nameTitle
 
