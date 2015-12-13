@@ -1,4 +1,4 @@
-import copy,os,collections
+import copy,os,collections,math
 import configuration
 from supy import autoBook,wrappedChain,utils,keyTracer
 import ROOT as r
@@ -10,14 +10,27 @@ class analysisLooper :
                  leavesToBlackList=None, moveOutputFiles=None, localStem=None,
                  globalStem=None, subDir=None, steps=None, calculables=None,
                  inputFiles=None, name=None, nEventsMax=None, quietMode=None,
-                 skip=None):
+                 skip=None, nSlicesFixed=None, nEventsPerSlice=None, byEvents=None):
 
         for arg in ["mainTree", "otherTreesToKeepWhenSkimming",
                     "leavesToBlackList", "moveOutputFiles", "localStem",
                     "globalStem", "subDir", "steps", "calculables",
                     "inputFiles", "name", "nEventsMax", "quietMode",
-                    "skip"]:
+                    "skip", "byEvents"]:
             setattr(self, arg, eval(arg))
+
+        if nSlicesFixed is not None:
+            assert nEventsPerSlice is None
+            self.nSlices = nSlicesFixed
+        if nEventsPerSlice is not None:
+            assert nSlicesFixed is None
+            self.byEvents = True  # until "by chunks" is implemented
+            assert 1 <= nEventsPerSlice
+            assert configuration.computeEntriesAtMakeFileList()
+            num = self.nExpect + 0.0
+            self.nSlices = int(math.ceil(num / nEventsPerSlice)) if num else 1
+        assert hasattr(self, "nSlices")
+        assert 1 <= self.nSlices
 
         self.trace = configuration.trace() and not any([step.requiresNoTrace() for step in self.steps])
         self.outputDir = self.globalDir #the value will be modified in self.prepareOutputDirectory()
@@ -46,11 +59,13 @@ class analysisLooper :
         if inter: print "Steps and calculables cannot share names { %s }"%', '.join(n for n in inter)
         
     def childName(self, nSlices, iSlice) : return "%s_%d_%d"%(self.name,nSlices,iSlice)
-    def slice(self, nSlices, iSlice, byEvents):
-        assert iSlice < nSlices, "How did you do this?"
+
+    def _slice(self, iSlice):
+        nSlices = self.nSlices
+        assert 0 <= iSlice < nSlices, "How did you do this?"
         out = copy.deepcopy(self)
 
-        if byEvents:
+        if self.byEvents:
             out.divisor = nSlices
             out.remainder = iSlice
         else:
@@ -62,18 +77,21 @@ class analysisLooper :
         out.outputDir = "/".join([out.outputDir, out.name])
         return out
 
-    def __call__(self) :
-        self.prepareOutputDirectory()
-        self.setupChains()
-        self.setupSteps()
-        self.loop()
-        self.endSteps()
-        self.writeRoot()
-        self.writePickle()
-        self.deleteChains()
-        if self.moveOutputFiles:
-            self.moveFiles()
-        if not self.quietMode : print utils.hyphens
+    def __call__(self, iSlice):
+        s = self._slice(iSlice)
+
+        s.prepareOutputDirectory()
+        s.setupChains()
+        s.setupSteps()
+        s.loop()
+        s.endSteps()
+        s.writeRoot()
+        s.writePickle(iSlice)
+        s.deleteChains()
+        if s.moveOutputFiles:
+            s.moveFiles()
+        if not s.quietMode:
+            print utils.hyphens
 
     def loop(self) :
         if self.nEventsMax!=0 :
@@ -122,7 +140,7 @@ class analysisLooper :
         if not configuration.computeEntriesAtMakeFileList(): return None
         if not len(self.inputFiles): return 0
         nExpect = sum(zip(*self.inputFiles)[1])
-        return nExpect if self.nEventsMax==None else min(nExpect, nEventsMax)
+        return nExpect if self.nEventsMax==None else min(nExpect, self.nEventsMax)
 
     def setupChains(self) :
         assert self.mainTree not in self.otherTreesToKeepWhenSkimming
@@ -206,11 +224,18 @@ class analysisLooper :
         writeFromSteps()
         outputFile.Close()
 
-    def writePickle(self) :
-        def pickleJar(step) :
+    def writePickle(self, iSlice):
+        def pickleJar(step):
             if step.name=='master' and configuration.computeEntriesAtMakeFileList():
-                msg = "Expect: %d, Actual: %d"%(self.nExpect,step.nPass+step.nFail)
-                assert abs(step.nPass + step.nFail - self.nExpect) < 1 , msg
+                if self.byEvents:
+                    nExpect = self.nExpect / self.nSlices
+                    if iSlice < (self.nExpect % self.nSlices):
+                        nExpect += 1
+                else:
+                    nExpect = self.nExpect
+
+                msg = "iSlice: %d, Expect: %d, Actual: %d" % (iSlice, nExpect, step.nPass + step.nFail)
+                assert abs(step.nPass + step.nFail - nExpect) < 1 , msg
             inter = set(step.varsToPickle()).intersection(set(['nPass','nFail','outputFileName']))
             assert not inter, "%s is trying to pickle %s, which %s reserved for use by analysisStep."%(step.name, str(inter), ["is","are"][len(inter)>1])
             return dict([ (item, getattr(step,item)) for item in step.varsToPickle()+['nPass','nFail']] +

@@ -31,8 +31,6 @@ class analysis(object) :
         self.__batch   = options.batch
         self.__resubmit= options.resubmit
         self.__loop    = options.loop
-        self.__nSlices = options.slices
-        self.__byEvents= options.byEvents
         self.__profile = options.profile
         self.__jobId   = options.jobId
         self.__tag     = options.tag
@@ -65,11 +63,17 @@ class analysis(object) :
                 os.system("mkdir -p %s"%self.globalStem)
                 self.makeInputFileLists()
 
-        for conf in self.configurations :
-            self.listsOfLoopers[conf['tag']] = self.sampleLoopers(conf)
-            if self.__jobId==None and self.__loop:
-                for looper in self.listsOfLoopers[conf['tag']] :
-                    utils.writePickle( self.jobsFile(conf['tag'],looper.name,clean=True), self.__nSlices )
+        for conf in self.configurations:
+            if options.slices < 0:
+                nSlicesFixed = None
+                nEventsPerSlice = -options.slices
+            else:
+                nSlicesFixed = options.slices
+                nEventsPerSlice = None
+            self.listsOfLoopers[conf['tag']] = self.sampleLoopers(conf, nSlicesFixed=nSlicesFixed, nEventsPerSlice=nEventsPerSlice, byEvents=options.byEvents)
+            if self.__jobId is None and self.__loop:
+                for looper in self.listsOfLoopers[conf['tag']]:
+                    utils.writePickle(self.jobsFile(conf['tag'], looper.name, clean=True), looper.nSlices)
 
 ############
     @property
@@ -161,17 +165,19 @@ class analysis(object) :
     def workList(self) :
         out = []
         for looper in sum(self.listsOfLoopers.values(), []) :
-            for iSlice in (range(self.__nSlices) if self.__jobId==None else [int(self.__jobId)]) :
+            for iSlice in (range(looper.nSlices) if self.__jobId==None else [int(self.__jobId)]) :
                 out.append( (looper, iSlice) )
         return out
 ############
-    def func(self, looper, iSlice) :
-        looper.slice(self.__nSlices, iSlice, self.__byEvents)()
+    def func(self, looper, iSlice):
+        looper(iSlice)
 ############
     def loop(self) :
         wl = self.workList()
         
-        if self.__jobId!=None : self.func(*(wl[0]))
+        if self.__jobId is not None:
+            assert wl
+            self.func(*(wl[0]))
         elif not self.__profile : utils.operateOnListUsingQueue(self.__loop, utils.qWorker(self.func), wl)
         else :
             import cProfile
@@ -182,13 +188,16 @@ class analysis(object) :
         for looper,iSlice in self.listOfLoopersForProf :
             self.func(looper, iSlice)
 ############
-    def sampleLoopers(self, conf) :
-
-        def parseForNumberEvents(spec,tup,nFiles,nSlices) :
+    def sampleLoopers(self, conf, nSlicesFixed=None, nEventsPerSlice=None, byEvents=None):
+        def parseForNumberEvents(spec, tup, nFiles, nSlicesFixed, nEventsPerSlice):
             if not spec.effectiveLumi : return (spec.nEventsMax,nFiles)
+            if nEventsPerSlice:
+                print "Warning: effectiveLumi ignored in favor of nEventsPerSlice."
+                return (spec.nEventsMax, nFiles)
+
             if spec.nEventsMax>=0: print "Warning: %s nEventsMax ignored in favor of effectiveLumi."%spec.weightedName
             assert not tup.lumi, "Cannot calculate effectiveLumi for _data_ sample %s"%spec.weightedName
-            nJobs = min(nFiles, nSlices)
+            nJobs = min(nFiles, nSlicesFixed)
             nEventsTotal = spec.effectiveLumi * tup.xs
             if nEventsTotal < nJobs : return (1,int(nEventsTotal+0.9))
             return (1+int(nEventsTotal/nJobs), nFiles)
@@ -217,7 +226,7 @@ class analysis(object) :
             pars = dict( list(conf.iteritems()) + [("baseSample",spec.name), ("sample",spec.weightedName) ] )
             tup = self.sampleDict[spec.name]
             inputFiles = utils.readPickle(self.inputFilesListFile(spec.name), "Have you looped?")[:spec.nFilesMax]
-            nEventsMax,nFilesMax = parseForNumberEvents(spec, tup, len(inputFiles), self.__nSlices)
+            nEventsMax,nFilesMax = parseForNumberEvents(spec, tup, len(inputFiles), nSlicesFixed, nEventsPerSlice)
             inputFiles = inputFiles[:nFilesMax]
 
             adjustedSteps = ([steps.master(xs = tup.xs, xsPostWeights = spec.xsPostWeights,
@@ -244,6 +253,9 @@ class analysis(object) :
                                   globalStem=self.globalStem,
                                   quietMode=(self.__loop > 1) or self.__quiet,
                                   skip=self.__skip,
+                                  nSlicesFixed=nSlicesFixed,
+                                  nEventsPerSlice=nEventsPerSlice,
+                                  byEvents=byEvents,
                                   )
         sampleNames = set()
         return [ looper(sampleSpec) for sampleSpec in self.filteredSamples(conf) ]
@@ -256,9 +268,9 @@ class analysis(object) :
 
     def mergeOutput(self,tag,looper) :
         if not os.path.exists(self.jobsFile(tag,looper.name)) : return
-        nSlices = utils.readPickle(self.jobsFile(tag,looper.name))
-        incompleteSlices = looper.incompleteSlices(nSlices)
+        nSlices = utils.readPickle(self.jobsFile(tag,looper.name))  # number of slices used when --loop was passed
 
+        incompleteSlices = looper.incompleteSlices(nSlices)
         if not incompleteSlices:
             looper.mergeFunc(nSlices)
 

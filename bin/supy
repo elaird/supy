@@ -54,12 +54,12 @@ def doBatch(someInstance) :
     for conf in someInstance.configurations :
         for looper in someInstance.listsOfLoopers[conf['tag']] :
             os.system("mkdir -p %s/%s/%s"%(scriptDir,conf['tag'], looper.name))
-            for iSlice in range(options.slices):
+            for iSlice in range(looper.nSlices):
                 listOfIndices = {"base": scriptDir,
                                  "tag": conf['tag'],
                                  "analysis": someInstance.name,
                                  "sample": looper.name,
-                                 "nSlices": options.slices,
+                                 "nSlices": looper.nSlices,
                                  "iSlice": iSlice,
                                  "site": site,
                                  }
