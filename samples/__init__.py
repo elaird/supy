@@ -17,10 +17,12 @@ def specify(names=[], overrideLumi=None, xsPostWeights=None, effectiveLumi=None,
     assert not (overrideLumi and type(names)==list)
     if type(names) != list : names = [names]
     if type(weights) != list : weights = [weights]
-    if not nInDivide:  # all events are required for correct normalization
-        assert nFilesMax is None
-        assert nEventsMax is None
-        assert effectiveLumi is None
+
+    if not nInDivide:  # typically, all events are required for correct normalization
+        for s in ["nFilesMax", "nEventsMax", "effectiveLumi"]:
+            x = eval(s)
+            if x is not None:
+                print "WARNING: nInDivide=False, but %s=%s (%s)" % (s, x, str(names))
 
     samplespec = collections.namedtuple("samplespec", "name weightedName overrideLumi xsPostWeights effectiveLumi nFilesMax nEventsMax weights nInDivide color markerStyle")
     weightNames = [w if type(w)==str else w.name for w in weights]
