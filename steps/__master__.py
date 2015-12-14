@@ -15,7 +15,7 @@ class master(supy.analysisStep) :
     @property
     def failString(self):
         # %g handles 'float epsilon less than nearest int' better than %d
-        return "[-]" if self.disabled else "[n=%g]" % self.nProcessed
+        return "[-]" if self.disabled else "[nIn=%g]" % self.nProcessed
 
     def select (self, eventVars) :
         weight = eventVars["weight"]
