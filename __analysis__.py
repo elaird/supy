@@ -16,7 +16,7 @@ class analysis(object) :
     def listOfSampleDictionaries(self) : raise Exception("NotImplemented", "Implement a member function %s"%"sampleDict(self)")
     def listOfSamples(self,config) :     raise Exception("NotImplemented", "Implement a member function %s"%"listOfSamples(self,config)")
 
-    def mainTree(self, *_) : return configuration.mainTree()  # hack to ignore tag by default
+    def mainTree(self) : return configuration.mainTree()
     def otherTreesToKeepWhenSkimming(self) : return configuration.otherTreesToKeepWhenSkimming()
     def useCachedFileLists(self) : return configuration.useCachedFileLists()
     def leavesToBlackList(self) : return configuration.leavesToBlackList()
@@ -237,7 +237,7 @@ class analysis(object) :
             assert not nonSteps, "\n\nWarning, the following items from listOfSteps() are not analysisSteps:\n"+('\n'.join(' '+str(s) for s in nonSteps))
             for step in filter(lambda s: s.only not in ['','data' if tup.lumi else 'sim'], adjustedSteps) : step.disabled = True
 
-            return analysisLooper(mainTree=self.mainTree(conf["tag"]),  # hack (see def mainTree() above)
+            return analysisLooper(mainTree=self.mainTree(),
                                   otherTreesToKeepWhenSkimming=self.otherTreesToKeepWhenSkimming(),
                                   nEventsMax=nEventsMax,
                                   leavesToBlackList=self.leavesToBlackList(),
@@ -304,9 +304,9 @@ class analysis(object) :
             
         confLoopers = []
         for conf in self.readyConfs:
-            ll = self.listsOfLoopers[conf['tag']]
-            if ll:
-                confLoopers.append((conf, ll[0]))
+            looper_list = self.listsOfLoopers[conf['tag']]
+            if looper_list:
+                confLoopers.append((conf, looper_list[0]))
         for _,looper in confLoopers : looper.setupSteps(minimal = True, withBook = False)
         args = sum([[(conf,secondary) for secondary in filter(self.isSecondary, looper.steps[:self.indexOfInvertedLabel(looper.steps)])] for conf,looper in confLoopers],[])
         if reports==True :

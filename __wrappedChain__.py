@@ -63,7 +63,7 @@ class wrappedChain(dict) :
                 continue
 
             for iTreeEntry in range( nTreeEntries )  :
-                if (not nTree) and tree and iTreeEntry==100 : tree.StopCacheLearningPhase()
+                if (not nTree) and iTreeEntry==100 and tree : tree.StopCacheLearningPhase()
                 self.entry = iTreeFirstEntry + iTreeEntry
                 if nEntries!=None and nEntries <= self.entry : self.entry-=1; return
                 self.__localEntry = iTreeEntry

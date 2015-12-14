@@ -78,19 +78,19 @@ class analysisLooper :
         return out
 
     def __call__(self, iSlice):
-        l = self._slice(iSlice)
+        s = self._slice(iSlice)
 
-        l.prepareOutputDirectory()
-        l.setupChains()
-        l.setupSteps()
-        l.loop()
-        l.endSteps()
-        l.writeRoot()
-        l.writePickle(iSlice)
-        l.deleteChains()
-        if l.moveOutputFiles:
-            l.moveFiles()
-        if not l.quietMode:
+        s.prepareOutputDirectory()
+        s.setupChains()
+        s.setupSteps()
+        s.loop()
+        s.endSteps()
+        s.writeRoot()
+        s.writePickle(iSlice)
+        s.deleteChains()
+        if s.moveOutputFiles:
+            s.moveFiles()
+        if not s.quietMode:
             print utils.hyphens
 
     def loop(self) :

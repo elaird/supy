@@ -20,16 +20,6 @@ def combineBinContentAndError(histo, binToContainCombo, binToBeKilled) :
     histo.SetBinError(binToContainCombo, math.sqrt(xflowError**2+currentError**2))
 
 
-def mcLumi(nEvents=None, w=None, xs=None, nInDivide=None):
-    """see docs/mcLumi.txt"""
-    if not w*xs:
-        return 0.0
-    if nInDivide:
-        return nEvents**2/(w*xs)
-    else:
-        return nEvents/(w*xs)
-
-
 def sampleName(sample):
     if len(sample.get("sources", [])) == 1:
         return sample["sources"][0]["name"]
@@ -41,17 +31,16 @@ def sampleInfo(samples, trim=""):
     out = []
     for sample in samples:
         if "xs" in sample:
-            if sample["nInDivide"]:
-                xs = sample["xs"]
-            else:
-                xs = sample["xs"] * sample["weightIn"]
-            lumi = mcLumi(nEvents=sample["nEventsIn"],
-                          w=sample["weightIn"],
-                          xs=sample["xs"],
-                          nInDivide=sample["nInDivide"],
-                          )
+            xsIn = sample["xs"]
+            xsEff = sample["xs"] * sample["weightIn"]
+            if sample["nInDivide"] and sample["nEventsIn"]:
+                xsEff /= sample["nEventsIn"]
+
+            # see docs/mcLumi.txt
+            lumi = sample["nEventsIn"] / xsEff if xsEff else 0.0
         elif "lumi" in sample:
-            xs = None
+            xsIn = None
+            xsEff = None
             lumi = sample["lumi"]
         else:
             assert False, sample
@@ -61,10 +50,11 @@ def sampleInfo(samples, trim=""):
             name = name.replace(trim, "")
 
         out.append((name,
-                    "%d" % sample['nEventsIn'],
+                    "%g" % sample['nEventsIn'],  # %g handles 'float epsilon less than nearest int' better than %d
                     "%3.2e" % sample['weightIn'],
                     "%3.2e" % (lumi/1.0e3),
-                    "%3.2e%s" % (xs*1.0e3, " " if sample["nInDivide"] else "*") if xs is not None else "",
+                    "%3.2e" % (xsIn*1.0e3) if xsIn is not None else "",
+                    "%3.2e" % (xsEff*1.0e3) if xsEff is not None else "",
                     ))
     return out
 
@@ -517,7 +507,7 @@ class plotter(object) :
         text.SetTextSize(0.38*text.GetTextSize())
         defSize = text.GetTextSize()
 
-        rows = [("name", "nEventsIn", "weightIn", "lumi(/fb)", "xs(fb)")] + rows
+        rows = [("name", "nEventsIn", "weightIn", "lumi(/fb)", "xsIn(fb)", "xsEff(fb)")] + rows
         realRows = filter(lambda x: len(x[1]), rows)
         if len(realRows) == 1:
             return
