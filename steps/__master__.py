@@ -3,7 +3,20 @@ import supy,os,configuration
 class master(supy.analysisStep) :
     def __init__(self, xs, xsPostWeights, lumi, lumiWarn) :
         for item in ["xs", "xsPostWeights", "lumi", "lumiWarn"] : setattr(self, item, eval(item))
-        
+
+    @property
+    def nProcessed(self):
+        # See select() below, which results in either
+        # a) incrementing wFail by 1; or
+        # b) incrementing wPass by weight, and incrementing wFail by 1 - weight.
+        # In either case, a unit of content is added to (wPass + wFail).
+        return self.wPass + self.wFail
+
+    @property
+    def failString(self):
+        # %g handles 'float epsilon less than nearest int' better than %d
+        return "[-]" if self.disabled else "[n=%g]" % self.nProcessed
+
     def select (self, eventVars) :
         weight = eventVars["weight"]
         if weight is None : self.book.weight = 1
