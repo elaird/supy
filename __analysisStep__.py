@@ -50,9 +50,13 @@ class analysisStep(object) :
     @property
     def isSelector(self) : return hasattr(self,"select")
     @property
-    def nFail(self) : return self.book["counts"].GetBinContent(1) if "counts" in self.book else 0.0
+    def wFail(self) : return self.book["counts"].GetBinContent(1) if "counts" in self.book else 0.0
     @property
-    def nPass(self) : return self.book["counts"].GetBinContent(2) if "counts" in self.book else 0.0
+    def wPass(self) : return self.book["counts"].GetBinContent(2) if "counts" in self.book else 0.0
+    @property
+    def passString(self) : return "-" if self.disabled else "%8g" % self.wPass
+    @property
+    def failString(self) : return "-" if self.disabled else "(%8g)" % self.wFail
 
     def increment(self, passed, w = None) : self.book.fill(passed, "counts", 2, 0, 2, w = w)
     def setOutputFileStem(self, stem) : self.__outputFileStem = stem
@@ -83,11 +87,8 @@ class analysisStep(object) :
 
     def name1(self) : return self.name.ljust(self.docWidth)+self.moreName.ljust(self.moreWidth)
     def name2(self) : return "" if self.moreName2=="" else "\n"+"".ljust(self.docWidth)+self.moreName2.ljust(self.moreWidth)
-    def printStatistics(self) :
-        passString="-" if self.disabled else str(int(self.nPass))
-        failString="-" if self.disabled else str(int(self.nFail))
-
+    def printStatistics(self):
         statString = "" if not hasattr(self,"select") else \
-                     "  %s %s" % ( passString.rjust(self.integerWidth), ("("+failString+")").rjust(self.integerWidth+2) )
+                     "  %s %s" % ( self.passString.rjust(self.integerWidth), self.failString.rjust(self.integerWidth+2) )
         print "%s%s%s" % (self.name1(),self.name2(),statString)
 #####################################

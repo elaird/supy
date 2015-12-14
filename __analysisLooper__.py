@@ -234,11 +234,11 @@ class analysisLooper :
                 else:
                     nExpect = self.nExpect
 
-                msg = "iSlice: %d, Expect: %d, Actual: %d" % (iSlice, nExpect, step.nPass + step.nFail)
-                assert abs(step.nPass + step.nFail - nExpect) < 1 , msg
-            inter = set(step.varsToPickle()).intersection(set(['nPass','nFail','outputFileName']))
+                msg = "iSlice: %d, Expect: %d, Actual: %d" % (iSlice, nExpect, step.nProcessed)
+                assert abs(step.nProcessed - nExpect) < 1 , msg
+            inter = set(step.varsToPickle()).intersection(set(['wPass', 'wFail', 'outputFileName']))
             assert not inter, "%s is trying to pickle %s, which %s reserved for use by analysisStep."%(step.name, str(inter), ["is","are"][len(inter)>1])
-            return dict([ (item, getattr(step,item)) for item in step.varsToPickle()+['nPass','nFail']] +
+            return dict([ (item, getattr(step,item)) for item in step.varsToPickle()+['wPass', 'wFail']] +
                         [('outputFileName', getattr(step,'outputFileName').replace(self.outputDir, self.globalDir))])
 
         utils.writePickle( self.pickleFileName,
@@ -280,8 +280,8 @@ class analysisLooper :
                 for key,val in data.iteritems() : stepDict[key].append(val)
     
         for step,stepDict in filter(lambda s: s[0].isSelector, zip(self.steps, products)) :
-            step.increment(True, sum(stepDict["nPass"]))
-            step.increment(False,sum(stepDict["nFail"]))
+            step.increment(True, sum(stepDict["wPass"]))
+            step.increment(False,sum(stepDict["wFail"]))
 
         self.printStats()
         for iStep,step,stepDict in zip(range(len(self.steps)),self.steps,products) :
@@ -312,7 +312,7 @@ class analysisLooper :
         if not len(self.steps) : return
         print utils.hyphens
         width = self.steps[0].integerWidth
-        print "Steps:%s" % ("nPass ".rjust(width) + "(nFail)".rjust(width+2)).rjust(len(utils.hyphens)-len("Steps:"))
+        print "Steps:%s" % ("wPass ".rjust(width) + "(wFail)".rjust(width+2)).rjust(len(utils.hyphens)-len("Steps:"))
         for step in self.steps :
             step.printStatistics()
         print utils.hyphens
