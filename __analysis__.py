@@ -169,8 +169,8 @@ class analysis(object) :
                 out.append( (looper, iSlice) )
         return out
 ############
-    def func(self, looper, iSlice) :
-        looper.slice(iSlice)()
+    def func(self, looper, iSlice):
+        looper(iSlice)
 ############
     def loop(self) :
         wl = self.workList()
@@ -304,9 +304,9 @@ class analysis(object) :
             
         confLoopers = []
         for conf in self.readyConfs:
-            ll = self.listsOfLoopers[conf['tag']]
-            if ll:
-                confLoopers.append((conf, ll[0]))
+            looper_list = self.listsOfLoopers[conf['tag']]
+            if looper_list:
+                confLoopers.append((conf, looper_list[0]))
         for _,looper in confLoopers : looper.setupSteps(minimal = True, withBook = False)
         args = sum([[(conf,secondary) for secondary in filter(self.isSecondary, looper.steps[:self.indexOfInvertedLabel(looper.steps)])] for conf,looper in confLoopers],[])
         if reports==True :
