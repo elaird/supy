@@ -37,7 +37,7 @@ def sampleInfo(samples, trim=""):
                 xsEff /= sample["nEventsIn"]
 
             # see docs/mcLumi.txt
-            lumi = sample["nEventsIn"] / xsEff if xsEff else None
+            lumi = sample["nEventsIn"] / xsEff if xsEff else 0.0
         elif "lumi" in sample:
             xsIn = None
             xsEff = None
