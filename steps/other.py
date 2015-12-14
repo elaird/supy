@@ -50,11 +50,9 @@ class skimmer(analysisStep):
         assert mainChain or extraVars
         self.outputTree = None
         self.moreName = "(see below)"
-        for var in ["mainChain", "otherChains", "extraVars"]:
+        for var in ["mainChain", "otherChains", "extraVars", "haddOutput", "suffix"]:
             setattr(self, var, eval(var))
         self.addresses = None
-        self.haddOutput = haddOutput
-        self.suffix = suffix
 
     def requiresNoSetBranchAddress(self):
         return True  # check
